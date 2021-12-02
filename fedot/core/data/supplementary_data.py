@@ -23,6 +23,8 @@ class SupplementaryData:
     previous_operations: Optional[list] = None
     # Is there a data was preprocessed or not
     was_preprocessed: bool = False
+    # Collection with non-int indexes
+    non_int_idx = None
 
     def calculate_data_flow_len(self, outputs):
         """ Method for calculating data flow length (amount of visited nodes)

@@ -17,7 +17,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
@@ -137,6 +137,24 @@ def test_ts_models_fit_correct():
 
         mae_threshold = np.var(test_data.target) * 2
         assert mae_value_test < mae_threshold
+
+
+def test_ts_models_dt_idx_fit_correct():
+    """Test to check if all time series models fit correct with datetime indexes"""
+    train_data, test_data = get_ts_data_with_dt_idx(forecast_length=5)
+    logger = default_log('default_test_logger')
+
+    with OperationTypesRepository() as repo:
+        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                                 tags=['time_series'])
+
+    for model_name in model_names:
+        logger.info(f"Test time series model: {model_name}.")
+        node = PrimaryNode(model_name)
+        pipeline = Pipeline(node)
+
+        pipeline.fit(deepcopy(train_data))
+        pipeline.predict(test_data)
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

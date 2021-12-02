@@ -14,7 +14,6 @@ from fedot.core.data.data import InputData, OutputData
 
 
 class LaggedImplementation(DataOperationImplementation):
-
     def __init__(self, log: Log = None, **params):
         super().__init__()
 
@@ -65,7 +64,8 @@ class LaggedImplementation(DataOperationImplementation):
             # Prepare features for training
             new_idx, self.features_columns = ts_to_table(idx=old_idx,
                                                          time_series=features,
-                                                         window_size=self.window_size)
+                                                         window_size=self.window_size,
+                                                         is_lag=True)
 
             # Sparsing matrix of lagged features
             if self.sparse_transform:
@@ -371,12 +371,14 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     return window_size, was_changed
 
 
-def ts_to_table(idx, time_series: np.array, window_size: int):
+def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     """ Method convert time series to lagged form.
 
     :param idx: the indices of the time series to convert
     :param time_series: source time series
     :param window_size: size of sliding window, which defines lag
+    :param is_lag: is function used for lagged transformation.
+    False needs to convert one dimensional output to lagged form.
 
     :return updated_idx: clipped indices of time series
     :return features_columns: lagged time series feature table
@@ -398,9 +400,10 @@ def ts_to_table(idx, time_series: np.array, window_size: int):
     # Generate dataset with features
     features_columns = np.fliplr(features_columns)
 
-    # First n elements in time series are removed
-    updated_idx = idx[window_size:]
-
+    if is_lag:
+        updated_idx = idx[window_size:]
+    else:
+        updated_idx = idx[:idx.shape[0]-window_size]
     return updated_idx, features_columns
 
 

@@ -27,7 +27,7 @@ def polyfit_ridge_pipeline(degree):
     return Pipeline(node_ridge1)
 
 
-def run_experiment_with_polyfit(time_series, len_forecast=250,
+def run_experiment_with_polyfit(time_series, raw_model=False, len_forecast=250,
                                 degree=2):
     """ Function with example how time series trend could be approximated by a polynomial function
     for next extrapolation. Try different degree params to see a difference.
@@ -40,36 +40,41 @@ def run_experiment_with_polyfit(time_series, len_forecast=250,
     # Let's divide our data on train and test samples
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
-
-    train_input = InputData(idx=np.arange(0, len(time_series)),
+    idx = pd.to_datetime(time_series["Month"].values)
+    time_series = time_series["Monthly beer production"].values
+    train_input = InputData(idx=idx,
                             features=time_series,
                             target=time_series,
                             task=task,
                             data_type=DataTypesEnum.ts)
     train_data, test_data = train_test_data_setup(train_input)
 
-    pipeline = polyfit_pipeline(degree)
+    if raw_model:
+        pipeline = polyfit_pipeline(degree)
+    else:
+        pipeline = polyfit_ridge_pipeline(degree)
     pipeline.fit(train_data)
 
-    predict = np.ravel(np.array(pipeline.predict(test_data).predict))
+    prediction = pipeline.predict(test_data)
+    predict = np.ravel(np.array(prediction.predict))
     test_target = np.ravel(test_data.target)
 
-    rmse_before = mean_squared_error(test_target, predict, squared=False)
-    mae_before = mean_absolute_error(test_target, predict)
-    print(f'RMSE before tuning - {rmse_before:.4f}')
-    print(f'MAE before tuning - {mae_before:.4f}\n')
+    rmse = mean_squared_error(test_target, predict, squared=False)
+    mae = mean_absolute_error(test_target, predict)
+    print(f'RMSE- {rmse:.4f}')
+    print(f'MAE- {mae:.4f}\n')
 
     pipeline.print_structure()
-    plt.plot(range(0, len(time_series)), time_series, label='Actual time series')
-    plt.plot(range(len(test_data.features), len(time_series)), predict, label='Forecast with polyfit')
+    plt.plot(idx, time_series, label='Actual time series')
+    plt.plot(prediction.idx, predict, label='Forecast ')
     plt.legend()
     plt.grid()
     plt.show()
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../data/beer.csv')
-    time_series = np.array(df.iloc[:, -1])
+    time_series = pd.read_csv('../data/beer.csv')
     run_experiment_with_polyfit(time_series,
+                                raw_model=False,
                                 len_forecast=50,
                                 degree=2)

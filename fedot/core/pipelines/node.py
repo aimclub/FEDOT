@@ -99,16 +99,10 @@ class Node(GraphNode):
             changed_param_names = returned_params[1]
             # Parameters were changed during the Implementation fitting
             if self.custom_params != DEFAULT_PARAMS_STUB:
-                current_params = self.custom_params
-                # Delete keys from source params
-                for changed_param in changed_param_names:
-                    current_params.pop(changed_param, None)
-
                 # Take only changed parameters from returned ones
                 changed_params = {key: params_dict[key] for key in changed_param_names}
 
-                filtered_params = {**current_params, **changed_params}
-                return filtered_params
+                return changed_params
             else:
                 # Default parameters were changed
                 changed_params = {key: params_dict[key] for key in changed_param_names}
@@ -199,6 +193,9 @@ class Node(GraphNode):
                 default_params = get_default_params(self.operation.operation_type)
                 if default_params is not None:
                     params = {**default_params, **params}
+                # take nested composer params if they appeared
+                if 'nested_space' in params:
+                    params = params['nested_space']
             self.content.update({'params': params})
 
     def __str__(self):

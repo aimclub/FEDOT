@@ -15,12 +15,15 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     CutImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
+    GLMImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from test.unit.tasks.test_forecasting import get_ts_data_with_dt_idx
 
 np.random.seed(2021)
 
@@ -58,8 +61,6 @@ def get_small_classification_dataset():
                                                                   samples_amount=70,
                                                                   features_amount=4,
                                                                   classes_amount=2)
-    y_train = y_train.reshape((-1, 1))
-    y_test = y_test.reshape((-1, 1))
     # Define regression task
     task = Task(TaskTypesEnum.classification)
 
@@ -349,6 +350,58 @@ def test_knn_with_float_neighbors():
 
     pipeline.fit(input_data)
     pipeline.predict(input_data)
+
+
+def generate_simple_series():
+    y = np.arange(11) + np.random.normal(loc=0, scale=0.1, size=11)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=2))
+    i_d = InputData(idx=np.arange(11),
+                    features=y,
+                    target=y,
+                    task=task,
+                    data_type=DataTypesEnum.ts
+                    )
+    return i_d
+
+
+def test_glm_indexes_correct():
+    """
+    Test  checks correct indexing after performing non-lagged operation.
+    For example we generate time series [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    and use GLM as estimator
+
+    output should looks like
+    [
+    [0+N(0, 0.1), 1+N(0, 0.1)],
+    [1+N(0, 0.1), 2+N(0, 0.1)],
+    [2+N(0, 0.1), 3+N(0, 0.1)],
+    [3+N(0, 0.1), 4+N(0, 0.1)],
+    [4+N(0, 0.1), 5+N(0, 0.1)],
+    [5+N(0, 0.1), 6+N(0, 0.1)],
+    [6+N(0, 0.1), 7+N(0, 0.1)],
+    [7+N(0, 0.1), 8+N(0, 0.1)],
+    [8+N(0, 0.1 9+N(0, 0.1)]
+    ]
+
+    and indexes look like [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    """
+    input_data = generate_simple_series()
+    glm_impl = GLMImplementation(family="gaussian", link="identity")
+    glm_impl.fit(input_data)
+    predicted = glm_impl.predict(input_data, is_fit_pipeline_stage=True)
+    pred_values = predicted.predict
+    for i in range(9):
+        assert pred_values[i, 0] - i < 0.5
+        assert predicted.idx[i] - pred_values[i, 0] < 0.5
+
+
+def test_correct_datetime_indexes():
+    input_data, _ = get_ts_data_with_dt_idx()
+    glm_pipeline = Pipeline(PrimaryNode("glm"))
+    glm_pipeline.fit(input_data)
+    predicted = glm_pipeline.predict(input_data)
+    assert np.all(predicted.idx == input_data.idx)
 
 
 def test_imputation_with_binary_correct():

@@ -16,7 +16,8 @@ from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sampl
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.utilities.synth_dataset_generator import generate_synthetic_data
-from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations import ARIMAImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
+    ARIMAImplementation
 from fedot.core.utils import fedot_project_root
 
 np.random.seed(42)
@@ -44,6 +45,30 @@ def get_ts_data(n_steps=80, forecast_length=5):
                 TsForecastingParams(forecast_length=forecast_length))
 
     data = InputData(idx=np.arange(0, len(time_series)),
+                     features=time_series,
+                     target=time_series,
+                     task=task,
+                     data_type=DataTypesEnum.ts)
+    return train_test_data_setup(data)
+
+
+def get_ts_data_with_dt_idx(n_steps=80, forecast_length=5):
+    """ Prepare data from csv file with time series and take needed number of
+    elements with datetime indexes
+
+    :param n_steps: number of elements in time series to take
+    :param forecast_length: the length of forecast
+    """
+    project_root_path = str(fedot_project_root())
+    file_path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
+    df = pd.read_csv(file_path)
+
+    time_series = np.array(df.iloc[:n_steps, 1])
+    idx = pd.to_datetime(df.iloc[:n_steps, 0]).values
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
+
+    data = InputData(idx=idx,
                      features=time_series,
                      target=time_series,
                      task=task,

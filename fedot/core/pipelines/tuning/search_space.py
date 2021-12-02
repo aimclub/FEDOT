@@ -127,6 +127,38 @@ class SearchSpace:
                 'lag_1': (hp.uniform, [2, 200]),
                 'lag_2': (hp.uniform, [2, 800])
             },
+            'glm': {'nested_space': (hp.choice, [[
+                {
+                    'family': 'gaussian',
+                    'link': hp.choice('link_gaussian', ['identity',
+                                                        'inverse_power',
+                                                        'log'])
+                },
+                {
+                    'family': 'gamma',
+                    'link': hp.choice('link_gamma', ['identity',
+                                                     'inverse_power',
+                                                     'log'])
+                },
+                {
+                    'family': 'inverse_gaussian',
+                    'link': hp.choice('link_inv_gaussian', ['identity',
+                                                            'inverse_power',
+                                                            'inverse_squared'])
+                },
+                {
+                    'family': 'poisson',
+                    'link': hp.choice('link_poisson', ['identity',
+                                                       'sqrt',
+                                                       'log'])
+                },
+                {
+                    'family': 'tweedie',
+                    'link': hp.choice('link_tweedie', ['power',
+                                                       'log'])
+                }
+
+            ]])},
             'clstm': {
                 'window_size': (hp.uniform, [1, 200]),
                 'hidden_size': (hp.uniform, [20, 200]),

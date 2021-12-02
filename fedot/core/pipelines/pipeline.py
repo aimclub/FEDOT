@@ -5,6 +5,7 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
+
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
@@ -166,6 +167,10 @@ class Pipeline(Graph):
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
                                                                        data=copied_input_data)
 
+        copied_input_data = self.preprocessor.resolve_indexes_for_fit(
+            pipeline=self,
+            data=copied_input_data)
+
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
@@ -220,11 +225,15 @@ class Pipeline(Graph):
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
                                                                            data=copied_input_data)
+        copied_input_data = self.preprocessor.resolve_indexes_for_predict(
+            pipeline=self,
+            data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
 
+        result = self.preprocessor.restore_index(copied_input_data, result)
         # Prediction should be converted into source labels (if it is needed)
         if output_mode == 'labels':
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)

@@ -407,6 +407,38 @@ def test_save_pipeline_with_np_int_type():
     pipeline.save(path='test_save_pipeline_with_np_int_type')
 
 
+
+# @pytest.mark.skip('Implementation of preprocessing serialization in progress')
+def test_pipeline_with_preprocessing_serialized_correctly():
+    """
+    Pipeline with preprocessing blocks must be serializable as well as any other pipeline.
+    Pipeline doesn't contain any preprocessing operation in its structure. So, imputation and gap-filling
+    (imputation) should be performed as preprocessing
+    """
+    save_path = 'test_pipeline_with_preprocessing_serialized_correctly'
+
+    scaling_node = PrimaryNode('scaling')
+    single_node_pipeline = Pipeline(SecondaryNode('ridge', nodes_from=[scaling_node]))
+
+    mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
+                                 extended=True)
+
+    # Calculate metric before serialization
+    single_node_pipeline.fit(mixed_input)
+    before_output = single_node_pipeline.predict(mixed_input)
+    mae_before = mean_absolute_error(mixed_input.target, before_output.predict)
+
+    single_node_pipeline.save(path=save_path)
+
+    pipeline_after = Pipeline()
+    pipeline_after.load(create_correct_path(save_path))
+
+    after_output = pipeline_after.predict(mixed_input)
+    mae_after = mean_absolute_error(mixed_input.target, after_output.predict)
+
+    assert np.isclose(mae_before, mae_after)
+
+
 # @pytest.mark.skip('Implementation of preprocessing serialization in progress')
 def test_pipeline_with_preprocessing_serialized_correctly():
     """

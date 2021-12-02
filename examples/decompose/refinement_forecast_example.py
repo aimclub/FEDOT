@@ -104,6 +104,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     # Read dataframe
     df = pd.read_csv(path_to_file)
     time_series = np.array(df['value'])
+    idx = np.array(pd.to_datetime(df['datetime']))
     # 3 folds for validation
     horizon = len_forecast * validation_blocks
 
@@ -113,7 +114,7 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     simple_pipeline = get_non_refinement_pipeline(lagged)
 
     train_input, predict_input = train_test_data_setup(
-        InputData(idx=range(len(time_series)),
+        InputData(idx=idx,
                   features=time_series,
                   target=time_series,
                   task=Task(TaskTypesEnum.ts_forecasting,
@@ -127,8 +128,8 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     display_metrics(predict_input, predicted_values, pipeline_name='with decomposition')
 
     # Range for visualisation
-    ids_for_test = range(len(train_input.target), len(time_series))
-    plt.plot(time_series, label='Actual time series')
+    ids_for_test = idx[range(len(train_input.target), len(time_series))]
+    plt.plot(idx, time_series, label='Actual time series')
     plt.plot(ids_for_test, predicted_values, label='With decomposition')
 
     if vis_with_decompose:
@@ -150,10 +151,10 @@ def run_refinement_forecast(path_to_file, len_forecast=100, lagged=150,
     i = len(train_input.target)
     for _ in range(0, validation_blocks):
         deviation = np.std(predicted_values)
-        plt.plot([i, i], [min(predicted_values) - deviation, max(predicted_values) + deviation],
+        plt.plot([idx[i], idx[i]], [min(predicted_values) - deviation, max(predicted_values) + deviation],
                  c='black', linewidth=1)
         i += len_forecast
-
+    plt.grid()
     plt.legend()
     plt.show()
 

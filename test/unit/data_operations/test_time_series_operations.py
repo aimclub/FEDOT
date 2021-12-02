@@ -78,10 +78,10 @@ def synthetic_with_exogenous_ts():
 def test_ts_to_lagged_table():
     # Check first step - lagged transformation of features
     train_input, _, _ = synthetic_univariate_ts()
-
     new_idx, lagged_table = ts_to_table(idx=train_input.idx,
                                         time_series=train_input.features,
-                                        window_size=window_size)
+                                        window_size=window_size,
+                                        is_lag=True)
 
     correct_lagged_table = ((0., 10., 20., 30.),
                             (10., 20., 30., 40.),
