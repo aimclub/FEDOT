@@ -7,10 +7,10 @@ from .json_helpers import dump_path_to_obj
 ClassOrFuncObject = TypeVar('ClassOrFuncObject')
 
 
-def any_to_json(object: ClassOrFuncObject) -> Dict[str, Any]:
+def any_to_json(obj: ClassOrFuncObject) -> Dict[str, Any]:
     return {
-        **{k: v for k, v in vars(object).items() if k != 'log'},
-        **dump_path_to_obj(object)
+        **{k: v for k, v in vars(obj).items() if k != 'log'},
+        **dump_path_to_obj(obj)
     }
 
 
