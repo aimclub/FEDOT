@@ -115,10 +115,10 @@ def data_with_categorical_target(with_nan: bool = False):
     :param with_nan: is there a need to generate target column with np.nan
     """
     task = Task(TaskTypesEnum.classification)
-    features = np.array([[0, 1],
-                         [1, 0],
-                         [8, 9],
-                         [9, 8]])
+    features = np.array([[0, 0],
+                         [0, 1],
+                         [9, 9],
+                         [9, 9]])
     if with_nan:
         target = np.array(['blue', np.nan, np.nan, 'di'], dtype=object)
     else:
@@ -149,12 +149,11 @@ def test_categorical_target_processed_correctly():
     into integer values and then perform inverse operation. API tested in this
     test.
     """
-
     classification_data = data_with_categorical_target()
     train_data, test_data = train_test_data_setup(classification_data)
 
-    fedot_model = Fedot(problem='classification', composer_params=composer_params)
-    fedot_model.fit(train_data)
+    fedot_model = Fedot(problem='classification')
+    fedot_model.fit(train_data, predefined_model='auto')
     predicted = fedot_model.predict(test_data)
 
     # Predicted label must be close to 'di' label (so, right prediction is 'ba')
