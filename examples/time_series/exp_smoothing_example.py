@@ -100,5 +100,5 @@ def run_experiment_with_ets(time_series, raw_model=False, len_forecast=250):
 if __name__ == '__main__':
     time_series = pd.read_csv('../data/beer.csv')
     run_experiment_with_ets(time_series,
-                            raw_model=True,
+                            raw_model=False,
                             len_forecast=30)

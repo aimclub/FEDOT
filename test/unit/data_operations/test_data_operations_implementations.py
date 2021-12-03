@@ -254,7 +254,7 @@ def test_ts_forecasting_cut_data_operation():
     horizon = train_input.task.task_params.forecast_length
     operation_cut = CutImplementation(cut_part=0.5)
 
-    transformed_input = operation_cut.transform(train_input, is_fit_pipeline_stage=False)
+    transformed_input = operation_cut.transform(train_input, is_fit_pipeline_stage=True)
     assert train_input.idx.shape[0] == 2 * transformed_input.idx.shape[0] - horizon
 
 
