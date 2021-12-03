@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
@@ -238,7 +239,6 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
 
 class GaussianFilterImplementation(DataOperationImplementation):
-
     def __init__(self, **params):
         super().__init__()
 
@@ -277,6 +277,110 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
     def get_params(self):
         return {'sigma': self.sigma}
+
+
+class HvatovFilterImplementation(DataOperationImplementation):
+    def __init__(self, log: Log = None, **params):
+        super().__init__()
+        self.params = params
+        self.parameters_changed = False
+        self.changed_params = []
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
+        self.poly_degree = self.params['poly_degree']
+        self.order = self.params['order']
+        self.window_size = self.params['window_size']
+        self._correct_params()
+
+    def fit(self, input_data):
+        """ Class doesn't support fit operation
+
+        :param input_data: data with features, target and ids to process
+        """
+        pass
+
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
+        """ Method for finding numerical derivative of time series
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return output_data: output data with smoothed time series
+        """
+
+        source_ts = np.array(input_data.features)
+        # Apply differential operation
+        differential_ts = self._differential_filter(source_ts)
+        output_data = self._convert_to_output(input_data,
+                                              np.ravel(differential_ts),
+                                              data_type=DataTypesEnum.ts)
+
+        return output_data
+
+    def _differential_filter(self, ts):
+        """ Hvatov filter """
+        if self.window_size > ts.shape[0]:
+            self.parameters_changed = True
+            self.changed_params.append('window_size')
+            self.log.info(f'HvatovFilter: invalid parameter window_size ({self.window_size}) changed to '
+                          f'{self.poly_degree + 1}')
+            self.window_size = self.poly_degree + 1
+        x = np.arange(ts.shape[0])
+
+        n = x.shape[0]
+        du = np.zeros(n)
+
+        # Take the differentials in the center of the domain
+        for j in range(self.window_size, n - self.window_size):
+            points = np.arange(j - self.window_size, j + self.window_size)
+            # Fit to a Chebyshev polynomial
+            # this is the same as any polynomial since we're on a fixed grid but it's better conditioned :)
+            poly = np.polynomial.chebyshev.Chebyshev.fit(x[points], ts[points], self.poly_degree,
+                                                         window=[np.min(points), np.max(points)])
+            du[j] = poly.deriv(m=self.order)(x[j])
+
+        supp1 = ts[0:self.window_size]
+        coordsupp1 = x[0:self.window_size]
+        supp2 = ts[-self.window_size:]
+        coordsupp2 = x[-self.window_size:]
+        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp1, supp1, self.window_size - 1)
+        du[0:self.window_size] = poly.deriv(m=self.order)(coordsupp1)
+        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp2, supp2, self.window_size - 1)
+        du[-self.window_size:] = poly.deriv(m=self.order)(coordsupp2)
+        for _ in range(self.order):
+            supp1 = np.gradient(supp1, coordsupp1, edge_order=2)
+            supp2 = np.gradient(supp2, coordsupp2, edge_order=2)
+        du[0:self.window_size] = supp1
+        du[-self.window_size:] = supp2
+        return np.transpose(du)
+
+    def _correct_params(self):
+        if not 0 < self.poly_degree < 5:
+            self.parameters_changed = True
+            self.log.info(f'HvatovFilter: invalid parameter poly_degree ({self.poly_degree}) changed to 2')
+            self.changed_params.append('poly_degree')
+            self.poly_degree = 2
+        if not 0 < self.order < self.poly_degree:
+            self.parameters_changed = True
+            self.changed_params.append('order')
+            self.log.info(f'HvatovFilter: invalid parameter order ({self.order}) changed to 1')
+            self.order = 1
+        if self.window_size < self.poly_degree:
+            self.parameters_changed = True
+            self.changed_params.append('window_size')
+            self.log.info(f'HvatovFilter: invalid parameter window_size ({self.window_size}) changed to '
+                          f'{self.poly_degree + 1}')
+            self.window_size = self.poly_degree + 1
+
+    def get_params(self):
+        params_dict = {'poly_degree': self.poly_degree, 'order': self.order, 'window_size': self.window_size}
+        if self.parameters_changed is True:
+            return tuple([params_dict, self.changed_params])
+        else:
+            return params_dict
 
 
 class CutImplementation(DataOperationImplementation):
@@ -403,7 +507,7 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     if is_lag:
         updated_idx = idx[window_size:]
     else:
-        updated_idx = idx[:idx.shape[0]-window_size]
+        updated_idx = idx[:idx.shape[0] - window_size]
     return updated_idx, features_columns
 
 
