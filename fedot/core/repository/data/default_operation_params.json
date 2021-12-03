@@ -28,7 +28,7 @@
   "lagged": {
     "window_size": 10
   },
-  "hvatov_filter": {
+  "diff_filter": {
     "window_size": 3,
     "poly_degree": 2,
     "order": 1

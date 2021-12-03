@@ -18,7 +18,7 @@ def without_diff_pipeline():
 
 
 def with_diff_pipeline():
-    node_diff = PrimaryNode('hvatov_filter')
+    node_diff = PrimaryNode('diff_filter')
     node_lagged1 = SecondaryNode('lagged', nodes_from=[node_diff])
     node_lagged2 = PrimaryNode('lagged')
     node_ridge2 = SecondaryNode('ridge', nodes_from=[node_lagged2, node_lagged1])
@@ -29,7 +29,6 @@ def run_experiment_with_diff(time_series, len_forecast=250):
     """ Function with example how time series differentiation could help to do more precise predictions.
 
     :param time_series: time series for prediction
-    :param raw_model: if only raw model used
     :param len_forecast: forecast length
     """
 
@@ -73,6 +72,7 @@ def run_experiment_with_diff(time_series, len_forecast=250):
     plt.legend()
     plt.grid()
     plt.show()
+    pipeline_diff.print_structure()
 
 
 if __name__ == '__main__':

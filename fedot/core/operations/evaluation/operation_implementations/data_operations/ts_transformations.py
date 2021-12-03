@@ -279,7 +279,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
         return {'sigma': self.sigma}
 
 
-class HvatovFilterImplementation(DataOperationImplementation):
+class NumericalDerivativeFilterImplementation(DataOperationImplementation):
     def __init__(self, log: Log = None, **params):
         super().__init__()
         self.params = params
@@ -321,17 +321,17 @@ class HvatovFilterImplementation(DataOperationImplementation):
         return output_data
 
     def _differential_filter(self, ts):
-        """ Hvatov filter """
+        """ NumericalDerivative filter """
         if self.window_size > ts.shape[0]:
             self.parameters_changed = True
             self.changed_params.append('window_size')
-            self.log.info(f'HvatovFilter: invalid parameter window_size ({self.window_size}) changed to '
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
             self.window_size = self.poly_degree + 1
         x = np.arange(ts.shape[0])
 
         n = x.shape[0]
-        du = np.zeros(n)
+        d_u = np.zeros(n)
 
         # Take the differentials in the center of the domain
         for j in range(self.window_size, n - self.window_size):
@@ -340,44 +340,44 @@ class HvatovFilterImplementation(DataOperationImplementation):
             # this is the same as any polynomial since we're on a fixed grid but it's better conditioned :)
             poly = np.polynomial.chebyshev.Chebyshev.fit(x[points], ts[points], self.poly_degree,
                                                          window=[np.min(points), np.max(points)])
-            du[j] = poly.deriv(m=self.order)(x[j])
+            d_u[j] = poly.deriv(m=self.order)(x[j])
 
-        supp1 = ts[0:self.window_size]
-        coordsupp1 = x[0:self.window_size]
-        supp2 = ts[-self.window_size:]
-        coordsupp2 = x[-self.window_size:]
-        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp1, supp1, self.window_size - 1)
-        du[0:self.window_size] = poly.deriv(m=self.order)(coordsupp1)
-        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp2, supp2, self.window_size - 1)
-        du[-self.window_size:] = poly.deriv(m=self.order)(coordsupp2)
+        supp_1 = ts[0:self.window_size]
+        coordsupp_1 = x[0:self.window_size]
+        supp_2 = ts[-self.window_size:]
+        coordsupp_2 = x[-self.window_size:]
+        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp_1, supp_1, self.window_size - 1)
+        d_u[0:self.window_size] = poly.deriv(m=self.order)(coordsupp_1)
+        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp_2, supp_2, self.window_size - 1)
+        d_u[-self.window_size:] = poly.deriv(m=self.order)(coordsupp_2)
         for _ in range(self.order):
-            supp1 = np.gradient(supp1, coordsupp1, edge_order=2)
-            supp2 = np.gradient(supp2, coordsupp2, edge_order=2)
-        du[0:self.window_size] = supp1
-        du[-self.window_size:] = supp2
-        return np.transpose(du)
+            supp_1 = np.gradient(supp_1, coordsupp_1, edge_order=2)
+            supp_2 = np.gradient(supp_2, coordsupp_2, edge_order=2)
+        d_u[0:self.window_size] = supp_1
+        d_u[-self.window_size:] = supp_2
+        return np.transpose(d_u)
 
     def _correct_params(self):
         if not 0 < self.poly_degree < 5:
             self.parameters_changed = True
-            self.log.info(f'HvatovFilter: invalid parameter poly_degree ({self.poly_degree}) changed to 2')
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) changed to 2')
             self.changed_params.append('poly_degree')
             self.poly_degree = 2
         if not 0 < self.order < self.poly_degree:
             self.parameters_changed = True
             self.changed_params.append('order')
-            self.log.info(f'HvatovFilter: invalid parameter order ({self.order}) changed to 1')
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter order ({self.order}) changed to 1')
             self.order = 1
         if self.window_size < self.poly_degree:
             self.parameters_changed = True
             self.changed_params.append('window_size')
-            self.log.info(f'HvatovFilter: invalid parameter window_size ({self.window_size}) changed to '
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
             self.window_size = self.poly_degree + 1
 
     def get_params(self):
         params_dict = {'poly_degree': self.poly_degree, 'order': self.order, 'window_size': self.window_size}
-        if self.parameters_changed is True:
+        if self.parameters_changed:
             return tuple([params_dict, self.changed_params])
         else:
             return params_dict
@@ -434,7 +434,7 @@ class CutImplementation(DataOperationImplementation):
 
     def get_params(self):
         params_dict = {"cut_part": self.cut_part}
-        if self.parameters_changed is True:
+        if self.parameters_changed:
             return tuple([params_dict, ['cut_part']])
         else:
             return params_dict

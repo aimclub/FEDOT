@@ -149,9 +149,6 @@ class GLMImplementation(ModelImplementation):
             # get default family for distribution if current invalid
             self.set_default()
 
-    def resolve_params(self):
-        self.params = {'family': self.family, 'link': self.link}
-
 
 class AutoRegImplementation(ModelImplementation):
 

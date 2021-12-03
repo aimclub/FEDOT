@@ -6,7 +6,7 @@ from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStr
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     ExogDataTransformationImplementation, GaussianFilterImplementation, LaggedTransformationImplementation, \
     TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation, \
-    HvatovFilterImplementation
+    NumericalDerivativeFilterImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations.statsmodels import AutoRegImplementation, GLMImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
@@ -99,7 +99,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         'smoothing': TsSmoothingImplementation,
         'exog_ts': ExogDataTransformationImplementation,
         'gaussian_filter': GaussianFilterImplementation,
-        'hvatov_filter': HvatovFilterImplementation,
+        'diff_filter': NumericalDerivativeFilterImplementation,
         'cut': CutImplementation}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

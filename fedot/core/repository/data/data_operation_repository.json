@@ -212,7 +212,7 @@
 				"non_lagged"
 			]
 		},
-		"hvatov_filter": {
+		"diff_filter": {
 			"meta": "custom_time_series_transformation",
 			"tags": [
 				"differential",
