@@ -183,11 +183,17 @@ class ApiComposer:
         if api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
-        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
-                                                          mutation_types=mutations,
-                                                          crossover_types=[CrossoverTypesEnum.one_point,
-                                                                           CrossoverTypesEnum.subtree],
-                                                          history_folder=composer_params.get('history_folder'))
+        optimizer_parameters = GPGraphOptimiserParameters(
+            genetic_scheme_type=genetic_scheme_type,
+            mutation_types=mutations,
+            crossover_types=[
+                CrossoverTypesEnum.one_point,
+                CrossoverTypesEnum.subtree
+            ],
+            history_folder=composer_params.get('history_folder'),
+            use_stopping_criteria=composer_params.get('use_stopping_criteria'),
+            stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
+        )
 
         builder = self.get_gp_composer_builder(task=api_params['task'],
                                                metric_function=metric_function,
@@ -315,7 +321,8 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
-                                cv_folds=None, genetic_scheme=None, history_folder=None)
+                                cv_folds=None, genetic_scheme=None, history_folder=None,
+                                use_stopping_criteria=None, stopping_after_n_generation=None)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

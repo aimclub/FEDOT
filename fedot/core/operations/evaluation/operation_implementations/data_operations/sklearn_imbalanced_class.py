@@ -147,7 +147,7 @@ class ResampleImplementation(DataOperationImplementation):
         return was_changed
 
     def _convert_to_absolute(self, min_data, maj_data):
-        self.log.info(f'{GLOBAL_PREFIX} n_samples was converted to absolute values')
+        self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to absolute values')
 
         if self.balance == 'expand_minority':
             return round(min_data.shape[0] * self.n_samples)
@@ -156,7 +156,7 @@ class ResampleImplementation(DataOperationImplementation):
             return round(maj_data.shape[0] * self.n_samples)
 
     def _convert_to_relative(self, min_data, maj_data):
-        self.log.info(f'{GLOBAL_PREFIX} n_samples was converted to relative values')
+        self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to relative values')
 
         if self.balance == 'expand_minority':
             return round(self.n_samples / min_data.shape[0], 2)
