@@ -128,10 +128,10 @@ class SearchSpace:
                 'lag_2': (hp.uniform, [2, 800])
             },
             'ets': {
-                'error': (hp.choice, ['add', 'mul']),
-                'trend': (hp.choice, [None, 'add', 'mul']),
-                'seasonal': (hp.choice, [None, 'add', 'mul']),
-                'damped_trend': (hp.choice, [True, False]),
+                'error': (hp.choice, [['add', 'mul']]),
+                'trend': (hp.choice, [[None, 'add', 'mul']]),
+                'seasonal': (hp.choice, [[None, 'add', 'mul']]),
+                'damped_trend': (hp.choice, [[True, False]]),
                 'seasonal_periods': (hp.uniform, [1, 500])
             },
             'glm': {'nested_space': (hp.choice, [[

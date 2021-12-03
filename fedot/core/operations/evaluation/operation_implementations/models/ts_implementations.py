@@ -368,10 +368,6 @@ class ExpSmoothingImplementation(ModelImplementation):
             self.seasonal_periods = None
 
     def fit(self, input_data):
-        """Exponential smoothing doesn't has a usual fit stage. All computations perform in predict method"""
-        return
-
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         self.model = ETSModel(
             input_data.features.astype("float64"),
             error=self.params.get("error"),
@@ -380,16 +376,18 @@ class ExpSmoothingImplementation(ModelImplementation):
             damped_trend=self.params.get("damped_trend"),
             seasonal_periods=self.seasonal_periods
         )
-        fit = self.model.fit()
+        self.model = self.model.fit(disp=False)
+
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
         target = input_data.target
-        predictions = fit.predict(start=old_idx[0],
-                                  end=old_idx[-1])
 
         if is_fit_pipeline_stage:
+            predictions = self.model.predict(start=old_idx[0],
+                                             end=old_idx[-1])
             _, predict = ts_to_table(idx=old_idx,
                                      time_series=predictions,
                                      window_size=forecast_length)
@@ -404,6 +402,8 @@ class ExpSmoothingImplementation(ModelImplementation):
         else:
             start_id = old_idx[-1] - forecast_length + 1
             end_id = old_idx[-1]
+            predictions = self.model.predict(start=start_id,
+                                             end=end_id)
             predict = predictions
             predict = np.array(predict).reshape(1, -1)
             new_idx = np.arange(start_id, end_id + 1)
