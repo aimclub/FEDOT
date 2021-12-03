@@ -72,8 +72,8 @@ def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
 
 def has_correct_data_connections(pipeline: 'Pipeline'):
     """ Check if the pipeline contains incorrect connections between operation for different data types """
-    operation_repo = OperationTypesRepository(operation_type='data_operation')
-    models_repo = OperationTypesRepository(operation_type='model')
+    _repo = OperationTypesRepository(operation_type='all')
+
     if not isinstance(pipeline, Pipeline):
         pipeline = PipelineAdapter().restore(pipeline)
 
@@ -82,10 +82,8 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
 
         if parent_nodes is not None and len(parent_nodes) > 0:
             for parent_node in parent_nodes:
-                current_nodes_supported_data_types = \
-                    get_supported_data_types(node, operation_repo, models_repo)
-                parent_node_supported_data_types = \
-                    get_supported_data_types(parent_node, operation_repo, models_repo)
+                current_nodes_supported_data_types = _repo.operation_info_by_id(node.operation.operation_type)
+                parent_node_supported_data_types = _repo.operation_info_by_id(parent_node.operation.operation_type)
 
                 if current_nodes_supported_data_types is None:
                     # case for atomic model
@@ -98,13 +96,6 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
                     raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect data connections')
 
     return True
-
-
-def get_supported_data_types(node, operation_repo, models_repo):
-    supported_data_types = operation_repo.operation_info_by_id(node.operation.operation_type)
-    if supported_data_types is None:
-        supported_data_types = models_repo.operation_info_by_id(node.operation.operation_type)
-    return supported_data_types
 
 
 def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
