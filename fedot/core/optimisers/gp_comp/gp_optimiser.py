@@ -56,7 +56,7 @@ class GPGraphOptimiserParameters:
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
                  with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
                  multi_objective: bool = False, history_folder: str = None,
-                 use_stopping_criteria: bool = True, stopping_after_n_generation: int = 7):
+                 use_stopping_criteria: bool = True, stopping_after_n_generation: int = 10):
 
         self.selection_types = selection_types
         self.crossover_types = crossover_types

@@ -86,7 +86,7 @@ class ApiParams:
                   'genetic_scheme': None,
                   'history_folder': None,
                   'use_stopping_criteria': True,
-                  'stopping_after_n_generation': 7}
+                  'stopping_after_n_generation': 10}
 
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 3
