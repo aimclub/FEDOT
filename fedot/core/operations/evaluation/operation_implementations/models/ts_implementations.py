@@ -2,6 +2,7 @@ from typing import Optional
 from copy import copy
 
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
@@ -357,9 +358,14 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
 
 class ExpSmoothingImplementation(ModelImplementation):
-    def __init__(self, **params):
+    def __init__(self, log: Log = None, **params):
+        super().__init__(log)
         self.model = None
         self.params = params
+        if self.params.get("seasonal"):
+            self.seasonal_periods = int(self.params.get("seasonal_periods"))
+        else:
+            self.seasonal_periods = None
 
     def fit(self, input_data):
         """Exponential smoothing doesn't has a usual fit stage. All computations perform in predict method"""
@@ -368,20 +374,50 @@ class ExpSmoothingImplementation(ModelImplementation):
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         self.model = ETSModel(
             input_data.features,
-            error="add",
-            trend="add",
-            seasonal="add",
-            damped_trend=True,
-            seasonal_periods=4,
+            error=self.params.get("error"),
+            trend=self.params.get("trend"),
+            seasonal=self.params.get("seasonal"),
+            damped_trend=self.params.get("damped_trend"),
+            seasonal_periods=self.seasonal_periods
         )
         fit = self.model.fit()
-        pred = fit.get_prediction(start=input_data.idx[0], end=input_data.idx[-1])
-        print(pred)
+        input_data = copy(input_data)
+        parameters = input_data.task.task_params
+        forecast_length = parameters.forecast_length
+        old_idx = input_data.idx
+        target = input_data.target
+        predictions = fit.predict(start=old_idx[0],
+                                  end=old_idx[-1])
+
+        if is_fit_pipeline_stage:
+            _, predict = ts_to_table(idx=old_idx,
+                                     time_series=predictions,
+                                     window_size=forecast_length)
+            new_idx, target_columns = ts_to_table(idx=old_idx,
+                                                  time_series=target,
+                                                  window_size=forecast_length)
+
+            # Update idx and target
+            input_data.idx = new_idx
+            input_data.target = target_columns
+
+        else:
+            start_id = old_idx[-1] - forecast_length + 1
+            end_id = old_idx[-1]
+            predict = predictions
+            predict = np.array(predict).reshape(1, -1)
+            new_idx = np.arange(start_id, end_id + 1)
+
+            # Update idx
+            input_data.idx = new_idx
+
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
 
     def get_params(self):
-        pass
-
-
+        return self.params
 
 
 class CLSTMImplementation(ModelImplementation):

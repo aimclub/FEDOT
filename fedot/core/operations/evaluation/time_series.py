@@ -32,6 +32,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'arima': ARIMAImplementation,
         'ar': AutoRegImplementation,
         'stl_arima': STLForecastARIMAImplementation,
+        'ets': ExpSmoothingImplementation,
         'clstm': CLSTMImplementation,
         'polyfit': PolyfitImplementation,
         'glm': GLMImplementation

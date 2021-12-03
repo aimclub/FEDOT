@@ -334,6 +334,14 @@
         "correct_params"
       ]
     },
+    "ets": {
+      "meta": "ts_model",
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged"
+      ]
+    },
     "svc": {
       "meta": "custom_class",
       "tags": [
