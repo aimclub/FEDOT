@@ -330,7 +330,7 @@
       "tags": [
         "simple",
         "interpretable",
-        "non-lagged",
+        "non_lagged",
         "correct_params"
       ]
     },

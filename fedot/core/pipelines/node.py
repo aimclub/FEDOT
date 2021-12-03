@@ -91,7 +91,6 @@ class Node(GraphNode):
     def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
         """
         Filters out the desired parameter values from what Implementation returns
-
         :param returned_params: dictionary with
         """
         if isinstance(returned_params, tuple):
@@ -99,10 +98,16 @@ class Node(GraphNode):
             changed_param_names = returned_params[1]
             # Parameters were changed during the Implementation fitting
             if self.custom_params != DEFAULT_PARAMS_STUB:
+                current_params = self.custom_params
+                # Delete keys from source params
+                for changed_param in changed_param_names:
+                    current_params.pop(changed_param, None)
+
                 # Take only changed parameters from returned ones
                 changed_params = {key: params_dict[key] for key in changed_param_names}
 
-                return changed_params
+                filtered_params = {**current_params, **changed_params}
+                return filtered_params
             else:
                 # Default parameters were changed
                 changed_params = {key: params_dict[key] for key in changed_param_names}

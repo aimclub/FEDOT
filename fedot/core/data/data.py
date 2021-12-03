@@ -283,7 +283,7 @@ class InputData(Data):
             pass
 
     def convert_non_int_indexes_for_fit(self, pipeline):
-        """Conversion non int (datetime, string, etc) indexes in integer form in fit stage"""
+        """ Conversion non int (datetime, string, etc) indexes in integer form in fit stage """
         copied_data = deepcopy(self)
         is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)

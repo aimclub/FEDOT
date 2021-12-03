@@ -213,8 +213,8 @@ def test_table_data_shuffle():
 
 
 def test_data_convert_string_indexes_correct():
-    """Test is string indexes converted correctly.
-    Pipeline is needed to save last indexes of train part"""
+    """ Test is string indexes converted correctly.
+    Pipeline is needed to save last indexes of train part """
     train_data, test_data = get_ts_data_with_dt_idx()
     # convert indexes to string
     train_data.idx = list(map(str, train_data.idx))
@@ -239,8 +239,8 @@ def test_data_convert_string_indexes_correct():
 
 
 def test_data_convert_dt_indexes_correct():
-    """Test is datetime indexes converted correctly.
-    Pipeline is needed to save last indexes of train part"""
+    """ Test is datetime indexes converted correctly.
+    Pipeline is needed to save last indexes of train part """
     train_data, test_data = get_ts_data_with_dt_idx()
     train_pred_data = deepcopy(train_data)
     # old non int indexes

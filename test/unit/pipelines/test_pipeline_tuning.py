@@ -346,7 +346,6 @@ def test_complex_search_space():
         operation_parameters = space.parameters_per_operation.get("glm")
         new_value = hp_sample(operation_parameters["nested_space"])
         for params in new_value[1][0]:
-            assert params['family'] in GLMImplementation.family_distribution
             assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
 
 

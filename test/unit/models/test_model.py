@@ -157,7 +157,8 @@ def test_ts_models_dt_idx_fit_correct():
         pipeline = Pipeline(node)
 
         pipeline.fit(deepcopy(train_data))
-        pipeline.predict(test_data)
+        predicted = pipeline.predict(test_data)
+        assert np.all(predicted.idx == test_data.idx)
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -244,9 +245,3 @@ def test_glm_indexes_correct():
         assert predicted.idx[i] - pred_values[i, 0] < 0.5
 
 
-def test_glm_fit_correct_with_dt_indexes():
-    input_data, _ = get_ts_data_with_dt_idx()
-    glm_pipeline = Pipeline(PrimaryNode("glm"))
-    glm_pipeline.fit(input_data)
-    predicted = glm_pipeline.predict(input_data)
-    assert np.all(predicted.idx == input_data.idx)
