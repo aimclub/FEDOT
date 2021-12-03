@@ -6,6 +6,9 @@ import pandas as pd
 from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.repository.dataset_types import DataTypesEnum
 
+NUMPY_TYPE_INT = np.array([1]).dtype
+NUMPY_TYPE_FLOAT = np.array([1.5]).dtype
+
 
 def has_data_categorical(data: InputData) -> bool:
     """ Whether data categorical columns or not.
@@ -13,12 +16,10 @@ def has_data_categorical(data: InputData) -> bool:
     :param data: InputData
     :return data_has_categorical_columns: bool, whether data has categorical columns or not
     """
-    is_float_dtype = data.features.dtype is np.array([1]).dtype
-    is_int_dtype = data.features.dtype is np.array([1.5]).dtype
-    if is_float_dtype or is_int_dtype:
-        return False
-    else:
-        return True
+    is_float_dtype = data.features.dtype is NUMPY_TYPE_INT
+    is_int_dtype = data.features.dtype is NUMPY_TYPE_FLOAT
+    is_contain_categorical = not (is_float_dtype or is_int_dtype)
+    return is_contain_categorical
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
