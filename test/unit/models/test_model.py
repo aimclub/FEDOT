@@ -243,5 +243,3 @@ def test_glm_indexes_correct():
     for i in range(9):
         assert pred_values[i, 0] - i < 0.5
         assert predicted.idx[i] - pred_values[i, 0] < 0.5
-
-
