@@ -1,8 +1,10 @@
+from copy import deepcopy, copy
 from typing import Union
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
+from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, OutputData
 from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.data.data_preprocessing import replace_inf_with_nans, str_columns_check, data_has_missing_values, \
     data_has_categorical_features
@@ -344,6 +346,38 @@ class DataPreprocessor:
                 data.target = np.ravel(data.target)
 
         return data
+
+    @staticmethod
+    def convert_indexes_for_fit(pipeline, data: Union[InputData, MultiModalData]):
+        if isinstance(data, MultiModalData):
+            for data_source_name, values in data.items():
+                if data_type_is_ts(data[data_source_name]):
+                    data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_fit(pipeline)
+            return data
+        elif data_type_is_ts(data):
+            return data.convert_non_int_indexes_for_fit(pipeline)
+        else:
+            return data
+
+    @staticmethod
+    def convert_indexes_for_predict(pipeline, data: Union[InputData, MultiModalData]):
+        if isinstance(data, MultiModalData):
+            for data_source_name, values in data.items():
+                if data_type_is_ts(data[data_source_name]):
+                    data[data_source_name] = data[data_source_name].convert_non_int_indexes_for_predict(pipeline)
+            return data
+        elif data_type_is_ts(data):
+            return data.convert_non_int_indexes_for_predict(pipeline)
+        else:
+            return data
+
+    @staticmethod
+    def restore_index(input_data: InputData, result: OutputData):
+        if isinstance(input_data, InputData):
+            if input_data.supplementary_data.non_int_idx is not None:
+                result.idx = copy(input_data.supplementary_data.non_int_idx)
+                result.supplementary_data.non_int_idx = copy(input_data.idx)
+        return result
 
     @staticmethod
     def mark_as_preprocessed(data: Union[InputData, MultiModalData]):

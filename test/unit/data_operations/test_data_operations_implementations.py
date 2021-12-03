@@ -1,10 +1,6 @@
-import os
 from itertools import product
 
 import numpy as np
-import pandas as pd
-import pytest
-
 from examples.classification_with_tuning_example import get_classification_dataset
 from examples.regression_with_tuning_example import get_regression_dataset
 from examples.time_series.ts_gapfilling_example import generate_synthetic_data
@@ -20,7 +16,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
 
 np.random.seed(2021)
 
@@ -31,6 +26,8 @@ def get_small_regression_dataset():
     x_train, y_train, x_test, y_test = get_regression_dataset(features_options=features_options,
                                                               samples_amount=70,
                                                               features_amount=4)
+    y_train = y_train.reshape((-1, 1))
+    y_test = y_test.reshape((-1, 1))
     # Define regression task
     task = Task(TaskTypesEnum.regression)
 
@@ -349,6 +346,19 @@ def test_knn_with_float_neighbors():
 
     pipeline.fit(input_data)
     pipeline.predict(input_data)
+
+
+def generate_simple_series():
+    y = np.arange(11) + np.random.normal(loc=0, scale=0.1, size=11)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=2))
+    i_d = InputData(idx=np.arange(11),
+                    features=y,
+                    target=y,
+                    task=task,
+                    data_type=DataTypesEnum.ts
+                    )
+    return i_d
 
 
 def test_imputation_with_binary_correct():

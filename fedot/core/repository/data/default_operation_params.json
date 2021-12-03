@@ -49,6 +49,10 @@
   "polyfit": {
     "degree": 2
   },
+  "glm": {
+    "family": "gaussian",
+    "link": "identity"
+  },
   "ransac_lin_reg": {
     "min_samples": 0.4,
     "residual_threshold": 10,

@@ -307,7 +307,8 @@
         "simple",
         "non_lagged",
         "non_linear",
-        "interpretable"
+        "interpretable",
+        "correct_params"
       ]
     },
     "sgdr": {
@@ -322,6 +323,15 @@
         "simple",
         "interpretable",
         "non_lagged"
+      ]
+    },
+    "glm": {
+      "meta": "ts_model",
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged",
+        "correct_params"
       ]
     },
     "svc": {

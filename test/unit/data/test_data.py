@@ -1,5 +1,5 @@
 import os
-from copy import deepcopy
+from copy import deepcopy, copy
 
 import numpy as np
 import pandas as pd
@@ -8,10 +8,13 @@ from sklearn.datasets import load_iris
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_classification import get_image_classification_data
+from test.unit.tasks.test_forecasting import get_ts_data_with_dt_idx
 
 
 @pytest.fixture()
@@ -207,3 +210,52 @@ def test_table_data_shuffle():
     assert not np.array_equal(data.target, shuffled_data.target)
 
     assert np.array_equal(data.idx, sorted(shuffled_data.idx))
+
+
+def test_data_convert_string_indexes_correct():
+    """ Test is string indexes converted correctly.
+    Pipeline is needed to save last indexes of train part """
+    train_data, test_data = get_ts_data_with_dt_idx()
+    # convert indexes to string
+    train_data.idx = list(map(str, train_data.idx))
+    test_data.idx = list(map(str, test_data.idx))
+    train_pred_data = deepcopy(train_data)
+    # old non int indexes
+    old_train_data_idx = copy(train_data.idx)
+    old_train_pred_data_idx = copy(train_pred_data.idx)
+    old_test_data_idx = copy(test_data.idx)
+    # pipeline object need to save last_fit_idx
+    dummy_pipeline = Pipeline(PrimaryNode("сut"))
+    train_data = train_data.convert_non_int_indexes_for_fit(dummy_pipeline)
+    train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(dummy_pipeline)
+    test_data = test_data.convert_non_int_indexes_for_predict(dummy_pipeline)
+    # check is new integer indexes correct
+    assert train_data.idx[-1] == train_pred_data.idx[0] - 1
+    assert train_data.idx[-1] == test_data.idx[0] - 1
+    # check is non integer indexes equal
+    assert np.all(train_data.supplementary_data.non_int_idx == old_train_data_idx)
+    assert np.all(train_pred_data.supplementary_data.non_int_idx == old_train_pred_data_idx)
+    assert np.all(test_data.supplementary_data.non_int_idx == old_test_data_idx)
+
+
+def test_data_convert_dt_indexes_correct():
+    """ Test is datetime indexes converted correctly.
+    Pipeline is needed to save last indexes of train part """
+    train_data, test_data = get_ts_data_with_dt_idx()
+    train_pred_data = deepcopy(train_data)
+    # old non int indexes
+    old_train_data_idx = copy(train_data.idx)
+    old_train_pred_data_idx = copy(train_pred_data.idx)
+    old_test_data_idx = copy(test_data.idx)
+    # pipeline object need to save last_fit_idx
+    dummy_pipeline = Pipeline(PrimaryNode("сut"))
+    train_data = train_data.convert_non_int_indexes_for_fit(dummy_pipeline)
+    train_pred_data = train_pred_data.convert_non_int_indexes_for_predict(dummy_pipeline)
+    test_data = test_data.convert_non_int_indexes_for_predict(dummy_pipeline)
+    # check is new integer indexes correct (now we know order of indexes)
+    assert train_data.idx[-1] == train_pred_data.idx[-1]
+    assert train_data.idx[-1] == test_data.idx[0] - 1
+    # check is non integer indexes equal
+    assert np.all(train_data.supplementary_data.non_int_idx == old_train_data_idx)
+    assert np.all(train_pred_data.supplementary_data.non_int_idx == old_train_pred_data_idx)
+    assert np.all(test_data.supplementary_data.non_int_idx == old_test_data_idx)

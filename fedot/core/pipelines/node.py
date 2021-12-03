@@ -91,7 +91,6 @@ class Node(GraphNode):
     def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
         """
         Filters out the desired parameter values from what Implementation returns
-
         :param returned_params: dictionary with
         """
         if isinstance(returned_params, tuple):
@@ -199,6 +198,9 @@ class Node(GraphNode):
                 default_params = get_default_params(self.operation.operation_type)
                 if default_params is not None:
                     params = {**default_params, **params}
+                # take nested composer params if they appeared
+                if 'nested_space' in params:
+                    params = params['nested_space']
             self.content.update({'params': params})
 
     def __str__(self):

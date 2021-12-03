@@ -1,4 +1,5 @@
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
@@ -113,6 +114,9 @@ def test_save_pipeline_with_custom():
     new_pipeline.load(json_path_load)
     predicted_output_after_export = new_pipeline.predict(predict_input)
     prediction_after_export = np.array(predicted_output_after_export.predict)
-    os.remove(json_path_load)
+
+    # recursive deleting
+    dir_ = os.path.dirname(json_path_load)
+    shutil.rmtree(dir_)
 
     assert prediction_after_export is not None

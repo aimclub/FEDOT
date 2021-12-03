@@ -366,4 +366,3 @@ class Fedot:
         pipeline = fit_and_check_correctness(initial_pipeline=pipeline, data=self.train_data,
                                              logger=self.api_params['logger'])
         return pipeline
-

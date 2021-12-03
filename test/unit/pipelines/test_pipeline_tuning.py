@@ -8,6 +8,8 @@ from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
+    GLMImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
@@ -15,6 +17,8 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
+
+from hyperopt.pyll.stochastic import sample as hp_sample
 
 seed(1)
 np.random.seed(1)
@@ -334,3 +338,24 @@ def test_search_space_get_operation_parameter_range():
     assert default_operations == gbr_operations
     assert custom_without_replace_operations == gbr_operations
     assert custom_with_replace_operations == ['max_depth']
+
+
+def test_complex_search_space():
+    space = SearchSpace()
+    for i in range(20):
+        operation_parameters = space.parameters_per_operation.get("glm")
+        new_value = hp_sample(operation_parameters["nested_space"])
+        for params in new_value[1][0]:
+            assert params['link'] in GLMImplementation.family_distribution[params['family']]['available_links']
+
+
+def test_complex_search_space_tuning_correct():
+    """ Tests PipelineTuner for time series forecasting task with GLM model that has a complex glm search space"""
+    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
+
+    glm_pipeline = Pipeline(PrimaryNode('glm'))
+    glm_custom_params = glm_pipeline.nodes[0].custom_params
+    tuned_glm_pipeline = glm_pipeline.fine_tune_all_nodes(input_data=train_data,
+                                                          loss_function=mse)
+    new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
+    assert glm_custom_params == new_custom_params
