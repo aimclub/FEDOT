@@ -33,6 +33,7 @@ class ApiInitialAssumptions:
                                 task: Task,
                                 has_categorical_features: bool,
                                 has_gaps: bool) -> Node:
+        # TODO refactor as builder
         node_imputation = PrimaryNode('simple_imputation')
         if task.task_type == TaskTypesEnum.ts_forecasting:
             if has_gaps:

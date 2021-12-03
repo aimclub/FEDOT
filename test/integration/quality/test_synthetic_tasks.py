@@ -45,6 +45,10 @@ def custom_metric_for_synt_data(pipeline, fit_data, predict_data, reference_data
 
 
 def test_synthetic_metric():
+    """
+    This supplementary test checks that prediction of optimal pipeline is identical to the target,
+    so the metric is equals to 0.
+    """
     ref_pipeline = get_regression_pipeline()
     input_data = get_regression_data()
 
@@ -60,6 +64,13 @@ def test_synthetic_metric():
 
 
 def test_synthetic_regression_automl():
+    """
+    This test compares that pre-known optimal pipeline is can be found by composer.
+    If correct, the best fitness should be close to 0.
+    """
+
+    # TODO extend test
+
     ref_pipeline = get_regression_pipeline()
     input_data = get_regression_data()
 

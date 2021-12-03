@@ -5,7 +5,6 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
@@ -127,7 +126,7 @@ class Pipeline(Graph):
 
             if not use_fitted_operations or not self.fitted_on_data:
                 # Don't use previous information
-                self.unfit()
+                self.unfit(unfit_preprocessor=False)
                 self.update_fitted_on_data(input_data)
 
         with Timer(log=self.log) as t:
@@ -185,12 +184,15 @@ class Pipeline(Graph):
     def is_fitted(self):
         return all([(node.fitted_operation is not None) for node in self.nodes])
 
-    def unfit(self):
+    def unfit(self, unfit_preprocessor: bool = True):
         """
         Remove fitted operations for all nodes.
         """
         for node in self.nodes:
             node.unfit()
+
+        if unfit_preprocessor:
+            self.preprocessor = DataPreprocessor(self.log)
 
     def fit_from_cache(self, cache: OperationsCache):
         for node in self.nodes:
