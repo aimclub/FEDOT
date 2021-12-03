@@ -1,5 +1,5 @@
 from . import json_helpers
-from .basic_serializer import BasicSerializer
+from .any_serialization import any_from_json, any_to_json
 from .graph_node_serializer import GraphNodeSerializer
 from .graph_serializer import GraphSerializer
 from .operation_serializer import OperationSerializer
