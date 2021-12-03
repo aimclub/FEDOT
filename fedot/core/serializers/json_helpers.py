@@ -6,7 +6,6 @@ from fedot.core.serializers.any_serialization import ClassOrFuncObject
 
 from .interfaces.serializable import Serializer
 
-SIMPLE_OBJECT_INIT_DATA = '_init_data'
 MODULE_X_NAME_DELIMITER = '/'
 CLASS_PATH_KEY = '_class_path'
 

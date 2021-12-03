@@ -2,9 +2,10 @@ from copy import deepcopy
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, encoder
+from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, encoder
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
+from .fixtures.serialization_fixtures import _mock_classes_fixture
 from .mocks.serialization_mocks import MockGraph, MockOperation, MockPipelineTemplate
 from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, TestClass, TestEnum, test_func
 
@@ -16,13 +17,13 @@ ENCODER_CASES = [
     EncoderTestCase(
         test_input=UUID(TEST_UUID),
         test_answer={
-            SIMPLE_OBJECT_INIT_DATA: {'hex': TEST_UUID}
+            'hex': TEST_UUID
         }
     ),
     EncoderTestCase(
         test_input=TestEnum.test_val,
         test_answer={
-            SIMPLE_OBJECT_INIT_DATA: 'test_val'
+            'value': 'test_val'
         }
     ),
     EncoderTestCase(
@@ -72,7 +73,7 @@ ENCODER_CASES.extend([
 
 
 @pytest.mark.parametrize('case', ENCODER_CASES)
-def test_encoder(case: EncoderTestCase):
+def test_encoder(case: EncoderTestCase, _mock_classes_fixture):
     if getattr(case.test_input, '__dict__', None) is not None:
         keys_before = vars(case.test_input).keys()
         encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}

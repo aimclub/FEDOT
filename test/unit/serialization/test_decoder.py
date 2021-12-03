@@ -1,13 +1,12 @@
 from copy import deepcopy
 from test.unit.serialization.test_encoder import MOCK_NODE_1_COPY
-from types import FunctionType, MethodType
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, decoder
+from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, decoder
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
-from .fixtures.serialization_fixtures import _get_class_fixture
+from .fixtures.serialization_fixtures import _get_class_fixture, _mock_classes_fixture
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
 from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, TestClass, TestEnum, test_func
 
@@ -27,7 +26,7 @@ DECODER_CASES = [
         test_input={
             CLASS_PATH_KEY: UUID
         },
-        test_answer=TypeError()
+        test_answer=KeyError()
     ),
     DecoderTestCase(
         test_input={
@@ -136,7 +135,7 @@ DECODER_CASES.extend([
 
 
 @pytest.mark.parametrize('case', DECODER_CASES)
-def test_decoder(case: DecoderTestCase, _get_class_fixture):
+def test_decoder(case: DecoderTestCase, _get_class_fixture, _mock_classes_fixture):
     if isinstance(case.test_answer, Exception):
         with pytest.raises(type(case.test_answer)):
             decoder(case.test_input)

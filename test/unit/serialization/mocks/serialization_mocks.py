@@ -1,10 +1,4 @@
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.operations.operation import Operation
-from fedot.core.pipelines.template import PipelineTemplate
-
-
-class MockOperation(Operation):
+class MockOperation:
     def __init__(self, operation_type='op', **kwargs):
         self.operation_type = operation_type
         self.operations_repo = 'operations_repo'
@@ -13,7 +7,7 @@ class MockOperation(Operation):
         return self.operation_type == other.operation_type
 
 
-class MockPipelineTemplate(PipelineTemplate):
+class MockPipelineTemplate:
     def __init__(self, struct_id='id'):
         self.struct_id = struct_id
         self.operation_templates = 'operation_templates'
@@ -22,7 +16,7 @@ class MockPipelineTemplate(PipelineTemplate):
         return self.struct_id == other.struct_id
 
 
-class MockNode(GraphNode):
+class MockNode:
     def __init__(self, name: str, nodes_from: list = None):
         self.name = name
         self.nodes_from = nodes_from if nodes_from else []
@@ -36,7 +30,7 @@ class MockNode(GraphNode):
         )
 
 
-class MockGraph(Graph):
+class MockGraph:
     def __init__(self, nodes: list = None):
         self.nodes = nodes if nodes else []
         self.operator = 'operator'

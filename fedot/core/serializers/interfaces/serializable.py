@@ -17,6 +17,7 @@ from fedot.core.serializers.opt_history_serialization import opt_history_from_js
 from fedot.core.serializers.parent_operator_serialization import parent_operator_to_json
 from fedot.core.serializers.pipeline_template_serialization import pipeline_template_to_json
 from fedot.core.serializers.uuid_serialization import uuid_from_json, uuid_to_json
+from fedot.core.utils import ComparableEnum
 
 
 class Serializer:
@@ -31,15 +32,15 @@ class Serializer:
         ParentOperator: {_TO_JSON: parent_operator_to_json, _FROM_JSON: any_from_json},
         PipelineTemplate: {_TO_JSON: pipeline_template_to_json, _FROM_JSON: any_from_json},
         UUID: {_TO_JSON: uuid_to_json, _FROM_JSON: uuid_from_json},
-        Enum: {_TO_JSON: enum_to_json, _FROM_JSON: enum_from_json}
+        ComparableEnum: {_TO_JSON: enum_to_json, _FROM_JSON: enum_from_json}
     }
 
     @staticmethod
     def is_serializable(obj: Union[ClassOrFuncObject, Type[ClassOrFuncObject]]) -> bool:
-        types = tuple(Serializer._processors_by_type)
+        types = Serializer._processors_by_type.keys()
         if isclass(obj):
-            return issubclass(obj, types)
-        return isinstance(obj, types)
+            return obj in types
+        return type(obj) in types
 
     @staticmethod
     def to_json(obj: ClassOrFuncObject) -> Dict[str, Any]:
