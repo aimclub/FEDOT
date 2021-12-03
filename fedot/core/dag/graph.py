@@ -3,14 +3,13 @@ from typing import TYPE_CHECKING, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph_operator import GraphOperator
-from fedot.core.serializers import GraphSerializer
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
 
 
-class Graph(GraphSerializer):
+class Graph:
     """
     Base class used for the pipeline structure definition
 

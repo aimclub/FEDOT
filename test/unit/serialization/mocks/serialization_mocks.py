@@ -1,7 +1,10 @@
-from fedot.core.serializers import GraphNodeSerializer, GraphSerializer, OperationSerializer, PipelineTemplateSerializer
+from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_node import GraphNode
+from fedot.core.operations.operation import Operation
+from fedot.core.pipelines.template import PipelineTemplate
 
 
-class MockOperation(OperationSerializer):
+class MockOperation(Operation):
     def __init__(self, operation_type='op', **kwargs):
         self.operation_type = operation_type
         self.operations_repo = 'operations_repo'
@@ -10,7 +13,7 @@ class MockOperation(OperationSerializer):
         return self.operation_type == other.operation_type
 
 
-class MockPipelineTemplate(PipelineTemplateSerializer):
+class MockPipelineTemplate(PipelineTemplate):
     def __init__(self, struct_id='id'):
         self.struct_id = struct_id
         self.operation_templates = 'operation_templates'
@@ -19,7 +22,7 @@ class MockPipelineTemplate(PipelineTemplateSerializer):
         return self.struct_id == other.struct_id
 
 
-class MockNode(GraphNodeSerializer):
+class MockNode(GraphNode):
     def __init__(self, name: str, nodes_from: list = None):
         self.name = name
         self.nodes_from = nodes_from if nodes_from else []
@@ -33,7 +36,7 @@ class MockNode(GraphNodeSerializer):
         )
 
 
-class MockGraph(GraphSerializer):
+class MockGraph(Graph):
     def __init__(self, nodes: list = None):
         self.nodes = nodes if nodes else []
         self.operator = 'operator'

@@ -9,16 +9,7 @@ from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_IN
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
-from .shared_data import (
-    MOCK_NODE_1,
-    MOCK_NODE_2,
-    MOCK_NODE_3,
-    TEST_UUID,
-    TestClass,
-    TestEnum,
-    TestSerializableClass,
-    test_func
-)
+from .shared_data import MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3, TEST_UUID, TestClass, TestEnum, test_func
 
 DECODER_CASES = [
     DecoderTestCase(
@@ -27,7 +18,7 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
-            SIMPLE_OBJECT_INIT_DATA: {'hex': TEST_UUID},
+            'hex': TEST_UUID,
             CLASS_PATH_KEY: UUID
         },
         test_answer=UUID(TEST_UUID)
@@ -40,7 +31,7 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
-            SIMPLE_OBJECT_INIT_DATA: 'test_val',
+            'value': 'test_val',
             CLASS_PATH_KEY: TestEnum
         },
         test_answer=TestEnum.test_val
@@ -50,25 +41,6 @@ DECODER_CASES = [
             CLASS_PATH_KEY: test_func
         },
         test_answer=test_func
-    ),
-    DecoderTestCase(
-        test_input={
-            'test_a': 'test_a',
-            'test_b': 42,
-            'test_c': ['test_a', 42],
-            'test_d': {
-                'test_a': 42
-            },
-            CLASS_PATH_KEY: TestSerializableClass
-        },
-        test_answer=TestSerializableClass({
-            'test_a': 'test_a',
-            'test_b': 42,
-            'test_c': ['test_a', 42],
-            'test_d': {
-                'test_a': 42
-            }
-        })
     ),
     DecoderTestCase(
         test_input={

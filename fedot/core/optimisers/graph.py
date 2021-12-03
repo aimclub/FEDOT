@@ -6,7 +6,6 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import Log, default_log
-from fedot.core.serializers import GraphNodeSerializer, GraphSerializer
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
@@ -25,7 +24,7 @@ def node_ops_adaptation(func):
     return _decorator
 
 
-class OptNode(GraphNodeSerializer):  # this inheritance needed for assigning to nodes
+class OptNode:  # this inheritance needed for assigning to nodes
     """
     Class for node definition in optimization graph (OptGraph)
 
@@ -75,7 +74,7 @@ class OptNode(GraphNodeSerializer):  # this inheritance needed for assigning to 
         return self._operator.distance_to_primary_level()
 
 
-class OptGraph(GraphSerializer):
+class OptGraph:
     """
     Base class used for optimized structure
 

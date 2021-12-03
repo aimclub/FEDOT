@@ -2,7 +2,7 @@ from copy import deepcopy
 from inspect import signature
 from typing import Any, Dict, Type, TypeVar
 
-from .json_helpers import dump_path_to_obj
+from . import json_helpers
 
 ClassOrFuncObject = TypeVar('ClassOrFuncObject')
 
@@ -10,7 +10,7 @@ ClassOrFuncObject = TypeVar('ClassOrFuncObject')
 def any_to_json(obj: ClassOrFuncObject) -> Dict[str, Any]:
     return {
         **{k: v for k, v in vars(obj).items() if k != 'log'},
-        **dump_path_to_obj(obj)
+        **json_helpers.dump_path_to_obj(obj)
     }
 
 

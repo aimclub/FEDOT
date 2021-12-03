@@ -5,7 +5,7 @@ from fedot.core.serializers.json_helpers import MODULE_X_NAME_DELIMITER, _get_cl
 
 from .dataclasses.serialization_dataclasses import GetClassCase
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
-from .shared_data import TestClass, TestEnum, TestSerializableClass, test_func
+from .shared_data import TestClass, TestEnum, test_func
 
 GET_CLASS_CASES = [
     GetClassCase(
@@ -23,10 +23,6 @@ GET_CLASS_CASES = [
     GetClassCase(
         test_input=f'{TestClass().test_func.__module__}{MODULE_X_NAME_DELIMITER}{TestClass().test_func.__qualname__}',
         test_answer=TestClass.test_func
-    ),
-    GetClassCase(
-        test_input=f'{TestSerializableClass.__module__}{MODULE_X_NAME_DELIMITER}{TestSerializableClass.__qualname__}',
-        test_answer=TestSerializableClass
     ),
     GetClassCase(
         test_input=f'{MockOperation.__module__}{MODULE_X_NAME_DELIMITER}{MockOperation.__qualname__}',
