@@ -2,7 +2,7 @@ import os
 from time import time
 import tracemalloc
 
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, roc_auc_score
 from functools import partial
 import numpy as np
 import pandas as pd
@@ -57,24 +57,21 @@ def make_measurement(func,
     return score, time_spent, memory_spent, pipeline.root_node.descriptive_id
 
 
-def get_fixed_pipeline(task_type):
+def get_fixed_pipeline(fitted_operation='xgbreg'):
     imputation_node = PrimaryNode(operation_type='simple_imputation')
     onehot_node = SecondaryNode(operation_type='one_hot_encoding',
                                 nodes_from=[imputation_node])
     scaling_node = SecondaryNode(operation_type='scaling',
                                  nodes_from=[onehot_node])
-    if task_type == TaskTypesEnum.regression:
-        xgboost_node = SecondaryNode(operation_type='xgbreg',
-                                     nodes_from=[scaling_node])
-    else:
-        xgboost_node = SecondaryNode(operation_type='xgboost',
-                                     nodes_from=[scaling_node])
+    final_node = SecondaryNode(operation_type=fitted_operation,
+                               nodes_from=[scaling_node])
 
-    return xgboost_node
+    return final_node
 
 
-def fixed_structure_with_default_params(train):
-    fixed_pipeline = get_fixed_pipeline(train.task.task_type)
+def fixed_structure_with_default_params(train,
+                                        fitted_operation='xgbreg'):
+    fixed_pipeline = get_fixed_pipeline(fitted_operation)
 
     pipeline_ = Pipeline(fixed_pipeline)
     pipeline_.fit(train)
@@ -82,24 +79,22 @@ def fixed_structure_with_default_params(train):
     return pipeline_
 
 
-def fixed_structure_with_random_search(train, search_space=SearchSpace()):
-    fixed_pipeline = get_fixed_pipeline(train.task.task_type)
+def fixed_structure_with_params_optimization(train,
+                                             fitted_operation='xgbreg',
+                                             algo=rand.suggest,
+                                             search_space=SearchSpace(),
+                                             metrics=mean_squared_error):
+    fixed_pipeline = get_fixed_pipeline(fitted_operation)
 
     pipeline_ = Pipeline(fixed_pipeline)
 
-    pipeline_tuner = PipelineTuner(pipeline_, task=train.task.task_type, search_space=search_space, algo=rand.suggest)
-    tuned_pipeline = pipeline_tuner.tune_pipeline(train, loss_function=mean_squared_error)
+    pipeline_tuner = PipelineTuner(pipeline_,
+                                   task=train.task.task_type,
+                                   search_space=search_space,
+                                   algo=algo)
 
-    return tuned_pipeline
-
-
-def fixed_structure_with_bayesian_optimization(train, search_space=SearchSpace()):
-    fixed_pipeline = get_fixed_pipeline(train.task.task_type)
-
-    pipeline_ = Pipeline(fixed_pipeline)
-
-    pipeline_tuner = PipelineTuner(pipeline_, task=train.task.task_type, search_space=search_space, algo=tpe.suggest)
-    tuned_pipeline = pipeline_tuner.tune_pipeline(train, loss_function=mean_squared_error)
+    tuned_pipeline = pipeline_tuner.tune_pipeline(train,
+                                                  loss_function=metrics)
 
     return tuned_pipeline
 
@@ -107,57 +102,92 @@ def fixed_structure_with_bayesian_optimization(train, search_space=SearchSpace()
 score, time_spent, memory_spent, pipeline = {}, {}, {}, {}
 
 datasets = {
-    'elo': {'train_file': 'cases/data/elo/train_elo_split.csv',
-            'test_file': 'cases/data/elo/test_elo_split.csv',
-            'task': TaskTypesEnum.regression,
-            'metrics': partial(mean_squared_error, squared=False)}
+    # 'elo': {'train_file': 'cases/data/elo/train_elo_split.csv',
+    #         'test_file': 'cases/data/elo/test_elo_split.csv',
+    #         'task': TaskTypesEnum.regression,
+    #         'fitted_operations': ['xgbreg'],
+    #         'metrics': partial(mean_squared_error, squared=False)},
+    'scoring': {'train_file': 'cases/data/scoring/scoring_train.csv',
+                'test_file': 'cases/data/scoring/scoring_test.csv',
+                'task': TaskTypesEnum.classification,
+                'fitted_operations': ['logit', 'lgbm'],
+                'metrics': roc_auc_score}
 }
 
-approaches = {
-    'default': {
-        'function': fixed_structure_with_default_params,
-        'params': {}
+params = {
+    'xgbreg': {
+        'n_estimators': (hp.choice, [[10 ** n for n in range(1, 10)]]),
+        'max_depth': (hp.randint, [1, 10]),
+        'learning_rate': (hp.loguniform, [np.log(0.01), np.log(1)]),
+        'lambda': (hp.choice, [[0] + [1.21 ** i for i in range(0, 7)]]),
+        'alpha': (hp.choice, [[0] + [1.2 ** i for i in range(0, 7)]]),
+        'max_bin': (hp.choice, [[2 ** i - 1 for i in range(1, 8)]]),
+        'cosample_bytree': (hp.uniform, [0.01, 1]),
+        'subsample': (hp.uniform, [0.01, 1]),
+        'min_child_weight': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]])
+    },
+    'logit': {
+        'C': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
+    },
+    'lgbm': {
+        'n_estimators': (hp.randint, [1, 1000]),
+        'learning_rate':  (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        'max_depth': (hp.randint, [1, 10]),
+        # 'min_samples_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
+        # 'feature_fraction': (hp.uniform, [0, 1]),
+        # 'bagging_fraction': (hp.uniform, [0, 1]),
+        # 'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        # 'lambda_l2': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
     }
 }
 
-params = [
-    {
-        'xgbreg': {
-            'n_estimators': (hp.choice, [[10 ** n for n in range(1, 10)]]),
-            'max_depth': (hp.randint, [1, 10]),
-            'learning_rate': (hp.loguniform, [np.log(0.01), np.log(1)]),
-            'lambda': (hp.choice, [[0] + [1.21 ** i for i in range(0, 7)]]),
-            'alpha': (hp.choice, [[0] + [1.2 ** i for i in range(0, 7)]]),
-            'max_bin': (hp.choice, [[2 ** i - 1 for i in range(1, 8)]]),
-            'cosample_bytree': (hp.uniform, [0.01, 1]),
-            'subsample': (hp.uniform, [0.01, 1]),
-            'min_child_weight': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]])
-        }
-    }
-]
-
-for p in params:
-    approaches['rand___' + str(p)] = {'function': fixed_structure_with_random_search,
-                                      'params': {'search_space': SearchSpace(p, True)}}
-    approaches['tpe___' + str(p)] = {'function': fixed_structure_with_bayesian_optimization,
-                                     'params': {'search_space': SearchSpace(p, True)}}
+ss = SearchSpace(params, True)
 
 for d in datasets:
-    for a in approaches:
-        score[(d, a)], time_spent[(d, a)], memory_spent[(d, a)], pipeline[(d, a)] = make_measurement(
-            approaches[a]['function'],
-            datasets[d]['train_file'],
-            datasets[d]['test_file'],
-            datasets[d]['task'],
-            datasets[d]['metrics'],
-            approaches[a]['params']
+    for fo in datasets[d]['fitted_operations']:
+        a = 'default'
+        score[(d, fo, a)], time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+            func=fixed_structure_with_default_params,
+            train_file_path=datasets[d]['train_file'],
+            test_file_path=datasets[d]['test_file'],
+            task=datasets[d]['task'],
+            metrics=datasets[d]['metrics'],
+            params={'fitted_operation': fo}
         )
 
-pd.set_option('max_column', 6)
+        a = 'random'
+        score[(d, fo, a)], time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+            func=fixed_structure_with_params_optimization,
+            train_file_path=datasets[d]['train_file'],
+            test_file_path=datasets[d]['test_file'],
+            task=datasets[d]['task'],
+            metrics=datasets[d]['metrics'],
+            params={'fitted_operation': fo,
+                    'algo': rand.suggest,
+                    'search_space': ss,
+                    'metrics': datasets[d]['metrics']}
+        )
+
+        a = 'tpe'
+        score[(d, fo, a)], time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+            func=fixed_structure_with_params_optimization,
+            train_file_path=datasets[d]['train_file'],
+            test_file_path=datasets[d]['test_file'],
+            task=datasets[d]['task'],
+            metrics=datasets[d]['metrics'],
+            params={'fitted_operation': fo,
+                    'algo': tpe.suggest,
+                    'search_space': ss,
+                    'metrics': datasets[d]['metrics']}
+        )
+
+pd.set_option('max_column', 8)
 long_comparison_table = pd.concat([pd.Series(score),
                                    pd.Series(time_spent),
                                    pd.Series(memory_spent),
                                    pd.Series(pipeline)],
                                   axis=1).reset_index()
-long_comparison_table.columns = ['dataset', 'approach', 'score', 'time_spent', 'memory_spent', 'pipeline']
+long_comparison_table.columns = ['dataset', 'fitted_operation', 'approach',
+                                 'score', 'time_spent', 'memory_spent', 'pipeline']
 print(long_comparison_table)
+long_comparison_table.to_csv('long_comparison.csv', index=False)
