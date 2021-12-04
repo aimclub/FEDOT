@@ -1,5 +1,6 @@
 import os
 from time import time
+from datetime import timedelta
 import tracemalloc
 
 from sklearn.metrics import mean_squared_error, roc_auc_score
@@ -50,11 +51,13 @@ def make_measurement(func,
     time_spent = time() - start_time
     tracemalloc.stop()
 
-    output = pipeline.predict(test)
+    output_train = pipeline.predict(train)
+    score_train = metrics(output_train.target, output_train.predict)
 
-    score = metrics(output.target, output.predict)
+    output_test = pipeline.predict(test)
+    score_test = metrics(output_test.target, output_test.predict)
 
-    return score, time_spent, memory_spent, pipeline.root_node.descriptive_id
+    return score_train, score_test, time_spent, memory_spent, pipeline.root_node.descriptive_id + ''
 
 
 def get_fixed_pipeline(fitted_operation='xgbreg'):
@@ -81,25 +84,31 @@ def fixed_structure_with_default_params(train,
 
 def fixed_structure_with_params_optimization(train,
                                              fitted_operation='xgbreg',
+                                             iterations=100,
+                                             timeout=timedelta(minutes=5),
                                              algo=rand.suggest,
                                              search_space=SearchSpace(),
-                                             metrics=mean_squared_error):
+                                             metrics=mean_squared_error,
+                                             cv_folds=3):
     fixed_pipeline = get_fixed_pipeline(fitted_operation)
 
     pipeline_ = Pipeline(fixed_pipeline)
 
     pipeline_tuner = PipelineTuner(pipeline_,
+                                   iterations=iterations,
+                                   timeout=timeout,
                                    task=train.task.task_type,
                                    search_space=search_space,
                                    algo=algo)
 
     tuned_pipeline = pipeline_tuner.tune_pipeline(train,
-                                                  loss_function=metrics)
+                                                  loss_function=metrics,
+                                                  cv_folds=cv_folds)
 
     return tuned_pipeline
 
 
-score, time_spent, memory_spent, pipeline = {}, {}, {}, {}
+score_train, score_test, time_spent, memory_spent, pipeline = {}, {}, {}, {}, {}
 
 datasets = {
     # 'elo': {'train_file': 'cases/data/elo/train_elo_split.csv',
@@ -127,26 +136,29 @@ params = {
         'min_child_weight': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]])
     },
     'logit': {
-        'C': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
+        'C': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     },
     'lgbm': {
         'n_estimators': (hp.randint, [1, 1000]),
-        'learning_rate':  (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
         'max_depth': (hp.randint, [1, 10]),
-        # 'min_samples_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
-        # 'feature_fraction': (hp.uniform, [0, 1]),
-        # 'bagging_fraction': (hp.uniform, [0, 1]),
+        'min_samples_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
+        'feature_fraction': (hp.uniform, [0, 1]),
+        'bagging_fraction': (hp.uniform, [0, 1]),
         # 'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
         # 'lambda_l2': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
     }
 }
 
 ss = SearchSpace(params, True)
+n_iter = 1000
+timeout = timedelta(minutes=30)
 
 for d in datasets:
     for fo in datasets[d]['fitted_operations']:
         a = 'default'
-        score[(d, fo, a)], time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+        score_train[(d, fo, a)], score_test[(d, fo, a)], \
+        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
             func=fixed_structure_with_default_params,
             train_file_path=datasets[d]['train_file'],
             test_file_path=datasets[d]['test_file'],
@@ -156,7 +168,8 @@ for d in datasets:
         )
 
         a = 'random'
-        score[(d, fo, a)], time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+        score_train[(d, fo, a)], score_test[(d, fo, a)], \
+        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
             func=fixed_structure_with_params_optimization,
             train_file_path=datasets[d]['train_file'],
             test_file_path=datasets[d]['test_file'],
@@ -164,12 +177,15 @@ for d in datasets:
             metrics=datasets[d]['metrics'],
             params={'fitted_operation': fo,
                     'algo': rand.suggest,
+                    'iterations': n_iter,
+                    'timeout': timeout,
                     'search_space': ss,
                     'metrics': datasets[d]['metrics']}
         )
 
         a = 'tpe'
-        score[(d, fo, a)], time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+        score_train[(d, fo, a)], score_test[(d, fo, a)], \
+        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
             func=fixed_structure_with_params_optimization,
             train_file_path=datasets[d]['train_file'],
             test_file_path=datasets[d]['test_file'],
@@ -177,17 +193,20 @@ for d in datasets:
             metrics=datasets[d]['metrics'],
             params={'fitted_operation': fo,
                     'algo': tpe.suggest,
+                    'iterations': n_iter,
+                    'timeout': timeout,
                     'search_space': ss,
                     'metrics': datasets[d]['metrics']}
         )
 
 pd.set_option('max_column', 8)
-long_comparison_table = pd.concat([pd.Series(score),
+long_comparison_table = pd.concat([pd.Series(score_train),
+                                   pd.Series(score_test),
                                    pd.Series(time_spent),
                                    pd.Series(memory_spent),
                                    pd.Series(pipeline)],
                                   axis=1).reset_index()
 long_comparison_table.columns = ['dataset', 'fitted_operation', 'approach',
-                                 'score', 'time_spent', 'memory_spent', 'pipeline']
+                                 'score_train', 'score_test', 'time_spent', 'memory_spent', 'pipeline']
 print(long_comparison_table)
 long_comparison_table.to_csv('long_comparison.csv', index=False)
