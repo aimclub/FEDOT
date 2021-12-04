@@ -1,9 +1,9 @@
 import os
-import random
 from time import time
+from datetime import timedelta
 import tracemalloc
 
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, roc_auc_score
 from functools import partial
 import numpy as np
 import pandas as pd
@@ -17,21 +17,6 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.utils import fedot_project_root
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.tuning.search_space import SearchSpace
-
-from multiprocessing import Pool, freeze_support
-
-
-def pool_map(func,
-             iterable,
-             n_threads=1):
-    if n_threads <= 1:
-        res = [func(i) for i in iterable]
-    else:
-        p = Pool(n_threads)
-        res = p.map(func=func,
-                    iterable=iterable)
-        p.close()
-    return res
 
 
 def get_data(file_path,
@@ -57,10 +42,6 @@ def make_measurement(func,
     else:
         test = train
 
-    tracemalloc.start()
-    tracemalloc.stop()
-    tracemalloc.start()
-
     start_time = time()
     tracemalloc.start()
 
@@ -71,18 +52,10 @@ def make_measurement(func,
     tracemalloc.stop()
 
     output_train = pipeline.predict(train)
-    output_test = pipeline.predict(test)
+    score_train = metrics(output_train.target, output_train.predict)
 
-    try:
-        score_train = metrics(output_train.target, output_train.predict)
-        score_test = metrics(output_test.target, output_test.predict)
-    except Exception:
-        if output_test.predict.shape[1] == 1:
-            score_train = metrics(output_train.target, output_train.predict.astype(int))
-            score_test = metrics(output_test.target, output_test.predict.astype(int))
-        else:
-            score_train = metrics(output_train.target, output_train.predict.argmax(axis=1))
-            score_test = metrics(output_test.target, output_test.predict.argmax(axis=1))
+    output_test = pipeline.predict(test)
+    score_test = metrics(output_test.target, output_test.predict)
 
     return score_train, score_test, time_spent, memory_spent, pipeline.root_node.descriptive_id + ''
 
@@ -135,160 +108,105 @@ def fixed_structure_with_params_optimization(train,
     return tuned_pipeline
 
 
-def save_comparison_results(key):
-    d, m, fo, algo, i, experiment = key
-    filename = d + '_' + m + '_' + fo + '_' + algo + '_' + str(i) + '_' + str(experiment)
-    if filename not in os.listdir('comparison_results'):
-        if algo == 'default':
-            score_train, score_test, time_spent, memory_spent, pipeline = make_measurement(
-                func=fixed_structure_with_default_params,
-                train_file_path=datasets[d]['train_file'],
-                test_file_path=datasets[d]['test_file'],
-                task=datasets[d]['task'],
-                metrics=datasets[d]['metrics'][m],
-                params={
-                    'fitted_operation': fo
-                }
-            )
-        else:
-            score_train, score_test, time_spent, memory_spent, pipeline = make_measurement(
-                func=fixed_structure_with_params_optimization,
-                train_file_path=datasets[d]['train_file'],
-                test_file_path=datasets[d]['test_file'],
-                task=datasets[d]['task'],
-                metrics=datasets[d]['metrics'][m],
-                params={
-                    'fitted_operation': fo,
-                    'algo': rand.suggest if algo == 'random' else tpe.suggest,
-                    'iterations': i,
-                    'timeout': timeout,
-                    'search_space': ss,
-                    'metrics': datasets[d]['metrics'][m]
-                }
-            )
-        txt = ','.join([str(score_train), str(score_test), str(time_spent), str(memory_spent), pipeline])
-        open('comparison_results/' + filename, 'w').write(txt)
+score_train, score_test, time_spent, memory_spent, pipeline = {}, {}, {}, {}, {}
 
-
-fitted_operations_for_classification = ['logit', 'lgbm']
-fitted_operations_for_regression = ['ridge', 'lgbmreg']
-metrics_for_binary_classification = {'f1': f1_score, 'auc': roc_auc_score}
-metrics_for_multi_classification = {'f1': f1_score, 'accuracy': accuracy_score}
-metrics_for_regression = {'mse': mean_squared_error, 'mae': mean_absolute_error}
-
-overview = pd.read_csv('data_for_comparison/overview.csv')
-
-datasets = {}
-for idx, row in overview.iterrows():
-    datasets[row['name']] = {
-        'train_file': 'cases/hyperparameters_comparison/data_for_comparison/train_datasets/' + row['name'] + '.csv',
-        'test_file': 'cases/hyperparameters_comparison/data_for_comparison/test_datasets/' + row['name'] + '.csv',
-        'task': TaskTypesEnum.regression if row['task'] == 'regression'
-        else TaskTypesEnum.classification,
-        'fitted_operations': fitted_operations_for_regression if row['task'] == 'regression'
-        else fitted_operations_for_classification,
-        'metrics': metrics_for_regression if row['task'] == 'regression'
-        else metrics_for_binary_classification if row['num_classes'] == 2
-        else metrics_for_multi_classification
-    }
+datasets = {
+    # 'elo': {'train_file': 'cases/data/elo/train_elo_split.csv',
+    #         'test_file': 'cases/data/elo/test_elo_split.csv',
+    #         'task': TaskTypesEnum.regression,
+    #         'fitted_operations': ['xgbreg'],
+    #         'metrics': partial(mean_squared_error, squared=False)},
+    'scoring': {'train_file': 'cases/data/scoring/scoring_train.csv',
+                'test_file': 'cases/data/scoring/scoring_test.csv',
+                'task': TaskTypesEnum.classification,
+                'fitted_operations': ['logit', 'lgbm'],
+                'metrics': roc_auc_score}
+}
 
 params = {
-    'ridge': {
-        'alpha': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
+    'xgbreg': {
+        'n_estimators': (hp.choice, [[10 ** n for n in range(1, 10)]]),
+        'max_depth': (hp.randint, [1, 10]),
+        'learning_rate': (hp.loguniform, [np.log(0.01), np.log(1)]),
+        'lambda': (hp.choice, [[0] + [1.21 ** i for i in range(0, 7)]]),
+        'alpha': (hp.choice, [[0] + [1.2 ** i for i in range(0, 7)]]),
+        'max_bin': (hp.choice, [[2 ** i - 1 for i in range(1, 8)]]),
+        'cosample_bytree': (hp.uniform, [0.01, 1]),
+        'subsample': (hp.uniform, [0.01, 1]),
+        'min_child_weight': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]])
     },
     'logit': {
         'C': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     },
-    'knn': {
-        'n_neighbors': (hp.randint, [1, 100]),
-        'metric': (hp.choice, [['euclidean', 'manhattan', 'chebyshev', 'cosine']]),
-        'weights': (hp.choice, [['uniform', 'distance']])
-    },
-    'knnreg': {
-        'n_neighbors': (hp.randint, [1, 100]),
-        'metric': (hp.choice, [['euclidean', 'manhattan', 'chebyshev', 'cosine']]),
-        'weights': (hp.choice, [['uniform', 'distance']])
-    },
-    'svr': {
-        'C': (hp.loguniform, [np.log(1e-9), np.log(1e4)]),
-        'kernel': (hp.choice, [['linear', 'poly', 'rbf', 'sigmoid']]),
-        'degree': (hp.randint, [2, 4])
-    },
-    'dt': {
-        'max_depth': (hp.randint, [2, 10]),
-        'min_samples_leaf': (hp.randint, [1, 10000])
-    },
-    'dtreg': {
-        'max_depth': (hp.randint, [2, 10]),
-        'min_samples_leaf': (hp.randint, [1, 10000])
-    },
-    'rf': {
-        'n_estimators': (hp.randint, [10, 1000]),
-        'max_features': (hp.uniform, [0.05, 1]),
-        'bootstrap': (hp.choice, [[True, False]]),
-        'max_depth': (hp.randint, [2, 10]),
-        'min_samples_leaf': (hp.randint, [1, 10000])
-    },
-    'rfr': {
-        'n_estimators': (hp.randint, [10, 1000]),
-        'max_features': (hp.uniform, [0.05, 1]),
-        'bootstrap': (hp.choice, [[True, False]]),
-        'max_depth': (hp.randint, [2, 10]),
-        'min_samples_leaf': (hp.randint, [1, 10000])
-    },
-    'xgbreg': {
-        'n_estimators': (hp.randint, [10, 1000]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 10]),
-        'min_child_weight': (hp.randint, [1, 10000]),
-        'cosample_bytree': (hp.uniform, [0.05, 1]),
-        'subsample': (hp.uniform, [0.05, 1]),
-        'alpha': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
-        'lambda': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
-    },
     'lgbm': {
-        'n_estimators': (hp.randint, [10, 1000]),
-        'early_stopping_rounds': (hp.randint, [10, 100]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 10]),
-        'min_data_in_leaf': (hp.randint, [1, 10000]),
-        'feature_fraction': (hp.uniform, [0.05, 1]),
-        'bagging_fraction': (hp.uniform, [0.05, 1]),
-        'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
-        'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
-    },
-    'lgbmreg': {
-        'n_estimators': (hp.randint, [10, 1000]),
-        'early_stopping_rounds': (hp.randint, [10, 100]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 10]),
-        'min_data_in_leaf': (hp.randint, [1, 10000]),
-        'feature_fraction': (hp.uniform, [0.05, 1]),
-        'bagging_fraction': (hp.uniform, [0.05, 1]),
-        'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
-        'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
+        'n_estimators': (hp.randint, [1, 1000]),
+        'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        'max_depth': (hp.randint, [1, 10]),
+        'min_samples_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
+        'feature_fraction': (hp.uniform, [0, 1]),
+        'bagging_fraction': (hp.uniform, [0, 1]),
+        # 'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        # 'lambda_l2': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
     }
 }
 
 ss = SearchSpace(params, True)
-n_threads = 1
-n_experiments = 3
-n_iter = [50, 200]
+n_iter = 1000
 timeout = timedelta(minutes=30)
 
-keys = []
+for d in datasets:
+    for fo in datasets[d]['fitted_operations']:
+        a = 'default'
+        score_train[(d, fo, a)], score_test[(d, fo, a)], \
+        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+            func=fixed_structure_with_default_params,
+            train_file_path=datasets[d]['train_file'],
+            test_file_path=datasets[d]['test_file'],
+            task=datasets[d]['task'],
+            metrics=datasets[d]['metrics'],
+            params={'fitted_operation': fo}
+        )
 
-for experiment in range(n_experiments):
-    for d in datasets:
-        for m in datasets[d]['metrics']:
-            for fo in datasets[d]['fitted_operations']:
-                keys += [(d, m, fo, 'default', 0, experiment)]
-                for i in n_iter:
-                    keys += [(d, m, fo, 'random', i, experiment)]
-                    keys += [(d, m, fo, 'tpe', i, experiment)]
+        a = 'random'
+        score_train[(d, fo, a)], score_test[(d, fo, a)], \
+        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+            func=fixed_structure_with_params_optimization,
+            train_file_path=datasets[d]['train_file'],
+            test_file_path=datasets[d]['test_file'],
+            task=datasets[d]['task'],
+            metrics=datasets[d]['metrics'],
+            params={'fitted_operation': fo,
+                    'algo': rand.suggest,
+                    'iterations': n_iter,
+                    'timeout': timeout,
+                    'search_space': ss,
+                    'metrics': datasets[d]['metrics']}
+        )
 
-if __name__ == '__main__':
-    freeze_support()
-    pool_map(func=save_comparison_results,
-             iterable=keys,
-             n_threads=n_threads)
+        a = 'tpe'
+        score_train[(d, fo, a)], score_test[(d, fo, a)], \
+        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+            func=fixed_structure_with_params_optimization,
+            train_file_path=datasets[d]['train_file'],
+            test_file_path=datasets[d]['test_file'],
+            task=datasets[d]['task'],
+            metrics=datasets[d]['metrics'],
+            params={'fitted_operation': fo,
+                    'algo': tpe.suggest,
+                    'iterations': n_iter,
+                    'timeout': timeout,
+                    'search_space': ss,
+                    'metrics': datasets[d]['metrics']}
+        )
+
+pd.set_option('max_column', 8)
+long_comparison_table = pd.concat([pd.Series(score_train),
+                                   pd.Series(score_test),
+                                   pd.Series(time_spent),
+                                   pd.Series(memory_spent),
+                                   pd.Series(pipeline)],
+                                  axis=1).reset_index()
+long_comparison_table.columns = ['dataset', 'fitted_operation', 'approach',
+                                 'score_train', 'score_test', 'time_spent', 'memory_spent', 'pipeline']
+print(long_comparison_table)
+long_comparison_table.to_csv('long_comparison.csv', index=False)
