@@ -18,7 +18,7 @@ import statsmodels.api as sm
 
 
 class GLMImplementation(ModelImplementation):
-    """Generalized linear models implementation"""
+    """ Generalized linear models implementation """
     family_distribution = {
         "gaussian": {'distribution': Gaussian,
                      'default_link': 'identity',
@@ -67,7 +67,6 @@ class GLMImplementation(ModelImplementation):
 
         self.params_changed = False
 
-        # is optimisation is used
         self.family = self.params.get('family')
         self.link = self.params.get('link')
 
@@ -125,7 +124,7 @@ class GLMImplementation(ModelImplementation):
             return params_dict
 
     def set_default(self):
-        """Set default value of Family(link)"""
+        """ Set default value of Family(link) """
         self.family_link = self.family_distribution['default']
         self.params_changed = True
         self.family = 'gaussian'
@@ -133,7 +132,7 @@ class GLMImplementation(ModelImplementation):
             f"Invalid family. Changed to default value")
 
     def correct_params(self):
-        """Correct params if they are not correct"""
+        """ Correct params if they are not correct """
         if self.family in self.family_distribution:
             self.family = self.family
             if self.link not in self.family_distribution[self.family]['available_links']:
@@ -240,6 +239,8 @@ class AutoRegImplementation(ModelImplementation):
 
 
 class ExpSmoothingImplementation(ModelImplementation):
+    """ Exponential smoothing implementation from statsmodels """
+
     def __init__(self, log: Log = None, **params):
         super().__init__(log)
         self.model = None
@@ -259,6 +260,7 @@ class ExpSmoothingImplementation(ModelImplementation):
             seasonal_periods=self.seasonal_periods
         )
         self.model = self.model.fit(disp=False)
+        return self.model
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         input_data = copy(input_data)

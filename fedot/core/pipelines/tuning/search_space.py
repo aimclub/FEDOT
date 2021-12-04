@@ -132,7 +132,7 @@ class SearchSpace:
                 'trend': (hp.choice, [[None, 'add', 'mul']]),
                 'seasonal': (hp.choice, [[None, 'add', 'mul']]),
                 'damped_trend': (hp.choice, [[True, False]]),
-                'seasonal_periods': (hp.uniform, [1, 500])
+                'seasonal_periods': (hp.uniform, [1, 100])
             },
             'glm': {'nested_space': (hp.choice, [[
                 {

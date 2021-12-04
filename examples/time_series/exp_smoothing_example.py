@@ -48,8 +48,7 @@ def run_experiment_with_ets(time_series, raw_model=False, len_forecast=250):
     # Let's divide our data on train and test samples
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
-    # idx = pd.to_datetime(time_series["Month"].values)
-    idx = np.arange(time_series["Month"].values.shape[0])
+    idx = pd.to_datetime(time_series["Month"].values)
     time_series = time_series["Monthly beer production"].values
     train_input = InputData(idx=idx,
                             features=time_series,
@@ -101,4 +100,4 @@ if __name__ == '__main__':
     time_series = pd.read_csv('../data/beer.csv')
     run_experiment_with_ets(time_series,
                             raw_model=False,
-                            len_forecast=30)
+                            len_forecast=50)
