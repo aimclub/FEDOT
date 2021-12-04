@@ -42,8 +42,10 @@ def make_measurement(func,
     else:
         test = train
 
-    start_time = time()
+    tracemalloc.stop()
     tracemalloc.start()
+
+    start_time = time()
 
     pipeline = func(train, **params)
 
@@ -142,11 +144,12 @@ params = {
         'n_estimators': (hp.randint, [1, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
         'max_depth': (hp.randint, [1, 10]),
-        'min_samples_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
+        'num_leaves': (hp.randint, [1, 10000]),
+        'min_data_in_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
         'feature_fraction': (hp.uniform, [0, 1]),
         'bagging_fraction': (hp.uniform, [0, 1]),
-        # 'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
-        # 'lambda_l2': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
+        'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        'lambda_l2': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
     }
 }
 
