@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -8,7 +7,6 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.api.test_main_api import composer_params
 
 
 def data_with_only_categorical_features():
@@ -117,8 +115,8 @@ def data_with_categorical_target(with_nan: bool = False):
     task = Task(TaskTypesEnum.classification)
     features = np.array([[0, 0],
                          [0, 1],
-                         [9, 9],
-                         [9, 9]])
+                         [8, 8],
+                         [8, 9]])
     if with_nan:
         target = np.array(['blue', np.nan, np.nan, 'di'], dtype=object)
     else:
