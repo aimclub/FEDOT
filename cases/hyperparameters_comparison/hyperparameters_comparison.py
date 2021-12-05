@@ -142,10 +142,10 @@ params = {
     },
     'lgbm': {
         'n_estimators': (hp.randint, [1, 1000]),
-        'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
+        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e2)]),
         'max_depth': (hp.randint, [1, 10]),
         'num_leaves': (hp.randint, [1, 10000]),
-        'min_data_in_leaf':  (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
+        'min_data_in_leaf': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
         'feature_fraction': (hp.uniform, [0, 1]),
         'bagging_fraction': (hp.uniform, [0, 1]),
         'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
@@ -154,62 +154,69 @@ params = {
 }
 
 ss = SearchSpace(params, True)
-n_iter = 1000
-timeout = timedelta(minutes=30)
+n_iter = [50, 100, 200, 500]
+timeout = timedelta(minutes=40)
 
 for d in datasets:
     for fo in datasets[d]['fitted_operations']:
-        a = 'default'
-        score_train[(d, fo, a)], score_test[(d, fo, a)], \
-        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
+        key = (d, fo, 'default', 0)
+        score_train[key], score_test[key], time_spent[key], memory_spent[key], \
+        pipeline[key] = make_measurement(
             func=fixed_structure_with_default_params,
             train_file_path=datasets[d]['train_file'],
             test_file_path=datasets[d]['test_file'],
             task=datasets[d]['task'],
             metrics=datasets[d]['metrics'],
-            params={'fitted_operation': fo}
+            params={
+                'fitted_operation': fo
+            }
         )
 
-        a = 'random'
-        score_train[(d, fo, a)], score_test[(d, fo, a)], \
-        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
-            func=fixed_structure_with_params_optimization,
-            train_file_path=datasets[d]['train_file'],
-            test_file_path=datasets[d]['test_file'],
-            task=datasets[d]['task'],
-            metrics=datasets[d]['metrics'],
-            params={'fitted_operation': fo,
+        for i in n_iter:
+            key = (d, fo, 'random', i)
+            score_train[key], score_test[key], time_spent[key], memory_spent[key], \
+            pipeline[key] = make_measurement(
+                func=fixed_structure_with_params_optimization,
+                train_file_path=datasets[d]['train_file'],
+                test_file_path=datasets[d]['test_file'],
+                task=datasets[d]['task'],
+                metrics=datasets[d]['metrics'],
+                params={
+                    'fitted_operation': fo,
                     'algo': rand.suggest,
-                    'iterations': n_iter,
+                    'iterations': i,
                     'timeout': timeout,
                     'search_space': ss,
-                    'metrics': datasets[d]['metrics']}
-        )
+                    'metrics': datasets[d]['metrics']
+                }
+            )
 
-        a = 'tpe'
-        score_train[(d, fo, a)], score_test[(d, fo, a)], \
-        time_spent[(d, fo, a)], memory_spent[(d, fo, a)], pipeline[(d, fo, a)] = make_measurement(
-            func=fixed_structure_with_params_optimization,
-            train_file_path=datasets[d]['train_file'],
-            test_file_path=datasets[d]['test_file'],
-            task=datasets[d]['task'],
-            metrics=datasets[d]['metrics'],
-            params={'fitted_operation': fo,
+            key = (d, fo, 'tpe', i)
+            score_train[key], score_test[key], time_spent[key], memory_spent[key], \
+            pipeline[key] = make_measurement(
+                func=fixed_structure_with_params_optimization,
+                train_file_path=datasets[d]['train_file'],
+                test_file_path=datasets[d]['test_file'],
+                task=datasets[d]['task'],
+                metrics=datasets[d]['metrics'],
+                params={
+                    'fitted_operation': fo,
                     'algo': tpe.suggest,
-                    'iterations': n_iter,
+                    'iterations': i,
                     'timeout': timeout,
                     'search_space': ss,
-                    'metrics': datasets[d]['metrics']}
-        )
+                    'metrics': datasets[d]['metrics']
+                }
+            )
 
-pd.set_option('max_column', 8)
+pd.set_option('max_column', 10)
 long_comparison_table = pd.concat([pd.Series(score_train),
                                    pd.Series(score_test),
                                    pd.Series(time_spent),
                                    pd.Series(memory_spent),
                                    pd.Series(pipeline)],
                                   axis=1).reset_index()
-long_comparison_table.columns = ['dataset', 'fitted_operation', 'approach',
+long_comparison_table.columns = ['dataset', 'fitted_operation', 'approach', 'iterations',
                                  'score_train', 'score_test', 'time_spent', 'memory_spent', 'pipeline']
 print(long_comparison_table)
 long_comparison_table.to_csv('long_comparison.csv', index=False)
