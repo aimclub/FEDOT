@@ -42,6 +42,7 @@ def make_measurement(func,
     else:
         test = train
 
+    tracemalloc.start()
     tracemalloc.stop()
     tracemalloc.start()
 
@@ -113,43 +114,47 @@ def fixed_structure_with_params_optimization(train,
 score_train, score_test, time_spent, memory_spent, pipeline = {}, {}, {}, {}, {}
 
 datasets = {
-    # 'elo': {'train_file': 'cases/data/elo/train_elo_split.csv',
-    #         'test_file': 'cases/data/elo/test_elo_split.csv',
-    #         'task': TaskTypesEnum.regression,
-    #         'fitted_operations': ['xgbreg'],
-    #         'metrics': partial(mean_squared_error, squared=False)},
-    'scoring': {'train_file': 'cases/data/scoring/scoring_train.csv',
-                'test_file': 'cases/data/scoring/scoring_test.csv',
-                'task': TaskTypesEnum.classification,
-                'fitted_operations': ['logit', 'lgbm'],
-                'metrics': roc_auc_score}
+    # 'elo': {
+    #     'train_file': 'cases/data/elo/train_elo_split.csv',
+    #     'test_file': 'cases/data/elo/test_elo_split.csv',
+    #     'task': TaskTypesEnum.regression,
+    #     'fitted_operations': ['xgbreg'],
+    #     'metrics': partial(mean_squared_error, squared=False)
+    # },
+    'scoring': {
+        'train_file': 'cases/data/scoring/scoring_train.csv',
+        'test_file': 'cases/data/scoring/scoring_test.csv',
+        'task': TaskTypesEnum.classification,
+        'fitted_operations': ['logit', 'lgbm'],
+        'metrics': roc_auc_score
+    }
 }
 
 params = {
     'xgbreg': {
-        'n_estimators': (hp.choice, [[10 ** n for n in range(1, 10)]]),
+        'n_estimators': (hp.randint, [1, 1000]),
+        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
+        'max_bin': (hp.randint, [2, 512]),
         'max_depth': (hp.randint, [1, 10]),
-        'learning_rate': (hp.loguniform, [np.log(0.01), np.log(1)]),
-        'lambda': (hp.choice, [[0] + [1.21 ** i for i in range(0, 7)]]),
-        'alpha': (hp.choice, [[0] + [1.2 ** i for i in range(0, 7)]]),
-        'max_bin': (hp.choice, [[2 ** i - 1 for i in range(1, 8)]]),
-        'cosample_bytree': (hp.uniform, [0.01, 1]),
-        'subsample': (hp.uniform, [0.01, 1]),
-        'min_child_weight': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]])
+        'min_child_weight': (hp.randint, [1, 10000]),
+        'cosample_bytree': (hp.uniform, [0, 1]),
+        'subsample': (hp.uniform, [0, 1]),
+        'alpha': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
+        'lambda': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     },
     'logit': {
         'C': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     },
     'lgbm': {
         'n_estimators': (hp.randint, [1, 1000]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e2)]),
+        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
+        'max_bin': (hp.randint, [2, 512]),
         'max_depth': (hp.randint, [1, 10]),
-        'num_leaves': (hp.randint, [1, 10000]),
-        'min_data_in_leaf': (hp.choice, [[2 ** i - 1 for i in range(3, 8)]]),
+        'min_data_in_leaf': (hp.randint, [1, 10000]),
         'feature_fraction': (hp.uniform, [0, 1]),
         'bagging_fraction': (hp.uniform, [0, 1]),
-        'lambda_l1': (hp.loguniform, [np.log(1e-4), np.log(1e4)]),
-        'lambda_l2': (hp.loguniform, [np.log(1e-4), np.log(1e4)])
+        'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
+        'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     }
 }
 
