@@ -4,7 +4,8 @@ from typing import Optional
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, PolyFeaturesImplementation, ScalingImplementation
+    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
+    PolyFeaturesImplementation, ScalingImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
     OneHotEncodingImplementation, LabelEncodingImplementation
 
