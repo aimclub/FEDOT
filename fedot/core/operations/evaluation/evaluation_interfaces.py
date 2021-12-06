@@ -176,8 +176,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
                                                              tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
 
-        # Multi-output task
-        is_multi_target = len(train_data.target.shape) > 1
+        # Multi-output task or not
+        is_multi_target = is_multi_output_task(train_data)
         if is_model_not_support_multi and is_multi_target:
             # Manually wrap the regressor into multi-output model
             operation_implementation = convert_to_multivariate_model(operation_implementation,
@@ -249,3 +249,9 @@ def convert_to_multivariate_model(sklearn_model, train_data: InputData):
     sklearn_model = multiout_func(sklearn_model)
     sklearn_model.fit(train_data.features, train_data.target)
     return sklearn_model
+
+
+def is_multi_output_task(train_data):
+    target_shape = train_data.target.shape
+    is_multi_target = len(target_shape) > 1 and target_shape[1] > 1
+    return is_multi_target

@@ -161,18 +161,40 @@ def get_mixed_data(task=None, extended=False):
 def get_nan_binary_data(task=None):
     """ Generate table with two numerical and one categorical features.
     Both them contain nans, which need to be filled in.
+
+    Binary int columns must be processed as "almost categorical". Current dataset
+    For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
     features = np.array([[1, '0', 0],
                          [np.nan, np.nan, np.nan],
                          [0, '2', 1],
                          [1, '1', 1],
-                         [5, '1', 0]], dtype=object)
+                         [5, '1', 1]], dtype=object)
 
     input_data = InputData(idx=[0, 1, 2, 3], features=features,
                            target=np.array([[0], [0], [1], [1]]),
                            task=task, data_type=DataTypesEnum.table)
 
     return input_data
+
+
+def data_with_binary_int_features_and_equal_categories():
+    """
+    Generate table with binary integer features and nans there. Such a columns
+    must be processed as "almost categorical". Current dataset
+    For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
+    """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([[1, 10],
+                         [np.nan, np.nan],
+                         [np.nan, np.nan],
+                         [0, 0]])
+    target = np.array([['not-nan'], ['nan'], ['nan'], ['not-nan']])
+    train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
+                            task=task, data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
 
 
 def test_regression_data_operations():
@@ -277,8 +299,8 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
     model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
 
-    for data_operation in model_names:
-        node_data_operation = PrimaryNode(data_operation)
+    for model_name in model_names:
+        node_data_operation = PrimaryNode(model_name)
         node_final = SecondaryNode('linear', nodes_from=[node_data_operation])
         pipeline = Pipeline(node_final)
 
@@ -368,11 +390,28 @@ def test_imputation_with_binary_correct():
     """
     nan_data = get_nan_binary_data(task=Task(TaskTypesEnum.classification))
 
-    # Create pipeline with imputation operation
+    # Create node with imputation operation
     imputation_node = PrimaryNode('simple_imputation')
     imputation_node.fit(nan_data)
     predicted = imputation_node.predict(nan_data)
 
     assert np.isclose(predicted.predict[1, 0], 1.75)
     assert predicted.predict[1, 1] == '1'
-    assert np.isclose(predicted.predict[1, 2], 0.5)
+    assert np.isclose(predicted.predict[1, 2], 1)
+
+
+def test_imputation_binary_features_with_equal_categories_correct():
+    """
+    The correctness of the gap-filling algorithm is checked on data with binary
+    features. The number of known categories in each column is equal. Consequently,
+    there is no possibility to insert the majority class label into the gaps.
+    Instead of that the mean value is inserted.
+    """
+    nan_data = data_with_binary_int_features_and_equal_categories()
+
+    imputation_node = PrimaryNode('simple_imputation')
+    imputation_node.fit(nan_data)
+    predicted = imputation_node.predict(nan_data)
+
+    assert np.isclose(predicted.predict[1, 0], 0.5)
+    assert np.isclose(predicted.predict[1, 1], 5.0)

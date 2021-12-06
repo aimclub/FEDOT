@@ -113,13 +113,14 @@ class Fedot:
         if predefined_model is not None:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
+            self.current_pipeline.preprocessor = self.data_processor.preprocessor
             return self.current_pipeline
 
         self.api_params['train_data'] = self.train_data
         self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
 
         # Store data encoder in the pipeline if it is required
-        self.current_pipeline.preprocessor.target_encoder = self.data_processor.preprocessor.target_encoder
+        self.current_pipeline.preprocessor = self.data_processor.preprocessor
         return self.current_pipeline
 
     def predict(self,

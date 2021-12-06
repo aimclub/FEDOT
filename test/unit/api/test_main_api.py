@@ -15,8 +15,10 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.models.test_split_train_test import get_synthetic_input_data
@@ -95,6 +97,24 @@ def load_categorical_multidata():
     })
 
     return fit_data
+
+
+def data_with_binary_features_and_categorical_target():
+    """
+    A dataset is generated where features and target require transformations.
+    The categorical binary features and categorical target must be converted to int
+    """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([['red', 'blue'],
+                         [np.nan, 'blue'],
+                         ['green', 'blue'],
+                         ['green', 'orange']])
+    target = np.array(['red-blue', 'red-blue', 'green-blue', 'green-orange'])
+    train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
+                            task=task, data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
 
 
 def test_api_predict_correct(task_type: str = 'classification'):
@@ -324,3 +344,20 @@ def test_custom_history_folder_define_correct():
 
     assert len(os.listdir(custom_path)) != 0
     shutil.rmtree(custom_path)
+
+
+def test_pipeline_preprocessing_through_api_correctly():
+    """ Preprocessing applying in two modules (places): API and pipeline.
+    In API preprocessing there is an obligatory preparation for data.
+    After API finish processing it returns pipeline which preprocessing module
+    must be identical to preprocessing in api.
+    """
+    data = data_with_binary_features_and_categorical_target()
+
+    fedot_model = Fedot(problem='classification')
+    # Using API preprocessing and train pipeline to give forecasts
+    pipeline = fedot_model.fit(data, predefined_model='dt')
+    # Stand-alone pipeline with it's own preprocessing
+    predicted = pipeline.predict(data, output_mode='labels')
+
+    assert predicted.predict[-1] == 'green-orange'
