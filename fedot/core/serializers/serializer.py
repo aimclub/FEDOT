@@ -1,7 +1,7 @@
 from importlib import import_module
 from inspect import isclass, isfunction, ismethod
 from json import JSONDecoder, JSONEncoder
-from typing import Any, Dict, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Type, TypeVar, Union
 from uuid import UUID
 
 from fedot.core.dag.graph import Graph
@@ -64,11 +64,22 @@ class Serializer(JSONEncoder, JSONDecoder):
             }
 
     @staticmethod
-    def is_serializable(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> bool:
-        types = Serializer.PROCESSORS_BY_TYPE.keys()
+    def _get_field_checker(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> Callable[..., bool]:
         if isclass(obj):
-            return obj in types
-        return type(obj) in types
+            return issubclass
+        return isinstance
+
+    @staticmethod
+    def _get_base_type_index(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> int:
+        contains = Serializer._get_field_checker(obj)
+        for idx, k in enumerate(Serializer.PROCESSORS_BY_TYPE):
+            if contains(obj, k):
+                return idx
+        return -1
+
+    @staticmethod
+    def _get_coder_by_index(idx: int, coder_type: str):
+        return list(Serializer.PROCESSORS_BY_TYPE.values())[idx][coder_type]
 
     @staticmethod
     def dump_path_to_obj(obj: CLASS_OR_FUNC_OBJECT) -> Dict[str, str]:
@@ -99,8 +110,9 @@ class Serializer(JSONEncoder, JSONDecoder):
         """
         if isfunction(obj) or ismethod(obj):
             return Serializer.dump_path_to_obj(obj)
-        elif Serializer.is_serializable(obj):
-            return Serializer.PROCESSORS_BY_TYPE[type(obj)][Serializer._to_json](obj)
+        type_index = Serializer._get_base_type_index(obj)
+        if type_index != -1:
+            return Serializer._get_coder_by_index(type_index, Serializer._to_json)(obj)
 
         return JSONEncoder.default(self, obj)
 
@@ -131,8 +143,9 @@ class Serializer(JSONEncoder, JSONDecoder):
         if CLASS_PATH_KEY in json_obj:
             obj_cls = Serializer._get_class(json_obj[CLASS_PATH_KEY])
             del json_obj[CLASS_PATH_KEY]
-            if isclass(obj_cls) and Serializer.is_serializable(obj_cls):
-                return Serializer.PROCESSORS_BY_TYPE[obj_cls][Serializer._from_json](obj_cls, json_obj)
+            type_index = Serializer._get_base_type_index(obj_cls)
+            if isclass(obj_cls) and type_index != -1:
+                return Serializer._get_coder_by_index(type_index, Serializer._from_json)(obj_cls, json_obj)
             elif isfunction(obj_cls) or ismethod(obj_cls):
                 return obj_cls
             raise TypeError(f'Parsed obj_cls={obj_cls} is not serializable, but should be')
