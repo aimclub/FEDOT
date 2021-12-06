@@ -3,7 +3,7 @@ from typing import Any, Dict, Type
 
 from fedot.core.dag.graph import Graph
 
-from . import any_serialization
+from .any_serialization import any_to_json
 
 
 def graph_to_json(obj: Graph) -> Dict[str, Any]:
@@ -13,7 +13,7 @@ def graph_to_json(obj: Graph) -> Dict[str, Any]:
     """
     serialized_obj = {
         k: v
-        for k, v in any_serialization.any_to_json(obj).items()
+        for k, v in any_to_json(obj).items()
         if k != 'operator'  # to prevent circular reference
     }
     for idx, node in enumerate(serialized_obj['nodes']):

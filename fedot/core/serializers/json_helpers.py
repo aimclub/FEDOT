@@ -2,8 +2,7 @@ from importlib import import_module
 from inspect import isclass, isfunction, ismethod
 from typing import Any, Dict, Type, Union
 
-from fedot.core.serializers.any_serialization import ClassOrFuncObject
-
+from .any_serialization import ClassOrFuncObject
 from .interfaces.serializable import Serializer
 
 MODULE_X_NAME_DELIMITER = '/'

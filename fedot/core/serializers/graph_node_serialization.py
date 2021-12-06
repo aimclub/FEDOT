@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from fedot.core.dag.graph_node import GraphNode
 
-from . import any_serialization
+from .any_serialization import any_to_json
 
 
 def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
@@ -11,6 +11,6 @@ def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
     """
     return {
         k: v
-        for k, v in any_serialization.any_to_json(obj).items()
+        for k, v in any_to_json(obj).items()
         if k != '_operator'  # to prevent circular references
     }

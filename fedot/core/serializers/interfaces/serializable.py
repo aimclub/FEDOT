@@ -1,6 +1,5 @@
-from enum import Enum
 from inspect import isclass
-from typing import Any, Dict, Type, Union
+from typing import Any, Dict, Type, TypeVar, Union
 from uuid import UUID
 
 from fedot.core.dag.graph import Graph
@@ -8,7 +7,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.serializers.any_serialization import ClassOrFuncObject, any_from_json, any_to_json
+from fedot.core.serializers.any_serialization import any_from_json, any_to_json
 from fedot.core.serializers.enum_serialization import enum_from_json, enum_to_json
 from fedot.core.serializers.graph_node_serialization import graph_node_to_json
 from fedot.core.serializers.graph_serialization import graph_from_json, graph_to_json
@@ -18,6 +17,8 @@ from fedot.core.serializers.parent_operator_serialization import parent_operator
 from fedot.core.serializers.pipeline_template_serialization import pipeline_template_to_json
 from fedot.core.serializers.uuid_serialization import uuid_from_json, uuid_to_json
 from fedot.core.utils import ComparableEnum
+
+ClassOrFuncObject = TypeVar('ClassOrFuncObject')
 
 
 class Serializer:
