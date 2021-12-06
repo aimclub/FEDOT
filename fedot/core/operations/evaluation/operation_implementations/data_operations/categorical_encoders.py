@@ -83,7 +83,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         transformed_categorical = self.encoder.transform(categorical_features).toarray()
 
         # If there are non-categorical features in the data
-        if len(self.non_categorical_ids) == 0:
+        if not self.non_categorical_ids:
             transformed_features = transformed_categorical
         else:
             # Stack transformed categorical and non-categorical data
@@ -112,7 +112,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features)
 
         # If there are categorical features - process it
-        if len(self.categorical_ids) > 0:
+        if self.categorical_ids:
             # For every categorical feature - perform encoding
             self._fit_label_encoders(input_data)
         return self.encoders
@@ -120,7 +120,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """ Apply LabelEncoder on categorical features and doesn't process float or int ones """
         copied_data = deepcopy(input_data)
-        if len(self.categorical_ids) != 0:
+        if self.categorical_ids:
             # If categorical features are exists - transform them inplace in InputData
             for categorical_id in self.categorical_ids:
                 self._apply_label_encoder(copied_data, categorical_id)
