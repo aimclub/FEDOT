@@ -5,6 +5,8 @@ from functools import partial
 from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
+from tqdm import tqdm
+
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log, default_log
@@ -27,7 +29,6 @@ from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
-from tqdm import tqdm
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
@@ -49,25 +50,6 @@ class GPGraphOptimiserParameters:
         if false). Value is defined in GPComposerBuilder. Default False.
     """
 
-    def __init__(self, selection_types: List[SelectionTypesEnum] = None,
-                 crossover_types: List[Union[CrossoverTypesEnum, Any]] = None,
-                 mutation_types: List[Union[MutationTypesEnum, Any]] = None,
-                 regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
-                 genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
-                 with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 multi_objective: bool = False,
-                 history_folder: str = None):
-
-        self.selection_types = selection_types
-        self.crossover_types = crossover_types
-        self.mutation_types = mutation_types
-        self.regularization_type = regularization_type
-        self.genetic_scheme_type = genetic_scheme_type
-        self.with_auto_depth_configuration = with_auto_depth_configuration
-        self.depth_increase_step = depth_increase_step
-        self.multi_objective = multi_objective
-        self.history_folder = history_folder
-
     def set_default_params(self):
         """
         Choose default configuration of the evolutionary operators
@@ -87,6 +69,27 @@ class GPGraphOptimiserParameters:
                                    MutationTypesEnum.reduce,
                                    MutationTypesEnum.growth,
                                    MutationTypesEnum.local_growth]
+
+    def __init__(self, selection_types: List[SelectionTypesEnum] = None,
+                 crossover_types: List[Union[CrossoverTypesEnum, Any]] = None,
+                 mutation_types: List[Union[MutationTypesEnum, Any]] = None,
+                 regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
+                 genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
+                 with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
+                 multi_objective: bool = False, history_folder: str = None,
+                 stopping_after_n_generation: int = 10):
+
+        self.selection_types = selection_types
+        self.crossover_types = crossover_types
+        self.mutation_types = mutation_types
+        self.regularization_type = regularization_type
+        self.genetic_scheme_type = genetic_scheme_type
+        self.with_auto_depth_configuration = with_auto_depth_configuration
+        self.depth_increase_step = depth_increase_step
+        self.multi_objective = multi_objective
+        self.history_folder = history_folder
+        self.stopping_after_n_generation = stopping_after_n_generation
+        self.use_stopping_criteria = True if self.stopping_after_n_generation is not None else False
 
 
 class GPGraphOptimiser:
@@ -133,6 +136,9 @@ class GPGraphOptimiser:
 
         if not self.requirements.pop_size:
             self.requirements.pop_size = 10
+
+        self.use_stopping_criteria = parameters.use_stopping_criteria
+        self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
         self.population = None
         self.initial_graph = initial_graph
@@ -191,8 +197,11 @@ class GPGraphOptimiser:
 
             self.log_info_about_best()
 
-            while t.is_time_limit_reached(self.generation_num) is False \
-                    and self.generation_num != self.requirements.num_of_generations - 1:
+            while (t.is_time_limit_reached(self.generation_num) is False
+                   and self.generation_num != self.requirements.num_of_generations - 1):
+
+                if self._is_stopping_criteria_triggered():
+                    break
 
                 self.log.info(f'Generation num: {self.generation_num}')
 
@@ -255,6 +264,7 @@ class GPGraphOptimiser:
 
                 if pbar:
                     pbar.update(1)
+
             if pbar:
                 pbar.close()
 
@@ -412,6 +422,14 @@ class GPGraphOptimiser:
                                                      timer=timer, is_multi_objective=self.parameters.multi_objective)
         individuals_set = correct_if_population_has_nans(evaluated_individuals, self.log)
         return individuals_set
+
+    def _is_stopping_criteria_triggered(self):
+        if self.use_stopping_criteria:
+            if self.num_of_gens_without_improvements == self.stopping_after_n_generation:
+                self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
+                return True
+        else:
+            return False
 
 
 @dataclass

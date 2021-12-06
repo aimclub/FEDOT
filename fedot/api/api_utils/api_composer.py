@@ -154,6 +154,7 @@ class ApiComposer:
                                                                           api_params['task'])
 
         timeout_for_composing = api_params['timeout'] / 2 if tuning_params['with_tuning'] else api_params['timeout']
+        starting_time_for_composing = datetime.datetime.now()
         # the choice and initialisation of the GP composer
         composer_requirements = \
             GPComposerRequirements(primary=primary_operations,
@@ -166,6 +167,8 @@ class ApiComposer:
                                    validation_blocks=composer_params['validation_blocks'],
                                    timeout=datetime.timedelta(minutes=timeout_for_composing))
 
+        spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
+        spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
         if composer_params['genetic_scheme'] == 'steady_state':
@@ -180,11 +183,16 @@ class ApiComposer:
         if api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
-        optimizer_parameters = GPGraphOptimiserParameters(genetic_scheme_type=genetic_scheme_type,
-                                                          mutation_types=mutations,
-                                                          crossover_types=[CrossoverTypesEnum.one_point,
-                                                                           CrossoverTypesEnum.subtree],
-                                                          history_folder=composer_params.get('history_folder'))
+        optimizer_parameters = GPGraphOptimiserParameters(
+            genetic_scheme_type=genetic_scheme_type,
+            mutation_types=mutations,
+            crossover_types=[
+                CrossoverTypesEnum.one_point,
+                CrossoverTypesEnum.subtree
+            ],
+            history_folder=composer_params.get('history_folder'),
+            stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
+        )
 
         builder = self.get_gp_composer_builder(task=api_params['task'],
                                                metric_function=metric_function,
@@ -226,7 +234,11 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             iterations = 20 if api_params['timeout'] is None else 1000
-            timeout_for_tuning = api_params['timeout'] / 2
+
+            if spending_time_for_composing < timeout_for_composing:
+                timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
+            else:
+                timeout_for_tuning = api_params['timeout'] / 2
 
             # Tune all nodes in the pipeline
             vb_number = composer_requirements.validation_blocks
@@ -308,7 +320,8 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
-                                cv_folds=None, genetic_scheme=None, history_folder=None)
+                                cv_folds=None, genetic_scheme=None, history_folder=None,
+                                stopping_after_n_generation=None)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

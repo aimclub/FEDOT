@@ -61,8 +61,20 @@ class OperationTypesRepository:
         self._tags_excluded_by_default = ['non-default', 'expensive']
         OperationTypesRepository.init_default_repositories()
 
-        self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
-        self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
+        self.repository_name = []
+        self._repo = []
+        if operation_type == 'all':
+            for rep_name in OperationTypesRepository.__repository_dict__.keys():
+                self.repository_name.append(OperationTypesRepository.__repository_dict__[rep_name]['file'])
+                operations = OperationTypesRepository.__repository_dict__[rep_name]['initialized_repo']
+
+                if operations is not None:
+                    for operation in operations:
+                        self._repo.append(operation)
+
+        else:
+            self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
+            self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
 
     @classmethod
     def get_available_repositories(cls):

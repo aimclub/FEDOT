@@ -1,9 +1,9 @@
 from copy import deepcopy
 from typing import (Any, List, Optional, Tuple)
-from tqdm import tqdm
 
 import numpy as np
 from deap import tools
+from tqdm import tqdm
 
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, duplicates_filtration, \
@@ -61,6 +61,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.requirements.pop_size = self.iterator.next()
         self.metrics = metrics
 
+        self.use_stopping_criteria = parameters.use_stopping_criteria
+        self.stopping_after_n_generation = parameters.stopping_after_n_generation
+
         self.qual_position = 0
         self.compl_position = 1
 
@@ -91,6 +94,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
             while t.is_time_limit_reached(self.generation_num) is False \
                     and self.generation_num != self.requirements.num_of_generations - 1:
+
+                if self._is_stopping_criteria_triggered():
+                    break
 
                 self.log.info(f'Generation num: {self.generation_num}')
 

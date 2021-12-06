@@ -237,12 +237,7 @@ class GPComposerBuilder:
         self.set_default_composer_params()
 
     def can_be_secondary_requirement(self, operation):
-        models_repo = OperationTypesRepository()
-        data_operations_repo = OperationTypesRepository(operation_type='data_operation')
-
-        operation_name = models_repo.operation_info_by_id(operation)
-        if operation_name is None:
-            operation_name = data_operations_repo.operation_info_by_id(operation)
+        operation_name = OperationTypesRepository(operation_type='all').operation_info_by_id(operation)
         operation_tags = operation_name.tags
 
         secondary_model = True
