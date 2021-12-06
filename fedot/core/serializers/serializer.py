@@ -18,34 +18,50 @@ CLASS_PATH_KEY = '_class_path'
 
 class Serializer(JSONEncoder, JSONDecoder):
 
-    from .encoders.any_serialization import any_from_json, any_to_json
-    from .encoders.enum_serialization import enum_from_json, enum_to_json
-    from .encoders.graph_node_serialization import graph_node_to_json
-    from .encoders.graph_serialization import graph_from_json, graph_to_json
-    from .encoders.operation_serialization import operation_to_json
-    from .encoders.opt_history_serialization import opt_history_from_json
-    from .encoders.parent_operator_serialization import parent_operator_to_json
-    from .encoders.pipeline_template_serialization import pipeline_template_to_json
-    from .encoders.uuid_serialization import uuid_from_json, uuid_to_json
-
     _to_json = 'to_json'
     _from_json = 'from_json'
-    PROCESSORS_BY_TYPE = {
-        GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
-        Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
-        Operation: {_to_json: operation_to_json, _from_json: any_from_json},
-        OptHistory: {_to_json: any_to_json, _from_json: opt_history_from_json},
-        ParentOperator: {
-            _to_json: parent_operator_to_json,
-            _from_json: any_from_json
-        },
-        PipelineTemplate: {
-            _to_json: pipeline_template_to_json,
-            _from_json: any_from_json
-        },
-        UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
-        ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json}
-    }
+
+    PROCESSORS_BY_TYPE = {}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        from .encoders import (
+            any_from_json,
+            any_to_json,
+            enum_from_json,
+            enum_to_json,
+            graph_from_json,
+            graph_node_to_json,
+            graph_to_json,
+            operation_to_json,
+            opt_history_from_json,
+            parent_operator_to_json,
+            pipeline_template_to_json,
+            uuid_from_json,
+            uuid_to_json
+        )
+
+        _to_json = Serializer._to_json
+        _from_json = Serializer._from_json
+
+        if not Serializer.PROCESSORS_BY_TYPE:
+            Serializer.PROCESSORS_BY_TYPE = {
+                GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
+                Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
+                Operation: {_to_json: operation_to_json, _from_json: any_from_json},
+                OptHistory: {_to_json: any_to_json, _from_json: opt_history_from_json},
+                ParentOperator: {
+                    _to_json: parent_operator_to_json,
+                    _from_json: any_from_json
+                },
+                PipelineTemplate: {
+                    _to_json: pipeline_template_to_json,
+                    _from_json: any_from_json
+                },
+                UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
+                ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json}
+            }
 
     @staticmethod
     def is_serializable(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> bool:

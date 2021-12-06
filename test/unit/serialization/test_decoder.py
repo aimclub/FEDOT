@@ -165,10 +165,11 @@ DECODER_CASES.extend([
 
 @pytest.mark.parametrize('case', DECODER_CASES)
 def test_decoder(case: DecoderTestCase, _get_class_fixture, _mock_classes_fixture):
+    deserializer = Serializer()
     if isinstance(case.test_answer, Exception):
         with pytest.raises(type(case.test_answer)):
-            loads(case.test_input, cls=Serializer)
+            deserializer.object_hook(case.test_input)
     else:
-        decoded = loads(case.test_input, cls=Serializer)
+        decoded = deserializer.object_hook(case.test_input)
         assert isinstance(decoded, type(case.test_answer)), 'Decoded object has wrong type'
         assert decoded == case.test_answer, f'Object was decoded incorrectly'

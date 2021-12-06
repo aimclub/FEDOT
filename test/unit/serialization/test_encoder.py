@@ -95,13 +95,14 @@ ENCODER_CASES.extend([
 
 @pytest.mark.parametrize('case', ENCODER_CASES)
 def test_encoder(case: EncoderTestCase, _mock_classes_fixture):
+    serializer = Serializer()
     if getattr(case.test_input, '__dict__', None) is not None:
         keys_before = vars(case.test_input).keys()
-        encoded = {k: v for k, v in dumps(case.test_input, cls=Serializer).items() if k != CLASS_PATH_KEY}
+        encoded = {k: v for k, v in serializer.default(case.test_input).items() if k != CLASS_PATH_KEY}
         keys_after = vars(case.test_input).keys()
     else:
         keys_before = keys_after = {}
-        encoded = {k: v for k, v in dumps(case.test_input, cls=Serializer).items() if k != CLASS_PATH_KEY}
+        encoded = {k: v for k, v in serializer.default(case.test_input).items() if k != CLASS_PATH_KEY}
     assert encoded == case.test_answer, 'Encoded json objects are not the same'
     assert keys_before == keys_after, 'Object instance was changed'
     if isinstance(case.test_input, MockGraph):
