@@ -7,7 +7,7 @@ from fedot.core.operations.operation import Operation
 # from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.serializers import json_helpers
-from fedot.core.serializers.any_serialization import any_from_json
+from fedot.core.serializers.any_serialization import any_from_json, any_to_json
 from fedot.core.serializers.enum_serialization import enum_from_json, enum_to_json
 from fedot.core.serializers.graph_node_serialization import graph_node_to_json
 from fedot.core.serializers.graph_serialization import graph_from_json, graph_to_json
@@ -18,7 +18,7 @@ from fedot.core.serializers.uuid_serialization import uuid_from_json, uuid_to_js
 from fedot.core.utils import ComparableEnum
 
 from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
-from ..shared_data import TestEnum
+from ..shared_data import TestEnum, TestSerializableClass
 
 
 @pytest.fixture
@@ -34,26 +34,6 @@ def _get_class_fixture(monkeypatch):
 
 @pytest.fixture
 def _mock_classes_fixture(monkeypatch):
-    # monkeypatch.setattr(
-    #     f'{Serializer.__module__}.Graph',
-    #     MockGraph
-    # )
-    # monkeypatch.setattr(
-    #     f'{Serializer.__module__}.GraphNode',
-    #     MockNode
-    # )
-    # monkeypatch.setattr(
-    #     Serializer.__module__, 'PipelineTemplate',
-    #     MockPipelineTemplate
-    # )
-    # monkeypatch.setattr(
-    #     f'{Serializer.__module__}.Operation',
-    #     MockOperation
-    # )
-    # monkeypatch.setattr(
-    #     f'{ComparableEnum.__module__}.ComparableEnum',
-    #     TestEnum
-    # )
     _TO_JSON = Serializer._TO_JSON
     _FROM_JSON = Serializer._FROM_JSON
     monkeypatch.setattr(Serializer, '_processors_by_type', {
@@ -64,5 +44,6 @@ def _mock_classes_fixture(monkeypatch):
         # ParentOperator: {_TO_JSON: parent_operator_to_json, _FROM_JSON: any_from_json},
         MockPipelineTemplate: {_TO_JSON: pipeline_template_to_json, _FROM_JSON: any_from_json},
         UUID: {_TO_JSON: uuid_to_json, _FROM_JSON: uuid_from_json},
-        TestEnum: {_TO_JSON: enum_to_json, _FROM_JSON: enum_from_json}
+        TestEnum: {_TO_JSON: enum_to_json, _FROM_JSON: enum_from_json},
+        TestSerializableClass: {_TO_JSON: any_to_json, _FROM_JSON: any_from_json}
     })

@@ -4,7 +4,7 @@ import pytest
 from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, MODULE_X_NAME_DELIMITER, dump_path_to_obj
 
 from .dataclasses.serialization_dataclasses import DumpObjectTestCase
-from .shared_data import TEST_MODULE_PATH, TEST_UUID, TestClass, TestEnum, test_func
+from .shared_data import TEST_MODULE_PATH, TEST_UUID, TestClass, TestEnum, TestSerializableClass, test_func
 
 DUMPING_CASES = [
     DumpObjectTestCase(
@@ -29,6 +29,12 @@ DUMPING_CASES = [
         test_input=TestClass().test_func,
         test_answer={
             CLASS_PATH_KEY: f'{TEST_MODULE_PATH}{MODULE_X_NAME_DELIMITER}TestClass.test_func'
+        }
+    ),
+    DumpObjectTestCase(
+        test_input=TestSerializableClass(),
+        test_answer={
+            CLASS_PATH_KEY: f'{TEST_MODULE_PATH}{MODULE_X_NAME_DELIMITER}TestSerializableClass'
         }
     )
 ]
