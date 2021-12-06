@@ -4,14 +4,13 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import KernelPCA, PCA
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import MinMaxScaler, OneHotEncoder, PolynomialFeatures, StandardScaler
+from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
 from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
     divide_data_categorical_numerical, str_columns_check, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
-from fedot.preprocessing.categorical import replace_nans_with_fedot_nans
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
@@ -117,88 +116,6 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
         else:
             self.pca = KernelPCA(**params)
         self.params = params
-
-
-class OneHotEncodingImplementation(DataOperationImplementation):
-    """ Class for automatic categorical data detection and one hot encoding """
-
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        default_params = {
-            'handle_unknown': 'ignore'
-        }
-        if not params:
-            # Default parameters
-            self.encoder = OneHotEncoder(**default_params)
-        else:
-            self.encoder = OneHotEncoder(**{**params, **default_params})
-        self.categorical_ids = None
-        self.non_categorical_ids = None
-
-    def fit(self, input_data: InputData):
-        """ Method for fit encoder with automatic determination of categorical features
-
-        :param input_data: data with features, target and ids for encoder training
-        :return encoder: trained encoder (optional output)
-        """
-        features = input_data.features
-        categorical_ids, non_categorical_ids = str_columns_check(features)
-
-        # Indices of columns with categorical and non-categorical features
-        self.categorical_ids = categorical_ids
-        self.non_categorical_ids = non_categorical_ids
-
-        # If there are categorical features - process it
-        if len(self.categorical_ids) > 0:
-            updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
-            self.encoder.fit(updated_cat_features)
-
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """
-        The method that transforms the categorical features in the original
-        dataset, but does not affect the rest features
-
-        :param input_data: data with features, target and ids for transformation
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return output_data: output data with transformed features table
-        """
-        features = input_data.features
-        if len(self.categorical_ids) == 0:
-            # If there are no categorical features in the table
-            transformed_features = features
-        else:
-            # If categorical features are exists
-            transformed_features = self._make_new_table(features)
-
-        # Update features
-        output_data = self._convert_to_output(input_data,
-                                              transformed_features)
-        return output_data
-
-    def _make_new_table(self, features):
-        """
-        The method creates a table based on categorical and real features
-
-        :param features: tabular data for processing
-        :return transformed_features: transformed features table
-        """
-
-        categorical_features = np.array(features[:, self.categorical_ids])
-        transformed_categorical = self.encoder.transform(categorical_features).toarray()
-
-        # If there are non-categorical features in the data
-        if len(self.non_categorical_ids) == 0:
-            transformed_features = transformed_categorical
-        else:
-            # Stack transformed categorical and non-categorical data
-            non_categorical_features = np.array(features[:, self.non_categorical_ids])
-            frames = (non_categorical_features, transformed_categorical)
-            transformed_features = np.hstack(frames)
-
-        return transformed_features
-
-    def get_params(self):
-        return self.encoder.get_params()
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):

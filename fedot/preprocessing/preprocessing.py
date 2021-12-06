@@ -1,17 +1,18 @@
-from copy import deepcopy, copy
+from copy import copy
 from typing import Union
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, OutputData
-from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.data.data_preprocessing import replace_inf_with_nans, str_columns_check, data_has_missing_values, \
     data_has_categorical_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation, OneHotEncodingImplementation
+    ImputationImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
+    OneHotEncodingImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 
