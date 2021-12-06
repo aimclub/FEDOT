@@ -41,7 +41,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids = non_categorical_ids
 
         # If there are categorical features - process it
-        if len(self.categorical_ids) > 0:
+        if self.categorical_ids:
             updated_cat_features = np.array(features[:, self.categorical_ids], dtype=str)
             self.encoder.fit(updated_cat_features)
 
@@ -59,7 +59,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         copied_data = deepcopy(input_data)
 
         features = copied_data.features
-        if len(self.categorical_ids) == 0:
+        if not self.categorical_ids:
             # If there are no categorical features in the table
             transformed_features = features
         else:
