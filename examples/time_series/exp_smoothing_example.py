@@ -78,6 +78,7 @@ def run_experiment_with_ets(time_series, raw_model=False, len_forecast=250):
     pipeline = pipeline.fine_tune_all_nodes(input_data=train_input,
                                             loss_function=mean_squared_error,
                                             loss_params={'squared': False},
+                                            iterations=100
                                             )
 
     prediction_after = pipeline.predict(test_data)
@@ -100,4 +101,4 @@ if __name__ == '__main__':
     time_series = pd.read_csv('../data/beer.csv')
     run_experiment_with_ets(time_series,
                             raw_model=False,
-                            len_forecast=50)
+                            len_forecast=30)
