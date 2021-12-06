@@ -1,8 +1,9 @@
 from copy import deepcopy
+from json import dumps
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, encoder
+from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 
 from .dataclasses.serialization_dataclasses import EncoderTestCase
 from .fixtures.serialization_fixtures import _mock_classes_fixture
@@ -96,11 +97,11 @@ ENCODER_CASES.extend([
 def test_encoder(case: EncoderTestCase, _mock_classes_fixture):
     if getattr(case.test_input, '__dict__', None) is not None:
         keys_before = vars(case.test_input).keys()
-        encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
+        encoded = {k: v for k, v in dumps(case.test_input, cls=Serializer).items() if k != CLASS_PATH_KEY}
         keys_after = vars(case.test_input).keys()
     else:
         keys_before = keys_after = {}
-        encoded = {k: v for k, v in encoder(case.test_input).items() if k != CLASS_PATH_KEY}
+        encoded = {k: v for k, v in dumps(case.test_input, cls=Serializer).items() if k != CLASS_PATH_KEY}
     assert encoded == case.test_answer, 'Encoded json objects are not the same'
     assert keys_before == keys_after, 'Object instance was changed'
     if isinstance(case.test_input, MockGraph):

@@ -1,9 +1,10 @@
 from copy import deepcopy
+from json import loads
 from test.unit.serialization.test_encoder import MOCK_NODE_1_COPY
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, decoder
+from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture, _mock_classes_fixture
@@ -166,8 +167,8 @@ DECODER_CASES.extend([
 def test_decoder(case: DecoderTestCase, _get_class_fixture, _mock_classes_fixture):
     if isinstance(case.test_answer, Exception):
         with pytest.raises(type(case.test_answer)):
-            decoder(case.test_input)
+            loads(case.test_input, cls=Serializer)
     else:
-        decoded = decoder(case.test_input)
+        decoded = loads(case.test_input, cls=Serializer)
         assert isinstance(decoded, type(case.test_answer)), 'Decoded object has wrong type'
         assert decoded == case.test_answer, f'Object was decoded incorrectly'

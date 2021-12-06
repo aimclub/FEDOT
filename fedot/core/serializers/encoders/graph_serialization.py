@@ -3,7 +3,7 @@ from typing import Any, Dict, Type
 
 from fedot.core.dag.graph import Graph
 
-from .any_serialization import any_to_json
+from . import any_to_json
 
 
 def graph_to_json(obj: Graph) -> Dict[str, Any]:

@@ -1,13 +1,13 @@
 from enum import Enum
 from typing import Any, Dict, Type
 
-from . import json_helpers
+from .. import Serializer
 
 
 def enum_to_json(obj: Enum) -> Dict[str, Any]:
     return {
         'value': obj.value,
-        **json_helpers.dump_path_to_obj(obj)
+        **Serializer.dump_path_to_obj(obj)
     }
 
 

@@ -1,13 +1,13 @@
 from typing import Any, Dict, Type
 from uuid import UUID
 
-from . import json_helpers
+from .. import Serializer
 
 
 def uuid_to_json(obj: UUID) -> Dict[str, Any]:
     return {
         'hex': obj.hex,
-        **json_helpers.dump_path_to_obj(obj)
+        **Serializer.dump_path_to_obj(obj)
     }
 
 

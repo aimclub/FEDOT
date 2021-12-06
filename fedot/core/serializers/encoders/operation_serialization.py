@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from fedot.core.operations.operation import Operation
 
-from .any_serialization import any_to_json
+from . import any_to_json
 
 
 def operation_to_json(obj: Operation) -> Dict[str, Any]:

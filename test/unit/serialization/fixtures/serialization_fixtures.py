@@ -7,14 +7,14 @@ from fedot.core.operations.operation import Operation
 # from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.serializers import json_helpers
-from fedot.core.serializers.any_serialization import any_from_json, any_to_json
-from fedot.core.serializers.enum_serialization import enum_from_json, enum_to_json
-from fedot.core.serializers.graph_node_serialization import graph_node_to_json
-from fedot.core.serializers.graph_serialization import graph_from_json, graph_to_json
-from fedot.core.serializers.interfaces.serializable import Serializer
-from fedot.core.serializers.operation_serialization import operation_to_json
-from fedot.core.serializers.pipeline_template_serialization import pipeline_template_to_json
-from fedot.core.serializers.uuid_serialization import uuid_from_json, uuid_to_json
+from fedot.core.serializers.encoders.any_serialization import any_from_json, any_to_json
+from fedot.core.serializers.encoders.enum_serialization import enum_from_json, enum_to_json
+from fedot.core.serializers.encoders.graph_node_serialization import graph_node_to_json
+from fedot.core.serializers.encoders.graph_serialization import graph_from_json, graph_to_json
+from fedot.core.serializers.serializer import Serializer
+from fedot.core.serializers.encoders.operation_serialization import operation_to_json
+from fedot.core.serializers.encoders.pipeline_template_serialization import pipeline_template_to_json
+from fedot.core.serializers.encoders.uuid_serialization import uuid_from_json, uuid_to_json
 from fedot.core.utils import ComparableEnum
 
 from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
@@ -34,8 +34,8 @@ def _get_class_fixture(monkeypatch):
 
 @pytest.fixture
 def _mock_classes_fixture(monkeypatch):
-    _TO_JSON = Serializer._TO_JSON
-    _FROM_JSON = Serializer._FROM_JSON
+    _TO_JSON = Serializer._to_json
+    _FROM_JSON = Serializer._from_json
     monkeypatch.setattr(Serializer, '_processors_by_type', {
         MockNode: {_TO_JSON: graph_node_to_json, _FROM_JSON: any_from_json},
         MockGraph: {_TO_JSON: graph_to_json, _FROM_JSON: graph_from_json},

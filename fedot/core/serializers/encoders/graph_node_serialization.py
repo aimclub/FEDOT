@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from fedot.core.dag.graph_node import GraphNode
 
-from .any_serialization import any_to_json
+from . import any_to_json
 
 
 def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:

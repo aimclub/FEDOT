@@ -3,7 +3,7 @@ from typing import Any, Dict
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history import ParentOperator
 
-from .any_serialization import any_to_json
+from . import any_to_json
 
 
 def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:

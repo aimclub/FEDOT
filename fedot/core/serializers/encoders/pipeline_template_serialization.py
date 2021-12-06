@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from fedot.core.pipelines.template import PipelineTemplate
 
-from .any_serialization import any_to_json
+from . import any_to_json
 
 
 def pipeline_template_to_json(obj: PipelineTemplate) -> Dict[str, Any]:

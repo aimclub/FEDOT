@@ -7,7 +7,7 @@ from fedot.core.optimisers.opt_history import OptHistory
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
 
-from .any_serialization import any_from_json
+from . import any_from_json
 
 
 def _convert_individuals_opt_graphs_to_templates(individuals: List[List['Individual']]):

@@ -1,20 +1,18 @@
 from copy import deepcopy
 from inspect import signature
-from typing import Any, Dict, Type, TypeVar
+from typing import Any, Dict, Type
 
-from . import json_helpers
-
-ClassOrFuncObject = TypeVar('ClassOrFuncObject')
+from .. import CLASS_OR_FUNC_OBJECT, Serializer
 
 
-def any_to_json(obj: ClassOrFuncObject) -> Dict[str, Any]:
+def any_to_json(obj: CLASS_OR_FUNC_OBJECT) -> Dict[str, Any]:
     return {
         **{k: v for k, v in vars(obj).items() if k != 'log'},
-        **json_helpers.dump_path_to_obj(obj)
+        **Serializer.dump_path_to_obj(obj)
     }
 
 
-def any_from_json(cls: Type[ClassOrFuncObject], json_obj: Dict[str, Any]) -> ClassOrFuncObject:
+def any_from_json(cls: Type[CLASS_OR_FUNC_OBJECT], json_obj: Dict[str, Any]) -> CLASS_OR_FUNC_OBJECT:
     cls_parameters = signature(cls.__init__).parameters
     if 'kwargs' not in cls_parameters:
         init_data = {
