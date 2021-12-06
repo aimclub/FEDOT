@@ -191,7 +191,6 @@ class ApiComposer:
                 CrossoverTypesEnum.subtree
             ],
             history_folder=composer_params.get('history_folder'),
-            use_stopping_criteria=composer_params.get('use_stopping_criteria'),
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
 
@@ -322,7 +321,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
-                                use_stopping_criteria=None, stopping_after_n_generation=None)
+                                stopping_after_n_generation=None)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

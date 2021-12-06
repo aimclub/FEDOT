@@ -6,7 +6,6 @@ import numpy as np
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
-from fedot.api.api_utils.presets import OperationsPreset
 
 
 class ApiParams:
@@ -85,7 +84,6 @@ class ApiParams:
                   'preset': 'light_tun',
                   'genetic_scheme': None,
                   'history_folder': None,
-                  'use_stopping_criteria': True,
                   'stopping_after_n_generation': 10}
 
         if problem in ['classification', 'regression']:
