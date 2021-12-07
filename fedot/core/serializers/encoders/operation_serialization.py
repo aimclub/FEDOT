@@ -12,5 +12,5 @@ def operation_to_json(obj: Operation) -> Dict[str, Any]:
     return {
         k: v
         for k, v in any_to_json(obj).items()
-        if k != 'operations_repo'
+        if k not in ['operations_repo', '_eval_strategy', 'fitted_operation']
     }
