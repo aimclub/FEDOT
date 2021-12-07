@@ -1,15 +1,19 @@
 from importlib import import_module
-from inspect import isclass, isfunction, ismethod
+from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 from uuid import UUID
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.data.data import Data
 from fedot.core.operations.operation import Operation
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.utils import ComparableEnum
+from numpy import ndarray
 
 MODULE_X_NAME_DELIMITER = '/'
 CLASS_OR_FUNC_OBJECT = TypeVar('CLASS_OR_FUNC_OBJECT')
@@ -24,7 +28,10 @@ class Serializer(JSONEncoder, JSONDecoder):
     PROCESSORS_BY_TYPE = {}
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        encoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONEncoder.__init__).parameters}
+        decoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONDecoder.__init__).parameters}
+        JSONEncoder.__init__(self, **encoder_kwargs)
+        JSONDecoder.__init__(self, **decoder_kwargs)
 
         from .encoders import (
             any_from_json,
@@ -34,6 +41,8 @@ class Serializer(JSONEncoder, JSONDecoder):
             graph_from_json,
             graph_node_to_json,
             graph_to_json,
+            ndarray_from_json,
+            ndarray_to_json,
             operation_to_json,
             opt_history_from_json,
             parent_operator_to_json,
@@ -48,7 +57,9 @@ class Serializer(JSONEncoder, JSONDecoder):
         if not Serializer.PROCESSORS_BY_TYPE:
             Serializer.PROCESSORS_BY_TYPE = {
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
+                OptNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
+                OptGraph: {_to_json: graph_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},
                 OptHistory: {_to_json: any_to_json, _from_json: opt_history_from_json},
                 ParentOperator: {
@@ -60,7 +71,10 @@ class Serializer(JSONEncoder, JSONDecoder):
                     _from_json: any_from_json
                 },
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
-                ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json}
+                Individual: {_to_json: any_to_json, _from_json: any_from_json},
+                ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
+                Data: {_to_json: any_to_json, _from_json: any_from_json},
+                ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json}
             }
 
     @staticmethod
