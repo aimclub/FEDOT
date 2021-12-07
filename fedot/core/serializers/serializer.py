@@ -109,7 +109,10 @@ class Serializer(JSONEncoder, JSONDecoder):
         else:
             obj_name = obj.__class__.__qualname__
 
-        obj_module = obj.__module__
+        if getattr(obj, '__module__', None) is not None:
+            obj_module = obj.__module__
+        else:
+            obj_module = obj.__class__.__module__
         return {
             CLASS_PATH_KEY: f'{obj_module}{MODULE_X_NAME_DELIMITER}{obj_name}'
         }
