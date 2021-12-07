@@ -7,11 +7,13 @@ from uuid import UUID
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import Data
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
 from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.repository.tasks import Task
 from fedot.core.utils import ComparableEnum
 from numpy import ndarray
 
@@ -74,7 +76,9 @@ class Serializer(JSONEncoder, JSONDecoder):
                 Individual: {_to_json: any_to_json, _from_json: any_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
                 Data: {_to_json: any_to_json, _from_json: any_from_json},
-                ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json}
+                ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json},
+                Task: {_to_json: any_to_json, _from_json: any_from_json},
+                SupplementaryData: {_to_json: any_to_json, _from_json: any_from_json}
             }
 
     @staticmethod
