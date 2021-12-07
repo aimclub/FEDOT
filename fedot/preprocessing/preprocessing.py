@@ -146,7 +146,7 @@ class DataPreprocessor:
 
             # Process column types
             self.types_corrector.check_data_types(data)
-            self.types_corrector.convert_data(data)
+            self.types_corrector.convert_data_for_fit(data)
 
             data = self._drop_features_full_of_nans(data)
             data = self._drop_rows_with_nan_in_target(data)
