@@ -12,5 +12,5 @@ def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
     return {
         k: v
         for k, v in any_to_json(obj).items()
-        if k != '_operator'  # to prevent circular references
+        if k not in ['_operator', '_fitted_operation', '_node_data']
     }

@@ -8,6 +8,9 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import Data
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
+    DataOperationImplementation
+)
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -31,9 +34,11 @@ class Serializer(JSONEncoder, JSONDecoder):
 
     def __init__(self, *args, **kwargs):
         encoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONEncoder.__init__).parameters}
-        decoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONDecoder.__init__).parameters}
+        encoder_kwargs['default'] = self.default
         JSONEncoder.__init__(self, **encoder_kwargs)
-        JSONDecoder.__init__(self, **decoder_kwargs)
+
+        decoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONDecoder.__init__).parameters}
+        JSONDecoder.__init__(self, object_hook=self.object_hook, **decoder_kwargs)
 
         from .encoders import (
             any_from_json,
@@ -78,7 +83,8 @@ class Serializer(JSONEncoder, JSONDecoder):
                 Data: {_to_json: any_to_json, _from_json: any_from_json},
                 ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json},
                 Task: {_to_json: any_to_json, _from_json: any_from_json},
-                SupplementaryData: {_to_json: any_to_json, _from_json: any_from_json}
+                SupplementaryData: {_to_json: any_to_json, _from_json: any_from_json},
+                DataOperationImplementation: {_to_json: any_to_json, _from_json: any_from_json}
             }
 
     @staticmethod
