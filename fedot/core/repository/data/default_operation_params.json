@@ -46,6 +46,13 @@
     "d": 0,
     "q": 2
   },
+  "ets": {
+    "error":"add",
+    "trend": null,
+    "seasonal": null,
+    "damped_trend": false,
+    "seasonal_periods": 7
+  },
   "polyfit": {
     "degree": 2
   },

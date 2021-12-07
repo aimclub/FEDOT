@@ -6,6 +6,8 @@ from statsmodels.genmod.families import Gaussian, Gamma, InverseGaussian, Poisso
 from statsmodels.genmod.families.links import log as lg, identity, sqrt, inverse_power, inverse_squared, Power
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.tsa.ar_model import AutoReg
+from statsmodels.tsa.exponential_smoothing.ets import ETSModel
+
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     ts_to_table
@@ -16,7 +18,7 @@ import statsmodels.api as sm
 
 
 class GLMImplementation(ModelImplementation):
-    """Generalized linear models implementation"""
+    """ Generalized linear models implementation """
     family_distribution = {
         "gaussian": {'distribution': Gaussian,
                      'default_link': 'identity',
@@ -65,7 +67,6 @@ class GLMImplementation(ModelImplementation):
 
         self.params_changed = False
 
-        # is optimisation is used
         self.family = self.params.get('family')
         self.link = self.params.get('link')
 
@@ -123,7 +124,7 @@ class GLMImplementation(ModelImplementation):
             return params_dict
 
     def set_default(self):
-        """Set default value of Family(link)"""
+        """ Set default value of Family(link) """
         self.family_link = self.family_distribution['default']
         self.params_changed = True
         self.family = 'gaussian'
@@ -131,7 +132,7 @@ class GLMImplementation(ModelImplementation):
             f"Invalid family. Changed to default value")
 
     def correct_params(self):
-        """Correct params if they are not correct"""
+        """ Correct params if they are not correct """
         if self.family in self.family_distribution:
             self.family = self.family
             if self.link not in self.family_distribution[self.family]['available_links']:
@@ -228,6 +229,72 @@ class AutoRegImplementation(ModelImplementation):
             input_data.idx = new_idx
 
             # Update idx and features
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
+
+    def get_params(self):
+        return self.params
+
+
+class ExpSmoothingImplementation(ModelImplementation):
+    """ Exponential smoothing implementation from statsmodels """
+
+    def __init__(self, log: Log = None, **params):
+        super().__init__(log)
+        self.model = None
+        self.params = params
+        if self.params.get("seasonal"):
+            self.seasonal_periods = int(self.params.get("seasonal_periods"))
+        else:
+            self.seasonal_periods = None
+
+    def fit(self, input_data):
+        self.model = ETSModel(
+            input_data.features.astype("float64"),
+            error=self.params.get("error"),
+            trend=self.params.get("trend"),
+            seasonal=self.params.get("seasonal"),
+            damped_trend=self.params.get("damped_trend"),
+            seasonal_periods=self.seasonal_periods
+        )
+        self.model = self.model.fit(disp=False)
+        return self.model
+
+    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+        input_data = copy(input_data)
+        parameters = input_data.task.task_params
+        forecast_length = parameters.forecast_length
+        old_idx = input_data.idx
+        target = input_data.target
+
+        if is_fit_pipeline_stage:
+            predictions = self.model.predict(start=old_idx[0],
+                                             end=old_idx[-1])
+            _, predict = ts_to_table(idx=old_idx,
+                                     time_series=predictions,
+                                     window_size=forecast_length)
+            new_idx, target_columns = ts_to_table(idx=old_idx,
+                                                  time_series=target,
+                                                  window_size=forecast_length)
+
+            # Update idx and target
+            input_data.idx = new_idx
+            input_data.target = target_columns
+
+        else:
+            start_id = old_idx[-1] - forecast_length + 1
+            end_id = old_idx[-1]
+            predictions = self.model.predict(start=start_id,
+                                             end=end_id)
+            predict = predictions
+            predict = np.array(predict).reshape(1, -1)
+            new_idx = np.arange(start_id, end_id + 1)
+
+            # Update idx
+            input_data.idx = new_idx
+
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)

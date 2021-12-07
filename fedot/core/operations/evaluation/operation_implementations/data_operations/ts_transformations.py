@@ -319,8 +319,8 @@ class CutImplementation(DataOperationImplementation):
         input_values = input_copy.features
         cut_len = int(self.cut_part * (input_values.shape[0] - horizon))
         output_values = input_values[cut_len::]
-
-        input_copy.idx = np.arange(cut_len, input_values.shape[0])
+        if is_fit_pipeline_stage:
+            input_copy.idx = np.arange(cut_len, input_values.shape[0])
         input_copy.features = output_values
         input_copy.target = output_values
         output_data = self._convert_to_output(input_copy,
