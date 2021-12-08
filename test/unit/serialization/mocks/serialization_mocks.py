@@ -1,3 +1,6 @@
+from fedot.core.operations.data_operation import DataOperation
+
+
 class MockOperation:
     def __init__(self, operation_type='op', **kwargs):
         self.operation_type = operation_type
@@ -11,6 +14,9 @@ class MockNode:
     def __init__(self, name: str, nodes_from: list = None):
         self.name = name
         self.nodes_from = nodes_from if nodes_from else []
+        self.content = {
+            'name': DataOperation('test_operation')
+        }
         self._operator = '_operator'
 
     def __eq__(self, other):

@@ -67,7 +67,10 @@ ENCODER_CASES = [
             'nodes_from': [
                 MOCK_NODE_2,
                 MOCK_NODE_3
-            ]
+            ],
+            'content': {
+                'name': 'test_operation'
+            }
         }
     ),
 ]
