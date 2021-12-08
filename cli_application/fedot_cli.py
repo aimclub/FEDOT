@@ -6,12 +6,23 @@ from fedot.api.main import Fedot
 
 def add_args_to_parser(parser, tag, help, required=False, is_list=False):
     if is_list is True:
-        print(tag)
         nargs = '*'
     elif is_list is False:
         nargs = None
     parser.add_argument(tag, help=help, required=required, nargs=nargs)
     return
+
+
+def remove_none_keys(parameters):
+    for k, v in list(parameters.items()):
+        #print(k, v)
+        if v is None:
+            del parameters[k]
+        elif type(v) is not bool:
+            try:
+                parameters[k] = float(v)
+            except Exception as e:
+                print(e)
 
 
 arguments_dicts = [{'tag': '--m_problem',
@@ -103,22 +114,27 @@ for arg in vars(parameters):
         main_params[keys_names[arg]] = getattr(parameters, arg)
     if 'f_' in arg:
         fit_params[keys_names[arg]] = getattr(parameters, arg)
-print(main_params)
-print(composer_params)
-print(fit_params)
 
 if main_params['problem'] == 'ts_forecasting' and getattr(parameters, 'for_len') is not None:
-    main_params['task_params'] = TsForecastingParams(forecast_length=getattr(parameters, 'for_len'))
+    main_params['task_params'] = TsForecastingParams(forecast_length=int(getattr(parameters, 'for_len')))
 
 if composer_params['with_tuning'] == '1':
     composer_params['with_tuning'] = True
 else:
     composer_params['with_tuning'] = False
 
+
+remove_none_keys(main_params)
+remove_none_keys(composer_params)
+remove_none_keys(fit_params)
+
 main_params['composer_params'] = composer_params
+
+print(main_params)
+print(fit_params)
 
 model = Fedot(**main_params)
 model.fit(**fit_params)
-prediction = model.predict(features=parameters['test'])
+prediction = model.predict(features=getattr(parameters, 'test'))
 print(prediction)
 
