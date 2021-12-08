@@ -20,7 +20,7 @@ class ApiSafety:
             return self.control_categorical(input_data)
         return input_data
 
-    def control_size_inplace(self, input_data:  InputData):
+    def control_size_inplace(self, input_data: InputData):
         if input_data.data_type == DataTypesEnum.table:
             if input_data.features.shape[0] * input_data.features.shape[1] > self.max_size:
                 border = self.max_size // input_data.features.shape[1]
@@ -28,7 +28,7 @@ class ApiSafety:
                 input_data.features = input_data.features[:border]
                 input_data.target = input_data.target[:border]
 
-    def control_categorical(self, input_data:  InputData):
+    def control_categorical(self, input_data: InputData):
         categorical_ids, _ = str_columns_check(input_data.features)
         need_label = False
         all_cardinality = 0
@@ -40,8 +40,3 @@ class ApiSafety:
         if need_label:
             input_data, self.label_encoder = DataPreprocessor.label_encoding(input_data)
         return input_data
-
-
-
-
-

@@ -389,7 +389,6 @@ class DataPreprocessor:
             for data_source_name, values in data.items():
                 values.supplementary_data.was_preprocessed = True
 
-
     @staticmethod
     def label_encoding(data: InputData):
         encoder = LabelEncodingImplementation()
