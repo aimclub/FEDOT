@@ -4,8 +4,10 @@ from typing import Optional
 from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, OneHotEncodingImplementation, \
-    PCAImplementation, PolyFeaturesImplementation, ScalingImplementation
+    ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
+    PolyFeaturesImplementation, ScalingImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
+    OneHotEncodingImplementation, LabelEncodingImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -18,7 +20,8 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'pca': PCAImplementation,
         'kernel_pca': KernelPCAImplementation,
         'poly_features': PolyFeaturesImplementation,
-        'one_hot_encoding': OneHotEncodingImplementation
+        'one_hot_encoding': OneHotEncodingImplementation,
+        'label_encoding': LabelEncodingImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

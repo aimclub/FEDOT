@@ -17,9 +17,8 @@ from fedot.core.pipelines.node import PrimaryNode, get_default_params
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from test.unit.data_operations.test_data_operations_implementations import generate_simple_series
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
@@ -70,6 +69,19 @@ def classification_dataset_with_redunant_features(
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
     return input_data
+
+
+def generate_simple_series():
+    y = np.arange(11) + np.random.normal(loc=0, scale=0.1, size=11)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=2))
+    i_d = InputData(idx=np.arange(11),
+                    features=y,
+                    target=y,
+                    task=task,
+                    data_type=DataTypesEnum.ts
+                    )
+    return i_d
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

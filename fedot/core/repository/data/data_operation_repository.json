@@ -154,6 +154,10 @@
 			"meta": "sklearn_categorical",
 			"tags": ["encoding", "categorical", "dimensionality_transforming"]
 		},
+		"label_encoding": {
+			"meta": "sklearn_categorical",
+			"tags": ["encoding", "categorical", "non-default"]
+		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
 			"tags": ["affects_target", "linear", "filtering", "correct_params"]

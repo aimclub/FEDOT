@@ -16,6 +16,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from test.unit.test_data_preprocessing import data_with_only_categorical_features
 
 np.random.seed(2021)
 
@@ -370,19 +371,6 @@ def test_knn_with_float_neighbors():
     pipeline.predict(input_data)
 
 
-def generate_simple_series():
-    y = np.arange(11) + np.random.normal(loc=0, scale=0.1, size=11)
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=2))
-    i_d = InputData(idx=np.arange(11),
-                    features=y,
-                    target=y,
-                    task=task,
-                    data_type=DataTypesEnum.ts
-                    )
-    return i_d
-
-
 def test_imputation_with_binary_correct():
     """
     Check if SimpleImputer can process mixed data with both numerical and categorical
@@ -415,3 +403,25 @@ def test_imputation_binary_features_with_equal_categories_correct():
 
     assert np.isclose(predicted.predict[1, 0], 0.5)
     assert np.isclose(predicted.predict[1, 1], 5.0)
+
+
+def test_label_encoding_correct():
+    """
+    Check if LabelEncoder can perform transformations correctly. Also the dataset
+    is generated so that new categories appear in the test sample.
+    """
+    cat_data = data_with_only_categorical_features()
+    train_data, test_data = train_test_data_setup(cat_data)
+
+    encoding_node = PrimaryNode('label_encoding')
+    encoding_node.fit(train_data)
+
+    predicted_train = encoding_node.predict(train_data)
+    predicted_test = encoding_node.predict(test_data)
+
+    # Label 'a' was in the training sample - convert it into 0
+    assert predicted_train.predict[0, 0] == 0
+    # Label 'b' was in the training sample - convert it into 1
+    assert predicted_train.predict[1, 0] == 1
+    # Label 'c' was not in the training sample - convert it into 2
+    assert predicted_test.predict[0, 0] == 2
