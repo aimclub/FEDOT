@@ -58,34 +58,31 @@ class Serializer(JSONEncoder, JSONDecoder):
             uuid_to_json
         )
 
-        _to_json = Serializer._to_json
-        _from_json = Serializer._from_json
-
         if not Serializer.PROCESSORS_BY_TYPE:
+            _to_json = Serializer._to_json
+            _from_json = Serializer._from_json
+            basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
             Serializer.PROCESSORS_BY_TYPE = {
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
-                OptNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
-                OptGraph: {_to_json: graph_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},
                 OptHistory: {_to_json: any_to_json, _from_json: opt_history_from_json},
-                ParentOperator: {
-                    _to_json: parent_operator_to_json,
-                    _from_json: any_from_json
-                },
-                PipelineTemplate: {
-                    _to_json: pipeline_template_to_json,
-                    _from_json: any_from_json
-                },
+                ParentOperator: {_to_json: parent_operator_to_json, _from_json: any_from_json},
+                PipelineTemplate: {_to_json: pipeline_template_to_json, _from_json: any_from_json},
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
-                Individual: {_to_json: any_to_json, _from_json: any_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
-                Data: {_to_json: any_to_json, _from_json: any_from_json},
                 ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json},
-                Task: {_to_json: any_to_json, _from_json: any_from_json},
-                SupplementaryData: {_to_json: any_to_json, _from_json: any_from_json},
-                DataOperationImplementation: {_to_json: any_to_json, _from_json: any_from_json}
+
+                Individual: basic_serialization,
+                Data: basic_serialization,
+                Task: basic_serialization,
+                SupplementaryData: basic_serialization,
+                DataOperationImplementation: basic_serialization
             }
+            Serializer.PROCESSORS_BY_TYPE.update({
+                OptNode: Serializer.PROCESSORS_BY_TYPE[GraphNode],
+                OptGraph: Serializer.PROCESSORS_BY_TYPE[Graph],
+            })
 
     @staticmethod
     def _get_field_checker(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> Callable[..., bool]:
