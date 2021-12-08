@@ -20,7 +20,9 @@ from fedot.core.serializers.encoders import (
     uuid_from_json,
     uuid_to_json
 )
+from fedot.core.serializers.encoders.ndarray_serialization import ndarray_from_json, ndarray_to_json
 from fedot.core.utils import ComparableEnum
+from numpy import ndarray
 
 from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
 from ..shared_data import TestClass, TestEnum, TestSerializableClass
@@ -51,5 +53,6 @@ def _mock_classes_fixture(monkeypatch):
         UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
         TestEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
         TestClass: {_to_json: any_to_json, _from_json: any_from_json},
-        TestSerializableClass: {_to_json: any_to_json, _from_json: any_from_json}
+        TestSerializableClass: {_to_json: any_to_json, _from_json: any_from_json},
+        ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json}
     })

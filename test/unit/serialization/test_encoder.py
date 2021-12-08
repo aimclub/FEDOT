@@ -2,6 +2,7 @@ from copy import deepcopy
 from json import dumps
 from uuid import UUID
 
+import numpy as np
 import pytest
 from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 
@@ -74,6 +75,18 @@ ENCODER_CASES = [
         }
     ),
 ]
+
+test_ndarray = np.array([1, 2, 3], dtype=np.double)
+ENCODER_CASES.extend([
+    EncoderTestCase(
+        test_input=test_ndarray,
+        test_answer={
+            'buffer': "AAAAAAAA8D8AAAAAAAAAQAAAAAAAAAhA",
+            'shape': (3,),
+            'dtype': 'float64'
+        }
+    )
+])
 
 MOCK_NODE_1_COPY = deepcopy(MOCK_NODE_1)
 MOCK_NODE_2_COPY = deepcopy(MOCK_NODE_2)
