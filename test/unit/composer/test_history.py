@@ -7,7 +7,7 @@ from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.serializers import json_helpers
+from fedot.core.serializers import Serializer
 from fedot.core.utils import fedot_project_root
 
 
@@ -36,6 +36,6 @@ def test_operators_in_history():
     assert 1 <= len(auto_model.history.individuals) <= 3
 
     # test history dumps
-    dumped_history = json.dumps(auto_model.history, default=json_helpers.encoder)
+    dumped_history = json.dumps(auto_model.history, cls=Serializer)
 
     assert dumped_history is not None

@@ -77,7 +77,7 @@ class FilterImplementation(DataOperationImplementation):
 
         modified_input_data.features = old_features[mask]
         modified_input_data.target = old_target[mask]
-        modified_input_data.idx = np.array(old_idx)[mask]
+        modified_input_data.idx = old_idx[mask]
 
         return modified_input_data
 
