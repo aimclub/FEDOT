@@ -144,12 +144,14 @@ class DataPreprocessor:
         if data_type_is_table(data):
             replace_inf_with_nans(data)
 
-            # Process column types
+            # Find incorrect features which must be removed
+            data = self._find_features_full_of_nans(data)
+            self.take_only_correct_features(data)
+            data = self._drop_rows_with_nan_in_target(data)
+
+            # Column types processing - launch after correct features selection
             self.types_corrector.check_data_types(data)
             self.types_corrector.convert_data_for_fit(data)
-
-            data = self._drop_features_full_of_nans(data)
-            data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical data if necessary and apply it
             self._train_target_encoder(data)
@@ -175,6 +177,9 @@ class DataPreprocessor:
             replace_inf_with_nans(data)
             self.take_only_correct_features(data)
 
+            # Perform preprocessing for types - launch after correct features selection
+            self.types_corrector.convert_data_for_predict(data)
+
             data = self._clean_extra_spaces(data)
             # Wrap indices in numpy array
             data.idx = np.array(data.idx)
@@ -182,8 +187,8 @@ class DataPreprocessor:
 
         return data
 
-    def _drop_features_full_of_nans(self, data: InputData) -> InputData:
-        """ Dropping features with more than ALLOWED_NAN_PERCENT nan's
+    def _find_features_full_of_nans(self, data: InputData) -> InputData:
+        """ Find features with more than ALLOWED_NAN_PERCENT nan's
 
         :param data: data to transform
         :return: transformed data
@@ -198,7 +203,6 @@ class DataPreprocessor:
             else:
                 self.ids_incorrect_features.append(i)
 
-        self.take_only_correct_features(data)
         return data
 
     @staticmethod

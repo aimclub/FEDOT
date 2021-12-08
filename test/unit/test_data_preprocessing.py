@@ -128,38 +128,6 @@ def data_with_categorical_target(with_nan: bool = False):
     return train_input
 
 
-def data_with_mixed_types_in_each_column(multi_output: bool = False):
-    """
-    Generate dataset with columns, which contain several data types (int, float or str).
-    Moreover, columns can contain nans and target columns have the same problems also.
-
-    :param multi_output: is there a need to generate multi-output target
-    """
-    task = Task(TaskTypesEnum.classification)
-    features = np.array([['1', np.nan, '6', 'b'],
-                         ['2', 1, '5', 'a'],
-                         [np.nan, 2, 4.0, 4],
-                         ['3', 3, 3.0, 3],
-                         [8, 4, 2, 2],
-                         [8, 'a', 1, 1],
-                         [4, 'b', 0, 0]], dtype=object)
-    if multi_output:
-        # Multi-label classification problem solved
-        target = np.array([['label_1', 2],
-                           ['label_1', 3],
-                           ['label_0', 4],
-                           ['label_0', 5],
-                           [1, '6'],
-                           [0, '7'],
-                           [1, '8']], dtype=object)
-    else:
-        target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 1, 0, 1], dtype=object)
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6], features=features,
-                            target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
-    return train_input
-
-
 def test_correct_api_dataset_preprocessing():
     """ Check if dataset preprocessing was performed correctly when API launch using. """
     funcs = [data_with_only_categorical_features, data_with_too_much_nans,
@@ -188,16 +156,3 @@ def test_categorical_target_processed_correctly():
 
     # Predicted label must be close to 'di' label (so, right prediction is 'ba')
     assert predicted[0] == 'ba'
-
-
-def test_data_with_mixed_types_per_column_processed_correctly():
-    """
-    Check if dataset with columns, which contain several data types can be
-    processed correctly.
-    """
-    input_data = data_with_mixed_types_in_each_column()
-    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
-
-    fedot_model = Fedot(problem='classification')
-    fedot_model.fit(train_data, predefined_model='auto')
-    predicted = fedot_model.predict(test_data)
