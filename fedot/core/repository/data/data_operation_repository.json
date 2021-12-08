@@ -156,7 +156,7 @@
 		},
 		"label_encoding": {
 			"meta": "sklearn_categorical",
-			"tags": ["encoding", "categorical"]
+			"tags": ["encoding", "categorical", "non-default"]
 		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
