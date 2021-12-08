@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from fedot.api.api_utils.api_safety import ApiSafety
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
@@ -52,6 +53,7 @@ class Fedot:
     :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
+    :param save_mode: if set True it will cut large datasets to prevent memory overflow.
     """
 
     def __init__(self,
@@ -61,12 +63,14 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_pipeline: Pipeline = None):
+                 initial_pipeline: Pipeline = None,
+                 save_mode=True):
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.composer_params = ApiParams()
+        self.api_safety = ApiSafety(safe_mode=save_mode)
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
@@ -108,6 +112,8 @@ class Fedot:
 
         self.target = target
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
+        self.train_data = self.api_safety.safe_preprocess(self.train_data)
+
         self._init_remote_if_necessary()
 
         if predefined_model is not None:

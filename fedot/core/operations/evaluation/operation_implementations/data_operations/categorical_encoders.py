@@ -128,8 +128,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
         # Update features
         output_data = self._convert_to_output(copied_data,
                                               copied_data.features)
-        # Store source features values
-        output_data.features = input_data.features
+
         return output_data
 
     def _fit_label_encoders(self, input_data: InputData):

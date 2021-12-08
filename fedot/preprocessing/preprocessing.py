@@ -12,7 +12,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
-    OneHotEncodingImplementation
+    OneHotEncodingImplementation, LabelEncodingImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 
@@ -388,3 +388,11 @@ class DataPreprocessor:
             # Multimodal data
             for data_source_name, values in data.items():
                 values.supplementary_data.was_preprocessed = True
+
+
+    @staticmethod
+    def label_encoding(data: InputData):
+        encoder = LabelEncodingImplementation()
+        encoder.fit(data)
+        transformed = encoder.transform(data, True)
+        return transformed, encoder
