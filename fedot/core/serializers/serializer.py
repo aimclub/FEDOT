@@ -41,7 +41,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         decoder_kwargs['object_hook'] = self.object_hook
         JSONDecoder.__init__(self, **decoder_kwargs)
 
-        from .encoders import (
+        from .coders import (
             any_from_json,
             any_to_json,
             enum_from_json,

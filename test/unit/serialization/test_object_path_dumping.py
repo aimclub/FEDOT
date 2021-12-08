@@ -1,4 +1,4 @@
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import pytest
 from fedot.core.serializers import CLASS_PATH_KEY, MODULE_X_NAME_DELIMITER, Serializer
