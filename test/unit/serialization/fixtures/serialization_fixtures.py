@@ -1,13 +1,9 @@
 from uuid import UUID
 
 import pytest
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.operations.operation import Operation
 # from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.serializers import Serializer
-from fedot.core.serializers.encoders import (
+from fedot.core.serializers.coders import (
     any_from_json,
     any_to_json,
     enum_from_json,
@@ -16,15 +12,13 @@ from fedot.core.serializers.encoders import (
     graph_node_to_json,
     graph_to_json,
     operation_to_json,
-    pipeline_template_to_json,
     uuid_from_json,
     uuid_to_json
 )
-from fedot.core.serializers.encoders.ndarray_serialization import ndarray_from_json, ndarray_to_json
-from fedot.core.utils import ComparableEnum
+from fedot.core.serializers.coders.ndarray_serialization import ndarray_from_json, ndarray_to_json
 from numpy import ndarray
 
-from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
+from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation
 from ..shared_data import TestClass, TestEnum, TestSerializableClass
 
 
@@ -49,7 +43,6 @@ def _mock_classes_fixture(monkeypatch):
         MockOperation: {_to_json: operation_to_json, _from_json: any_from_json},
         # OptHistory: {_TO_JSON: any_to_json, _FROM_JSON: opt_history_from_json},
         # ParentOperator: {_TO_JSON: parent_operator_to_json, _FROM_JSON: any_from_json},
-        MockPipelineTemplate: {_to_json: pipeline_template_to_json, _from_json: any_from_json},
         UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
         TestEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
         TestClass: {_to_json: any_to_json, _from_json: any_from_json},

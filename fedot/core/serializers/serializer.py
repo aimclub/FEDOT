@@ -38,7 +38,8 @@ class Serializer(JSONEncoder, JSONDecoder):
         JSONEncoder.__init__(self, **encoder_kwargs)
 
         decoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONDecoder.__init__).parameters}
-        JSONDecoder.__init__(self, object_hook=self.object_hook, **decoder_kwargs)
+        decoder_kwargs['object_hook'] = self.object_hook
+        JSONDecoder.__init__(self, **decoder_kwargs)
 
         from .encoders import (
             any_from_json,
@@ -53,7 +54,6 @@ class Serializer(JSONEncoder, JSONDecoder):
             operation_to_json,
             opt_history_from_json,
             parent_operator_to_json,
-            pipeline_template_to_json,
             uuid_from_json,
             uuid_to_json
         )
@@ -68,7 +68,6 @@ class Serializer(JSONEncoder, JSONDecoder):
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},
                 OptHistory: {_to_json: any_to_json, _from_json: opt_history_from_json},
                 ParentOperator: {_to_json: parent_operator_to_json, _from_json: any_from_json},
-                PipelineTemplate: {_to_json: pipeline_template_to_json, _from_json: any_from_json},
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
                 ndarray: {_to_json: ndarray_to_json, _from_json: ndarray_from_json},

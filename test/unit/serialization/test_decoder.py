@@ -8,7 +8,7 @@ from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
 from .fixtures.serialization_fixtures import _get_class_fixture, _mock_classes_fixture
-from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
+from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
 from .shared_data import (
     MOCK_NODE_1,
     MOCK_NODE_2,
@@ -76,13 +76,6 @@ DECODER_CASES = [
             CLASS_PATH_KEY: MockOperation
         },
         test_answer=MockOperation('my_operation')
-    ),
-    DecoderTestCase(
-        test_input={
-            'struct_id': 'my_id',
-            CLASS_PATH_KEY: MockPipelineTemplate
-        },
-        test_answer=MockPipelineTemplate('my_id')
     )
 ]
 
