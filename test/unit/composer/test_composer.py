@@ -34,7 +34,7 @@ from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 
 
-def _to_numerical(categorical_ids: np.ndarray):
+def to_numerical(categorical_ids: np.ndarray):
     encoded = pd.factorize(categorical_ids)[0]
     return encoded
 
@@ -45,7 +45,7 @@ def file_data_setup():
     file = '../../data/advanced_classification.csv'
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file))
-    input_data.idx = _to_numerical(categorical_ids=input_data.idx)
+    input_data.idx = to_numerical(categorical_ids=input_data.idx)
     return input_data
 
 

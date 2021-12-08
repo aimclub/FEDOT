@@ -37,5 +37,4 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
     except Exception as ex:
         log.debug(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
         evaluated_metrics = None
-
     return evaluated_metrics

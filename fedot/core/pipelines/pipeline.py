@@ -5,16 +5,15 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode
-from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -53,7 +52,6 @@ class Pipeline(Graph):
         :param input_data: data used for operation training
         """
         # Clean all saved states and fit all operations
-        self.log.debug('Fit pipeline from scratch')
         self.unfit()
         self.fit(input_data, use_fitted=False)
 
@@ -128,7 +126,7 @@ class Pipeline(Graph):
 
             if not use_fitted_operations or not self.fitted_on_data:
                 # Don't use previous information
-                self.unfit()
+                self.unfit(unfit_preprocessor=False)
                 self.update_fitted_on_data(input_data)
 
         with Timer(log=self.log) as t:
@@ -186,12 +184,15 @@ class Pipeline(Graph):
     def is_fitted(self):
         return all([(node.fitted_operation is not None) for node in self.nodes])
 
-    def unfit(self):
+    def unfit(self, unfit_preprocessor: bool = True):
         """
         Remove fitted operations for all nodes.
         """
         for node in self.nodes:
             node.unfit()
+
+        if unfit_preprocessor:
+            self.preprocessor = DataPreprocessor(self.log)
 
     def fit_from_cache(self, cache: OperationsCache):
         for node in self.nodes:

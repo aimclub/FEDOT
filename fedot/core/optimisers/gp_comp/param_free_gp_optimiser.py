@@ -81,7 +81,7 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
 
         with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc="Generations", unit='gen', initial=1) if show_progress else None
+                        desc='Generations', unit='gen', initial=1) if show_progress else None
 
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
 
