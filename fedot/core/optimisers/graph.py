@@ -24,7 +24,7 @@ def node_ops_adaptation(func):
     return _decorator
 
 
-class OptNode:  # this inheritance needed for assigning to nodes
+class OptNode:
     """
     Class for node definition in optimization graph (OptGraph)
 
