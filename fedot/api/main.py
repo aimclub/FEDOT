@@ -53,7 +53,7 @@ class Fedot:
     :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
-    :param save_mode: if set True it will cut large datasets to prevent memory overflow.
+    :param safe_mode: if set True it will cut large datasets to prevent memory overflow.
     """
 
     def __init__(self,
@@ -64,13 +64,13 @@ class Fedot:
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
                  initial_pipeline: Pipeline = None,
-                 save_mode=True):
+                 safe_mode=True):
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.composer_params = ApiParams()
-        self.api_safety = ApiSafety(safe_mode=save_mode)
+        self.api_safety = ApiSafety(safe_mode=safe_mode)
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
