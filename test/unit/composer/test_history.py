@@ -36,6 +36,6 @@ def test_operators_in_history():
     assert 1 <= len(auto_model.history.individuals) <= 3
 
     # test history dumps
-    dumped_history = json.dumps(auto_model.history, cls=Serializer)
+    dumped_history = auto_model.history.dumps()
 
     assert dumped_history is not None

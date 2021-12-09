@@ -1,6 +1,7 @@
 import csv
 import datetime
 import itertools
+import json
 import os
 import shutil
 from copy import deepcopy
@@ -9,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.serializers import Serializer
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
@@ -103,6 +105,17 @@ class OptHistory:
                 ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             print(ex)
+
+    def dumps(self, **kwargs) -> str:
+        if 'cls' in kwargs:
+            raise KeyError('You can\'t change serializer class')
+        return json.dumps(self, cls=Serializer, **kwargs)
+
+    @staticmethod
+    def loads(json_str: str, **kwargs) -> 'OptHistory':
+        if 'cls' in kwargs:
+            raise KeyError('You can\'t change serializer class')
+        return json.loads(json_str, cls=Serializer, **kwargs)
 
     def clean_results(self, path: Optional[str] = None):
         if not path:
