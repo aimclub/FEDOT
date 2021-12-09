@@ -8,9 +8,9 @@ from . import any_to_json
 
 def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:
     serialized_op = any_to_json(obj)
-    adapter = PipelineAdapter()
+    # adapter = PipelineAdapter()
     serialized_op['parent_objects'] = [
-        adapter.adapt(parent_obj.link_to_empty_pipeline)
+        parent_obj.unique_pipeline_id
         for parent_obj in serialized_op['parent_objects']
     ]
     return serialized_op

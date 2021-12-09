@@ -11,18 +11,20 @@ from . import any_from_json
 
 
 def _convert_individuals_opt_graphs_to_templates(individuals: List[List['Individual']]):
-    adapter = PipelineAdapter()
+    # adapter = PipelineAdapter()
     for ind in list(itertools.chain(*individuals)):
         for parent_op in ind.parent_operators:
-            parent_op.parent_objects = [
-                adapter.restore_as_template(parent_obj)
-                for parent_obj in parent_op.parent_objects
-            ]
+            for idx in range(len(parent_op.paren_objects)):
+                cur = parent_op.parent_objects[idx]
+                for _ind in list(itertools.chain(*individuals)):
+                    if cur == _ind.graph.uid:
+                        parent_op.parent_objects[idx] = _ind.graph
+                        break
     return individuals
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:
+    json_obj['individuals'] = _convert_individuals_opt_graphs_to_templates(json_obj['individuals'])
+    json_obj['archive_history'] = _convert_individuals_opt_graphs_to_templates(json_obj['archive_history'])
     deserialized_hist = any_from_json(cls, json_obj)
-    deserialized_hist.individuals = _convert_individuals_opt_graphs_to_templates(deserialized_hist.individuals)
-    deserialized_hist.archive_history = _convert_individuals_opt_graphs_to_templates(deserialized_hist.archive_history)
     return deserialized_hist

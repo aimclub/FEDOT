@@ -15,4 +15,9 @@ def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
         if k not in ['_operator', '_fitted_operation', '_node_data']
     }
     encoded['content']['name'] = str(encoded['content']['name'])
+    if encoded['nodes_from']:
+        encoded['nodes_from'] = [
+            node._serialization_id
+            for node in encoded['nodes_from']
+        ]
     return encoded
