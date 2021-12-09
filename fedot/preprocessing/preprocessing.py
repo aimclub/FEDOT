@@ -106,7 +106,7 @@ class DataPreprocessor:
                 # Data contains categorical features values
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
                 if has_encoder is False:
-                    self._encode_data_for_fit(data)
+                    self.encode_data_for_fit(data)
 
         return data
 
@@ -235,6 +235,21 @@ class DataPreprocessor:
             return data
         raise ValueError(f"Data format is not supported.")
 
+    def encode_data_for_fit(self, data: Union[InputData], is_label: bool = False):
+        """
+        Encode categorical features to numerical. In additional,
+        save encoders to use later for prediction data.
+
+        :param data: data to transform
+        :param is_label: is we use a specific label encoder
+        :return encoder: operation for preprocessing categorical features
+        """
+
+        transformed, encoder = self._create_encoder(data, is_label)
+        data.features = transformed
+        # Store encoder to make prediction in the future
+        self.features_encoder = encoder
+
     @staticmethod
     def _apply_imputation_unidata(data: InputData):
         """ Fill in the gaps in the data inplace.
@@ -245,20 +260,6 @@ class DataPreprocessor:
         output_data = imputer.fit_transform(data)
         data.features = output_data.predict
         return data
-
-    def _encode_data_for_fit(self, data: Union[InputData]):
-        """
-        Encode categorical features to numerical. In additional,
-        save encoders to use later for prediction data.
-
-        :param data: data to transform
-        :return encoder: operation for preprocessing categorical features
-        """
-
-        transformed, encoder = self._create_encoder(data)
-        data.features = transformed
-        # Store encoder to make prediction in th future
-        self.features_encoder = encoder
 
     def _encode_data_for_predict(self, data: InputData):
         """
@@ -310,17 +311,21 @@ class DataPreprocessor:
             return column_to_transform
 
     @staticmethod
-    def _create_encoder(data: InputData):
+    def _create_encoder(data: InputData, is_label: bool = False):
         """
         Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
 
         :param data: data to preprocess
+        :param is_label: is we use a specific label encoder
         :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
         """
 
         encoder = None
         if data_has_categorical_features(data):
-            encoder = OneHotEncodingImplementation()
+            if is_label:
+                encoder = LabelEncodingImplementation()
+            else:
+                encoder = OneHotEncodingImplementation()
             encoder.fit(data)
             transformed = encoder.transform(data, True).predict
         else:
@@ -388,10 +393,3 @@ class DataPreprocessor:
             # Multimodal data
             for data_source_name, values in data.items():
                 values.supplementary_data.was_preprocessed = True
-
-    @staticmethod
-    def label_encoding(data: InputData):
-        encoder = LabelEncodingImplementation()
-        encoder.fit(data)
-        transformed = encoder.transform(data, True)
-        return transformed, encoder

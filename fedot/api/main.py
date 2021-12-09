@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils.api_safety import ApiSafety
+from fedot.api.api_utils.api_data_analyser import DataAnalyser
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
@@ -70,7 +70,6 @@ class Fedot:
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.composer_params = ApiParams()
-        self.api_safety = ApiSafety(safe_mode=safe_mode)
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
@@ -87,6 +86,7 @@ class Fedot:
         self.update_params(timeout, initial_pipeline)
         self.data_processor = ApiDataProcessor(task=self.api_params['task'],
                                                log=self.api_params['logger'])
+        self.data_analyser = DataAnalyser(safe_mode=safe_mode, preprocessor=self.data_processor)
 
         self.target = None
         self.train_data = None
@@ -112,7 +112,7 @@ class Fedot:
 
         self.target = target
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-        self.train_data = self.api_safety.safe_preprocess(self.train_data)
+        self.data_analyser.safe_preprocess(self.train_data)  # inplace
 
         self._init_remote_if_necessary()
 
