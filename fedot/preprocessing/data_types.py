@@ -1,7 +1,6 @@
 import numpy as np
 
 from fedot.core.log import Log, default_log
-from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -25,17 +24,12 @@ class TableTypesCorrector:
         else:
             self.log = log
 
-    def check_data_types(self, data: InputData):
-        """
-        Find every column in features and target with mixed types.
-        """
-        self.features_columns_info = define_column_types(data.features)
-        self.target_columns_info = define_column_types(data.target)
-
-    def convert_data_for_fit(self, data: InputData):
+    def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
-        # Determine types for each column
-        self.check_data_types(data)
+        if not self.features_columns_info:
+            # Determine types for each column
+            self.features_columns_info = define_column_types(data.features)
+            self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
         table = self.features_types_filtering(data=data)
@@ -44,16 +38,18 @@ class TableTypesCorrector:
 
         # And in target(s)
         data.target = self.target_types_filtering(data=data)
-        data.supplementary_data.column_types = self.store_column_types_info(data=data)
+        data.supplementary_data.column_types = self.store_column_types_info(predictors=data.features,
+                                                                            target=data.target)
         return data
 
-    def convert_data_for_predict(self, data: InputData):
+    def convert_data_for_predict(self, data: 'InputData'):
         """ Prepare data for predict stage. Include only column types transformation """
         # Ordering is important because after removing incorrect features - indices are obsolete
         table = apply_type_transformation(data.features, self.features_converted_columns)
         data.features = self.remove_incorrect_features(table, self.features_converted_columns)
         data.target = apply_type_transformation(data.target, self.target_converted_columns)
-        data.supplementary_data.column_types = self.store_column_types_info(data=data)
+        data.supplementary_data.column_types = self.store_column_types_info(predictors=data.features,
+                                                                            target=data.target)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -76,7 +72,7 @@ class TableTypesCorrector:
         table = np.delete(table, self.columns_to_del, 1)
         return table
 
-    def features_types_filtering(self, data: InputData):
+    def features_types_filtering(self, data: 'InputData'):
         """ Convert all elements in the data in every feature column into one type
 
         :param data: Input data with tabular features array
@@ -101,7 +97,7 @@ class TableTypesCorrector:
 
         return table
 
-    def target_types_filtering(self, data: InputData):
+    def target_types_filtering(self, data: 'InputData'):
         """ Convert all elements in every target column into one type
 
         :param data: Input data with tabular target array
@@ -127,20 +123,31 @@ class TableTypesCorrector:
 
         return target_table
 
-    def store_column_types_info(self, data: InputData) -> dict:
+    def store_column_types_info(self, predictors: np.array, target: np.array) -> dict:
         """ Prepare information about columns in a form of dictionary
         Dictionary has two keys: 'target' and 'features'
         """
-        features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
-        target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
+        if not self.features_columns_info:
+            # Information about column types is empty - there is a need to launch algorithm to collect info
+            self.features_columns_info = define_column_types(predictors)
+            self.target_columns_info = define_column_types(target)
 
+        features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
+        self._check_columns_vs_types_number(predictors, features_types)
+
+        if target is None:
+            return {'features': features_types}
+        else:
+            target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
+            self._check_columns_vs_types_number(target, target_types)
+            return {'features': features_types, 'target': target_types}
+
+    def _check_columns_vs_types_number(self, table: np.array, column_types: list):
         # Check if columns number correct
-        features_rows, features_cols = data.features.shape
-        target_rows, target_cols = data.target.shape
-        if target_cols != len(target_types) or features_cols != len(features_types):
-            # There is an incorrect features calculation
+        n_rows, n_cols = table.shape
+        if n_cols != len(column_types):
+            # There is an incorrect types calculation
             self.log.warn(f'Columns number was determined incorrectly.')
-        return {'features': features_types, 'target': target_types}
 
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
@@ -248,6 +255,10 @@ def find_mixed_types_columns(columns_info: dict):
 def apply_type_transformation(table: np.array, converted_columns: dict):
     """ Apply transformation for columns in dataset with several data types """
     type_by_name = {"<class 'int'>": int, "<class 'str'>": str, "<class 'float'>": float}
+
+    if table is None:
+        # Often occurs if for predict stage there is no target info
+        return None
 
     if len(converted_columns) == 0:
         # There are np columns for converting

@@ -16,7 +16,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from test.unit.test_data_preprocessing import data_with_only_categorical_features
+from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features
 
 np.random.seed(2021)
 

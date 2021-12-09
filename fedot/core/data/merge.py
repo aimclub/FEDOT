@@ -5,6 +5,7 @@ import numpy as np
 from fedot.core.log import Log, default_log
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.preprocessing.data_types import TableTypesCorrector
 
 
 class DataMerger:
@@ -118,19 +119,25 @@ class DataMerger:
         new_features_types = []
         for output in self.outputs:
             if output.supplementary_data.column_types is None:
-                return supplementary_data
+                self.log.debug(f'Perform determination of column types in DataMerger')
+                table_corr = TableTypesCorrector()
+                output.supplementary_data.column_types = table_corr.store_column_types_info(output.predict,
+                                                                                            output.target)
             col_types = output.supplementary_data.column_types['features']
             new_features_types.extend(col_types)
 
         # Target(s) types
         new_target_types = None
         for output in self.outputs:
+            if output.supplementary_data.column_types is None:
+                self.log.debug(f'Perform determination of column types in DataMerger')
+                table_corr = TableTypesCorrector()
+                output.supplementary_data.column_types = table_corr.store_column_types_info(output.predict,
+                                                                                            output.target)
+
             # Search for main target
             if output.supplementary_data.is_main_target:
                 new_target_types = output.supplementary_data.column_types['target']
-
-            if output.supplementary_data.column_types is None:
-                return supplementary_data
 
         if new_target_types is None:
             self.log.warn(f'DataMerger did not define target types')

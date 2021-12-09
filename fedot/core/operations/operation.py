@@ -1,7 +1,8 @@
 from typing import Union
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.serializers import OperationSerializer
@@ -106,6 +107,7 @@ class Operation(OperationSerializer):
             trained_operation=fitted_operation,
             predict_data=data,
             is_fit_pipeline_stage=is_fit_pipeline_stage)
+        assign_column_types(prediction, output_mode)
 
         if is_main_target is False:
             prediction.supplementary_data.is_main_target = is_main_target
@@ -155,3 +157,23 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
     return strategy
+
+
+def assign_column_types(output_data: OutputData, output_mode: str):
+    """ Assign types for columns based on task """
+    if output_data.data_type is not DataTypesEnum.table:
+        # No column data types info for non-tabular data
+        return output_data
+
+    predict_shape = output_data.predict.shape
+    target_shape = output_data.target.shape if output_data.target is not None else None
+
+    is_regression_task = output_data.task.task_type is TaskTypesEnum.regression
+    is_ts_forecasting_task = output_data.task.task_type is TaskTypesEnum.ts_forecasting
+    if is_regression_task or is_ts_forecasting_task:
+        if len(predict_shape) > 1:
+            column_info = {'features': [type(float)] * predict_shape[1]}
+    else:
+        # Classification task or other
+        if len(predict_shape) > 1 and output_mode == 'labels':
+            pass
