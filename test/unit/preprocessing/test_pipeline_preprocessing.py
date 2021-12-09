@@ -235,4 +235,4 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     # Finally, seven features were used to give a forecast
     assert len(importances) == 7
     # Target must contain 4 labels
-    assert len(predicted) == 4
+    assert predicted.predict.shape[-1] == 4

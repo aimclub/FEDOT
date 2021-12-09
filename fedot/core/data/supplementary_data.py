@@ -25,6 +25,8 @@ class SupplementaryData:
     was_preprocessed: bool = False
     # Collection with non-int indexes
     non_int_idx = None
+    # Dictionary with features and target column types
+    column_types: Optional[dict] = None
 
     def calculate_data_flow_len(self, outputs):
         """ Method for calculating data flow length (amount of visited nodes)

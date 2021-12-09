@@ -44,7 +44,7 @@ class TableTypesCorrector:
 
         # And in target(s)
         data.target = self.target_types_filtering(data=data)
-        data.column_types = self.store_column_types_info(data=data)
+        data.supplementary_data.column_types = self.store_column_types_info(data=data)
         return data
 
     def convert_data_for_predict(self, data: InputData):
@@ -53,7 +53,7 @@ class TableTypesCorrector:
         table = apply_type_transformation(data.features, self.features_converted_columns)
         data.features = self.remove_incorrect_features(table, self.features_converted_columns)
         data.target = apply_type_transformation(data.target, self.target_converted_columns)
-        data.column_types = self.store_column_types_info(data=data)
+        data.supplementary_data.column_types = self.store_column_types_info(data=data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -278,8 +278,9 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
     """
     updated_column_types = []
     for column_id, column_info in columns_types_info.items():
-        column_types = column_info['types']
-        if len(column_types) == 1:
+        column_types = list(column_info['types'])
+        single_type_column_with_nan = len(column_types) == 2 and type(None) in column_types
+        if len(column_types) == 1 or single_type_column_with_nan:
             # Column initially contain only one type
             updated_column_types.append(column_types[0])
         else:
