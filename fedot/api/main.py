@@ -53,7 +53,8 @@ class Fedot:
     :param verbose_level: level of the output detailing
         (-1 - nothing, 0 - errors, 1 - messages,
         2 - warnings and info, 3-4 - basic and detailed debug)
-    :param safe_mode: if set True it will cut large datasets to prevent memory overflow.
+    :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
+    instead of oneHot encoder if summary cardinality of categorical features is high.
     """
 
     def __init__(self,
@@ -86,7 +87,7 @@ class Fedot:
         self.update_params(timeout, initial_pipeline)
         self.data_processor = ApiDataProcessor(task=self.api_params['task'],
                                                log=self.api_params['logger'])
-        self.data_analyser = DataAnalyser(safe_mode=safe_mode, preprocessor=self.data_processor)
+        self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target = None
         self.train_data = None
@@ -111,11 +112,12 @@ class Fedot:
         """
 
         self.target = target
-        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
-        self.data_analyser.safe_preprocess(self.train_data)  # inplace
+        self.train_data = deepcopy(self.data_processor.define_data(features=features, target=target, is_predict=False))
+        preprocessed_full_train = deepcopy(self.train_data)
+        recommendations = self.data_analyser.give_recommendation(self.train_data)
+        self.data_processor.accept_recommendations(self.train_data, recommendations)
 
         self._init_remote_if_necessary()
-
         if predefined_model is not None:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
@@ -124,6 +126,11 @@ class Fedot:
 
         self.api_params['train_data'] = self.train_data
         self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
+        # if data was cut we need to refit pipeline on full data
+        if 'cut' in recommendations:
+            self.data_processor.accept_recommendations(preprocessed_full_train,
+                                                       {k: v for k, v in recommendations.items() if k != 'cut'})
+            self.current_pipeline.fit(preprocessed_full_train)
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = self.data_processor.preprocessor

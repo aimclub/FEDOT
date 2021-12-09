@@ -251,6 +251,13 @@ class DataPreprocessor:
         self.features_encoder = encoder
 
     @staticmethod
+    def cut_dataset(data: InputData, border):
+        """ Cutting large dataset """
+        data.idx = data.idx[:border]
+        data.features = data.features[:border]
+        data.target = data.target[:border]
+
+    @staticmethod
     def _apply_imputation_unidata(data: InputData):
         """ Fill in the gaps in the data inplace.
 
