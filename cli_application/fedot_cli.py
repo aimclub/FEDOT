@@ -15,30 +15,32 @@ def add_args_to_parser(parser, tag, help, required=False, is_list=False):
 
 def remove_none_keys(parameters):
     for k, v in list(parameters.items()):
-        #print(k, v)
         if v is None:
             del parameters[k]
         elif type(v) is not bool:
             try:
                 parameters[k] = float(v)
-            except Exception as e:
-                print(e)
+            except Exception:
+                pass
 
+main_params_names = ['problem', 'preset', 'timeout', 'seed']
+fit_params_names = ['train', 'target']
+composer_params = []
 
-arguments_dicts = [{'tag': '--m_problem',
+arguments_dicts = [{'tag': '--problem',
                     'help': 'The name of modelling problem to solve: \n'
                             'classification;\n'
                             'regression;\n'
                             'ts_forecasting;\n'
                             'clustering',
                     'required': True},
-                   {'tag': '--f_train',
+                   {'tag': '--train',
                     'help': 'Path to train data file',
                     'required': True},
                    {'tag': '--test',
                     'help': 'Path to test data file',
                     'required': True},
-                   {'tag': '--m_preset',
+                   {'tag': '--preset',
                     'help': 'Name of preset for model building: \n'
                             'light;\n'
                             'light_tun;\n'
@@ -49,11 +51,11 @@ arguments_dicts = [{'tag': '--m_problem',
                             'ts;\n'
                             'ts_tun;\n'
                             'gpu'},
-                   {'tag': '--m_timeout',
+                   {'tag': '--timeout',
                     'help': 'Time for model design (in minutes)'},
-                   {'tag': '--m_seed',
+                   {'tag': '--seed',
                     'help': 'Value for fixed random seed'},
-                   {'tag': '--f_target',
+                   {'tag': '--target',
                     'help': 'Name of target variable in data'},
                    {'tag': '--c_depth',
                     'help': 'Composer parameter: max depth of the pipeline'},
@@ -80,12 +82,12 @@ arguments_dicts = [{'tag': '--m_problem',
                     'help': 'Time Series Forecasting parameter: forecast length'},
                    ]
 
-keys_names = {'m_problem': 'problem',
-              'm_preset': 'preset',
-              'm_timeout': 'timeout',
-              'm_seed': 'seed',
-              'f_train': 'features',
-              'f_target': 'target',
+keys_names = {'problem': 'problem',
+              'preset': 'preset',
+              'timeout': 'timeout',
+              'seed': 'seed',
+              'train': 'features',
+              'target': 'target',
               'c_depth': 'max_depth',
               'c_arity': 'max_arity',
               'c_popsize': 'pop_size',
@@ -110,9 +112,9 @@ fit_params = {}
 for arg in vars(parameters):
     if 'c_' in arg:
         composer_params[keys_names[arg]] = getattr(parameters, arg)
-    if 'm_' in arg:
+    if arg in main_params_names:
         main_params[keys_names[arg]] = getattr(parameters, arg)
-    if 'f_' in arg:
+    if arg in fit_params_names:
         fit_params[keys_names[arg]] = getattr(parameters, arg)
 
 if main_params['problem'] == 'ts_forecasting' and getattr(parameters, 'for_len') is not None:
@@ -135,6 +137,6 @@ print(fit_params)
 
 model = Fedot(**main_params)
 model.fit(**fit_params)
-prediction = model.predict(features=getattr(parameters, 'test'))
-print(prediction)
+prediction = model.predict(features=getattr(parameters, 'test'), save_predictions=True)
+#print(prediction)
 
