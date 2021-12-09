@@ -45,18 +45,6 @@ def convert_into_column(array: np.array):
         return array
 
 
-def _return_subset_features(input_data: InputData, features_ids: list) -> InputData:
-    """ Return new InputData with subset of features based on features_ids list """
-    subsample_features = input_data.features[:, features_ids]
-    subsample_input = InputData(features=subsample_features,
-                                data_type=input_data.data_type,
-                                target=input_data.target, task=input_data.task,
-                                idx=input_data.idx,
-                                supplementary_data=input_data.supplementary_data)
-
-    return subsample_input
-
-
 def divide_data_categorical_numerical(input_data: InputData, categorical_ids: list,
                                       non_categorical_ids: list) -> (InputData, InputData):
     """
@@ -149,3 +137,15 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
         data_has_categorical_columns = has_data_categorical(data)
 
     return data_has_categorical_columns
+
+
+def _return_subset_features(input_data: InputData, features_ids: list) -> InputData:
+    """ Return new InputData with subset of features based on features_ids list """
+    subsample_features = input_data.features[:, features_ids]
+    subsample_input = InputData(features=subsample_features,
+                                data_type=input_data.data_type,
+                                target=input_data.target, task=input_data.task,
+                                idx=input_data.idx,
+                                supplementary_data=input_data.supplementary_data)
+
+    return subsample_input

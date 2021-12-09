@@ -8,7 +8,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
-from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
+from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features, data_with_too_much_nans, \
     data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target, \
     data_with_categorical_target
 
@@ -23,8 +23,8 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
     task = Task(TaskTypesEnum.classification)
     features = np.array([[np.nan, '1', np.nan, '6', 'b'],
                          [np.nan, '2', 1, '5', 'a'],
-                         [np.nan, np.nan, 2, 4.0, 4],
-                         [np.nan, '3', 3, 3.0, 3],
+                         [np.nan, np.nan, 2.1, 4.1, 4],
+                         [np.nan, '3', 3, 3.5, 3],
                          [np.nan, 8, 4, 2, 2],
                          [np.nan, 8, 'a', 1, 1],
                          [np.nan, np.nan, np.nan, np.nan, np.nan],

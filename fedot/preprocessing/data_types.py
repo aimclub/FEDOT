@@ -5,10 +5,9 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-class TypesCorrector:
+class TableTypesCorrector:
     """
-    Class for checking types in input data.
-    Correction also can be performed for such datasets.
+    Class for checking types in input data. Also perform conversion for columns with types conflicts
     """
 
     def __init__(self, log: Log = None):
@@ -35,6 +34,9 @@ class TypesCorrector:
 
     def convert_data_for_fit(self, data: InputData):
         """ If column contain several data types - perform correction procedure """
+        # Determine types for each column
+        self.check_data_types(data)
+
         # Correct types in features table
         table = self.features_types_filtering(data=data)
         # Remain only correct columns
@@ -42,6 +44,7 @@ class TypesCorrector:
 
         # And in target(s)
         data.target = self.target_types_filtering(data=data)
+        data.column_types = self.store_column_types_info(data=data)
         return data
 
     def convert_data_for_predict(self, data: InputData):
@@ -50,6 +53,7 @@ class TypesCorrector:
         table = apply_type_transformation(data.features, self.features_converted_columns)
         data.features = self.remove_incorrect_features(table, self.features_converted_columns)
         data.target = apply_type_transformation(data.target, self.target_converted_columns)
+        data.column_types = self.store_column_types_info(data=data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -116,12 +120,27 @@ class TypesCorrector:
                     updated_column, new_type_name = self._convert_target_into_one_type(mixed_column, column_info,
                                                                                        mixed_column_id, task)
                     # Store information about converted columns
-                    self.target_columns_info.update({mixed_column_id: new_type_name})
+                    self.target_converted_columns.update({mixed_column_id: new_type_name})
 
                     if updated_column is not None:
                         target_table[:, mixed_column_id] = updated_column
 
         return target_table
+
+    def store_column_types_info(self, data: InputData) -> dict:
+        """ Prepare information about columns in a form of dictionary
+        Dictionary has two keys: 'target' and 'features'
+        """
+        features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
+        target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
+
+        # Check if columns number correct
+        features_rows, features_cols = data.features.shape
+        target_rows, target_cols = data.target.shape
+        if target_cols != len(target_types) or features_cols != len(features_types):
+            # There is an incorrect features calculation
+            self.log.warn(f'Columns number was determined incorrectly.')
+        return {'features': features_types, 'target': target_types}
 
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
@@ -249,3 +268,24 @@ def _define_new_int_float_type(column_info):
     else:
         # It is available to convert numerical into integer type
         return int
+
+
+def _generate_list_with_types(columns_types_info: dict, converted_columns: dict) -> list:
+    """ Create list with types for all remained columns
+
+    :param columns_types_info: dictionary with initial column types
+    :param converted_columns: dictionary with transformed column types
+    """
+    updated_column_types = []
+    for column_id, column_info in columns_types_info.items():
+        column_types = column_info['types']
+        if len(column_types) == 1:
+            # Column initially contain only one type
+            updated_column_types.append(column_types[0])
+        else:
+            # Mixed-types column
+            new_column_type = converted_columns[column_id]
+            if new_column_type != 'removed':
+                updated_column_types.append(new_column_type)
+
+    return updated_column_types

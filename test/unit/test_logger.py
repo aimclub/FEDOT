@@ -78,7 +78,7 @@ def test_logger_manager_keeps_loggers_correctly():
     LogManager().clear_cache()
 
     pipeline = create_four_depth_pipeline()
-    expected_number_of_loggers = 5
+    expected_number_of_loggers = 6
 
     file = os.path.join('../data', 'advanced_classification.csv')
     test_file_path = str(os.path.dirname(__file__))

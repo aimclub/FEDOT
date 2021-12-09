@@ -25,6 +25,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    # Dictionary with features and target column types
+    column_types: Optional[dict] = None
     # Object with supplementary info
     supplementary_data: SupplementaryData = SupplementaryData()
 

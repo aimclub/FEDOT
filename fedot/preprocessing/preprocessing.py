@@ -19,7 +19,7 @@ from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
 from fedot.preprocessing.structure import PipelineStructureExplorer
-from fedot.preprocessing.data_types import TypesCorrector
+from fedot.preprocessing.data_types import TableTypesCorrector
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -49,7 +49,7 @@ class DataPreprocessor:
         # Categorical preprocessor for binary categorical features
         self.binary_categorical_processor = BinaryCategoricalPreprocessor()
         self.structure_analysis = PipelineStructureExplorer()
-        self.types_corrector = TypesCorrector()
+        self.types_corrector = TableTypesCorrector()
         self.log = log
 
         if not log:
@@ -150,7 +150,6 @@ class DataPreprocessor:
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
-            self.types_corrector.check_data_types(data)
             self.types_corrector.convert_data_for_fit(data)
 
             # Train Label Encoder for categorical data if necessary and apply it
