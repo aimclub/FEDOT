@@ -43,8 +43,6 @@ class Serializer(JSONEncoder, JSONDecoder):
                 graph_from_json,
                 graph_node_to_json,
                 graph_to_json,
-                ndarray_from_json,
-                ndarray_to_json,
                 operation_to_json,
                 opt_history_from_json,
                 parent_operator_to_json,
