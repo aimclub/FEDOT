@@ -2,23 +2,6 @@ from importlib import import_module
 from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Type, TypeVar, Union
-from uuid import UUID
-
-from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.data.data import Data
-from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
-    DataOperationImplementation
-)
-from fedot.core.operations.operation import Operation
-from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
-from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.repository.tasks import Task
-from fedot.core.utils import ComparableEnum
-from numpy import ndarray
 
 MODULE_X_NAME_DELIMITER = '/'
 CLASS_OR_FUNC_OBJECT = TypeVar('CLASS_OR_FUNC_OBJECT')
@@ -41,24 +24,34 @@ class Serializer(JSONEncoder, JSONDecoder):
         decoder_kwargs['object_hook'] = self.object_hook
         JSONDecoder.__init__(self, **decoder_kwargs)
 
-        from .coders import (
-            any_from_json,
-            any_to_json,
-            enum_from_json,
-            enum_to_json,
-            graph_from_json,
-            graph_node_to_json,
-            graph_to_json,
-            ndarray_from_json,
-            ndarray_to_json,
-            operation_to_json,
-            opt_history_from_json,
-            parent_operator_to_json,
-            uuid_from_json,
-            uuid_to_json
-        )
-
         if not Serializer.PROCESSORS_BY_TYPE:
+            from uuid import UUID
+
+            from fedot.core.dag.graph import Graph
+            from fedot.core.dag.graph_node import GraphNode
+            from fedot.core.operations.operation import Operation
+            from fedot.core.optimisers.gp_comp.individual import Individual
+            from fedot.core.optimisers.graph import OptGraph, OptNode
+            from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
+            from fedot.core.utils import ComparableEnum
+
+            from .coders import (
+                any_from_json,
+                any_to_json,
+                enum_from_json,
+                enum_to_json,
+                graph_from_json,
+                graph_node_to_json,
+                graph_to_json,
+                ndarray_from_json,
+                ndarray_to_json,
+                operation_to_json,
+                opt_history_from_json,
+                parent_operator_to_json,
+                uuid_from_json,
+                uuid_to_json
+            )
+
             _to_json = Serializer._to_json
             _from_json = Serializer._from_json
             basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
