@@ -1,9 +1,10 @@
 import random
-from typing import Optional
+from typing import Optional, Dict
 
 import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
 
@@ -70,6 +71,31 @@ class ApiParams:
             'composer_metric': self.metric_to_compose
         }
 
+        return {**param_dict, **self.api_params}
+
+    def accept_recommendations(self, input_data: InputData, recommendations: Dict):
+        if 'categorical' in recommendations and recommendations['categorical']['label']:
+            self.log.info("Change preset due of label encoding")
+            return self.change_preset_for_labeled_data(input_data.task)
+        else:
+            param_dict = {
+                'task': self.task,
+                'logger': self.log,
+                'metric_name': self.metric_name,
+                'composer_metric': self.metric_to_compose
+            }
+            return {**param_dict, **self.api_params}
+
+    def change_preset_for_labeled_data(self, task: Task):
+        preset_name = 'tree_reg' if task.task_type == 'regression' else 'tree_class'
+        preset_operations = OperationsPreset(task=task, preset_name=preset_name)
+        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
+        param_dict = {
+            'task': self.task,
+            'logger': self.log,
+            'metric_name': self.metric_name,
+            'composer_metric': self.metric_to_compose
+        }
         return {**param_dict, **self.api_params}
 
     @staticmethod

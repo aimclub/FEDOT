@@ -105,9 +105,9 @@ class ApiDataProcessor:
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(real.target)
 
-    def accept_recommendations(self, input_data: InputData, recommendatons: Dict):
-        for name in recommendatons:
-            rec = recommendatons[name]
+    def accept_recommendations(self, input_data: InputData, recommendations: Dict):
+        for name in recommendations:
+            rec = recommendations[name]
             self.table_of_recommendations[name](input_data, *rec.values())
 
 

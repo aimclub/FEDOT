@@ -250,9 +250,9 @@ class DataPreprocessor:
         # Store encoder to make prediction in the future
         self.features_encoder = encoder
 
-    @staticmethod
-    def cut_dataset(data: InputData, border):
+    def cut_dataset(self, data: InputData, border):
         """ Cutting large dataset """
+        self.log.info("Cut dataset due of it size is large")
         data.idx = data.idx[:border]
         data.features = data.features[:border]
         data.target = data.target[:border]

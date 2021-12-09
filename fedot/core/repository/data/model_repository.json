@@ -288,10 +288,12 @@
       ]
     },
     "rf": {
-      "meta": "sklearn_class"
+      "meta": "sklearn_class",
+      "tags": ["tree"]
     },
     "rfr": {
-      "meta": "sklearn_regr"
+      "meta": "sklearn_regr",
+      "tags": ["tree"]
     },
     "ridge": {
       "meta": "sklearn_regr",

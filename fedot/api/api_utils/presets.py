@@ -65,7 +65,14 @@ class OperationsPreset:
             available_operations = ['lagged', 'sparse_lagged', 'ar', 'gaussian_filter', 'smoothing',
                                     'ridge', 'linear', 'lasso', 'dtreg', 'scaling', 'normalization',
                                     'pca', 'cut', 'polyfit', 'ets', 'glm']
-
+        elif self.preset_name == 'tree_reg':
+            tree_reg = ['dtreg', 'rfr', 'treg', 'adareg', 'catboostreg', 'gbr', 'lgbmreg', 'xgbreg']
+            included_operations = tree_reg + available_data_operation
+            available_operations = [_ for _ in available_operations if _ in included_operations]
+        elif self.preset_name == 'tree_class':
+            tree_class = ['dt', 'rf', 'catboost', 'lgbm', 'xgboost']
+            included_operations = tree_class + available_data_operation
+            available_operations = [_ for _ in available_operations if _ in included_operations]
         if self.preset_name == 'gpu':
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
             available_operations = repository.suitable_operation(task_type=self.task.task_type)

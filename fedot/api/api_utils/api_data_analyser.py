@@ -37,9 +37,9 @@ class DataAnalyser:
                 result, border = self.control_size(input_data)
                 if result:
                     recommendations['cut'] = {'border': border}
-                result = self.control_categorical(input_data)
+                result = self.control_categorical(input_data, border)
                 if result != "no":
-                    recommendations['categorical'] = {'label': result == "label"}
+                    recommendations['categorical'] = {'label': result == 'label'}
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:
@@ -56,18 +56,20 @@ class DataAnalyser:
                 return True, border
         return False, None
 
-    def control_categorical(self, input_data: InputData) -> str:
+    def control_categorical(self, input_data: InputData, border: int) -> str:
         """
         Check if use label encoder instead oneHot if summary cardinality > threshold
         :param input_data - data for preprocessing
 
         """
-        categorical_ids, _ = str_columns_check(input_data.features)
+        if not border:
+            border = input_data.features.shape[0]
+        categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
         label_type = "one_hot"
-        all_cardinality = 0
+        all_cardinality = len(categorical_ids)
         for idx in categorical_ids:
             all_cardinality += np.unique(input_data.features[:, idx].astype(str)).shape[0]
-            if all_cardinality > self.max_cat_cardinality:
+            if all_cardinality > self.max_size // border:
                 label_type = "label"
                 break
         if all_cardinality == 0:
