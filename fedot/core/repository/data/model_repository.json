@@ -241,13 +241,15 @@
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting"
+        "boosting",
+        "tree"
       ]
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
       "tags": [
         "boosting",
+        "tree",
         "non_multi"
       ]
     },
@@ -373,13 +375,15 @@
     "xgboost": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting"
+        "boosting",
+        "tree"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "tags": [
         "boosting",
+        "tree",
         "non_multi"
       ]
     },

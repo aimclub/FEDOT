@@ -39,7 +39,7 @@ class DataAnalyser:
                     recommendations['cut'] = {'border': border}
                 result = self.control_categorical(input_data)
                 if result:
-                    recommendations['label'] = {}
+                    recommendations['label_encoded'] = {}
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:

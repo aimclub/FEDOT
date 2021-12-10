@@ -112,21 +112,20 @@ class Fedot:
         """
 
         self.target = target
-        self.train_data = deepcopy(self.data_processor.define_data(features=features, target=target, is_predict=False))
+        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
         full_train_not_preprocessed = deepcopy(self.train_data)
         recommendations = self.data_analyser.give_recommendation(self.train_data)
         self.data_processor.accept_recommendations(self.train_data, recommendations)
         self.api_params = self.composer_params.accept_recommendations(self.train_data, recommendations)
         self._init_remote_if_necessary()
+        self.api_params['train_data'] = self.train_data
+
         if predefined_model is not None:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
-            self.current_pipeline.preprocessor = self.data_processor.preprocessor
-            return self.current_pipeline
-
-        self.api_params['train_data'] = self.train_data
-        self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
-        # if data was cut we need to refit pipeline on full data
+        else:
+            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
+            # if data was cut we need to refit pipeline on full data
         if 'cut' in recommendations:
             self.data_processor.accept_recommendations(full_train_not_preprocessed,
                                                        {k: v for k, v in recommendations.items() if k != 'cut'})

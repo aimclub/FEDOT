@@ -241,7 +241,6 @@ class DataPreprocessor:
         save encoders to use later for prediction data.
 
         :param data: data to transform
-        :param is_label: is we use a specific label encoder
         :return encoder: operation for preprocessing categorical features
         """
 
@@ -250,13 +249,12 @@ class DataPreprocessor:
         # Store encoder to make prediction in the future
         self.features_encoder = encoder
 
-    def encode_label_for_fit(self, data: Union[InputData]):
+    def label_encoding_for_fit(self, data: Union[InputData]):
         """
-        Encode categorical features to numerical. In additional,
+        Encode categorical features to numerical using LabelEncoder. In additional,
         save encoders to use later for prediction data.
 
         :param data: data to transform
-        :param is_label: is we use a specific label encoder
         :return encoder: operation for preprocessing categorical features
         """
 
@@ -339,7 +337,6 @@ class DataPreprocessor:
         Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
 
         :param data: data to preprocess
-        :param is_label: is we use a specific label encoder
         :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
         """
 
@@ -356,10 +353,9 @@ class DataPreprocessor:
     @staticmethod
     def _create_label_encoder(data: InputData):
         """
-        Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
+        Fills in the gaps, converts categorical features using LabelEncoder and create encoder.
 
         :param data: data to preprocess
-        :param is_label: is we use a specific label encoder
         :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
         """
 

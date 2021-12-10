@@ -31,7 +31,7 @@ class ApiDataProcessor:
         self.task = task
         self.preprocessor = DataPreprocessor(log)
         self.table_of_recommendations = {'cut': self.preprocessor.cut_dataset,
-                                         'label': self.preprocessor.encode_label_for_fit
+                                         'label_encoded': self.preprocessor.label_encoding_for_fit
                                          }
 
     def define_data(self,
@@ -46,15 +46,15 @@ class ApiDataProcessor:
             # TODO remove workaround
             idx = None
             if isinstance(features, dict) and 'idx' in features:
-                idx = features['idx']
+                idx = deepcopy(features['idx'])
                 del features['idx']
-            data = data_strategy_selector(features=features,
-                                          target=target,
+            data = data_strategy_selector(features=deepcopy(features),
+                                          target=deepcopy(target),
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
                 for k in data.keys():
-                    data[k].idx = idx
+                    data[k].idx = deepcopy(idx)
         except Exception as ex:
             raise ValueError('Please specify a features as path to csv file, as Numpy array, '
                              'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
