@@ -14,7 +14,7 @@ def _convert_individuals_opt_graphs_to_templates(individuals: List[List['Individ
     # adapter = PipelineAdapter()
     for ind in list(itertools.chain(*individuals)):
         for parent_op in ind.parent_operators:
-            for idx in range(len(parent_op.paren_objects)):
+            for idx in range(len(parent_op.parent_objects)):
                 cur = parent_op.parent_objects[idx]
                 for _ind in list(itertools.chain(*individuals)):
                     if cur == _ind.graph.uid:
