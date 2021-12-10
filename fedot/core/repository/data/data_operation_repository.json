@@ -216,7 +216,8 @@
 			"meta": "custom_time_series_transformation",
 			"tags": [
 				"differential",
-				"non_lagged"
+				"non_lagged",
+				"correct_params"
 			]
 		},
 		"cut": {

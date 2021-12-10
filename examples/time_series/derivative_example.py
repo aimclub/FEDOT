@@ -66,9 +66,23 @@ def run_experiment_with_diff(time_series, len_forecast=250):
     print(f'RMSE without diff- {rmse_no_diff:.4f}')
     print(f'MAE without diff- {mae_no_diff:.4f}\n')
 
+    pipeline_diff = pipeline_diff.fine_tune_all_nodes(input_data=train_input,
+                                                      loss_function=mean_squared_error,
+                                                      loss_params={'squared': False},
+                                                      )
+
+    prediction_after = pipeline_diff.predict(test_data)
+    predict_after = np.ravel(np.array(prediction_after.predict))
+
+    rmse_after = mean_squared_error(test_target, predict_after, squared=False)
+    mae_after = mean_absolute_error(test_target, predict_after)
+    print(f'RMSE before tuning - {rmse_after:.4f}')
+    print(f'MAE before tuning - {mae_after:.4f}\n')
+
     plt.plot(idx, time_series, label='Actual time series')
     plt.plot(prediction_diff.idx, predict_diff, label='Forecast with diff')
     plt.plot(prediction_no_diff.idx, predict_no_diff, label='Forecast without diff')
+    plt.plot(prediction_after.idx, predict_after, label='Forecast with diff after tuning')
     plt.legend()
     plt.grid()
     plt.show()

@@ -222,9 +222,9 @@ class SearchSpace:
                 'sigma': (hp.uniform, [1, 5])
             },
             'diff_filter': {
-                'poly_degree': (hp.choice, [[1, 2, 3, 4]]),
-                'order': (hp.choice, [[1, 2, 3]]),
-                'window_size': (hp.choice, [[3, 4, 5, 7, 10, 15, 20]])
+                'poly_degree': (hp.uniform, [1, 4]),
+                'order': (hp.uniform, [1, 3]),
+                'window_size': (hp.uniform, [3, 20])
             },
             'cut': {
                 'cut_part': (hp.uniform, [0, 0.9])
