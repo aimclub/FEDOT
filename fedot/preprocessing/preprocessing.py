@@ -1,25 +1,27 @@
 from copy import copy
 from typing import Union
+
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, OutputData
-from fedot.core.data.data_preprocessing import replace_inf_with_nans, find_categorical_columns, \
-    data_has_missing_values, data_has_categorical_features
+from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.data import data_type_is_ts, OutputData
+from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values, \
+    replace_inf_with_nans
+from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
-    ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
     OneHotEncodingImplementation, LabelEncodingImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
+    ImputationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
-
+from fedot.preprocessing.data_types import TableTypesCorrector, NAME_CLASS_INT
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
 from fedot.preprocessing.structure import PipelineStructureExplorer
-from fedot.preprocessing.data_types import TableTypesCorrector, NAME_CLASS_INT
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -407,8 +409,6 @@ class DataPreprocessor:
 
         elif data.data_type == DataTypesEnum.ts:
             data.features = np.ravel(data.features)
-            if data.target is not None:
-                data.target = np.ravel(data.target)
 
         return data
 

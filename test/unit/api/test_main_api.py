@@ -362,7 +362,7 @@ def test_pipeline_preprocessing_through_api_correctly():
     """
     data = data_with_binary_features_and_categorical_target()
 
-    fedot_model = Fedot(problem='classification')
+    fedot_model = Fedot(problem='classificaton')
     # Using API preprocessing and train pipeline to give forecasts
     pipeline = fedot_model.fit(data, predefined_model='dt')
     # Stand-alone pipeline with it's own preprocessing

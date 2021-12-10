@@ -188,7 +188,8 @@
 				"affects_target",
 				"dimensionality_transforming",
 				"non_lagged",
-				"correct_params"
+				"correct_params",
+				"ts_transformer"
 			]
 		},
 		"sparse_lagged": {
@@ -197,7 +198,8 @@
 				"affects_target",
 				"dimensionality_transforming",
 				"non_lagged",
-				"correct_params"
+				"correct_params",
+				"ts_transformer"
 			]
 		},
 		"smoothing": {

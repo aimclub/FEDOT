@@ -160,8 +160,10 @@ def test_fit_predict_atomized_model_correctly():
     pipeline.fit(train_data)
     predicted_values = pipeline.predict(test_data)
 
-    fitted_atomized_model, _ = atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
-    predicted_atomized_output = atomized_model.predict(fitted_atomized_model, test_data)
+    pipeline.unfit()
+
+    fitted_atomized_model = pipeline.fit(train_data)
+    predicted_atomized_output = pipeline.predict(test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
     source_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)

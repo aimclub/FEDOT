@@ -13,6 +13,7 @@ from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
                                                          GPComposerRequirements)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
@@ -299,8 +300,9 @@ def fit_and_check_correctness(initial_pipeline: Pipeline,
                               logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
-        initial_pipeline.fit(data)
-        initial_pipeline.predict(data)
+        data_train, data_test = train_test_data_setup(data)
+        initial_pipeline.fit(data_train)
+        initial_pipeline.predict(data_test)
 
         message_success = 'Initial pipeline were fitted successfully'
         logger.debug(message_success)

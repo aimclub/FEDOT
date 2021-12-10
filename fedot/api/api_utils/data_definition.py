@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from functools import partial
 from typing import Union
 
@@ -48,8 +49,8 @@ class FedotStrategy(StrategyDefineData):
                     ml_task: Task,
                     target: str = None,
                     is_predict: bool = False) -> InputData:
-        # pandas format for input data
-        data = features
+        # InputData format for input data
+        data = deepcopy(features)
         data.task = ml_task
         return data
 
@@ -155,6 +156,7 @@ class MulitmodalStrategy(StrategyDefineData):
 def data_strategy_selector(features, target, ml_task: Task = None, is_predict: bool = None):
     data_type = type(features)
     strategy_dict = {InputData: FedotStrategy(),
+                     MultiModalData: FedotStrategy(),
                      tuple: TupleStrategy(),
                      pd.DataFrame: PandasStrategy(),
                      np.ndarray: NumpyStrategy(),
