@@ -43,10 +43,10 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
                            [0, '9']], dtype=object)
     else:
         target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
-    train_input = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8], features=features,
-                            target=target, task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
-    return train_input
+    input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8], features=features,
+                           target=target, task=task, data_type=DataTypesEnum.table,
+                           supplementary_data=SupplementaryData(was_preprocessed=False))
+    return input_data
 
 
 def test_only_categorical_data_process_correctly():

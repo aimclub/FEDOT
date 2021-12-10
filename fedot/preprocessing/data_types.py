@@ -26,9 +26,10 @@ class TableTypesCorrector:
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
+        # Determine types for each column in features and target if it is necessary
         if not self.features_columns_info:
-            # Determine types for each column
             self.features_columns_info = define_column_types(data.features)
+        if not self.target_columns_info:
             self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
@@ -130,6 +131,7 @@ class TableTypesCorrector:
         if not self.features_columns_info:
             # Information about column types is empty - there is a need to launch algorithm to collect info
             self.features_columns_info = define_column_types(predictors)
+        if not self.target_columns_info:
             self.target_columns_info = define_column_types(target)
 
         features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)

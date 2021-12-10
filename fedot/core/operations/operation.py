@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import Union
 
 from fedot.core.data.data import InputData, OutputData
@@ -107,13 +108,22 @@ class Operation(OperationSerializer):
             trained_operation=fitted_operation,
             predict_data=data,
             is_fit_pipeline_stage=is_fit_pipeline_stage)
-        assign_column_types(prediction, output_mode)
+        prediction = self.assign_tabular_column_types(prediction, output_mode)
 
         if is_main_target is False:
             prediction.supplementary_data.is_main_target = is_main_target
 
         prediction.supplementary_data.data_flow_length = data_flow_length
         return prediction
+
+    @staticmethod
+    @abstractmethod
+    def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
+        """ Assign types for columns based on task and output_mode (for classification)
+        For example, pipeline for solving time series forecasting task contains lagged and ridge operations.
+        ts_type -> lagged -> tabular type. So, there is a need to assign column types to new data
+        """
+        raise NotImplementedError()
 
     def __str__(self):
         return f'{self.operation_type}'
@@ -157,23 +167,3 @@ def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnu
 
     strategy = operations_repo.operation_info_by_id(operation_type).current_strategy(current_task_type)
     return strategy
-
-
-def assign_column_types(output_data: OutputData, output_mode: str):
-    """ Assign types for columns based on task """
-    if output_data.data_type is not DataTypesEnum.table:
-        # No column data types info for non-tabular data
-        return output_data
-
-    predict_shape = output_data.predict.shape
-    target_shape = output_data.target.shape if output_data.target is not None else None
-
-    is_regression_task = output_data.task.task_type is TaskTypesEnum.regression
-    is_ts_forecasting_task = output_data.task.task_type is TaskTypesEnum.ts_forecasting
-    if is_regression_task or is_ts_forecasting_task:
-        if len(predict_shape) > 1:
-            column_info = {'features': [type(float)] * predict_shape[1]}
-    else:
-        # Classification task or other
-        if len(predict_shape) > 1 and output_mode == 'labels':
-            pass

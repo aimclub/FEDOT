@@ -182,6 +182,8 @@ def test_api_check_data_correct():
 
 def test_baseline_with_api():
     train_data, test_data, threshold = get_dataset('classification')
+    train_data.supplementary_data.was_preprocessed = False
+    test_data.supplementary_data.was_preprocessed = False
 
     # task selection, initialisation of the framework
     baseline_model = Fedot(problem='classification')
@@ -228,6 +230,9 @@ def test_pandas_input_for_api():
 
 def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
+    train_data.supplementary_data.was_preprocessed = False
+    test_data.supplementary_data.was_preprocessed = False
+
     composer_params['composer_metric'] = ['f1', 'node_num']
 
     model = Fedot(problem='classification',

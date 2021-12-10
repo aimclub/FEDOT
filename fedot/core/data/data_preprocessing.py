@@ -75,22 +75,42 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
         raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
-def str_columns_check(features):
+def str_columns_check(table: np.array, column_types: dict = None):
     """
     Method for checking which columns contain categorical (text) data
 
-    :param features: tabular data for check
+    :param table: tabular data for string columns types determination
+    :param column_types: list with column types. If None, perform default checking
     :return categorical_ids: indices of categorical columns in table
     :return non_categorical_ids: indices of non categorical columns in table
     """
-    source_shape = features.shape
+    if column_types is None:
+        # Define if data contains string columns for "unknown table"
+        return default_str_check(table)
+
+    categorical_ids = []
+    non_categorical_ids = []
+    column_id = 0
+    for type_name in column_types:
+        if 'str' in str(type_name):
+            categorical_ids.append(column_id)
+        else:
+            non_categorical_ids.append(column_id)
+        column_id += 1
+
+    return categorical_ids, non_categorical_ids
+
+
+def default_str_check(table):
+    """ Find string columns using 'computationally expensive' approach """
+    source_shape = table.shape
     columns_number = source_shape[1] if len(source_shape) > 1 else 1
 
     categorical_ids = []
     non_categorical_ids = []
     # For every column in table make check for first element
     for column_id in range(0, columns_number):
-        column = features[:, column_id] if columns_number > 1 else features
+        column = table[:, column_id] if columns_number > 1 else table
         col_shape = column.shape
         for i in column:
             # Check if element is string object or not until the first appearance

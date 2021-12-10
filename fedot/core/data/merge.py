@@ -5,6 +5,7 @@ import numpy as np
 from fedot.core.log import Log, default_log
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.data_types import TableTypesCorrector
 
 
@@ -68,7 +69,7 @@ class DataMerger:
         if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
             updated_info.prepare_parent_mask(self.outputs)
 
-        updated_info = self.update_column_types(updated_info, first_data_type)
+        updated_info = self.update_column_types(updated_info, first_data_type, task)
         return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):
@@ -109,10 +110,13 @@ class DataMerger:
         target = np.ravel(np.array(target))
         return idx, features, target, is_main_target, task
 
-    def update_column_types(self, supplementary_data: SupplementaryData, data_type: DataTypesEnum):
+    def update_column_types(self, supplementary_data: SupplementaryData, data_type: DataTypesEnum,
+                            task: TaskTypesEnum):
         """ Store information about column types in tabular data for merged data """
         if data_type is not DataTypesEnum.table:
             # Data is not tabular
+            return supplementary_data
+        if task.task_type == TaskTypesEnum.ts_forecasting:
             return supplementary_data
 
         # Types for features columns
@@ -137,10 +141,8 @@ class DataMerger:
 
             # Search for main target
             if output.supplementary_data.is_main_target:
-                new_target_types = output.supplementary_data.column_types['target']
-
-        if new_target_types is None:
-            self.log.warn(f'DataMerger did not define target types')
+                # Target can be None for predict stage
+                new_target_types = output.supplementary_data.column_types.get('target')
         supplementary_data.column_types = {'features': new_features_types,
                                            'target': new_target_types}
         return supplementary_data

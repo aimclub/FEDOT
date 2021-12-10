@@ -5,7 +5,7 @@ import bisect
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_preprocessing import str_columns_check
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
@@ -34,7 +34,9 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        categorical_ids, non_categorical_ids = str_columns_check(features)
+        features_types = input_data.supplementary_data.column_types.get('features')
+        categorical_ids, non_categorical_ids = str_columns_check(features,
+                                                                 features_types)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -69,7 +71,21 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         # Update features
         output_data = self._convert_to_output(copied_data,
                                               transformed_features)
+        self._update_column_types(output_data)
         return output_data
+
+    def _update_column_types(self, output_data: OutputData):
+        """ Update column types after encoding. Categorical columns becomes integer with extension """
+        if self.categorical_ids:
+            # There are categorical features in the table
+            col_types = output_data.supplementary_data.column_types['features']
+            numerical_columns = [t_name for t_name in col_types if 'str' not in t_name]
+
+            # Calculate new binary columns number after encoding
+            encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
+            numerical_columns.extend([str(int)] * encoded_columns_number)
+
+            output_data.supplementary_data.column_types['features'] = numerical_columns
 
     def _apply_one_hot_encoding(self, features: np.array):
         """
@@ -108,8 +124,9 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids = None
 
     def fit(self, input_data: InputData):
-
-        self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features)
+        features_types = input_data.supplementary_data.column_types.get('features')
+        self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features,
+                                                                           features_types)
 
         # If there are categorical features - process it
         if self.categorical_ids:
@@ -128,8 +145,21 @@ class LabelEncodingImplementation(DataOperationImplementation):
         # Update features
         output_data = self._convert_to_output(copied_data,
                                               copied_data.features)
+        # Store source features values
+        output_data.features = input_data.features
 
+        self._update_column_types(output_data)
         return output_data
+
+    def _update_column_types(self, output_data: OutputData):
+        """ Update column types after encoding. Categorical becomes integer """
+        if self.categorical_ids:
+            # Categorical features were in the dataset
+            col_types = output_data.supplementary_data.column_types['features']
+            for categorical_id in self.categorical_ids:
+                col_types[categorical_id] = str(int)
+
+            output_data.supplementary_data.column_types['features'] = col_types
 
     def _fit_label_encoders(self, input_data: InputData):
         """ Fit LabelEncoder for every categorical column in the dataset """

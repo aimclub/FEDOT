@@ -6,7 +6,7 @@ from sklearn.decomposition import KernelPCA, PCA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
-from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.data import InputData, data_type_is_table, OutputData
 from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
     divide_data_categorical_numerical, str_columns_check, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
@@ -142,6 +142,18 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
     def get_params(self):
         return self.operation.get_params()
 
+    def _update_column_types(self, source_features_shape, output_data: OutputData):
+        """ Update column types after applying operations. If new columns added, new type for them are defined """
+        if len(source_features_shape) < 2:
+            return output_data
+        else:
+            cols_number_added = output_data.predict.shape[1] - source_features_shape[1]
+            if cols_number_added > 0:
+                # There are new columns in the table
+                col_types = output_data.supplementary_data.column_types['features']
+                col_types.extend([str(float)] * cols_number_added)
+                output_data.supplementary_data.column_types['features'] = col_types
+
 
 class ScalingImplementation(EncodedInvariantImplementation):
     """ Class for application of Scaling operation on data,
@@ -248,7 +260,9 @@ class ImputationImplementation(DataOperationImplementation):
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
-            self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features)
+            features_types = input_data.supplementary_data.column_types.get('features')
+            self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features,
+                                                                               features_types)
             numerical, categorical = divide_data_categorical_numerical(input_data, self.categorical_ids,
                                                                        self.non_categorical_ids)
 

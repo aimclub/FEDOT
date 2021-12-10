@@ -308,7 +308,8 @@ class DataPreprocessor:
 
     def _train_target_encoder(self, data: InputData):
         """ Convert string categorical target into integer column using LabelEncoder """
-        categorical_ids, non_categorical_ids = str_columns_check(data.target)
+        categorical_ids, non_categorical_ids = str_columns_check(data.target,
+                                                                 data.supplementary_data.column_types['target'])
 
         if len(categorical_ids) > 0:
             # Target is categorical

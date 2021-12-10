@@ -5,6 +5,7 @@ from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
+from fedot.core.data.data import OutputData
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import EncodedInvariantImplementation
 
@@ -19,6 +20,9 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         self.ids_to_process = None
         self.bool_ids = None
         self.is_not_fitted = None
+
+        # Bool mask where True - remain column and False - drop it
+        self.remain_features_mask = None
 
     def fit(self, input_data):
         """ Method for fit feature selection
@@ -36,7 +40,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         if len(ids_to_process) > 0:
             features_to_process = np.array(features[:, ids_to_process])
 
-            if self._is_input_data_1d(features_to_process):
+            if features_to_process.shape[1] == 1:
                 self.is_not_fitted = True
                 return self.operation
             try:
@@ -59,6 +63,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
             return self._convert_to_output(input_data, input_data.features)
 
         features = input_data.features
+        source_features_shape = features.shape
         if len(self.ids_to_process) > 0:
             transformed_features = self._make_new_table(features)
         else:
@@ -67,10 +72,25 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         # Update features
         output_data = self._convert_to_output(input_data,
                                               transformed_features)
+        self._update_column_types(source_features_shape, output_data)
         return output_data
 
     def get_params(self):
         return self.operation.get_params()
+
+    def _update_column_types(self, source_features_shape, output_data: OutputData):
+        """ Update column types after applying feature selection operations """
+        if len(source_features_shape) < 2:
+            return output_data
+        else:
+            cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
+            if cols_number_removed > 0:
+                # There are several columns, which were dropped
+                col_types = output_data.supplementary_data.column_types['features']
+
+                # Calculate
+                remained_column_types = np.array(col_types)[self.remain_features_mask]
+                output_data.supplementary_data.column_types['features'] = list(remained_column_types)
 
     def _make_new_table(self, features):
         """
@@ -83,8 +103,8 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
 
         features_to_process = np.array(features[:, self.ids_to_process])
         # Bool vector - mask for columns
-        mask = self.operation.support_
-        transformed_part = features_to_process[:, mask]
+        self.remain_features_mask = self.operation.support_
+        transformed_part = features_to_process[:, self.remain_features_mask]
 
         # If there are no binary features in the dataset
         if len(self.bool_ids) == 0:
@@ -96,9 +116,6 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
-
-    def _is_input_data_1d(self, input_data):
-        return input_data.shape[1] == 1
 
 
 class LinearRegFSImplementation(FeatureSelectionImplementation):
