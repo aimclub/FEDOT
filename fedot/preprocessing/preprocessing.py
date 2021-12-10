@@ -235,7 +235,7 @@ class DataPreprocessor:
             return data
         raise ValueError(f"Data format is not supported.")
 
-    def encode_data_for_fit(self, data: Union[InputData], is_label: bool = False):
+    def encode_data_for_fit(self, data: Union[InputData]):
         """
         Encode categorical features to numerical. In additional,
         save encoders to use later for prediction data.
@@ -245,7 +245,22 @@ class DataPreprocessor:
         :return encoder: operation for preprocessing categorical features
         """
 
-        transformed, encoder = self._create_encoder(data, is_label)
+        transformed, encoder = self._create_onehot_encoder(data)
+        data.features = transformed
+        # Store encoder to make prediction in the future
+        self.features_encoder = encoder
+
+    def encode_label_for_fit(self, data: Union[InputData]):
+        """
+        Encode categorical features to numerical. In additional,
+        save encoders to use later for prediction data.
+
+        :param data: data to transform
+        :param is_label: is we use a specific label encoder
+        :return encoder: operation for preprocessing categorical features
+        """
+
+        transformed, encoder = self._create_label_encoder(data)
         data.features = transformed
         # Store encoder to make prediction in the future
         self.features_encoder = encoder
@@ -253,6 +268,7 @@ class DataPreprocessor:
     def cut_dataset(self, data: InputData, border):
         """ Cutting large dataset """
         self.log.info("Cut dataset due of it size is large")
+        data.shuffle()
         data.idx = data.idx[:border]
         data.features = data.features[:border]
         data.target = data.target[:border]
@@ -318,7 +334,7 @@ class DataPreprocessor:
             return column_to_transform
 
     @staticmethod
-    def _create_encoder(data: InputData, is_label: bool = False):
+    def _create_onehot_encoder(data: InputData):
         """
         Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
 
@@ -329,10 +345,27 @@ class DataPreprocessor:
 
         encoder = None
         if data_has_categorical_features(data):
-            if is_label:
-                encoder = LabelEncodingImplementation()
-            else:
-                encoder = OneHotEncodingImplementation()
+            encoder = OneHotEncodingImplementation()
+            encoder.fit(data)
+            transformed = encoder.transform(data, True).predict
+        else:
+            transformed = data.features
+
+        return transformed, encoder
+
+    @staticmethod
+    def _create_label_encoder(data: InputData):
+        """
+        Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
+
+        :param data: data to preprocess
+        :param is_label: is we use a specific label encoder
+        :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
+        """
+
+        encoder = None
+        if data_has_categorical_features(data):
+            encoder = LabelEncodingImplementation()
             encoder.fit(data)
             transformed = encoder.transform(data, True).predict
         else:

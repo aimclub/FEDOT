@@ -74,7 +74,7 @@ class ApiParams:
         return {**param_dict, **self.api_params}
 
     def accept_recommendations(self, input_data: InputData, recommendations: Dict):
-        if 'categorical' in recommendations and recommendations['categorical']['label']:
+        if 'label' in recommendations:
             self.log.info("Change preset due of label encoding")
             return self.change_preset_for_labeled_data(input_data.task)
         else:
@@ -89,6 +89,7 @@ class ApiParams:
     def change_preset_for_labeled_data(self, task: Task):
         preset_name = 'tree_reg' if task.task_type == 'regression' else 'tree_class'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
+        del self.api_params['available_operations']
         self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,

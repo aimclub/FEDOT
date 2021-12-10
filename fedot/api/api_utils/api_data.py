@@ -31,7 +31,7 @@ class ApiDataProcessor:
         self.task = task
         self.preprocessor = DataPreprocessor(log)
         self.table_of_recommendations = {'cut': self.preprocessor.cut_dataset,
-                                         'categorical': self.preprocessor.encode_data_for_fit
+                                         'label': self.preprocessor.encode_label_for_fit
                                          }
 
     def define_data(self,

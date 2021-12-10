@@ -13,6 +13,7 @@ def get_data_analyser_with_specific_params():
     safety_module = DataAnalyser(safe_mode=True)
     preprocessor = ApiDataProcessor(Task(TaskTypesEnum.classification))
     safety_module.max_size = 18
+    safety_module.max_cat_cardinality = 5
     return safety_module, preprocessor
 
 
@@ -44,18 +45,20 @@ def test_safety_label_correct():
     api_preprocessor.accept_recommendations(data, recs)
     assert data.features.shape[0] * data.features.shape[1] <= api_safety.max_size
     assert data.features.shape[1] == 3
-    assert data.features[0, 0] == 0
+    assert data.features[0, 0] != 'a'
 
 
 def test_no_safety_needed_correct():
     """ Check if oneHot encoding is used for small data """
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     api_safety.max_size = 100
+    api_safety.max_cat_cardinality = 100
     data = get_small_cat_data()
     recs = api_safety.give_recommendation(data)
     api_preprocessor.accept_recommendations(data, recs)
-    assert data.features.shape[0] * data.features.shape[1] == 72
-    assert data.features.shape[1] == 9
+    assert data.features.shape[0] * data.features.shape[1] == 24
+    assert data.features.shape[1] == 3
+    assert data.features[0, 0] == 'a'
 
 
 def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
@@ -66,7 +69,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     data = get_small_cat_data()
     model.fit(features=data)
     model.predict(features=data)
-    assert len(model.api_params['available_operations']) == 11
+    assert len(model.api_params['available_operations']) == 13
     assert 'logit' not in model.api_params['available_operations']
 
 

@@ -19,7 +19,7 @@ class DataAnalyser:
     def __init__(self, safe_mode: bool):
         self.safe_mode = safe_mode
         self.max_size = 600000
-        self.max_cat_cardinality = 1000
+        self.max_cat_cardinality = 50
 
     def give_recommendation(self, input_data: InputData) -> Dict:
         """ Gives a recommendation of cutting dataset or using label encoding
@@ -37,9 +37,9 @@ class DataAnalyser:
                 result, border = self.control_size(input_data)
                 if result:
                     recommendations['cut'] = {'border': border}
-                result = self.control_categorical(input_data, border)
-                if result != "no":
-                    recommendations['categorical'] = {'label': result == 'label'}
+                result = self.control_categorical(input_data)
+                if result:
+                    recommendations['label'] = {}
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:
@@ -56,22 +56,18 @@ class DataAnalyser:
                 return True, border
         return False, None
 
-    def control_categorical(self, input_data: InputData, border: int) -> str:
+    def control_categorical(self, input_data: InputData) -> bool:
         """
         Check if use label encoder instead oneHot if summary cardinality > threshold
         :param input_data - data for preprocessing
 
         """
-        if not border:
-            border = input_data.features.shape[0]
-        categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
-        label_type = "one_hot"
-        all_cardinality = len(categorical_ids)
+        categorical_ids, _ = str_columns_check(input_data.features)
+        all_cardinality = 0
+        need_label = False
         for idx in categorical_ids:
             all_cardinality += np.unique(input_data.features[:, idx].astype(str)).shape[0]
-            if all_cardinality > self.max_size // border:
-                label_type = "label"
+            if all_cardinality > self.max_cat_cardinality:
+                need_label = True
                 break
-        if all_cardinality == 0:
-            return "no"
-        return label_type
+        return need_label
