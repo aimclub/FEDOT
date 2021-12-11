@@ -114,7 +114,7 @@ class ApiDataProcessor:
         """
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
-                self. accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
+                self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
         else:
             for name in recommendations:
                 rec = recommendations[name]

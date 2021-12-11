@@ -9,12 +9,12 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 from test.unit.api.test_main_api import composer_params
 
 
-def get_data_analyser_with_specific_params():
+def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
     """ Create a DataAnalyser object with small max dataset size and small max cardinality for categorical features"""
     safety_module = DataAnalyser(safe_mode=True)
     preprocessor = ApiDataProcessor(Task(TaskTypesEnum.classification))
-    safety_module.max_size = 18
-    safety_module.max_cat_cardinality = 5
+    safety_module.max_size = max_size
+    safety_module.max_cat_cardinality = max_cat_cardinality
     return safety_module, preprocessor
 
 
@@ -56,9 +56,7 @@ def test_no_safety_needed_correct():
     """
     Check if oneHot encoding is used for small data with small cardinality of categorical features
     """
-    api_safety, api_preprocessor = get_data_analyser_with_specific_params()
-    api_safety.max_size = 100
-    api_safety.max_cat_cardinality = 100
+    api_safety, api_preprocessor = get_data_analyser_with_specific_params(max_size=100, max_cat_cardinality=100)
     data = get_small_cat_data()
     recs = api_safety.give_recommendation(data)
     api_preprocessor.accept_recommendations(data, recs)
