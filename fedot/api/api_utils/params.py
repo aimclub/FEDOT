@@ -5,6 +5,7 @@ import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
 
@@ -74,17 +75,21 @@ class ApiParams:
         return {**param_dict, **self.api_params}
 
     def accept_recommendations(self, input_data: InputData, recommendations: Dict):
-        if 'label_encoded' in recommendations:
-            self.log.info("Change preset due of label encoding")
-            return self.change_preset_for_label_encoded_data(input_data.task)
+        if isinstance(input_data, MultiModalData):
+            for data_source_name, values in input_data.items():
+                return self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
         else:
-            param_dict = {
-                'task': self.task,
-                'logger': self.log,
-                'metric_name': self.metric_name,
-                'composer_metric': self.metric_to_compose
-            }
-            return {**param_dict, **self.api_params}
+            if 'label_encoded' in recommendations:
+                self.log.info("Change preset due of label encoding")
+                return self.change_preset_for_label_encoded_data(input_data.task)
+            else:
+                param_dict = {
+                    'task': self.task,
+                    'logger': self.log,
+                    'metric_name': self.metric_name,
+                    'composer_metric': self.metric_to_compose
+                }
+                return {**param_dict, **self.api_params}
 
     def change_preset_for_label_encoded_data(self, task: Task):
         """ Change preset on tree like preset, if data had been label encoded """

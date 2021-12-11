@@ -25,14 +25,14 @@ class DataAnalyser:
         """ Gives a recommendation of cutting dataset or using label encoding
             :param input_data - data for preprocessing
 
-            :return list with str recommendations
+            :return dict with str recommendations
         """
 
         recommendations = {}
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
-                self.give_recommendation(input_data[data_source_name])
-        elif isinstance(input_data, InputData):
+                recommendations[data_source_name] = self.give_recommendation(input_data[data_source_name])
+        elif isinstance(input_data, InputData) and input_data.data_type == DataTypesEnum.table:
             if self.safe_mode:
                 result, border = self.control_size(input_data)
                 if result:

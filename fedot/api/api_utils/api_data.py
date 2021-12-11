@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import Union, List, Dict
 
 import numpy as np
@@ -46,15 +46,15 @@ class ApiDataProcessor:
             # TODO remove workaround
             idx = None
             if isinstance(features, dict) and 'idx' in features:
-                idx = deepcopy(features['idx'])
+                idx = copy(features['idx'])
                 del features['idx']
             data = data_strategy_selector(features=deepcopy(features),
-                                          target=deepcopy(target),
+                                          target=copy(target),
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
                 for k in data.keys():
-                    data[k].idx = deepcopy(idx)
+                    data[k].idx = copy(idx)
         except Exception as ex:
             raise ValueError('Please specify a features as path to csv file, as Numpy array, '
                              'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
@@ -105,10 +105,20 @@ class ApiDataProcessor:
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(real.target)
 
-    def accept_recommendations(self, input_data: InputData, recommendations: Dict):
-        for name in recommendations:
-            rec = recommendations[name]
-            self.table_of_recommendations[name](input_data, *rec.values())
+    def accept_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+        """
+        Accepts recommendations for preprocessing from DataAnalyser
+
+        :param input_data - data for preprocessing
+        :param recommendations - dict with recommendations
+        """
+        if isinstance(input_data, MultiModalData):
+            for data_source_name, values in input_data.items():
+                self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
+        else:
+            for name in recommendations:
+                rec = recommendations[name]
+                self.table_of_recommendations[name](input_data, *rec.values())
 
 
 def _convert_to_two_classes(predict):
