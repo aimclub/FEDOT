@@ -46,15 +46,15 @@ class ApiDataProcessor:
             # TODO remove workaround
             idx = None
             if isinstance(features, dict) and 'idx' in features:
-                idx = copy(features['idx'])
+                idx = features['idx']
                 del features['idx']
-            data = data_strategy_selector(features=deepcopy(features),
-                                          target=deepcopy(target),
+            data = data_strategy_selector(features=features,
+                                          target=target,
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
                 for k in data.keys():
-                    data[k].idx = copy(idx)
+                    data[k].idx = idx
         except Exception as ex:
             raise ValueError('Please specify a features as path to csv file, as Numpy array, '
                              'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
@@ -64,7 +64,7 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
-        return data
+        return deepcopy(data)
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
         """ Prepare predictions """
