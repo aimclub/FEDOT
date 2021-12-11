@@ -33,7 +33,7 @@ class TableTypesCorrector:
             self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
-        table = self.features_types_filtering(data=data)
+        table = self.features_types_converting(data=data)
         # Remain only correct columns
         data.features = self.remove_incorrect_features(table, self.features_converted_columns)
 
@@ -73,13 +73,17 @@ class TableTypesCorrector:
         table = np.delete(table, self.columns_to_del, 1)
         return table
 
-    def features_types_filtering(self, data: 'InputData'):
+    def features_types_converting(self, data: 'InputData'):
         """ Convert all elements in the data in every feature column into one type
 
         :param data: Input data with tabular features array
         """
         table = data.features
         features_with_mixed_types = find_mixed_types_columns(self.features_columns_info)
+
+        if not features_with_mixed_types:
+            return data.features
+
         if features_with_mixed_types:
             # There are mixed-types columns in features table - convert them
             for mixed_column_id in features_with_mixed_types:
@@ -106,6 +110,10 @@ class TableTypesCorrector:
         task = data.task
         target_table = data.target
         target_with_mixed_types = find_mixed_types_columns(self.target_columns_info)
+
+        if not target_with_mixed_types:
+            return data.target
+
         if target_with_mixed_types:
             # There are mixed-types columns in features table - convert them
             for mixed_column_id in target_with_mixed_types:
@@ -149,7 +157,7 @@ class TableTypesCorrector:
         n_rows, n_cols = table.shape
         if n_cols != len(column_types):
             # There is an incorrect types calculation
-            self.log.warn(f'Columns number was determined incorrectly.')
+            self.log.warn(f'Columns number and types numbers do not match.')
 
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
@@ -169,6 +177,11 @@ class TableTypesCorrector:
 
         try:
             mixed_column = mixed_column.astype(suggested_type)
+            # If there were nans in the column - paste nan
+            if column_info['nan_number'] > 0:
+                mixed_column = mixed_column.astype(object)
+                mixed_column[column_info['nan_ids']] = np.nan
+                del column_info['nan_ids']
             return mixed_column, str(suggested_type)
         except ValueError:
             # Cannot convert string objects into int or float (for example 'a' into int)
@@ -231,12 +244,16 @@ def define_column_types(table: np.array):
             str_number = len(np.argwhere(types_names == "<class 'str'>"))
             int_number = len(np.argwhere(types_names == "<class 'int'>"))
             float_number = len(np.argwhere(types_names == "<class 'float'>"))
-            nan_number = len(np.argwhere(types_names == "<class 'NoneType'>"))
+
+            # Store information about nans in the target.
+            nan_ids = np.ravel(np.argwhere(types_names == "<class 'NoneType'>"))
+            nan_number = len(nan_ids)
             columns_info.update({column_id: {'types': set_column_types,
                                              'str_number': str_number,
                                              'int_number': int_number,
                                              'float_number': float_number,
-                                             'nan_number': nan_number}})
+                                             'nan_number': nan_number,
+                                             'nan_ids': nan_ids}})
         else:
             # There is only one type, or several types such as int and float
             columns_info.update({column_id: {'types': set_column_types}})
@@ -259,11 +276,11 @@ def apply_type_transformation(table: np.array, converted_columns: dict):
     type_by_name = {"<class 'int'>": int, "<class 'str'>": str, "<class 'float'>": float}
 
     if table is None:
-        # Often occurs if for predict stage there is no target info
+        # Occurs if for predict stage there is no target info
         return None
 
     if len(converted_columns) == 0:
-        # There are np columns for converting
+        # There are no columns for converting
         return table
 
     for column_id, type_name in converted_columns.items():
