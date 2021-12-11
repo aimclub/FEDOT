@@ -1,5 +1,5 @@
 import random
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 
 import numpy as np
 
@@ -74,7 +74,13 @@ class ApiParams:
 
         return {**param_dict, **self.api_params}
 
-    def accept_recommendations(self, input_data: InputData, recommendations: Dict):
+    def accept_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+        """
+        Accepts recommendations for api params from DataAnalyser
+
+        :param input_data - data for preprocessing
+        :param recommendations - dict with recommendations
+        """
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
                 return self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
