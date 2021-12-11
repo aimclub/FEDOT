@@ -1,4 +1,5 @@
-from typing import Union
+from copy import deepcopy, copy
+from typing import Union, List, Dict
 
 import numpy as np
 import pandas as pd
@@ -29,6 +30,9 @@ class ApiDataProcessor:
     def __init__(self, task: Task, log: Log = None):
         self.task = task
         self.preprocessor = DataPreprocessor(log)
+        self.table_of_recommendations = {'cut': self.preprocessor.cut_dataset,
+                                         'label_encoded': self.preprocessor.label_encoding_for_fit
+                                         }
 
     def define_data(self,
                     features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
@@ -60,7 +64,7 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
-        return data
+        return deepcopy(data)
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
         """ Prepare predictions """
@@ -100,6 +104,21 @@ class ApiDataProcessor:
             if len(real.target.shape) != len(prediction.predict.shape):
                 prediction.predict = convert_into_column(prediction.predict)
                 real.target = convert_into_column(real.target)
+
+    def accept_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+        """
+        Accepts recommendations for preprocessing from DataAnalyser
+
+        :param input_data - data for preprocessing
+        :param recommendations - dict with recommendations
+        """
+        if isinstance(input_data, MultiModalData):
+            for data_source_name, values in input_data.items():
+                self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
+        else:
+            for name in recommendations:
+                rec = recommendations[name]
+                self.table_of_recommendations[name](input_data, *rec.values())
 
 
 def _convert_to_two_classes(predict):

@@ -1,9 +1,11 @@
 import random
-from typing import Optional
+from typing import Optional, Dict, Union
 
 import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
 
@@ -70,6 +72,43 @@ class ApiParams:
             'composer_metric': self.metric_to_compose
         }
 
+        return {**param_dict, **self.api_params}
+
+    def accept_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+        """
+        Accepts recommendations for api params from DataAnalyser
+
+        :param input_data - data for preprocessing
+        :param recommendations - dict with recommendations
+        """
+        if isinstance(input_data, MultiModalData):
+            for data_source_name, values in input_data.items():
+                return self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
+        else:
+            if 'label_encoded' in recommendations:
+                self.log.info("Change preset due of label encoding")
+                return self.change_preset_for_label_encoded_data(input_data.task)
+            else:
+                param_dict = {
+                    'task': self.task,
+                    'logger': self.log,
+                    'metric_name': self.metric_name,
+                    'composer_metric': self.metric_to_compose
+                }
+                return {**param_dict, **self.api_params}
+
+    def change_preset_for_label_encoded_data(self, task: Task):
+        """ Change preset on tree like preset, if data had been label encoded """
+        preset_name = 'tree_reg' if task.task_type == 'regression' else 'tree_class'
+        preset_operations = OperationsPreset(task=task, preset_name=preset_name)
+        del self.api_params['available_operations']
+        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
+        param_dict = {
+            'task': self.task,
+            'logger': self.log,
+            'metric_name': self.metric_name,
+            'composer_metric': self.metric_to_compose
+        }
         return {**param_dict, **self.api_params}
 
     @staticmethod
