@@ -49,7 +49,7 @@ class ApiDataProcessor:
                 idx = copy(features['idx'])
                 del features['idx']
             data = data_strategy_selector(features=deepcopy(features),
-                                          target=copy(target),
+                                          target=deepcopy(target),
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
@@ -114,7 +114,7 @@ class ApiDataProcessor:
         """
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
-                self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
+                self. accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
         else:
             for name in recommendations:
                 rec = recommendations[name]

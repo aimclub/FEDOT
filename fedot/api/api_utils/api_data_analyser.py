@@ -21,6 +21,7 @@ class DataAnalyser:
         self.max_size = 600000
         self.max_cat_cardinality = 50
 
+    # TODO implement correct logic to process multimodal data
     def give_recommendation(self, input_data: InputData) -> Dict:
         """ Gives a recommendation of cutting dataset or using label encoding
             :param input_data - data for preprocessing
