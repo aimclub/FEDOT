@@ -24,7 +24,7 @@ class SupplementaryData:
     # Is there a data was preprocessed or not
     was_preprocessed: bool = False
     # Collection with non-int indexes
-    non_int_idx = None
+    non_int_idx: Optional[list] = None
     # Dictionary with features and target column types
     column_types: Optional[dict] = None
 

@@ -26,7 +26,13 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     # Object with supplementary info
-    supplementary_data: SupplementaryData = SupplementaryData()
+    supplementary_data: SupplementaryData = SupplementaryData(is_main_target=True,
+                                                              data_flow_length=0,
+                                                              features_mask=None,
+                                                              previous_operations=None,
+                                                              was_preprocessed=False,
+                                                              non_int_idx=None,
+                                                              column_types=None)
 
     @staticmethod
     def from_csv(file_path=None,

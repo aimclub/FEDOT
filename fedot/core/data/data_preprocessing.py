@@ -132,26 +132,18 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
     Check data for categorical columns.
     Return bool, whether data has categorical columns or not
     """
+    if data.data_type is not DataTypesEnum.table:
+        return False
     data_has_categorical_columns = False
 
     if not isinstance(data, InputData):
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_table'):
-
-                if data.supplementary_data.column_types is None:
-                    # Column types determination
-                    type_cor = TableTypesCorrector()
-                    data.supplementary_data.column_types = type_cor.store_column_types_info(values.features)
-
                 features_types = values.supplementary_data.column_types.get('features')
                 cat_ids, non_cat_ids = find_categorical_columns(values.features, features_types)
                 data_has_categorical_columns = len(cat_ids) > 0
 
     else:
-        if data.supplementary_data.column_types is None:
-            # Column types determination
-            data.supplementary_data.column_types = TableTypesCorrector().store_column_types_info(data.features)
-
         features_types = data.supplementary_data.column_types.get('features')
         cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
         data_has_categorical_columns = len(cat_ids) > 0

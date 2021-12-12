@@ -34,7 +34,10 @@ class Model(Operation):
         predict_shape = output_data.predict.shape
         # Add information about features
         if is_regression_task or is_ts_forecasting_task:
-            column_info = {'features': [str(float)] * predict_shape[1]}
+            if len(predict_shape) < 2:
+                column_info = {'features': [str(float)] * predict_shape[0]}
+            else:
+                column_info = {'features': [str(float)] * predict_shape[1]}
         else:
             if len(predict_shape) < 2:
                 output_data.predict = output_data.predict.reshape((-1, 1))

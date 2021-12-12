@@ -19,7 +19,7 @@ from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
 from fedot.preprocessing.structure import PipelineStructureExplorer
-from fedot.preprocessing.data_types import TableTypesCorrector
+from fedot.preprocessing.data_types import TableTypesCorrector, NAME_CLASS_INT
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -154,7 +154,7 @@ class DataPreprocessor:
 
             # Train Label Encoder for categorical data if necessary and apply it
             self._train_target_encoder(data)
-            data.target = self._apply_target_encoding(data.target)
+            data.target = self._apply_target_encoding(data)
 
             data = self._clean_extra_spaces(data)
             # Wrap indices in numpy array
@@ -316,7 +316,7 @@ class DataPreprocessor:
             self.target_encoder = LabelEncoder()
             self.target_encoder.fit(data.target)
 
-    def _apply_target_encoding(self, column_to_transform: np.array) -> np.array:
+    def _apply_target_encoding(self, data) -> np.array:
         """ Apply trained encoder for target column
 
         For example, target [['red'], ['green'], ['red']] will be converted into
@@ -324,9 +324,10 @@ class DataPreprocessor:
         """
         if self.target_encoder is not None:
             # Target encoder has already been fitted
-            return self.target_encoder.transform(column_to_transform)
+            data.supplementary_data.column_types['target'] = [NAME_CLASS_INT]
+            return self.target_encoder.transform(data.target)
         else:
-            return column_to_transform
+            return data.target
 
     def apply_inverse_target_encoding(self, column_to_transform: np.array) -> np.array:
         """ Apply inverse Label Encoding operation for target column """

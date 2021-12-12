@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
+from fedot.preprocessing.data_types import NAME_CLASS_INT
 
 FEDOT_STR_NAN = 'fedot_nan'
 
@@ -87,6 +88,11 @@ class BinaryCategoricalPreprocessor:
         # Store transformed features
         copied_data = deepcopy(input_data)
         copied_data.features = np.hstack(converted_features)
+
+        # Update features types
+        features_types = copied_data.supplementary_data.column_types['features']
+        for converted_column_id in self.binary_ids_to_convert:
+            features_types[converted_column_id] = NAME_CLASS_INT
         return copied_data
 
     def _train_encoder(self, column: np.array, column_id: int):

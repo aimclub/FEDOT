@@ -68,8 +68,6 @@ def get_dataset(task_type: str):
         threshold = np.std(test_data.target)
     else:
         raise ValueError('Incorrect type of machine learning task')
-    train_data.supplementary_data.was_preprocessed = False
-    test_data.supplementary_data.was_preprocessed = False
     return train_data, test_data, threshold
 
 

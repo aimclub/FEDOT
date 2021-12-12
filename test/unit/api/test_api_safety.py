@@ -6,6 +6,7 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.api.test_main_api import composer_params
 
 
@@ -20,23 +21,21 @@ def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
 
 def get_small_cat_data():
     """ Generate tabular data with categorical features."""
-    features = np.array([
-        ["a", "qq", 0.5],
-        ["b", "pp", 1],
-        ["c", np.nan, 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-    ], dtype=object)
+    features = np.array([["a", "qq", 0.5],
+                         ["b", "pp", 1],
+                         ["c", np.nan, 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3]], dtype=object)
     target = np.array([0, 0, 0, 0, 1, 1, 1, 1])
-    return InputData(idx=np.arange(features.shape[0]),
-                     features=features,
-                     target=target,
-                     data_type=DataTypesEnum.table,
-                     task=Task(TaskTypesEnum.classification)
-                     )
+    input_data = InputData(idx=np.arange(features.shape[0]),
+                           features=features, target=target,
+                           data_type=DataTypesEnum.table,
+                           task=Task(TaskTypesEnum.classification))
+    input_data = DataPreprocessor().obligatory_prepare_for_fit(input_data)
+    return input_data
 
 
 def test_safety_label_correct():

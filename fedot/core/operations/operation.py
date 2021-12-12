@@ -3,7 +3,6 @@ from typing import Union
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.serializers import OperationSerializer
