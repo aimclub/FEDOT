@@ -5,7 +5,7 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, OutputData
-from fedot.core.data.data_preprocessing import replace_inf_with_nans, str_columns_check, data_has_missing_values, \
+from fedot.core.data.data_preprocessing import replace_inf_with_nans, find_categorical_columns, data_has_missing_values, \
     data_has_categorical_features
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
@@ -308,8 +308,8 @@ class DataPreprocessor:
 
     def _train_target_encoder(self, data: InputData):
         """ Convert string categorical target into integer column using LabelEncoder """
-        categorical_ids, non_categorical_ids = str_columns_check(data.target,
-                                                                 data.supplementary_data.column_types['target'])
+        categorical_ids, non_categorical_ids = find_categorical_columns(data.target,
+                                                                        data.supplementary_data.column_types['target'])
 
         if len(categorical_ids) > 0:
             # Target is categorical
@@ -332,7 +332,7 @@ class DataPreprocessor:
         """ Apply inverse Label Encoding operation for target column """
         if self.target_encoder is not None:
             # Check if column contains string objects
-            categorical_ids, non_categorical_ids = str_columns_check(column_to_transform)
+            categorical_ids, non_categorical_ids = find_categorical_columns(column_to_transform)
             if len(categorical_ids) > 0:
                 # There is no need to perform converting (it was performed already)
                 return column_to_transform

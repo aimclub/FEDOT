@@ -5,7 +5,7 @@ import pandas as pd
 
 from sklearn.preprocessing import LabelEncoder
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import str_columns_check
+from fedot.core.data.data_preprocessing import find_categorical_columns
 
 FEDOT_STR_NAN = 'fedot_nan'
 
@@ -26,8 +26,8 @@ class BinaryCategoricalPreprocessor:
         has str objects. If there are such features - convert it into int
         """
         features_types = input_data.supplementary_data.column_types['features']
-        categorical_ids, non_categorical_ids = str_columns_check(table=input_data.features,
-                                                                 column_types=features_types)
+        categorical_ids, non_categorical_ids = find_categorical_columns(table=input_data.features,
+                                                                        column_types=features_types)
         if len(categorical_ids) < 0:
             # There is no need to process categorical features
             return self

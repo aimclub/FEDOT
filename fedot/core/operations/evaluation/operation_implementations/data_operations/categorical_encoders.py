@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_preprocessing import str_columns_check
+from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 
@@ -35,8 +35,8 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         """
         features = input_data.features
         features_types = input_data.supplementary_data.column_types.get('features')
-        categorical_ids, non_categorical_ids = str_columns_check(features,
-                                                                 features_types)
+        categorical_ids, non_categorical_ids = find_categorical_columns(features,
+                                                                        features_types)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -125,8 +125,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
     def fit(self, input_data: InputData):
         features_types = input_data.supplementary_data.column_types.get('features')
-        self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features,
-                                                                           features_types)
+        self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
+                                                                                  features_types)
 
         # If there are categorical features - process it
         if self.categorical_ids:

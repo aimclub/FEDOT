@@ -126,7 +126,8 @@ class DataMerger:
                 self.log.debug(f'Perform determination of column types in DataMerger')
                 table_corr = TableTypesCorrector()
                 output.supplementary_data.column_types = table_corr.store_column_types_info(output.predict,
-                                                                                            output.target)
+                                                                                            output.target,
+                                                                                            output.task)
             col_types = output.supplementary_data.column_types['features']
             new_features_types.extend(col_types)
 
@@ -137,7 +138,8 @@ class DataMerger:
                 self.log.debug(f'Perform determination of column types in DataMerger')
                 table_corr = TableTypesCorrector()
                 output.supplementary_data.column_types = table_corr.store_column_types_info(output.predict,
-                                                                                            output.target)
+                                                                                            output.target,
+                                                                                            output.task)
 
             # Search for main target
             if output.supplementary_data.is_main_target:

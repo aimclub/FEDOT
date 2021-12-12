@@ -8,7 +8,7 @@ from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScal
 
 from fedot.core.data.data import InputData, data_type_is_table, OutputData
 from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_into_column, \
-    divide_data_categorical_numerical, str_columns_check, data_has_categorical_features
+    divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
 
@@ -231,7 +231,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
             # Tabular data contains categorical features
-            categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
+            categorical_ids, non_categorical_ids = find_categorical_columns(input_data.features)
             numerical, categorical = divide_data_categorical_numerical(input_data, categorical_ids,
                                                                        non_categorical_ids)
 
@@ -261,8 +261,8 @@ class ImputationImplementation(DataOperationImplementation):
 
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
             features_types = input_data.supplementary_data.column_types.get('features')
-            self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features,
-                                                                               features_types)
+            self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
+                                                                                      features_types)
             numerical, categorical = divide_data_categorical_numerical(input_data, self.categorical_ids,
                                                                        self.non_categorical_ids)
 

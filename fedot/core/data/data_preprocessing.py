@@ -5,21 +5,7 @@ import pandas as pd
 
 from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.repository.dataset_types import DataTypesEnum
-
-NUMPY_TYPE_INT = np.array([1]).dtype
-NUMPY_TYPE_FLOAT = np.array([1.5]).dtype
-
-
-def has_data_categorical(data: InputData) -> bool:
-    """ Whether data categorical columns or not.
-
-    :param data: InputData
-    :return data_has_categorical_columns: bool, whether data has categorical columns or not
-    """
-    is_float_dtype = data.features.dtype is NUMPY_TYPE_INT
-    is_int_dtype = data.features.dtype is NUMPY_TYPE_FLOAT
-    is_contain_categorical = not (is_float_dtype or is_int_dtype)
-    return is_contain_categorical
+from fedot.preprocessing.data_types import TableTypesCorrector
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
@@ -75,9 +61,9 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
         raise ValueError(f'{prefix} Check data for Nans and inf values')
 
 
-def str_columns_check(table: np.array, column_types: dict = None):
+def find_categorical_columns(table: np.array, column_types: dict = None):
     """
-    Method for checking which columns contain categorical (text) data
+    Method for finding categorical and non-categorical columns in tabular data
 
     :param table: tabular data for string columns types determination
     :param column_types: list with column types. If None, perform default checking
@@ -86,7 +72,7 @@ def str_columns_check(table: np.array, column_types: dict = None):
     """
     if column_types is None:
         # Define if data contains string columns for "unknown table"
-        return default_str_check(table)
+        return force_categorical_determination(table)
 
     categorical_ids = []
     non_categorical_ids = []
@@ -101,7 +87,7 @@ def str_columns_check(table: np.array, column_types: dict = None):
     return categorical_ids, non_categorical_ids
 
 
-def default_str_check(table):
+def force_categorical_determination(table):
     """ Find string columns using 'computationally expensive' approach """
     source_shape = table.shape
     columns_number = source_shape[1] if len(source_shape) > 1 else 1
@@ -146,15 +132,29 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
     Check data for categorical columns.
     Return bool, whether data has categorical columns or not
     """
-
     data_has_categorical_columns = False
 
     if not isinstance(data, InputData):
         for data_source_name, values in data.items():
             if data_source_name.startswith('data_source_table'):
-                data_has_categorical_columns = has_data_categorical(values)
-    elif data_type_is_suitable_preprocessing(data):
-        data_has_categorical_columns = has_data_categorical(data)
+
+                if data.supplementary_data.column_types is None:
+                    # Column types determination
+                    type_cor = TableTypesCorrector()
+                    data.supplementary_data.column_types = type_cor.store_column_types_info(values.features)
+
+                features_types = values.supplementary_data.column_types.get('features')
+                cat_ids, non_cat_ids = find_categorical_columns(values.features, features_types)
+                data_has_categorical_columns = len(cat_ids) > 0
+
+    else:
+        if data.supplementary_data.column_types is None:
+            # Column types determination
+            data.supplementary_data.column_types = TableTypesCorrector().store_column_types_info(data.features)
+
+        features_types = data.supplementary_data.column_types.get('features')
+        cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
+        data_has_categorical_columns = len(cat_ids) > 0
 
     return data_has_categorical_columns
 

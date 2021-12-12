@@ -2,7 +2,7 @@ import numpy as np
 from typing import Dict, Tuple, Any
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import str_columns_check
+from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -63,7 +63,7 @@ class DataAnalyser:
         :param input_data - data for preprocessing
 
         """
-        categorical_ids, _ = str_columns_check(input_data.features)
+        categorical_ids, _ = find_categorical_columns(input_data.features)
         all_cardinality = 0
         need_label = False
         for idx in categorical_ids:
