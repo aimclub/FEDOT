@@ -326,7 +326,7 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
         if len(column_types) == 1:
             # Column initially contain only one type
             updated_column_types.append(column_types[0])
-        elif len(column_types) == 1 and 'NoneType' in column_types:
+        elif len(column_types) == 2 and NAME_CLASS_NONE in column_types:
             # Column with one type and nans
             filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_types))
             updated_column_types.append(filtered_types[0])
