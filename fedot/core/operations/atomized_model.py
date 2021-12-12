@@ -1,10 +1,13 @@
 from typing import Callable, Union, Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.model import assign_model_tabular_column_types
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import make_pipeline_generator
 
 
@@ -31,7 +34,7 @@ class AtomizedModel(Operation):
     def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool = False,
                 params: Optional[Union[str, dict]] = None, output_mode: str = 'default'):
         prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
-
+        prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
 
     def fine_tune(self, loss_function: Callable,
@@ -83,3 +86,12 @@ class AtomizedModel(Operation):
 
         return f'{operation_type}_length:{operation_length}_depth:{operation_depth}' \
                f'_types:{operation_types}_id:{operation_id}'
+
+    @staticmethod
+    def assign_tabular_column_types(output_data: OutputData,
+                                    output_mode: str) -> OutputData:
+        """
+        Assign types for tabular data obtained from model predictions.
+        By default, all types of model predictions for tabular data can be clearly defined
+        """
+        return assign_model_tabular_column_types(output_data, output_mode)

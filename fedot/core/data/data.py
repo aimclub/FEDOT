@@ -1,7 +1,7 @@
 import glob
 import os
 from copy import copy, deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union
 
 import imageio
@@ -26,13 +26,7 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     # Object with supplementary info
-    supplementary_data: SupplementaryData = SupplementaryData(is_main_target=True,
-                                                              data_flow_length=0,
-                                                              features_mask=None,
-                                                              previous_operations=None,
-                                                              was_preprocessed=False,
-                                                              non_int_idx=None,
-                                                              column_types=None)
+    supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
     @staticmethod
     def from_csv(file_path=None,

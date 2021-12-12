@@ -24,6 +24,14 @@ class Model(Operation):
         Assign types for tabular data obtained from model predictions.
         By default, all types of model predictions for tabular data can be clearly defined
         """
+        return assign_model_tabular_column_types(output_data, output_mode)
+
+
+def assign_model_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
+        """
+        Assign types for tabular data obtained from model predictions.
+        By default, all types of model predictions for tabular data can be clearly defined
+        """
         if output_data.data_type is not DataTypesEnum.table:
             # No column data types info for non-tabular data
             return output_data

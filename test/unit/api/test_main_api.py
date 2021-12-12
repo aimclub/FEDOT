@@ -172,9 +172,9 @@ def test_api_check_data_correct():
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
 
-    string_data_input = data_checker.define_data(features=path_to_train)
-    array_data_input = data_checker.define_data(features=x_train)
-    fedot_data_input = data_checker.define_data(features=train_data)
+    string_data_input = data_checker.define_data(features=path_to_train, is_predict=True)
+    array_data_input = data_checker.define_data(features=x_train, is_predict=True)
+    fedot_data_input = data_checker.define_data(features=train_data, is_predict=True)
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
             or type(fedot_data_input) == InputData)
@@ -182,8 +182,6 @@ def test_api_check_data_correct():
 
 def test_baseline_with_api():
     train_data, test_data, threshold = get_dataset('classification')
-    train_data.supplementary_data.was_preprocessed = False
-    test_data.supplementary_data.was_preprocessed = False
 
     # task selection, initialisation of the framework
     baseline_model = Fedot(problem='classification')
@@ -230,8 +228,6 @@ def test_pandas_input_for_api():
 
 def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
-    train_data.supplementary_data.was_preprocessed = False
-    test_data.supplementary_data.was_preprocessed = False
 
     composer_params['composer_metric'] = ['f1', 'node_num']
 
