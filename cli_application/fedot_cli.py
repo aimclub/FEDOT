@@ -2,6 +2,7 @@ import argparse
 from argparse import RawTextHelpFormatter
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.api.main import Fedot
+import os
 
 
 def add_args_to_parser(parser, tag, help, required=False, is_list=False):
@@ -150,5 +151,8 @@ remove_none_keys(fit_params)
 main_params['composer_params'] = composer_params
 
 model = Fedot(**main_params)
+print("\nFitting start...")
 model.fit(**fit_params)
+print("\nPrediction start...")
 prediction = model.predict(features=getattr(parameters, 'test'), save_predictions=True)
+print(f"\nPrediction saved at {os.getcwd()}\\predictions.csv")
