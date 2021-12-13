@@ -95,17 +95,13 @@ class ApiDataProcessor:
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
         if metric_name == 'f1':
-            if real.num_classes == 2:
-                prediction.predict = probs_to_labels(_convert_to_two_classes(prediction.predict))
-            else:
-                # Multiclass classification
-                prediction.predict = probs_to_labels(prediction.predict)
+            prediction.predict = probs_to_labels(prediction.predict)
 
         if data_type_is_table(prediction):
             # Check dimensions for real and predicted values
             if len(real.target.shape) != len(prediction.predict.shape):
                 prediction.predict = convert_into_column(prediction.predict)
-                real.target = convert_into_column(real.target)
+                real.target = convert_into_column(np.array(real.target))
 
     def accept_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
@@ -122,6 +118,3 @@ class ApiDataProcessor:
                 rec = recommendations[name]
                 self.table_of_recommendations[name](input_data, *rec.values())
 
-
-def _convert_to_two_classes(predict):
-    return np.vstack([1 - predict, predict]).transpose()

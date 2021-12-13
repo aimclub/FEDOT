@@ -32,10 +32,8 @@ class TableTypesCorrector:
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
         # Determine types for each column in features and target if it is necessary
-        if not self.features_columns_info:
-            self.features_columns_info = define_column_types(data.features)
-        if not self.target_columns_info:
-            self.target_columns_info = define_column_types(data.target)
+        self.features_columns_info = define_column_types(data.features)
+        self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
         table = self.features_types_converting(features=data.features)
@@ -165,7 +163,7 @@ class TableTypesCorrector:
         n_rows, n_cols = table.shape
         if n_cols != len(column_types):
             # There is an incorrect types calculation
-            self.log.warn(f'Columns number and types numbers do not match.')
+            self.log.warn('Columns number and types numbers do not match.')
 
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.

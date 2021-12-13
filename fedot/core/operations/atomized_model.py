@@ -94,4 +94,4 @@ class AtomizedModel(Operation):
         Assign types for tabular data obtained from model predictions.
         By default, all types of model predictions for tabular data can be clearly defined
         """
-        return assign_model_tabular_column_types(output_data, output_mode)
+        return output_data

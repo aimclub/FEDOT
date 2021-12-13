@@ -1,6 +1,7 @@
 import json
 
 import pytest
+import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from cases.data.data_utils import get_scoring_case_data_paths
@@ -160,8 +161,8 @@ def test_fit_predict_atomized_model_correctly():
     predicted_atomized_output = atomized_model.predict(fitted_atomized_model, test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
-    source_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
-    atomized_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
+    source_mse = mean_squared_error(y_true=np.ravel(test_data.target), y_pred=np.ravel(predicted_values.predict))
+    atomized_mse = mean_squared_error(y_true=np.ravel(test_data.target), y_pred=np.ravel(predicted_atomized_values))
 
     assert atomized_mse == source_mse
 

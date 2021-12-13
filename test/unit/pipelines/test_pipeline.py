@@ -163,6 +163,8 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
     pipeline.fit(train_data)
     results = np.asarray(probs_to_labels(pipeline.predict(test_data).predict))
 
+    # Target for current case must be column
+    test_data.target = test_data.target.reshape((-1, 1))
     assert results.shape == test_data.target.shape
 
 

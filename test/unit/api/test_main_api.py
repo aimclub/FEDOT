@@ -165,6 +165,13 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
 
 
 def test_api_check_data_correct():
+    """ Check that data preparing correctly using API methods
+    Attention! During test execution the following warning arises
+    "Columns number and types numbers do not match."
+
+    This happens because the data are prepared for the predict stage
+     without going through the fitting stage
+    """
     data_checker = ApiDataProcessor(task=Task(TaskTypesEnum.regression))
 
     # Get data

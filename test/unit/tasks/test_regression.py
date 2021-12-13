@@ -37,7 +37,7 @@ def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=No
     synthetic_data = make_regression(n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
-                           target=synthetic_data[1],
+                           target=synthetic_data[1].reshape((-1, 1)),
                            task=Task(TaskTypesEnum.regression),
                            data_type=DataTypesEnum.table)
     return input_data

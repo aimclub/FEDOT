@@ -139,7 +139,7 @@ def test_output_mode_labels():
     results_probs = pipeline.predict(input_data=test_data)
 
     assert len(results.predict) == len(test_data.target)
-    assert set(results.predict) == {0, 1, 2}
+    assert set(np.ravel(results.predict)) == {0, 1, 2}
 
     assert not np.array_equal(results_probs.predict, results.predict)
 

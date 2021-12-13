@@ -165,9 +165,8 @@ class Pipeline(Graph):
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
                                                                        data=copied_input_data)
 
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(
-            pipeline=self,
-            data=copied_input_data)
+        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                      data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
@@ -226,9 +225,8 @@ class Pipeline(Graph):
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
                                                                            data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_predict(
-            pipeline=self,
-            data=copied_input_data)
+        copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
+                                                                          data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
