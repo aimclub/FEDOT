@@ -58,6 +58,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         # Update features
         output_data = self._convert_to_output(input_data,
                                               transformed_features)
+        self.update_column_types(output_data)
         return output_data
 
     def check_and_correct_params(self) -> bool:
@@ -83,6 +84,13 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             return tuple([params_dict, ['n_components']])
         else:
             return self.pca.get_params()
+
+    @staticmethod
+    def update_column_types(output_data: OutputData):
+        """ Update column types after applying PCA operations """
+        n_rows, n_cols = output_data.predict.shape
+        output_data.supplementary_data.column_types['features'] = [str(float) * n_cols]
+        return output_data
 
 
 class PCAImplementation(ComponentAnalysisImplementation):
@@ -229,7 +237,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         replace_inf_with_nans(input_data)
 
-        if data_type_is_table(input_data) and data_has_categorical_features(input_data):
+        if data_type_is_table(input_data):
             # Tabular data contains categorical features
             categorical_ids, non_categorical_ids = find_categorical_columns(input_data.features)
             numerical, categorical = divide_data_categorical_numerical(input_data, categorical_ids,

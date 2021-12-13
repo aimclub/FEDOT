@@ -19,6 +19,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 from test.unit.pipelines.test_pipeline_tuning import classification_dataset
@@ -167,6 +168,8 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
 
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     data = data_setup
+    # Preprocess data - determine features columns
+    data = DataPreprocessor().obligatory_prepare_for_fit(data)
     train, test = train_test_data_setup(data)
 
     first = PrimaryNode(operation_type='logit')

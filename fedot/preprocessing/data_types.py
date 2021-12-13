@@ -174,6 +174,11 @@ class TableTypesCorrector:
         :param column_info: dictionary with information about types in the column
         :param mixed_column_id: index of column in dataset
         """
+        if len(column_info['types']) == 2 and NAME_CLASS_NONE in column_info['types']:
+            # Column contain only one data type and nans
+            filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_info['types']))
+            return mixed_column, filtered_types[0]
+
         string_objects_number = column_info['str_number']
         all_elements_number = string_objects_number + column_info['int_number'] + column_info['float_number']
         string_ratio = string_objects_number / all_elements_number
@@ -331,7 +336,7 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
             filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_types))
             updated_column_types.append(filtered_types[0])
         else:
-            if 'str' in column_types:
+            if any('str' in column_type_name for column_type_name in column_types):
                 # Mixed-types column with string
                 new_column_type = converted_columns[column_id]
                 if new_column_type != 'removed':

@@ -152,7 +152,7 @@ class DataPreprocessor:
             # Column types processing - launch after correct features selection
             self.types_corrector.convert_data_for_fit(data)
 
-            # Train Label Encoder for categorical data if necessary and apply it
+            # Train Label Encoder for categorical target if necessary and apply it
             self._train_target_encoder(data)
             data.target = self._apply_target_encoding(data)
 
@@ -356,7 +356,10 @@ class DataPreprocessor:
         if data_has_categorical_features(data):
             encoder = OneHotEncodingImplementation()
             encoder.fit(data)
-            transformed = encoder.transform(data, True).predict
+            encoder_output = encoder.transform(data, True)
+
+            transformed = encoder_output.predict
+            data.supplementary_data = encoder_output.supplementary_data
         else:
             transformed = data.features
 
@@ -375,7 +378,10 @@ class DataPreprocessor:
         if data_has_categorical_features(data):
             encoder = LabelEncodingImplementation()
             encoder.fit(data)
-            transformed = encoder.transform(data, True).predict
+            encoder_output = encoder.transform(data, True)
+
+            transformed = encoder_output.predict
+            data.supplementary_data = encoder_output.supplementary_data
         else:
             transformed = data.features
 
