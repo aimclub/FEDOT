@@ -13,6 +13,7 @@ class MockOperation:
 class MockNode:
     def __init__(self, name: str, nodes_from: list = None):
         self.name = name
+        self._serialization_id = name
         self.nodes_from = nodes_from if nodes_from else []
         self.content = {
             'name': DataOperation('test_operation')

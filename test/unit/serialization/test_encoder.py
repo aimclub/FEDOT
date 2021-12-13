@@ -64,12 +64,13 @@ ENCODER_CASES = [
         test_answer={
             'name': 'node1',
             'nodes_from': [
-                MOCK_NODE_2,
-                MOCK_NODE_3
+                MOCK_NODE_2._serialization_id,
+                MOCK_NODE_3._serialization_id
             ],
             'content': {
                 'name': 'test_operation'
-            }
+            },
+            '_serialization_id': MOCK_NODE_1._serialization_id
         }
     ),
 ]
@@ -105,6 +106,6 @@ def test_encoder(case: EncoderTestCase, _mock_classes_fixture):
     assert encoded == case.test_answer, 'Encoded json objects are not the same'
     assert keys_before == keys_after, 'Object instance was changed'
     if isinstance(case.test_input, MockGraph):
-        assert vars(MOCK_NODE_1).keys() != vars(MOCK_NODE_1_COPY).keys()
+        assert MOCK_NODE_1._serialization_id != MOCK_NODE_1_COPY._serialization_id
         for node in case.test_input.nodes:
             assert getattr(node, '_serialization_id', None) is not None
