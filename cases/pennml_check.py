@@ -45,11 +45,15 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
         print(f'Dataset size: {data.shape}')
         if clip_data is True:
             # Crop dataset for albert correctness check
-            data = data.iloc[:5000]
+            data = data.iloc[237500:238000]
         data = data.replace('?', np.nan)
 
-        predictors = np.array(data.iloc[:, :-1])
-        target = np.array(data.iloc[:, -1])
+        if dataset_name != 'albert.csv':
+            predictors = np.array(data.iloc[:, :-1])
+            target = np.array(data.iloc[:, -1])
+        else:
+            predictors = np.array(data[data.columns[3:5]])
+            target = np.array(data['class'])
 
         train_data, test_data = data_setup(predictors, target)
 
@@ -64,5 +68,5 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
 
 if __name__ == '__main__':
     run_classification_exp(dataset_numbers=[2],
-                           clip_data=False,
+                           clip_data=True,
                            safe_mode=True)

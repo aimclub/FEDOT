@@ -184,7 +184,7 @@ class TableTypesCorrector:
         if string_ratio > 0.5:
             suggested_type = str
         else:
-            suggested_type = _define_new_int_float_type(column_info)
+            suggested_type = _obtain_new_column_type(column_info)
 
         try:
             mixed_column = mixed_column.astype(suggested_type)
@@ -208,7 +208,7 @@ class TableTypesCorrector:
             # For classification labels are string if at least one element is a string
             suggested_type = str
         else:
-            suggested_type = _define_new_int_float_type(column_info)
+            suggested_type = _obtain_new_column_type(column_info)
 
         try:
             mixed_column = mixed_column.astype(suggested_type)
@@ -306,7 +306,7 @@ def apply_type_transformation(table: np.array, converted_columns: dict):
     return table
 
 
-def _define_new_int_float_type(column_info):
+def _obtain_new_column_type(column_info):
     """ Suggest in or float type based on the presence of nan and float values """
     if column_info['float_number'] > 0 or column_info['nan_number'] > 0:
         # Even if one of types are float - all elements should be converted into float

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -6,6 +7,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
 from fedot.core.utils import make_pipeline_generator
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 class AtomizedModel(Operation):
@@ -18,19 +20,28 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
+        self.atomized_preprocessor = DataPreprocessor(self.log)
 
     def fit(self, params: Optional[Union[str, dict]], data: InputData,
             is_fit_pipeline_stage: bool = True,
             use_cache: bool = True):
 
-        predicted_train = self.pipeline.fit(input_data=data)
+        copied_input_data = deepcopy(data)
+        copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_fit(copied_input_data)
+
+        predicted_train = self.pipeline.fit(input_data=copied_input_data)
         fitted_atomized_operation = self.pipeline
 
         return fitted_atomized_operation, predicted_train
 
     def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool = False,
                 params: Optional[Union[str, dict]] = None, output_mode: str = 'default'):
-        prediction = fitted_operation.predict(input_data=data, output_mode=output_mode)
+
+        # Preprocessing applied
+        copied_input_data = deepcopy(data)
+        copied_input_data = self.atomized_preprocessor.obligatory_prepare_for_predict(copied_input_data)
+
+        prediction = fitted_operation.predict(input_data=copied_input_data, output_mode=output_mode)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
 

@@ -32,4 +32,3 @@ class DataOperation(Operation):
         """
         # There are already assigned types for columns
         return output_data
-
