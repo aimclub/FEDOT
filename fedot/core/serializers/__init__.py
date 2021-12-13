@@ -1,1 +1,1 @@
-from .serializer import CLASS_OR_FUNC_OBJECT, CLASS_PATH_KEY, MODULE_X_NAME_DELIMITER, Serializer
+from .serializer import CLASS_PATH_KEY, INSTANCE_OR_CALLABLE, MODULE_X_NAME_DELIMITER, Serializer

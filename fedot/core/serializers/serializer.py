@@ -4,7 +4,7 @@ from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 MODULE_X_NAME_DELIMITER = '/'
-CLASS_OR_FUNC_OBJECT = TypeVar('CLASS_OR_FUNC_OBJECT')
+INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 CLASS_PATH_KEY = '_class_path'
 
 
@@ -69,13 +69,13 @@ class Serializer(JSONEncoder, JSONDecoder):
             })
 
     @staticmethod
-    def _get_field_checker(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> Callable[..., bool]:
+    def _get_field_checker(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> Callable[..., bool]:
         if isclass(obj):
             return issubclass
         return isinstance
 
     @staticmethod
-    def _get_base_type_index(obj: Union[CLASS_OR_FUNC_OBJECT, Type[CLASS_OR_FUNC_OBJECT]]) -> int:
+    def _get_base_type_index(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> int:
         contains = Serializer._get_field_checker(obj)
         for idx, k in enumerate(Serializer.PROCESSORS_BY_TYPE):
             if contains(obj, k):
@@ -87,7 +87,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         return list(Serializer.PROCESSORS_BY_TYPE.values())[idx][coder_type]
 
     @staticmethod
-    def dump_path_to_obj(obj: CLASS_OR_FUNC_OBJECT) -> Dict[str, str]:
+    def dump_path_to_obj(obj: INSTANCE_OR_CALLABLE) -> Dict[str, str]:
         """
         Dumps the full path (module + name) to the input object into the dict
 
@@ -108,7 +108,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             CLASS_PATH_KEY: f'{obj_module}{MODULE_X_NAME_DELIMITER}{obj_name}'
         }
 
-    def default(self, obj: CLASS_OR_FUNC_OBJECT) -> Dict[str, Any]:
+    def default(self, obj: INSTANCE_OR_CALLABLE) -> Dict[str, Any]:
         """
         Tries to encode objects that are not simply json-encodable to JSON-object
 
@@ -125,7 +125,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         return JSONEncoder.default(self, obj)
 
     @staticmethod
-    def _get_class(class_path: str) -> Type[CLASS_OR_FUNC_OBJECT]:
+    def _get_class(class_path: str) -> Type[INSTANCE_OR_CALLABLE]:
         """
         Gets the object type from the class_path
 
@@ -139,7 +139,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             obj_cls = getattr(obj_cls, sub)
         return obj_cls
 
-    def object_hook(self, json_obj: Dict[str, Any]) -> Union[CLASS_OR_FUNC_OBJECT, dict]:
+    def object_hook(self, json_obj: Dict[str, Any]) -> Union[INSTANCE_OR_CALLABLE, dict]:
         """
         Decodes every JSON-object to python class/func object or just returns dict
 

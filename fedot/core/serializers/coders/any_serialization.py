@@ -2,17 +2,17 @@ from copy import deepcopy
 from inspect import signature
 from typing import Any, Dict, Type
 
-from .. import CLASS_OR_FUNC_OBJECT, Serializer
+from .. import INSTANCE_OR_CALLABLE, Serializer
 
 
-def any_to_json(obj: CLASS_OR_FUNC_OBJECT) -> Dict[str, Any]:
+def any_to_json(obj: INSTANCE_OR_CALLABLE) -> Dict[str, Any]:
     return {
         **{k: v for k, v in vars(obj).items() if k != 'log'},
         **Serializer.dump_path_to_obj(obj)
     }
 
 
-def any_from_json(cls: Type[CLASS_OR_FUNC_OBJECT], json_obj: Dict[str, Any]) -> CLASS_OR_FUNC_OBJECT:
+def any_from_json(cls: Type[INSTANCE_OR_CALLABLE], json_obj: Dict[str, Any]) -> INSTANCE_OR_CALLABLE:
     cls_parameters = signature(cls.__init__).parameters
     if 'kwargs' not in cls_parameters:
         init_data = {
