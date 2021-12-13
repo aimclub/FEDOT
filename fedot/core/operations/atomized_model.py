@@ -1,13 +1,10 @@
 from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.model import assign_model_tabular_column_types
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utils import make_pipeline_generator
 
 
@@ -90,8 +87,5 @@ class AtomizedModel(Operation):
     @staticmethod
     def assign_tabular_column_types(output_data: OutputData,
                                     output_mode: str) -> OutputData:
-        """
-        Assign types for tabular data obtained from model predictions.
-        By default, all types of model predictions for tabular data can be clearly defined
-        """
+        """ There is no need to perform any column types determination for nested pipelines """
         return output_data

@@ -27,7 +27,8 @@ def data_setup(predictors, target, task: TaskTypesEnum = TaskTypesEnum.classific
     return train_data, test_data
 
 
-def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False):
+def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
+                           safe_mode: bool = False):
     """ Start classification task with desired dataset
     :param dataset_numbers: list with ids of the dataset in the folder
     :param clip_data: is there a need to clip dataframe
@@ -44,7 +45,8 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False):
         print(f'Dataset size: {data.shape}')
         if clip_data is True:
             # Crop dataset for albert correctness check
-            data = data.iloc[237500:238000]
+            data = data.iloc[:5000]
+        data = data.replace('?', np.nan)
 
         predictors = np.array(data.iloc[:, :-1])
         target = np.array(data.iloc[:, -1])
@@ -52,7 +54,7 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False):
         train_data, test_data = data_setup(predictors, target)
 
         start = timeit.default_timer()
-        fedot = Fedot(problem='classification', timeout=0.5)
+        fedot = Fedot(problem='classification', timeout=0.5, safe_mode=safe_mode)
         fedot.fit(features=train_data, predefined_model='dt')
         print(fedot.predict(test_data))
         time_launch = timeit.default_timer() - start
@@ -62,4 +64,5 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False):
 
 if __name__ == '__main__':
     run_classification_exp(dataset_numbers=[2],
-                           clip_data=True)
+                           clip_data=False,
+                           safe_mode=True)

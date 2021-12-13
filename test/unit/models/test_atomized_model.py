@@ -161,10 +161,10 @@ def test_fit_predict_atomized_model_correctly():
     predicted_atomized_output = atomized_model.predict(fitted_atomized_model, test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 
-    source_mse = mean_squared_error(y_true=np.ravel(test_data.target), y_pred=np.ravel(predicted_values.predict))
-    atomized_mse = mean_squared_error(y_true=np.ravel(test_data.target), y_pred=np.ravel(predicted_atomized_values))
+    source_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_values.predict)
+    atomized_mse = mean_squared_error(y_true=test_data.target, y_pred=predicted_atomized_values)
 
-    assert atomized_mse == source_mse
+    assert np.isclose(atomized_mse, source_mse)
 
 
 def test_create_empty_atomized_model_raised_exception():
