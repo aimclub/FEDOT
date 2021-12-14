@@ -57,6 +57,10 @@ class DataPreprocessor:
         else:
             self.log = log
 
+        # Additional parameters derived from DataAnalyser
+        # Is there a need to apply Label(Ordinal) encoding for features or not
+        self.features_label_encoding_needed: bool = False
+
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]):
         """
         Perform obligatory preprocessing for pipeline fit method.
@@ -108,7 +112,7 @@ class DataPreprocessor:
                 # Data contains categorical features values
                 has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding')
                 if has_encoder is False:
-                    self.encode_data_for_fit(data)
+                    self.one_hot_encoding_for_fit(data)
 
         return data
 
@@ -124,7 +128,7 @@ class DataPreprocessor:
             if data_has_missing_values(data) and not has_imputer:
                 data = self.apply_imputation(data)
 
-            self._encode_data_for_predict(data)
+            self._apply_categorical_encoding(data)
         return data
 
     def take_only_correct_features(self, data: InputData):
@@ -163,6 +167,10 @@ class DataPreprocessor:
             # Process categorical features
             self.binary_categorical_processor.fit(data)
             data = self.binary_categorical_processor.transform(data)
+
+        if self.features_label_encoding_needed is True:
+            # Apply features label encoding
+            self.label_encoding_for_fit(data)
         return data
 
     def _prepare_unimodal_for_predict(self, data: InputData) -> InputData:
@@ -184,6 +192,9 @@ class DataPreprocessor:
             data.idx = np.array(data.idx)
             data = self.binary_categorical_processor.transform(data)
 
+        if self.features_label_encoding_needed is True:
+            # Apply features label encoding
+            self._apply_categorical_encoding(data)
         return data
 
     def _find_features_full_of_nans(self, data: InputData) -> InputData:
@@ -245,7 +256,7 @@ class DataPreprocessor:
             return data
         raise ValueError(f"Data format is not supported.")
 
-    def encode_data_for_fit(self, data: Union[InputData]):
+    def one_hot_encoding_for_fit(self, data: Union[InputData]):
         """
         Encode categorical features to numerical. In additional,
         save encoders to use later for prediction data.
@@ -254,8 +265,13 @@ class DataPreprocessor:
         :return encoder: operation for preprocessing categorical features
         """
 
-        transformed, encoder = self._create_onehot_encoder(data)
+        encoder = self._create_onehot_encoder(data)
+
+        encoder_output = encoder.transform(data, True)
+        transformed = encoder_output.predict
         data.features = transformed
+        data.supplementary_data = encoder_output.supplementary_data
+
         # Store encoder to make prediction in the future
         self.features_encoder = encoder
 
@@ -267,14 +283,20 @@ class DataPreprocessor:
         :param data: data to transform
         :return encoder: operation for preprocessing categorical features
         """
+        # Mark preprocessor encoder as label one
+        self.features_label_encoding_needed = True
+        encoder = self._create_label_encoder(data)
 
-        transformed, encoder = self._create_label_encoder(data)
+        encoder_output = encoder.transform(data, True)
+        transformed = encoder_output.predict
         data.features = transformed
+        data.supplementary_data = encoder_output.supplementary_data
+
         # Store encoder to make prediction in the future
         self.features_encoder = encoder
 
-    def cut_dataset(self, data: InputData, border):
-        """ Cutting large dataset """
+    def cut_dataset(self, data: InputData, border: int):
+        """ Cutting large dataset based on border (number of objects to remain) """
         self.log.info("Cut dataset due of it size is large")
         data.shuffle()
         data.idx = data.idx[:border]
@@ -292,7 +314,7 @@ class DataPreprocessor:
         data.features = output_data.predict
         return data
 
-    def _encode_data_for_predict(self, data: InputData):
+    def _apply_categorical_encoding(self, data: InputData):
         """
         Transformation the prediction data inplace. Use the same transformations as for the training data.
 
@@ -300,11 +322,19 @@ class DataPreprocessor:
         """
         if self.features_encoder is None:
             # No encoding needed
-            pass
-        else:
-            # Perform encoding
-            transformed = self.features_encoder.transform(data, True).predict
+            return data
+
+        # Check if column contains string objects
+        features_types = data.supplementary_data.column_types['features']
+        categorical_ids, non_categorical_ids = find_categorical_columns(data.features,
+                                                                        features_types)
+        if len(categorical_ids) > 0:
+            # Perform encoding for categorical features
+            encoder_output = self.features_encoder.transform(data, True)
+            transformed = encoder_output.predict
             data.features = transformed
+
+            data.supplementary_data = encoder_output.supplementary_data
 
     def _train_target_encoder(self, data: InputData):
         """ Convert string categorical target into integer column using LabelEncoder """
@@ -344,29 +374,22 @@ class DataPreprocessor:
             return column_to_transform
 
     @staticmethod
-    def _create_onehot_encoder(data: InputData):
+    def _create_onehot_encoder(data: InputData) -> Union[OneHotEncodingImplementation, None]:
         """
         Fills in the gaps, converts categorical features using OneHotEncoder and create encoder.
 
         :param data: data to preprocess
-        :return tuple(array, Union[OneHotEncodingImplementation, None]): tuple of transformed and [encoder or None]
         """
 
         encoder = None
         if data_has_categorical_features(data):
             encoder = OneHotEncodingImplementation()
             encoder.fit(data)
-            encoder_output = encoder.transform(data, True)
 
-            transformed = encoder_output.predict
-            data.supplementary_data = encoder_output.supplementary_data
-        else:
-            transformed = data.features
-
-        return transformed, encoder
+        return encoder
 
     @staticmethod
-    def _create_label_encoder(data: InputData):
+    def _create_label_encoder(data: InputData) -> Union[LabelEncodingImplementation, None]:
         """
         Fills in the gaps, converts categorical features using LabelEncoder and create encoder.
 
@@ -378,14 +401,8 @@ class DataPreprocessor:
         if data_has_categorical_features(data):
             encoder = LabelEncodingImplementation()
             encoder.fit(data)
-            encoder_output = encoder.transform(data, True)
 
-            transformed = encoder_output.predict
-            data.supplementary_data = encoder_output.supplementary_data
-        else:
-            transformed = data.features
-
-        return transformed, encoder
+        return encoder
 
     @staticmethod
     def _correct_shapes(data: InputData) -> InputData:

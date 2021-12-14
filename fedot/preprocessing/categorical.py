@@ -1,5 +1,4 @@
 from copy import deepcopy
-import bisect
 import numpy as np
 import pandas as pd
 
@@ -126,7 +125,7 @@ class BinaryCategoricalPreprocessor:
             unseen_label = message.split("\'")[1]
 
             # Extent encoder classes
-            bisect.insort_left(encoder_classes, unseen_label)
+            encoder_classes.append(unseen_label)
             encoder.classes_ = encoder_classes
 
             # Recursive launching

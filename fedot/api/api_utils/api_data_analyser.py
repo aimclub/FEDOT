@@ -23,10 +23,11 @@ class DataAnalyser:
 
     # TODO implement correct logic to process multimodal data
     def give_recommendation(self, input_data: InputData) -> Dict:
-        """ Gives a recommendation of cutting dataset or using label encoding
-            :param input_data - data for preprocessing
+        """
+        Gives a recommendation of cutting dataset or using label encoding
+        :param input_data: data for preprocessing
 
-            :return dict with str recommendations
+        :return : dict with str recommendations
         """
 
         recommendations = {}
@@ -38,19 +39,19 @@ class DataAnalyser:
                 result, border = self.control_size(input_data)
                 if result:
                     recommendations['cut'] = {'border': border}
-                result = self.control_categorical(input_data)
-                if result:
+                is_label_encoding_needed = self.control_categorical(input_data)
+                if is_label_encoding_needed:
                     recommendations['label_encoded'] = {}
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:
         """
         Check if size of table (N*M) > threshold and cutting is needed
-        :param input_data - data for preprocessing
+        :param input_data: data for preprocessing
 
-        :return (is_cut_needed, border) - is cutting is needed | if yes - border of cutting,
-
+        :return : (is_cut_needed, border) is cutting is needed | if yes - border of cutting,
         """
+
         if input_data.data_type == DataTypesEnum.table:
             if input_data.features.shape[0] * input_data.features.shape[1] > self.max_size:
                 border = self.max_size // input_data.features.shape[1]
@@ -60,9 +61,10 @@ class DataAnalyser:
     def control_categorical(self, input_data: InputData) -> bool:
         """
         Check if use label encoder instead oneHot if summary cardinality > threshold
-        :param input_data - data for preprocessing
 
+        :param input_data: data for preprocessing
         """
+
         categorical_ids, _ = find_categorical_columns(input_data.features)
         all_cardinality = 0
         need_label = False

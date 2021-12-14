@@ -1,6 +1,5 @@
 from copy import deepcopy
 from typing import Optional
-import bisect
 
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
@@ -189,7 +188,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
             unseen_label = message.split("\'")[1]
 
             # Extent encoder classes
-            bisect.insort_left(encoder_classes, unseen_label)
+            encoder_classes.append(unseen_label)
             column_encoder.classes_ = encoder_classes
             self._apply_label_encoder(input_data, categorical_id)
 

@@ -52,15 +52,16 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
             predictors = np.array(data.iloc[:, :-1])
             target = np.array(data.iloc[:, -1])
         else:
-            predictors = np.array(data[data.columns[3:5]])
+            predictors = np.array(data[data.columns])
             target = np.array(data['class'])
 
         train_data, test_data = data_setup(predictors, target)
 
         start = timeit.default_timer()
         fedot = Fedot(problem='classification', timeout=0.5, safe_mode=safe_mode)
-        fedot.fit(features=train_data, predefined_model='dt')
+        pipeline = fedot.fit(features=train_data, predefined_model='dt')
         print(fedot.predict(test_data))
+        print(pipeline.predict(test_data).predict)
         time_launch = timeit.default_timer() - start
 
         print(f'Fitting takes {time_launch:.2f} seconds')
