@@ -75,16 +75,16 @@ class Serializer(JSONEncoder, JSONDecoder):
         return isinstance
 
     @staticmethod
-    def _get_base_type_index(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> int:
+    def _get_base_type(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> int:
         contains = Serializer._get_field_checker(obj)
-        for idx, k in enumerate(Serializer.PROCESSORS_BY_TYPE):
-            if contains(obj, k):
-                return idx
-        return -1
+        for k_type in Serializer.PROCESSORS_BY_TYPE:
+            if contains(obj, k_type):
+                return k_type
+        return None
 
     @staticmethod
-    def _get_coder_by_index(idx: int, coder_type: str):
-        return list(Serializer.PROCESSORS_BY_TYPE.values())[idx][coder_type]
+    def _get_coder_by_type(type: Type, coder_type: str):
+        return Serializer.PROCESSORS_BY_TYPE[type][coder_type]
 
     @staticmethod
     def dump_path_to_obj(obj: INSTANCE_OR_CALLABLE) -> Dict[str, str]:
@@ -118,9 +118,9 @@ class Serializer(JSONEncoder, JSONDecoder):
         """
         if isfunction(obj) or ismethod(obj):
             return Serializer.dump_path_to_obj(obj)
-        type_index = Serializer._get_base_type_index(obj)
-        if type_index != -1:
-            return Serializer._get_coder_by_index(type_index, Serializer._to_json)(obj)
+        base_type = Serializer._get_base_type(obj)
+        if base_type is not None:
+            return Serializer._get_coder_by_type(base_type, Serializer._to_json)(obj)
 
         return JSONEncoder.default(self, obj)
 
@@ -151,9 +151,9 @@ class Serializer(JSONEncoder, JSONDecoder):
         if CLASS_PATH_KEY in json_obj:
             obj_cls = Serializer._get_class(json_obj[CLASS_PATH_KEY])
             del json_obj[CLASS_PATH_KEY]
-            type_index = Serializer._get_base_type_index(obj_cls)
-            if isclass(obj_cls) and type_index != -1:
-                return Serializer._get_coder_by_index(type_index, Serializer._from_json)(obj_cls, json_obj)
+            base_type = Serializer._get_base_type(obj_cls)
+            if isclass(obj_cls) and base_type is not None:
+                return Serializer._get_coder_by_type(base_type, Serializer._from_json)(obj_cls, json_obj)
             elif isfunction(obj_cls) or ismethod(obj_cls):
                 return obj_cls
             raise TypeError(f'Parsed obj_cls={obj_cls} is not serializable, but should be')
