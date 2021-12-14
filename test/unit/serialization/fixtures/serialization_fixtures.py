@@ -34,7 +34,7 @@ def _get_class_fixture(monkeypatch):
 def _mock_classes_fixture(monkeypatch):
     _to_json = Serializer._to_json
     _from_json = Serializer._from_json
-    monkeypatch.setattr(Serializer, 'PROCESSORS_BY_TYPE', {
+    monkeypatch.setattr(Serializer, 'CODERS_BY_TYPE', {
         MockNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
         MockGraph: {_to_json: graph_to_json, _from_json: graph_from_json},
         MockOperation: {_to_json: operation_to_json, _from_json: any_from_json},

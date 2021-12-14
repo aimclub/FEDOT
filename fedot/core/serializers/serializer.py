@@ -13,7 +13,7 @@ class Serializer(JSONEncoder, JSONDecoder):
     _to_json = 'to_json'
     _from_json = 'from_json'
 
-    PROCESSORS_BY_TYPE = {}
+    CODERS_BY_TYPE = {}
 
     def __init__(self, *args, **kwargs):
         encoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONEncoder.__init__).parameters}
@@ -24,7 +24,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         decoder_kwargs['object_hook'] = self.object_hook
         JSONDecoder.__init__(self, **decoder_kwargs)
 
-        if not Serializer.PROCESSORS_BY_TYPE:
+        if not Serializer.CODERS_BY_TYPE:
             from uuid import UUID
 
             from fedot.core.dag.graph import Graph
@@ -53,7 +53,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             _to_json = Serializer._to_json
             _from_json = Serializer._from_json
             basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
-            Serializer.PROCESSORS_BY_TYPE = {
+            Serializer.CODERS_BY_TYPE = {
                 Individual: basic_serialization,
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
@@ -63,9 +63,9 @@ class Serializer(JSONEncoder, JSONDecoder):
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
             }
-            Serializer.PROCESSORS_BY_TYPE.update({
-                OptNode: Serializer.PROCESSORS_BY_TYPE[GraphNode],
-                OptGraph: Serializer.PROCESSORS_BY_TYPE[Graph],
+            Serializer.CODERS_BY_TYPE.update({
+                OptNode: Serializer.CODERS_BY_TYPE[GraphNode],
+                OptGraph: Serializer.CODERS_BY_TYPE[Graph],
             })
 
     @staticmethod
@@ -77,14 +77,14 @@ class Serializer(JSONEncoder, JSONDecoder):
     @staticmethod
     def _get_base_type(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> int:
         contains = Serializer._get_field_checker(obj)
-        for k_type in Serializer.PROCESSORS_BY_TYPE:
+        for k_type in Serializer.CODERS_BY_TYPE:
             if contains(obj, k_type):
                 return k_type
         return None
 
     @staticmethod
-    def _get_coder_by_type(type: Type, coder_type: str):
-        return Serializer.PROCESSORS_BY_TYPE[type][coder_type]
+    def _get_coder_by_type(coder_type: Type, coder_aim: str):
+        return Serializer.CODERS_BY_TYPE[coder_type][coder_aim]
 
     @staticmethod
     def dump_path_to_obj(obj: INSTANCE_OR_CALLABLE) -> Dict[str, str]:
