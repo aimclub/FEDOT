@@ -18,13 +18,11 @@ class MockNode:
         self.content = {
             'name': DataOperation('test_operation')
         }
-        self._operator = '_operator'
 
     def __eq__(self, other):
         return (
             self.name == other.name and
-            self.nodes_from == other.nodes_from and
-            self._operator == other._operator
+            self.nodes_from == other.nodes_from
         )
 
 

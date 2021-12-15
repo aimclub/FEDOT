@@ -1,6 +1,3 @@
-from copy import deepcopy
-from json import loads
-from test.unit.serialization.test_encoder import MOCK_NODE_1_COPY
 from uuid import UUID
 
 import pytest
@@ -89,69 +86,35 @@ DECODER_CASES.extend([
     )
 ])
 
-MOCK_NODE_1_COPY = deepcopy(MOCK_NODE_1)
-MOCK_NODE_2_COPY = deepcopy(MOCK_NODE_2)
-MOCK_NODE_3_COPY = deepcopy(MOCK_NODE_3)
-
 DECODER_CASES.extend([
     DecoderTestCase(
         test_input={
             'name': 'node1',
             'nodes_from': [
-                MOCK_NODE_2_COPY,
-                MOCK_NODE_3_COPY
+                MOCK_NODE_2,
+                MOCK_NODE_3
             ],
-            '_serialization_id': 0,
             CLASS_PATH_KEY: MockNode
         },
-        test_answer=MOCK_NODE_1_COPY
+        test_answer=MOCK_NODE_1
     ),
 ])
 
-MOCK_NODE_3_COPY = MockNode('name3')
-MOCK_NODE_3_COPY._serialization_id = 2
-
-MOCK_NODE_2_COPY = MockNode('name2')
-MOCK_NODE_2_COPY._serialization_id = 1
-MOCK_NODE_3_COPY_1 = MockNode('name2')
-MOCK_NODE_3_COPY_1._serialization_id = 2
-vars(MOCK_NODE_2_COPY).update({
-    'nodes_from': [
-        MOCK_NODE_3_COPY_1
-    ]
-})
-
-MOCK_NODE_1_COPY = MockNode('name1')
-MOCK_NODE_1_COPY._serialization_id = 0
-MOCK_NODE_2_COPY_2 = MockNode('name2')
-MOCK_NODE_2_COPY_2._serialization_id = 1
-MOCK_NODE_3_COPY_2 = MockNode('name3')
-MOCK_NODE_3_COPY_2._serialization_id = 2
-vars(MOCK_NODE_2_COPY_2).update({
-    'nodes_from': [
-        MOCK_NODE_3_COPY_2
-    ]
-})
-MOCK_NODE_3_COPY_3 = MockNode('name3')
-MOCK_NODE_3_COPY_3._serialization_id = 2
-vars(MOCK_NODE_1_COPY).update({
-    'nodes_from': [
-        MOCK_NODE_2_COPY_2,
-        MOCK_NODE_3_COPY_3
-    ]
-})
+MOCK_NODE_1_SERIALIZED = MockNode(MOCK_NODE_1.name, [node._serialization_id for node in MOCK_NODE_1.nodes_from])
+MOCK_NODE_2_SERIALIZED = MockNode(MOCK_NODE_2.name, [node._serialization_id for node in MOCK_NODE_2.nodes_from])
+MOCK_NODE_3_SERIALIZED = MockNode(MOCK_NODE_3.name, [node._serialization_id for node in MOCK_NODE_3.nodes_from])
 
 DECODER_CASES.extend([
     DecoderTestCase(
         test_input={
             'nodes': [
-                MOCK_NODE_1_COPY,
-                MOCK_NODE_2_COPY,
-                MOCK_NODE_3_COPY
+                MOCK_NODE_1_SERIALIZED,
+                MOCK_NODE_2_SERIALIZED,
+                MOCK_NODE_3_SERIALIZED
             ],
             CLASS_PATH_KEY: MockGraph
         },
-        test_answer=MockGraph([MOCK_NODE_1_COPY, MOCK_NODE_2_COPY, MOCK_NODE_3_COPY])
+        test_answer=MockGraph([MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3])
     )
 ])
 
