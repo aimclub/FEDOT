@@ -129,12 +129,13 @@ class Fedot:
         else:
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
 
-        if 'cut' in recommendations:
-            # if data was cut we need to refit pipeline on full data
-            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
-                                                                 {k: v for k, v in recommendations.items()
-                                                                  if k != 'cut'})
-            self.current_pipeline.fit(full_train_not_preprocessed)
+            # TODO сдвинуть влево обратно после экспериментов
+            if 'cut' in recommendations:
+                # if data was cut we need to refit pipeline on full data
+                self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
+                                                                     {k: v for k, v in recommendations.items()
+                                                                      if k != 'cut'})
+                self.current_pipeline.fit(full_train_not_preprocessed)
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = self.data_processor.preprocessor

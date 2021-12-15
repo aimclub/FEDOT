@@ -128,7 +128,8 @@ class DataPreprocessor:
             if data_has_missing_values(data) and not has_imputer:
                 data = self.apply_imputation(data)
 
-            self._apply_categorical_encoding(data)
+            if self.features_label_encoding_needed is False:
+                self._apply_categorical_encoding(data)
         return data
 
     def take_only_correct_features(self, data: InputData):

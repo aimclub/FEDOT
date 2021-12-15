@@ -32,6 +32,7 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
     """ Start classification task with desired dataset
     :param dataset_numbers: list with ids of the dataset in the folder
     :param clip_data: is there a need to clip dataframe
+    :param safe_mode: is there a need to perform safe mode in AutoML
     """
     data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'pennml')
     datasets = os.listdir(data_path)
@@ -45,14 +46,14 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
         print(f'Dataset size: {data.shape}')
         if clip_data is True:
             # Crop dataset for albert correctness check
-            data = data.iloc[237500:238000]
+            data = data.iloc[:5000]
         data = data.replace('?', np.nan)
 
         if dataset_name != 'albert.csv':
-            predictors = np.array(data.iloc[:, :-1])
+            predictors = np.array(data.iloc[:, :6])
             target = np.array(data.iloc[:, -1])
         else:
-            predictors = np.array(data[data.columns])
+            predictors = np.array(data[data.columns[1:]])
             target = np.array(data['class'])
 
         train_data, test_data = data_setup(predictors, target)
@@ -60,8 +61,11 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
         start = timeit.default_timer()
         fedot = Fedot(problem='classification', timeout=0.5, safe_mode=safe_mode)
         pipeline = fedot.fit(features=train_data, predefined_model='dt')
-        print(fedot.predict(test_data))
-        print(pipeline.predict(test_data).predict)
+
+        fedot_predict = np.ravel(fedot.predict(test_data))
+        pipeline_predict = np.ravel(pipeline.predict(test_data).predict)
+        print(fedot_predict)
+        print(pipeline_predict)
         time_launch = timeit.default_timer() - start
 
         print(f'Fitting takes {time_launch:.2f} seconds')

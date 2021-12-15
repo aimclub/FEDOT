@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
@@ -139,7 +139,14 @@ class LabelEncodingImplementation(DataOperationImplementation):
         if self.categorical_ids:
             # If categorical features are exists - transform them inplace in InputData
             for categorical_id in self.categorical_ids:
-                self._apply_label_encoder(copied_data, categorical_id)
+                categorical_column = input_data.features[:, categorical_id]
+
+                # Converting into string - so nans becomes marked as 'nan'
+                categorical_column = categorical_column.astype(str)
+                gap_ids = np.ravel(np.argwhere(categorical_column == 'nan'))
+
+                transformed = self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
+                copied_data.features[:, categorical_id] = transformed
 
         # Update features
         output_data = self._convert_to_output(copied_data,
@@ -169,18 +176,22 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
             self.encoders.update({categorical_id: le})
 
-    def _apply_label_encoder(self, input_data: InputData, categorical_id: int):
+    def _apply_label_encoder(self, categorical_column: np.array, categorical_id: int,
+                             gap_ids: Union[np.array, None]):
         """ Apply fitted LabelEncoder for column transformation
 
-        :param input_data: data with features to transform
+        :param categorical_column: numpy array with categorical features
         :param categorical_id: index of current categorical column
+        :param gap_ids: indices of gap elements in array
         """
         column_encoder = self.encoders[categorical_id]
 
-        # Transform categorical feature into numerical one
-        categorical_column = input_data.features[:, categorical_id]
         try:
-            input_data.features[:, categorical_id] = column_encoder.transform(categorical_column)
+            transformed_column = column_encoder.transform(categorical_column)
+            if len(gap_ids) > 0:
+                # Store np.nan values
+                transformed_column = transformed_column.astype(object)
+                transformed_column[gap_ids] = np.nan
         except ValueError as ex:
             # y contains previously unseen labels
             encoder_classes = list(column_encoder.classes_)
@@ -190,7 +201,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
             # Extent encoder classes
             encoder_classes.append(unseen_label)
             column_encoder.classes_ = encoder_classes
-            self._apply_label_encoder(input_data, categorical_id)
+            return self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
+        return transformed_column
 
     def get_params(self):
         """ Due to LabelEncoder has no parameters - return empty set """

@@ -75,9 +75,13 @@ class BinaryCategoricalPreprocessor:
         number_of_columns = input_data.features.shape[-1]
         for column_id, number in enumerate(range(number_of_columns)):
             if column_id in self.binary_ids_to_convert:
+                # If column contains nans - replace them with fedot nans special string
+                column = input_data.features[:, column_id]
+                is_row_has_nan = pd.isna(pd.Series(column))
+                column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
+
                 # Convert into integers
-                converted_column = self._apply_encoder(input_data.features[:, column_id],
-                                                       column_id)
+                converted_column = self._apply_encoder(column, column_id, gap_ids)
             else:
                 # Stay column the same
                 converted_column = np.array(input_data.features[:, column_id])
@@ -104,14 +108,10 @@ class BinaryCategoricalPreprocessor:
         # Store fitted label encoder for transform method
         self.binary_encoders.update({column_id: encoder})
 
-    def _apply_encoder(self, column: np.array, column_id: int) -> np.array:
+    def _apply_encoder(self, column: np.array, column_id: int, gap_ids: np.array) -> np.array:
         """ Apply already fitted encoders """
         encoder = self.binary_encoders[column_id]
         encoder_classes = list(encoder.classes_)
-
-        # If column contains nans - replace them with fedot nans special string
-        is_row_has_nan = pd.isna(pd.Series(column))
-        column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
 
         try:
             converted = encoder.transform(column)
@@ -129,7 +129,7 @@ class BinaryCategoricalPreprocessor:
             encoder.classes_ = encoder_classes
 
             # Recursive launching
-            return self._apply_encoder(column, column_id)
+            return self._apply_encoder(column, column_id, gap_ids)
         return converted
 
 

@@ -5,7 +5,6 @@ import pandas as pd
 
 from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.preprocessing.data_types import TableTypesCorrector
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
@@ -40,20 +39,18 @@ def divide_data_categorical_numerical(input_data: InputData, categorical_ids: li
 
     if len(categorical_ids) > 0 and len(non_categorical_ids) > 0:
         # Both categorical and numerical features
-        numerical_input = _return_subset_features(input_data, non_categorical_ids)
-        categorical_input = _return_subset_features(input_data, categorical_ids)
+        numerical_input = input_data.subset_features(non_categorical_ids)
+        categorical_input = input_data.subset_features(categorical_ids)
         return numerical_input, categorical_input
 
     elif len(categorical_ids) == 0 and len(non_categorical_ids) > 0:
         # Only numerical
-        numerical_input = _return_subset_features(input_data,
-                                                  non_categorical_ids)
+        numerical_input = input_data.subset_features(non_categorical_ids)
         return numerical_input, None
 
     elif len(categorical_ids) > 0 and len(non_categorical_ids) == 0:
         # Only categorical
-        categorical_input = _return_subset_features(input_data,
-                                                    categorical_ids)
+        categorical_input = input_data.subset_features(categorical_ids)
         return None, categorical_input
 
     else:
@@ -149,15 +146,3 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
         data_has_categorical_columns = len(cat_ids) > 0
 
     return data_has_categorical_columns
-
-
-def _return_subset_features(input_data: InputData, features_ids: list) -> InputData:
-    """ Return new InputData with subset of features based on features_ids list """
-    subsample_features = input_data.features[:, features_ids]
-    subsample_input = InputData(features=subsample_features,
-                                data_type=input_data.data_type,
-                                target=input_data.target, task=input_data.task,
-                                idx=input_data.idx,
-                                supplementary_data=input_data.supplementary_data)
-
-    return subsample_input

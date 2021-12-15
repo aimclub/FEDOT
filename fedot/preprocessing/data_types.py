@@ -42,9 +42,9 @@ class TableTypesCorrector:
 
         # And in target(s)
         data.target = self.target_types_converting(target=data.target, task=data.task)
-        data.supplementary_data.column_types = self.store_column_types_info(predictors=data.features,
-                                                                            target=data.target,
-                                                                            task=data.task)
+        data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
+                                                                              target=data.target,
+                                                                              task=data.task)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -53,9 +53,9 @@ class TableTypesCorrector:
         table = apply_type_transformation(data.features, self.features_converted_columns)
         data.features = self.remove_incorrect_features(table, self.features_converted_columns)
         data.target = apply_type_transformation(data.target, self.target_converted_columns)
-        data.supplementary_data.column_types = self.store_column_types_info(predictors=data.features,
-                                                                            target=data.target,
-                                                                            task=data.task)
+        data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
+                                                                              target=data.target,
+                                                                              task=data.task)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -135,8 +135,8 @@ class TableTypesCorrector:
 
         return target
 
-    def store_column_types_info(self, predictors: np.array, target: np.array = None,
-                                task: Task = None) -> dict:
+    def prepare_column_types_info(self, predictors: np.array, target: np.array = None,
+                                  task: Task = None) -> dict:
         """ Prepare information about columns in a form of dictionary
         Dictionary has two keys: 'target' and 'features'
         """

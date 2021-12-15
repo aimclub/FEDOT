@@ -40,7 +40,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         if len(ids_to_process) > 0:
             features_to_process = np.array(features[:, ids_to_process])
 
-            if features_to_process.shape[1] == 1:
+            if self._is_input_data_one_dimensional(features_to_process):
                 self.is_not_fitted = True
                 return self.operation
             try:
@@ -116,6 +116,11 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
             transformed_features = np.hstack(frames)
 
         return transformed_features
+
+    @staticmethod
+    def _is_input_data_one_dimensional(features_to_process: np.array):
+        """ Check if features table contain only one column """
+        return features_to_process.shape[1] == 1
 
 
 class LinearRegFSImplementation(FeatureSelectionImplementation):
