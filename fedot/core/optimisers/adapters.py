@@ -126,6 +126,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
         pipeline = self.restore(opt_graph, computation_time)
         tmp = PipelineTemplate(pipeline)
         tmp.unique_pipeline_id = opt_graph.uid
+        tmp._serialization_id = opt_graph._serialization_id
         return tmp
 
 

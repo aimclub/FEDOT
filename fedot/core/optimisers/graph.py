@@ -93,6 +93,7 @@ class OptGraph:
         self.uid = str(uuid4())
         self.nodes = []
         self.operator = GraphOperator(self)
+        self._serialization_id = uuid4().hex
 
         if nodes:
             if isinstance(nodes, list):

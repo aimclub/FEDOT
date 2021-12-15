@@ -10,21 +10,21 @@ if TYPE_CHECKING:
 from . import any_from_json
 
 
-def _convert_individuals_opt_graphs_to_templates(individuals: List[List['Individual']]):
-    # adapter = PipelineAdapter()
+def _convert_parent_objects_ids_to_templates(individuals: List[List['Individual']]) -> List[List['Individual']]:
+    adapter = PipelineAdapter()
     for ind in list(itertools.chain(*individuals)):
         for parent_op in ind.parent_operators:
             for idx in range(len(parent_op.parent_objects)):
-                cur = parent_op.parent_objects[idx]
+                parent_obj_id = parent_op.parent_objects[idx]
                 for _ind in list(itertools.chain(*individuals)):
-                    if cur == _ind.graph.uid:
-                        parent_op.parent_objects[idx] = _ind.graph
+                    if parent_obj_id == _ind.graph._serialization_id:
+                        parent_op.parent_objects[idx] = adapter.restore_as_template(_ind.graph, _ind.computation_time)
                         break
     return individuals
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:
-    json_obj['individuals'] = _convert_individuals_opt_graphs_to_templates(json_obj['individuals'])
-    json_obj['archive_history'] = _convert_individuals_opt_graphs_to_templates(json_obj['archive_history'])
-    deserialized_hist = any_from_json(cls, json_obj)
-    return deserialized_hist
+    deserialized = any_from_json(cls, json_obj)
+    deserialized.individuals = _convert_parent_objects_ids_to_templates(deserialized.individuals)
+    deserialized.archive_history = _convert_parent_objects_ids_to_templates(deserialized.archive_history)
+    return deserialized
