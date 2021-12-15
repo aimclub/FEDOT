@@ -97,6 +97,8 @@ class ApiDataProcessor:
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
 
         if metric_name == 'f1':
+            if real.num_classes == 2:
+                prediction.predict = _convert_to_two_classes(prediction.predict)
             prediction.predict = probs_to_labels(prediction.predict)
 
         if data_type_is_table(prediction):
@@ -120,3 +122,12 @@ class ApiDataProcessor:
                 rec = recommendations[name]
                 # Apply desired preprocessing function
                 self.recommendations[name](input_data, *rec.values())
+
+
+def _convert_to_two_classes(predict):
+    """ Prepare array with predicted probabilities for correct binarization
+    Example: array [[0.5], [0.7]] will be converted into [[0.5, 0.5], [0.3, 0.7]]
+    """
+    if len(predict.shape) > 1:
+        predict = np.ravel(predict)
+    return np.vstack([1 - predict, predict]).transpose()
