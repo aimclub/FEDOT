@@ -30,8 +30,8 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
     nodes = json_obj['nodes']
     for node in nodes:
         if node.nodes_from:
-            for (idx, inner_node), outer_node in product(enumerate(node.nodes_from), nodes):
-                if inner_node._serialization_id == outer_node._serialization_id:
+            for (idx, inner_node_idx), outer_node in product(enumerate(node.nodes_from), nodes):
+                if inner_node_idx == outer_node._serialization_id:
                     node.nodes_from[idx] = outer_node
     obj.nodes = nodes
     vars(obj).update(**{k: v for k, v in json_obj.items() if k != 'nodes'})
