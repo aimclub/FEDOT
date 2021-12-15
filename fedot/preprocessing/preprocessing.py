@@ -57,10 +57,6 @@ class DataPreprocessor:
         else:
             self.log = log
 
-        # Additional parameters derived from DataAnalyser
-        # Is there a need to apply Label(Ordinal) encoding for features or not
-        self.features_label_encoding_needed: bool = False
-
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]):
         """
         Perform obligatory preprocessing for pipeline fit method.
@@ -128,8 +124,7 @@ class DataPreprocessor:
             if data_has_missing_values(data) and not has_imputer:
                 data = self.apply_imputation(data)
 
-            if self.features_label_encoding_needed is False:
-                self._apply_categorical_encoding(data)
+            self._apply_categorical_encoding(data)
         return data
 
     def take_only_correct_features(self, data: InputData):
@@ -150,7 +145,7 @@ class DataPreprocessor:
             replace_inf_with_nans(data)
 
             # Find incorrect features which must be removed
-            data = self._find_features_full_of_nans(data)
+            self._find_features_full_of_nans(data)
             self.take_only_correct_features(data)
             data = self._drop_rows_with_nan_in_target(data)
 
@@ -169,9 +164,6 @@ class DataPreprocessor:
             self.binary_categorical_processor.fit(data)
             data = self.binary_categorical_processor.transform(data)
 
-        if self.features_label_encoding_needed is True:
-            # Apply features label encoding
-            self.label_encoding_for_fit(data)
         return data
 
     def _prepare_unimodal_for_predict(self, data: InputData) -> InputData:
@@ -193,16 +185,13 @@ class DataPreprocessor:
             data.idx = np.array(data.idx)
             data = self.binary_categorical_processor.transform(data)
 
-        if self.features_label_encoding_needed is True:
-            # Apply features label encoding
             self._apply_categorical_encoding(data)
         return data
 
-    def _find_features_full_of_nans(self, data: InputData) -> InputData:
+    def _find_features_full_of_nans(self, data: InputData):
         """ Find features with more than ALLOWED_NAN_PERCENT nan's
 
-        :param data: data to transform
-        :return: transformed data
+        :param data: data to find columns with nan values
         """
         features = data.features
         n_samples, n_columns = features.shape
@@ -213,8 +202,6 @@ class DataPreprocessor:
                 self.ids_relevant_features.append(i)
             else:
                 self.ids_incorrect_features.append(i)
-
-        return data
 
     @staticmethod
     def _drop_rows_with_nan_in_target(data: InputData):
@@ -284,8 +271,6 @@ class DataPreprocessor:
         :param data: data to transform
         :return encoder: operation for preprocessing categorical features
         """
-        # Mark preprocessor encoder as label one
-        self.features_label_encoding_needed = True
         encoder = self._create_label_encoder(data)
 
         encoder_output = encoder.transform(data, True)

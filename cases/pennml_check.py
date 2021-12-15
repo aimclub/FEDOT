@@ -34,7 +34,7 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
     :param clip_data: is there a need to clip dataframe
     :param safe_mode: is there a need to perform safe mode in AutoML
     """
-    data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'pennml')
+    data_path = 'D:/1 Работа/Датасеты/class'
     datasets = os.listdir(data_path)
 
     for dataset_number in dataset_numbers:
@@ -48,9 +48,10 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
             # Crop dataset for albert correctness check
             data = data.iloc[:5000]
         data = data.replace('?', np.nan)
+        data = data.replace('nan', np.nan)
 
         if dataset_name != 'albert.csv':
-            predictors = np.array(data.iloc[:, :6])
+            predictors = np.array(data.iloc[:, :])
             target = np.array(data.iloc[:, -1])
         else:
             predictors = np.array(data[data.columns[1:]])
@@ -72,6 +73,6 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
 
 
 if __name__ == '__main__':
-    run_classification_exp(dataset_numbers=[2],
+    run_classification_exp(dataset_numbers=[4],
                            clip_data=True,
-                           safe_mode=True)
+                           safe_mode=False)

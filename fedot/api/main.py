@@ -129,13 +129,7 @@ class Fedot:
         else:
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
 
-            # TODO сдвинуть влево обратно после экспериментов
-            if 'cut' in recommendations:
-                # if data was cut we need to refit pipeline on full data
-                self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
-                                                                     {k: v for k, v in recommendations.items()
-                                                                      if k != 'cut'})
-                self.current_pipeline.fit(full_train_not_preprocessed)
+        self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = self.data_processor.preprocessor
@@ -341,6 +335,15 @@ class Fedot:
 
             if isinstance(self.target, str):
                 remote.remote_task_params.target = self.target
+
+    def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
+        """ Apply training procedure for obtained pipeline if dataset was clipped """
+        if 'cut' in recommendations:
+            # if data was cut we need to refit pipeline on full data
+            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
+                                                                 {k: v for k, v in recommendations.items()
+                                                                  if k != 'cut'})
+            self.current_pipeline.fit(full_train_not_preprocessed)
 
     def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':

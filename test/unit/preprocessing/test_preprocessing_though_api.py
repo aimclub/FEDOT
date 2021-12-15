@@ -17,11 +17,11 @@ def data_with_only_categorical_features():
     features = np.array([['a', '0', '1'],
                          ['b', '1', '0'],
                          ['c', '1', '0']], dtype=object)
-    input = InputData(idx=[0, 1, 2], features=features,
-                      target=np.array([0, 1, 2]),
-                      task=task,  data_type=DataTypesEnum.table,
-                      supplementary_data=supp_data)
-    return input
+    input_data = InputData(idx=[0, 1, 2], features=features,
+                           target=np.array([0, 1, 2]),
+                           task=task,  data_type=DataTypesEnum.table,
+                           supplementary_data=supp_data)
+    return input_data
 
 
 def data_with_too_much_nans():
