@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
 
@@ -26,7 +25,7 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List[PipelineTemplate]
+    parent_objects: List['Individual']
     uid: str = None
 
     def __post_init__(self):

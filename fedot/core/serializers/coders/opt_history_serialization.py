@@ -11,14 +11,12 @@ from . import any_from_json
 
 
 def _convert_parent_objects_ids_to_templates(individuals: List[List['Individual']]) -> List[List['Individual']]:
-    adapter = PipelineAdapter()
     for ind in list(itertools.chain(*individuals)):
         for parent_op in ind.parent_operators:
-            for idx in range(len(parent_op.parent_objects)):
-                parent_obj_id = parent_op.parent_objects[idx]
+            for idx, parent_obj_id in enumerate(parent_op.parent_objects):
                 for _ind in list(itertools.chain(*individuals)):
-                    if parent_obj_id == _ind.graph._serialization_id:
-                        parent_op.parent_objects[idx] = adapter.restore_as_template(_ind.graph, _ind.computation_time)
+                    if parent_obj_id == _ind.graph.uid:
+                        parent_op.parent_objects[idx] = _ind
                         break
     return individuals
 

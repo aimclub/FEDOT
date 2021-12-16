@@ -9,7 +9,7 @@ from . import any_to_json
 def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:
     serialized_op = any_to_json(obj)
     serialized_op['parent_objects'] = [
-        parent_obj._serialization_id
+        parent_obj.graph.uid
         for parent_obj in serialized_op['parent_objects']
     ]
     return serialized_op
