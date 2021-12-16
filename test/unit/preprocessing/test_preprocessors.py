@@ -93,7 +93,7 @@ def test_column_types_converting_correctly():
 
     assert len(features_types) == len(target_types) == 2
     assert features_types[0] == "<class 'str'>"
-    assert features_types[1] == "<class 'float'>"
+    assert features_types[1] == "<class 'str'>"
     assert target_types[0] == target_types[0] == "<class 'str'>"
 
 

@@ -11,6 +11,7 @@ NAME_CLASS_NONE = "<class 'NoneType'>"
 FEDOT_STR_NAN = 'fedot_nan'
 # If unique values in the feature column is less than 13 - convert column into string type
 CATEGORICAL_UNIQUE_TH = 13
+MAX_CATEGORIES_TH = 30
 
 
 class TableTypesCorrector:
@@ -20,7 +21,10 @@ class TableTypesCorrector:
 
     def __init__(self, log: Log = None):
         # Maximum allowed unique categories in categorical table (if more - transform it into float)
-        self.categorical_max_classes_th = 30
+        self.categorical_max_classes_th = MAX_CATEGORIES_TH
+        # Threshold to convert numerical into categorical column
+        self.numerical_min_uniques = CATEGORICAL_UNIQUE_TH
+
         self.features_columns_info = {}
         self.target_columns_info = {}
 
@@ -41,6 +45,9 @@ class TableTypesCorrector:
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
+        # Convert features to have an ability to insert str into float table or vice versa
+        data.features = data.features.astype(object)
+
         # Determine types for each column in features and target if it is necessary
         self.features_columns_info = define_column_types(data.features)
         self.target_columns_info = define_column_types(data.target)
@@ -64,6 +71,7 @@ class TableTypesCorrector:
     def convert_data_for_predict(self, data: 'InputData'):
         """ Prepare data for predict stage. Include only column types transformation """
         # Ordering is important because after removing incorrect features - indices are obsolete
+        data.features = data.features.astype(object)
         table = apply_type_transformation(data.features, self.features_converted_columns)
         data.features = self.remove_incorrect_features(table, self.features_converted_columns)
         data.target = apply_type_transformation(data.target, self.target_converted_columns)
@@ -254,7 +262,7 @@ class TableTypesCorrector:
                 # Calculate number of unique values except nans
                 unique_numbers = len(numerical_column.dropna().unique())
 
-                if 2 < unique_numbers < CATEGORICAL_UNIQUE_TH:
+                if 2 < unique_numbers < self.numerical_min_uniques:
                     # Column need to be transformed into categorical (string) one
                     self.numerical_into_str.append(column_id)
 

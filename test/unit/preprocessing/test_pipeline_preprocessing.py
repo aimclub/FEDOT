@@ -69,6 +69,7 @@ def test_nans_columns_process_correctly():
     pipeline = Pipeline(PrimaryNode('ridge'))
     data_with_nans = data_with_too_much_nans()
 
+    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
     pipeline.fit(data_with_nans)
 
     # Ridge should use only one feature to make prediction
@@ -146,6 +147,7 @@ def test_pipeline_with_imputer():
     imputation_node = PrimaryNode('simple_imputation')
     final_node = SecondaryNode('ridge', nodes_from=[imputation_node])
     pipeline = Pipeline(final_node)
+    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
@@ -227,6 +229,7 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
 
     pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 

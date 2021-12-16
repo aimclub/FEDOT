@@ -1,15 +1,16 @@
+import os
 import json
-
+import random
 import pytest
+
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.utils import DEFAULT_PARAMS_STUB, fedot_project_root
 from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
@@ -95,9 +96,13 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
 
 
 def create_input_data():
-    train_file_path, test_file_path = get_scoring_case_data_paths()
-    train_data = InputData.from_csv(train_file_path)
-    test_data = InputData.from_csv(test_file_path)
+    train_file_path = os.path.join('test', 'data', 'scoring', 'scoring_train.csv')
+    test_file_path = os.path.join('test', 'data', 'scoring', 'scoring_test.csv')
+    full_train_file_path = os.path.join(str(fedot_project_root()), train_file_path)
+    full_test_file_path = os.path.join(str(fedot_project_root()), test_file_path)
+
+    train_data = InputData.from_csv(full_train_file_path)
+    test_data = InputData.from_csv(full_test_file_path)
 
     return train_data, test_data
 
@@ -141,10 +146,11 @@ def test_save_load_fitted_atomized_pipeline_correctly():
     pipeline_loaded.fit(train_data)
     after_save_predicted = pipeline_loaded.predict(test_data)
 
-    bfr_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=before_save_predicted.predict)
-    aft_tun_mse = mean_squared_error(y_true=test_data.target, y_pred=after_save_predicted.predict)
+    bfr_save_mse = mean_squared_error(y_true=test_data.target, y_pred=before_save_predicted.predict)
+    aft_load_mse = mean_squared_error(y_true=test_data.target, y_pred=after_save_predicted.predict)
 
-    assert aft_tun_mse <= bfr_tun_mse
+    # TODO can be replaced with np.isclose later
+    assert aft_load_mse <= bfr_save_mse
 
 
 def test_fit_predict_atomized_model_correctly():
