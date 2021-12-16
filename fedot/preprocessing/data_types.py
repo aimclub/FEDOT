@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -7,6 +8,9 @@ NAME_CLASS_STR = "<class 'str'>"
 NAME_CLASS_INT = "<class 'int'>"
 NAME_CLASS_FLOAT = "<class 'float'>"
 NAME_CLASS_NONE = "<class 'NoneType'>"
+FEDOT_STR_NAN = 'fedot_nan'
+# If unique values in the feature column is less than 13 - convert column into string type
+CATEGORICAL_UNIQUE_TH = 13
 
 
 class TableTypesCorrector:
@@ -15,6 +19,8 @@ class TableTypesCorrector:
     """
 
     def __init__(self, log: Log = None):
+        # Maximum allowed unique categories in categorical table (if more - transform it into float)
+        self.categorical_max_classes_th = 30
         self.features_columns_info = {}
         self.target_columns_info = {}
 
@@ -24,6 +30,10 @@ class TableTypesCorrector:
 
         # Columns to delete due to types conflicts
         self.columns_to_del = []
+        # Column ids for transformation due to number of unique values
+        self.numerical_into_str = []
+        self.categorical_into_float = []
+
         if not log:
             self.log = default_log(__name__)
         else:
@@ -45,6 +55,10 @@ class TableTypesCorrector:
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
+
+        # Launch conversion float and integer features into categorical
+        self._into_categorical_features_transformation_for_fit(data)
+        self._into_numeric_features_transformation_for_fit(data)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -56,6 +70,10 @@ class TableTypesCorrector:
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
+
+        # Convert column types
+        self._into_categorical_features_transformation_for_predict(data)
+        self._into_numeric_features_transformation_for_predict(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -221,6 +239,105 @@ class TableTypesCorrector:
             self.log.error(error_message)
             raise ValueError(error_message)
 
+    def _into_categorical_features_transformation_for_fit(self, data: 'InputData'):
+        """
+        Perform automated categorical features determination. If feature column
+        contains int or float values with few unique values (less than 13)
+        """
+        n_rows, n_cols = data.features.shape
+        for column_id in range(n_cols):
+            # For every int/float column perform check
+            column_type = data.supplementary_data.column_types['features'][column_id]
+            if 'int' in column_type or 'float' in column_type:
+                numerical_column = pd.Series(data.features[:, column_id])
+
+                # Calculate number of unique values except nans
+                unique_numbers = len(numerical_column.dropna().unique())
+
+                if 2 < unique_numbers < CATEGORICAL_UNIQUE_TH:
+                    # Column need to be transformed into categorical (string) one
+                    self.numerical_into_str.append(column_id)
+
+                    # Convert into string
+                    converted_array = convert_num_column_into_string_array(numerical_column)
+
+                    # Store converted column into features table
+                    data.features[:, column_id] = converted_array
+
+                    # Update information about column types (in-place)
+                    features_types = data.supplementary_data.column_types['features']
+                    features_types[column_id] = NAME_CLASS_STR
+
+    def _into_categorical_features_transformation_for_predict(self, data: 'InputData'):
+        """ Apply conversion into categorical string column for every signed column """
+        if not self.numerical_into_str:
+            # There is no transformation for current table
+            return data
+
+        n_rows, n_cols = data.features.shape
+        for column_id in range(n_cols):
+            if column_id in self.numerical_into_str:
+                numerical_column = pd.Series(data.features[:, column_id])
+                # Column must be converted into categorical
+                converted_array = convert_num_column_into_string_array(numerical_column)
+                data.features[:, column_id] = converted_array
+
+                # Update information about column types (in-place)
+                features_types = data.supplementary_data.column_types['features']
+                features_types[column_id] = NAME_CLASS_STR
+
+    def _into_numeric_features_transformation_for_fit(self, data: 'InputData'):
+        """
+        Automatically determine categorical features which should be converted into float
+        """
+        n_rows, n_cols = data.features.shape
+        for column_id in range(n_cols):
+            # For every string column perform converting if necessary
+            column_type = data.supplementary_data.column_types['features'][column_id]
+            if 'str' in column_type:
+                string_column = pd.Series(data.features[:, column_id])
+                unique_numbers = len(string_column.dropna().unique())
+
+                if unique_numbers > self.categorical_max_classes_th:
+                    # Number of nans in the column
+                    nans_number = string_column.isna().sum()
+
+                    # Column probably not an "actually categorical" but a column with an incorrectly defined type
+                    converted_column = pd.to_numeric(string_column, errors='coerce')
+                    # Calculate applied nans
+                    result_nans_number = converted_column.isna().sum()
+                    failed_objects_number = result_nans_number - nans_number
+                    non_nan_all_objects_number = n_rows - nans_number
+                    failed_ratio = failed_objects_number / non_nan_all_objects_number
+
+                    if failed_ratio < 0.5:
+                        # The majority of objects can be converted into numerical
+                        data.features[:, column_id] = converted_column.values
+
+                        # Update information about column types (in-place)
+                        self.categorical_into_float.append(column_id)
+                        features_types = data.supplementary_data.column_types['features']
+                        features_types[column_id] = NAME_CLASS_FLOAT
+
+    def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
+        """ Apply conversion into float string column for every signed column """
+        if not self.categorical_into_float:
+            # There is no transformation for current table
+            return data
+
+        n_rows, n_cols = data.features.shape
+        for column_id in range(n_cols):
+            if column_id in self.categorical_into_float:
+                string_column = pd.Series(data.features[:, column_id])
+
+                # Column must be converted into float from categorical
+                converted_column = pd.to_numeric(string_column, errors='coerce')
+                data.features[:, column_id] = converted_column.values
+
+                # Update information about column types (in-place)
+                features_types = data.supplementary_data.column_types['features']
+                features_types[column_id] = NAME_CLASS_FLOAT
+
 
 def define_column_types(table: np.array):
     """ Prepare information about types per columns. For each column store unique
@@ -304,6 +421,21 @@ def apply_type_transformation(table: np.array, converted_columns: dict):
             current_type = type_by_name[type_name]
             table[:, column_id] = table[:, column_id].astype(current_type)
     return table
+
+
+def convert_num_column_into_string_array(numerical_column: pd.Series) -> np.array:
+    """ Convert pandas column into numpy one-dimensional array """
+    # Convert into string
+    converted_column = numerical_column.astype(str)
+    converted_array = converted_column.values
+
+    # If there are nans - insert them
+    nan_ids = np.ravel(np.argwhere(converted_array == 'nan'))
+    if len(nan_ids) > 0:
+        converted_array = converted_array.astype(object)
+        converted_array[nan_ids] = np.nan
+
+    return converted_array
 
 
 def _obtain_new_column_type(column_info):
