@@ -286,7 +286,9 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         self.parameters_changed = False
         self.changed_params = []
 
-        self.default_poly_degree = 5
+        self.max_poly_degree = 5
+        self.default_poly_degree = 2
+        self.default_order = 1
 
         if not log:
             self.log = default_log(__name__)
@@ -360,13 +362,19 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         return np.transpose(der_f)
 
     def _correct_params(self):
-        if not 0 < self.poly_degree < 5:
+        if self.poly_degree > 5:
             self.parameters_changed = True
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
-                          f'changed to {self.default_poly_degree}')
+                          f'changed to {self.max_poly_degree}')
             self.changed_params.append('poly_degree')
-            self.poly_degree = self.default_poly_degree
-        if not 0 < self.order < self.poly_degree:
+            self.poly_degree = self.max_poly_degree
+        if self.order < 1:
+            self.parameters_changed = True
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter order ({self.order}) '
+                          f'changed to {self.default_order}')
+            self.changed_params.append('order')
+            self.order = self.default_order
+        if self.order >= self.poly_degree:
             self.parameters_changed = True
             self.changed_params.append('order')
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
