@@ -228,6 +228,11 @@ class SearchSpace:
             'gaussian_filter': {
                 'sigma': (hp.uniform, [1, 5])
             },
+            'diff_filter': {
+                'poly_degree': (hp.uniform, [1, 4]),
+                'order': (hp.uniform, [1, 3]),
+                'window_size': (hp.uniform, [3, 20])
+            },
             'cut': {
                 'cut_part': (hp.uniform, [0, 0.9])
             },

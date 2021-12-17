@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
@@ -238,7 +239,6 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
 
 class GaussianFilterImplementation(DataOperationImplementation):
-
     def __init__(self, **params):
         super().__init__()
 
@@ -277,6 +277,122 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
     def get_params(self):
         return {'sigma': self.sigma}
+
+
+class NumericalDerivativeFilterImplementation(DataOperationImplementation):
+    def __init__(self, log: Log = None, **params):
+        super().__init__()
+        self.params = params
+        self.parameters_changed = False
+        self.changed_params = []
+
+        self.max_poly_degree = 5
+        self.default_poly_degree = 2
+        self.default_order = 1
+
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
+
+        self.poly_degree = int(self.params['poly_degree'])
+        self.order = int(self.params['order'])
+        self.window_size = int(self.params['window_size'])
+        self._correct_params()
+
+    def fit(self, input_data):
+        """ Class doesn't support fit operation
+
+        :param input_data: data with features, target and ids to process
+        """
+        pass
+
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
+        """ Method for finding numerical derivative of time series
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return output_data: output data with smoothed time series
+        """
+
+        source_ts = np.array(input_data.features)
+        # Apply differential operation
+        differential_ts = self._differential_filter(source_ts)
+        output_data = self._convert_to_output(input_data,
+                                              np.ravel(differential_ts),
+                                              data_type=DataTypesEnum.ts)
+
+        return output_data
+
+    def _differential_filter(self, ts):
+        """ NumericalDerivative filter """
+        if self.window_size > ts.shape[0]:
+            self.parameters_changed = True
+            self.changed_params.append('window_size')
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
+                          f'{self.poly_degree + 1}')
+            self.window_size = self.poly_degree + 1
+        x = np.arange(ts.shape[0])
+
+        ts_len = x.shape[0]
+        der_f = np.zeros(ts_len)
+
+        # Take the differentials in the center of the domain
+        for center_window in range(self.window_size, ts_len - self.window_size):
+            points = np.arange(center_window - self.window_size, center_window + self.window_size)
+            # Fit to a Chebyshev polynomial
+            # this is the same as any polynomial since we're on a fixed grid but it's better conditioned :)
+            poly = np.polynomial.chebyshev.Chebyshev.fit(x[points], ts[points], self.poly_degree,
+                                                         window=[np.min(points), np.max(points)])
+            der_f[center_window] = poly.deriv(m=self.order)(x[center_window])
+
+        supp_1 = ts[0:self.window_size]
+        coordsupp_1 = x[0:self.window_size]
+        supp_2 = ts[-self.window_size:]
+        coordsupp_2 = x[-self.window_size:]
+        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp_1, supp_1, self.window_size - 1)
+        der_f[0:self.window_size] = poly.deriv(m=self.order)(coordsupp_1)
+        poly = np.polynomial.chebyshev.Chebyshev.fit(coordsupp_2, supp_2, self.window_size - 1)
+        der_f[-self.window_size:] = poly.deriv(m=self.order)(coordsupp_2)
+        for _ in range(self.order):
+            supp_1 = np.gradient(supp_1, coordsupp_1, edge_order=2)
+            supp_2 = np.gradient(supp_2, coordsupp_2, edge_order=2)
+        der_f[0:self.window_size] = supp_1
+        der_f[-self.window_size:] = supp_2
+        return np.transpose(der_f)
+
+    def _correct_params(self):
+        if self.poly_degree > 5:
+            self.parameters_changed = True
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
+                          f'changed to {self.max_poly_degree}')
+            self.changed_params.append('poly_degree')
+            self.poly_degree = self.max_poly_degree
+        if self.order < 1:
+            self.parameters_changed = True
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter order ({self.order}) '
+                          f'changed to {self.default_order}')
+            self.changed_params.append('order')
+            self.order = self.default_order
+        if self.order >= self.poly_degree:
+            self.parameters_changed = True
+            self.changed_params.append('order')
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
+                          f'changed to {self.order + 1}')
+            self.poly_degree = self.order + 1
+        if self.window_size < self.poly_degree:
+            self.parameters_changed = True
+            self.changed_params.append('window_size')
+            self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
+                          f'{self.poly_degree + 1}')
+            self.window_size = self.poly_degree + 1
+
+    def get_params(self):
+        params_dict = {'poly_degree': self.poly_degree, 'order': self.order, 'window_size': self.window_size}
+        if self.parameters_changed:
+            return tuple([params_dict, self.changed_params])
+        else:
+            return params_dict
 
 
 class CutImplementation(DataOperationImplementation):
@@ -330,7 +446,7 @@ class CutImplementation(DataOperationImplementation):
 
     def get_params(self):
         params_dict = {"cut_part": self.cut_part}
-        if self.parameters_changed is True:
+        if self.parameters_changed:
             return tuple([params_dict, ['cut_part']])
         else:
             return params_dict
@@ -403,7 +519,7 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     if is_lag:
         updated_idx = idx[window_size:]
     else:
-        updated_idx = idx[:idx.shape[0]-window_size]
+        updated_idx = idx[:idx.shape[0] - window_size]
     return updated_idx, features_columns
 
 

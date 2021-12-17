@@ -216,6 +216,14 @@
 				"non_lagged"
 			]
 		},
+		"diff_filter": {
+			"meta": "custom_time_series_transformation",
+			"tags": [
+				"differential",
+				"non_lagged",
+				"correct_params"
+			]
+		},
 		"cut": {
 			"meta": "custom_time_series_transformation",
 			"tags": [

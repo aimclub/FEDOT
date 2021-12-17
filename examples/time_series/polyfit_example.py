@@ -40,8 +40,8 @@ def run_experiment_with_polyfit(time_series, raw_model=False, len_forecast=250,
     # Let's divide our data on train and test samples
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
-    idx = pd.to_datetime(time_series["Month"].values)
-    time_series = time_series["Monthly beer production"].values
+    idx = pd.to_datetime(time_series["datetime"].values)
+    time_series = time_series["value"].values
     train_input = InputData(idx=idx,
                             features=time_series,
                             target=time_series,
