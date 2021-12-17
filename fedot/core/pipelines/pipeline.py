@@ -52,7 +52,7 @@ class Pipeline(Graph):
         :param input_data: data used for operation training
         """
         # Clean all saved states and fit all operations
-        self.unfit()
+        self.unfit(unfit_preprocessor=True)
         self.fit(input_data, use_fitted=False)
 
     def update_fitted_on_data(self, data: InputData):
@@ -156,7 +156,7 @@ class Pipeline(Graph):
         :param time_constraint: time constraint for operation fitting (seconds)
         """
         if not use_fitted:
-            self.unfit()
+            self.unfit(unfit_preprocessor=True)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)

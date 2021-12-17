@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
@@ -97,6 +99,6 @@ def test_multi_target_regression_composing_correct(multi_target_data_setup):
     simple_composer_params = get_simple_composer_params()
 
     automl_model = Fedot(problem=problem, composer_params=simple_composer_params)
-    automl_model.fit(features=train)
-    predicted_array = automl_model.predict(features=test)
+    automl_model.fit(train)
+    predicted_array = automl_model.predict(test)
     assert predicted_array is not None

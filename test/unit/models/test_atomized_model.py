@@ -125,11 +125,11 @@ def test_save_load_atomized_pipeline_correctly():
 
 
 def test_save_load_fitted_atomized_pipeline_correctly():
+    train_data, test_data = create_input_data()
     pipeline = create_pipeline_with_several_nested_atomized_model()
 
-    train_data, test_data = create_input_data()
     pipeline.fit(train_data)
-
+    before_save_predicted = pipeline.predict(test_data)
     json_actual, _ = pipeline.save('test_save_load_fitted_atomized_pipeline_correctly')
 
     json_path_load = create_correct_path('test_save_load_fitted_atomized_pipeline_correctly')
@@ -141,16 +141,13 @@ def test_save_load_fitted_atomized_pipeline_correctly():
     assert pipeline.length == pipeline_loaded.length
     assert json_actual == json_expected
 
-    before_save_predicted = pipeline.predict(test_data)
-
-    pipeline_loaded.fit(train_data)
+    pipeline_loaded.fit_from_scratch(train_data)
     after_save_predicted = pipeline_loaded.predict(test_data)
 
     bfr_save_mse = mean_squared_error(y_true=test_data.target, y_pred=before_save_predicted.predict)
     aft_load_mse = mean_squared_error(y_true=test_data.target, y_pred=after_save_predicted.predict)
 
-    # TODO can be replaced with np.isclose later
-    assert aft_load_mse <= bfr_save_mse
+    assert np.isclose(aft_load_mse, bfr_save_mse)
 
 
 def test_fit_predict_atomized_model_correctly():

@@ -17,6 +17,7 @@ from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.explainability.explainers import explain_pipeline
+from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -132,7 +133,8 @@ class Fedot:
         self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
 
         # Store data encoder in the pipeline if it is required
-        self.current_pipeline.preprocessor = self.data_processor.preprocessor
+        self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
+                                                                 self.current_pipeline.preprocessor)
         return self.current_pipeline
 
     def predict(self,
