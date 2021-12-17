@@ -4,33 +4,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
+from examples.time_series.pipelines import complex_dtreg_pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from sklearn.metrics import mean_absolute_error
+
 warnings.filterwarnings('ignore')
-
-
-def get_pipeline(first_node='lagged'):
-    """
-        Return pipeline with the following structure:
-
-        lagged/sparse_lagged - dtreg \
-                                        rfr
-        lagged/sparse_lagged - dtreg /
-    """
-
-    node_lagged_1 = PrimaryNode(first_node)
-    node_lagged_2 = PrimaryNode(first_node)
-    node_dtreg_1 = SecondaryNode('dtreg', nodes_from=[node_lagged_1])
-    node_dtreg_2 = SecondaryNode('dtreg', nodes_from=[node_lagged_2])
-    node_final = SecondaryNode('rfr', nodes_from=[node_dtreg_1, node_dtreg_2])
-    pipeline = Pipeline(node_final)
-
-    return pipeline
 
 
 def prepare_train_test_input(train_part, len_forecast):
@@ -123,14 +104,14 @@ def visualize(tuned, no_tuned, time, method_name):
 
     color = 'tab:red'
     ax1.bar(ind, no_tuned, width, fc=(0, 0, 1, 0.5), label='No tuning')
-    ax1.bar(ind+width, tuned, width, fc=(1, 0, 0, 0.5), label='Tuned')
+    ax1.bar(ind + width, tuned, width, fc=(1, 0, 0, 0.5), label='Tuned')
     ax1.set_ylabel('MAE', color=color)
     ax1.tick_params(axis='y', labelcolor=color)
 
     ax2 = ax1.twinx()
 
     color = 'tab:green'
-    ax2.plot(ind+width/2, time, color=color)
+    ax2.plot(ind + width / 2, time, color=color)
     ax2.set_ylabel('time, s', color=color)
     ax2.tick_params(axis='y', labelcolor=color)
 
@@ -164,7 +145,7 @@ def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visu
         test_part = np.ravel(test_part)
         # tuning calculations for averaging
         for i in range(n_repits):
-            pipeline = get_pipeline(name)
+            pipeline = complex_dtreg_pipeline(name)
             amount_of_seconds, mae_before, mae_after = run_tuning_test(pipeline,
                                                                        train_input,
                                                                        predict_input,

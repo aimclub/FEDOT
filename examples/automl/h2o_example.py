@@ -2,7 +2,7 @@ import numpy as np
 
 from examples.pipeline_import_export import run_import_export_example, create_correct_path
 from examples.regression_with_tuning_example import get_regression_dataset
-from examples.time_series.ts_forecasting_composing import display_validation_metric
+from examples.time_series.composing_ts_pipelines import display_validation_metric
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

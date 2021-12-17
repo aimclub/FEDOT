@@ -1,0 +1,152 @@
+import datetime
+import numpy as np
+import pandas as pd
+from fedot.core.composer.gp_composer.gp_composer import \
+    GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.repository.quality_metrics_repository import \
+    MetricsRepository, RegressionMetricsEnum
+
+from matplotlib import pyplot as plt
+from sklearn.metrics import mean_squared_error, mean_absolute_error
+
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from examples.time_series.pipelines import *
+
+
+def get_available_operations():
+    """ Function returns available operations for primary and secondary nodes """
+    primary_operations = ['lagged', 'smoothing', 'gaussian_filter', 'ar']
+    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
+                            'scaling', 'ransac_lin_reg', 'rfe_lin_reg']
+    return primary_operations, secondary_operations
+
+
+datasets = {
+    'australia': '../data/ts/australia.csv',
+    'beer': '../data/ts/beer.csv',
+    'salaries': '../data/ts/salaries.csv',
+    'stackoverflow': '../data/ts/stackoverflow.csv',
+}
+
+
+def run_experiment(dataset, pipeline, len_forecast=250):
+    """ Function with example of ts forecasting with different models with composing
+    :param dataset: name of dataset
+    :param pipeline: pipeline to use
+    :param len_forecast: forecast length
+    :param tuning: is tuning needed
+    """
+    time_series = pd.read_csv(datasets[dataset])
+    # Let's divide our data on train and test samples
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=len_forecast))
+    if dataset not in ['australia']:
+        idx = pd.to_datetime(time_series['idx'].values)
+    else:
+        # non datetime indexes
+        idx = time_series['idx'].values
+    time_series = time_series['value'].values
+    train_input = InputData(idx=idx,
+                            features=time_series,
+                            target=time_series,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
+    train_data, test_data = train_test_data_setup(train_input)
+    test_target = np.ravel(test_data.target)
+
+    pipeline.fit(train_data)
+
+    prediction = pipeline.predict(test_data)
+    predict = np.ravel(np.array(prediction.predict))
+
+    plot_info = []
+    metrics_info = []
+    plot_info.append({'idx': idx,
+                      'series': time_series,
+                      'label': 'Actual time series'
+                      })
+
+    rmse = mean_squared_error(test_target, predict, squared=False)
+    mae = mean_absolute_error(test_target, predict)
+
+    metrics_info.append(f'RMSE without tuning - {rmse:.4f}')
+    metrics_info.append(f'MAE without tuning - {mae:.4f}')
+    plot_info.append({'idx': prediction.idx,
+                      'series': predict,
+                      'label': 'Forecast without tuning'
+                      })
+    plot_info.append({'idx': [prediction.idx[0], prediction.idx[0]],
+                      'series': [
+                          min(np.concatenate([np.ravel(time_series), predict])),
+                          max(np.concatenate([np.ravel(time_series), predict]))
+                      ],
+                      'label': 'Border line',
+                      'color': 'black'
+                      })
+
+    # Get available_operations type
+    primary_operations, secondary_operations = get_available_operations()
+
+    # Composer parameters
+    composer_requirements = GPComposerRequirements(
+        primary=primary_operations,
+        secondary=secondary_operations, max_arity=3,
+        max_depth=8, pop_size=10, num_of_generations=10,
+        crossover_prob=0.8, mutation_prob=0.8,
+        timeout=datetime.timedelta(minutes=10),
+        validation_blocks=3)
+
+    mutation_types = [parameter_change_mutation, MutationTypesEnum.growth, MutationTypesEnum.reduce,
+                      MutationTypesEnum.simple]
+    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
+
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    builder = GPComposerBuilder(task=task). \
+        with_optimiser_parameters(optimiser_parameters). \
+        with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_initial_pipeline(pipeline)
+    composer = builder.build()
+
+    obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)
+
+    obtained_pipeline.fit_from_scratch(train_data)
+    prediction_after = obtained_pipeline.predict(test_data)
+    predict_after = np.ravel(np.array(prediction_after.predict))
+
+    rmse = mean_squared_error(test_target, predict_after, squared=False)
+    mae = mean_absolute_error(test_target, predict_after)
+
+    metrics_info.append(f'RMSE after composing - {rmse:.4f}')
+    metrics_info.append(f'MAE after composing - {mae:.4f}')
+    plot_info.append({'idx': prediction_after.idx,
+                      'series': predict_after,
+                      'label': 'Forecast after composing'
+                      })
+    display_metric(metrics_info)
+    obtained_pipeline.print_structure()
+    visualise(plot_info)
+
+
+def visualise(plot_info):
+    plt.figure()
+    for p in plot_info:
+        color = p.get('color')
+        plt.plot(p['idx'], p['series'], label=p['label'], color=color)
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
+def display_metric(metrics_info):
+    for m in metrics_info:
+        print(m)
+
+
+if __name__ == '__main__':
+    run_experiment('australia', glm_pipeline(), len_forecast=30)
