@@ -300,8 +300,8 @@ def fit_and_check_correctness(initial_pipeline: Pipeline,
                               logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
-        data_train, data_test = train_test_data_setup(data)
-        initial_pipeline.fit(data_train)
+        _, data_test = train_test_data_setup(data)
+        initial_pipeline.fit(data)
         initial_pipeline.predict(data_test)
 
         message_success = 'Initial pipeline were fitted successfully'

@@ -93,46 +93,30 @@ def prepare_data():
     percent_train = 0.7
     n_train = round(percent_train * len(t_arr))
 
-    hist_train = df[:n_train, :]
-    hist_test = df[n_train:, :]
+    hist = df
 
     forecast_length = len(t_arr) - n_train
-
-    ds_train = {}
-    ds_test = {}
+    ds = {}
 
     task = Task(TaskTypesEnum.ts_forecasting,
                 task_params=TsForecastingParams(forecast_length=forecast_length))
 
-    idx_train = np.asarray(t_arr[:n_train])
-    idx_test = np.asarray(t_arr[n_train: (n_train + forecast_length)])
+    idx = np.asarray(t_arr)
 
     for i in range(df.shape[1]):
-        ds_train[f'data_source_ts/hist_{i}'] = InputData(idx=idx_train,
-                                                         features=hist_train[:, i],
-                                                         target=hist_train[:, 0],
-                                                         data_type=DataTypesEnum.ts,
-                                                         task=task)
+        ds[f'data_source_ts/hist_{i}'] = InputData(idx=idx,
+                                                   features=hist[:, i],
+                                                   target=hist[:, 0],
+                                                   data_type=DataTypesEnum.ts,
+                                                   task=task)
 
-        ds_test[f'data_source_ts/hist_{i}'] = InputData(idx=idx_test,
-                                                        features=hist_train[:, i],
-                                                        target=hist_test[:forecast_length, 0],
-                                                        data_type=DataTypesEnum.ts,
-                                                        task=task)
+        ds[f'data_source_ts/exog_{i}'] = InputData(idx=idx,
+                                                   features=df[:, i],
+                                                   target=deepcopy(hist),
+                                                   data_type=DataTypesEnum.ts,
+                                                   task=task)
 
-        ds_train[f'data_source_ts/exog_{i}'] = InputData(idx=idx_train,
-                                                         features=df[:n_train, i],
-                                                         target=deepcopy(hist_train),
-                                                         data_type=DataTypesEnum.ts,
-                                                         task=task)
-
-        ds_test[f'data_source_ts/exog_{i}'] = InputData(idx=idx_test,
-                                                        features=df[n_train:(n_train + forecast_length), i],
-                                                        target=hist_test[:forecast_length, :],
-                                                        data_type=DataTypesEnum.ts,
-                                                        task=task)
-    input_data_train = MultiModalData(ds_train)
-    input_data_test = MultiModalData(ds_test)
+    input_data_train, input_data_test = train_test_data_setup(MultiModalData(ds))
 
     return input_data_train, input_data_test
 

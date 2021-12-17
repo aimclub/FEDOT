@@ -1,15 +1,14 @@
 from os.path import join as join
-from random import seed
-from typing import Any
+from typing import Any, Tuple
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error
 
-from cases.oil.crm import CRMP as crm
-from fedot.api.main import Fedot
+from cases.oil.crm import CRMP
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -17,23 +16,26 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root as project_root
 
-seed(0)
-np.random.seed(0)
 
-
-def prepare_data(target_well=0, is_full=True, modify_target=True):
+def prepare_data(target_well=0, modify_target=True,
+                 parse_date=True, percent_train=0.7, num_items=40) -> Tuple[MultiModalData, MultiModalData]:
+    """
+    Prepares multi-modal dataset with exog. variables
+    :param target_well: id of well for prediction
+    :param modify_target: remove redundant columns from target
+    :param parse_date: parse date from first column
+    :param percent_train: ratio of train part
+    :param num_items: size of dataset to use
+    :return: train and test samples
+    """
     filepath = join(project_root(), 'cases', 'data', 'oil')
-    parse_date = True  # This dataset has dates instead of elapsed time. Hence convert to timedelta
 
     qi = pd.read_excel(join(filepath, 'injection.xlsx'), engine='openpyxl')
     qp = pd.read_excel(join(filepath, 'production.xlsx'), engine='openpyxl')
-    percent_train = 0.7
 
     time_colname = 'Time [days]'
     if parse_date:
         qi[time_colname] = (qi.Date - qi.Date[0]) / pd.to_timedelta(1, unit='D')
-
-    num_items = 40
 
     inj_list = [x for x in qi.keys() if x.startswith('I')]
     prd_list = [x for x in qp.keys() if x.startswith('P')]
@@ -51,48 +53,29 @@ def prepare_data(target_well=0, is_full=True, modify_target=True):
     # Separation into training and test set
     n_train = round(percent_train * len(t_arr))
 
-    q_obs_train = q_obs[:n_train, :]
-    q_obs_test = q_obs[n_train:, :]
-
     forecast_length = len(t_arr) - n_train
 
-    ds_train = {}
-    ds_test = {}
-
+    ds = {}
     task = Task(TaskTypesEnum.ts_forecasting,
                 task_params=TsForecastingParams(forecast_length=forecast_length))
 
-    idx_train = t_arr[:n_train]
-    idx_test = t_arr[np.arange(n_train, n_train + forecast_length)]
+    idx = t_arr
 
-    if is_full:
-        for i in range(q_obs.shape[1]):
-            ds_train[f'data_source_ts/prod_{i}'] = InputData(idx=idx_train,
-                                                             features=q_obs_train[:, i],
-                                                             target=q_obs_train[:, 0],
-                                                             data_type=DataTypesEnum.ts,
-                                                             task=task)
+    for i in range(q_obs.shape[1]):
+        ds[f'data_source_ts/prod_{i}'] = InputData(idx=idx,
+                                                   features=q_obs[:, i],
+                                                   target=q_obs[:, 0],
+                                                   data_type=DataTypesEnum.ts,
+                                                   task=task)
 
-            ds_test[f'data_source_ts/prod_{i}'] = InputData(idx=idx_test,
-                                                            features=q_obs_train[:, i],
-                                                            target=q_obs_test[:forecast_length, 0],
-                                                            data_type=DataTypesEnum.ts,
-                                                            task=task)
     for i in range(qi_arr.shape[1]):
-        ds_train[f'data_source_ts/inj_{i}'] = InputData(idx=idx_train,
-                                                        features=qi_arr[:n_train, i],
-                                                        target=q_obs_train,  # [:, 0],
-                                                        data_type=DataTypesEnum.ts,
-                                                        task=task)
+        ds[f'data_source_ts/inj_{i}'] = InputData(idx=idx,
+                                                  features=qi_arr[:, i],
+                                                  target=q_obs,
+                                                  data_type=DataTypesEnum.ts,
+                                                  task=task)
 
-        ds_test[f'data_source_ts/inj_{i}'] = InputData(idx=idx_test,
-                                                       features=qi_arr[n_train:(n_train + forecast_length), i],
-                                                       target=q_obs_test[:forecast_length, :],
-                                                       data_type=DataTypesEnum.ts,
-                                                       task=task)
-    input_data_train = MultiModalData(ds_train)
-    input_data_test = MultiModalData(ds_test)
-
+    input_data_train, input_data_test = train_test_data_setup(MultiModalData(ds), split_ratio=percent_train)
     return input_data_train, input_data_test
 
 
@@ -102,20 +85,20 @@ def crm_fit(idx: np.array, features: np.array, target: np.array, params: dict):
 
     q_obs_train = target
 
-    n_inj = 5
-    n_prd = 5
+    n_inj = features.shape[1]
+    n_prd = q_obs_train.shape[1]
 
     tau = np.ones(n_prd)
     gain_mat = np.ones([n_inj, n_prd])
     gain_mat = gain_mat / (np.sum(gain_mat, 1).reshape([-1, 1]))
     qp0 = np.array([[0, 0, 0, 0, 0]])
-    inputs_list = [tau, gain_mat, qp0]
-    crm_model = crm(inputs_list, include_press=False)
 
-    init_guess = inputs_list
+    crm_model = CRMP(tau, gain_mat, qp0)
     crm_model.fit_model(input_series=input_series_train,
                         q_obs=q_obs_train,
-                        init_guess=init_guess)
+                        tau_0=tau,
+                        gain_mat_0=gain_mat,
+                        q0_0=qp0)
 
     return crm_model
 
@@ -157,14 +140,14 @@ def get_simple_pipeline(multi_data, well_id):
     final_ens = [exog_pred_node] + prod_list
     node_final = SecondaryNode('ridge', nodes_from=final_ens)
     pipeline = Pipeline(node_final)
-    # pipeline.show()
+    pipeline.show()
 
     return pipeline
 
 
 def plot_lines(well_id, train_data_full, test_data_full, predicted_test):
-    mse = mean_squared_error(test_data_full.target[:, well_id]
-                             , np.ravel(predicted_test.predict), squared=False)
+    rmse = mean_squared_error(test_data_full.target[:, well_id],
+                              np.ravel(predicted_test.predict), squared=False)
 
     plt.plot(np.append(train_data_full.idx, test_data_full.idx),
              np.append(train_data_full.target[:, well_id],
@@ -172,48 +155,32 @@ def plot_lines(well_id, train_data_full, test_data_full, predicted_test):
              linestyle='-', c='r', label='Actual')
     plt.plot(test_data_full.idx, np.ravel(predicted_test.predict),
              linestyle='--', marker=None, c='b', label='Predicted')
-    plt.title(f'Well {str(well_id)}, MSE: {round(mse, 2)}', fontsize=15)
+    plt.title(f'Well {str(well_id)}, MSE: {round(rmse, 2)}', fontsize=15)
     plt.ylabel('Total Fluid (RB)', fontsize=13)
     plt.xlabel('Time (D)', fontsize=13)
     plt.legend(fontsize=11)
     plt.show()
 
-    print(mse)
+    print(rmse)
 
 
-def run_exp(with_automl=True):
-    # for well_id in range(0, 5):
-    well_id = 0
+def run_oil_pipeline():
+    for well_id in range(0, 5):
+        train_data, test_data = prepare_data(well_id)
+        train_data_full, test_data_full = prepare_data(well_id, modify_target=False)
 
-    train_data, test_data = prepare_data(well_id, is_full=True)
-    train_data_full, test_data_full = prepare_data(well_id, is_full=True, modify_target=False)
+        pipeline = get_simple_pipeline(train_data, well_id)
 
-    initial_pipeline = get_simple_pipeline(train_data, well_id)
-
-    if with_automl:
-        automl = Fedot(problem='ts_forecasting', composer_params={'timeout': 5,
-                                                                  'initial_pipeline': initial_pipeline},
-                       task_params=TsForecastingParams(forecast_length=3), verbose_level=0)
-        pipeline = automl.fit(train_data)
-        pipeline.print_structure()
-    else:
-        pipeline = initial_pipeline
         pipeline.fit_from_scratch(train_data)
+        pipeline.print_structure()
 
-    train_data, test_data = prepare_data(well_id, is_full=True)
+        predicted_test = pipeline.predict(test_data)
 
-    pipeline.fit_from_scratch(train_data)
-    predicted_test = pipeline.predict(test_data)
-    pipeline.show()
+        train_data_full = train_data_full[f'data_source_ts/inj_0']
+        test_data_full = test_data_full[f'data_source_ts/inj_0']
 
-    train_data_full = train_data_full[f'data_source_ts/inj_0']
-    test_data_full = test_data_full[f'data_source_ts/inj_0']
-
-    plot_lines(well_id, train_data_full, test_data_full, predicted_test)
+        plot_lines(well_id, train_data_full, test_data_full, predicted_test)
 
 
 if __name__ == '__main__':
-    print('Without AutoML')
-    run_exp(with_automl=False)
-    print('With AutoML')
-    run_exp(with_automl=True)
+    run_oil_pipeline()

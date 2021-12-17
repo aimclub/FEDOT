@@ -23,7 +23,7 @@ class DefaultChangeAdvisor:
         return possible_operations
 
     def can_be_removed(self, current_operation_id: str) -> RemoveType:
-        return RemoveType.node
+        return RemoveType.node_only
 
     def propose_parent(self, current_operation_id: str, parent_operations_ids: Optional[List[str]],
                        possible_operations: List[str]):
@@ -34,7 +34,6 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
     def __init__(self, task=None):
         self.models = get_operations_for_task(task, mode='model')
         self.data_operations = get_operations_for_task(task, mode='data_operation')
-        self.lag_transformers = get_operations_for_task(task, mode='data_operation')
         super().__init__(task)
 
     def can_be_removed(self, current_operation_id: str) -> RemoveType:
@@ -60,10 +59,9 @@ class PipelineChangeAdvisor(DefaultChangeAdvisor):
             return [current_operation_id]
 
         is_model = current_operation_id in self.models
-        if is_model:
-            candidates = set.intersection(set(self.models), set(possible_operations))
-        else:
-            candidates = set.intersection(set(self.data_operations), set(possible_operations))
+        similar_operations = self.models if is_model else self.data_operations
+
+        candidates = set.intersection(set(similar_operations), set(possible_operations))
 
         if 'lagged' in current_operation_id:
             # lagged transform can be replaced only to lagged

@@ -528,10 +528,14 @@ def test_mutation_with_single_node():
     composer_requirements = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                                    max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
                                                    crossover_prob=.8, mutation_prob=1)
+
+    graph_params = GraphGenerationParams(adapter=adapter, advisor=PipelineChangeAdvisor(),
+                                         rules_for_constraint=DEFAULT_DAG_RULES)
+
     new_graph = reduce_mutation(graph, composer_requirements)
     assert graph == new_graph
 
-    new_graph = single_drop_mutation(graph)
+    new_graph = single_drop_mutation(graph, graph_params)
     assert graph == new_graph
 
 

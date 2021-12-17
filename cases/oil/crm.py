@@ -1,25 +1,33 @@
-"""
-@author: deepthisen, dear-anastasia
+from typing import Optional
 
-The code is obtained from https://github.com/deepthisen/CapacitanceResistanceModel
-
-"""
 import numpy as np
 from scipy.optimize import minimize
 
 
 class CRMP:
-    def __init__(self, inputs_list, include_press=False):
-        self.tau = inputs_list[0]
-        self.gain_mat = inputs_list[1]
-        self.N_inj = self.gain_mat.shape[0]
-        self.N_prd = self.gain_mat.shape[1]
-        self.qp0 = inputs_list[2]
+    """
+    Implementation of Capacity-Resistance model for oil production forecasting
+    The initial code is obtained from https://github.com/deepthisen/CapacitanceResistanceModel
+    """
+
+    def __init__(self, tau: np.array, gain_mat: np.asarray, qp0: np.array,
+                 pressure_j: Optional[np.array] = None):
+        self.tau = tau
+        self.gain_mat = gain_mat
+        self.n_inj = self.gain_mat.shape[0]
+        self.n_prd = self.gain_mat.shape[1]
+        self.qp0 = qp0
         self.params = [self.tau, self.gain_mat, self.qp0]
 
-        self.include_press = include_press
-        if self.include_press:
-            self.J = inputs_list[3]
+        self.q = None
+        self.grad_tau = None
+        self.grad_q0 = None
+        self.grad_lambda = None
+        self.grad_j = None
+        self.j0 = None
+
+        self.j = pressure_j
+        self.include_press = pressure_j is not None
 
     def prim_prod(self):
         tau = self.tau
@@ -46,7 +54,7 @@ class CRMP:
         tau = self.tau
         del_t = self.del_t
         del_bhp_t = self.del_bhp_t
-        J = self.J
+        J = self.j
         q_bhp = -(J * tau * del_bhp_t / del_t) * (1 - np.exp(-del_t / tau))
         self.q = self.q + q_bhp
 
@@ -64,7 +72,7 @@ class CRMP:
 
         grad_tau = (q_prev * a) - (qi_t.reshape([1, -1]) @ gain_mat) * a
         if self.include_press:
-            J = self.J
+            J = self.j
             del_bhp_t = self.del_bhp_t
             b = del_bhp_t * J * np.exp(-del_t / tau) * ((1 / tau) + (1 / del_t))
 
@@ -89,11 +97,11 @@ class CRMP:
 
         self.grad_q0 = np.exp(-(t - t0) / tau)
 
-    def compute_grad_J(self):
+    def compute_grad_j(self):
         del_t = self.del_t
         del_bhp_t = self.del_bhp_t
         tau = self.tau
-        self.grad_J = tau * del_bhp_t / del_t
+        self.grad_j = tau * del_bhp_t / del_t
 
     def prod_pred(self, input_series, train=False):
         t_arr = input_series[0]
@@ -101,11 +109,11 @@ class CRMP:
         bhp_arr = 0
         if self.include_press:
             bhp_arr = input_series[2]
-            grad_Js = []
+            grad_js = []
 
         grad_taus = []
         grad_lambdas = []
-        grad_q0s = [np.ones(self.N_prd)]
+        grad_q0s = [np.ones(self.n_prd)]
         if train:
             self.q = self.qp0.copy()
             self.q_prev = self.q.copy()
@@ -135,102 +143,89 @@ class CRMP:
                 grad_lambdas.append(self.grad_lambda)
                 grad_q0s.append(self.grad_q0)
                 if self.include_press:
-                    self.compute_grad_J()
-                    grad_Js.append(self.grad_J)
+                    self.compute_grad_j()
+                    grad_js.append(self.grad_j)
             self.q_prev = self.q.copy()
         self.q_pred = np.vstack(qp_arr)
         if train:
-            self.Grad_Tau = np.vstack(grad_taus)
-            self.Grad_Lambda = np.array(grad_lambdas)
-            self.Grad_Q0 = np.vstack(grad_q0s)
+            self.grad_tau = np.vstack(grad_taus)
+            self.grad_lambda = np.array(grad_lambdas)
+            self.grad_q0 = np.vstack(grad_q0s)
             if self.include_press:
-                self.Grad_J = np.array(grad_Js)
+                self.grad_j = np.array(grad_js)
         return np.vstack(qp_arr)
 
     def compute_grads(self, q_obs):
-        q_pred = self.q_pred
-        Grad_Tau = self.Grad_Tau
-        Grad_Lambda = self.Grad_Lambda
-        Grad_Q0 = self.Grad_Q0
 
-        N_inj = self.N_inj
-
-        dmse_dtau = 2 * np.sum((q_obs[1:, :] - q_pred[1:, :]) * -Grad_Tau, axis=0) / np.max(q_obs, axis=0) ** 2
+        dmse_dtau = 2 * np.sum((q_obs[1:, :] - self.q_pred[1:, :]) * -self.grad_tau, axis=0) / np.max(q_obs,
+                                                                                                      axis=0) ** 2
 
         dmse_dlambda = []
-        for i in range(N_inj):
+        for i in range(self.n_inj):
             dmse_dlambda.append(
-                2 * np.sum((q_obs[1:, :] - q_pred[1:, :]) * -Grad_Lambda[:, i, :], axis=0) / np.max(q_obs, axis=0) ** 2)
+                2 * np.sum((q_obs[1:, :] - self.q_pred[1:, :]) * -self.grad_lambda[:, i, :], axis=0) / np.max(q_obs,
+                                                                                                              axis=0) ** 2)
 
         dmse_dlambda = np.vstack(dmse_dlambda)
-        dmse_dq0 = 2 * np.sum((q_obs - q_pred) * -Grad_Q0, axis=0) / np.max(q_obs, axis=0) ** 2
-        #        dmse_dq0 = 2*np.sum(((q_obs - q_pred)/(q_obs+0.001))*-Grad_Q0,axis=0)/np.max(q_obs,axis=0)**2
+        dmse_dq0 = 2 * np.sum((q_obs - self.q_pred) * -self.grad_q0, axis=0) / np.max(q_obs, axis=0) ** 2
 
         grads = np.concatenate([dmse_dtau.reshape(-1), dmse_dlambda.reshape(-1), dmse_dq0.reshape(-1)])
         if self.include_press:
-            Grad_J = self.Grad_J
-            dmse_dJ = 2 * np.sum((q_obs[1:, :] - q_pred[1:, :]) * -Grad_J, axis=0) / np.max(q_obs, axis=0) ** 2
-            grads = np.concatenate([grads, dmse_dJ.reshape(-1)])
+            dmse_dj = 2 * np.sum((q_obs[1:, :] - self.q_pred[1:, :]) * -self.grad_j, axis=0) / np.max(q_obs,
+                                                                                                      axis=0) ** 2
+            grads = np.concatenate([grads, dmse_dj.reshape(-1)])
 
         return grads
 
     def compute_loss(self, q_obs):
         q_pred = self.q_pred
-        mse = np.sum((((q_obs - q_pred) ** 2)), axis=0) / np.max(q_obs,
-                                                                 axis=0) ** 2  # /np.sum((q_obs - q_pred)**2,axis=0)
+        mse = np.sum((((q_obs - q_pred) ** 2)), axis=0) / np.max(q_obs, axis=0) ** 2
         return mse
 
-    def obj_func_fit(self, x, input_series, q_obs):
-        N_prd = self.N_prd
-        N_inj = self.N_inj
-
-        self.tau = x[:N_prd]
-        self.gain_mat = x[N_prd:N_prd + (N_prd * N_inj)].reshape(N_inj, N_prd)
-        self.q0 = x[N_prd + (N_prd * N_inj):(2 * N_prd) + (N_prd * N_inj)]
+    def _preproc_matrices(self, x, input_series, train=True):
+        n_prd = self.n_prd
+        n_inj = self.n_inj
+        j = None
+        self.tau = x[:n_prd]
+        self.gain_mat = x[n_prd:n_prd + (n_prd * n_inj)].reshape(n_inj, n_prd)
+        self.q0 = x[n_prd + (n_prd * n_inj):(2 * n_prd) + (n_prd * n_inj)]
         if self.include_press:
-            self.J0 = x[(2 * N_prd) + (N_prd * N_inj):]
+            j = x[(2 * n_prd) + (n_prd * n_inj):]
 
-        q_pred_ = self.prod_pred(input_series, train=True)
+        q_pred = self.prod_pred(input_series, train=True)
+
+        return q_pred, j
+
+    def obj_func_fit(self, x, input_series, q_obs):
+        _, self.j0 = self._preproc_matrices(x, input_series, train=True)
         obj = np.sum(self.compute_loss(q_obs))
         return obj
 
     def jac_func_fit(self, x, input_series, q_obs):
-        N_prd = self.N_prd
-        N_inj = self.N_inj
+        _, self.j = self._preproc_matrices(x, input_series, train=True)
 
-        self.tau = x[:N_prd]
-        self.gain_mat = x[N_prd:N_prd + (N_prd * N_inj)].reshape(N_inj, N_prd)
-        self.q0 = x[N_prd + (N_prd * N_inj):(2 * N_prd) + (N_prd * N_inj)]
-        if self.include_press:
-            self.J = x[(2 * N_prd) + (N_prd * N_inj):]
-
-        q_pred_ = self.prod_pred(input_series, train=True)
         grads = self.compute_grads(q_obs)
         return grads
 
-    def fit_model(self, input_series, q_obs, init_guess):
+    def fit_model(self, input_series, q_obs, tau_0, gain_mat_0, q0_0, j0=None):
 
-        N_inj = self.N_inj
-        N_prd = self.N_prd
+        n_inj = self.n_inj
+        n_prd = self.n_prd
 
-        tau_0 = init_guess[0]
-        gain_mat_0 = init_guess[1]
-        q0_0 = init_guess[2]
         x0 = np.concatenate([tau_0.reshape(-1), gain_mat_0.reshape(-1), q0_0.reshape(-1)])
         bnds = []
         # tau_bounds
-        for i in range(N_prd):
+        for i in range(n_prd):
             bnds.append((0.0001, 10))
         # gain_mat bounds
-        for i in range(N_prd * N_inj):
+        for i in range(n_prd * n_inj):
             bnds.append((0.0, 1.0))
         # q0 bounds
-        for i in range(N_prd):
+        for i in range(n_prd):
             bnds.append((0.0, None))
         if self.include_press:
-            J_0 = init_guess[3]
-            x0 = np.concatenate([x0, J_0.reshape(-1)])
-            for i in range(N_prd):
+            x0 = np.concatenate([x0, j0.reshape(-1)])
+            for i in range(n_prd):
                 bnds.append((0.0, None))
         bnds = tuple(bnds)
         sum_constraints = ({'type': 'ineq', "fun": self.apply_gain_mat_constraint})
@@ -241,19 +236,17 @@ class CRMP:
                                                              'ftol': 1e-2, 'maxiter': 500})
 
         fit_param = res.x
-        tau_fit = fit_param[:N_prd]
-        gain_mat_fit = fit_param[N_prd:N_prd + (N_prd * N_inj)].reshape(N_inj, N_prd)
-        q0_fit = fit_param[N_prd + (N_prd * N_inj):(2 * N_prd) + (N_prd * N_inj)]
+        tau_fit = fit_param[:n_prd]
+        gain_mat_fit = fit_param[n_prd:n_prd + (n_prd * n_inj)].reshape(n_inj, n_prd)
+        q0_fit = fit_param[n_prd + (n_prd * n_inj):(2 * n_prd) + (n_prd * n_inj)]
         param_fits = [tau_fit, gain_mat_fit, q0_fit]
         if self.include_press:
-            J_fit = fit_param[(2 * N_prd) + (N_prd * N_inj):]
-            param_fits.append(J_fit)
+            j_fit = fit_param[(2 * n_prd) + (n_prd * n_inj):]
+            param_fits.append(j_fit)
 
         return param_fits
 
     def apply_gain_mat_constraint(self, x):
-        N_prd = self.N_prd
-        N_inj = self.N_inj
-        gain_mat = x[N_prd:N_prd + (N_prd * N_inj)].reshape(N_inj, N_prd)
+        gain_mat = x[self.n_prd:self.n_prd + (self.n_prd * self.n_inj)].reshape(self.n_inj, self.n_prd)
         residual = 1.0 - np.sum(gain_mat, axis=1)
         return residual
