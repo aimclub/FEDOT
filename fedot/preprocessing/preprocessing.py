@@ -458,16 +458,12 @@ def merge_preprocessors(api_preprocessor: DataPreprocessor,
     Combining two preprocessor objects. One is the preprocessor from the API,
     the second is the preprocessor from the obtained pipeline
     """
-    new_data_preprocessor = DataPreprocessor(api_preprocessor.log)
-
-    # Update obligatory data preprocessing (take it from API)
-    new_data_preprocessor.target_encoder = api_preprocessor.target_encoder
-    new_data_preprocessor.ids_relevant_features = api_preprocessor.ids_relevant_features
-    new_data_preprocessor.ids_incorrect_features = api_preprocessor.ids_incorrect_features
-    new_data_preprocessor.binary_categorical_processor = api_preprocessor.binary_categorical_processor
-    new_data_preprocessor.types_corrector = api_preprocessor.types_corrector
+    # Take all obligatory data preprocessing from API
+    new_data_preprocessor = api_preprocessor
 
     # Update optional preprocessing (take it from obtained pipeline)
     new_data_preprocessor.structure_analysis = pipeline_preprocessor.structure_analysis
-    new_data_preprocessor.features_encoder = pipeline_preprocessor.features_encoder
+    if new_data_preprocessor.features_encoder is None:
+        # Store features encoder from obtained pipeline
+        new_data_preprocessor.features_encoder = pipeline_preprocessor.features_encoder
     return new_data_preprocessor

@@ -36,8 +36,8 @@ class DataAnalyser:
                 recommendations[data_source_name] = self.give_recommendation(input_data[data_source_name])
         elif isinstance(input_data, InputData) and input_data.data_type == DataTypesEnum.table:
             if self.safe_mode:
-                result, border = self.control_size(input_data)
-                if result:
+                is_cut_needed, border = self.control_size(input_data)
+                if is_cut_needed:
                     recommendations['cut'] = {'border': border}
                 is_label_encoding_needed = self.control_categorical(input_data)
                 if is_label_encoding_needed:

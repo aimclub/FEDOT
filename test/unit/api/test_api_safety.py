@@ -73,7 +73,8 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     model.data_analyser.max_cat_cardinality = 5
     model.data_analyser.max_size = 18
     data = get_small_cat_data()
-    model.fit(features=data, predefined_model='auto')
+    pipeline = model.fit(features=data, predefined_model='auto')
+    pipeline.predict(data)
     model.predict(features=data)
 
     # the should be only tree like models + data operations
