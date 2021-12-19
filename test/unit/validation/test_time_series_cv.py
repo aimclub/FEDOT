@@ -5,16 +5,15 @@ from sklearn.metrics import mean_absolute_error
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
+    GPComposerBuilder, PipelineComposerRequirements
+from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
-from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
-from test.unit.tasks.test_forecasting import get_ts_data
 from fedot.core.validation.tune.time_series import cv_time_series_predictions
-from fedot.core.log import default_log
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(__name__)
 
@@ -117,7 +116,7 @@ def test_composer_cv_correct():
     primary_operations, secondary_operations = get_available_operations()
 
     # Composer parameters
-    composer_requirements = GPComposerRequirements(
+    composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
         max_depth=3, pop_size=2, num_of_generations=2,

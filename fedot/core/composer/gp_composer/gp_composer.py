@@ -16,21 +16,21 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
-    GraphGenerationParams
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum, MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import GPGraphParameterFreeOptimiser
+from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import EvoGraphParameterFreeOptimiser
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import validate, ts_rules, common_rules
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.pipelines.validation import common_rules, ts_rules, validate
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, MetricsEnum,
                                                               MetricsRepository, RegressionMetricsEnum)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
-from fedot.remote.remote_evaluator import init_data_for_remote_execution, RemoteEvaluator
+from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
     TaskTypesEnum.classification: 0.8,
@@ -46,7 +46,7 @@ def set_multiprocess_start_method():
 
 
 @dataclass
-class GPComposerRequirements(ComposerRequirements):
+class PipelineComposerRequirements(ComposerRequirements):
     """
     Dataclass is for defining the requirements for composition process of genetic programming composer
 
@@ -77,7 +77,7 @@ class GPComposer(Composer):
     """
 
     def __init__(self, optimiser=None,
-                 composer_requirements: Optional[GPComposerRequirements] = None,
+                 composer_requirements: Optional[PipelineComposerRequirements] = None,
                  metrics: Union[List[MetricsEnum], MetricsEnum] = None,
                  initial_pipeline: Optional[Pipeline] = None,
                  logger: Log = None):
@@ -231,27 +231,20 @@ class GPComposer(Composer):
 class GPComposerBuilder:
     def __init__(self, task: Task):
         self._composer = GPComposer()
+        self.optimiser = EvoGraphOptimiser
         self.optimiser_parameters = GPGraphOptimiserParameters()
         self.task = task
         self.set_default_composer_params()
 
-    def can_be_secondary_requirement(self, operation):
-        operation_name = OperationTypesRepository(operation_type='all').operation_info_by_id(operation)
-        operation_tags = operation_name.tags
-
-        secondary_model = True
-        # TODO remove 'data_model'
-        if 'data_model' in operation_tags:
-            secondary_model = False
-        return secondary_model
-
-    def with_optimiser_parameters(self, optimiser_parameters: GPGraphOptimiserParameters):
-        self.optimiser_parameters = optimiser_parameters
+    def with_optimiser(self, optimiser: Optional[GraphOptimiser] = None,
+                       parameters: Optional[GraphOptimiserParameters] = None):
+        if optimiser is not None:
+            self.optimiser = optimiser
+        if parameters is not None:
+            self.optimiser_parameters = parameters
         return self
 
-    def with_requirements(self, requirements: GPComposerRequirements):
-        # TODO move this functionality in composer
-        requirements.secondary = list(filter(self.can_be_secondary_requirement, requirements.secondary))
+    def with_requirements(self, requirements: PipelineComposerRequirements):
         self._composer.composer_requirements = requirements
         return self
 
@@ -281,7 +274,8 @@ class GPComposerBuilder:
             operations = get_operations_for_task(task=self.task, mode='all')
 
             # Set protected attributes to composer
-            self._composer.composer_requirements = GPComposerRequirements(primary=operations, secondary=operations)
+            self._composer.composer_requirements = PipelineComposerRequirements(primary=operations,
+                                                                                secondary=operations)
         if not self._composer.metrics:
             metric_function = ClassificationMetricsEnum.ROCAUC_penalty
             if self.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
@@ -291,16 +285,17 @@ class GPComposerBuilder:
             self._composer.metrics = [metric_function]
 
     def build(self) -> Composer:
-        optimiser_type = GPGraphOptimiser
-        if self.optimiser_parameters.genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
-            optimiser_type = GPGraphParameterFreeOptimiser
+        optimiser_type = self.optimiser
+        if (optimiser_type == EvoGraphOptimiser and
+                self.optimiser_parameters.genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free):
+            optimiser_type = EvoGraphParameterFreeOptimiser
 
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self._composer.log),
                                                         advisor=PipelineChangeAdvisor())
 
         archive_type = None
         if len(self._composer.metrics) > 1:
-            archive_type = tools.ParetoFront()
+            self.optimiser_parameters.archive_type = tools.ParetoFront()
             # TODO add possibility of using regularization in MO alg
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
             self.optimiser_parameters.multi_objective = True
@@ -316,7 +311,7 @@ class GPComposerBuilder:
                                    requirements=self._composer.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters, log=self._composer.log,
-                                   archive_type=archive_type, metrics=self._composer.metrics)
+                                   metrics=self._composer.metrics)
 
         self._composer.optimiser = optimiser
 

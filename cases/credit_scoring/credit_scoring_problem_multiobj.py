@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
@@ -52,7 +52,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     complexity_metric = ComplexityMetricsEnum.node_num
     metrics = [quality_metric, complexity_metric]
     # the choice and initialisation of the GP search
-    composer_requirements = GPComposerRequirements(
+    composer_requirements = PipelineComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
@@ -66,7 +66,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     # Create builder for composer and set composer params
     builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metrics).with_optimiser_parameters(optimiser_parameters)
+        metrics).with_optimiser(parameters=optimiser_parameters)
 
     # Create GP-based composer
     composer = builder.build()

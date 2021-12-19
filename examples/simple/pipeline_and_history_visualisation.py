@@ -1,7 +1,7 @@
 from examples.simple.classification.classification_pipelines import classification_xgboost_complex_pipeline
-from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 

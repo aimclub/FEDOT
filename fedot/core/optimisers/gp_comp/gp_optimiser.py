@@ -1,16 +1,13 @@
 import math
 from copy import deepcopy
-from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 import numpy as np
 from tqdm import tqdm
 
-from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.log import Log, default_log
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
@@ -25,7 +22,7 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
-from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, correct_if_has_nans
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -34,7 +31,7 @@ MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
 
 
-class GPGraphOptimiserParameters:
+class GPGraphOptimiserParameters(GraphOptimiserParameters):
     """
         This class is for defining the parameters of optimiser
 
@@ -75,26 +72,22 @@ class GPGraphOptimiserParameters:
                  mutation_types: List[Union[MutationTypesEnum, Any]] = None,
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
-                 with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 multi_objective: bool = False, history_folder: str = None,
-                 stopping_after_n_generation: int = 10):
+                 archive_type=None,
+                 *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
 
         self.selection_types = selection_types
         self.crossover_types = crossover_types
         self.mutation_types = mutation_types
         self.regularization_type = regularization_type
         self.genetic_scheme_type = genetic_scheme_type
-        self.with_auto_depth_configuration = with_auto_depth_configuration
-        self.depth_increase_step = depth_increase_step
-        self.multi_objective = multi_objective
-        self.history_folder = history_folder
-        self.stopping_after_n_generation = stopping_after_n_generation
-        self.use_stopping_criteria = True if self.stopping_after_n_generation is not None else False
+        self.archive_type = archive_type
 
 
-class GPGraphOptimiser:
+class EvoGraphOptimiser(GraphOptimiser):
     """
-    Base class of evolutionary graph optimiser
+    Multi-objective evolutionary graph optimiser named GPComp
 
     :param initial_graph: graph which was initialized outside the optimiser
     :param requirements: optimizer requirements
@@ -109,19 +102,16 @@ class GPGraphOptimiser:
                  graph_generation_params: 'GraphGenerationParams',
                  metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
-                 log: Log = None, archive_type=None):
+                 log: Log = None):
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
-        self.archive = archive_type if archive_type else SimpleArchive()
+        self.archive = self.parameters.archive_type if self.parameters.archive_type else SimpleArchive()
 
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
@@ -137,13 +127,8 @@ class GPGraphOptimiser:
         if not self.requirements.pop_size:
             self.requirements.pop_size = 10
 
-        self.use_stopping_criteria = parameters.use_stopping_criteria
-        self.stopping_after_n_generation = parameters.stopping_after_n_generation
-
         self.population = None
         self.initial_graph = initial_graph
-        self.history = OptHistory(metrics, parameters.history_folder)
-        self.history.clean_results()
 
     def _create_randomized_pop_from_inital_graph(self, initial_pipeline) -> List[Individual]:
         """
@@ -292,11 +277,6 @@ class GPGraphOptimiser:
 
         return output
 
-    def _convert_inds_to_external_result(self, individuals):
-        return [self.graph_generation_params.adapter.restore(ind.graph) for ind in individuals] \
-            if isinstance(individuals, list) \
-            else self.graph_generation_params.adapter.restore(individuals.graph)
-
     @property
     def best_individual(self) -> Any:
         if self.parameters.multi_objective:
@@ -409,9 +389,6 @@ class GPGraphOptimiser:
             num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
 
-    def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10):
-        return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
-
     def default_on_next_iteration_callback(self, individuals, archive):
         try:
             self.history.add_to_history(individuals)
@@ -434,7 +411,7 @@ class GPGraphOptimiser:
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
                                                      timer=timer, is_multi_objective=self.parameters.multi_objective)
-        individuals_set = correct_if_population_has_nans(evaluated_individuals, self.log)
+        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
         return individuals_set
 
     def _is_stopping_criteria_triggered(self):
@@ -444,30 +421,3 @@ class GPGraphOptimiser:
                 return True
         else:
             return False
-
-
-@dataclass
-class GraphGenerationParams:
-    """
-    This dataclass is for defining the parameters using in graph generation process
-
-    :param adapter: the function for processing of external object that should be optimized
-    :param rules_for_constraint: set of constraints
-    """
-    adapter: BaseOptimizationAdapter = DirectAdapter()
-    rules_for_constraint: Optional[List[Callable]] = None
-    advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
-
-
-def correct_if_population_has_nans(population, log):
-    len_before = len(population)
-    population = [ind for ind in population if ind.fitness is not None]
-    len_after = len(population)
-
-    if len_after != len_before:
-        log.info(f"None from individual's fitness were removed")
-
-    if len(population) == 0:
-        raise ValueError('All evaluations of fitness was unsuccessful.')
-
-    return population

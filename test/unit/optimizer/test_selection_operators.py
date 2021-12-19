@@ -1,11 +1,10 @@
 from functools import partial
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.debug.metrics import RandomMetric
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.selection import (
     SelectionTypesEnum,
@@ -14,12 +13,13 @@ from fedot.core.optimisers.gp_comp.operators.selection import (
     selection,
     tournament_selection
 )
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
 def rand_population_gener_and_eval(pop_size=4):
     models_set = ['knn', 'logit', 'rf']
-    requirements = GPComposerRequirements(primary=models_set,
-                                          secondary=models_set, max_depth=1)
+    requirements = PipelineComposerRequirements(primary=models_set,
+                                                secondary=models_set, max_depth=1)
     pipeline_gener_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
     random_pipeline_function = partial(random_graph, params=pipeline_gener_params,
                                        requirements=requirements)

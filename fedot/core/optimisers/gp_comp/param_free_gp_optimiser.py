@@ -8,7 +8,7 @@ from tqdm import tqdm
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, duplicates_filtration, \
     num_of_parents_in_crossover
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
@@ -20,7 +20,7 @@ from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEn
 DEFAULT_MAX_POP_SIZE = 55
 
 
-class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
+class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     """
     Implementation of the parameter-free adaptive evolutionary optimiser
     (population size and genetic operators rates is changing over time).
@@ -41,12 +41,9 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None,
+                 sequence_function=fibonacci_sequence, log: Log = None,
                  suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log, archive_type)
-
-        if archive_type is not None:
-            self.archive = archive_type
+        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
             self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')

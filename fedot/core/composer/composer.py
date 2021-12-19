@@ -52,7 +52,7 @@ class Composer(ABC):
     :param metrics: metrics used to define the quality of found solution.
     :param composer_requirements: requirements for composition process
     :param initial_pipeline: defines the initial state of the population. If None then initial population is random.
-    :param log: optional parameter for log oject
+    :param log: optional parameter for log object
     """
 
     def __init__(self, optimiser=None,
@@ -63,6 +63,7 @@ class Composer(ABC):
         self.metrics = metrics
         self.composer_requirements = composer_requirements
         self.initial_pipeline = initial_pipeline
+        self.optimiser = optimiser
 
         if not logger:
             self.log = default_log(__name__)

@@ -1,7 +1,7 @@
 import datetime
 import gc
 import traceback
-from typing import Callable, List, Union
+from typing import Callable, List, Type, Union
 
 import numpy as np
 from deap import tools
@@ -10,15 +10,17 @@ from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
-                                                         GPComposerRequirements)
+                                                         PipelineComposerRequirements)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
+    GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -32,7 +34,7 @@ class ApiComposer:
     def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
         self.initial_assumptions = ApiInitialAssumptions()
-
+        self.optimiser = EvoGraphOptimiser
         self.current_model = None
         self.best_models = None
         self.history = None
@@ -80,19 +82,20 @@ class ApiComposer:
 
         return self.current_model, self.best_models, self.history
 
-    def get_gp_composer_builder(self, task: Task,
-                                metric_function,
-                                composer_requirements: GPComposerRequirements,
-                                optimizer_parameters: GPGraphOptimiserParameters,
-                                data: Union[InputData, MultiModalData],
-                                logger: Log,
-                                initial_pipeline: Pipeline = None):
-        """ Return GPComposerBuilder with parameters and if it is necessary
+    def get_composer_builder(self, task: Task,
+                             metric_function,
+                             composer_requirements: PipelineComposerRequirements,
+                             optimiser: Type[GraphOptimiser],
+                             optimizer_parameters: GraphOptimiserParameters,
+                             data: Union[InputData, MultiModalData],
+                             logger: Log,
+                             initial_pipeline: Pipeline = None):
+        """ Return ComposerBuilder with parameters and if it is necessary
         init_pipeline in it """
 
         builder = GPComposerBuilder(task=task). \
             with_requirements(composer_requirements). \
-            with_optimiser_parameters(optimizer_parameters). \
+            with_optimiser(optimiser, optimizer_parameters). \
             with_metrics(metric_function).with_logger(logger)
 
         if initial_pipeline is None:
@@ -159,15 +162,15 @@ class ApiComposer:
         starting_time_for_composing = datetime.datetime.now()
         # the choice and initialisation of the GP composer
         composer_requirements = \
-            GPComposerRequirements(primary=primary_operations,
-                                   secondary=secondary_operations,
-                                   max_arity=composer_params['max_arity'],
-                                   max_depth=composer_params['max_depth'],
-                                   pop_size=composer_params['pop_size'],
-                                   num_of_generations=composer_params['num_of_generations'],
-                                   cv_folds=composer_params['cv_folds'],
-                                   validation_blocks=composer_params['validation_blocks'],
-                                   timeout=datetime.timedelta(minutes=timeout_for_composing))
+            PipelineComposerRequirements(primary=primary_operations,
+                                         secondary=secondary_operations,
+                                         max_arity=composer_params['max_arity'],
+                                         max_depth=composer_params['max_depth'],
+                                         pop_size=composer_params['pop_size'],
+                                         num_of_generations=composer_params['num_of_generations'],
+                                         cv_folds=composer_params['cv_folds'],
+                                         validation_blocks=composer_params['validation_blocks'],
+                                         timeout=datetime.timedelta(minutes=timeout_for_composing))
 
         spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
         spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
@@ -196,13 +199,14 @@ class ApiComposer:
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
 
-        builder = self.get_gp_composer_builder(task=api_params['task'],
-                                               metric_function=metric_function,
-                                               composer_requirements=composer_requirements,
-                                               optimizer_parameters=optimizer_parameters,
-                                               data=api_params['train_data'],
-                                               initial_pipeline=api_params['initial_pipeline'],
-                                               logger=api_params['logger'])
+        builder = self.get_composer_builder(task=api_params['task'],
+                                            metric_function=metric_function,
+                                            composer_requirements=composer_requirements,
+                                            optimiser=self.optimiser,
+                                            optimizer_parameters=optimizer_parameters,
+                                            data=api_params['train_data'],
+                                            initial_pipeline=api_params['initial_pipeline'],
+                                            logger=api_params['logger'])
 
         gp_composer = builder.build()
 

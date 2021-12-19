@@ -16,7 +16,7 @@ from datetime import timedelta
 from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
+    GPComposerBuilder, PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
@@ -65,7 +65,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
 
-    composer_requirements = GPComposerRequirements(
+    composer_requirements = PipelineComposerRequirements(
         primary=available_model_types, secondary=available_model_types,
         timeout=cur_lead_time)
 

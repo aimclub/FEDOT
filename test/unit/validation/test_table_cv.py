@@ -3,20 +3,20 @@ from datetime import timedelta
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
+from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.api.main import Fedot
-from fedot.core.log import default_log
-from fedot.core.validation.compose.tabular import table_metric_calculation
+from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, PipelineComposerRequirements
 from fedot.core.data.data import InputData
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.models.test_model import classification_dataset
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements, GPComposerBuilder
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
-from test.unit.tasks.test_classification import pipeline_simple, get_iris_data
+from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
+from test.unit.models.test_model import classification_dataset
+from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 
 _ = classification_dataset
 
@@ -56,9 +56,9 @@ def test_cv_ts_and_cluster_raise():
 
     operations_repo = OperationTypesRepository()
     available_model_types, _ = operations_repo.suitable_operation(task_type=task.task_type)
-    composer_requirements = GPComposerRequirements(primary=available_model_types,
-                                                   secondary=available_model_types,
-                                                   cv_folds=4)
+    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
+                                                         secondary=available_model_types,
+                                                         cv_folds=4)
     builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
@@ -72,7 +72,7 @@ def test_cv_min_kfolds_raise():
     available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
     with pytest.raises(ValueError):
-        GPComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
+        PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
 
 
 def test_tuner_cv_classification_correct():
@@ -115,10 +115,10 @@ def test_composer_with_cv_optimization_correct():
                        ClassificationMetricsEnum.accuracy,
                        ClassificationMetricsEnum.logloss]
 
-    composer_requirements = GPComposerRequirements(primary=available_model_types,
-                                                   secondary=available_model_types,
-                                                   timeout=timedelta(minutes=1),
-                                                   num_of_generations=2, cv_folds=3)
+    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
+                                                         secondary=available_model_types,
+                                                         timeout=timedelta(minutes=1),
+                                                         num_of_generations=2, cv_folds=3)
 
     builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()

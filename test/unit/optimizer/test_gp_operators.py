@@ -7,7 +7,7 @@ from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, \
-    GPComposerRequirements, sample_split_ratio_for_tasks
+    PipelineComposerRequirements, sample_split_ratio_for_tasks
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -15,12 +15,12 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals, filter_duplicates
-from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation, reduce_mutation, \
-    single_drop_mutation, _adapt_and_apply_mutations
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations, mutation, \
+    reduce_mutation, single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -117,8 +117,8 @@ def test_evaluate_individuals():
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    composer_requirements = GPComposerRequirements(primary=available_model_types,
-                                                   secondary=available_model_types)
+    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
+                                                         secondary=available_model_types)
 
     builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
         with_metrics(metric_function)
@@ -201,14 +201,14 @@ def test_mutation():
     task = Task(TaskTypesEnum.classification)
     primary_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
-    composer_requirements = GPComposerRequirements(primary=primary_model_types,
-                                                   secondary=secondary_model_types, mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
+                                                         secondary=secondary_model_types, mutation_prob=1)
     new_ind = mutation(mutation_types, graph_gener_params, ind,
                        composer_requirements, log=log, max_depth=3)
     assert new_ind.graph == ind.graph
     mutation_types = [MutationTypesEnum.growth]
-    composer_requirements = GPComposerRequirements(primary=primary_model_types,
-                                                   secondary=secondary_model_types, mutation_prob=0)
+    composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
+                                                         secondary=secondary_model_types, mutation_prob=0)
     new_ind = mutation(mutation_types, graph_gener_params, ind,
                        composer_requirements, log=log, max_depth=3)
     assert new_ind.graph == ind.graph
@@ -227,8 +227,8 @@ def test_intermediate_add_mutation_for_linear_graph():
     nodes_from = [OptNode({'name': 'one_hot_encoding'}, [OptNode({'name': 'scaling'})])]
     linear_three_nodes_inner = OptGraph(OptNode({'name': 'logit'}, nodes_from))
 
-    composer_requirements = GPComposerRequirements(primary=['scaling'],
-                                                   secondary=['one_hot_encoding'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['scaling'],
+                                                         secondary=['one_hot_encoding'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
@@ -258,8 +258,8 @@ def test_parent_add_mutation_for_linear_graph():
 
     linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
 
-    composer_requirements = GPComposerRequirements(primary=['scaling'],
-                                                   secondary=['logit'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['scaling'],
+                                                         secondary=['logit'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
@@ -289,8 +289,8 @@ def test_edge_mutation_for_graph():
     graph_with_edge = \
         OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [primary]), primary]))
 
-    composer_requirements = GPComposerRequirements(primary=['scaling', 'one_hot_encoding'],
-                                                   secondary=['logit', 'scaling'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['scaling', 'one_hot_encoding'],
+                                                         secondary=['logit', 'scaling'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
@@ -317,8 +317,8 @@ def test_replace_mutation_for_linear_graph():
 
     linear_changed = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'})]))
 
-    composer_requirements = GPComposerRequirements(primary=['scaling', 'one_hot_encoding'],
-                                                   secondary=['logit'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['scaling', 'one_hot_encoding'],
+                                                         secondary=['logit'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
@@ -346,8 +346,8 @@ def test_drop_mutation_for_linear_graph():
 
     linear_one_node = OptGraph(OptNode({'name': 'logit'}))
 
-    composer_requirements = GPComposerRequirements(primary=['scaling'],
-                                                   secondary=['logit'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['scaling'],
+                                                         secondary=['logit'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
@@ -383,8 +383,8 @@ def test_boosting_mutation_for_linear_graph():
                                          [OptNode({'name': 'class_decompose'},
                                                   [model_node, init_node])])]))
 
-    composer_requirements = GPComposerRequirements(primary=['scaling'],
-                                                   secondary=['logit'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['scaling'],
+                                                         secondary=['logit'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
                                          advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.classification)),
@@ -432,8 +432,8 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     # to ensure hyperparameters of custom models
     boosting_graph = adapter.adapt(adapter.restore(boosting_graph))
 
-    composer_requirements = GPComposerRequirements(primary=['smoothing'],
-                                                   secondary=['ridge'], mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=['smoothing'],
+                                                         secondary=['ridge'], mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=adapter,
                                          advisor=PipelineChangeAdvisor(
@@ -525,13 +525,13 @@ def test_mutation_with_single_node():
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
-    composer_requirements = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                                   max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
-                                                   crossover_prob=.8, mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=adapter, advisor=PipelineChangeAdvisor(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
 
+    composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
+                                                         max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
+                                                         crossover_prob=.8, mutation_prob=1)
     new_graph = reduce_mutation(graph, composer_requirements)
     assert graph == new_graph
 
@@ -551,9 +551,9 @@ def test_no_opt_or_graph_nodes_after_mutation():
     mutation_types = [MutationTypesEnum.growth]
     mutation_prob = 1
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
-    composer_requirements = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                                   max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
-                                                   crossover_prob=.8, mutation_prob=1)
+    composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
+                                                         max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
+                                                         crossover_prob=.8, mutation_prob=1)
     graph_params = GraphGenerationParams(adapter=adapter, advisor=PipelineChangeAdvisor(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     _adapt_and_apply_mutations(new_graph=graph,
