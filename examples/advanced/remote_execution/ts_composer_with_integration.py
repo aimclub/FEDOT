@@ -84,7 +84,7 @@ def plot_automl_forecast(df, forecast_horizon, history_size, forecast):
                  len_train_data=len(ts) - forecast_horizon)
 
 
-df = pd.read_csv('../../cases/industrial/pw_dataset.csv', parse_dates=['datetime'])
+df = pd.read_csv('../../../cases/industrial/pw_dataset.csv', parse_dates=['datetime'])
 
 # Make visualisation
 plot_diesel_and_wind(df)

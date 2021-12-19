@@ -5,8 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from examples.pipeline_import_export import create_correct_path
-from examples.time_series.composing_pipelines import visualise
+from examples.simple.pipeline_import_export import create_correct_path
+from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode
@@ -40,23 +40,22 @@ def get_ts_data_long(n_steps=80, forecast_length=5):
 
 
 def clstm_forecasting():
-    horizon = 24*2
+    """ Example of clstm pipeline serialization """
+    horizon = 24 * 2
     window_size = 29
     n_steps = 100
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
-    node_root.custom_params = {
-        'window_size': window_size,
-        'hidden_size': 135,
-        'learning_rate': 0.0004,
-        'cnn1_kernel_size': 5,
-        'cnn1_output_size': 32,
-        'cnn2_kernel_size': 4,
-        'cnn2_output_size': 32,
-        'batch_size': 64,
-        'num_epochs': 50
-    }
+    node_root.custom_params = {'window_size': window_size,
+                               'hidden_size': 135,
+                               'learning_rate': 0.0004,
+                               'cnn1_kernel_size': 5,
+                               'cnn1_output_size': 32,
+                               'cnn2_kernel_size': 4,
+                               'cnn2_output_size': 32,
+                               'batch_size': 64,
+                               'num_epochs': 50}
 
     pipeline = Pipeline(node_root)
     pipeline.fit(train_data)
@@ -90,23 +89,14 @@ def clstm_forecasting():
     plot_info = [
         {'idx': np.arange(np.concatenate([test_data.features, test_data.target]).shape[0]),
          'series': np.concatenate([test_data.features, test_data.target]),
-         'label': 'Actual time series'
-         },
-        {'idx': np.arange(test_data.idx[0], test_data.idx[0]+horizon),
+         'label': 'Actual time series'},
+        {'idx': np.arange(test_data.idx[0], test_data.idx[0] + horizon),
          'series': np.ravel(prediction_before_export),
-         'label': 'prediction'
-         },
-        {'idx': [np.arange(test_data.idx[0] + 1)[-1], np.arange(test_data.idx[0] + 1)[-1]],
-         'series': [
-             min(np.concatenate([np.ravel(np.concatenate([test_data.features, test_data.target])),
-                                 np.ravel(prediction_before_export)])),
-             max(np.concatenate([np.ravel(np.concatenate([test_data.features, test_data.target])),
-                                 np.ravel(prediction_before_export)]))
-         ],
-         'label': 'End of Test',
-         'color': 'black'
-         }
-    ]
+         'label': 'prediction'},
+        get_border_line_info(np.arange(test_data.idx[0] + 1)[-1],
+                             prediction,
+                             np.ravel(np.concatenate([test_data.features, test_data.target])),
+                             'Border line')]
 
     rmse = mean_squared_error(test_data.target, prediction_before_export, squared=False)
     mae = mean_absolute_error(test_data.target, prediction_before_export)

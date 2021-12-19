@@ -101,9 +101,9 @@ def validate_model_quality(model: Pipeline, data_path: str):
 
 
 if __name__ == '__main__':
-    file_path_first = r'./data/example1.xlsx'
-    file_path_second = r'./data/example2.xlsx'
-    file_path_third = r'./data/example3.xlsx'
+    file_path_first = r'../../data/example1.xlsx'
+    file_path_second = r'../../data/example2.xlsx'
+    file_path_third = r'../../data/example3.xlsx'
 
     train_file_path, test_file_path = create_multi_clf_examples_from_excel(file_path_first)
     test_data = InputData.from_csv(test_file_path)

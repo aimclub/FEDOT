@@ -2,11 +2,10 @@ import datetime
 
 from sklearn.metrics import mean_absolute_error
 
-from examples.time_series.composing_pipelines import get_available_operations
+from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
-from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum

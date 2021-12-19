@@ -10,8 +10,8 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
-from examples.pipeline_import_export import create_correct_path
-from examples.time_series.custom_model_tuning import get_fitting_custom_pipeline
+from examples.simple.pipeline_import_export import create_correct_path
+from examples.advanced.time_series_forecasting.custom_model_tuning import get_fitting_custom_pipeline
 
 
 def custom_model_imitation(_, train_data, params):

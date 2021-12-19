@@ -3,7 +3,7 @@ import os
 
 import numpy as np
 
-from examples.regression_with_tuning_example import get_regression_dataset
+from examples.advanced.regression_with_tuning_example import get_regression_dataset
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

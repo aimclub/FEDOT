@@ -34,8 +34,8 @@ def get_simple_pipeline():
 
 
 def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
-                 test_data: InputData, local_iter: int,
-                 tuner_iter_num: int = 30) -> (float, list):
+                    test_data: InputData, local_iter: int,
+                    tuner_iter_num: int = 30) -> (float, list):
     """ Function for tuning pipeline with PipelineTuner
 
     :param pipeline: pipeline to tune
@@ -53,10 +53,10 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
 
         # Pipeline tuning
         pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                 task=train_data.task,
-                                 iterations=tuner_iter_num)
+                                       task=train_data.task,
+                                       iterations=tuner_iter_num)
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                             loss_function=roc_auc)
+                                                      loss_function=roc_auc)
 
         # After tuning prediction
         tuned_pipeline.fit(train_data)
@@ -86,9 +86,9 @@ if __name__ == '__main__':
     local_iter = 5
     # Pipeline tuning
     after_tune_roc_auc, several_iter_scores_test = pipeline_tuning(pipeline=pipeline,
-                                                                train_data=train_data,
-                                                                test_data=test_data,
-                                                                local_iter=local_iter)
+                                                                   train_data=train_data,
+                                                                   test_data=test_data,
+                                                                   local_iter=local_iter)
 
     print(f'Several test scores {several_iter_scores_test}')
     print(f'Mean test score over {local_iter} iterations: {after_tune_roc_auc}')

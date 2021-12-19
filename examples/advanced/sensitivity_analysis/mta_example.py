@@ -1,5 +1,5 @@
-from examples.sensitivity_analysis.dataset_access import get_scoring_data
-from examples.sensitivity_analysis.pipelines_access import get_three_depth_manual_class_pipeline
+from examples.advanced.sensitivity_analysis.dataset_access import get_scoring_data
+from examples.advanced.sensitivity_analysis.pipelines_access import get_three_depth_manual_class_pipeline
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
 from fedot.core.data.data_split import train_test_data_setup
 

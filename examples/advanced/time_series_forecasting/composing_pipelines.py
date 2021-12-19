@@ -1,6 +1,8 @@
 import datetime
 import numpy as np
 import pandas as pd
+from typing import Any, List
+
 from fedot.core.composer.gp_composer.gp_composer import \
     GPComposerBuilder, GPComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
@@ -12,11 +14,11 @@ from fedot.core.repository.quality_metrics_repository import \
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from examples.time_series.pipelines import *
+from examples.simple.time_series_forecasting.pipelines import *
 
 
 def get_available_operations():
@@ -34,7 +36,7 @@ datasets = {
     'stackoverflow': '../data/ts/stackoverflow.csv'}
 
 
-def run_composing(dataset, pipeline, len_forecast=250):
+def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     """ Example of ts forecasting using custom pipelines with composing
     :param dataset: name of dataset
     :param pipeline: pipeline to use
@@ -126,14 +128,16 @@ def run_composing(dataset, pipeline, len_forecast=250):
     obtained_pipeline.show()
 
 
-def visualise(plot_info):
+def visualise(plot_info: List[dict]):
     """
     Creates a plot based on plot_info
-    plot info - list of objects with such structure:
-    {'idx': idx (or x axis data),
-     'series': data to plot (or y axis data),
-     'label': label
-     'color': (optional) color of line}
+
+    :param plot_info: list of parameters for plot:
+    The possible parameters are:
+            'idx' - idx (or x axis data)
+            'series' - data to plot (or y axis data)
+            'label' - label for legend
+            'color' - (optional) color of line
     """
     plt.figure()
     for p in plot_info:
@@ -144,14 +148,14 @@ def visualise(plot_info):
     plt.show()
 
 
-def get_border_line_info(idx, predict: np.array, time_series: np.array, label: str):
+def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str) -> dict:
     """
     Return plot_info for border vertical line that divides train and test part of data
 
-    :param idx - idx  if vertical line
-    :param predict - predictions
-    :param time_series - full time series with test_data
-    :param label -label for legend
+    :param idx: idx for vertical line
+    :param predict: predictions
+    :param time_series: full time series with test_data
+    :param label: label for legend
     """
     return {'idx': [idx, idx],
             'series': [min(np.concatenate([np.ravel(time_series), predict])),

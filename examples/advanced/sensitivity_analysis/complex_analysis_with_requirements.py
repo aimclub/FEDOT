@@ -1,7 +1,7 @@
 from os.path import join
 
-from examples.sensitivity_analysis.dataset_access import get_scoring_data
-from examples.sensitivity_analysis.pipelines_access import get_three_depth_manual_class_pipeline
+from examples.advanced.sensitivity_analysis.dataset_access import get_scoring_data
+from examples.advanced.sensitivity_analysis.pipelines_access import get_three_depth_manual_class_pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.pipeline_sensitivity_facade import PipelineSensitivityAnalysis
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements

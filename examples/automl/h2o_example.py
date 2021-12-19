@@ -1,17 +1,13 @@
 import numpy as np
 
-from examples.pipeline_import_export import run_import_export_example, create_correct_path
-from examples.regression_with_tuning_example import get_regression_dataset
-from examples.time_series.composing_pipelines import display_validation_metric
-from fedot.core.data.data import InputData
+from examples.simple.pipeline_import_export import create_correct_path
+from examples.advanced.time_series_forecasting.composing_pipelines import display_validation_metric
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data, get_rmse_value

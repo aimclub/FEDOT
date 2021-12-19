@@ -40,13 +40,11 @@ def make_forecast(pipeline, train: InputData, predict: InputData,
 
     train_dataset = MultiModalData({
         'data_source_ts/1': train,
-        second_node_name: train_exog,
-    })
+        second_node_name: train_exog})
 
     predict_dataset = MultiModalData({
         'data_source_ts/1': predict,
-        second_node_name: predict_exog,
-    })
+        second_node_name: predict_exog})
 
     pipeline.fit_from_scratch(train_dataset)
     amount_of_seconds = timeit.default_timer() - start_time

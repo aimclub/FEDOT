@@ -3,9 +3,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from examples.time_series.composing_pipelines import get_border_line_info
-from examples.time_series.pipelines import *
-from examples.time_series.tuning_pipelines import visualise
+from examples.advanced.time_series_forecasting.composing_pipelines import get_border_line_info
+from examples.simple.time_series_forecasting.pipelines import *
+from examples.simple.time_series_forecasting.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 
@@ -23,7 +23,7 @@ datasets = {
     'stackoverflow': '../data/ts/stackoverflow.csv'}
 
 
-def run_multistep(dataset, pipeline, step_forecast=10):
+def run_multistep(dataset: str, pipeline: Pipeline, step_forecast=10):
     """ Example of out-of-sample ts forecasting using custom pipelines
     :param dataset: name of dataset
     :param pipeline: pipeline to use

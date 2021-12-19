@@ -134,7 +134,7 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
 
 
 if __name__ == '__main__':
-    df = pd.read_csv('../../cases/data/time_series/metocean.csv')
+    df = pd.read_csv('../../../cases/data/time_series/metocean.csv')
     time_series = np.array(df['value'])
     run_pipeline_tuning(time_series=time_series,
                         len_forecast=50,

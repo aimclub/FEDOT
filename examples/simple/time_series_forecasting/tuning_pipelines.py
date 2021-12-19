@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from examples.time_series.composing_pipelines import visualise, get_border_line_info
+from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from examples.time_series.pipelines import *
+from examples.simple.time_series_forecasting.pipelines import *
 
 datasets = {
     'australia': '../data/ts/australia.csv',
@@ -16,7 +16,7 @@ datasets = {
     'stackoverflow': '../data/ts/stackoverflow.csv'}
 
 
-def run_experiment(dataset, pipeline, len_forecast=250, tuning=True):
+def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=True):
     """ Example of ts forecasting using custom pipelines with optional tuning
     :param dataset: name of dataset
     :param pipeline: pipeline to use
@@ -62,8 +62,7 @@ def run_experiment(dataset, pipeline, len_forecast=250, tuning=True):
                                               'MAE': round(mae, 3)}
     plot_info.append({'idx': prediction.idx,
                       'series': predict,
-                      'label': 'Forecast without tuning'
-                      })
+                      'label': 'Forecast without tuning'})
     plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
 
     if tuning:

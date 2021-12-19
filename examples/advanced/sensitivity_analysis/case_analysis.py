@@ -1,7 +1,7 @@
 from os import makedirs
 from os.path import join, exists
 
-from examples.sensitivity_analysis.pipelines_access import pipeline_by_task
+from examples.advanced.sensitivity_analysis.pipelines_access import pipeline_by_task
 from fedot.core.data.data import InputData
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze

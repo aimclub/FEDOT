@@ -7,7 +7,7 @@ import pytest
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
 
-from examples.time_series.pipelines import clstm_pipeline
+from examples.simple.time_series_forecasting.pipelines import clstm_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

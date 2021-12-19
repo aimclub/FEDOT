@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
-from examples.classification_with_tuning_example import get_classification_dataset
+from examples.advanced.classification_with_tuning_example import get_classification_dataset
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
