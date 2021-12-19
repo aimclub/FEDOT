@@ -87,6 +87,8 @@ def fit_cnn(train_data: InputData,
 
     model.compile(**optimizer_params)
 
+    model.num_classes = train_data.num_classes
+
     if logger is None:
         logger = default_log(__name__)
 
@@ -104,7 +106,7 @@ def fit_cnn(train_data: InputData,
 
 
 def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labels', logger=None) -> OutputData:
-    x_test, y_test = predict_data.features, predict_data.target
+    x_test = predict_data.features
     transformed_x_test, transform_flag = check_input_array(x_test)
 
     if logger is None:
@@ -118,10 +120,10 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
         prediction = trained_model.predict(transformed_x_test)
     elif output_mode in ['probs', 'full_probs', 'default']:
         prediction = trained_model.predict_proba(transformed_x_test)
-        if predict_data.num_classes < 2:
+        if trained_model.num_classes < 2:
             logger.error('Data set contain only 1 target class. Please reformat your data.')
             raise NotImplementedError()
-        elif predict_data.num_classes == 2 and output_mode != 'full_probs' and len(prediction.shape) > 1:
+        elif trained_model.num_classes == 2 and output_mode != 'full_probs' and len(prediction.shape) > 1:
             prediction = prediction[:, 1]
     else:
         raise ValueError(f'Output model {output_mode} is not supported')
