@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.pipeline_import_export import create_correct_path
-from examples.time_series.composing_ts_pipelines import visualise
+from examples.time_series.composing_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode
@@ -14,7 +14,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-
 
 
 def get_ts_data_long(n_steps=80, forecast_length=5):

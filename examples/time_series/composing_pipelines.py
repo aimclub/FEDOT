@@ -12,7 +12,7 @@ from fedot.core.repository.quality_metrics_repository import \
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -31,19 +31,19 @@ datasets = {
     'australia': '../data/ts/australia.csv',
     'beer': '../data/ts/beer.csv',
     'salaries': '../data/ts/salaries.csv',
-    'stackoverflow': '../data/ts/stackoverflow.csv',
-}
+    'stackoverflow': '../data/ts/stackoverflow.csv'}
 
 
-def run_experiment(dataset, pipeline, len_forecast=250):
-    """ Function with example of ts forecasting with different models with composing
+def run_composing(dataset, pipeline, len_forecast=250):
+    """ Example of ts forecasting using custom pipelines with composing
     :param dataset: name of dataset
     :param pipeline: pipeline to use
     :param len_forecast: forecast length
-    :param tuning: is tuning needed
     """
+    # show initial pipeline
+    pipeline.print_structure()
+
     time_series = pd.read_csv(datasets[dataset])
-    # Let's divide our data on train and test samples
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
     if dataset not in ['australia']:
@@ -66,29 +66,20 @@ def run_experiment(dataset, pipeline, len_forecast=250):
     predict = np.ravel(np.array(prediction.predict))
 
     plot_info = []
-    metrics_info = []
+    metrics_info = {}
     plot_info.append({'idx': idx,
                       'series': time_series,
-                      'label': 'Actual time series'
-                      })
+                      'label': 'Actual time series'})
 
     rmse = mean_squared_error(test_target, predict, squared=False)
     mae = mean_absolute_error(test_target, predict)
 
-    metrics_info.append(f'RMSE without tuning - {rmse:.4f}')
-    metrics_info.append(f'MAE without tuning - {mae:.4f}')
+    metrics_info['Metrics without composing'] = {'RMSE': round(rmse, 3),
+                                                 'MAE': round(mae, 3)}
     plot_info.append({'idx': prediction.idx,
                       'series': predict,
-                      'label': 'Forecast without tuning'
-                      })
-    plot_info.append({'idx': [prediction.idx[0], prediction.idx[0]],
-                      'series': [
-                          min(np.concatenate([np.ravel(time_series), predict])),
-                          max(np.concatenate([np.ravel(time_series), predict]))
-                      ],
-                      'label': 'Border line',
-                      'color': 'black'
-                      })
+                      'label': 'Forecast without composing'})
+    plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
 
     # Get available_operations type
     primary_operations, secondary_operations = get_available_operations()
@@ -122,18 +113,28 @@ def run_experiment(dataset, pipeline, len_forecast=250):
     rmse = mean_squared_error(test_target, predict_after, squared=False)
     mae = mean_absolute_error(test_target, predict_after)
 
-    metrics_info.append(f'RMSE after composing - {rmse:.4f}')
-    metrics_info.append(f'MAE after composing - {mae:.4f}')
+    metrics_info['Metrics after composing'] = {'RMSE': round(rmse, 3),
+                                               'MAE': round(mae, 3)}
     plot_info.append({'idx': prediction_after.idx,
                       'series': predict_after,
-                      'label': 'Forecast after composing'
-                      })
-    display_metric(metrics_info)
-    obtained_pipeline.print_structure()
+                      'label': 'Forecast after composing'})
+    print(metrics_info)
+
     visualise(plot_info)
+    # structure of obtained pipeline
+    obtained_pipeline.print_structure()
+    obtained_pipeline.show()
 
 
 def visualise(plot_info):
+    """
+    Creates a plot based on plot_info
+    plot info - list of objects with such structure:
+    {'idx': idx (or x axis data),
+     'series': data to plot (or y axis data),
+     'label': label
+     'color': (optional) color of line}
+    """
     plt.figure()
     for p in plot_info:
         color = p.get('color')
@@ -143,10 +144,21 @@ def visualise(plot_info):
     plt.show()
 
 
-def display_metric(metrics_info):
-    for m in metrics_info:
-        print(m)
+def get_border_line_info(idx, predict: np.array, time_series: np.array, label: str):
+    """
+    Return plot_info for border vertical line that divides train and test part of data
+
+    :param idx - idx  if vertical line
+    :param predict - predictions
+    :param time_series - full time series with test_data
+    :param label -label for legend
+    """
+    return {'idx': [idx, idx],
+            'series': [min(np.concatenate([np.ravel(time_series), predict])),
+                       max(np.concatenate([np.ravel(time_series), predict]))],
+            'label': label,
+            'color': 'black'}
 
 
 if __name__ == '__main__':
-    run_experiment('australia', glm_pipeline(), len_forecast=30)
+    run_composing('australia', ets_pipeline(), len_forecast=30)

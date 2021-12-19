@@ -3,8 +3,9 @@ import warnings
 import numpy as np
 import pandas as pd
 
+from examples.time_series.composing_pipelines import get_border_line_info
 from examples.time_series.pipelines import *
-from examples.time_series.tuning_ts_pipelines import visualise
+from examples.time_series.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 
@@ -19,19 +20,20 @@ datasets = {
     'australia': '../data/ts/australia.csv',
     'beer': '../data/ts/beer.csv',
     'salaries': '../data/ts/salaries.csv',
-    'stackoverflow': '../data/ts/stackoverflow.csv',
-}
+    'stackoverflow': '../data/ts/stackoverflow.csv'}
 
 
 def run_multistep(dataset, pipeline, step_forecast=10):
-    """ Function with example of out-of-sample ts forecasting with different models
+    """ Example of out-of-sample ts forecasting using custom pipelines
     :param dataset: name of dataset
     :param pipeline: pipeline to use
     :param step_forecast: horizon to train model. Real horizon = step_forecast * 5
     """
+    # show initial pipeline
+    pipeline.print_structure()
+
     horizon = step_forecast * 5
     time_series = pd.read_csv(datasets[dataset])
-    # Let's divide our data on train and test samples
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=step_forecast))
 
@@ -52,29 +54,14 @@ def run_multistep(dataset, pipeline, step_forecast=10):
 
     plot_info = [{'idx': idx,
                   'series': time_series,
-                  'label': 'Actual time series'
-                  },
+                  'label': 'Actual time series'},
                  {'idx': np.arange(test_data.idx[0], test_data.idx[0] + predict.shape[0]),
                   'series': predict,
-                  'label': 'Forecast'
-                  },
-                 {'idx': [np.arange(test_data.idx[0] + 1)[-1], np.arange(test_data.idx[0] + 1)[-1]],
-                  'series': [
-                      min(np.concatenate([np.ravel(time_series), predict])),
-                      max(np.concatenate([np.ravel(time_series), predict]))
-                  ],
-                  'label': 'Train|Test',
-                  'color': 'black'
-                  },
-                 {'idx': [np.arange(test_data.idx[-1] + 1)[-1], np.arange(test_data.idx[-1] + 1)[-1]],
-                  'series': [
-                      min(np.concatenate([np.ravel(time_series), predict])),
-                      max(np.concatenate([np.ravel(time_series), predict]))
-                  ],
-                  'label': 'End of Test',
-                  'color': 'black'
-                  }]
-    pipeline.print_structure()
+                  'label': 'Forecast'},
+                 get_border_line_info(np.arange(test_data.idx[0] + 1)[-1], predict, time_series, 'train|test'),
+                 get_border_line_info(np.arange(test_data.idx[-1] + 1)[-1], predict, time_series, 'End of test')]
+
+    # plot lines
     visualise(plot_info)
 
 
