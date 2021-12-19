@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
@@ -16,6 +16,36 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
+
+
+def predict_check(func):
+
+    def wrapper(*args, **kwargs):
+
+        return_value = func(*args, **kwargs)
+        return_value_wo_target = None
+        target_removed = False
+
+        if 'input_data' in kwargs and isinstance(kwargs['input_data'], InputData):
+            kwargs_wo_target = copy(kwargs)
+            input_data = deepcopy(kwargs_wo_target.pop('input_data'))
+            input_data.target = None
+            target_removed = True
+            return_value_wo_target = func(*args, input_data=input_data, **kwargs_wo_target)
+
+        elif len(args) > 1 and isinstance(args[1], InputData):
+            args_wo_target = copy(args)
+            input_data = deepcopy(args[1])
+            input_data.target = None
+            target_removed = True
+            return_value_wo_target = func(args_wo_target[0], input_data, *args_wo_target[2:], **kwargs)
+
+        if target_removed and (return_value.predict != return_value_wo_target.predict).any():
+            raise AssertionError('Target affected predictions')
+
+        return return_value
+
+    return wrapper
 
 
 class Pipeline(Graph):
@@ -116,7 +146,6 @@ class Pipeline(Graph):
         inside the process) in a case of operation fit time control (when process created)
         :param fitted_operations: this list is used for saving fitted operations of pipeline nodes
         """
-
         # InputData was set directly to the primary nodes
         if input_data is None:
             use_fitted_operations = False
@@ -202,6 +231,7 @@ class Pipeline(Graph):
             else:
                 node.fitted_operation = None
 
+    # @predict_check
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
         Run the predict process in all nodes in pipeline starting with root.
@@ -222,6 +252,14 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
+        # if isinstance(copied_input_data, InputData):
+        #     copied_input_data.target = None
+        #     print(copied_input_data.target)
+        # else:
+        #     for data in copied_input_data.values():
+        #         data.target = None
+        #         print(data, data.target)
+        #
         copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
@@ -233,6 +271,9 @@ class Pipeline(Graph):
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         result = self.root_node.predict(input_data=copied_input_data, output_mode=output_mode)
+
+        # if result.target is None:
+        #     result.target = input_data.target
 
         result = self.preprocessor.restore_index(copied_input_data, result)
         # Prediction should be converted into source labels (if it is needed)
