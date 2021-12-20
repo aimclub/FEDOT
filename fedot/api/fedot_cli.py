@@ -20,7 +20,7 @@ def add_args_to_parser(parser, tag: str, help: str, required: bool = False, is_l
     parser.add_argument(tag, help=help, required=required, nargs=nargs)
 
 
-def remove_none_keys(parameters: dict):
+def preprocess_keys(parameters: dict):
     """ Function that removes nan parameters from input
     and converts numbers from strings
     :param parameters: argparse filtered keys
