@@ -29,7 +29,7 @@ class OperationsPreset:
             available_operations = self._filter_operations_by_preset()
             updated_params['available_operations'] = available_operations
 
-        if updated_params['with_tuning'] or '_tun' in self.preset_name:
+        if updated_params['with_tuning']:
             updated_params['with_tuning'] = True
 
         return updated_params
@@ -45,7 +45,6 @@ class OperationsPreset:
                              'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                              'one_hot_encoding', 'resample']
         excluded_models_dict = {'light': excluded,
-                                'light_tun': excluded,
                                 'light_steady_state': extended_excluded}
 
         # Get data operations and models
@@ -56,11 +55,11 @@ class OperationsPreset:
         available_operations = self._new_operations_without_heavy(excluded_models_dict, available_operations)
 
         # Save only "light" operations
-        if self.preset_name in ['ultra_light', 'ultra_light_tun', 'ultra_steady_state']:
+        if self.preset_name in ['ultra_light', 'ultra_steady_state']:
             light_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge', 'knn', 'ar']
             included_operations = light_models + available_data_operation
             available_operations = [_ for _ in available_operations if _ in included_operations]
-        elif self.preset_name in ['ts', 'ts_tun']:
+        elif self.preset_name in ['ts']:
             # Presets for time series forecasting
             available_operations = ['lagged', 'sparse_lagged', 'ar', 'gaussian_filter', 'smoothing',
                                     'ridge', 'linear', 'lasso', 'dtreg', 'scaling', 'normalization',
@@ -86,4 +85,3 @@ class OperationsPreset:
             available_operations = [_ for _ in available_operations if _ not in excluded_operations]
 
         return available_operations
-

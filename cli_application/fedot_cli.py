@@ -34,6 +34,7 @@ def remove_none_keys(parameters):
             except Exception:
                 pass
 
+
 # parameters to init Fedot class
 main_params_names = ['problem', 'preset', 'timeout', 'seed']
 # parameters to fit model
@@ -58,13 +59,10 @@ arguments_dicts = [{'tag': '--problem',
                    {'tag': '--preset',
                     'help': 'Name of preset for model building: \n'
                             'light;\n'
-                            'light_tun;\n'
                             'light_steady_state;\n'
                             'ultra_light;\n'
-                            'ultra_light_tun;\n'
                             'ultra_steady_state;\n'
                             'ts;\n'
-                            'ts_tun;\n'
                             'gpu'},
                    {'tag': '--timeout',
                     'help': 'Time for model design (in minutes)'},
