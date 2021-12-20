@@ -136,7 +136,7 @@ for arg in vars(parameters):
 
 if main_params['problem'] == 'ts_forecasting' and getattr(parameters, 'for_len') is not None:
     main_params['task_params'] = TsForecastingParams(forecast_length=int(getattr(parameters, 'for_len')))
-else:
+elif main_params['problem'] == 'ts_forecasting' and getattr(parameters, 'for_len') is None:
     raise ValueError("Forecast length (for_len) is necessary parameter for ts_forecasting problem")
 
 if composer_params['with_tuning'] == '1':
