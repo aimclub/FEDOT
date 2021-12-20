@@ -231,7 +231,7 @@ class Pipeline(Graph):
             else:
                 node.fitted_operation = None
 
-    # @predict_check
+    @predict_check
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
         Run the predict process in all nodes in pipeline starting with root.
