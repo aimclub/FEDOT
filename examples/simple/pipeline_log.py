@@ -1,6 +1,6 @@
 import os
 
-from examples.pipeline_tune import get_case_train_test_data, get_scoring_case_data_paths
+from examples.simple.pipeline_tune import get_case_train_test_data, get_scoring_case_data_paths
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

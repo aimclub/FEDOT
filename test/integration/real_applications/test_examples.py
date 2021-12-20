@@ -8,11 +8,11 @@ from sklearn.metrics import mean_squared_error
 from examples.simple.fedot_api_example import (run_ts_forecasting_example, run_classification_multiobj_example,
                                                run_classification_example)
 from examples.simple.interpretable import run_api_explain_example
-from examples.multi_modal_pipeline import run_multi_modal_pipeline
+from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
 from examples.simple.classification.multiclass_prediction import get_model
-from examples.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
-from examples.pipeline_log import run_log_example
-from examples.pipeline_tune import get_case_train_test_data, get_simple_pipeline, pipeline_tuning
+from examples.simple.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
+from examples.simple.pipeline_log import run_log_example
+from examples.simple.pipeline_tune import get_case_train_test_data, get_simple_pipeline, pipeline_tuning
 from examples.simple.time_series_forecasting.exogenous import run_exogenous_experiment
 from examples.time_series.nemo_multiple import run_multiple_example
 from examples.simple.time_series_forecasting.gapfilling import run_gapfilling_example

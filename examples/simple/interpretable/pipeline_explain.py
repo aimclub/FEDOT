@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from examples.pipeline_tune import get_simple_pipeline
+from examples.simple.pipeline_tune import get_simple_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.utils import fedot_project_root
 from fedot.explainability.explainers import explain_pipeline
