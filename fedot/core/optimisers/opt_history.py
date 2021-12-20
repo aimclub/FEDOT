@@ -6,9 +6,10 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
+from _typeshed import SupportsRead
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
 
@@ -105,10 +106,23 @@ class OptHistory:
         except Exception as ex:
             print(ex)
 
+    def dump(self, json_file_path: os.PathLike, **kwargs) -> None:
+        if 'cls' in kwargs:
+            raise KeyError('You can\'t change serializer class')
+        with open(json_file_path, mode='w') as json_fp:
+            json.dump(self, json_fp, cls=Serializer)
+
     def dumps(self, **kwargs) -> str:
         if 'cls' in kwargs:
             raise KeyError('You can\'t change serializer class')
         return json.dumps(self, cls=Serializer, **kwargs)
+
+    @staticmethod
+    def load(json_file_path: os.PathLike, **kwargs) -> 'OptHistory':
+        if 'cls' in kwargs:
+            raise KeyError('You can\'t change serializer class')
+        with open(json_file_path, mode='r') as json_fp:
+            return json.load(json_fp, cls=Serializer, **kwargs)
 
     @staticmethod
     def loads(json_str: str, **kwargs) -> 'OptHistory':
