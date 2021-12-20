@@ -6,8 +6,9 @@ import pandas as pd
 
 # for correct .bat files execution fedot should be build as a package in environment
 env_name = sys.executable
+print(env_name)
 env_path_placeholder = 'DEFAULT'
-predictions_path = '../../../cli_application/predictions.csv'
+predictions_path = '../../../fedot/api/predictions.csv'
 
 
 def change_python_path(file_name, old, new):
@@ -21,6 +22,7 @@ def change_python_path(file_name, old, new):
 
 
 def run_console(bat_name):
+    print(env_name)
     """ Function for running .bat files with returning prediction as df"""
     try:
         os.remove(predictions_path)

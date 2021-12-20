@@ -5,25 +5,25 @@ from fedot.api.main import Fedot
 import os
 
 
-def add_args_to_parser(parser, tag, help, required=False, is_list=False):
+def add_args_to_parser(parser, tag: str, help: str, required: bool = False, is_list: bool = False):
     """ Function for formalized parser arguments creation
     :param parser: ArgumentParser class object
-    :param tag: str, name of parameter to parse
-    :param help: str, help text for parameter
-    :param required: bool, is the parameter required or not
-    :param is_list: bool, does the parameter contain multiple input
+    :param tag: name of parameter to parse
+    :param help: help text for parameter
+    :param required: is the parameter required or not
+    :param is_list: does the parameter contain multiple input
     """
     if is_list is True:
         nargs = '*'
-    elif is_list is False:
+    else:
         nargs = None
     parser.add_argument(tag, help=help, required=required, nargs=nargs)
 
 
-def remove_none_keys(parameters):
+def remove_none_keys(parameters: dict):
     """ Function that removes nan parameters from input
     and converts numbers from strings
-    :param parameters: dict with argparse filtered keys
+    :param parameters: argparse filtered keys
     """
     for k, v in list(parameters.items()):
         if v is None:
