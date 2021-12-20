@@ -38,6 +38,9 @@ class TableTypesCorrector:
         self.numerical_into_str = []
         self.categorical_into_float = []
 
+        # Lists with column types for converting
+        self.features_types = None
+        self.target_types = None
         if not log:
             self.log = default_log(__name__)
         else:
@@ -66,15 +69,19 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
+
+        # Save info about features and target types
+        self.features_types = data.supplementary_data.column_types['features']
+        self.target_types = data.supplementary_data.column_types['target']
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
         """ Prepare data for predict stage. Include only column types transformation """
         # Ordering is important because after removing incorrect features - indices are obsolete
         data.features = data.features.astype(object)
-        table = apply_type_transformation(data.features, self.features_converted_columns)
-        data.features = self.remove_incorrect_features(table, self.features_converted_columns)
-        data.target = apply_type_transformation(data.target, self.target_converted_columns)
+        data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
+        data.features = apply_type_transformation(data.features, self.features_types, self.log)
+        data.target = apply_type_transformation(data.target, self.target_types, self.log)
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
@@ -412,22 +419,40 @@ def find_mixed_types_columns(columns_info: dict):
     return columns_with_mixed_types
 
 
-def apply_type_transformation(table: np.array, converted_columns: dict):
-    """ Apply transformation for columns in dataset with several data types """
-    type_by_name = {"<class 'int'>": int, "<class 'str'>": str, "<class 'float'>": float}
+def apply_type_transformation(table: np.array, column_types: list, log: Log):
+    """ Apply transformation for columns in dataset into desired type """
+
+    def type_by_name(current_type_name: str):
+        """ Return type by it's name """
+        if 'int' in current_type_name:
+            return int
+        elif 'str' in current_type_name:
+            return str
+        else:
+            return float
 
     if table is None:
         # Occurs if for predict stage there is no target info
         return None
 
-    if len(converted_columns) == 0:
-        # There are no columns for converting
-        return table
+    n_rows, n_cols = table.shape
+    for column_id in range(n_cols):
+        current_column = table[:, column_id]
+        current_type = type_by_name(column_types[column_id])
+        try:
+            table[:, column_id] = current_column.astype(current_type)
+        except ValueError as ex:
+            log.info(f'Cannot convert column with id {column_id} due to {ex}')
 
-    for column_id, type_name in converted_columns.items():
-        if type_name != 'removed':
-            current_type = type_by_name[type_name]
-            table[:, column_id] = table[:, column_id].astype(current_type)
+            # Try to convert column from string into float or string
+            message = str(ex)
+            unseen_label = message.split("\'")[1]
+            label_ids = np.ravel(np.argwhere(current_column == unseen_label))
+            current_column[label_ids] = np.nan
+
+            # Store new type for column
+            table[:, column_id] = current_column.astype(current_type)
+
     return table
 
 
