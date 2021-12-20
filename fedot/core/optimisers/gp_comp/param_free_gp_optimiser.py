@@ -145,7 +145,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 from uuid import uuid4
                 self.population = [deepcopy(ind) for ind in self.population]
                 for ind in self.population:
-                    ind._serialization_id = uuid4().hex
+                    ind.graph._serialization_id = uuid4().hex
 
                 if self.archive is not None:
                     self.archive.update(self.population)
