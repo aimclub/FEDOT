@@ -192,15 +192,14 @@ class GPComposer(Composer):
                 # TODO improve cache
                 pipeline.fit_from_cache(self.cache)
 
-            if not pipeline.is_fitted:
-                self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
+            self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
 
-                pipeline.fit(input_data=train_data,
-                             time_constraint=self.composer_requirements.max_pipeline_fit_time)
-                try:
-                    self.cache.save_pipeline(pipeline)
-                except Exception as ex:
-                    self.log.info(f'Cache can not be saved: {ex}. Continue.')
+            pipeline.fit(input_data=train_data,
+                         time_constraint=self.composer_requirements.max_pipeline_fit_time)
+            try:
+                self.cache.save_pipeline(pipeline)
+            except Exception as ex:
+                self.log.info(f'Cache can not be saved: {ex}. Continue.')
 
             evaluated_metrics = ()
             for metric in metrics:

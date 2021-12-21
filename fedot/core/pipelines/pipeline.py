@@ -119,7 +119,7 @@ class Pipeline(Graph):
 
         # InputData was set directly to the primary nodes
         if input_data is None:
-            use_fitted_operations = False
+            use_fitted_operations = True
         else:
             use_fitted_operations = self._fitted_status_if_new_data(new_input_data=input_data,
                                                                     fitted_status=use_fitted_operations)
