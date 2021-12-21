@@ -125,7 +125,20 @@ def test_save_load_atomized_pipeline_correctly():
 
 def test_save_load_fitted_atomized_pipeline_correctly():
     train_data, test_data = create_input_data()
-    pipeline = create_pipeline_with_several_nested_atomized_model()
+
+    ############################
+    # SIMPLE ATOMIZED PIPELINE #
+    ############################
+    # TODO remove before merging
+    pipeline_nested = Pipeline(PrimaryNode('lda'))
+    atomized_nested = AtomizedModel(pipeline_nested)
+
+    scaling_node = PrimaryNode('lda')
+    atomized_node = PrimaryNode(atomized_nested)
+    pipeline = Pipeline(SecondaryNode('lda', nodes_from=[scaling_node, atomized_node]))
+    ############################
+    # SIMPLE ATOMIZED PIPELINE #
+    ############################
 
     pipeline.fit(train_data)
     before_save_predicted = pipeline.predict(test_data)
@@ -153,7 +166,19 @@ def test_fit_predict_atomized_model_correctly():
     """ Check if pipeline nested in AtomizedModel can give the same result as Pipeline stand-alone """
     train_data, test_data = create_input_data()
 
-    pipeline = create_pipeline_with_several_nested_atomized_model()
+    ############################
+    # SIMPLE ATOMIZED PIPELINE #
+    ############################
+    # TODO remove before merging
+    pipeline_nested = Pipeline(PrimaryNode('lda'))
+    atomized_nested = AtomizedModel(pipeline_nested)
+
+    scaling_node = PrimaryNode('lda')
+    atomized_node = PrimaryNode(atomized_nested)
+    pipeline = Pipeline(SecondaryNode('lda', nodes_from=[scaling_node, atomized_node]))
+    ############################
+    # SIMPLE ATOMIZED PIPELINE #
+    ############################
     atomized_model = AtomizedModel(pipeline)
 
     pipeline.fit(train_data)

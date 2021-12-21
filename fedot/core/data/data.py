@@ -238,6 +238,8 @@ class InputData(Data):
         # Update not only features but idx, target and task also
         idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
 
+        # Mark data as preprocessed already
+        updated_info.was_preprocessed = True
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=d_type, supplementary_data=updated_info)
 
