@@ -113,6 +113,7 @@ class Operation(OperationSerializer):
             prediction.supplementary_data.is_main_target = is_main_target
 
         prediction.supplementary_data.data_flow_length = data_flow_length
+        prediction.supplementary_data.was_preprocessed = True
         return prediction
 
     @staticmethod

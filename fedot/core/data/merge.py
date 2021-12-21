@@ -70,6 +70,7 @@ class DataMerger:
             updated_info.prepare_parent_mask(self.outputs)
 
         updated_info = self.update_column_types(updated_info, first_data_type, task)
+        updated_info.was_preprocessed = True
         return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):

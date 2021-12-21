@@ -44,8 +44,6 @@ class ApiDataProcessor:
         Obligatory preprocessing steps are applying also. If features is dictionary
         there is a need to process MultiModalData
         """
-        if is_predict is False and target is None:
-            raise ValueError('There are no target for fit stage')
         try:
             # TODO remove workaround
             idx = None

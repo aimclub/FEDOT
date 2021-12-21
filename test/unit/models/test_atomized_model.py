@@ -1,6 +1,5 @@
 import os
 import json
-import random
 import pytest
 
 import numpy as np
