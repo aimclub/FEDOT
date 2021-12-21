@@ -248,11 +248,14 @@ class TableTypesCorrector:
             return mixed_column, str(suggested_type)
         except ValueError:
             # Cannot convert string objects into int or float (for example 'a' into int)
+            target_column = pd.Series(mixed_column)
+            converted_column = pd.to_numeric(target_column, errors='coerce')
+
             prefix = f'Target column with index {mixed_column_id} contains ' \
                      f'following data types: {column_info["types"]}.'
-            error_message = f'{prefix} String cannot be converted into {suggested_type}.'
-            self.log.error(error_message)
-            raise ValueError(error_message)
+            log_message = f'{prefix} String cannot be converted into {suggested_type}. Ignore non converted values.'
+            self.log.debug(log_message)
+            return mixed_column, str(suggested_type)
 
     def _into_categorical_features_transformation_for_fit(self, data: 'InputData'):
         """
