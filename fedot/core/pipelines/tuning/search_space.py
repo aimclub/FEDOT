@@ -272,6 +272,10 @@ class SearchSpace:
                 'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
                 'replace': (hp.choice, [[True, False]]),
                 'n_samples': (hp.uniform, [0.3, 1])
+            },
+            'lda': {
+                'solver': (hp.choice, [['svd', 'lsqr', 'eigen']]),
+                'shrinkage': (hp.uniform, [0.1, 0.9])
             }
         }
 

@@ -30,7 +30,7 @@ def create_pipeline() -> Pipeline:
     node_logit = PrimaryNode('logit')
 
     node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'n_components': 1}
+    node_lda.custom_params = {'solver': 'lsqr'}
 
     node_xgboost = SecondaryNode('xgboost')
     node_xgboost.custom_params = {'n_components': 1}
