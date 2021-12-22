@@ -57,13 +57,15 @@ def test_custom_graph_opt():
         adapter=DirectAdapter(CustomModel, CustomNode),
         rules_for_constraint=rules)
 
-    optimizer = EvoGraphOptimiser(
+    optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
         metrics=[],
         parameters=optimiser_parameters,
         requirements=requirements, initial_graph=None)
 
-    optimized_network = optimizer.optimise(custom_metric)
+    optimized_graph = optimiser.optimise(custom_metric)
+
+    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 
     assert optimized_network is not None
     assert isinstance(optimized_network, CustomModel)
