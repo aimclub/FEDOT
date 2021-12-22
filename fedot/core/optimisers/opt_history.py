@@ -6,10 +6,9 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 from uuid import uuid4
 
-from _typeshed import SupportsRead
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
 
