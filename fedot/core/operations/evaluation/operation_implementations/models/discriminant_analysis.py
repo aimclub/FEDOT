@@ -22,7 +22,16 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
         :param train_data: data to train the model
         """
-        self.model.fit(train_data.features, train_data.target)
+        try:
+            self.model.fit(train_data.features, train_data.target)
+        except ValueError:
+            # Problem arise when features and target are "ideally" mapping
+            # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
+            # Add gaussian noise
+            small_random_component = np.random.normal(0, 0.00001, len(train_data.features))
+            small_random_component = small_random_component.reshape((-1, 1))
+            train_data.features = train_data.features + small_random_component
+            self.model.fit(train_data.features, train_data.target)
 
         return self.model
 
