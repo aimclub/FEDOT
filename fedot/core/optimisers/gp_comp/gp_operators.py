@@ -2,7 +2,7 @@ import timeit
 import warnings
 from copy import deepcopy
 from random import choice, randint
-from typing import (Any, Callable, List, Tuple, Union)
+from typing import Any, Callable, List, Tuple, Union
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import default_log
@@ -187,4 +187,4 @@ def duplicates_filtration(archive, population):
 
 def clean_operators_history(population):
     for ind in population:
-        ind.parent_operator = []
+        ind.parent_operators = []
