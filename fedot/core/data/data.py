@@ -248,7 +248,7 @@ class InputData(Data):
         if self.features is not None:
             new_features = self.features[start:end + 1]
         return InputData(idx=self.idx[start:end + 1], features=new_features,
-                         target=self.target[start:end + 1] if self.target is not None else None,
+                         target=self.target[start:end + 1],
                          task=self.task, data_type=self.data_type)
 
     def subset_indices(self, selected_idx: List):
@@ -267,7 +267,7 @@ class InputData(Data):
         if self.features is not None:
             new_features = self.features[row_nums]
         return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
-                         target=self.target[row_nums] if self.target is not None else None,
+                         target=self.target[row_nums],
                          task=self.task, data_type=self.data_type)
 
     def shuffle(self):
