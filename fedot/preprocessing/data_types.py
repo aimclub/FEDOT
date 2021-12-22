@@ -38,6 +38,9 @@ class TableTypesCorrector:
         self.numerical_into_str = []
         self.categorical_into_float = []
 
+        # Is target column contains non-numerical cells during conversion
+        self.target_converting_has_errors = False
+
         # Lists with column types for converting
         self.features_types = None
         self.target_types = None
@@ -153,7 +156,7 @@ class TableTypesCorrector:
         if target_with_mixed_types:
             # There are mixed-types columns in features table - convert them
             for mixed_column_id in target_with_mixed_types:
-                column_info = self.features_columns_info[mixed_column_id]
+                column_info = self.target_columns_info[mixed_column_id]
 
                 if column_info.get('str_number') > 0:
                     # There are string elements in the array
@@ -235,7 +238,7 @@ class TableTypesCorrector:
             return None, 'removed'
 
     def _convert_target_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int,
-                                      task: Task):
+                                      task: Task) -> [np.array, str]:
         """ Convert target columns into one type based on column proportions of object and task """
         if task.task_type is TaskTypesEnum.classification:
             # For classification labels are string if at least one element is a string
@@ -255,7 +258,8 @@ class TableTypesCorrector:
                      f'following data types: {column_info["types"]}.'
             log_message = f'{prefix} String cannot be converted into {suggested_type}. Ignore non converted values.'
             self.log.debug(log_message)
-            return mixed_column, str(suggested_type)
+            self.target_converting_has_errors = True
+            return converted_column.values, str(suggested_type)
 
     def _into_categorical_features_transformation_for_fit(self, data: 'InputData'):
         """
@@ -423,7 +427,11 @@ def find_mixed_types_columns(columns_info: dict):
 
 
 def apply_type_transformation(table: np.array, column_types: list, log: Log):
-    """ Apply transformation for columns in dataset into desired type """
+    """
+    Apply transformation for columns in dataset into desired type. Perform
+    transformation on predict stage when column types were already determined
+    during fit
+    """
 
     def type_by_name(current_type_name: str):
         """ Return type by it's name """
@@ -449,13 +457,17 @@ def apply_type_transformation(table: np.array, column_types: list, log: Log):
 
             message = str(ex)
             if 'NaN' not in message:
-                # Try to convert column from string into float or string
+                # Try to convert column from string into float
                 unseen_label = message.split("\'")[1]
-                label_ids = np.ravel(np.argwhere(current_column == unseen_label))
-                current_column[label_ids] = np.nan
-
-                # Store new type for column
-                table[:, column_id] = current_column.astype(current_type)
+                if ',' in unseen_label:
+                    # Most likely case: '20,000' must be converted into '20.000'
+                    err = f'Column {column_id} contains both "." and ",". Standardize it.'
+                    raise ValueError(err)
+                else:
+                    # Most likely case: ['a', '1.5'] -> [np.nan, 1.5]
+                    label_ids = np.ravel(np.argwhere(current_column == unseen_label))
+                    current_column[label_ids] = np.nan
+                    table[:, column_id] = current_column.astype(current_type)
 
     return table
 

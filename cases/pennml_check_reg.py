@@ -42,17 +42,21 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
         print(f'Processing dataset with name {dataset_name}')
 
         dataset_path = os.path.join(data_path, dataset_name)
-        if dataset_name == 'cal_housing.csv' or dataset_name == 'used_car.csv':
+        if dataset_name == 'cal_housing.csv':
             data = pd.read_csv(dataset_path)
         elif dataset_name == 'delta_ailerons.csv':
             data = pd.read_csv(dataset_path, sep=' ')
         elif dataset_name == 'pol.csv':
             data = pd.read_csv(dataset_path, sep=',')
+        elif dataset_name == 'used_car.csv':
+            data = pd.read_csv(dataset_path)
+            data['mileage'] = data['mileage'].str.replace(',', '')
+            data['price'] = data['price'].str.replace(',', '')
 
         print(f'Dataset size: {data.shape}')
         if clip_data is True:
-            x = 0
-            data = data.iloc[x: x + 5000]
+            x = 71000
+            data = data.iloc[x: x + 2000]
 
         if dataset_name == 'used_car.csv':
             column_names = np.array(data.columns)
@@ -60,7 +64,7 @@ def run_classification_exp(dataset_numbers: List[int], clip_data: bool = False,
             column_names = list(column_names)
             column_names.pop(id_target[0])
 
-            predictors = np.array(data[column_names])
+            predictors = np.array(data[column_names[:5]])
             target = np.array(data['price'])
         else:
             # Last right column is correct
