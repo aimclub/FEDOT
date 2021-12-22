@@ -82,6 +82,8 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
             # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
             self.parameters_changed = True
             new_solver = 'lsqr'
+            self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
+
             self.model.solver = new_solver
             self.params['solver'] = new_solver
             self.model.fit(train_data.features, train_data.target)
