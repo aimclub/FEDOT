@@ -168,9 +168,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             self.log.info('Result:')
             self.log_info_about_best()
 
-        output = [self.graph_generation_params.adapter.restore(ind.graph)
-                  for ind in tqdm(best, desc='Restoring best', unit='ind')] if isinstance(best, list) \
-            else self.graph_generation_params.adapter.restore(best.graph)
+        output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
+
         return output
 
     @property

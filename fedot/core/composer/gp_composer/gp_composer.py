@@ -143,8 +143,11 @@ class GPComposer(Composer):
             self.cache.clear(tmp_only=True)
             self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
 
-        best_pipeline = self.optimiser.optimise(objective_function_for_pipeline,
-                                                on_next_iteration_callback=on_next_iteration_callback)
+        opt_result = self.optimiser.optimise(objective_function_for_pipeline,
+                                             on_next_iteration_callback=on_next_iteration_callback)
+        best_pipeline = [self.optimiser.graph_generation_params.adapter.restore(graph)
+                         for graph in opt_result] if isinstance(opt_result, list) \
+            else self.optimiser.graph_generation_params.adapter.restore(opt_result)
 
         self.log.info('GP composition finished')
         self.cache.clear()

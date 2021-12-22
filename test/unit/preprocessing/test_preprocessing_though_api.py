@@ -1,10 +1,9 @@
 import numpy as np
 
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.supplementary_data import SupplementaryData
-
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import NAME_CLASS_STR
@@ -21,6 +20,7 @@ def data_with_only_categorical_features():
                            target=np.array([0, 1, 2]),
                            task=task,  data_type=DataTypesEnum.table,
                            supplementary_data=supp_data)
+
     return input_data
 
 

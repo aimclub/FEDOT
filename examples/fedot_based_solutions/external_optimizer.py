@@ -42,9 +42,7 @@ class RandomSearchOptimizer(GraphOptimiser):
                     best = new
                 num_iter += 1
 
-        output = self.graph_generation_params.adapter.restore(best.graph)
-
-        return output
+        return best.graph
 
 
 def run_with_random_search_composer():
