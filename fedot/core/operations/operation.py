@@ -1,6 +1,7 @@
+from abc import abstractmethod
 from typing import Union
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
@@ -106,12 +107,23 @@ class Operation(OperationSerializer):
             trained_operation=fitted_operation,
             predict_data=data,
             is_fit_pipeline_stage=is_fit_pipeline_stage)
+        prediction = self.assign_tabular_column_types(prediction, output_mode)
 
         if is_main_target is False:
             prediction.supplementary_data.is_main_target = is_main_target
 
         prediction.supplementary_data.data_flow_length = data_flow_length
+        prediction.supplementary_data.was_preprocessed = True
         return prediction
+
+    @staticmethod
+    @abstractmethod
+    def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
+        """ Assign types for columns based on task and output_mode (for classification)
+        For example, pipeline for solving time series forecasting task contains lagged and ridge operations.
+        ts_type -> lagged -> tabular type. So, there is a need to assign column types to new data
+        """
+        raise NotImplementedError()
 
     def __str__(self):
         return f'{self.operation_type}'

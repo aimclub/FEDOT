@@ -165,6 +165,13 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
 
 
 def test_api_check_data_correct():
+    """ Check that data preparing correctly using API methods
+    Attention! During test execution the following warning arises
+    "Columns number and types numbers do not match."
+
+    This happens because the data are prepared for the predict stage
+     without going through the fitting stage
+    """
     data_checker = ApiDataProcessor(task=Task(TaskTypesEnum.regression))
 
     # Get data
@@ -173,7 +180,7 @@ def test_api_check_data_correct():
     train_data, test_data, threshold = get_dataset(task_type)
 
     string_data_input = data_checker.define_data(features=path_to_train)
-    array_data_input = data_checker.define_data(features=x_train)
+    array_data_input = data_checker.define_data(features=x_train, target=x_test)
     fedot_data_input = data_checker.define_data(features=train_data)
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
@@ -228,6 +235,7 @@ def test_pandas_input_for_api():
 
 def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
+
     composer_params['composer_metric'] = ['f1', 'node_num']
 
     model = Fedot(problem='classification',

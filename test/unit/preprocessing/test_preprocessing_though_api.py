@@ -7,19 +7,21 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.data_types import NAME_CLASS_STR
 
 
 def data_with_only_categorical_features():
     """ Generate tabular data with only categorical features. All of them are binary. """
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_STR] * 3})
     task = Task(TaskTypesEnum.regression)
     features = np.array([['a', '0', '1'],
                          ['b', '1', '0'],
                          ['c', '1', '0']], dtype=object)
-    input = InputData(idx=[0, 1, 2], features=features,
-                      target=np.array([0, 1, 2]),
-                      task=task,  data_type=DataTypesEnum.table,
-                      supplementary_data=SupplementaryData(was_preprocessed=False))
-    return input
+    input_data = InputData(idx=[0, 1, 2], features=features,
+                           target=np.array([0, 1, 2]),
+                           task=task,  data_type=DataTypesEnum.table,
+                           supplementary_data=supp_data)
+    return input_data
 
 
 def data_with_too_much_nans():

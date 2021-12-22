@@ -8,6 +8,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from examples.image_classification_problem import run_image_classification_problem
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.models.keras import FedotCNNImplementation, \
     check_input_array, create_deep_cnn, fit_cnn, predict_cnn
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -45,7 +46,8 @@ def get_iris_data() -> InputData:
                            features=synthetic_data.data,
                            target=synthetic_data.target,
                            task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
+                           data_type=DataTypesEnum.table,
+                           supplementary_data=SupplementaryData())
     return input_data
 
 
@@ -137,7 +139,7 @@ def test_output_mode_labels():
     results_probs = pipeline.predict(input_data=test_data)
 
     assert len(results.predict) == len(test_data.target)
-    assert set(results.predict) == {0, 1, 2}
+    assert set(np.ravel(results.predict)) == {0, 1, 2}
 
     assert not np.array_equal(results_probs.predict, results.predict)
 

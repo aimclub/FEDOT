@@ -16,7 +16,9 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from test.unit.test_data_preprocessing import data_with_only_categorical_features
+from fedot.preprocessing.data_types import NAME_CLASS_FLOAT, NAME_CLASS_INT, \
+    NAME_CLASS_STR
+from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features
 
 np.random.seed(2021)
 
@@ -106,6 +108,7 @@ def get_time_series():
 
 
 def get_nan_inf_data():
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT]*4})
     train_input = InputData(idx=[0, 1, 2, 3],
                             features=np.array([[1, 2, 3, 4],
                                                [2, np.nan, 4, 5],
@@ -113,7 +116,8 @@ def get_nan_inf_data():
                                                [-np.inf, 5, 6, 7]]),
                             target=np.array([1, 2, 3, 4]),
                             task=Task(TaskTypesEnum.regression),
-                            data_type=DataTypesEnum.table)
+                            data_type=DataTypesEnum.table,
+                            supplementary_data=supp_data)
 
     return train_input
 
@@ -166,6 +170,8 @@ def get_nan_binary_data(task=None):
     Binary int columns must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
+    features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_INT]
+    supp_data = SupplementaryData(column_types={'features': features_types})
     features = np.array([[1, '0', 0],
                          [np.nan, np.nan, np.nan],
                          [0, '2', 1],
@@ -174,7 +180,8 @@ def get_nan_binary_data(task=None):
 
     input_data = InputData(idx=[0, 1, 2, 3], features=features,
                            target=np.array([[0], [0], [1], [1]]),
-                           task=task, data_type=DataTypesEnum.table)
+                           task=task, data_type=DataTypesEnum.table,
+                           supplementary_data=supp_data)
 
     return input_data
 
@@ -185,6 +192,7 @@ def data_with_binary_int_features_and_equal_categories():
     must be processed as "almost categorical". Current dataset
     For example, nan object in [1, nan, 0, 0] must be filled as 0, not as 0.33
     """
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_INT, NAME_CLASS_INT]})
     task = Task(TaskTypesEnum.classification)
     features = np.array([[1, 10],
                          [np.nan, np.nan],
@@ -193,7 +201,7 @@ def data_with_binary_int_features_and_equal_categories():
     target = np.array([['not-nan'], ['nan'], ['nan'], ['not-nan']])
     train_input = InputData(idx=[0, 1, 2, 3], features=features, target=target,
                             task=task, data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=supp_data)
 
     return train_input
 

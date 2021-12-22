@@ -58,7 +58,7 @@ class TextCleanImplementation(DataOperationImplementation):
 
     @staticmethod
     def _download_nltk_resources():
-        for resource in ['punkt', 'stopwords', 'wordnet']:
+        for resource in ['punkt', 'stopwords', 'wordnet', 'omw-1.4']:
             try:
                 nltk.data.find(f'tokenizers/{resource}')
             except LookupError:

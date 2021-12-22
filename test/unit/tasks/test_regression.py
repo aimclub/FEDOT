@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
@@ -37,7 +39,7 @@ def get_synthetic_regression_data(n_samples=1000, n_features=10, random_state=No
     synthetic_data = make_regression(n_samples=n_samples, n_features=n_features, random_state=random_state)
     input_data = InputData(idx=np.arange(0, len(synthetic_data[1])),
                            features=synthetic_data[0],
-                           target=synthetic_data[1],
+                           target=synthetic_data[1].reshape((-1, 1)),
                            task=Task(TaskTypesEnum.regression),
                            data_type=DataTypesEnum.table)
     return input_data
@@ -97,6 +99,6 @@ def test_multi_target_regression_composing_correct(multi_target_data_setup):
     simple_composer_params = get_simple_composer_params()
 
     automl_model = Fedot(problem=problem, composer_params=simple_composer_params)
-    automl_model.fit(features=train)
-    predicted_array = automl_model.predict(features=test)
+    automl_model.fit(train)
+    predicted_array = automl_model.predict(test)
     assert predicted_array is not None

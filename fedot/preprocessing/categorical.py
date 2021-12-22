@@ -1,13 +1,11 @@
 from copy import deepcopy
-import bisect
 import numpy as np
 import pandas as pd
 
 from sklearn.preprocessing import LabelEncoder
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import str_columns_check
-
-FEDOT_STR_NAN = 'fedot_nan'
+from fedot.core.data.data_preprocessing import find_categorical_columns
+from fedot.preprocessing.data_types import NAME_CLASS_INT, FEDOT_STR_NAN
 
 
 class BinaryCategoricalPreprocessor:
@@ -25,8 +23,9 @@ class BinaryCategoricalPreprocessor:
         Find indices of columns which are contains categorical values. Binary features and at the same time
         has str objects. If there are such features - convert it into int
         """
-
-        categorical_ids, non_categorical_ids = str_columns_check(input_data.features)
+        features_types = input_data.supplementary_data.column_types['features']
+        categorical_ids, non_categorical_ids = find_categorical_columns(table=input_data.features,
+                                                                        column_types=features_types)
         if len(categorical_ids) < 0:
             # There is no need to process categorical features
             return self
@@ -74,9 +73,13 @@ class BinaryCategoricalPreprocessor:
         number_of_columns = input_data.features.shape[-1]
         for column_id, number in enumerate(range(number_of_columns)):
             if column_id in self.binary_ids_to_convert:
+                # If column contains nans - replace them with fedot nans special string
+                column = input_data.features[:, column_id]
+                is_row_has_nan = pd.isna(pd.Series(column))
+                column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
+
                 # Convert into integers
-                converted_column = self._apply_encoder(input_data.features[:, column_id],
-                                                       column_id)
+                converted_column = self._apply_encoder(column, column_id, gap_ids)
             else:
                 # Stay column the same
                 converted_column = np.array(input_data.features[:, column_id])
@@ -86,6 +89,11 @@ class BinaryCategoricalPreprocessor:
         # Store transformed features
         copied_data = deepcopy(input_data)
         copied_data.features = np.hstack(converted_features)
+
+        # Update features types
+        features_types = copied_data.supplementary_data.column_types['features']
+        for converted_column_id in self.binary_ids_to_convert:
+            features_types[converted_column_id] = NAME_CLASS_INT
         return copied_data
 
     def _train_encoder(self, column: np.array, column_id: int):
@@ -98,14 +106,10 @@ class BinaryCategoricalPreprocessor:
         # Store fitted label encoder for transform method
         self.binary_encoders.update({column_id: encoder})
 
-    def _apply_encoder(self, column: np.array, column_id: int) -> np.array:
+    def _apply_encoder(self, column: np.array, column_id: int, gap_ids: np.array) -> np.array:
         """ Apply already fitted encoders """
         encoder = self.binary_encoders[column_id]
         encoder_classes = list(encoder.classes_)
-
-        # If column contains nans - replace them with fedot nans special string
-        is_row_has_nan = pd.isna(pd.Series(column))
-        column, gap_ids = replace_nans_with_fedot_nans(column, is_row_has_nan)
 
         try:
             converted = encoder.transform(column)
@@ -119,11 +123,11 @@ class BinaryCategoricalPreprocessor:
             unseen_label = message.split("\'")[1]
 
             # Extent encoder classes
-            bisect.insort_left(encoder_classes, unseen_label)
+            encoder_classes.append(unseen_label)
             encoder.classes_ = encoder_classes
 
             # Recursive launching
-            return self._apply_encoder(column, column_id)
+            return self._apply_encoder(column, column_id, gap_ids)
         return converted
 
 

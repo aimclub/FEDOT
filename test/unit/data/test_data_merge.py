@@ -36,6 +36,28 @@ def generate_outputs():
     return list_with_outputs, idx_1, idx_2
 
 
+def generate_outputs_with_different_types():
+    """ Create datasets with different types of columns in predictions """
+    task = Task(TaskTypesEnum.regression)
+    idx = [0, 1, 2]
+    target = [1, 2, 10]
+    data_info_first = SupplementaryData(column_types={'features': ["<class 'str'>", "<class 'float'>"],
+                                                      'target': ["<class 'int'>"]})
+    output_first = OutputData(idx=idx, features=None,
+                              predict=np.array([['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
+                              task=task, target=target, data_type=DataTypesEnum.table,
+                              supplementary_data=data_info_first)
+
+    data_info_second = SupplementaryData(column_types={'features': ["<class 'float'>"],
+                                                       'target': ["<class 'int'>"]})
+    output_second = OutputData(idx=idx, features=None,
+                               predict=np.array([[2.5], [2.1], [9.3]], dtype=float),
+                               task=task, target=target, data_type=DataTypesEnum.table,
+                               supplementary_data=data_info_second)
+
+    return [output_first, output_second]
+
+
 def test_data_merge_in_pipeline():
     """ Test check is the pipeline can correctly work with dynamic changes in
     tables during the fit process
@@ -131,7 +153,7 @@ def test_target_task_two_none_merge():
 
     # Tasks
     class_task = Task(TaskTypesEnum.classification)
-    regr_task = Task(TaskTypesEnum.classification)
+    regr_task = Task(TaskTypesEnum.regression)
     tasks = [class_task, class_task, regr_task]
 
     merger = TaskTargetMerger(None)
@@ -162,3 +184,18 @@ def test_define_parents_with_equal_lengths():
 
     assert model_parent == '00'
     assert data_parent == '10'
+
+
+def test_define_types_after_merging():
+    """ Check if column types for features table perform correctly """
+    outputs = generate_outputs_with_different_types()
+    new_idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
+
+    features_types = updated_info.column_types['features']
+    target_types = updated_info.column_types['target']
+
+    # Target type must stay the same
+    ancestor_target_type = outputs[0].supplementary_data.column_types['target'][0]
+    assert target_types[0] == ancestor_target_type
+    assert len(features_types) == 3
+    assert tuple(features_types) == ("<class 'str'>", "<class 'float'>", "<class 'float'>")

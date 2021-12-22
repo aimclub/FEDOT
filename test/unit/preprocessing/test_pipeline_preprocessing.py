@@ -1,13 +1,52 @@
 import numpy as np
 
+from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
-from test.unit.test_data_preprocessing import data_with_only_categorical_features, data_with_too_much_nans, \
-    data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, data_with_nans_in_multi_target, \
-    data_with_categorical_target
+from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features, \
+    data_with_too_much_nans, data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, \
+    data_with_nans_in_multi_target, data_with_categorical_target
+
+
+def data_with_mixed_types_in_each_column(multi_output: bool = False):
+    """
+    Generate dataset with columns, which contain several data types (int, float or str).
+    Moreover, columns can contain nans and target columns have the same problems also.
+
+    :param multi_output: is there a need to generate multi-output target
+    """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([[np.nan, '1', np.nan, '6', 'b'],
+                         [np.nan, '2', 1, '5', 'a'],
+                         [np.nan, np.nan, 2.1, 4.1, 4],
+                         [np.nan, '3', 3, 3.5, 3],
+                         [np.nan, 8, 4, 2, 2],
+                         [np.nan, 8, 'a', 1, 1],
+                         [np.nan, np.nan, np.nan, np.nan, np.nan],
+                         [np.nan, '4', 'b', 0, 0],
+                         [np.nan, '5', 'c', -1, -1]], dtype=object)
+    if multi_output:
+        # Multi-label classification problem solved
+        target = np.array([['label_1', 2],
+                           ['label_1', 3],
+                           ['label_0', 4],
+                           ['label_0', 5],
+                           ['label_0', 5],
+                           [1, '6'],
+                           [0, '7'],
+                           [1, '8'],
+                           [0, '9']], dtype=object)
+    else:
+        target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
+    input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8], features=features,
+                           target=target, task=task, data_type=DataTypesEnum.table,
+                           supplementary_data=SupplementaryData(was_preprocessed=False))
+    return input_data
 
 
 def test_only_categorical_data_process_correctly():
@@ -30,6 +69,7 @@ def test_nans_columns_process_correctly():
     pipeline = Pipeline(PrimaryNode('ridge'))
     data_with_nans = data_with_too_much_nans()
 
+    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
     pipeline.fit(data_with_nans)
 
     # Ridge should use only one feature to make prediction
@@ -107,6 +147,7 @@ def test_pipeline_with_imputer():
     imputation_node = PrimaryNode('simple_imputation')
     final_node = SecondaryNode('ridge', nodes_from=[imputation_node])
     pipeline = Pipeline(final_node)
+    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
@@ -177,3 +218,24 @@ def test_pipeline_target_encoding_for_probs():
     assert np.isclose(predicted_probs[2, 0], 1)
     # label 'di' - after LabelEncoder 3
     assert np.isclose(predicted_probs[3, 3], 1)
+
+
+def test_data_with_mixed_types_per_column_processed_correctly():
+    """
+    Check if dataset with columns, which contain several data types can be
+    processed correctly.
+    """
+    input_data = data_with_mixed_types_in_each_column()
+    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
+
+    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
+    pipeline.fit(train_data)
+    predicted = pipeline.predict(test_data)
+
+    importances = pipeline.nodes[0].operation.fitted_operation.feature_importances_
+
+    # Finally, seven features were used to give a forecast
+    assert len(importances) == 6
+    # Target must contain 4 labels
+    assert predicted.predict.shape[-1] == 4

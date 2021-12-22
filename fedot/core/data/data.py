@@ -1,7 +1,7 @@
 import glob
 import os
 from copy import copy, deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union
 
 import imageio
@@ -26,7 +26,7 @@ class Data:
     task: Task
     data_type: DataTypesEnum
     # Object with supplementary info
-    supplementary_data: SupplementaryData = SupplementaryData()
+    supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
     @staticmethod
     def from_csv(file_path=None,
@@ -238,6 +238,8 @@ class InputData(Data):
         # Update not only features but idx, target and task also
         idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
 
+        # Mark data as preprocessed already
+        updated_info.was_preprocessed = True
         return InputData(idx=idx, features=features, target=target, task=task,
                          data_type=d_type, supplementary_data=updated_info)
 
@@ -267,6 +269,17 @@ class InputData(Data):
             new_features = self.features[row_nums]
         return InputData(idx=np.asarray(self.idx)[row_nums], features=new_features,
                          target=self.target[row_nums], task=self.task, data_type=self.data_type)
+
+    def subset_features(self, features_ids: list):
+        """ Return new InputData with subset of features based on features_ids list """
+        subsample_features = self.features[:, features_ids]
+        subsample_input = InputData(features=subsample_features,
+                                    data_type=self.data_type,
+                                    target=self.target, task=self.task,
+                                    idx=self.idx,
+                                    supplementary_data=self.supplementary_data)
+
+        return subsample_input
 
     def shuffle(self):
         """

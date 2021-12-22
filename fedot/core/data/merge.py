@@ -2,8 +2,11 @@ from typing import List
 
 import numpy as np
 
+from fedot.core.log import Log, default_log
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.preprocessing.data_types import TableTypesCorrector
 
 
 class DataMerger:
@@ -14,8 +17,12 @@ class DataMerger:
     :param outputs: list with OutputData from parent nodes
     """
 
-    def __init__(self, outputs: list):
+    def __init__(self, outputs: list, log: Log = None):
         self.outputs = outputs
+        if not log:
+            self.log = default_log(__name__)
+        else:
+            self.log = log
 
     def merge(self):
         """ Method automatically determine which merge function should be
@@ -28,7 +35,11 @@ class DataMerger:
             target = self.outputs[0].target
             task = self.outputs[0].task
             data_type = self.outputs[0].data_type
-            updated_info = SupplementaryData(is_main_target=True)
+
+            if self.outputs[0].supplementary_data is None:
+                updated_info = SupplementaryData(is_main_target=True)
+            else:
+                updated_info = self.outputs[0].supplementary_data
             updated_info.calculate_data_flow_len(self.outputs)
             return idx, features, target, task, data_type, updated_info
 
@@ -58,6 +69,7 @@ class DataMerger:
         if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
             updated_info.prepare_parent_mask(self.outputs)
 
+        updated_info = self.update_column_types(updated_info, first_data_type, task)
         return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):
@@ -97,6 +109,45 @@ class DataMerger:
         features = np.ravel(np.array(features))
         target = np.ravel(np.array(target))
         return idx, features, target, is_main_target, task
+
+    def update_column_types(self, supplementary_data: SupplementaryData, data_type: DataTypesEnum,
+                            task: TaskTypesEnum):
+        """ Store information about column types in tabular data for merged data """
+        if data_type is not DataTypesEnum.table:
+            # Data is not tabular
+            return supplementary_data
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            return supplementary_data
+
+        # Types for features columns
+        new_features_types = []
+        for output in self.outputs:
+            if output.supplementary_data.column_types is None:
+                self.log.debug(f'Perform determination of column types in DataMerger')
+                table_corr = TableTypesCorrector()
+                output.supplementary_data.column_types = table_corr.prepare_column_types_info(output.predict,
+                                                                                              output.target,
+                                                                                              output.task)
+            col_types = output.supplementary_data.column_types['features']
+            new_features_types.extend(col_types)
+
+        # Target(s) types
+        new_target_types = None
+        for output in self.outputs:
+            if output.supplementary_data.column_types is None:
+                self.log.debug(f'Perform determination of column types in DataMerger')
+                table_corr = TableTypesCorrector()
+                output.supplementary_data.column_types = table_corr.prepare_column_types_info(output.predict,
+                                                                                              output.target,
+                                                                                              output.task)
+
+            # Search for main target
+            if output.supplementary_data.is_main_target:
+                # Target can be None for predict stage
+                new_target_types = output.supplementary_data.column_types.get('target')
+        supplementary_data.column_types = {'features': new_features_types,
+                                           'target': new_target_types}
+        return supplementary_data
 
     @staticmethod
     def _merge_equal_outputs(outputs: list):

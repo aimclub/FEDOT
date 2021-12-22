@@ -52,7 +52,7 @@ class Pipeline(Graph):
         :param input_data: data used for operation training
         """
         # Clean all saved states and fit all operations
-        self.unfit()
+        self.unfit(unfit_preprocessor=True)
         self.fit(input_data, use_fitted=False)
 
     def update_fitted_on_data(self, data: InputData):
@@ -156,7 +156,7 @@ class Pipeline(Graph):
         :param time_constraint: time constraint for operation fitting (seconds)
         """
         if not use_fitted:
-            self.unfit()
+            self.unfit(unfit_preprocessor=True)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
@@ -165,9 +165,8 @@ class Pipeline(Graph):
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
                                                                        data=copied_input_data)
 
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(
-            pipeline=self,
-            data=copied_input_data)
+        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                      data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
@@ -226,9 +225,8 @@ class Pipeline(Graph):
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
                                                                            data=copied_input_data)
-        copied_input_data = self.preprocessor.convert_indexes_for_predict(
-            pipeline=self,
-            data=copied_input_data)
+        copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
+                                                                          data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
