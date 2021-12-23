@@ -13,7 +13,7 @@ from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.node import PrimaryNode, get_default_params
+from fedot.core.pipelines.node import PrimaryNode, get_default_params, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -192,13 +192,10 @@ def test_log_clustering_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling pipeline. Fit predict it
-    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
-    scaling_pipeline.fit(train_data)
-    scaled_data = scaling_pipeline.predict(train_data)
-
-    kmeans = Model(operation_type='kmeans')
-    _, train_predicted = kmeans.fit(params=None, data=scaled_data)
+    first_node = PrimaryNode('normalization')
+    second_node = SecondaryNode('kmeans')
+    pipeline = Pipeline(nodes=[first_node, second_node])
+    train_predicted = pipeline.fit(train_data)
 
     assert all(np.unique(train_predicted.predict) == [0, 1])
 
@@ -208,13 +205,10 @@ def test_svc_fit_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling pipeline. Fit predict it
-    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
-    scaling_pipeline.fit(train_data)
-    scaled_data = scaling_pipeline.predict(train_data)
-
-    svc = Model(operation_type='svc')
-    _, train_predicted = svc.fit(params=None, data=scaled_data)
+    first_node = PrimaryNode('normalization')
+    second_node = SecondaryNode('svc')
+    pipeline = Pipeline(nodes=[first_node, second_node])
+    train_predicted = pipeline.fit(train_data)
 
     roc_on_train = get_roc_auc(valid_data=train_data,
                                predicted_data=train_predicted)
@@ -228,13 +222,10 @@ def test_pca_model_removes_redundant_features_correct():
                                                           n_informative=n_informative)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Scaling pipeline. Fit predict it
-    scaling_pipeline = Pipeline(PrimaryNode('normalization'))
-    scaling_pipeline.fit(train_data)
-    scaled_data = scaling_pipeline.predict(train_data)
-
-    pca = DataOperation(operation_type='pca')
-    _, train_predicted = pca.fit(params=DEFAULT_PARAMS_STUB, data=scaled_data)
+    first_node = PrimaryNode('normalization')
+    second_node = SecondaryNode('pca')
+    pipeline = Pipeline(nodes=[first_node, second_node])
+    train_predicted = pipeline.fit(train_data)
     transformed_features = train_predicted.predict
 
     assert transformed_features.shape[1] < data.features.shape[1]
