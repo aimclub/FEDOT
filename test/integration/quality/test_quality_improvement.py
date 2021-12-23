@@ -1,7 +1,5 @@
 import warnings
 
-from sklearn.metrics import roc_auc_score
-
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 

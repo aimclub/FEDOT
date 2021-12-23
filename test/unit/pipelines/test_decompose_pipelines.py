@@ -2,8 +2,8 @@ from itertools import product
 
 import numpy as np
 
-from examples.classification_with_tuning_example import get_classification_dataset
-from examples.decompose.refinement_forecast_example import get_refinement_pipeline
+from examples.simple.classification.classification_with_tuning import get_classification_dataset
+from examples.advanced.decompose.refinement_forecast_example import get_refinement_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation

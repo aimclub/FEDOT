@@ -1,6 +1,6 @@
 import numpy as np
 
-from examples.regression_with_tuning_example import get_regression_dataset
+from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge import DataMerger, TaskTargetMerger
 from fedot.core.data.supplementary_data import SupplementaryData

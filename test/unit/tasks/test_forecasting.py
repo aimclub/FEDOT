@@ -7,7 +7,7 @@ import pytest
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from scipy import stats
 
-from examples.time_series.ts_clstm_forecasting import get_source_pipeline_clstm
+from examples.simple.time_series_forecasting.ts_pipelines import clstm_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -297,7 +297,7 @@ def test_clstm_in_pipeline():
     n_steps = 100
     train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
-    pipeline = get_source_pipeline_clstm()
+    pipeline = clstm_pipeline()
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data).predict[0]
 

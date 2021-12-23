@@ -531,7 +531,8 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     if is_lag:
         updated_idx = idx[window_size:]
     else:
-        updated_idx = idx[:idx.shape[0] - window_size]
+        updated_idx = idx[:len(idx)-window_size]
+
     return updated_idx, features_columns
 
 

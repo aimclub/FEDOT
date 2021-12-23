@@ -1,8 +1,8 @@
 import os
 from datetime import timedelta
 
-from examples.automl.pipeline_from_automl import run_pipeline_from_automl
-from examples.automl.tpot_vs_fedot import run_tpot_vs_fedot_example
+from examples.advanced.automl.pipeline_from_automl import run_pipeline_from_automl
+from examples.advanced.automl import run_tpot_vs_fedot_example
 from fedot.core.utils import fedot_project_root
 
 

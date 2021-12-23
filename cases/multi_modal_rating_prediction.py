@@ -1,6 +1,6 @@
 import datetime
 
-from examples.multi_modal_pipeline import calculate_validation_metric, generate_initial_pipeline_and_data, \
+from examples.advanced.multi_modal_pipeline import calculate_validation_metric, generate_initial_pipeline_and_data, \
     prepare_multi_modal_data
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.log import default_log
