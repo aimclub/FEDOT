@@ -17,6 +17,7 @@ from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.explainability.explainers import explain_pipeline
+from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
@@ -113,10 +114,13 @@ class Fedot:
 
         self.target = target
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
+
+        # Launch data analyser - it gives recommendations for data preprocessing
         full_train_not_preprocessed = deepcopy(self.train_data)
         recommendations = self.data_analyser.give_recommendation(self.train_data)
-        self.data_processor.accept_recommendations(self.train_data, recommendations)
-        self.api_params = self.composer_params.accept_recommendations(self.train_data, recommendations)
+        self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
+        self.api_params = self.composer_params.accept_and_apply_recommendations(self.train_data, recommendations)
+
         self._init_remote_if_necessary()
         self.api_params['train_data'] = self.train_data
 
@@ -125,14 +129,12 @@ class Fedot:
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
-            # if data was cut we need to refit pipeline on full data
-        if 'cut' in recommendations:
-            self.data_processor.accept_recommendations(full_train_not_preprocessed,
-                                                       {k: v for k, v in recommendations.items() if k != 'cut'})
-            self.current_pipeline.fit(full_train_not_preprocessed)
+
+        self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
 
         # Store data encoder in the pipeline if it is required
-        self.current_pipeline.preprocessor = self.data_processor.preprocessor
+        self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
+                                                                 self.current_pipeline.preprocessor)
         return self.current_pipeline
 
     def predict(self,
@@ -335,6 +337,15 @@ class Fedot:
 
             if isinstance(self.target, str):
                 remote.remote_task_params.target = self.target
+
+    def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
+        """ Apply training procedure for obtained pipeline if dataset was clipped """
+        if 'cut' in recommendations:
+            # if data was cut we need to refit pipeline on full data
+            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
+                                                                 {k: v for k, v in recommendations.items()
+                                                                  if k != 'cut'})
+            self.current_pipeline.fit(full_train_not_preprocessed)
 
     def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':

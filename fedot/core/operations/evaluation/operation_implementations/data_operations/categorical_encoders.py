@@ -1,12 +1,11 @@
 from copy import deepcopy
-from typing import Optional
-import bisect
+from typing import Optional, Union
 
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 
-from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import str_columns_check
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 
@@ -34,7 +33,9 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         :return encoder: trained encoder (optional output)
         """
         features = input_data.features
-        categorical_ids, non_categorical_ids = str_columns_check(features)
+        features_types = input_data.supplementary_data.column_types.get('features')
+        categorical_ids, non_categorical_ids = find_categorical_columns(features,
+                                                                        features_types)
 
         # Indices of columns with categorical and non-categorical features
         self.categorical_ids = categorical_ids
@@ -69,7 +70,21 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         # Update features
         output_data = self._convert_to_output(copied_data,
                                               transformed_features)
+        self._update_column_types(output_data)
         return output_data
+
+    def _update_column_types(self, output_data: OutputData):
+        """ Update column types after encoding. Categorical columns becomes integer with extension """
+        if self.categorical_ids:
+            # There are categorical features in the table
+            col_types = output_data.supplementary_data.column_types['features']
+            numerical_columns = [t_name for t_name in col_types if 'str' not in t_name]
+
+            # Calculate new binary columns number after encoding
+            encoded_columns_number = output_data.predict.shape[1] - len(numerical_columns)
+            numerical_columns.extend([str(int)] * encoded_columns_number)
+
+            output_data.supplementary_data.column_types['features'] = numerical_columns
 
     def _apply_one_hot_encoding(self, features: np.array):
         """
@@ -108,8 +123,9 @@ class LabelEncodingImplementation(DataOperationImplementation):
         self.non_categorical_ids = None
 
     def fit(self, input_data: InputData):
-
-        self.categorical_ids, self.non_categorical_ids = str_columns_check(input_data.features)
+        features_types = input_data.supplementary_data.column_types.get('features')
+        self.categorical_ids, self.non_categorical_ids = find_categorical_columns(input_data.features,
+                                                                                  features_types)
 
         # If there are categorical features - process it
         if self.categorical_ids:
@@ -123,13 +139,33 @@ class LabelEncodingImplementation(DataOperationImplementation):
         if self.categorical_ids:
             # If categorical features are exists - transform them inplace in InputData
             for categorical_id in self.categorical_ids:
-                self._apply_label_encoder(copied_data, categorical_id)
+                categorical_column = input_data.features[:, categorical_id]
+
+                # Converting into string - so nans becomes marked as 'nan'
+                categorical_column = categorical_column.astype(str)
+                gap_ids = np.ravel(np.argwhere(categorical_column == 'nan'))
+
+                transformed = self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
+                copied_data.features[:, categorical_id] = transformed
 
         # Update features
         output_data = self._convert_to_output(copied_data,
                                               copied_data.features)
+        # Store source features values
+        output_data.features = input_data.features
 
+        self._update_column_types(output_data)
         return output_data
+
+    def _update_column_types(self, output_data: OutputData):
+        """ Update column types after encoding. Categorical becomes integer """
+        if self.categorical_ids:
+            # Categorical features were in the dataset
+            col_types = output_data.supplementary_data.column_types['features']
+            for categorical_id in self.categorical_ids:
+                col_types[categorical_id] = str(int)
+
+            output_data.supplementary_data.column_types['features'] = col_types
 
     def _fit_label_encoders(self, input_data: InputData):
         """ Fit LabelEncoder for every categorical column in the dataset """
@@ -140,18 +176,22 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
             self.encoders.update({categorical_id: le})
 
-    def _apply_label_encoder(self, input_data: InputData, categorical_id: int):
+    def _apply_label_encoder(self, categorical_column: np.array, categorical_id: int,
+                             gap_ids: Union[np.array, None]):
         """ Apply fitted LabelEncoder for column transformation
 
-        :param input_data: data with features to transform
+        :param categorical_column: numpy array with categorical features
         :param categorical_id: index of current categorical column
+        :param gap_ids: indices of gap elements in array
         """
         column_encoder = self.encoders[categorical_id]
 
-        # Transform categorical feature into numerical one
-        categorical_column = input_data.features[:, categorical_id]
         try:
-            input_data.features[:, categorical_id] = column_encoder.transform(categorical_column)
+            transformed_column = column_encoder.transform(categorical_column)
+            if len(gap_ids) > 0:
+                # Store np.nan values
+                transformed_column = transformed_column.astype(object)
+                transformed_column[gap_ids] = np.nan
         except ValueError as ex:
             # y contains previously unseen labels
             encoder_classes = list(column_encoder.classes_)
@@ -159,9 +199,10 @@ class LabelEncodingImplementation(DataOperationImplementation):
             unseen_label = message.split("\'")[1]
 
             # Extent encoder classes
-            bisect.insort_left(encoder_classes, unseen_label)
+            encoder_classes.append(unseen_label)
             column_encoder.classes_ = encoder_classes
-            self._apply_label_encoder(input_data, categorical_id)
+            return self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
+        return transformed_column
 
     def get_params(self):
         """ Due to LabelEncoder has no parameters - return empty set """

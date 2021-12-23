@@ -1,6 +1,6 @@
-from typing import Callable
-from typing import Optional
 import warnings
+from typing import Callable, Optional
+
 from fedot.core.log import Log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
@@ -14,6 +14,7 @@ class CustomModelImplementation(ModelImplementation):
     output type specification DataTypesEnum (string - 'ts', 'table', 'image', 'text')
     into parameters dictionary {'model_predict': function, 'model_fit': function}
     """
+
     def __init__(self, params: dict = None, log: Log = None):
         super().__init__(log)
         self.params = params
@@ -40,11 +41,11 @@ class CustomModelImplementation(ModelImplementation):
     def fit(self, input_data):
         """ Fit method for custom model implementation """
         if self.model_fit:
-            self.fitted_model = self.model_fit(input_data.features, input_data.target, self.params)
+            self.fitted_model = self.model_fit(input_data.idx, input_data.features, input_data.target, self.params)
         return self.fitted_model
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        self.output_type = input_data.data_type
+        output_type = input_data.data_type
         # if there is no need in fitting custom model and it is fit call
         if is_fit_pipeline_stage and not self.model_fit:
             predict = input_data.features
@@ -53,16 +54,21 @@ class CustomModelImplementation(ModelImplementation):
         else:
             try:
                 predict, output_type = self.model_predict(self.fitted_model,
+                                                          input_data.idx,
                                                           input_data.features,
                                                           self.params)
-                self.output_type = DataTypesEnum[output_type]
+                if (input_data.data_type == DataTypesEnum.ts and
+                        input_data.target is not None and len(input_data.target.shape) > 1):
+                    # change target after custom model is processed
+                    input_data.target = input_data.target[:, 0]
+                output_type = DataTypesEnum[output_type]
             except Exception as e:
                 raise TypeError(f'{e}\nInput model has incorrect behaviour. Check type hints for model: \
                                         Callable[[any, np.array, dict], np.array, str]')
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
-                                              data_type=self.output_type)
+                                              data_type=output_type)
         return output_data
 
     def get_params(self):

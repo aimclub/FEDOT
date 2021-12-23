@@ -235,7 +235,8 @@
       "meta": "custom_class",
       "tags": [
         "discriminant",
-        "linear"
+        "linear",
+        "correct_params"
       ]
     },
     "lgbm": {

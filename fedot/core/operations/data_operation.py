@@ -1,7 +1,7 @@
+from fedot.core.data.data import OutputData
 from fedot.core.log import Log
 from fedot.core.operations.operation import Operation
-from fedot.core.repository.operation_types_repository import \
-    OperationMetaInfo, OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
 
 
 class DataOperation(Operation):
@@ -22,3 +22,13 @@ class DataOperation(Operation):
         if not operation_info:
             raise ValueError(f'Data operation {self.operation_type} not found')
         return operation_info
+
+    @staticmethod
+    def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
+        """
+        Assign new column types if it necessary. By default, all data operations
+        must define column types at lower levels (EvalStrategies and Implementations).
+        In some cases the previously defined data types are passed.
+        """
+        # There are already assigned types for columns
+        return output_data

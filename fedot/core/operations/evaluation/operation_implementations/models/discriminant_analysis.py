@@ -23,7 +23,6 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
         :param train_data: data to train the model
         """
         self.model.fit(train_data.features, train_data.target)
-
         return self.model
 
     def predict(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
@@ -69,6 +68,32 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
         else:
             self.model = LinearDiscriminantAnalysis(**params)
         self.params = params
+        self.parameters_changed = False
+
+    def fit(self, train_data):
+        """ Method fit model on a dataset
+
+        :param train_data: data to train the model
+        """
+        try:
+            self.model.fit(train_data.features, train_data.target)
+        except ValueError:
+            # Problem arise when features and target are "ideally" mapping
+            # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
+            self.parameters_changed = True
+            new_solver = 'lsqr'
+            self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
+
+            self.model.solver = new_solver
+            self.params['solver'] = new_solver
+            self.model.fit(train_data.features, train_data.target)
+        return self.model
+
+    def get_params(self):
+        if self.parameters_changed is True:
+            return tuple([self.params, ['solver']])
+        else:
+            return self.params
 
 
 class QDAImplementation(DiscriminantAnalysisImplementation):

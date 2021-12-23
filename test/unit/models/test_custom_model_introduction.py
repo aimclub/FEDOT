@@ -1,20 +1,24 @@
 import os
 import shutil
+from copy import deepcopy
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
+from examples.advanced.time_series_forecasting.custom_model_tuning import get_fitting_custom_pipeline
+from examples.simple.pipeline_import_export import create_correct_path
+from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
-from examples.pipeline_import_export import create_correct_path
-from examples.time_series.ts_custom_model_tuning import get_fitting_custom_pipeline
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 
-def custom_model_imitation(_, train_data, params):
+def custom_model_imitation(_, idx, train_data, params):
     """
     Function imitates custom model behaviour
     :param train_data: np.array for training the model
@@ -79,6 +83,84 @@ def get_input_data():
     return train_input, predict_input
 
 
+def prepare_data():
+    test_file_path = str(os.path.dirname(__file__))
+    df = np.asarray(pd.read_csv(os.path.join(test_file_path, '../../data/simple_sea_level.csv')))
+    df = np.delete(df, 0, 1)
+    df = df[0:100, :]
+    t_arr = range(len(df))
+
+    percent_train = 0.7
+    n_train = round(percent_train * len(t_arr))
+
+    hist = df
+
+    forecast_length = len(t_arr) - n_train
+    ds = {}
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                task_params=TsForecastingParams(forecast_length=forecast_length))
+
+    idx = np.asarray(t_arr)
+
+    for i in range(df.shape[1]):
+        ds[f'data_source_ts/hist_{i}'] = InputData(idx=idx,
+                                                   features=hist[:, i],
+                                                   target=hist[:, 0],
+                                                   data_type=DataTypesEnum.ts,
+                                                   task=task)
+
+        ds[f'data_source_ts/exog_{i}'] = InputData(idx=idx,
+                                                   features=df[:, i],
+                                                   target=deepcopy(hist),
+                                                   data_type=DataTypesEnum.ts,
+                                                   task=task)
+
+    input_data_train, input_data_test = train_test_data_setup(MultiModalData(ds))
+
+    return input_data_train, input_data_test
+
+
+def model_fit(idx: np.array, features: np.array, target: np.array, params: dict):
+    return object
+
+
+def model_predict(fitted_model: Any, idx: np.array, features: np.array, params: dict):
+    return features[:, 0], 'ts'
+
+
+def get_simple_pipeline(multi_data):
+    """
+        Pipeline looking like this
+        lagged -> custom -> ridge
+    """
+
+    hist_list = []
+    exog_list = []
+
+    for i, data_id in enumerate(multi_data.keys()):
+        if 'exog_' in data_id:
+            exog_list.append(PrimaryNode(data_id))
+        if 'hist_' in data_id:
+            lagged_node = SecondaryNode('lagged', nodes_from=[PrimaryNode(data_id)])
+            lagged_node.custom_params = {'window_size': 1}
+
+            hist_list.append(lagged_node)
+
+    # For custom model params as initial approximation and model as function is necessary
+    custom_node = SecondaryNode('custom/empty', nodes_from=exog_list)
+    custom_node.custom_params = {'model_predict': model_predict,
+                                 'model_fit': model_fit}
+
+    exog_pred_node = SecondaryNode('exog_ts', nodes_from=[custom_node])
+
+    final_ens = [exog_pred_node] + hist_list
+    node_final = SecondaryNode('ridge', nodes_from=final_ens)
+    pipeline = Pipeline(node_final)
+
+    return pipeline
+
+
 def test_pipeline_with_custom_node():
     train_input, predict_input = get_input_data()
     pipeline = get_centered_pipeline()
@@ -120,3 +202,31 @@ def test_save_pipeline_with_custom():
     shutil.rmtree(dir_)
 
     assert prediction_after_export is not None
+
+
+def test_advanced_pipeline_with_custom_model():
+    train_data, test_data = prepare_data()
+
+    pipeline = get_simple_pipeline(train_data)
+
+    pipeline.fit_from_scratch(train_data)
+    predicted_test = pipeline.predict(test_data)
+
+    assert predicted_test is not None
+
+
+def test_composing_with_custom_model():
+    train_data, test_data = prepare_data()
+
+    initial_pipeline = get_simple_pipeline(train_data)
+
+    automl = Fedot(problem='ts_forecasting', composer_params={'timeout': 0.1,
+                                                              'initial_pipeline': initial_pipeline},
+                   preset='ts_tun',
+                   task_params=TsForecastingParams(forecast_length=10), verbose_level=0)
+    pipeline = automl.fit(train_data)
+
+    pipeline.fit_from_scratch(train_data)
+    predicted_test = pipeline.predict(test_data)
+
+    assert predicted_test is not None

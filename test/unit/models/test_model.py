@@ -8,8 +8,11 @@ from sklearn.preprocessing import MinMaxScaler
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
+    LDAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
@@ -49,6 +52,22 @@ def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
         roc_on_train = 0.5
 
     return roc_on_train
+
+
+def get_lda_incorrect_data():
+    """
+    Problem arise when features contain only one column which "ideally" mapping with target
+    """
+    features = np.array([[1.0], [0.0], [1.0], [1.0], [1.0], [0.0]])
+    target = np.array([[1], [0], [1], [1], [1], [0]])
+
+    task = Task(TaskTypesEnum.classification)
+    input_data = InputData(idx=[0, 1, 2, 3, 4, 5],
+                           features=features,
+                           target=target, task=task,
+                           data_type=DataTypesEnum.table,
+                           supplementary_data=SupplementaryData(was_preprocessed=False))
+    return input_data
 
 
 @pytest.fixture()
@@ -260,3 +279,16 @@ def test_glm_indexes_correct():
     for i in range(9):
         assert pred_values[i, 0] - i < 0.5
         assert predicted.idx[i] - pred_values[i, 0] < 0.5
+
+
+def test_lda_model_fit_with_incorrect_data():
+    """
+    Data is generated that for some versions of python (3.7) does not allow to
+    train the LDA model with default parameters correctly.
+    """
+    lda_data = get_lda_incorrect_data()
+    lda_model = LDAImplementation()
+    lda_model.fit(lda_data)
+    params, changed_hyperparams = lda_model.get_params()
+
+    assert changed_hyperparams[0] == 'solver'

@@ -21,6 +21,11 @@ class MultiModalData(dict):
     def task(self):
         return next(iter(self.values())).task
 
+    @task.setter
+    def task(self, value):
+        for data_part in self.values():
+            data_part.task = value
+
     @property
     def target(self):
         return next(iter(self.values())).target

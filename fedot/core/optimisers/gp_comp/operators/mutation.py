@@ -5,15 +5,14 @@ from typing import Any, Callable, List, TYPE_CHECKING, Union
 
 import numpy as np
 
+from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import ComparableEnum as Enum, DEFAULT_PARAMS_STUB
-
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
@@ -284,22 +283,24 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     return graph
 
 
-def single_drop_mutation(graph: Any, *args, **kwargs):
+def single_drop_mutation(graph: Any, params, *args, **kwargs):
     """
     Add new node between two sequential existing modes
     """
     node_to_del = choice(graph.nodes)
-    # TODO replace as workaround
     node_name = node_to_del.content['name']
-    if (hasattr(node_name, 'operation_type') and
-            'data_source' in node_name.operation_type):
+    removal_type = params.advisor.can_be_removed(str(node_name))
+    if removal_type == RemoveType.with_direct_children:
+        # TODO refactor workaround with data_source
         nodes_to_delete = \
-            [n for n in graph.nodes if node_name.operation_type in n.descriptive_id and
+            [n for n in graph.nodes if str(node_name) in n.descriptive_id and
              n.descriptive_id.count('data_source') == 1]
         for child_node in nodes_to_delete:
             graph.delete_node(child_node)
         graph.delete_node(node_to_del)
-    else:
+    elif removal_type == RemoveType.with_parents:
+        graph.delete_subtree(node_to_del)
+    elif removal_type != RemoveType.forbidden:
         graph.delete_node(node_to_del)
         if node_to_del.nodes_from:
             childs = graph.operator.node_children(node_to_del)

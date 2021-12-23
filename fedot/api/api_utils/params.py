@@ -74,7 +74,7 @@ class ApiParams:
 
         return {**param_dict, **self.api_params}
 
-    def accept_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
+    def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
         Accepts recommendations for api params from DataAnalyser
 
@@ -83,7 +83,8 @@ class ApiParams:
         """
         if isinstance(input_data, MultiModalData):
             for data_source_name, values in input_data.items():
-                return self.accept_recommendations(input_data[data_source_name], recommendations[data_source_name])
+                return self.accept_and_apply_recommendations(input_data[data_source_name],
+                                                             recommendations[data_source_name])
         else:
             if 'label_encoded' in recommendations:
                 self.log.info("Change preset due of label encoding")

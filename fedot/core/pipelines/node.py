@@ -163,7 +163,8 @@ class Node(GraphNode):
         else:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        data=input_data,
-                                                       is_fit_pipeline_stage=True)
+                                                       is_fit_pipeline_stage=True,
+                                                       params=self.content['params'])
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type

@@ -96,7 +96,19 @@ class LaggedImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
+        self._update_column_types(output_data)
         return output_data
+
+    def _update_column_types(self, output_data: OutputData):
+        """ Update column types after lagged transformation. All features becomes float """
+        features_n_rows, features_n_cols = output_data.predict.shape
+        features_column_types = [str(float)] * features_n_cols
+        column_types = {'features': features_column_types}
+
+        if output_data.target is not None and len(output_data.target.shape) > 1:
+            target_n_rows, target_n_cols = output_data.target.shape
+            column_types.update({'target': [str(float)] * target_n_cols})
+        output_data.supplementary_data.column_types = column_types
 
 
 class SparseLaggedTransformationImplementation(LaggedImplementation):
@@ -519,7 +531,8 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     if is_lag:
         updated_idx = idx[window_size:]
     else:
-        updated_idx = idx[:idx.shape[0] - window_size]
+        updated_idx = idx[:len(idx)-window_size]
+
     return updated_idx, features_columns
 
 

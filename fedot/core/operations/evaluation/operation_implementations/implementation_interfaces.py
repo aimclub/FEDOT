@@ -94,15 +94,16 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
-
+        source_features_shape = input_data.features.shape
         features = input_data.features
         if len(self.ids_to_process) > 0:
             transformed_features = self._make_new_table(features)
         else:
             transformed_features = features
 
-        # Update features
+        # Update features and column types
         output_data = self._convert_to_output(input_data, transformed_features)
+        self._update_column_types(source_features_shape, output_data)
         return output_data
 
     def _make_new_table(self, features):
@@ -130,6 +131,13 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
     def get_params(self):
         return self.operation.get_params()
+
+    def _update_column_types(self, source_features_shape, output_data: OutputData):
+        """
+        Update column types after applying operations.
+        If new columns added, new type for them are defined
+        """
+        return output_data
 
     @staticmethod
     def _reasonability_check(features):

@@ -6,6 +6,7 @@ from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.api.test_main_api import composer_params
 
 
@@ -20,23 +21,21 @@ def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
 
 def get_small_cat_data():
     """ Generate tabular data with categorical features."""
-    features = np.array([
-        ["a", "qq", 0.5],
-        ["b", "pp", 1],
-        ["c", np.nan, 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-        ["d", "oo", 3],
-    ], dtype=object)
+    features = np.array([["a", "qq", 0.5],
+                         ["b", "pp", 1],
+                         ["c", np.nan, 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3],
+                         ["d", "oo", 3]], dtype=object)
     target = np.array([0, 0, 0, 0, 1, 1, 1, 1])
-    return InputData(idx=np.arange(features.shape[0]),
-                     features=features,
-                     target=target,
-                     data_type=DataTypesEnum.table,
-                     task=Task(TaskTypesEnum.classification)
-                     )
+    input_data = InputData(idx=np.arange(features.shape[0]),
+                           features=features, target=target,
+                           data_type=DataTypesEnum.table,
+                           task=Task(TaskTypesEnum.classification))
+    input_data = DataPreprocessor().obligatory_prepare_for_fit(input_data)
+    return input_data
 
 
 def test_safety_label_correct():
@@ -46,7 +45,7 @@ def test_safety_label_correct():
     api_safety, api_preprocessor = get_data_analyser_with_specific_params()
     data = get_small_cat_data()
     recs = api_safety.give_recommendation(data)
-    api_preprocessor.accept_recommendations(data, recs)
+    api_preprocessor.accept_and_apply_recommendations(data, recs)
     assert data.features.shape[0] * data.features.shape[1] <= api_safety.max_size
     assert data.features.shape[1] == 3
     assert data.features[0, 0] != 'a'
@@ -59,7 +58,7 @@ def test_no_safety_needed_correct():
     api_safety, api_preprocessor = get_data_analyser_with_specific_params(max_size=100, max_cat_cardinality=100)
     data = get_small_cat_data()
     recs = api_safety.give_recommendation(data)
-    api_preprocessor.accept_recommendations(data, recs)
+    api_preprocessor.accept_and_apply_recommendations(data, recs)
     assert data.features.shape[0] * data.features.shape[1] == 24
     assert data.features.shape[1] == 3
     assert data.features[0, 0] == 'a'
@@ -74,7 +73,8 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     model.data_analyser.max_cat_cardinality = 5
     model.data_analyser.max_size = 18
     data = get_small_cat_data()
-    model.fit(features=data, predefined_model='auto')
+    pipeline = model.fit(features=data, predefined_model='auto')
+    pipeline.predict(data)
     model.predict(features=data)
 
     # the should be only tree like models + data operations

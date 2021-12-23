@@ -2,13 +2,14 @@ from itertools import product
 
 import numpy as np
 
-from examples.classification_with_tuning_example import get_classification_dataset
-from examples.decompose.refinement_forecast_example import get_refinement_pipeline
+from examples.simple.classification.classification_with_tuning import get_classification_dataset
+from examples.advanced.decompose.refinement_forecast_example import get_refinement_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -105,6 +106,7 @@ def test_order_by_data_flow_len_correct():
     in the graph are located
     """
     input_data = get_iris_data()
+    input_data = DataPreprocessor().obligatory_prepare_for_fit(input_data)
 
     data_operations = ['scaling', 'normalization', 'pca', 'poly_features']
     model_operations = ['lda', 'knn', 'logit']
