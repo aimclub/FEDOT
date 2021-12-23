@@ -14,7 +14,7 @@ advanced - for advanced users
 - advanced
    - automl - shows how other autoML solutions can be compatible with FEDOT
    - decompose - examples devoted to decomposition
-   - fedot_based_solution - shows how FEDOT can be used with non-datascience tasks
+   - fedot_based_solution - shows how FEDOT can be applied to another graph optimization problems
    - remote_execution - shows how FEDOT can be run remotely
    - sensitivity_analysis - analysis of pipeline structure
    - time_series_forecasting - advanced examples of time series forecasting
