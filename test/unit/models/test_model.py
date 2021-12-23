@@ -19,8 +19,18 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+from test.unit.common_tests import is_predict_ignores_target
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
+
+
+def check_predict_correct(model, fitted_operation, test_data):
+    return is_predict_ignores_target(
+        predict_func=model.predict,
+        predict_args={'fitted_operation': fitted_operation, 'is_fit_pipeline_stage': False},
+        data_arg_name='data',
+        input_data=test_data,
+    )
 
 
 def get_roc_auc(valid_data: InputData, predicted_data: OutputData) -> float:
@@ -57,7 +67,7 @@ def classification_dataset():
     return data
 
 
-def classification_dataset_with_redunant_features(
+def classification_dataset_with_redundant_features(
         n_samples=1000, n_features=100, n_informative=5) -> InputData:
     synthetic_data = make_classification(n_samples=n_samples,
                                          n_features=n_features,
@@ -85,22 +95,22 @@ def generate_simple_series():
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_classification_models_fit_correct(data_fixture, request):
+def test_classification_models_fit_predict_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     roc_threshold = 0.95
     logger = default_log('default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.classification,
+        model_names, fitted_operation = repo.suitable_operation(task_type=TaskTypesEnum.classification,
                                                  data_type=data.data_type,
                                                  tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
-        _, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+        fitted_operation, train_predicted = model.fit(params=None, data=train_data)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
         if model_name not in ['bernb', 'multinb']:
@@ -108,8 +118,10 @@ def test_classification_models_fit_correct(data_fixture, request):
         else:
             assert roc_on_test >= 0.45
 
+        assert check_predict_correct(model, fitted_operation, test_data)
 
-def test_regression_models_fit_correct():
+
+def test_regression_models_fit_predict_correct():
     data = get_synthetic_regression_data(n_samples=1000, random_state=42)
     train_data, test_data = train_test_data_setup(data)
     logger = default_log('default_test_logger')
@@ -122,15 +134,16 @@ def test_regression_models_fit_correct():
         logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
 
-        _, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+        fitted_operation, train_predicted = model.fit(params=None, data=train_data)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
         rmse_threshold = np.std(test_data.target) ** 2
         assert rmse_value_test < rmse_threshold
+        assert check_predict_correct(model, fitted_operation, test_data)
 
 
-def test_ts_models_fit_correct():
+def test_ts_models_fit_predict_correct():
     train_data, test_data = get_ts_data(forecast_length=5)
     logger = default_log('default_test_logger')
 
@@ -146,12 +159,13 @@ def test_ts_models_fit_correct():
         if not default_params:
             default_params = None
 
-        _, train_predicted = model.fit(params=default_params, data=deepcopy(train_data))
-        test_pred = model.predict(fitted_operation=_, data=test_data, is_fit_pipeline_stage=False)
+        fitted_operation, train_predicted = model.fit(params=default_params, data=deepcopy(train_data))
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
         mae_threshold = np.var(test_data.target) * 2
         assert mae_value_test < mae_threshold
+        assert check_predict_correct(model, fitted_operation, test_data)
 
 
 def test_ts_models_dt_idx_fit_correct():
@@ -208,10 +222,10 @@ def test_svc_fit_correct(data_fixture, request):
     assert roc_on_train >= roc_threshold
 
 
-def test_pca_model_removes_redunant_features_correct():
+def test_pca_model_removes_redundant_features_correct():
     n_informative = 5
-    data = classification_dataset_with_redunant_features(n_samples=1000, n_features=100,
-                                                         n_informative=n_informative)
+    data = classification_dataset_with_redundant_features(n_samples=1000, n_features=100,
+                                                          n_informative=n_informative)
     train_data, test_data = train_test_data_setup(data=data)
 
     # Scaling pipeline. Fit predict it

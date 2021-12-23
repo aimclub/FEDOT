@@ -9,9 +9,18 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from test.unit.common_tests import is_predict_ignores_target
 from test.unit.composer.test_quality_metrics import multi_target_data_setup
 
 _ = multi_target_data_setup
+
+
+def check_predict_correct(pipeline, input_data):
+    return is_predict_ignores_target(
+        predict_func=pipeline.predict,
+        data_arg_name='input_data',
+        input_data=input_data,
+    )
 
 
 def get_simple_composer_params() -> dict:
@@ -52,7 +61,7 @@ def get_rmse_value(pipeline: Pipeline, train_data: InputData, test_data: InputDa
     return rmse_value_train, rmse_value_test
 
 
-def test_regression_pipeline_fit_correct():
+def test_regression_pipeline_fit_predict_correct():
     data = get_synthetic_regression_data()
 
     pipeline = generate_pipeline()
@@ -63,9 +72,10 @@ def test_regression_pipeline_fit_correct():
 
     rmse_threshold = np.std(data.target) * 0.05
     assert rmse_on_test < rmse_threshold
+    assert check_predict_correct(pipeline, train_data)
 
 
-def test_regression_pipeline_with_data_operation_fit_correct():
+def test_regression_pipeline_with_data_operation_fit_predict_correct():
     data = get_synthetic_regression_data()
     train_data, test_data = train_test_data_setup(data)
 
@@ -87,6 +97,7 @@ def test_regression_pipeline_with_data_operation_fit_correct():
     results = pipeline.predict(test_data)
 
     assert results.predict.shape == test_data.target.shape
+    assert check_predict_correct(pipeline, train_data)
 
 
 def test_multi_target_regression_composing_correct(multi_target_data_setup):

@@ -14,7 +14,17 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.models.test_model import classification_dataset_with_redunant_features
+from test.unit.models.test_model import classification_dataset_with_redundant_features
+from test.unit.common_tests import is_predict_ignores_target
+
+
+def check_predict_cnn_correct(model, dataset_to_validate):
+    return is_predict_ignores_target(
+        predict_func=predict_cnn,
+        predict_args={'trained_model': model},
+        data_arg_name='predict_data',
+        input_data=dataset_to_validate,
+    )
 
 
 def pipeline_simple() -> Pipeline:
@@ -102,7 +112,7 @@ def test_multiclassification_pipeline_fit_correct():
 
 
 def test_classification_with_pca_pipeline_fit_correct():
-    data = classification_dataset_with_redunant_features()
+    data = classification_dataset_with_redundant_features()
     pipeline_pca = pipeline_with_pca()
     pipeline = pipeline_simple()
 
@@ -201,3 +211,4 @@ def test_cnn_methods():
     assert cnn_model.input_shape[1:] == image_shape
     assert cnn_model.output_shape[1] == num_classes
     assert type(prediction) == np.ndarray
+    assert check_predict_cnn_correct(model, dataset_to_validate)
