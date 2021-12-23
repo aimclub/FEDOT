@@ -82,6 +82,9 @@ def has_correct_data_connections(pipeline: 'Pipeline'):
 
         if parent_nodes is not None and len(parent_nodes) > 0:
             for parent_node in parent_nodes:
+                if 'custom' in str(parent_node) or 'custom' in str(node):
+                    return True
+
                 current_nodes_supported_data_types = _repo.operation_info_by_id(node.operation.operation_type)
                 parent_node_supported_data_types = _repo.operation_info_by_id(parent_node.operation.operation_type)
 

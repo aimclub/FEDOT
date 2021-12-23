@@ -1,9 +1,9 @@
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
 import pytest
-import shutil
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder

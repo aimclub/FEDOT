@@ -2,15 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from hyperopt import hp
+from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error
 
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from sklearn.linear_model import Ridge
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
@@ -27,7 +27,7 @@ def domain_model_imitation_predict(fitted_model: any, predict_data: np.array, pa
 
 
 # implementation of custom regression model imitation (fit)
-def custom_ml_model_imitation_fit(features: np.array, target: np.array, params: dict):
+def custom_ml_model_imitation_fit(idx: np.array, features: np.array, target: np.array, params: dict):
     alpha = params.get('alpha')
     reg = Ridge(alpha=alpha)
     reg.fit(features, target)
@@ -35,7 +35,7 @@ def custom_ml_model_imitation_fit(features: np.array, target: np.array, params: 
 
 
 # implementation of custom regression model imitation (predict)
-def custom_ml_model_imitation_predict(fitted_model: any, features: np.array, params: dict):
+def custom_ml_model_imitation_predict(fitted_model: any, idx: np.array, features: np.array, params: dict):
     res = fitted_model.predict(features)
     return res, 'table'
 
