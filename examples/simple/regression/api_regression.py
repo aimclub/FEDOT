@@ -10,7 +10,6 @@ def run_regression_example():
     data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path)
-    data.features[data.features == '?'] = np.nan
     train, test = train_test_data_setup(data)
     problem = 'regression'
 

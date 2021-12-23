@@ -6,7 +6,6 @@ def ets_pipeline():
     """
     Return pipeline with the following structure:
     cut -> ets -> final forecast
-   
     Where cut - cut part of dataset and ets - exponential smoothing
     """
     node_cut = PrimaryNode("cut")
@@ -25,7 +24,6 @@ def ets_ridge_pipeline():
        cut -  ets \
                    -> ridge -> final forecast
     lagged - ridge /
-   
     Where cut - cut part of dataset, ets - exponential smoothing
    """
     node_cut = PrimaryNode("cut")

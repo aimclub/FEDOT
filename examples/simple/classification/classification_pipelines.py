@@ -103,9 +103,10 @@ def svc_complex_pipeline():
 
          svc ->  logit \
                         \
-               knn \     rf -> final prediction
-                    knn /
-      svc -> logit /
+                         rf -> final prediction
+             knn -> knn /
+                   /
+    svc -> logit /
 
     Where svc - support vector classifier, logit - logistic regression, knn - K nearest neighbors classifier,
      rf - random forest classifier
@@ -164,8 +165,9 @@ def xgboost_complex_pipeline():
         logit \
               xgboost \
          lda /         \
-            logit \     xgboost -> final prediction
-                   knn /
+                       xgboost -> final prediction
+        logit -> knn /
+                   /
               lda /
 
 

@@ -25,7 +25,6 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-
 def run_multistep(dataset: str, pipeline: Pipeline, step_forecast=10):
     """ Example of out-of-sample ts forecasting using custom pipelines
     :param dataset: name of dataset
