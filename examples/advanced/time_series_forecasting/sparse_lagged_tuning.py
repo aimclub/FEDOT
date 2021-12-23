@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from examples.simple.time_series_forecasting.pipelines import complex_dtreg_pipeline
+from examples.simple.time_series_forecasting.ts_pipelines import complex_dtreg_pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum

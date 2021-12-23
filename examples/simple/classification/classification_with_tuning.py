@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
+from examples.simple.classification.classification_pipelines import random_forest_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -69,7 +70,6 @@ def convert_to_labels(root_operation, prediction):
 
 
 def run_classification_tuning_experiment(pipeline, tuner=None):
-
     samples = [50, 550, 150]
     features = [1, 5, 10]
     classes = [2, 2, 2]
@@ -121,9 +121,9 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
             print(f'Start tuning process ...')
 
             pipeline_tuner = tuner(pipeline=pipeline, task=task,
-                                iterations=50)
+                                   iterations=50)
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                 loss_function=roc_auc)
+                                                          loss_function=roc_auc)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
@@ -135,10 +135,5 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 
 # Script for testing is pipeline can process different datasets for classification
 if __name__ == '__main__':
-    # Prepare pipeline
-    node_scaling = PrimaryNode('scaling')
-    node_final = SecondaryNode('rf', nodes_from=[node_scaling])
-    pipeline_for_experiment = Pipeline(node_final)
-
-    run_classification_tuning_experiment(pipeline=pipeline_for_experiment,
+    run_classification_tuning_experiment(pipeline=random_forest_pipeline(),
                                          tuner=PipelineTuner)

@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
+from examples.simple.regression.regression_pipelines import ransac_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -102,7 +103,7 @@ def run_experiment(pipeline, tuner):
             pipeline_tuner = tuner(pipeline=pipeline, task=task,
                                    iterations=50, timeout=timedelta(seconds=50))
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                 loss_function=mean_absolute_error)
+                                                          loss_function=mean_absolute_error)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
@@ -116,10 +117,4 @@ def run_experiment(pipeline, tuner):
 
 # Script for testing is pipeline can process different datasets for regression task
 if __name__ == '__main__':
-    # Prepare pipeline
-    node_ransac = PrimaryNode('ransac_lin_reg')
-    node_scaling = SecondaryNode('scaling', nodes_from=[node_ransac])
-    node_final = SecondaryNode('ridge', nodes_from=[node_scaling])
-    pipeline = Pipeline(node_final)
-
-    run_experiment(pipeline, tuner=SequentialTuner)
+    run_experiment(ransac_pipeline(), tuner=SequentialTuner)

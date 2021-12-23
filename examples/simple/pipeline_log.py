@@ -1,22 +1,10 @@
 import os
 
+from examples.simple.classification.classification_pipelines import complex_pipeline
 from examples.simple.pipeline_tune import get_case_train_test_data, get_scoring_case_data_paths
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-
-
-def get_simple_pipeline(log):
-    first = PrimaryNode(operation_type='xgboost', log=log)
-    second = PrimaryNode(operation_type='knn', log=log)
-    final = SecondaryNode(operation_type='logit',
-                          nodes_from=[first, second],
-                          log=log)
-
-    # if you do not pass the log object, Pipeline will create default log.log file placed in core
-    pipeline = Pipeline(final, log=log)
-
-    return pipeline
 
 
 def run_log_example(log_file_name):
@@ -30,7 +18,7 @@ def run_log_example(log_file_name):
                       log_file=os.path.join(current_path, log_file_name))
 
     log.info('start creating pipeline')
-    pipeline = get_simple_pipeline(log=log)
+    pipeline = complex_pipeline(log=log)
 
     log.info('start fitting pipeline')
     pipeline.fit(train_data, use_fitted=False)

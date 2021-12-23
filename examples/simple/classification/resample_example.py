@@ -3,30 +3,12 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
-from examples.advanced.classification_with_tuning_example import get_classification_dataset
+from examples.simple.classification.classification_with_tuning import get_classification_dataset
+from examples.simple.classification.classification_pipelines import pipeline_without_balancing, pipeline_with_balancing
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
-
-
-def get_pipeline_with_balancing(custom_params=None):
-    node_resample = PrimaryNode(operation_type='resample')
-
-    if custom_params is not None:
-        node_resample.custom_params = custom_params
-
-    graph = SecondaryNode(operation_type='logit', nodes_from=[node_resample])
-
-    return Pipeline(graph)
-
-
-def get_pipeline_without_balancing():
-    node = PrimaryNode(operation_type='logit')
-
-    return Pipeline(node)
 
 
 def run_resample_example(path_to_data=None, tune=False):
@@ -72,7 +54,7 @@ def run_resample_example(path_to_data=None, tune=False):
 
     print(f'Begin fit Pipeline without balancing')
     # Pipeline without balancing
-    pipeline = get_pipeline_without_balancing()
+    pipeline = pipeline_without_balancing()
     pipeline.fit_from_scratch(train_input)
 
     # Predict
@@ -82,7 +64,7 @@ def run_resample_example(path_to_data=None, tune=False):
     print(f'ROC-AUC of pipeline without balancing {roc_auc(y_test, preds):.4f}\n')
 
     # Pipeline with balancing
-    pipeline = get_pipeline_with_balancing()
+    pipeline = pipeline_with_balancing()
 
     print(f'Begin fit Pipeline with balancing')
     # pipeline.fit(train_input)

@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
+from examples.simple.classification.classification_pipelines import complex_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -15,22 +16,6 @@ def get_case_train_test_data():
     train_data = InputData.from_csv(train_file_path)
     test_data = InputData.from_csv(test_file_path)
     return train_data, test_data
-
-
-def get_simple_pipeline():
-    """ Function return simple pipeline with the following structure:
-    xgboost \
-             -> logit
-      knn   |
-    """
-    first = PrimaryNode(operation_type='xgboost')
-    second = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='logit',
-                          nodes_from=[first, second])
-
-    pipeline = Pipeline(final)
-
-    return pipeline
 
 
 def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
@@ -75,7 +60,7 @@ if __name__ == '__main__':
     train_data, test_data = get_case_train_test_data()
 
     # Pipeline composition
-    pipeline = get_simple_pipeline()
+    pipeline = complex_pipeline()
 
     # Before tuning prediction
     pipeline.fit(train_data, use_fitted=False)

@@ -7,13 +7,14 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from examples.simple.time_series_forecasting.pipelines import *
+from examples.simple.time_series_forecasting.ts_pipelines import *
+from fedot.core.utils import fedot_project_root
 
 datasets = {
-    'australia': '../data/ts/australia.csv',
-    'beer': '../data/ts/beer.csv',
-    'salaries': '../data/ts/salaries.csv',
-    'stackoverflow': '../data/ts/stackoverflow.csv'}
+    'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
+    'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
+    'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
+    'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
 def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=True):

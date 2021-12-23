@@ -3,21 +3,12 @@ import os
 
 import numpy as np
 
-from examples.advanced.regression_with_tuning_example import get_regression_dataset
+from examples.simple.regression.regression_with_tuning import get_regression_dataset
+from examples.simple.regression.regression_pipelines import ransac_pipeline
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-
-
-def get_pipeline():
-    node_scaling = PrimaryNode('scaling')
-    node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_scaling])
-    node_ridge = SecondaryNode('lasso', nodes_from=[node_ransac])
-    pipeline = Pipeline(node_ridge)
-
-    return pipeline
 
 
 def create_correct_path(path: str, dirname_flag: bool = False):
@@ -91,4 +82,4 @@ def run_import_export_example(pipeline_path, pipeline):
 
 
 if __name__ == '__main__':
-    run_import_export_example(pipeline_path='import_export', pipeline=get_pipeline())
+    run_import_export_example(pipeline_path='import_export', pipeline=ransac_pipeline())

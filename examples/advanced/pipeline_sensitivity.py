@@ -1,13 +1,13 @@
 from os import makedirs
 from os.path import exists, join
 
+from examples.simple.classification.classification_pipelines import three_depth_manual_class_pipeline
+from examples.simple.regression.regression_pipelines import three_depth_manual_regr_pipeline
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository, \
     RegressionMetricsEnum
@@ -15,35 +15,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import default_fedot_data_dir, fedot_project_root
 from fedot.sensitivity.node_sa_approaches import NodeDeletionAnalyze, NodeReplaceOperationAnalyze
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
-
-
-def get_three_depth_manual_class_pipeline():
-    logit_node_primary = PrimaryNode('logit')
-    xgb_node_primary = PrimaryNode('xgboost')
-    xgb_node_primary_second = PrimaryNode('xgboost')
-
-    qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_primary_second])
-    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_primary, xgb_node_primary])
-
-    knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
-
-    pipeline = Pipeline(knn_root)
-
-    return pipeline
-
-
-def get_three_depth_manual_regr_pipeline():
-    xgb_primary = PrimaryNode('xgbreg')
-    knn_primary = PrimaryNode('knnreg')
-
-    dtreg_secondary = SecondaryNode('dtreg', nodes_from=[xgb_primary])
-    rfr_secondary = SecondaryNode('rfr', nodes_from=[knn_primary])
-
-    knnreg_root = SecondaryNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])
-
-    pipeline = Pipeline(knnreg_root)
-
-    return pipeline
 
 
 def get_composed_pipeline(dataset_to_compose, task, metric_function):
@@ -70,7 +41,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
-                                                is_visualise=True)
+                                                      is_visualise=True)
 
     return pipeline_evo_composed
 
@@ -112,12 +83,12 @@ def get_cholesterol_data():
 def pipeline_by_task(task, metric, data, is_composed):
     if is_composed:
         pipeline = get_composed_pipeline(data, task,
-                                   metric_function=metric)
+                                         metric_function=metric)
     else:
         if task.task_type.name == 'classification':
-            pipeline = get_three_depth_manual_class_pipeline()
+            pipeline = three_depth_manual_class_pipeline()
         else:
-            pipeline = get_three_depth_manual_regr_pipeline()
+            pipeline = three_depth_manual_regr_pipeline()
 
     return pipeline
 
@@ -125,7 +96,7 @@ def pipeline_by_task(task, metric, data, is_composed):
 def run_analysis_case(train_data: InputData, test_data: InputData,
                       case_name: str, task, metric, is_composed=False, result_path=None):
     pipeline = pipeline_by_task(task=task, metric=metric,
-                          data=train_data, is_composed=is_composed)
+                                data=train_data, is_composed=is_composed)
 
     pipeline.fit(train_data)
 
@@ -137,9 +108,9 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
     pipeline.show(path=result_path)
 
     pipeline_analysis_result = NodesAnalysis(pipeline=pipeline, train_data=train_data,
-                                          test_data=test_data, path_to_save=result_path,
-                                          approaches=[NodeDeletionAnalyze,
-                                                      NodeReplaceOperationAnalyze]).analyze()
+                                             test_data=test_data, path_to_save=result_path,
+                                             approaches=[NodeDeletionAnalyze,
+                                                         NodeReplaceOperationAnalyze]).analyze()
 
     print(f'pipeline analysis result {pipeline_analysis_result}')
 

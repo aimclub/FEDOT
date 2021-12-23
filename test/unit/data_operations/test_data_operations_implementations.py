@@ -1,8 +1,8 @@
 from itertools import product
 
 import numpy as np
-from examples.advanced.classification_with_tuning_example import get_classification_dataset
-from examples.advanced.regression_with_tuning_example import get_regression_dataset
+from examples.simple.classification.classification_with_tuning import get_classification_dataset
+from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.time_series_forecasting.gapfilling import generate_synthetic_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup

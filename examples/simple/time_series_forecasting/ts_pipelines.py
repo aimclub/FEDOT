@@ -196,17 +196,15 @@ def clstm_pipeline():
 
     node_ridge_1 = SecondaryNode("ridge", nodes_from=[node_lagged_1])
     node_clstm = PrimaryNode("clstm")
-    node_clstm.custom_params = {
-        "window_size": 29,
-        "hidden_size": 50,
-        "learning_rate": 0.004,
-        "cnn1_kernel_size": 5,
-        "cnn1_output_size": 32,
-        "cnn2_kernel_size": 4,
-        "cnn2_output_size": 32,
-        "batch_size": 64,
-        "num_epochs": 3
-    }
+    node_clstm.custom_params = {"window_size": 29,
+                                "hidden_size": 50,
+                                "learning_rate": 0.004,
+                                "cnn1_kernel_size": 5,
+                                "cnn1_output_size": 32,
+                                "cnn2_kernel_size": 4,
+                                "cnn2_output_size": 32,
+                                "batch_size": 64,
+                                "num_epochs": 3}
 
     node_final = SecondaryNode("ridge", nodes_from=[node_ridge_1, node_clstm])
     pipeline = Pipeline(node_final)

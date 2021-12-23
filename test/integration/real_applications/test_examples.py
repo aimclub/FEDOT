@@ -13,10 +13,10 @@ from examples.simple.classification.multiclass_prediction import get_model
 from examples.simple.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
 from examples.simple.pipeline_log import run_log_example
 from examples.simple.pipeline_tune import get_case_train_test_data, get_simple_pipeline, pipeline_tuning
-from examples.simple.time_series_forecasting.exogenous import run_exogenous_experiment
+from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
 from examples.time_series.nemo_multiple import run_multiple_example
 from examples.simple.time_series_forecasting.gapfilling import run_gapfilling_example
-from examples.simple.time_series_forecasting.multistep import run_multistep_example
+from examples.advanced.time_series_forecasting.multistep import run_multistep_example
 from fedot.core.utils import fedot_project_root
 
 

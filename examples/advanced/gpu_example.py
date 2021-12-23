@@ -3,6 +3,7 @@ from typing import Tuple
 
 from sklearn.datasets import make_moons
 
+from examples.simple.classification.classification_pipelines import svc_complex_pipeline
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -10,29 +11,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-
-
-def get_pipeline():
-    svc_node_with_custom_params = PrimaryNode('svc')
-    svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10,
-                                                     gamma=1, cache_size=2000,
-                                                     probability=True)
-
-    svc_primary_node = PrimaryNode('svc')
-    svc_primary_node.custom_params = dict(probability=True)
-
-    knn_primary_node = PrimaryNode('knn')
-    logit_secondary_node = SecondaryNode('logit', nodes_from=[svc_primary_node])
-
-    knn_secondary_node = SecondaryNode('knn', nodes_from=[knn_primary_node, logit_secondary_node])
-
-    logit_secondary_node = SecondaryNode('logit')
-
-    rf_node = SecondaryNode('rf', nodes_from=[logit_secondary_node, knn_secondary_node])
-
-    preset_pipeline = Pipeline(rf_node)
-
-    return preset_pipeline
 
 
 def run_one_model_with_specific_evaluation_mode(train_data, test_data, mode: str = None):
@@ -79,7 +57,7 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
     else:
         baseline_model = Fedot(problem=problem)
 
-    preset_pipeline = get_pipeline()
+    preset_pipeline = svc_complex_pipeline()
 
     start = datetime.now()
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)
