@@ -1,9 +1,9 @@
 import os
+import shutil
 
 import numpy as np
 import pandas as pd
 import pytest
-import shutil
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
@@ -362,7 +362,7 @@ def test_pipeline_preprocessing_through_api_correctly():
     """
     data = data_with_binary_features_and_categorical_target()
 
-    fedot_model = Fedot(problem='classificaton')
+    fedot_model = Fedot(problem='classification')
     # Using API preprocessing and train pipeline to give forecasts
     pipeline = fedot_model.fit(data, predefined_model='dt')
     # Stand-alone pipeline with it's own preprocessing
