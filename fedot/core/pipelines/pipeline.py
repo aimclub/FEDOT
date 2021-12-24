@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import deepcopy, copy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
@@ -116,7 +116,6 @@ class Pipeline(Graph):
         inside the process) in a case of operation fit time control (when process created)
         :param fitted_operations: this list is used for saving fitted operations of pipeline nodes
         """
-
         # InputData was set directly to the primary nodes
         if input_data is None:
             use_fitted_operations = True

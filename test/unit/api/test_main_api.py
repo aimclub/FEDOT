@@ -21,6 +21,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
+from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_split_train_test import get_synthetic_input_data
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -117,16 +118,24 @@ def data_with_binary_features_and_categorical_target():
     return train_input
 
 
-def test_api_predict_correct(task_type: str = 'classification'):
+@pytest.mark.parametrize('task_type, predefined_model, metric_name', [
+    (TaskTypesEnum.classification, 'dt', 'f1'),
+    (TaskTypesEnum.regression, 'dtreg', 'rmse'),
+])
+def test_api_predict_correct(task_type, predefined_model, metric_name):
+
+    task_type = task_type.value
+
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem=task_type,
                   composer_params=composer_params)
-    fedot_model = model.fit(features=train_data)
+    fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics()
     assert isinstance(fedot_model, Pipeline)
     assert len(prediction) == len(test_data.target)
-    assert metric['f1'] > 0
+    assert metric[metric_name] > 0
+    assert is_predict_ignores_target(model.predict, train_data, 'features')
 
 
 def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
