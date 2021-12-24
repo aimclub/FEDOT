@@ -52,7 +52,7 @@ def get_split_data():
 
 def get_dataset(task_type: str):
     if task_type == 'regression':
-        data = get_synthetic_regression_data(n_samples=50, n_features=2)
+        data = get_synthetic_regression_data(n_samples=50, n_features=5)
         train_data, test_data = train_test_data_setup(data)
         threshold = np.std(test_data.target) * 0.05
     elif task_type == 'classification':
@@ -172,16 +172,16 @@ def test_api_check_data_correct():
     This happens because the data are prepared for the predict stage
      without going through the fitting stage
     """
-    data_checker = ApiDataProcessor(task=Task(TaskTypesEnum.regression))
+    task = Task(TaskTypesEnum.regression)
 
     # Get data
     task_type, x_train, x_test, y_train, y_test = get_split_data()
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
 
-    string_data_input = data_checker.define_data(features=path_to_train)
-    array_data_input = data_checker.define_data(features=x_train, target=x_test)
-    fedot_data_input = data_checker.define_data(features=train_data)
+    string_data_input = ApiDataProcessor(task).define_data(features=path_to_train)
+    array_data_input = ApiDataProcessor(task).define_data(features=x_train, target=x_test)
+    fedot_data_input = ApiDataProcessor(task).define_data(features=train_data)
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
             or type(fedot_data_input) == InputData)

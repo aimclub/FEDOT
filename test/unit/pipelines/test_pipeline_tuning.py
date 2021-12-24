@@ -129,17 +129,16 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
 
     for pipeline in [pipeline_simple, pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for algo in [tpe.suggest, rand.suggest]:
-                # Pipeline tuning
-                pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=algo)
-                # Optimization will be performed on RMSE metric, so loss params are defined
-                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                              loss_function=mse,
-                                                              loss_params={'squared': False})
+            # Pipeline tuning
+            pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                           task=train_data.task,
+                                           iterations=1,
+                                           search_space=search_space,
+                                           algo=tpe.suggest)
+            # Optimization will be performed on RMSE metric, so loss params are defined
+            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                                          loss_function=mse,
+                                                          loss_params={'squared': False})
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -157,15 +156,14 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
 
     for pipeline in [pipeline_simple, pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for algo in [tpe.suggest, rand.suggest]:
-                # Pipeline tuning
-                pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=algo)
-                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                              loss_function=roc)
+            # Pipeline tuning
+            pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                           task=train_data.task,
+                                           iterations=1,
+                                           search_space=search_space,
+                                           algo=tpe.suggest)
+            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                                          loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -183,17 +181,16 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
 
     for pipeline in [pipeline_simple, pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for algo in [tpe.suggest, rand.suggest]:
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=1,
-                                                   search_space=search_space,
-                                                   algo=algo)
-                # Optimization will be performed on RMSE metric, so loss params are defined
-                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                                loss_function=mse,
-                                                                loss_params={'squared': False})
+            # Pipeline tuning
+            sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=tpe.suggest)
+            # Optimization will be performed on RMSE metric, so loss params are defined
+            tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
+                                                            loss_function=mse,
+                                                            loss_params={'squared': False})
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -211,15 +208,14 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
 
     for pipeline in [pipeline_simple, pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for algo in [tpe.suggest, rand.suggest]:
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=2,
-                                                   search_space=search_space,
-                                                   algo=algo)
-                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                                loss_function=roc)
+            # Pipeline tuning
+            sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=2,
+                                               search_space=search_space,
+                                               algo=tpe.suggest)
+            tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
+                                                            loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -237,16 +233,15 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
 
     for pipeline in [pipeline_simple, pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for algo in [tpe.suggest, rand.suggest]:
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=1,
-                                                   search_space=search_space,
-                                                   algo=algo)
-                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                            node_index=0,
-                                                            loss_function=mse)
+            # Pipeline tuning
+            sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=tpe.suggest)
+            tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                        node_index=0,
+                                                        loss_function=mse)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -264,16 +259,15 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
 
     for pipeline in [pipeline_simple, pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for algo in [tpe.suggest, rand.suggest]:
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=1,
-                                                   search_space=search_space,
-                                                   algo=algo)
-                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                            node_index=0,
-                                                            loss_function=roc)
+            # Pipeline tuning
+            sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=tpe.suggest)
+            tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                        node_index=0,
+                                                        loss_function=roc)
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -286,12 +280,11 @@ def test_ts_pipeline_with_stats_model():
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
-        for algo in [tpe.suggest, rand.suggest]:
-            # Tune AR model
-            tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3,
-                                     search_space=search_space, algo=algo)
-            tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                                       loss_function=mse)
+        # Tune AR model
+        tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3,
+                                 search_space=search_space, algo=rand.suggest)
+        tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
+                                                   loss_function=mse)
 
     is_tuning_finished = True
 
