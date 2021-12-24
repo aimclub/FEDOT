@@ -22,6 +22,7 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, correct_if_has_nans
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
@@ -44,7 +45,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         evolution. Default False.
         :param depth_increase_step: the step of depth increase in automated depth configuration
         :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
-        if false). Value is defined in GPComposerBuilder. Default False.
+        if false). Value is defined in ComposerBuilder. Default False.
     """
 
     def set_default_params(self):
@@ -88,14 +89,6 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
 class EvoGraphOptimiser(GraphOptimiser):
     """
     Multi-objective evolutionary graph optimiser named GPComp
-
-    :param initial_graph: graph which was initialized outside the optimiser
-    :param requirements: optimizer requirements
-    :param graph_generation_params: parameters for new graph generation
-    :param metrics: quality metrics
-    :param parameters: parameters of graph optimiser
-    :param log: optional parameter for log object
-    :param archive_type: type of archive with best individuals
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]], requirements,
@@ -175,7 +168,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         return self.population
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback: Optional[Callable] = None, show_progress: bool = True):
+                 on_next_iteration_callback: Optional[Callable] = None,
+                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 

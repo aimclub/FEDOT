@@ -2,7 +2,8 @@ import datetime
 
 from examples.advanced.multi_modal_pipeline import calculate_validation_metric, generate_initial_pipeline_and_data, \
     prepare_multi_modal_data
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, PipelineComposerRequirements
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -42,7 +43,7 @@ def run_multi_modal_case(files_path, is_visualise=False, timeout=datetime.timede
     logger = default_log('FEDOT logger', verbose_level=4)
 
     # the multi modal template (with data sources) is passed as inital assumption for composer
-    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
+    builder = ComposerBuilder(task=task).with_requirements(composer_requirements). \
         with_metrics(metric_function).with_optimiser(parameters=optimiser_parameters).with_logger(logger=logger). \
         with_initial_pipeline(pipeline).with_cache('multi_modal_opt.cache')
 

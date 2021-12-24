@@ -9,8 +9,8 @@ from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.core.composer.gp_composer.gp_composer import (GPComposerBuilder,
-                                                         PipelineComposerRequirements)
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import (PipelineComposerRequirements)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -93,7 +93,7 @@ class ApiComposer:
         """ Return ComposerBuilder with parameters and if it is necessary
         init_pipeline in it """
 
-        builder = GPComposerBuilder(task=task). \
+        builder = ComposerBuilder(task=task). \
             with_requirements(composer_requirements). \
             with_optimiser(optimiser, optimizer_parameters). \
             with_metrics(metric_function).with_logger(logger)

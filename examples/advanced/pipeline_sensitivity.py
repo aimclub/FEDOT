@@ -1,10 +1,10 @@
 from os import makedirs
 from os.path import exists, join
 
-
 from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
 from examples.simple.regression.regression_pipelines import regression_three_depth_manual_pipeline
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, PipelineComposerRequirements
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
@@ -34,7 +34,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
-    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
+    builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
         metric_function).with_optimiser(parameters=optimiser_parameters)
 
     # Create GP-based composer

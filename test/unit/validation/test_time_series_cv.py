@@ -4,8 +4,9 @@ from sklearn.metrics import mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
+from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, PipelineComposerRequirements
+    PipelineComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
@@ -127,7 +128,7 @@ def test_composer_cv_correct():
 
     init_pipeline = get_simple_ts_pipeline()
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    builder = GPComposerBuilder(task=time_series.task). \
+    builder = ComposerBuilder(task=time_series.task). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipeline(init_pipeline)
     composer = builder.build()

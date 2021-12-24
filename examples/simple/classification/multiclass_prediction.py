@@ -16,7 +16,8 @@ from datetime import timedelta
 from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, PipelineComposerRequirements
+    PipelineComposerRequirements
+from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import \
@@ -71,7 +72,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
 
     # Create the genetic programming-based composer, that allow to find
     # the optimal structure of the composite model
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
     # run the search of best suitable model

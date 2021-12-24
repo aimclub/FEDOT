@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import (Any, List, Optional, Tuple)
+from typing import (Any, List, Optional, Tuple, Union)
 
 import numpy as np
 from deap import tools
@@ -13,6 +13,7 @@ from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_s
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, MetricsRepository
@@ -24,18 +25,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     """
     Implementation of the parameter-free adaptive evolutionary optimiser
     (population size and genetic operators rates is changing over time).
-    For details, see original paper: https://arxiv.org/abs/2001.10178
-    :param initial_graph: graph which was initialized outside the optimiser
-    :param requirements: composer requirements
-    :param graph_generation_params: parameters for new graph generation
-    :param metrics: quality metrics
-    :param parameters: parameters of graph optimiser
-    :param max_population_size: maximum population size
-    :param log: optional parameter for log object
-    :param archive_type: type of archive with best individuals
-    :param complexity_metric: Supplementary metric which uses in single-objective type of algorithm (in multi-objective
-    option this parameter is ignored)
-
+    For details, see https://ieeexplore.ieee.org/document/9504773
     """
 
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
@@ -67,7 +57,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         self.suppl_metric = suppl_metric
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback=None, show_progress: bool = True):
+                 on_next_iteration_callback=None,
+                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 

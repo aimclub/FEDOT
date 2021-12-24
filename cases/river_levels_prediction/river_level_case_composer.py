@@ -5,8 +5,9 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, PipelineComposerRequirements
+    PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -97,7 +98,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         metric_function = MetricsRepository().metric_by_id(
             RegressionMetricsEnum.MAE)
-        builder = GPComposerBuilder(task=data.task). \
+        builder = ComposerBuilder(task=data.task). \
             with_requirements(composer_requirements). \
             with_metrics(metric_function).with_initial_pipeline(init_pipeline)
         composer = builder.build()

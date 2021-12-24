@@ -6,8 +6,8 @@ import numpy as np
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, \
-    PipelineComposerRequirements, sample_split_ratio_for_tasks
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, sample_split_ratio_for_tasks
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -120,7 +120,7 @@ def test_evaluate_individuals():
     composer_requirements = PipelineComposerRequirements(primary=available_model_types,
                                                          secondary=available_model_types)
 
-    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements). \
+    builder = ComposerBuilder(task=task).with_requirements(composer_requirements). \
         with_metrics(metric_function)
 
     composer = builder.build()

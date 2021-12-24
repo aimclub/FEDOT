@@ -5,7 +5,8 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.api.main import Fedot
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, PipelineComposerRequirements
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -59,7 +60,7 @@ def test_cv_ts_and_cluster_raise():
     composer_requirements = PipelineComposerRequirements(primary=available_model_types,
                                                          secondary=available_model_types,
                                                          cv_folds=4)
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
     with pytest.raises(NotImplementedError):
@@ -120,7 +121,7 @@ def test_composer_with_cv_optimization_correct():
                                                          timeout=timedelta(minutes=1),
                                                          num_of_generations=2, cv_folds=3)
 
-    builder = GPComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
+    builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
     pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)[0]

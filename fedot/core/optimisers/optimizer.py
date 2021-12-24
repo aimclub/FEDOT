@@ -13,6 +13,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
     evaluate_individuals,
     random_graph
 )
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
@@ -25,7 +27,7 @@ class GraphOptimiserParameters:
         evolution. Default False.
         :param depth_increase_step: the step of depth increase in automated depth configuration
         :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
-        if false). Value is defined in GPComposerBuilder. Default False.
+        if false). Value is defined in ComposerBuilder. Default False.
     """
 
     def __init__(self,
@@ -42,12 +44,15 @@ class GraphOptimiserParameters:
 
 class GraphOptimiser:
     """
-    Base class of graph optimiser
+    Base class of graph optimiser. It allow to find the optimal solution using specified metric (one or several).
+    To implement the specific optimisation method,
+    the abstract method 'optimize' should be re-defined in the ancestor class
+    (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param initial_graph: graph which was initialized outside the optimiser
     :param requirements: implementation-independent requirements for graph optimizer
     :param graph_generation_params: parameters for new graph generation
-    :param metrics: quality metrics
+    :param metrics: metrics for optimisation
     :param parameters: parameters for specific implementation of graph optimiser
     :param log: optional parameter for log object
     """
@@ -84,13 +89,33 @@ class GraphOptimiser:
     @abstractmethod
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+        """
+        Method for running of optimization using specified algorithm.
+        :param objective_function: function for calculation of the objective function for optimisation
+        :param on_next_iteration_callback: callback function that runs in each iteration of optimization
+        :param show_progress: print output the describes the progress during iterations
+        :return: best graph (or list of graph for multi-objective case)
+        """
         pass
 
-    def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10):
+    def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10) -> bool:
+        """ Function for the comparison of fitness values between pais of individuals
+        :param first_fitness: fitness for individual A
+        :param second_fitness: fitness for individual B
+        :param atol: absolute tolerance parameter (see Notes).
+        :param rtol: relative tolerance parameter (see Notes).
+        :return: equality flag
+        """
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
-    def default_on_next_iteration_callback(self, individuals, archive):
+    def default_on_next_iteration_callback(self, individuals: List[Individual], archive: List[Individual]):
+        """
+        Default variant of callblack that preservs optimisation history
+        :param individuals: list of individuals obtained in iteration
+        :param archive: optional list of best individuals for previous iterations
+        :return:
+        """
         try:
             self.history.add_to_history(individuals)
             self.history.save_current_results()
@@ -124,6 +149,7 @@ class GraphGenerationParams:
 
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: set of constraints
+    :param advisor: class of task-specific advices for graph changes
     """
     adapter: BaseOptimizationAdapter = DirectAdapter()
     rules_for_constraint: Optional[List[Callable]] = None

@@ -13,6 +13,10 @@ from fedot.core.utils import fedot_project_root
 
 
 class RandomSearchOptimizer(GraphOptimiser):
+    """
+    Random search-based graph models optimizer
+    """
+
     def __init__(self, initial_graph: Union[Any, List[Any]],
                  requirements: Any,
                  graph_generation_params: GraphGenerationParams,
