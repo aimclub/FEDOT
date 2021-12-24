@@ -1,3 +1,4 @@
+from fedot.core.log import Log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -35,7 +36,7 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
     return pipeline
 
 
-def pipeline_with_balancing(custom_params=None):
+def classification_pipeline_with_balancing(custom_params=None):
     """
     Returns pipeline with the following structure:
 
@@ -55,7 +56,7 @@ def pipeline_with_balancing(custom_params=None):
     return Pipeline(graph)
 
 
-def pipeline_without_balancing():
+def classification_pipeline_without_balancing():
     """
     Returns pipeline with the following structure:
 
@@ -68,7 +69,7 @@ def pipeline_without_balancing():
     return Pipeline(node)
 
 
-def complex_pipeline():
+def classification_complex_pipeline(log: Log = None):
     """
     Returns pipeline with the following structure:
 
@@ -81,12 +82,12 @@ def complex_pipeline():
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
 
-    pipeline = Pipeline(final)
+    pipeline = Pipeline(final, log=log)
 
     return pipeline
 
 
-def random_forest_pipeline():
+def classification_random_forest_pipeline():
     """
     Returns pipeline with the following structure:
 
@@ -97,7 +98,7 @@ def random_forest_pipeline():
     return Pipeline(node_final)
 
 
-def svc_complex_pipeline():
+def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
@@ -132,7 +133,7 @@ def svc_complex_pipeline():
     return preset_pipeline
 
 
-def three_depth_manual_class_pipeline():
+def classification_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
@@ -158,7 +159,7 @@ def three_depth_manual_class_pipeline():
     return pipeline
 
 
-def xgboost_complex_pipeline():
+def classification_xgboost_complex_pipeline():
     """
     Returns pipeline with the following structure:
 

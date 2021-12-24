@@ -1,8 +1,8 @@
 from os import makedirs
 from os.path import exists, join
 
-from examples.simple.classification.classification_pipelines import three_depth_manual_class_pipeline
-from examples.simple.regression.regression_pipelines import three_depth_manual_regr_pipeline
+from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
+from examples.simple.regression.regression_pipelines import regression_three_depth_manual_pipeline
 from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -86,9 +86,9 @@ def pipeline_by_task(task, metric, data, is_composed):
                                          metric_function=metric)
     else:
         if task.task_type.name == 'classification':
-            pipeline = three_depth_manual_class_pipeline()
+            pipeline = classification_three_depth_manual_pipeline()
         else:
-            pipeline = three_depth_manual_regr_pipeline()
+            pipeline = regression_three_depth_manual_pipeline()
 
     return pipeline
 

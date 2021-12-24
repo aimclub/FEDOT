@@ -193,8 +193,8 @@ def test_target_data_from_csv_correct():
     seven_columns_data = InputData.from_csv(path, target_columns=target_columns,
                                             columns_to_drop=['date'], task=task)
 
-    assert one_column_data.target.shape == (499, 1)
-    assert seven_columns_data.target.shape == (499, 7)
+    assert one_column_data.target.shape == (197, 1)
+    assert seven_columns_data.target.shape == (197, 7)
 
 
 def test_table_data_shuffle():

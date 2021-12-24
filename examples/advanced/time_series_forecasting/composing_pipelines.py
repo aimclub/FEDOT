@@ -166,4 +166,4 @@ def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, lab
 
 
 if __name__ == '__main__':
-    run_composing('australia', ets_pipeline(), len_forecast=30)
+    run_composing('australia', ts_ets_pipeline(), len_forecast=30)
