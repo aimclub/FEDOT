@@ -2,7 +2,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-def three_depth_manual_regr_pipeline():
+def regression_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
@@ -25,7 +25,7 @@ def three_depth_manual_regr_pipeline():
     return pipeline
 
 
-def ransac_pipeline():
+def regression_ransac_pipeline():
     """
     Returns pipeline with the following structure:
 

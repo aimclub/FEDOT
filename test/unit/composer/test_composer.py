@@ -26,6 +26,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
     MetricsRepository
@@ -43,9 +44,22 @@ def to_numerical(categorical_ids: np.ndarray):
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
     file = '../../data/advanced_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
+    input_data = InputData.from_csv(os.path.join(test_file_path, file))
     input_data.idx = to_numerical(categorical_ids=input_data.idx)
+    return input_data
+
+
+def get_unimproveable_data():
+    """ Create simple dataset which will not allow to improve metric values """
+    features = np.array([[0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [1, 101],
+                         [1, 102], [1, 103], [1, 104], [1, 105]])
+    target = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
+    input_data = InputData(idx=np.arange(0, 10),
+                           features=features,
+                           target=target,
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+
     return input_data
 
 
@@ -211,7 +225,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     metric_function = ClassificationMetricsEnum.ROCAUC
 
     req = GPComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                 max_arity=2, max_depth=2, pop_size=2, num_of_generations=4,
+                                 max_arity=2, max_depth=2, pop_size=2, num_of_generations=2,
                                  crossover_prob=0.4, mutation_prob=0.5)
     opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
     builder = GPComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
@@ -373,13 +387,14 @@ def test_gp_composer_random_graph_generation_looping():
 
 def test_gp_composer_early_stopping():
     """ Test checks early stopping criteria """
-    train_data_path = f'{fedot_project_root()}/test/data/simple_classification.csv'
-    problem = 'classification'
+    train_data = get_unimproveable_data()
     time_limit = datetime.timedelta(minutes=10)
     start = datetime.datetime.now()
-    model = Fedot(problem=problem, timeout=1000, composer_params={'stopping_after_n_generation': 1},
+    model = Fedot(problem='classification', timeout=1000,
+                  composer_params={'stopping_after_n_generation': 1,
+                                   'pop_size': 2},
                   preset='ultra_light')
-    model.fit(features=train_data_path, target='Y')
+    model.fit(train_data)
     spent_time = datetime.datetime.now() - start
 
     assert spent_time < time_limit

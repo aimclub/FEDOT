@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
-from examples.simple.regression.regression_pipelines import ransac_pipeline
+from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -82,4 +82,4 @@ def run_import_export_example(pipeline_path, pipeline):
 
 
 if __name__ == '__main__':
-    run_import_export_example(pipeline_path='import_export', pipeline=ransac_pipeline())
+    run_import_export_example(pipeline_path='import_export', pipeline=regression_ransac_pipeline())

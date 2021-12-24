@@ -51,6 +51,7 @@ def pipeline_with_pca() -> Pipeline:
 
 
 def get_iris_data() -> InputData:
+    """ Prepare iris data for classification task in InputData format """
     synthetic_data = load_iris()
     input_data = InputData(idx=np.arange(0, len(synthetic_data.target)),
                            features=synthetic_data.data,

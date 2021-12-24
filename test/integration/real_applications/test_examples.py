@@ -5,18 +5,22 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_squared_error
 
-from examples.simple.fedot_api_example import (run_ts_forecasting_example, run_classification_multiobj_example,
-                                               run_classification_example)
-from examples.simple.interpretable import run_api_explain_example
 from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
+from examples.advanced.multiobj_optimisation import run_classification_multiobj_example
+from examples.advanced.time_series_forecasting.multistep import run_multistep
+from examples.advanced.time_series_forecasting.nemo_multiple import run_multiple_example
+from examples.simple.classification.api_classification import run_classification_example
+from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.classification.multiclass_prediction import get_model
+from examples.simple.interpretable.api_explain import run_api_explain_example
 from examples.simple.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
 from examples.simple.pipeline_log import run_log_example
-from examples.simple.pipeline_tune import get_case_train_test_data, get_simple_pipeline, pipeline_tuning
+from examples.simple.pipeline_tune import get_case_train_test_data, pipeline_tuning
 from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
-from examples.time_series.nemo_multiple import run_multiple_example
+from examples.simple.time_series_forecasting.api_foresacting import run_ts_forecasting_example
 from examples.simple.time_series_forecasting.gapfilling import run_gapfilling_example
-from examples.advanced.time_series_forecasting.multistep import run_multistep_example
+from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
+
 from fedot.core.utils import fedot_project_root
 
 
@@ -77,7 +81,7 @@ def test_pipeline_tuning_example():
     train_data, test_data = get_case_train_test_data()
 
     # Pipeline composition
-    pipeline = get_simple_pipeline()
+    pipeline = classification_complex_pipeline()
 
     # Pipeline tuning
     after_tune_roc_auc, _ = pipeline_tuning(pipeline=pipeline,
@@ -88,16 +92,8 @@ def test_pipeline_tuning_example():
 
 
 def test_multistep_example():
-    project_root_path = str(fedot_project_root())
-    path = os.path.join(project_root_path, 'test/data/simple_sea_level.csv')
-
-    df = pd.read_csv(path)
-    time_series = np.array(df['Level'])
-
-    run_multistep_example(time_series,
-                          len_forecast=20,
-                          future_steps=40,
-                          vis=False)
+    pipeline = ts_complex_dtreg_pipeline()
+    run_multistep('test_sea', pipeline, step_forecast=20, future_steps=5)
 
 
 def test_api_example():
