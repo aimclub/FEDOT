@@ -52,7 +52,7 @@ def get_split_data():
 
 def get_dataset(task_type: str):
     if task_type == 'regression':
-        data = get_synthetic_regression_data()
+        data = get_synthetic_regression_data(n_samples=50, n_features=2)
         train_data, test_data = train_test_data_setup(data)
         threshold = np.std(test_data.target) * 0.05
     elif task_type == 'classification':
@@ -60,7 +60,7 @@ def get_dataset(task_type: str):
         train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
         threshold = 0.95
     elif task_type == 'clustering':
-        data = get_synthetic_input_data(n_samples=1000)
+        data = get_synthetic_input_data(n_samples=100)
         train_data, test_data = train_test_data_setup(data)
         threshold = 0.5
     elif task_type == 'ts_forecasting':
@@ -249,7 +249,6 @@ def test_multiobj_for_api():
     assert model.best_models is not None
 
 
-@pytest.mark.skip('Sometimes it is failed due to unknown reasons')
 def test_categorical_preprocessing_unidata():
     train_data, test_data = load_categorical_unimodal()
 
