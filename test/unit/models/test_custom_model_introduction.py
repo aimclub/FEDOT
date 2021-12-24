@@ -70,7 +70,7 @@ def get_starting_pipeline(with_params=True):
 def get_input_data():
     test_file_path = str(os.path.dirname(__file__))
     df = pd.read_csv(os.path.join(test_file_path, '../../data/simple_sea_level.csv'))
-    time_series = np.array(df['Level'])
+    time_series = np.array(df['value'])
     len_forecast = 50
     train_input, predict_input = \
         train_test_data_setup(InputData(idx=range(len(time_series)),
