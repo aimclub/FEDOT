@@ -3,7 +3,7 @@ from typing import Tuple
 
 from sklearn.datasets import make_moons
 
-from examples.simple.classification.classification_pipelines import svc_complex_pipeline
+from examples.simple.classification.classification_pipelines import classification_svc_complex_pipeline
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -57,7 +57,7 @@ def run_pipeline_with_specific_evaluation_mode(train_data: InputData, test_data:
     else:
         baseline_model = Fedot(problem=problem)
 
-    preset_pipeline = svc_complex_pipeline()
+    preset_pipeline = classification_svc_complex_pipeline()
 
     start = datetime.now()
     baseline_model.fit(features=train_data, target='target', predefined_model=preset_pipeline)

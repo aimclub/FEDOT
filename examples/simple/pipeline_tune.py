@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
-from examples.simple.classification.classification_pipelines import complex_pipeline
+from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     train_data, test_data = get_case_train_test_data()
 
     # Pipeline composition
-    pipeline = complex_pipeline()
+    pipeline = classification_complex_pipeline()
 
     # Before tuning prediction
     pipeline.fit(train_data, use_fitted=False)

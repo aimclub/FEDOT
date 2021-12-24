@@ -2,7 +2,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-def ets_pipeline():
+def ts_ets_pipeline():
     """
     Return pipeline with the following structure:
     cut -> ets -> final forecast
@@ -18,7 +18,7 @@ def ets_pipeline():
     return Pipeline(node_ets)
 
 
-def ets_ridge_pipeline():
+def ts_ets_ridge_pipeline():
     """
     Return pipeline with the following structure:
        cut -  ets \
@@ -43,7 +43,7 @@ def ets_ridge_pipeline():
     return Pipeline(node_ridge_2)
 
 
-def glm_pipeline():
+def ts_glm_pipeline():
     """
     Return pipeline with the following structure:
     glm -> final forecast
@@ -55,7 +55,7 @@ def glm_pipeline():
     return Pipeline(node_glm)
 
 
-def glm_ridge_pipeline():
+def ts_glm_ridge_pipeline():
     """
     Return pipeline with the following structure:
                glm \
@@ -75,7 +75,7 @@ def glm_ridge_pipeline():
     return Pipeline(node_ridge_2)
 
 
-def polyfit_pipeline(degree):
+def ts_polyfit_pipeline(degree):
     """
     Return pipeline with the following structure:
     polyfit -> final forecast
@@ -87,7 +87,7 @@ def polyfit_pipeline(degree):
     return Pipeline(node_polyfit)
 
 
-def polyfit_ridge_pipeline(degree):
+def ts_polyfit_ridge_pipeline(degree):
     """
     Return pipeline with the following structure:
            polyfit \
@@ -107,7 +107,7 @@ def polyfit_ridge_pipeline(degree):
     return Pipeline(node_ridge_2)
 
 
-def complex_rigde_pipeline():
+def ts_complex_ridge_pipeline():
     """
     Return pipeline with the following structure:
     lagged - ridge \
@@ -126,7 +126,7 @@ def complex_rigde_pipeline():
     return pipeline
 
 
-def complex_ridge_smoothing_pipeline():
+def ts_complex_ridge_smoothing_pipeline():
     """
     Pipeline looking like this
     smoothing - lagged - ridge \
@@ -150,7 +150,7 @@ def complex_ridge_smoothing_pipeline():
     return pipeline
 
 
-def complex_dtreg_pipeline(first_node="lagged"):
+def ts_complex_dtreg_pipeline(first_node="lagged"):
     """
         Return pipeline with the following structure:
 
@@ -169,7 +169,7 @@ def complex_dtreg_pipeline(first_node="lagged"):
     return pipeline
 
 
-def ar_pipeline():
+def ts_ar_pipeline():
     """
     Return pipeline with the following structure:
     ar -> final forecast

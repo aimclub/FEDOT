@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
-from examples.simple.classification.classification_pipelines import pipeline_without_balancing, pipeline_with_balancing
+from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing, classification_pipeline_with_balancing
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -54,7 +54,7 @@ def run_resample_example(path_to_data=None, tune=False):
 
     print(f'Begin fit Pipeline without balancing')
     # Pipeline without balancing
-    pipeline = pipeline_without_balancing()
+    pipeline = classification_pipeline_without_balancing()
     pipeline.fit_from_scratch(train_input)
 
     # Predict
@@ -64,7 +64,7 @@ def run_resample_example(path_to_data=None, tune=False):
     print(f'ROC-AUC of pipeline without balancing {roc_auc(y_test, preds):.4f}\n')
 
     # Pipeline with balancing
-    pipeline = pipeline_with_balancing()
+    pipeline = classification_pipeline_with_balancing()
 
     print(f'Begin fit Pipeline with balancing')
     # pipeline.fit(train_input)

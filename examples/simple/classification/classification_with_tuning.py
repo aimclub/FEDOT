@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
-from examples.simple.classification.classification_pipelines import random_forest_pipeline
+from examples.simple.classification.classification_pipelines import classification_random_forest_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -135,5 +135,5 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 
 # Script for testing is pipeline can process different datasets for classification
 if __name__ == '__main__':
-    run_classification_tuning_experiment(pipeline=random_forest_pipeline(),
+    run_classification_tuning_experiment(pipeline=classification_random_forest_pipeline(),
                                          tuner=PipelineTuner)

@@ -90,4 +90,4 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
 
 if __name__ == '__main__':
-    run_experiment('stackoverflow', complex_ridge_smoothing_pipeline(), len_forecast=30, tuning=True)
+    run_experiment('stackoverflow', ts_complex_ridge_smoothing_pipeline(), len_forecast=30, tuning=True)

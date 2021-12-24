@@ -1,3 +1,4 @@
+import os
 import warnings
 
 import numpy as np
@@ -22,19 +23,21 @@ datasets = {
     'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
     'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
     'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
-    'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
+    'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv',
+    'test_sea': os.path.join(fedot_project_root(), 'test', 'data', 'simple_sea_level.csv')}
 
 
-def run_multistep(dataset: str, pipeline: Pipeline, step_forecast=10):
+def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, future_steps: int = 5):
     """ Example of out-of-sample ts forecasting using custom pipelines
     :param dataset: name of dataset
     :param pipeline: pipeline to use
-    :param step_forecast: horizon to train model. Real horizon = step_forecast * 5
+    :param step_forecast: horizon to train model. Real horizon = step_forecast * future_steps
+    :param future_steps: number of future steps
     """
     # show initial pipeline
     pipeline.print_structure()
 
-    horizon = step_forecast * 5
+    horizon = step_forecast * future_steps
     time_series = pd.read_csv(datasets[dataset])
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=step_forecast))
@@ -68,4 +71,4 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast=10):
 
 
 if __name__ == '__main__':
-    run_multistep("australia", glm_ridge_pipeline(), step_forecast=10)
+    run_multistep("australia", ts_glm_ridge_pipeline(), step_forecast=10)
