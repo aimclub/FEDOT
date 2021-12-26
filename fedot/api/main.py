@@ -385,21 +385,21 @@ class Fedot:
         """ Fit and return predefined model """
 
         if isinstance(predefined_model, Pipeline):
-            pipeline = predefined_model
+            pipelines = [predefined_model]
         elif predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipeline = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
-                                                                                    self.api_params['task'])
+            pipelines = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
+                                                                                     self.api_params['task'])
         elif isinstance(predefined_model, str):
             # Model name was set
             categorical_preprocessing = PrimaryNode('one_hot_encoding')
             scaling_preprocessing = SecondaryNode('scaling', nodes_from=[categorical_preprocessing])
             model = SecondaryNode(predefined_model, nodes_from=[scaling_preprocessing])
-            pipeline = Pipeline(model)
+            pipelines = [Pipeline(model)]
         else:
             raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 
         # Perform fitting
-        pipeline = fit_and_check_correctness(initial_pipeline=pipeline, data=self.train_data,
-                                             logger=self.api_params['logger'])
-        return pipeline
+        fit_and_check_correctness(pipelines, data=self.train_data,
+                                  logger=self.api_params['logger'])
+        return pipelines[0]

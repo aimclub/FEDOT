@@ -159,8 +159,8 @@ class EvoGraphOptimiser(GraphOptimiser):
     def _init_population(self):
         if self.initial_graph:
             if type(self.initial_graph) != list:
-                initial_graph = [self.initial_graph]
-            adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in initial_graph]
+                self.initial_graph = [self.initial_graph]
+            adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
             self.population = self._create_randomized_pop_from_inital_graph(adapted_graphs)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)

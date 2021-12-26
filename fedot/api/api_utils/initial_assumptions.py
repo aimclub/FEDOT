@@ -19,15 +19,12 @@ class ApiInitialAssumptions:
         has_gaps = data_has_missing_values(data)
 
         if isinstance(data, MultiModalData):
-            node_final = self.create_multidata_pipeline(task, data, has_categorical_features, has_gaps)
+            init_pipelines = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
         elif isinstance(data, InputData):
-            node_final = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
+            init_pipelines = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
         else:
             raise NotImplementedError(f"Don't handle {type(data)}")
-
-        init_pipeline = Pipeline(node_final)
-
-        return init_pipeline
+        return init_pipelines
 
     def create_unidata_pipelines(self,
                                  task: Task,
@@ -36,36 +33,27 @@ class ApiInitialAssumptions:
         # TODO refactor as builder
         node_prepocessed = gaps_imputer(task.task_type, has_gaps, has_categorical_features)
         if task.task_type == TaskTypesEnum.ts_forecasting:
-            pipelines = [
-                create_lagged_ridge_pipeline(node_prepocessed),
-                create_glm_ridge_pipeline(node_prepocessed),
-                create_polyfit_ridge_pipeline(node_prepocessed),
-                create_ar_pipeline(node_prepocessed)]
+            pipelines = [create_glm_ridge_pipeline(node_prepocessed),
+                         create_lagged_ridge_pipeline(node_prepocessed),
+                         create_polyfit_ridge_pipeline(node_prepocessed),
+                         create_ar_pipeline(node_prepocessed)]
         elif task.task_type == TaskTypesEnum.classification:
             if has_categorical_features:
-                pipelines = [
-                    create_xgboost_classifier_pipeline(node_prepocessed)
-                ]
+                pipelines = [create_xgboost_classifier_pipeline(node_prepocessed)]
             else:
-                pipelines = [
-                    create_xgboost_classifier_pipeline(node_prepocessed)
-                ]
+                pipelines = [create_xgboost_classifier_pipeline(node_prepocessed)]
         elif task.task_type == TaskTypesEnum.regression:
             if has_categorical_features:
-                pipelines = [
-                    create_xgboost_regression_pipeline(node_prepocessed)
-                ]
+                pipelines = [create_xgboost_regression_pipeline(node_prepocessed)]
             else:
-                pipelines = [
-                    create_xgboost_regression_pipeline(node_prepocessed)
-                ]
+                pipelines = [create_xgboost_regression_pipeline(node_prepocessed)]
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
         return pipelines
 
-    def create_multidata_pipeline(self, task: Task, data: MultiModalData,
-                                  has_categorical_features: bool,
-                                  has_gaps: bool) -> Node:
+    def create_multidata_pipelines(self, task: Task, data: MultiModalData,
+                                   has_categorical_features: bool,
+                                   has_gaps: bool) -> List[Pipeline]:
         if task.task_type == TaskTypesEnum.ts_forecasting:
             node_final = SecondaryNode('ridge', nodes_from=[])
             for data_source_name, values in data.items():
@@ -83,7 +71,7 @@ class ApiInitialAssumptions:
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
 
-        return node_final
+        return [Pipeline(node_final)]
 
     def create_first_multimodal_nodes(self, data: MultiModalData,
                                       has_categorical: bool, has_gaps: bool) -> List[SecondaryNode]:
@@ -137,7 +125,7 @@ def create_lagged_ridge_pipeline(node_preprocessed=None):
     else:
         node_lagged = PrimaryNode('lagged')
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
-    return node_final
+    return Pipeline(node_final)
 
 
 def create_glm_ridge_pipeline(node_preprocessed=None):
@@ -151,7 +139,7 @@ def create_glm_ridge_pipeline(node_preprocessed=None):
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
 
     node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_glm])
-    return node_final
+    return Pipeline(node_final)
 
 
 def create_polyfit_ridge_pipeline(node_preprocessed=None):
@@ -165,7 +153,7 @@ def create_polyfit_ridge_pipeline(node_preprocessed=None):
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
 
     node_final = SecondaryNode('ridge', nodes_from=[node_ridge, node_polyfit])
-    return node_final
+    return Pipeline(node_final)
 
 
 def create_ar_pipeline(node_preprocessed=None):
@@ -173,12 +161,12 @@ def create_ar_pipeline(node_preprocessed=None):
         node_final = SecondaryNode('ar', nodes_from=[node_preprocessed])
     else:
         node_final = PrimaryNode('ar')
-    return node_final
+    return Pipeline(node_final)
 
 
 def create_xgboost_classifier_pipeline(node_preprocessed):
-    return SecondaryNode('xgboost', nodes_from=[node_preprocessed])
+    return Pipeline(SecondaryNode('xgboost', nodes_from=[node_preprocessed]))
 
 
 def create_xgboost_regression_pipeline(node_preprocessed):
-    return SecondaryNode('xgbreg', nodes_from=[node_preprocessed])
+    return Pipeline(SecondaryNode('xgbreg', nodes_from=[node_preprocessed]))

@@ -99,16 +99,18 @@ class ApiComposer:
             with_metrics(metric_function).with_logger(logger)
 
         if initial_pipeline is None:
-            initial_pipeline = self.initial_assumptions.get_initial_assumption(data, task)
+            initial_pipelines = self.initial_assumptions.get_initial_assumption(data, task)
+        else:
+            initial_pipelines = [initial_pipeline]
 
-        if initial_pipeline is not None:
-            if not isinstance(initial_pipeline, Pipeline):
+        if initial_pipelines is not None:
+            if not isinstance(initial_pipelines, list) or not isinstance(initial_pipelines[0], Pipeline):
                 prefix = 'Incorrect type of initial_pipeline'
                 raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
 
         # Check initial assumption
-        fit_and_check_correctness(initial_pipeline, data, logger=logger)
-        builder = builder.with_initial_pipeline(initial_pipeline)
+        fit_and_check_correctness(initial_pipelines, data, logger=logger)
+        builder = builder.with_initial_pipeline(initial_pipelines)
         return builder
 
     def divide_operations(self,
@@ -292,19 +294,19 @@ class ApiComposer:
         return loss_function, loss_params
 
 
-def fit_and_check_correctness(initial_pipeline: Pipeline,
+def fit_and_check_correctness(initial_pipelines: Pipeline,
                               data: Union[InputData, MultiModalData],
                               logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
-        initial_pipeline.fit(data)
-        initial_pipeline.predict(data_test)
 
-        message_success = 'Initial pipeline were fitted successfully'
-        logger.debug(message_success)
+        for initial_pipeline in initial_pipelines:
+            initial_pipeline.fit(data)
+            initial_pipeline.predict(data_test)
 
-        return initial_pipeline
+            message_success = 'Initial pipeline were fitted successfully'
+            logger.debug(message_success)
     except Exception as ex:
         fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
         advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
