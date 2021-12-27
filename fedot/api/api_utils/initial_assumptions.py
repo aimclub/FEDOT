@@ -158,9 +158,10 @@ def create_polyfit_ridge_pipeline(node_preprocessed=None):
 
 def create_ar_pipeline(node_preprocessed=None):
     if node_preprocessed:
-        node_final = SecondaryNode('ar', nodes_from=[node_preprocessed])
+        node_smoothing = SecondaryNode('smoothing', nodes_from=[node_preprocessed])
     else:
-        node_final = PrimaryNode('ar')
+        node_smoothing = PrimaryNode('smoothing')
+    node_final = SecondaryNode('ar', nodes_from=[node_smoothing])
     return Pipeline(node_final)
 
 
