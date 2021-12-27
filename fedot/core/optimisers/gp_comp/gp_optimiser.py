@@ -147,7 +147,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 # to suppress duplicated
                 randomized_pop.append(new_ind)
 
-            if len(randomized_pop) == self.requirements.pop_size - 1:
+            if len(randomized_pop) == self.requirements.pop_size - len(initial_pipelines):
                 break
 
         # add initial graph to population
