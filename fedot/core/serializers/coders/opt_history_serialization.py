@@ -12,10 +12,11 @@ from . import any_from_json
 
 def _convert_parent_objects_ids_to_templates(individuals: List[List['Individual']]) -> List[List['Individual']]:
     for ind in list(itertools.chain(*individuals)):
+        ind.graph.uid = ind.graph._serialization_id
         for parent_op in ind.parent_operators:
             for idx, parent_obj_id in enumerate(parent_op.parent_objects):
                 for _ind in list(itertools.chain(*individuals)):
-                    if parent_obj_id == _ind.graph.uid:
+                    if parent_obj_id == _ind.graph._serialization_id:
                         parent_op.parent_objects[idx] = _ind
                         break
     return individuals
