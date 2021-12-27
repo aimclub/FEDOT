@@ -33,7 +33,15 @@ class Fedot:
         - regression
         - ts_forecasting
         - clustering
-    :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
+    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
+        - 'best_quality' - All models that are available for this data type and task are used
+        - 'fast_train' - Models that learn quickly. This includes preprocessing operations that
+            only reduce the dimensionality of the data, but cannot increase it. For example,
+            there are no polynomial features and one-hot encoding operations
+        - 'gpu' - Models that use GPU resources for computation.
+        - '*tree_reg' - A special preset that allows only tree-based algorithms for regression case.
+        - '*tree_class' - A special preset that allows only tree-based algorithms for classification case.
+        - '*ts' - A special preset with models for time series forecasting task.
     :param timeout: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:

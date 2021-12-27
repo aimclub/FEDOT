@@ -35,7 +35,7 @@ if __name__ == '__main__':
                        'pop_size': 20,
                        'num_of_generations': 20,
                        'timeout': 0.5,
-                       'preset': 'light',
+                       'preset': 'best_quality',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}

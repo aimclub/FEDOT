@@ -123,18 +123,22 @@
 		},
 		"scaling": {
 			"meta": "custom_preprocessing",
+			"presets": ["fast_train"],
 			"tags": ["simple"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
+			"presets": ["fast_train"],
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
-		  "meta": "custom_preprocessing",
-		  "tags": ["simple", "imputation", "non-default", "categorical-ignore"]
+			"meta": "custom_preprocessing",
+			"presets": ["fast_train"],
+		  	"tags": ["simple", "imputation", "non-default", "categorical-ignore"]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
+			"presets": ["fast_train"],
 			"tags": ["linear", "dimensionality_transforming", "correct_params"]
 		},
 		"kernel_pca": {
@@ -156,14 +160,17 @@
 		},
 		"label_encoding": {
 			"meta": "sklearn_categorical",
+			"presets": ["fast_train"],
 			"tags": ["encoding", "categorical", "non-default"]
 		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
+			"presets": ["fast_train"],
 			"tags": ["affects_target", "linear", "filtering", "correct_params"]
 		},
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
+			"presets": ["fast_train"],
 			"tags": ["affects_target", "non_linear", "filtering", "correct_params"]
 		},
 		"rfe_lin_reg": {

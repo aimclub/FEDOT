@@ -3,8 +3,6 @@ import os
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.pipeline_tune import get_case_train_test_data, get_scoring_case_data_paths
 from fedot.core.log import default_log
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 
 
 def run_log_example(log_file_name):
