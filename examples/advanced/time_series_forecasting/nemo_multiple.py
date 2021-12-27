@@ -328,4 +328,4 @@ def run_prediction_examples(mode='single'):
 
 
 if __name__ == '__main__':
-    run_prediction_examples(mode='single')
+    run_prediction_examples(mode='multiple')
