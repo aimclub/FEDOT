@@ -49,22 +49,22 @@ class OptimisationTimer(Timer):
         super().__init__(timeout=timeout, log=log)
         self.init_time = 0
 
-    def _is_next_iteration_possible(self, time_constraint: float, generation_num: int = None) -> bool:
+    def _is_next_iteration_possible(self, time_constraint: float, iteration_num: int = None) -> bool:
         minutes = self.minutes_from_start
-        if generation_num is not None:
+        if iteration_num is not None:
             evo_proc_minutes = minutes - self.init_time
-            possible = time_constraint > (minutes + (evo_proc_minutes / (generation_num + 1)))
+            possible = time_constraint > (minutes + (evo_proc_minutes / (iteration_num + 1)))
         else:
             possible = time_constraint > minutes
         if not possible:
             self.process_terminated = True
         return possible
 
-    def is_time_limit_reached(self, generation_num: int = None) -> bool:
+    def is_time_limit_reached(self, iteration_num: int = None) -> bool:
         if self.timeout:
             timeout = 0 if self.timeout.total_seconds() < 0 else self.timeout.total_seconds() / 60.
             if timeout:
-                reached = not self._is_next_iteration_possible(generation_num=generation_num,
+                reached = not self._is_next_iteration_possible(iteration_num=iteration_num,
                                                                time_constraint=timeout)
             else:
                 self.process_terminated = True

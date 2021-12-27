@@ -1,6 +1,7 @@
 import datetime
 
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -14,7 +15,7 @@ def test_gp_composer_builder():
 
     metric_function = ClassificationMetricsEnum.ROCAUC
 
-    composer_requirements = GPComposerRequirements(
+    composer_requirements = PipelineComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=4,
@@ -23,8 +24,8 @@ def test_gp_composer_builder():
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
-    builder_with_custom_params = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser_parameters(optimiser_parameters)
+    builder_with_custom_params = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
+        metric_function).with_optimiser(parameters=optimiser_parameters)
 
     composer_with_custom_params = builder_with_custom_params.build()
 
@@ -33,7 +34,7 @@ def test_gp_composer_builder():
     assert composer_with_custom_params.composer_requirements.pop_size == 5
     assert composer_with_custom_params.composer_requirements.mutation_prob == 1
 
-    builder_with_default_params = GPComposerBuilder(task=task)
+    builder_with_default_params = ComposerBuilder(task=task)
     composer_with_default_params = builder_with_default_params.build()
 
     default_metric = ClassificationMetricsEnum.ROCAUC.ROCAUC_penalty

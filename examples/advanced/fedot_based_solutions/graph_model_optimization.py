@@ -6,15 +6,16 @@ from functools import partial
 import numpy as np
 import pandas as pd
 
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.validation_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
-    GeneticSchemeTypesEnum, GraphGenerationParams
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
+    GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import fedot_project_root
 
@@ -80,7 +81,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
     initial = CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
                                                       content={'name': node_type}) for node_type in nodes_types])
 
-    requirements = GPComposerRequirements(
+    requirements = PipelineComposerRequirements(
         primary=nodes_types,
         secondary=nodes_types, max_arity=10,
         max_depth=10, pop_size=5, num_of_generations=5,
@@ -96,14 +97,15 @@ def run_custom_example(timeout: datetime.timedelta = None):
         adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
         rules_for_constraint=rules)
 
-    optimizer = GPGraphOptimiser(
+    optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
         metrics=[],
         parameters=optimiser_parameters,
         requirements=requirements, initial_graph=initial,
         log=default_log(logger_name='Bayesian', verbose_level=1))
 
-    optimized_network = optimizer.optimise(partial(custom_metric, data=data))
+    optimized_graph = optimiser.optimise(partial(custom_metric, data=data))
+    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 
     optimized_network.show()
 

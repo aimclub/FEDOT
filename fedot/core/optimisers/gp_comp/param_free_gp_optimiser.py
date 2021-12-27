@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import (Any, List, Optional, Tuple)
+from typing import (Any, List, Optional, Tuple, Union)
 
 import numpy as np
 from deap import tools
@@ -8,11 +8,12 @@ from tqdm import tqdm
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, duplicates_filtration, \
     num_of_parents_in_crossover
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, MetricsRepository
@@ -20,33 +21,19 @@ from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEn
 DEFAULT_MAX_POP_SIZE = 55
 
 
-class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
+class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     """
     Implementation of the parameter-free adaptive evolutionary optimiser
     (population size and genetic operators rates is changing over time).
-    For details, see original paper: https://arxiv.org/abs/2001.10178
-    :param initial_graph: graph which was initialized outside the optimiser
-    :param requirements: composer requirements
-    :param graph_generation_params: parameters for new graph generation
-    :param metrics: quality metrics
-    :param parameters: parameters of graph optimiser
-    :param max_population_size: maximum population size
-    :param log: optional parameter for log object
-    :param archive_type: type of archive with best individuals
-    :param complexity_metric: Supplementary metric which uses in single-objective type of algorithm (in multi-objective
-    option this parameter is ignored)
-
+    For details, see https://ieeexplore.ieee.org/document/9504773
     """
 
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Log = None, archive_type=None,
+                 sequence_function=fibonacci_sequence, log: Log = None,
                  suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log, archive_type)
-
-        if archive_type is not None:
-            self.archive = archive_type
+        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
             self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
@@ -70,7 +57,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
         self.suppl_metric = suppl_metric
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback=None, show_progress: bool = True):
+                 on_next_iteration_callback=None,
+                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
@@ -171,9 +159,8 @@ class GPGraphParameterFreeOptimiser(GPGraphOptimiser):
             self.log.info('Result:')
             self.log_info_about_best()
 
-        output = [self.graph_generation_params.adapter.restore(ind.graph)
-                  for ind in tqdm(best, desc='Restoring best', unit='ind')] if isinstance(best, list) \
-            else self.graph_generation_params.adapter.restore(best.graph)
+        output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
+
         return output
 
     @property

@@ -2,15 +2,16 @@ import random
 
 import numpy as np
 
-from fedot.core.composer.gp_composer.gp_composer import GPComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.validation_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiser, GPGraphOptimiserParameters, \
-    GeneticSchemeTypesEnum, GraphGenerationParams
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
+    GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 random.seed(1)
@@ -37,7 +38,7 @@ def test_custom_graph_opt():
     nodes_types = ['A', 'B', 'C', 'D']
     rules = [has_no_self_cycled_nodes]
 
-    requirements = GPComposerRequirements(
+    requirements = PipelineComposerRequirements(
         primary=nodes_types,
         secondary=nodes_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=5,
@@ -56,13 +57,15 @@ def test_custom_graph_opt():
         adapter=DirectAdapter(CustomModel, CustomNode),
         rules_for_constraint=rules)
 
-    optimizer = GPGraphOptimiser(
+    optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
         metrics=[],
         parameters=optimiser_parameters,
         requirements=requirements, initial_graph=None)
 
-    optimized_network = optimizer.optimise(custom_metric)
+    optimized_graph = optimiser.optimise(custom_metric)
+
+    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 
     assert optimized_network is not None
     assert isinstance(optimized_network, CustomModel)

@@ -1,4 +1,5 @@
-from fedot.core.composer.gp_composer.gp_composer import GPComposerBuilder, GPComposerRequirements
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -40,7 +41,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
     available_model_types = get_operations_for_task(task=task, mode='model')
 
     # the choice and initialisation of the GP search
-    composer_requirements = GPComposerRequirements(
+    composer_requirements = PipelineComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=20, num_of_generations=20,
@@ -51,8 +52,8 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
 
     # Create builder for composer and set composer params
-    builder = GPComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser_parameters(optimiser_parameters)
+    builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
+        metric_function).with_optimiser(parameters=optimiser_parameters)
 
     # Create GP-based composer
     composer = builder.build()

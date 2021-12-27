@@ -12,7 +12,7 @@ def test_composition_timer():
     with OptimisationTimer(timeout=datetime.timedelta(minutes=0.01)) as timer:
         for generation in range(generation_num):
             time.sleep(1)
-            if timer.is_time_limit_reached(generation_num=generation):
+            if timer.is_time_limit_reached(iteration_num=generation):
                 reached = True
                 break
 

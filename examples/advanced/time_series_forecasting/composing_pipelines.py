@@ -1,24 +1,23 @@
 import datetime
-import numpy as np
-import pandas as pd
 from typing import Any, List
 
-from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
-
+import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+from examples.simple.time_series_forecasting.ts_pipelines import *
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import \
+    MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.utils import fedot_project_root
 
 
@@ -88,7 +87,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     primary_operations, secondary_operations = get_available_operations()
 
     # Composer parameters
-    composer_requirements = GPComposerRequirements(
+    composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
         max_depth=8, pop_size=10, num_of_generations=10,
@@ -101,8 +100,8 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    builder = GPComposerBuilder(task=task). \
-        with_optimiser_parameters(optimiser_parameters). \
+    builder = ComposerBuilder(task=task). \
+        with_optimiser(parameters=optimiser_parameters). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipeline(pipeline)
     composer = builder.build()

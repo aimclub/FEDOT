@@ -1,9 +1,7 @@
-from random import choice
-
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
-from fedot.core.optimisers.graph import OptNode, OptGraph
+from fedot.core.optimisers.graph import OptNode
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 

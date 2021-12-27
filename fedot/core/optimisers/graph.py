@@ -29,11 +29,11 @@ class OptNode(GraphNodeSerializer):  # this inheritance needed for assigning to 
     """
     Class for node definition in optimization graph (OptGraph)
 
-    :param content: alias of the content in node
-    :param nodes_from: parent nodes
+    :param content: content in node (name only or dict with name and params)
+    :param nodes_from: parent nodes in directed graph
     """
 
-    def __init__(self, content: dict,
+    def __init__(self, content: Union[str, dict],
                  nodes_from: Optional[List['OptNode']] = None,
                  log: Optional[Log] = None
                  ):
@@ -44,6 +44,9 @@ class OptNode(GraphNodeSerializer):  # this inheritance needed for assigning to 
             self.log = default_log(__name__)
         else:
             self.log = log
+
+        if isinstance(content, str):
+            content = {'name': content}
 
         self.nodes_from = nodes_from if nodes_from is not None else []
         self.content = {**content, **default_dict}

@@ -10,7 +10,7 @@ from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import ComparableEnum as Enum
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.gp_optimiser import GraphGenerationParams
+    from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
 class RegularizationTypesEnum(Enum):
