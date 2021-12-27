@@ -11,6 +11,8 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
+    PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
     LDAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -67,6 +69,21 @@ def get_lda_incorrect_data():
                            target=target, task=task,
                            data_type=DataTypesEnum.table,
                            supplementary_data=SupplementaryData(was_preprocessed=False))
+    return input_data
+
+
+def get_pca_incorrect_data():
+    """ Generate wide table with number of features twice more than number of objects """
+    features = np.array([[1.0, 1.5, 2.0, 2.5, 3.0, 3.5],
+                         [2.0, 2.5, 3.0, 3.5, 4.0, 4.5],
+                         [1.0, 5.0, 4.5, 0.5, 1.0, 1.5]])
+    target = np.array([[1], [2], [3]])
+
+    task = Task(TaskTypesEnum.regression)
+    input_data = InputData(idx=[0, 1, 2],
+                           features=features,
+                           target=target, task=task,
+                           data_type=DataTypesEnum.table)
     return input_data
 
 
@@ -141,7 +158,7 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
 
 
 def test_regression_models_fit_predict_correct():
-    data = get_synthetic_regression_data(n_samples=1000, random_state=42)
+    data = get_synthetic_regression_data(n_samples=100, random_state=42)
     train_data, test_data = train_test_data_setup(data)
     logger = default_log('default_test_logger')
 
@@ -237,7 +254,7 @@ def test_svc_fit_correct(data_fixture, request):
 
 def test_pca_model_removes_redundant_features_correct():
     n_informative = 5
-    data = classification_dataset_with_redundant_features(n_samples=1000, n_features=100,
+    data = classification_dataset_with_redundant_features(n_samples=100, n_features=10,
                                                           n_informative=n_informative)
     train_data, test_data = train_test_data_setup(data=data)
 
@@ -292,3 +309,17 @@ def test_lda_model_fit_with_incorrect_data():
     params, changed_hyperparams = lda_model.get_params()
 
     assert changed_hyperparams[0] == 'solver'
+
+
+def test_pca_model_fit_with_wide_table():
+    """
+    The default value of n_components is 'mle' causes an error if the number of columns
+    is greater than the number of rows in the dataset. If this happens, the number
+    of n_components will be defined as 0.5
+    """
+    pca_data = get_pca_incorrect_data()
+    pca_model = PCAImplementation()
+    pca_model.fit(pca_data)
+
+    params, changed_hyperparams = pca_model.get_params()
+    assert changed_hyperparams[0] == 'n_components'

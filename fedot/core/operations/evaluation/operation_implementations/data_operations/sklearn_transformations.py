@@ -24,6 +24,8 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.pca = None
         self.params = None
         self.number_of_features = None
+        self.number_of_samples = None
+
         self.parameters_changed = False
 
     def fit(self, input_data):
@@ -33,10 +35,10 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         :param input_data: data with features, target and ids for PCA training
         :return pca: trained PCA model (optional output)
         """
-        self.number_of_features = np.array(input_data.features).shape[1]
+        self.number_of_samples, self.number_of_features = np.array(input_data.features).shape
 
         if self.number_of_features > 1:
-            self.parameters_changed = self.check_and_correct_params()
+            self.check_and_correct_params()
             self.pca.fit(input_data.features)
 
         return self.pca
@@ -61,22 +63,24 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.update_column_types(output_data)
         return output_data
 
-    def check_and_correct_params(self) -> bool:
-        """ Method check if amount of features in data enough for n_components
+    def check_and_correct_params(self):
+        """ Method check if number of features in data enough for n_components
         parameter in PCA or not. And if not enough - fixes it
         """
-        was_changed = False
         current_parameters = self.pca.get_params()
 
         if type(current_parameters['n_components']) == int:
             if current_parameters['n_components'] > self.number_of_features:
                 current_parameters['n_components'] = self.number_of_features
-                was_changed = True
+                self.parameters_changed = True
+        elif current_parameters['n_components'] == 'mle':
+            # Check that n_samples correctly map with n_features
+            if self.number_of_samples < self.number_of_features:
+                current_parameters['n_components'] = 0.5
+                self.parameters_changed = True
 
         self.pca.set_params(**current_parameters)
         self.params = current_parameters
-
-        return was_changed
 
     def get_params(self):
         if self.parameters_changed is True:
@@ -107,7 +111,7 @@ class PCAImplementation(ComponentAnalysisImplementation):
         else:
             self.pca = PCA(**params)
         self.params = params
-        self.amount_of_features = None
+        self.number_of_features = None
 
 
 class KernelPCAImplementation(ComponentAnalysisImplementation):
