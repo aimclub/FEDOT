@@ -41,6 +41,6 @@ def test_operators_in_history():
     assert 1 <= len(auto_model.history.individuals) <= 3
 
     # test history dumps
-    dumped_history = auto_model.history.dumps()
+    dumped_history = auto_model.history.save()
 
     assert dumped_history is not None

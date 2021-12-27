@@ -6,7 +6,8 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -105,29 +106,18 @@ class OptHistory:
         except Exception as ex:
             print(ex)
 
-    def dump(self, json_file_path: os.PathLike, **kwargs) -> None:
-        if 'cls' in kwargs:
-            raise KeyError('You can\'t change serializer class')
+    def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
+        if json_file_path is None:
+            return json.dumps(self, cls=Serializer)
         with open(json_file_path, mode='w') as json_fp:
             json.dump(self, json_fp, cls=Serializer)
 
-    def dumps(self, **kwargs) -> str:
-        if 'cls' in kwargs:
-            raise KeyError('You can\'t change serializer class')
-        return json.dumps(self, cls=Serializer, **kwargs)
-
     @staticmethod
-    def load(json_file_path: os.PathLike, **kwargs) -> 'OptHistory':
-        if 'cls' in kwargs:
-            raise KeyError('You can\'t change serializer class')
-        with open(json_file_path, mode='r') as json_fp:
-            return json.load(json_fp, cls=Serializer, **kwargs)
-
-    @staticmethod
-    def loads(json_str: str, **kwargs) -> 'OptHistory':
-        if 'cls' in kwargs:
-            raise KeyError('You can\'t change serializer class')
-        return json.loads(json_str, cls=Serializer, **kwargs)
+    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'OptHistory':
+        if Path(json_str_or_file_path).exists():
+            with open(json_str_or_file_path, mode='r') as json_fp:
+                return json.load(json_fp, cls=Serializer)
+        return json.loads(json_str_or_file_path, cls=Serializer)
 
     def clean_results(self, path: Optional[str] = None):
         if not path:
