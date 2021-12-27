@@ -69,18 +69,24 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
             self.model = LinearDiscriminantAnalysis(**params)
         self.params = params
         self.parameters_changed = False
+        self.changed_parameters = []
 
     def fit(self, train_data):
         """ Method fit model on a dataset
 
         :param train_data: data to train the model
         """
+
+        self.check_and_correct_params()
+
         try:
             self.model.fit(train_data.features, train_data.target)
         except ValueError:
             # Problem arise when features and target are "ideally" mapping
             # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
             self.parameters_changed = True
+            self.changed_parameters.append('solver')
+
             new_solver = 'lsqr'
             self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
 
@@ -89,9 +95,23 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
             self.model.fit(train_data.features, train_data.target)
         return self.model
 
+    def check_and_correct_params(self):
+        """ Checks if the hyperparameters for the LDA model are correct and fixes them if needed """
+        current_solver = self.params.get('solver')
+        current_shrinkage = self.params.get('shrinkage')
+
+        is_solver_svd = current_solver is not None and current_solver == 'svd'
+        if is_solver_svd and current_shrinkage is not None:
+            # Ignore shrinkage
+            self.params['shrinkage'] = None
+            self.model.shrinkage = None
+
+            self.parameters_changed = True
+            self.changed_parameters.append('shrinkage')
+
     def get_params(self):
         if self.parameters_changed is True:
-            return tuple([self.params, ['solver']])
+            return tuple([self.params, self.changed_parameters])
         else:
             return self.params
 
