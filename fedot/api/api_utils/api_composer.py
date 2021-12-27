@@ -294,21 +294,19 @@ class ApiComposer:
         return loss_function, loss_params
 
 
-def fit_and_check_correctness(initial_pipelines: Pipeline,
+def fit_and_check_correctness(initial_pipelines: List[Pipeline],
                               data: Union[InputData, MultiModalData],
                               logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
+        initial_pipelines[0].fit(data)
+        initial_pipelines[0].predict(data_test)
 
-        for initial_pipeline in initial_pipelines:
-            initial_pipeline.fit(data)
-            initial_pipeline.predict(data_test)
-
-            message_success = 'Initial pipeline were fitted successfully'
-            logger.debug(message_success)
+        message_success = 'Initial pipeline was fitted successfully'
+        logger.debug(message_success)
     except Exception as ex:
-        fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
+        fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
         advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
 
         logger.info(fit_failed_info)
