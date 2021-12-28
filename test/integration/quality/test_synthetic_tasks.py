@@ -91,7 +91,7 @@ def test_synthetic_regression_automl():
                                                                  'rfe_non_lin_reg',
                                                                  'ridge',
                                                                  'linear']},
-                       preset='light')
+                       preset='best_quality')
     auto_model.fit(features=test_data.features, target=test_data.target)
 
     auto_model.current_pipeline.fit(train_data)

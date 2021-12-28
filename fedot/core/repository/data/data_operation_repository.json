@@ -123,27 +123,27 @@
 		},
 		"scaling": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "*ts", "*tree"],
 			"tags": ["simple"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "*ts", "*tree"],
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*tree"],
 		  	"tags": ["simple", "imputation", "non-default", "categorical-ignore"]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "*ts", "*tree"],
 			"tags": ["linear", "dimensionality_transforming", "correct_params"]
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
-			"presets": ["*ts"],
+			"presets": ["*ts", "*tree"],
 			"tags": [
 				"non_linear",
 				"dimensionality_transforming",
@@ -161,17 +161,17 @@
 		},
 		"label_encoding": {
 			"meta": "sklearn_categorical",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*tree"],
 			"tags": ["encoding", "categorical", "non-default"]
 		},
 		"ransac_lin_reg": {
 			"meta": "regression_preprocessing",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*tree"],
 			"tags": ["affects_target", "linear", "filtering", "correct_params"]
 		},
 		"ransac_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*tree"],
 			"tags": ["affects_target", "non_linear", "filtering", "correct_params"]
 		},
 		"rfe_lin_reg": {
@@ -192,7 +192,7 @@
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["*ts"],
+			"presets": ["fast_train", "*ts"],
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
@@ -202,7 +202,7 @@
 		},
 		"sparse_lagged": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["*ts"],
+			"presets": ["fast_train", "*ts"],
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
@@ -230,6 +230,7 @@
 		},
 		"diff_filter": {
 			"meta": "custom_time_series_transformation",
+			"presets": ["fast_train", "*ts"],
 			"tags": [
 				"differential",
 				"non_lagged",
@@ -238,6 +239,7 @@
 		},
 		"cut": {
 			"meta": "custom_time_series_transformation",
+			"presets": ["fast_train", "*ts"],
 			"tags": [
 				"simple",
 				"cutting",
@@ -258,10 +260,12 @@
 		},
 		"decompose": {
 		  "meta": "regression_preprocessing",
+		  "presets": ["fast_train", "*ts", "*tree"],
 		  "tags": ["non-default", "decompose"]
 		},
 		"class_decompose": {
 		  "meta": "classification_preprocessing",
+		  "presets": ["fast_train", "*tree"],
 		  "tags": ["non-default", "decompose"]
         },
       "resample": {

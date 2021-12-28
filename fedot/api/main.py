@@ -35,9 +35,10 @@ class Fedot:
         - clustering
     :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
         - 'best_quality' - All models that are available for this data type and task are used
-        - 'fast_train' - Models that learn quickly. This includes preprocessing operations that
-            only reduce the dimensionality of the data, but cannot increase it. For example,
-            there are no polynomial features and one-hot encoding operations
+        - 'fast_train' - Models that learn quickly. This includes preprocessing operations
+            (data operations) that only reduce the dimensionality of the data, but cannot increase
+             it. For example, there are no polynomial features and one-hot encoding operations
+        - 'steady_state' - The most reliable preset in which the most stable operations are included.
         - 'gpu' - Models that use GPU resources for computation.
         - '*tree' - A special preset that allows only tree-based algorithms
         - '*ts' - A special preset with models for time series forecasting task.

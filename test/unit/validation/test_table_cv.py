@@ -139,7 +139,7 @@ def test_cv_api_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'timeout': 0.0001,
-                       'preset': 'ultra_light',
+                       'preset': 'fast_train',
                        'cv_folds': 10}
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose, dataset_to_validate = get_data(task)

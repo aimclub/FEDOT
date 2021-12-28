@@ -320,7 +320,8 @@ def atomized_model_meta_tags():
     return ['random'], ['any'], ['atomized']
 
 
-def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None, ):
+def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None,
+                            preset: str = None):
     """ Function returns aliases of operations.
 
     :param task: task to solve
@@ -331,21 +332,34 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
             'data_operation' - return only list with data_operations
     :param tags: tags for grabbing when filtering
     :param forbidden_tags: tags for skipping when filtering
+    :param preset: operations from this preset will be obtained
 
     :return : list with operation aliases
     """
+    # Remove 'tun' postfix in preset name
+    if preset is not None:
+        preset.replace('_tun', '')
+
+    # Preset None means that all operations will be returned
+    if preset is not None and 'best_quality' in preset:
+        preset = None
+
     task_type = task.task_type if task else None
     if mode != 'all':
         repo = OperationTypesRepository(mode)
-        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
+                                                 preset=preset)
         return model_types
     elif mode == 'all':
         # Get models from repository
         repo = OperationTypesRepository('model')
-        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
+                                                 preset=preset)
         # Get data operations
         repo = OperationTypesRepository('data_operation')
-        data_operation_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        data_operation_types, _ = repo.suitable_operation(task_type, tags=tags,
+                                                          forbidden_tags=forbidden_tags,
+                                                          preset=preset)
         return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')

@@ -31,7 +31,7 @@ def get_simple_composer_params() -> dict:
               'pop_size': 2,
               'num_of_generations': 2,
               'timeout': 1,
-              'preset': 'ultra_light'}
+              'preset': 'fast_train'}
     return params
 
 

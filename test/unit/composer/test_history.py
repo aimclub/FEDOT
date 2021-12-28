@@ -29,7 +29,7 @@ def test_operators_in_history():
 
     auto_model = Fedot(problem='classification', seed=42,
                        composer_params={'num_of_generations': 3, 'pop_size': 4},
-                       preset='ultra_light')
+                       preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
     assert auto_model.history is not None

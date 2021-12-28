@@ -62,7 +62,7 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                        'pop_size': 20,
                        'num_of_generations': 100,
                        'timeout': timeout,
-                       'preset': 'ultra_light',
+                       'preset': 'fast_train',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}

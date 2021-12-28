@@ -178,6 +178,7 @@
     },
     "catboost": {
       "meta": "sklearn_class",
+      "presets": ["*tree"],
       "tags": [
         "boosting"
       ]
@@ -192,7 +193,7 @@
     },
     "dt": {
       "meta": "sklearn_class",
-      "presets": ["fast_train"],
+      "presets": ["fast_train", "*tree"],
       "tags": [
         "tree",
         "interpretable"
@@ -310,7 +311,7 @@
     },
     "rf": {
       "meta": "sklearn_class",
-      "presets": ["fast_train"],
+      "presets": ["fast_train", "*tree"],
       "tags": ["tree"]
     },
     "rfr": {
@@ -329,7 +330,7 @@
     },
     "polyfit": {
       "meta": "ts_model",
-      "presets": ["*ts"],
+      "presets": ["fast_train", "*ts"],
       "tags": [
         "simple",
         "non_lagged",
@@ -356,7 +357,7 @@
     },
     "glm": {
       "meta": "ts_model",
-      "presets": ["*ts"],
+      "presets": ["fast_train", "*ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -366,7 +367,7 @@
     },
     "ets": {
       "meta": "ts_model",
-      "presets": ["*ts"],
+      "presets": ["fast_train", "*ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -395,13 +396,14 @@
     },
     "treg": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*tree"],
+      "presets": ["*tree"],
       "tags": [
         "tree"
       ]
     },
     "xgboost": {
       "meta": "sklearn_class",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "tree"

@@ -59,8 +59,6 @@ class ApiParams:
                                          input_params['task_params'])
         self.metric_name = self.get_default_metric(input_params['problem'])
 
-        return
-
     def initialize_params(self, **input_params):
         self.get_initial_params(**input_params)
         preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
@@ -100,7 +98,7 @@ class ApiParams:
 
     def change_preset_for_label_encoded_data(self, task: Task):
         """ Change preset on tree like preset, if data had been label encoded """
-        preset_name = 'tree_reg' if task.task_type == 'regression' else 'tree_class'
+        preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
         del self.api_params['available_operations']
         self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)

@@ -30,7 +30,7 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.0001,
-                   'preset': 'ultra_light'}
+                   'preset': 'fast_train'}
 
 
 def get_split_data_paths():
