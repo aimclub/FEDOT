@@ -267,8 +267,9 @@ class PipelineTemplate:
         if path is not None and 'preprocessing' in os.listdir(path):
             # Load data preprocessor and store it into the
             path_to_preprocessor = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
-            restored_data_preprocessor = joblib.load(path_to_preprocessor)
-            pipeline.preprocessor = restored_data_preprocessor
+            if os.path.exists(path_to_preprocessor):
+                restored_data_preprocessor = joblib.load(path_to_preprocessor)
+                pipeline.preprocessor = restored_data_preprocessor
         elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
             tmp_path = 'preprocessing.tmp'
             with open(tmp_path, 'wb') as f:
