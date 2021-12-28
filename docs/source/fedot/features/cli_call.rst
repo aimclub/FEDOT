@@ -1,24 +1,24 @@
 FEDOT Command Line Interface (CLI)
 ===================================================================
 
-FEDOT API is able to be called via console without writing python code.
+FEDOT API can be called via console without writing python code.
 All API parameters can be marked as flags described in application Help.
-Prediction saves as csv file for future using.
+Prediction saves as a CSV file for future use.
 
 
-For correct console application run there should be Python environment with installed
+For correct console application run, there should be Python environment with installed
 FEDOT package with all dependencies.
 
 
-*Pay attention that your FEDOT working project can differ from package version installed in environment!*
-*For setting master version as package in environment download it through pip from github with command:*
+*Pay attention that your FEDOT working project can differ from the package version installed in the environment!*
+*For setting master version as a package in environment download it through pip from GitHub with command:*
 
 ``pip install git+https://github.com/nccr-itmo/FEDOT.git``
 
 Start using
 ------------------
 
-Main executing script running the application is fedot_cli.py so first there is a need to navigate to them:
+The main executing script running the application is fedot_cli.py so first, there is a need to navigate to them:
 
 
 ``cd {path_to_fedot}/fedot/api``
@@ -27,7 +27,7 @@ To get a list of possible flags and their descriptions, a help call is provided:
 
 ``python fedot_cli.py --help``
 
-Result of execution is presented below:
+The result of execution is presented below:
 
 .. code-block:: console
 
@@ -66,11 +66,11 @@ Result of execution is presented below:
 Examples of using (.bat files)
 ------------------
 
-Examples of usage can be presented as .bat files for console execution. This files are located at
+Examples of usage can be presented as .bat files for console execution. These files are located at
 ``/examples/cli_application`` folder. There the templates of parameters for different
 problems decision are presented.
 
-String below helps to run classification problem decision from console:
+The string below helps to run classification problem decision from the console:
 
 ``python --problem classification --train ../../test/data/simple_classification.csv --test ../../test/data/simple_classification.csv  --target Y --c_timeout 0.1``
 
