@@ -393,17 +393,7 @@ class Fedot:
             pipelines = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
                                                                                      self.api_params['task'])
         elif isinstance(predefined_model, str):
-            # Model name was set
-            has_categorical_features = data_has_categorical_features(self.train_data)
-            has_gaps = data_has_missing_values(self.train_data)
-            node_preprocessed = preprocessing_builder(task_type=self.api_params['task'].task_type,
-                                                      has_gaps=has_gaps,
-                                                      has_categorical_features=has_categorical_features
-                                                      )
-            if node_preprocessed:
-                model = SecondaryNode(predefined_model, nodes_from=[node_preprocessed])
-            else:
-                model = PrimaryNode(predefined_model)
+            model = PrimaryNode(predefined_model)
             pipelines = [Pipeline(model)]
         else:
             raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
@@ -411,4 +401,4 @@ class Fedot:
         # Perform fitting
         fit_and_check_correctness(pipelines, data=self.train_data,
                                   logger=self.api_params['logger'])
-        return pipelines[0]
+        return np.random.choice(pipelines)
