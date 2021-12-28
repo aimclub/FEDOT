@@ -111,5 +111,5 @@ def test_node_return_correct_operation_info():
     node = PrimaryNode('simple_imputation')
     operation_tags = node.tags
 
-    correct_tags = ["simple", "imputation", "non-default"]
+    correct_tags = ["simple", "imputation"]
     assert all(correct_tag in operation_tags for correct_tag in correct_tags)

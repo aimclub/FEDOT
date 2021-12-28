@@ -222,8 +222,8 @@ def test_composing_with_custom_model():
 
     automl = Fedot(problem='ts_forecasting', composer_params={'timeout': 0.1,
                                                               'initial_pipeline': initial_pipeline},
-                   preset='ts_tun',
-                   task_params=TsForecastingParams(forecast_length=10), verbose_level=0)
+                   preset='*ts_tun',
+                   task_params=TsForecastingParams(forecast_length=5), verbose_level=0)
     pipeline = automl.fit(train_data)
 
     pipeline.fit_from_scratch(train_data)
