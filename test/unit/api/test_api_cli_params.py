@@ -15,12 +15,6 @@ class_call = f'--problem classification --train {class_train_path} --test {class
                                      --preset light --timeout 0.1 --depth 3 --arity 3 \
                                      --popsize 3 --gen_num 5 --c_timeout 0.1 --tuning 1'.split()
 
-regr_train_path = os.path.join(project_root_path, 'test/data/simple_regression_train.csv')
-regr_test_path = os.path.join(project_root_path, 'test/data/simple_regression_test.csv')
-regr_call = f'--problem regression --train {regr_train_path} --test {regr_test_path} \
-                                     --preset light --timeout 0.1 --depth 3 --arity 3 \
-                                     --popsize 3 --gen_num 5 --c_timeout 0.1 --tuning 1'.split()
-
 
 def call_cli_with_parameters(call_string):
     """ Function that imitates argparse api call"""
@@ -41,5 +35,3 @@ def test_cli_with_parameters():
     assert ts_predictions is not None
     class_predictions = call_cli_with_parameters(class_call)
     assert class_predictions is not None
-    regr_predictions = call_cli_with_parameters(regr_call)
-    assert regr_predictions is not None
