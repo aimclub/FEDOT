@@ -31,7 +31,7 @@ class ApiInitialAssumptions:
                                  has_categorical_features: bool,
                                  has_gaps: bool)-> List[Pipeline]:
         # TODO refactor as builder
-        node_prepocessed = part_preprocessor(task.task_type, has_gaps, has_categorical_features)
+        node_prepocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
         if task.task_type == TaskTypesEnum.ts_forecasting:
             pipelines = [create_glm_ridge_pipeline(node_prepocessed),
                          create_lagged_ridge_pipeline(node_prepocessed),
@@ -98,7 +98,15 @@ class ApiInitialAssumptions:
         return nodes_from
 
 
-def part_preprocessor(task_type: TaskTypesEnum, has_gaps: bool = False, has_categorical_features: bool = False):
+def preprocessing_builder(task_type: TaskTypesEnum, has_gaps: bool = False, has_categorical_features: bool = False):
+    """
+    Function that accepts special info about data and create preprocessing part of pipeline
+
+    :param task_type: type of task
+    :param has_gaps: flag is showed is there are gaps in the data
+    :param has_categorical_features: flag is showed is there are categorical_features
+    :return: node_preprocessing: last node of preprocessing
+    """
     node_imputation = PrimaryNode('simple_imputation')
     if task_type == TaskTypesEnum.ts_forecasting:
         if has_gaps:

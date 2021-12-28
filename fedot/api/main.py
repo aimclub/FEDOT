@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.initial_assumptions import part_preprocessor
+from fedot.api.api_utils.initial_assumptions import preprocessing_builder
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
@@ -396,10 +396,10 @@ class Fedot:
             # Model name was set
             has_categorical_features = data_has_categorical_features(self.train_data)
             has_gaps = data_has_missing_values(self.train_data)
-            node_preprocessed = part_preprocessor(task_type=self.api_params['task'].task_type,
-                                                  has_gaps=has_gaps,
-                                                  has_categorical_features=has_categorical_features
-                                                  )
+            node_preprocessed = preprocessing_builder(task_type=self.api_params['task'].task_type,
+                                                      has_gaps=has_gaps,
+                                                      has_categorical_features=has_categorical_features
+                                                      )
             if node_preprocessed:
                 model = SecondaryNode(predefined_model, nodes_from=[node_preprocessed])
             else:
