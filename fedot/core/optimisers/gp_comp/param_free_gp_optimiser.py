@@ -9,7 +9,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
     duplicates_filtration,
     num_of_parents_in_crossover
 )
-from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiser, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
