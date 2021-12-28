@@ -196,7 +196,7 @@ class HyperoptTuner(ABC):
             preds, test_target = cv_time_series_predictions(pipeline, data, log=self.log,
                                                             cv_folds=self.cv_folds,
                                                             validation_blocks=self.validation_blocks)
-        return test_target, preds
+        return preds, test_target
 
     @property
     def _default_metric_value(self):

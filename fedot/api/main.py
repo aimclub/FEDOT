@@ -82,6 +82,7 @@ class Fedot:
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.composer_params = ApiParams()
+        self.timeout_set_in_init = timeout
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
@@ -138,6 +139,8 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
+            if self.timeout_set_in_init is not None:
+                self.api_params['timeout'] = self.timeout_set_in_init
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
 
         self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)

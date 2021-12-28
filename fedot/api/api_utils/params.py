@@ -119,7 +119,7 @@ class ApiParams:
                   'num_of_generations': 20,
                   'timeout': 2,
                   'with_tuning': False,
-                  'preset': 'light',
+                  'preset': 'best_quality',
                   'genetic_scheme': None,
                   'history_folder': None,
                   'stopping_after_n_generation': 10}

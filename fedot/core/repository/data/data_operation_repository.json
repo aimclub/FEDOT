@@ -134,7 +134,7 @@
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "*tree"],
-		  	"tags": ["simple", "imputation", "non-default", "categorical-ignore"]
+		  	"tags": ["simple", "imputation", "categorical-ignore"]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
@@ -147,7 +147,6 @@
 			"tags": [
 				"non_linear",
 				"dimensionality_transforming",
-				"non-default",
 				"correct_params"
 			]
 		},
