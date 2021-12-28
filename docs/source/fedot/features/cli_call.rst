@@ -8,27 +8,24 @@ Prediction saves as csv file for future using.
 
 For correct console application run there should be Python environment with installed
 FEDOT package with all dependencies.
+
+
 *Pay attention that your FEDOT working project can differ from package version installed in environment!*
 *For setting master version as package in environment download it through pip from github with command:*
 
-.. code-block:: console
-
-pip install git+https://github.com/nccr-itmo/FEDOT.git
+``pip install git+https://github.com/nccr-itmo/FEDOT.git``
 
 Start using
 ------------------
 
 Main executing script running the application is fedot_cli.py so first there is a need to navigate to them:
 
-.. code-block:: console
 
-cd {path_to_fedot}/fedot/api
+``cd {path_to_fedot}/fedot/api``
 
 To get a list of possible flags and their descriptions, a help call is provided:
 
-.. code-block:: console
-
-python fedot_cli.py --help
+``python fedot_cli.py --help``
 
 Result of execution is presented below:
 
