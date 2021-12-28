@@ -39,9 +39,9 @@ class Fedot:
             only reduce the dimensionality of the data, but cannot increase it. For example,
             there are no polynomial features and one-hot encoding operations
         - 'gpu' - Models that use GPU resources for computation.
-        - '*tree_reg' - A special preset that allows only tree-based algorithms for regression case.
-        - '*tree_class' - A special preset that allows only tree-based algorithms for classification case.
+        - '*tree' - A special preset that allows only tree-based algorithms
         - '*ts' - A special preset with models for time series forecasting task.
+        - '*automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations
     :param timeout: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:

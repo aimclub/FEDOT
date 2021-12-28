@@ -19,6 +19,7 @@ class OperationMetaInfo:
     supported_strategies: Any
     allowed_positions: List[str]
     tags: Optional[List[str]] = None
+    presets: Optional[List[str]] = None
 
     def current_strategy(self, task: TaskTypesEnum):
         """
@@ -163,6 +164,7 @@ class OperationTypesRepository:
             # Get tags for meta and for operation
             meta_tags = read_field(metadata, 'tags', [])
             operation_tags = read_field(properties, 'tags', [])
+            presets = read_field(properties, 'presets', [])
 
             allowed_positions = ['primary', 'secondary', 'root']
 
@@ -181,7 +183,8 @@ class OperationTypesRepository:
                                           task_type=task_types,
                                           supported_strategies=supported_strategies,
                                           allowed_positions=allowed_positions,
-                                          tags=tags)
+                                          tags=tags,
+                                          presets=presets)
             operations_list.append(operation)
 
         return operations_list
@@ -221,20 +224,23 @@ class OperationTypesRepository:
 
     def operations_with_tag(self, tags: List[str], is_full_match: bool = False):
         operations_info = [m for m in self._repo if
-                           _is_tags_contains_in_operation(tags, m.tags, is_full_match)]
+                           _is_operation_contains_tag(tags, m.tags, is_full_match)]
         return [m.id for m in operations_info], operations_info
 
     def suitable_operation(self, task_type: TaskTypesEnum = None,
-                           data_type: TaskTypesEnum = None,
+                           data_type: DataTypesEnum = None,
                            tags: List[str] = None, is_full_match: bool = False,
-                           forbidden_tags: List[str] = None):
+                           forbidden_tags: List[str] = None,
+                           preset: str = None):
         """ Method returns operations from repository for desired task and / or
         tags. Filtering method.
 
-        :param task_type: task filter
+        :param task_type: task to filter
+        :param data_type: data type to filter
         :param tags: operations with which tags are required
         :param is_full_match: requires all tags to match, or at least one
         :param forbidden_tags: operations with such tags shouldn't be returned
+        :param preset: return operations from desired preset
         """
 
         if not forbidden_tags:
@@ -246,15 +252,24 @@ class OperationTypesRepository:
                 forbidden_tags.append(excluded_default_tag)
 
         if task_type is None:
-            operations_info = [m for m in self._repo if
-                               (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
-                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags,
-                                                                                         False))]
+            operations_info = []
+            for o in self._repo:
+                # Perform filtering for every operation in the repository
+                tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
+                tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
+                is_desired_preset = _is_operation_contains_preset(o.presets, preset)
+                if tags_good and tags_bad and is_desired_preset:
+                    operations_info.append(o)
+
         else:
-            operations_info = [m for m in self._repo if task_type in m.task_type and
-                               (not tags or _is_tags_contains_in_operation(tags, m.tags, is_full_match)) and
-                               (not forbidden_tags or not _is_tags_contains_in_operation(forbidden_tags, m.tags,
-                                                                                         False))]
+            operations_info = []
+            for o in self._repo:
+                is_desired_task = task_type in o.task_type
+                tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
+                tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
+                is_desired_preset = _is_operation_contains_preset(o.presets, preset)
+                if is_desired_task and tags_good and tags_bad and is_desired_preset:
+                    operations_info.append(o)
 
         if data_type:
             operations_info = [o for o in operations_info if data_type in o.input_types]
@@ -266,9 +281,9 @@ class OperationTypesRepository:
         return self._repo
 
 
-def _is_tags_contains_in_operation(candidate_tags: List[str],
-                                   operation_tags: List[str],
-                                   is_full_match: bool) -> bool:
+def _is_operation_contains_tag(candidate_tags: List[str],
+                               operation_tags: List[str],
+                               is_full_match: bool) -> bool:
     """
     The function checks which operations are suitable for the selected tags
 
@@ -286,6 +301,15 @@ def _is_tags_contains_in_operation(candidate_tags: List[str],
         return all(matches)
     else:
         return any(matches)
+
+
+def _is_operation_contains_preset(operation_presets: List[str], preset: str) -> bool:
+    """ Checking whether the operation is suitable for current preset """
+    if preset is None:
+        # None means that best_quality preset are using so return all operations
+        return True
+
+    return preset in operation_presets
 
 
 def atomized_model_type():
@@ -312,16 +336,16 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     """
     task_type = task.task_type if task else None
     if mode != 'all':
-        model_types, _ = OperationTypesRepository(mode). \
-            suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        repo = OperationTypesRepository(mode)
+        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
         return model_types
     elif mode == 'all':
         # Get models from repository
-        model_types, _ = OperationTypesRepository('model') \
-            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        repo = OperationTypesRepository('model')
+        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
         # Get data operations
-        data_operation_types, _ = OperationTypesRepository('data_operation') \
-            .suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
+        repo = OperationTypesRepository('data_operation')
+        data_operation_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags)
         return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')

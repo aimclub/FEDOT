@@ -13,9 +13,9 @@ def run_regression_example():
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    baseline_model = Fedot(problem=problem, composer_params={
-        'history_folder': 'custom_history_folder'
-    })
+    composer_params = {'history_folder': 'custom_history_folder'}
+    baseline_model = Fedot(problem=problem, composer_params=composer_params,
+                           preset='best_quality')
     baseline_model.fit(features=train)
 
     baseline_model.predict(features=test)

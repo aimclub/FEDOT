@@ -123,12 +123,12 @@
 		},
 		"scaling": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*ts"],
 			"tags": ["simple"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*ts"],
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
@@ -138,11 +138,12 @@
 		},
 		"pca": {
 			"meta": "dimension_transformation",
-			"presets": ["fast_train"],
+			"presets": ["fast_train", "*ts"],
 			"tags": ["linear", "dimensionality_transforming", "correct_params"]
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
+			"presets": ["*ts"],
 			"tags": [
 				"non_linear",
 				"dimensionality_transforming",
@@ -191,6 +192,7 @@
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
+			"presets": ["*ts"],
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
@@ -200,6 +202,7 @@
 		},
 		"sparse_lagged": {
 			"meta": "custom_time_series_transformation",
+			"presets": ["*ts"],
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
@@ -209,6 +212,7 @@
 		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
+			"presets": ["fast_train", "*ts"],
 			"tags": [
 				"simple",
 				"smoothing",
@@ -217,6 +221,7 @@
 		},
 		"gaussian_filter": {
 			"meta": "custom_time_series_transformation",
+			"presets": ["fast_train", "*ts"],
 			"tags": [
 				"simple",
 				"smoothing",

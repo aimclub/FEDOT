@@ -139,7 +139,7 @@
   "operations": {
     "adareg": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "*ts", "*tree"],
       "tags": [
         "boosting",
         "non_multi"
@@ -184,6 +184,7 @@
     },
     "catboostreg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "non_multi"
@@ -199,7 +200,7 @@
     },
     "dtreg": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "*ts", "*tree"],
       "tags": [
         "tree",
         "interpretable"
@@ -207,6 +208,7 @@
     },
     "gbr": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "non_multi"
@@ -259,6 +261,7 @@
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "tree",
@@ -312,7 +315,7 @@
     },
     "rfr": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train"],
+      "presets": ["fast_train", "*tree"],
       "tags": ["tree"]
     },
     "ridge": {
@@ -392,7 +395,7 @@
     },
     "treg": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train"],
+      "presets": ["fast_train", "*tree"],
       "tags": [
         "tree"
       ]
@@ -406,6 +409,7 @@
     },
     "xgbreg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "tree",
