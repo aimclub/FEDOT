@@ -114,10 +114,11 @@ class OptHistory:
 
     @staticmethod
     def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'OptHistory':
-        if Path(json_str_or_file_path).exists():
+        try:
+            return json.loads(json_str_or_file_path, cls=Serializer)
+        except json.JSONDecodeError as exc:
             with open(json_str_or_file_path, mode='r') as json_fp:
                 return json.load(json_fp, cls=Serializer)
-        return json.loads(json_str_or_file_path, cls=Serializer)
 
     def clean_results(self, path: Optional[str] = None):
         if not path:
