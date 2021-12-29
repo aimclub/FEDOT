@@ -44,7 +44,7 @@ def test_pseudo_remote_composer_classification():
 
     composer_params = {
         'pop_size': 3,
-        'timeout': 0.01,
+        'timeout': 0.1,
         'cv_folds': None
     }
 
