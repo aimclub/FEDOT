@@ -39,7 +39,6 @@ class GraphOptimiserParameters:
         self.multi_objective = multi_objective
         self.history_folder = history_folder
         self.stopping_after_n_generation = stopping_after_n_generation
-        self.use_stopping_criteria = self.stopping_after_n_generation is not None
 
 
 class GraphOptimiser:
@@ -79,7 +78,6 @@ class GraphOptimiser:
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=self.max_depth)
 
-        self.use_stopping_criteria = parameters.use_stopping_criteria
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
         self.initial_graph = initial_graph
@@ -134,10 +132,10 @@ class GraphOptimiser:
         return individuals_set
 
     def _is_stopping_criteria_triggered(self):
-        if self.use_stopping_criteria:
-            if self.num_of_gens_without_improvements == self.stopping_after_n_generation:
-                self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
-                return True
+        is_stopping_needed = self.stopping_after_n_generation is not None
+        if is_stopping_needed and self.num_of_gens_without_improvements == self.stopping_after_n_generation:
+            self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
+            return True
         else:
             return False
 

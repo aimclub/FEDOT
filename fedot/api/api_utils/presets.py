@@ -41,7 +41,7 @@ class OperationsPreset:
         # TODO remove workaround
         # Use best_quality preset but exclude several operations
         preset_name = self.preset_name
-        if 'steady_state' in self.preset_name:
+        if 'stable' in self.preset_name:
             # Use best_quality preset but exclude several operations
             preset_name = 'best_quality'
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
@@ -51,7 +51,7 @@ class OperationsPreset:
         available_operations = get_operations_for_task(self.task, mode='all', preset=preset_name)
 
         # Exclude "heavy" operations if necessary
-        if 'steady_state' in self.preset_name:
+        if 'stable' in self.preset_name:
             available_operations = self.new_operations_without_heavy(excluded, available_operations)
 
         if 'gpu' in self.preset_name:

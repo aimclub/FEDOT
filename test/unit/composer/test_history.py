@@ -28,6 +28,7 @@ def test_operators_in_history():
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
     auto_model = Fedot(problem='classification', seed=42,
+                       timeout=0.1,
                        composer_params={'num_of_generations': 3, 'pop_size': 4},
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')

@@ -353,7 +353,8 @@ def test_gp_composer_early_stopping():
     start = datetime.datetime.now()
     model = Fedot(problem='classification', timeout=1000,
                   composer_params={'stopping_after_n_generation': 1,
-                                   'pop_size': 2},
+                                   'pop_size': 2,
+                                   'with_tuning': False},
                   preset='fast_train')
     model.fit(train_data)
     spent_time = datetime.datetime.now() - start

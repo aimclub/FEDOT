@@ -407,9 +407,9 @@ class EvoGraphOptimiser(GraphOptimiser):
         return individuals_set
 
     def _is_stopping_criteria_triggered(self):
-        if self.use_stopping_criteria:
-            if self.num_of_gens_without_improvements == self.stopping_after_n_generation:
-                self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
-                return True
+        is_stopping_needed = self.stopping_after_n_generation is not None
+        if is_stopping_needed and self.num_of_gens_without_improvements == self.stopping_after_n_generation:
+            self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
+            return True
         else:
             return False

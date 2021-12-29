@@ -138,11 +138,7 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    def compose_fedot_model(self,
-                            api_params: dict,
-                            composer_params: dict,
-                            tuning_params: dict
-                            ):
+    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict):
         """ Function for composing FEDOT pipeline model """
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
@@ -191,10 +187,7 @@ class ApiComposer:
         optimizer_parameters = GPGraphOptimiserParameters(
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=mutations,
-            crossover_types=[
-                CrossoverTypesEnum.one_point,
-                CrossoverTypesEnum.subtree
-            ],
+            crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
             history_folder=composer_params.get('history_folder'),
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
