@@ -118,7 +118,7 @@ class ApiParams:
                   'pop_size': 20,
                   'num_of_generations': 20,
                   'timeout': 2,
-                  'with_tuning': False,
+                  'with_tuning': True,
                   'preset': 'best_quality',
                   'genetic_scheme': None,
                   'history_folder': None,

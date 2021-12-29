@@ -336,10 +336,6 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
 
     :return : list with operation aliases
     """
-    # Remove 'tun' postfix in preset name
-    if preset is not None:
-        preset = preset.replace('_tun', '')
-
     # Preset None means that all operations will be returned
     if preset is not None and 'best_quality' in preset:
         preset = None

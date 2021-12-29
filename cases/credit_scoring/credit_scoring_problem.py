@@ -28,7 +28,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                with_tuning=False,
                                target='target'):
 
-    preset = 'best_quality_tun' if with_tuning else 'best_quality'
+    preset = 'best_quality' if with_tuning else 'best_quality'
     automl = Fedot(problem='classification', timeout=timeout, verbose_level=4,
                    preset=preset)
     automl.fit(train_file_path, target=target)

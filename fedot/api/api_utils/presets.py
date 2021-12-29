@@ -43,10 +43,7 @@ class OperationsPreset:
         preset_name = self.preset_name
         if 'steady_state' in self.preset_name:
             # Use best_quality preset but exclude several operations
-            if 'tun' in self.preset_name:
-                preset_name = 'best_quality_tun'
-            else:
-                preset_name = 'best_quality'
+            preset_name = 'best_quality'
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample']
