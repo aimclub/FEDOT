@@ -118,8 +118,6 @@ class DataMerger:
         if data_type is not DataTypesEnum.table:
             # Data is not tabular
             return supplementary_data
-        if task.task_type == TaskTypesEnum.ts_forecasting:
-            return supplementary_data
 
         # Types for features columns
         new_features_types = []
