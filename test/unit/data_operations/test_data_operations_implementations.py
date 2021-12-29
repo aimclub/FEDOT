@@ -81,8 +81,8 @@ def get_small_classification_dataset():
 
 def get_time_series():
     """ Function returns time series for time series forecasting task """
-    len_forecast = 100
-    synthetic_ts = generate_synthetic_data(length=1000)
+    len_forecast = 5
+    synthetic_ts = generate_synthetic_data(length=80)
 
     train_data = synthetic_ts[:-len_forecast]
     test_data = synthetic_ts[-len_forecast:]
@@ -105,6 +105,20 @@ def get_time_series():
                               data_type=DataTypesEnum.ts)
 
     return train_input, predict_input, test_data
+
+
+def get_multivariate_time_series():
+    """ Generate several time series in one InputData block """
+    ts_1 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).reshape((-1, 1))
+    ts_2 = np.array([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]).reshape((-1, 1))
+    several_ts = np.hstack((ts_1, ts_2))
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=2))
+    train_input = InputData(idx=np.arange(0, len(several_ts)),
+                            features=several_ts, target=np.ravel(ts_1),
+                            task=task, data_type=DataTypesEnum.ts)
+    return train_input
 
 
 def get_nan_inf_data():
@@ -433,3 +447,11 @@ def test_label_encoding_correct():
     assert predicted_train.predict[1, 0] == 1
     # Label 'c' was not in the training sample - convert it into 2
     assert predicted_test.predict[0, 0] == 2
+
+
+def test_lagged_with_multivariate_time_series():
+    """
+    Checking the correct processing of multivariate time series in the lagged operation
+    """
+    input_data = get_multivariate_time_series()
+    a = 0
