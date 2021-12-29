@@ -139,7 +139,7 @@
   "operations": {
     "adareg": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts", "*tree"],
+      "presets": ["fast_train", "ts", "*tree"],
       "tags": [
         "boosting",
         "non_multi"
@@ -147,7 +147,7 @@
     },
     "ar": {
       "meta": "ts_model",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -156,7 +156,7 @@
     },
     "arima": {
       "meta": "ts_model",
-      "presets": ["*ts"],
+      "presets": ["ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -201,7 +201,7 @@
     },
     "dtreg": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts", "*tree"],
+      "presets": ["fast_train", "ts", "*tree"],
       "tags": [
         "tree",
         "interpretable"
@@ -229,7 +229,7 @@
     },
     "knnreg": {
       "meta": "custom_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "correct_params"
@@ -237,7 +237,7 @@
     },
     "lasso": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "linear",
@@ -271,7 +271,7 @@
     },
     "linear": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "linear",
@@ -321,7 +321,7 @@
     },
     "ridge": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "linear",
@@ -330,7 +330,7 @@
     },
     "polyfit": {
       "meta": "ts_model",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "non_lagged",
@@ -341,14 +341,14 @@
     },
     "sgdr": {
       "meta": "sklearn_regr",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "non_multi"
       ]
     },
     "stl_arima": {
       "meta": "ts_model",
-      "presets": ["*ts"],
+      "presets": ["ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -357,7 +357,7 @@
     },
     "glm": {
       "meta": "ts_model",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -367,7 +367,7 @@
     },
     "ets": {
       "meta": "ts_model",
-      "presets": ["fast_train", "*ts"],
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "interpretable",

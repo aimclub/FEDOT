@@ -123,12 +123,12 @@
 		},
 		"scaling": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "*ts", "*tree"],
+			"presets": ["fast_train", "ts", "*tree"],
 			"tags": ["simple"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "*ts", "*tree"],
+			"presets": ["fast_train", "ts", "*tree"],
 			"tags": ["simple"]
 		},
 		"simple_imputation": {
@@ -138,12 +138,12 @@
 		},
 		"pca": {
 			"meta": "dimension_transformation",
-			"presets": ["fast_train", "*ts", "*tree"],
+			"presets": ["fast_train", "ts", "*tree"],
 			"tags": ["linear", "dimensionality_transforming", "correct_params", "non_applicable_for_ts"]
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
-			"presets": ["*ts", "*tree"],
+			"presets": ["ts", "*tree"],
 			"tags": [
 				"non_linear",
 				"dimensionality_transforming",
@@ -192,7 +192,7 @@
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "ts"],
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
@@ -202,7 +202,7 @@
 		},
 		"sparse_lagged": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "ts"],
 			"tags": [
 				"affects_target",
 				"dimensionality_transforming",
@@ -212,7 +212,7 @@
 		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "ts"],
 			"tags": [
 				"simple",
 				"smoothing",
@@ -221,7 +221,7 @@
 		},
 		"gaussian_filter": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "ts"],
 			"tags": [
 				"simple",
 				"smoothing",
@@ -230,7 +230,7 @@
 		},
 		"diff_filter": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "ts"],
 			"tags": [
 				"differential",
 				"non_lagged",
@@ -239,7 +239,7 @@
 		},
 		"cut": {
 			"meta": "custom_time_series_transformation",
-			"presets": ["fast_train", "*ts"],
+			"presets": ["fast_train", "ts"],
 			"tags": [
 				"simple",
 				"cutting",
@@ -260,7 +260,7 @@
 		},
 		"decompose": {
 		  "meta": "regression_preprocessing",
-		  "presets": ["fast_train", "*ts", "*tree"],
+		  "presets": ["fast_train", "ts", "*tree"],
 		  "tags": ["non-default", "decompose"]
 		},
 		"class_decompose": {
