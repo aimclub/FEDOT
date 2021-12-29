@@ -98,7 +98,10 @@ class ApiParams:
 
     def change_preset_for_label_encoded_data(self, task: Task):
         """ Change preset on tree like preset, if data had been label encoded """
-        preset_name = '*tree'
+        if self.api_params.get('preset') is not None:
+            preset_name = ''.join((self.api_params['preset'], '*tree'))
+        else:
+            preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
         del self.api_params['available_operations']
         self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)

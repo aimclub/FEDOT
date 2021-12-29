@@ -40,9 +40,9 @@ class Fedot:
              it. For example, there are no polynomial features and one-hot encoding operations
         - 'stable' - The most reliable preset in which the most stable operations are included.
         - 'gpu' - Models that use GPU resources for computation.
+        - 'ts' - A special preset with models for time series forecasting task.
+        - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree' - A special preset that allows only tree-based algorithms
-        - '*ts' - A special preset with models for time series forecasting task.
-        - '*automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations
     :param timeout: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:

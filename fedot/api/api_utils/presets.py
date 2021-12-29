@@ -13,6 +13,9 @@ class OperationsPreset:
         self.task = task
         self.preset_name = preset_name
 
+        # Is there a modification in preset or not
+        self.modification_using = False
+
     def composer_params_based_on_preset(self, composer_params: dict) -> dict:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
@@ -22,8 +25,8 @@ class OperationsPreset:
         if self.preset_name is None and 'preset' in updated_params:
             self.preset_name = updated_params['preset']
 
-        if 'preset' in updated_params:
-            del updated_params['preset']
+        # if 'preset' in updated_params:
+        #     del updated_params['preset']
 
         if self.preset_name is not None and 'available_operations' not in composer_params:
             available_operations = self._filter_operations_by_preset()
@@ -48,7 +51,21 @@ class OperationsPreset:
                     'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample']
 
+        if '*' in preset_name:
+            self.modification_using = True
+            # The modification has been added
+            preset_name, modification = preset_name.split('*')
+            modification = ''.join(('*', modification))
+
+            mod_operations = get_operations_for_task(self.task, mode='all', preset=modification)
+
+        # Get operations
         available_operations = get_operations_for_task(self.task, mode='all', preset=preset_name)
+
+        if self.modification_using:
+            # Find subsample of operations
+            filtered_operations = set(available_operations).intersection(set(mod_operations))
+            available_operations = list(filtered_operations)
 
         # Exclude "heavy" operations if necessary
         if 'stable' in self.preset_name:
