@@ -10,7 +10,7 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    CutImplementation
+    CutImplementation, LaggedTransformationImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -453,5 +453,27 @@ def test_lagged_with_multivariate_time_series():
     """
     Checking the correct processing of multivariate time series in the lagged operation
     """
+    correct_fit_output = np.array([[0., 1., 10., 11.],
+                                   [1., 2., 11., 12.],
+                                   [2., 3., 12., 13.],
+                                   [3., 4., 13., 14.],
+                                   [4., 5., 14., 15.],
+                                   [5., 6., 15., 16.],
+                                   [6., 7., 16., 17.]])
+    correct_predict_output = np.array([[8, 9, 18, 19]])
+
     input_data = get_multivariate_time_series()
-    a = 0
+    lagged = LaggedTransformationImplementation(**{'window_size': 2})
+
+    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
+    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+
+    # Check correctness on fit stage
+    lagged_features = transformed_for_fit.predict
+    assert lagged_features.shape == correct_fit_output.shape
+    assert np.all(np.isclose(lagged_features, correct_fit_output))
+
+    # Check correctness on predict stage
+    lagged_predict = transformed_for_predict.predict
+    assert lagged_predict.shape == correct_predict_output.shape
+    assert np.all(np.isclose(lagged_predict, correct_predict_output))
