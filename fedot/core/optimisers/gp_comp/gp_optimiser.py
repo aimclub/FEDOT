@@ -27,7 +27,6 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, correct_if_has_nans
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 MAX_NUM_OF_GENERATED_INDS = 10000
@@ -127,7 +126,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _create_randomized_pop_from_inital_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
         """
-        Fill first population with mutated variants of the initial_pipeline
+        Fill first population with mutated variants of the initial_graphs
         :param initial_graphs: Initial assumption for first population
         :return: list of individuals
         """
@@ -159,8 +158,6 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _init_population(self):
         if self.initial_graph:
-            if type(self.initial_graph) != list:
-                self.initial_graph = [self.initial_graph]
             adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
             self.population = self._create_randomized_pop_from_inital_graph(adapted_graphs)
         if self.population is None:

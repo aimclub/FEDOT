@@ -82,35 +82,44 @@ class ApiComposer:
 
         return self.current_model, self.best_models, self.history
 
-    def get_composer_builder(self, task: Task,
-                             metric_function,
-                             composer_requirements: PipelineComposerRequirements,
-                             optimiser: Type[GraphOptimiser],
-                             optimizer_parameters: GraphOptimiserParameters,
-                             data: Union[InputData, MultiModalData],
-                             logger: Log,
-                             initial_pipeline: Pipeline = None):
-        """ Return ComposerBuilder with parameters and if it is necessary
-        init_pipeline in it """
+    def get_gp_composer_builder(self, task: Task,
+                                metric_function,
+                                composer_requirements: PipelineComposerRequirements,
+                                optimiser: Type[GraphOptimiser],
+                                optimizer_parameters: GraphOptimiserParameters,
+                                data: Union[InputData, MultiModalData],
+                                logger: Log,
+                                initial_assumption: Union[Pipeline, List[Pipeline]] = None):
+        """
+        Return GPComposerBuilder with parameters and if it is necessary
+        initial_assumption in it
+
+        :param task: task for solving
+        :param metric_function: function for individuals evaluating
+        :param composer_requirements: params for composer
+        :param optimizer_parameters: params for optimizer
+        :param data: data for evaluating
+        :param logger: log object
+        :param initial_assumption: list of initial pipelines
+        """
 
         builder = ComposerBuilder(task=task). \
             with_requirements(composer_requirements). \
             with_optimiser(optimiser, optimizer_parameters). \
             with_metrics(metric_function).with_logger(logger)
 
-        if initial_pipeline is None:
-            initial_pipelines = self.initial_assumptions.get_initial_assumption(data, task)
+        if initial_assumption is None:
+            initial_assumption = self.initial_assumptions.get_initial_assumption(data, task)
+        elif isinstance(initial_assumption, Pipeline):
+            initial_assumption = [initial_assumption]
         else:
-            initial_pipelines = [initial_pipeline]
-
-        if initial_pipelines is not None:
-            if not isinstance(initial_pipelines, list) or not isinstance(initial_pipelines[0], Pipeline):
-                prefix = 'Incorrect type of initial_pipeline'
-                raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
+            if not isinstance(initial_assumption, list):
+                prefix = 'Incorrect type of initial_assumption'
+                raise ValueError(f'{prefix}: List[Pipeline] or Pipeline needed, but has {type(initial_assumption)}')
 
         # Check initial assumption
-        fit_and_check_correctness(initial_pipelines, data, logger=logger)
-        builder = builder.with_initial_pipeline(initial_pipelines)
+        fit_and_check_correctness(initial_assumption, data, logger=logger)
+        builder = builder.with_initial_assumption(initial_assumption)
         return builder
 
     def divide_operations(self,
@@ -200,7 +209,7 @@ class ApiComposer:
                                             optimiser=self.optimiser,
                                             optimizer_parameters=optimizer_parameters,
                                             data=api_params['train_data'],
-                                            initial_pipeline=api_params['initial_pipeline'],
+                                            initial_pipeline=api_params['initial_assumption'],
                                             logger=api_params['logger'])
 
         gp_composer = builder.build()
@@ -294,14 +303,14 @@ class ApiComposer:
         return loss_function, loss_params
 
 
-def fit_and_check_correctness(initial_pipelines: List[Pipeline],
+def fit_and_check_correctness(initial_assumption: List[Pipeline],
                               data: Union[InputData, MultiModalData],
                               logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
-        initial_pipelines[0].fit(data)
-        initial_pipelines[0].predict(data_test)
+        initial_assumption[0].fit(data)
+        initial_assumption[0].predict(data_test)
 
         message_success = 'Initial pipeline was fitted successfully'
         logger.debug(message_success)

@@ -55,7 +55,7 @@ class Fedot:
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
             'validation_blocks' - number of validation blocks for time series forecasting
-            'initial_pipeline' - initial assumption for composing
+            'initial_assumption' - initial assumption for composing
             'genetic_scheme' - name of the genetic scheme
             'history_folder' - name of the folder for composing history
             'metric' - metric for quality calculation during composing
@@ -75,7 +75,7 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_pipeline: Pipeline = None,
+                 initial_assumption: List[Pipeline] = None,
                  safe_mode=True):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -87,7 +87,7 @@ class Fedot:
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level,
-                        'initial_pipeline': initial_pipeline}
+                        'initial_assumption': initial_assumption}
         self.api_params = self.composer_params.initialize_params(**input_params)
         self.api_params['current_model'] = None
 
@@ -95,8 +95,8 @@ class Fedot:
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.api_params['tuner_metric'] = self.tuner_metrics
 
-        # Update timeout and initial_pipeline parameters
-        self.update_params(timeout, initial_pipeline)
+        # Update timeout and initial_assumption parameters
+        self.update_params(timeout, initial_assumption)
         self.data_processor = ApiDataProcessor(task=self.api_params['task'],
                                                log=self.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -328,12 +328,12 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.api_params['logger'].info('Predictions was saved in current directory.')
 
-    def update_params(self, timeout, initial_pipeline):
+    def update_params(self, timeout, initial_assumption):
         if timeout is not None:
             self.api_params['timeout'] = timeout
 
-        if initial_pipeline is not None:
-            self.api_params['initial_pipeline'] = initial_pipeline
+        if initial_assumption is not None:
+            self.api_params['initial_assumption'] = initial_assumption
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()

@@ -56,7 +56,7 @@ class ParametersChanger:
                 # Default changes perform with random choice
                 func = self._random_change
             if func is None:
-                continue
+                func = self._random_change
             parameters = {'operation_name': self.operation_name,
                           'current_value': current_value}
 

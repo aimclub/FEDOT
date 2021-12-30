@@ -13,23 +13,23 @@ NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 class ApiInitialAssumptions:
     def get_initial_assumption(self,
                                data: Union[InputData, MultiModalData],
-                               task: Task) -> Pipeline:
+                               task: Task) -> List[Pipeline]:
 
         has_categorical_features = data_has_categorical_features(data)
         has_gaps = data_has_missing_values(data)
 
         if isinstance(data, MultiModalData):
-            init_pipelines = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
+            initial_assumption = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
         elif isinstance(data, InputData):
-            init_pipelines = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
+            initial_assumption = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
         else:
             raise NotImplementedError(f"Don't handle {type(data)}")
-        return init_pipelines
+        return initial_assumption
 
     def create_unidata_pipelines(self,
                                  task: Task,
                                  has_categorical_features: bool,
-                                 has_gaps: bool) -> Union[List[Union[SecondaryNode, PrimaryNode]], List[SecondaryNode]]:
+                                 has_gaps: bool)-> List[Pipeline]:
         # TODO refactor as builder
         node_prepocessed = gaps_imputer(task.task_type, has_gaps, has_categorical_features)
         if task.task_type == TaskTypesEnum.ts_forecasting:
@@ -74,7 +74,7 @@ class ApiInitialAssumptions:
         return [Pipeline(node_final)]
 
     def create_first_multimodal_nodes(self, data: MultiModalData,
-                                      has_categorical: bool, has_gaps: bool) -> List[SecondaryNode]:
+                                      has_categorical: bool, has_gaps: bool) -> List[Pipeline]:
         nodes_from = []
 
         for data_source_name, values in data.items():
@@ -93,7 +93,7 @@ class ApiInitialAssumptions:
                 else:
                     node_preprocessing = SecondaryNode('scaling', [node_primary])
             node_last = SecondaryNode('ridge', [node_preprocessing])
-            nodes_from.append(node_last)
+            nodes_from.append(Pipeline(node_last))
 
         return nodes_from
 
