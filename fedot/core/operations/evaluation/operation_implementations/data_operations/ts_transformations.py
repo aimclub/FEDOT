@@ -94,11 +94,18 @@ class LaggedImplementation(DataOperationImplementation):
                                       forecast_length: int, old_idx: np.array):
         """ Apply lagged transformation on each time series in the current dataset """
         # Shape of the time series
-        n_elements, n_time_series = features.shape
+        if len(features.shape) > 1:
+            # Multivariate time series
+            n_elements, n_time_series = features.shape
+        else:
+            n_time_series = 1
         all_transformed_features = None
         for current_ts_id in range(n_time_series):
             # For each time series in the array
-            current_ts = np.ravel(features[:, current_ts_id])
+            if n_time_series == 1:
+                current_ts = features
+            else:
+                current_ts = np.ravel(features[:, current_ts_id])
 
             # Prepare features for training
             new_idx, transformed_cols = ts_to_table(idx=old_idx,
@@ -143,11 +150,19 @@ class LaggedImplementation(DataOperationImplementation):
             self.features_columns = self.features_columns.reshape(1, -1)
             return self.features_columns
 
-        n_elements, n_time_series = input_data.features.shape
+        if len(input_data.features.shape) > 1:
+            # Multivariate time series
+            n_elements, n_time_series = input_data.features.shape
+        else:
+            n_time_series = 1
+
         all_transformed_features = None
         for current_ts_id in range(n_time_series):
             # For each time series
-            current_ts = np.ravel(input_data.features[:, current_ts_id])
+            if n_time_series == 1:
+                current_ts = input_data.features
+            else:
+                current_ts = np.ravel(input_data.features[:, current_ts_id])
 
             # Take last window_size elements for current ts
             last_part_of_ts = current_ts[-self.window_size:]

@@ -180,14 +180,14 @@ class TableTypesCorrector:
             # Information about column types is empty - there is a need to launch algorithm to collect info
             self.features_columns_info = define_column_types(predictors)
             predictors = self.features_types_converting(features=predictors)
-        if not self.target_columns_info:
+        if not self.target_columns_info and task.task_type != TaskTypesEnum.ts_forecasting:
             self.target_columns_info = define_column_types(target)
             target = self.target_types_converting(target=target, task=task)
 
         features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
         self._check_columns_vs_types_number(predictors, features_types)
 
-        if target is None:
+        if target is None or task.task_type == TaskTypesEnum.ts_forecasting:
             return {'features': features_types}
         else:
             target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
