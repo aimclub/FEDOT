@@ -29,7 +29,7 @@ class ApiInitialAssumptions:
     def create_unidata_pipelines(self,
                                  task: Task,
                                  has_categorical_features: bool,
-                                 has_gaps: bool)-> List[Pipeline]:
+                                 has_gaps: bool) -> List[Pipeline]:
         # TODO refactor as builder
         node_prepocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
         if task.task_type == TaskTypesEnum.ts_forecasting:
