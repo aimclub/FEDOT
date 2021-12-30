@@ -65,7 +65,7 @@ def ts_glm_ridge_pipeline():
     Where glm - Generalized linear model
     """
     node_glm = PrimaryNode("glm")
-    node_glm.custom_params = {"family": "poisson", "link": "log"}
+    #node_glm.custom_params = {"family": "poisson", "link": "log"}
 
     node_lagged = PrimaryNode("lagged")
     node_ridge_1 = SecondaryNode("ridge", nodes_from=[node_lagged])
@@ -166,6 +166,25 @@ def ts_complex_dtreg_pipeline(first_node="lagged"):
     node_dtreg_2 = SecondaryNode("dtreg", nodes_from=[node_lagged_2])
     node_final = SecondaryNode("rfr", nodes_from=[node_dtreg_1, node_dtreg_2])
     pipeline = Pipeline(node_final)
+    return pipeline
+
+
+def ts_fat_ets_pipeline():
+    """
+    Return pipeline with the following structure:
+      ets
+         \
+    ets -> lasso -> final forecast
+        /
+     ets
+
+    Where ets - exponential_smoothing
+    """
+    node_ets2 = PrimaryNode("ets")
+    node_ets = PrimaryNode("ets")
+    node_ets3 = PrimaryNode("ets")
+    final_lasso = SecondaryNode('lasso', nodes_from=[node_ets, node_ets2, node_ets3])
+    pipeline = Pipeline(final_lasso)
     return pipeline
 
 

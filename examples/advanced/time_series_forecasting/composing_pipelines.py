@@ -106,7 +106,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
         with_metrics(metric_function).with_initial_pipelines([pipeline])
     composer = builder.build()
 
-    obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)
+    obtained_pipeline = composer.compose_pipeline(data=train_data, is_visualise=False)
 
     obtained_pipeline.fit_from_scratch(train_data)
     prediction_after = obtained_pipeline.predict(test_data)
@@ -165,4 +165,4 @@ def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, lab
 
 
 if __name__ == '__main__':
-    run_composing('australia', ts_ets_pipeline(), len_forecast=30)
+    run_composing('australia', ts_complex_ridge_pipeline(), len_forecast=30)
