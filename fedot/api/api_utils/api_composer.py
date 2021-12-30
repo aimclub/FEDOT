@@ -82,33 +82,44 @@ class ApiComposer:
 
         return self.current_model, self.best_models, self.history
 
-    def get_composer_builder(self, task: Task,
-                             metric_function,
-                             composer_requirements: PipelineComposerRequirements,
-                             optimiser: Type[GraphOptimiser],
-                             optimizer_parameters: GraphOptimiserParameters,
-                             data: Union[InputData, MultiModalData],
-                             logger: Log,
-                             initial_pipeline: Pipeline = None):
-        """ Return ComposerBuilder with parameters and if it is necessary
-        init_pipeline in it """
+    def get_gp_composer_builder(self, task: Task,
+                                metric_function,
+                                composer_requirements: PipelineComposerRequirements,
+                                optimiser: Type[GraphOptimiser],
+                                optimizer_parameters: GraphOptimiserParameters,
+                                data: Union[InputData, MultiModalData],
+                                logger: Log,
+                                initial_assumption: Union[Pipeline, List[Pipeline]] = None):
+        """
+        Return GPComposerBuilder with parameters and if it is necessary
+        initial_assumption in it
+
+        :param task: task for solving
+        :param metric_function: function for individuals evaluating
+        :param composer_requirements: params for composer
+        :param optimizer_parameters: params for optimizer
+        :param data: data for evaluating
+        :param logger: log object
+        :param initial_assumption: list of initial pipelines
+        """
 
         builder = ComposerBuilder(task=task). \
             with_requirements(composer_requirements). \
             with_optimiser(optimiser, optimizer_parameters). \
             with_metrics(metric_function).with_logger(logger)
 
-        if initial_pipeline is None:
-            initial_pipeline = self.initial_assumptions.get_initial_assumption(data, task)
-
-        if initial_pipeline is not None:
-            if not isinstance(initial_pipeline, Pipeline):
-                prefix = 'Incorrect type of initial_pipeline'
-                raise ValueError(f'{prefix}: Pipeline needed, but has {type(initial_pipeline)}')
-
+        if initial_assumption is None:
+            initial_pipelines = self.initial_assumptions.get_initial_assumption(data, task)
+        elif isinstance(initial_assumption, Pipeline):
+            initial_pipelines = [initial_assumption]
+        else:
+            if not isinstance(initial_assumption, list):
+                prefix = 'Incorrect type of initial_assumption'
+                raise ValueError(f'{prefix}: List[Pipeline] or Pipeline needed, but has {type(initial_assumption)}')
+            initial_pipelines = initial_assumption
         # Check initial assumption
-        fit_and_check_correctness(initial_pipeline, data, logger=logger)
-        builder = builder.with_initial_pipeline(initial_pipeline)
+        fit_and_check_correctness(initial_pipelines, data, logger=logger)
+        builder = builder.with_initial_pipelines(initial_pipelines)
         return builder
 
     def divide_operations(self,
@@ -192,14 +203,14 @@ class ApiComposer:
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
 
-        builder = self.get_composer_builder(task=api_params['task'],
-                                            metric_function=metric_function,
-                                            composer_requirements=composer_requirements,
-                                            optimiser=self.optimiser,
-                                            optimizer_parameters=optimizer_parameters,
-                                            data=api_params['train_data'],
-                                            initial_pipeline=api_params['initial_pipeline'],
-                                            logger=api_params['logger'])
+        builder = self.get_gp_composer_builder(task=api_params['task'],
+                                               metric_function=metric_function,
+                                               composer_requirements=composer_requirements,
+                                               optimiser=self.optimiser,
+                                               optimizer_parameters=optimizer_parameters,
+                                               data=api_params['train_data'],
+                                               initial_assumption=api_params['initial_assumption'],
+                                               logger=api_params['logger'])
 
         gp_composer = builder.build()
 
@@ -292,21 +303,19 @@ class ApiComposer:
         return loss_function, loss_params
 
 
-def fit_and_check_correctness(initial_pipeline: Pipeline,
+def fit_and_check_correctness(initial_pipelines: List[Pipeline],
                               data: Union[InputData, MultiModalData],
                               logger: Log):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
-        initial_pipeline.fit(data)
-        initial_pipeline.predict(data_test)
+        initial_pipelines[0].fit(data)
+        initial_pipelines[0].predict(data_test)
 
-        message_success = 'Initial pipeline were fitted successfully'
+        message_success = 'Initial pipeline was fitted successfully'
         logger.debug(message_success)
-
-        return initial_pipeline
     except Exception as ex:
-        fit_failed_info = f'Initial pipeline fit were failed due to: {ex}.'
+        fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
         advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
 
         logger.info(fit_failed_info)
@@ -319,7 +328,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_pipeline=None)
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,

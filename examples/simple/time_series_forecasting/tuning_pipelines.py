@@ -67,7 +67,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
     plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
 
     if tuning:
-        pipeline = pipeline.fine_tune_all_nodes(input_data=train_input,
+        pipeline = pipeline.fine_tune_all_nodes(input_data=train_data,
                                                 loss_function=mean_squared_error,
                                                 loss_params={'squared': False},
                                                 iterations=100)
@@ -87,7 +87,8 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
     print(metrics_info)
     # plot lines
     visualise(plot_info)
+    pipeline.print_structure()
 
 
 if __name__ == '__main__':
-    run_experiment('stackoverflow', ts_complex_ridge_smoothing_pipeline(), len_forecast=30, tuning=True)
+    run_experiment('australia', ts_ar_pipeline(), len_forecast=50, tuning=True)

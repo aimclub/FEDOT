@@ -46,8 +46,8 @@ class ComposerBuilder:
         self._composer.metrics = metrics
         return self
 
-    def with_initial_pipeline(self, initial_pipeline: Optional[Pipeline]):
-        self._composer.initial_pipeline = initial_pipeline
+    def with_initial_pipelines(self, initial_pipelines: Optional[Pipeline]):
+        self._composer.initial_pipelines = initial_pipelines
         return self
 
     def with_logger(self, logger):
@@ -97,7 +97,7 @@ class ComposerBuilder:
                                                         MutationTypesEnum.single_drop,
                                                         MutationTypesEnum.single_add]
 
-        optimiser = optimiser_type(initial_graph=self._composer.initial_pipeline,
+        optimiser = optimiser_type(initial_graph=self._composer.initial_pipelines,
                                    requirements=self._composer.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters, log=self._composer.log,

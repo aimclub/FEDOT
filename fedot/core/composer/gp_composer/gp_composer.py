@@ -63,17 +63,17 @@ class GPComposer(Composer):
     :param optimiser: optimiser generated in ComposerBuilder
     :param metrics: metrics used to define the quality of found solution.
     :param composer_requirements: requirements for composition process
-    :param initial_pipeline: defines the initial state of the population. If None then initial population is random.
+    :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
     def __init__(self, optimiser=None,
                  composer_requirements: Optional[PipelineComposerRequirements] = None,
                  metrics: Union[List[MetricsEnum], MetricsEnum] = None,
-                 initial_pipeline: Optional[Pipeline] = None,
+                 initial_pipelines: Optional[List[Pipeline]] = None,
                  logger: Log = None):
 
         super().__init__(metrics=metrics, composer_requirements=composer_requirements,
-                         initial_pipeline=initial_pipeline)
+                         initial_pipelines=initial_pipelines)
 
         self.cache = OperationsCache()
 

@@ -48,15 +48,18 @@ class ParametersChanger:
             current_value = self._get_current_parameter_value(parameter_name)
 
             # Perform parameter value change using appropriate function
+
             operation_dict = _change_by_name.get(self.operation_name)
             if operation_dict is not None:
                 func = operation_dict.get(parameter_name)
             else:
                 # Default changes perform with random choice
                 func = self._random_change
-
+            if func is None:
+                func = self._random_change
             parameters = {'operation_name': self.operation_name,
                           'current_value': current_value}
+
             param_value = func(parameter_name, **parameters)
             params_dict.update(param_value)
 

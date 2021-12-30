@@ -78,7 +78,6 @@ def test_random_composer(data_fixture, request):
     random_composer = RandomSearchComposer(iter_num=1)
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
     pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose,
-                                                                initial_pipeline=None,
                                                                 composer_requirements=req,
                                                                 metrics=metric_function)
     pipeline_random_composed.fit_from_scratch(input_data=dataset_to_compose)

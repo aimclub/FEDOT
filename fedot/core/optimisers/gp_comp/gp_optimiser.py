@@ -1,5 +1,6 @@
 import math
 from copy import deepcopy
+from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
@@ -123,10 +124,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.population = None
         self.initial_graph = initial_graph
 
-    def _create_randomized_pop_from_inital_graph(self, initial_pipeline) -> List[Individual]:
+    def _create_randomized_pop_from_inital_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
         """
-        Fill first population with mutated variants of the initial_pipeline
-        :param initial_pipeline: Initial assumption for first population
+        Fill first population with mutated variants of the initial_graphs
+        :param initial_graphs: Initial assumption for first population
         :return: list of individuals
         """
         initial_req = deepcopy(self.requirements)
@@ -134,10 +135,11 @@ class EvoGraphOptimiser(GraphOptimiser):
         randomized_pop = []
         n_iter = self.requirements.pop_size * 10
         while n_iter > 0:
+            initial_graph = np.random.choice(initial_graphs)
             n_iter -= 1
             new_ind = mutation(types=self.parameters.mutation_types,
                                params=self.graph_generation_params,
-                               ind=Individual(deepcopy(initial_pipeline)),
+                               ind=Individual(deepcopy(initial_graph)),
                                requirements=initial_req,
                                max_depth=self.max_depth, log=self.log,
                                add_to_history=False)
@@ -145,24 +147,19 @@ class EvoGraphOptimiser(GraphOptimiser):
                 # to suppress duplicated
                 randomized_pop.append(new_ind)
 
-            if len(randomized_pop) == self.requirements.pop_size - 1:
+            if len(randomized_pop) == self.requirements.pop_size - len(initial_graphs):
                 break
 
         # add initial graph to population
-        randomized_pop.append(Individual(deepcopy(initial_pipeline)))
+        for initial_graph in initial_graphs:
+            randomized_pop.append(Individual(deepcopy(initial_graph)))
 
         return randomized_pop
 
     def _init_population(self):
         if self.initial_graph:
-            if type(self.initial_graph) != list:
-                initial_graph = self.graph_generation_params.adapter.adapt(self.initial_graph)
-                self.population = self._create_randomized_pop_from_inital_graph(initial_graph)
-            else:
-                self.population = \
-                    [Individual(graph=self.graph_generation_params.adapter.adapt(o))
-                     for o in self.initial_graph]
-
+            adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
+            self.population = self._create_randomized_pop_from_inital_graph(adapted_graphs)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
         return self.population

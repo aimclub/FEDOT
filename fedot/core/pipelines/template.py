@@ -263,7 +263,7 @@ class PipelineTemplate:
         pipeline.nodes.clear()
         pipeline.add_node(root_node)
 
-        if 'preprocessing' in os.listdir(path):
+        if path is not None and 'preprocessing' in os.listdir(path):
             # Load data preprocessor and store it into the
             path_to_preprocessor = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
             restored_data_preprocessor = joblib.load(path_to_preprocessor)

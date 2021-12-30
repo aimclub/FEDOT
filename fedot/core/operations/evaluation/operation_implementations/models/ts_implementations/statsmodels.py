@@ -86,7 +86,11 @@ class GLMImplementation(ModelImplementation):
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
         target = input_data.target
-        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
+        if forecast_length == 1 and not is_fit_pipeline_stage:
+            predictions = self.model.predict(np.concatenate([np.array([1]),
+                                                             input_data.idx.astype("float64")]).reshape(-1, 2))
+        else:
+            predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
 
         if is_fit_pipeline_stage:
             _, predict = ts_to_table(idx=old_idx,
@@ -188,21 +192,10 @@ class AutoRegImplementation(ModelImplementation):
         target = input_data.target
 
         if is_fit_pipeline_stage:
-            fitted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
-            # First n elements in time series are skipped
-            diff = self.actual_ts_len - len(fitted)
-
-            # Fill nans with first values
-            first_element = fitted[0]
-            first_elements = [first_element] * diff
-            first_elements.extend(list(fitted))
-
-            fitted = np.array(first_elements)
-
+            predicted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
             _, predict = ts_to_table(idx=old_idx,
-                                     time_series=fitted,
+                                     time_series=predicted,
                                      window_size=forecast_length)
-
             new_idx, target_columns = ts_to_table(idx=old_idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
@@ -211,25 +204,22 @@ class AutoRegImplementation(ModelImplementation):
             input_data.idx = new_idx
             input_data.target = target_columns
 
-        # For predict stage we can make prediction
         else:
             start_id = old_idx[-1] - forecast_length + 1
             end_id = old_idx[-1]
             predicted = self.autoreg.predict(start=start_id,
                                              end=end_id)
-
-            # Convert one-dim array as column
             predict = np.array(predicted).reshape(1, -1)
             new_idx = np.arange(start_id, end_id + 1)
 
             # Update idx
             input_data.idx = new_idx
 
-            # Update idx and features
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data
+
 
     def get_params(self):
         return self.params
