@@ -5,7 +5,9 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.initial_assumptions import part_preprocessor
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -75,7 +77,7 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_assumption: List[Pipeline] = None,
+                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
                  safe_mode=True):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -392,9 +394,16 @@ class Fedot:
                                                                                      self.api_params['task'])
         elif isinstance(predefined_model, str):
             # Model name was set
-            categorical_preprocessing = PrimaryNode('one_hot_encoding')
-            scaling_preprocessing = SecondaryNode('scaling', nodes_from=[categorical_preprocessing])
-            model = SecondaryNode(predefined_model, nodes_from=[scaling_preprocessing])
+            has_categorical_features = data_has_categorical_features(self.train_data)
+            has_gaps = data_has_missing_values(self.train_data)
+            node_preprocessed = part_preprocessor(task_type=self.api_params['task'].task_type,
+                                                  has_gaps=has_gaps,
+                                                  has_categorical_features=has_categorical_features
+                                                  )
+            if node_preprocessed:
+                model = SecondaryNode(predefined_model, nodes_from=[node_preprocessed])
+            else:
+                model = PrimaryNode(predefined_model)
             pipelines = [Pipeline(model)]
         else:
             raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')

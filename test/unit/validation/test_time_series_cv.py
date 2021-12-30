@@ -130,7 +130,7 @@ def test_composer_cv_correct():
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=time_series.task). \
         with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_assumption([init_pipeline])
+        with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()
 
     obtained_pipeline = composer.compose_pipeline(data=time_series, is_visualise=False)

@@ -45,7 +45,7 @@ def run_multi_modal_case(files_path, is_visualise=False, timeout=datetime.timede
     # the multi modal template (with data sources) is passed as inital assumption for composer
     builder = ComposerBuilder(task=task).with_requirements(composer_requirements). \
         with_metrics(metric_function).with_optimiser(parameters=optimiser_parameters).with_logger(logger=logger). \
-        with_initial_pipeline(pipeline).with_cache('multi_modal_opt.cache')
+        with_initial_pipelines([pipeline]).with_cache('multi_modal_opt.cache')
 
     # Create GP-based composer
     composer = builder.build()

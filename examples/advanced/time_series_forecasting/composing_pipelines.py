@@ -103,7 +103,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     builder = ComposerBuilder(task=task). \
         with_optimiser(parameters=optimiser_parameters). \
         with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_assumption([pipeline])
+        with_metrics(metric_function).with_initial_pipelines([pipeline])
     composer = builder.build()
 
     obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)

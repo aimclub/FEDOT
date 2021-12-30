@@ -32,7 +32,7 @@ def random_graph(params, requirements, max_depth=None) -> OptGraph:
         n_iter += 1
         if n_iter > MAX_ITERS:
             warnings.warn(f'Random_graph generation failed for {n_iter} iterations.')
-            raise ValueError(f'Random_graph generation failed. Cannot find valid pipeline'
+            raise ValueError(f'Random_graph generation failed. Cannot find valid graph'
                              f' with current params {params} and requirements {requirements}')
 
     return graph

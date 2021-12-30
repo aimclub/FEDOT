@@ -100,7 +100,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
             RegressionMetricsEnum.MAE)
         builder = ComposerBuilder(task=data.task). \
             with_requirements(composer_requirements). \
-            with_metrics(metric_function).with_initial_assumption([init_pipeline])
+            with_metrics(metric_function).with_initial_pipelines([init_pipeline])
         composer = builder.build()
 
         obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)

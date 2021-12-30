@@ -16,7 +16,6 @@ class RandomSearchComposer:
         self.__iter_num = iter_num
 
     def compose_pipeline(self, data: InputData,
-                         initial_assumption: List[Pipeline],
                          composer_requirements: ComposerRequirements,
                          metrics: Optional[Callable]) -> Pipeline:
         # TODO: fix this later?
