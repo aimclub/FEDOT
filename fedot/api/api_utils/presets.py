@@ -25,9 +25,6 @@ class OperationsPreset:
         if self.preset_name is None and 'preset' in updated_params:
             self.preset_name = updated_params['preset']
 
-        # if 'preset' in updated_params:
-        #     del updated_params['preset']
-
         if self.preset_name is not None and 'available_operations' not in composer_params:
             available_operations = self._filter_operations_by_preset()
             updated_params['available_operations'] = available_operations
