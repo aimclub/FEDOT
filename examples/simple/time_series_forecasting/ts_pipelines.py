@@ -65,7 +65,6 @@ def ts_glm_ridge_pipeline():
     Where glm - Generalized linear model
     """
     node_glm = PrimaryNode("glm")
-    #node_glm.custom_params = {"family": "poisson", "link": "log"}
 
     node_lagged = PrimaryNode("lagged")
     node_ridge_1 = SecondaryNode("ridge", nodes_from=[node_lagged])
@@ -169,7 +168,7 @@ def ts_complex_dtreg_pipeline(first_node="lagged"):
     return pipeline
 
 
-def ts_fat_ets_pipeline():
+def ts_multiple_ets_pipeline():
     """
     Return pipeline with the following structure:
       ets

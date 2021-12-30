@@ -401,4 +401,4 @@ class Fedot:
         # Perform fitting
         fit_and_check_correctness(pipelines, data=self.train_data,
                                   logger=self.api_params['logger'])
-        return np.random.choice(pipelines)
+        return pipelines[0]
