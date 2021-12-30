@@ -146,7 +146,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
-    ts_forecast = model.predict(features=train_data)
+    ts_forecast = model.predict(features=test_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
