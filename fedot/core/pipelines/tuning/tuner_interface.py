@@ -144,7 +144,8 @@ class HyperoptTuner(ABC):
 
         if self.is_need_to_maximize is True:
             # Maximization
-            init_metric = self.init_metric - deviation
+            init_metric = -1 * (self.init_metric - deviation)
+            obtained_metric = -1 * obtained_metric
             if obtained_metric >= init_metric:
                 self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
                               f'bigger than initial (- 5% deviation) {init_metric:.3f}')
@@ -196,7 +197,7 @@ class HyperoptTuner(ABC):
             preds, test_target = cv_time_series_predictions(pipeline, data, log=self.log,
                                                             cv_folds=self.cv_folds,
                                                             validation_blocks=self.validation_blocks)
-        return test_target, preds
+        return preds, test_target
 
     @property
     def _default_metric_value(self):

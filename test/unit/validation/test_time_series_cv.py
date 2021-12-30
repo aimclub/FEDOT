@@ -145,7 +145,7 @@ def test_api_cv_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'timeout': 0.05,
-                       'preset': 'ultra_light',
+                       'preset': 'fast_train',
                        'cv_folds': folds,
                        'validation_blocks': validation_blocks}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)

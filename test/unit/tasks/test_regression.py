@@ -30,8 +30,9 @@ def get_simple_composer_params() -> dict:
               'max_arity': 3,
               'pop_size': 2,
               'num_of_generations': 2,
-              'timeout': 1,
-              'preset': 'ultra_light'}
+              'timeout': 0.1,
+              'with_tuning': True,
+              'preset': 'fast_train'}
     return params
 
 

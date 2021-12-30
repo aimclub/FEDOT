@@ -38,7 +38,7 @@ if __name__ == '__main__':
                        'num_of_generations': 20,
                        'timeout': 2,
                        'with_tuning': True,
-                       'preset': 'light',
+                       'preset': 'best_quality',
                        'genetic_scheme': None,
                        'history_folder': None}
     forecast, obtained_pipeline = automl_fit_forecast(train_input, predict_input, composer_params,

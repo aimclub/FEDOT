@@ -49,7 +49,7 @@ class FilterImplementation(DataOperationImplementation):
                 # Update data
                 modified_input_data = self._update_data(input_data, mask)
             else:
-                self.log.info("Filtering Algorithm: didn't fit correctly. Return all features")
+                self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
                 inner_features = features
                 modified_input_data = copy(input_data)
 
@@ -103,7 +103,7 @@ class RegRANSACImplementation(FilterImplementation):
                 self.operation.fit(input_data.features, input_data.target)
                 return self.operation
             except ValueError:
-                self.log.info("RASNAC: multiplied residual_threshold on 2")
+                self.log.info("RANSAC: multiplied residual_threshold on 2")
                 self.params["residual_threshold"] *= 2
                 self.parameters_changed = True
                 iter_ += 1

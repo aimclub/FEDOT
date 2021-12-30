@@ -64,6 +64,7 @@
   "operations": {
     "logit": {
       "meta": "rapids_gpu_class",
+      "presets": ["gpu"],
       "tags": [
         "simple",
         "linear",
@@ -71,53 +72,68 @@
       ]
     },
     "rf": {
-      "meta": "rapids_gpu_class"
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
     },
     "lasso": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "svc": {
       "meta": "rapids_gpu_class",
+      "presets": ["gpu"],
       "tags": [
         "no_prob",
         "expensive"
       ]
     },
     "kmeans": {
-      "meta": "rapids_gpu_clust"
+      "meta": "rapids_gpu_clust",
+      "presets": ["gpu"]
     },
     "linear": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "ridge": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "rfr": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "knn": {
-      "meta": "rapids_gpu_class"
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
     },
     "knnreg": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "sgd": {
-      "meta": "rapids_gpu_class"
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
     },
     "multinb": {
-      "meta": "rapids_gpu_class"
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
     },
     "elasticnet": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "minibatchsgd": {
-      "meta": "rapids_gpu_class"
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
     },
     "mbsgdcregr": {
-      "meta": "rapids_gpu_regr"
+      "meta": "rapids_gpu_regr",
+      "presets": ["gpu"]
     },
     "cd": {
-      "meta": "rapids_gpu_class"
+      "meta": "rapids_gpu_class",
+      "presets": ["gpu"]
     }
   }
 }

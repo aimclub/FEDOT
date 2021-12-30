@@ -132,7 +132,7 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
     # Preprocessing not only for time series
     non_ts_data_operations = get_operations_for_task(task=task,
                                                      mode='data_operation',
-                                                     forbidden_tags=["non_lagged"])
+                                                     tags=["non_applicable_for_ts"])
     ts_data_operations = get_operations_for_task(task=task,
                                                  mode='data_operation',
                                                  tags=["non_lagged"])

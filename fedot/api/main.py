@@ -33,7 +33,16 @@ class Fedot:
         - regression
         - ts_forecasting
         - clustering
-    :param preset: name of preset for model building (e.g. 'light', 'ultra-light')
+    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
+        - 'best_quality' - All models that are available for this data type and task are used
+        - 'fast_train' - Models that learn quickly. This includes preprocessing operations
+            (data operations) that only reduce the dimensionality of the data, but cannot increase
+             it. For example, there are no polynomial features and one-hot encoding operations
+        - 'stable' - The most reliable preset in which the most stable operations are included.
+        - 'gpu' - Models that use GPU resources for computation.
+        - 'ts' - A special preset with models for time series forecasting task.
+        - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
+        - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
@@ -73,6 +82,7 @@ class Fedot:
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.composer_params = ApiParams()
+        self.timeout_set_in_init = timeout
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
@@ -129,6 +139,8 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
+            if self.timeout_set_in_init is not None:
+                self.api_params['timeout'] = self.timeout_set_in_init
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
 
         self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)

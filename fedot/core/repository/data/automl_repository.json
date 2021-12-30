@@ -77,24 +77,28 @@
   "operations": {
     "h2o_regr": {
       "meta": "h2o_regr",
+      "presets": ["*automl"],
       "tags": [
         "automl"
       ]
     },
     "h2o_class": {
       "meta": "h2o_class",
+      "presets": ["*automl"],
       "tags": [
         "automl"
       ]
     },
     "tpot_regr": {
       "meta": "tpot_regr",
+      "presets": ["*automl"],
       "tags": [
         "automl"
       ]
     },
     "tpot_class": {
       "meta": "tpot_class",
+      "presets": ["*automl"],
       "tags": [
         "automl"
       ]

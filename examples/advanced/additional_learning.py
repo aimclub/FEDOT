@@ -20,7 +20,7 @@ def run_additional_learning_example():
 
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, seed=42, preset='light', timeout=5,
+    auto_model = Fedot(problem=problem, seed=42, preset='best_quality', timeout=5,
                        composer_params={'initial_pipeline': Pipeline(
                            SecondaryNode('logit',
                                          nodes_from=[
@@ -41,14 +41,14 @@ def run_additional_learning_example():
     train_data = train_data.head(5000)
     timeout = 1
 
-    auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='light', timeout=timeout,
+    auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
                                      composer_params={'initial_pipeline': atomized_model}, verbose_level=2)
     auto_model_from_atomized.fit(features=deepcopy(train_data), target='target')
     auto_model_from_atomized.predict_proba(features=deepcopy(test_data))
     auto_model_from_atomized.current_pipeline.show()
     print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
-    auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='light', timeout=timeout,
+    auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
                                      composer_params={'initial_pipeline': non_atomized_model}, verbose_level=2)
     auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')
     auto_model_from_pipeline.predict_proba(features=deepcopy(test_data))

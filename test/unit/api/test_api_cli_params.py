@@ -5,14 +5,14 @@ from fedot.api.fedot_cli import create_parser, separate_argparse_to_fedot, prepr
 
 project_root_path = str(fedot_project_root())
 ts_train_path = os.path.join(project_root_path, 'test/data/simple_time_series.csv')
-ts_call = f'--problem ts_forecasting --preset light --timeout 0.1 --depth 3 --arity 3 \
+ts_call = f'--problem ts_forecasting --preset fast_train --timeout 0.1 --depth 3 --arity 3 \
                                     --popsize 3 --gen_num 5 --c_timeout 0.1 --opers lagged linear ridge --tuning \
                                     0 --cv_folds 2 --val_bl 2 --target sea_height --train {ts_train_path} \
                                     --test {ts_train_path} --for_len 10'.split()
 
 class_train_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 class_call = f'--problem classification --train {class_train_path} --test {class_train_path} --target Y \
-                                     --preset light --timeout 0.1 --depth 3 --arity 3 \
+                                     --preset fast_train --timeout 0.1 --depth 3 --arity 3 \
                                      --popsize 3 --gen_num 5 --c_timeout 0.1 --tuning 1'.split()
 
 

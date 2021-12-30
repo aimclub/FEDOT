@@ -5,7 +5,7 @@ from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 
-def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout=None):
+def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: float = None):
     train_data_path = f'{fedot_project_root()}/examples/data/ts/salaries.csv'
 
     target = pd.read_csv(train_data_path)['value']
@@ -16,7 +16,7 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout=N
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=timeout,
-                  preset='ts_tun')
+                  preset='fast_train')
 
     # run AutoML model design in the same way
     pipeline = model.fit(features=train_data_path, target='value')
@@ -36,4 +36,4 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout=N
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example()
+    run_ts_forecasting_example(timeout=0.5)

@@ -115,5 +115,9 @@
     "balance": "expand_minority",
     "replace": true,
     "n_samples": 0.5
+  },
+  "pca": {
+    "svd_solver": "full",
+    "n_components": "mle"
   }
 }

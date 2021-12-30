@@ -13,6 +13,9 @@ class OperationsPreset:
         self.task = task
         self.preset_name = preset_name
 
+        # Is there a modification in preset or not
+        self.modification_using = False
+
     def composer_params_based_on_preset(self, composer_params: dict) -> dict:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
@@ -21,9 +24,6 @@ class OperationsPreset:
 
         if self.preset_name is None and 'preset' in updated_params:
             self.preset_name = updated_params['preset']
-
-        if 'preset' in updated_params:
-            del updated_params['preset']
 
         if self.preset_name is not None and 'available_operations' not in composer_params:
             available_operations = self._filter_operations_by_preset()
@@ -38,50 +38,45 @@ class OperationsPreset:
         """ Filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
-        excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean']
-
         # TODO remove workaround
-        extended_excluded = ['mlp', 'catboost', 'lda', 'qda', 'lgbm',
-                             'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
-                             'one_hot_encoding', 'resample']
-        excluded_models_dict = {'light': excluded,
-                                'light_steady_state': extended_excluded}
+        # Use best_quality preset but exclude several operations
+        preset_name = self.preset_name
+        if 'stable' in self.preset_name:
+            # Use best_quality preset but exclude several operations
+            preset_name = 'best_quality'
+        excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
+                    'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
+                    'resample']
 
-        # Get data operations and models
-        available_operations = get_operations_for_task(self.task, mode='all')
-        available_data_operation = get_operations_for_task(self.task, mode='data_operation')
+        if '*' in preset_name:
+            self.modification_using = True
+            # The modification has been added
+            preset_name, modification = preset_name.split('*')
+            modification = ''.join(('*', modification))
+
+            mod_operations = get_operations_for_task(self.task, mode='all', preset=modification)
+
+        # Get operations
+        available_operations = get_operations_for_task(self.task, mode='all', preset=preset_name)
+
+        if self.modification_using:
+            # Find subsample of operations
+            filtered_operations = set(available_operations).intersection(set(mod_operations))
+            available_operations = list(filtered_operations)
 
         # Exclude "heavy" operations if necessary
-        available_operations = self._new_operations_without_heavy(excluded_models_dict, available_operations)
+        if 'stable' in self.preset_name:
+            available_operations = self.new_operations_without_heavy(excluded, available_operations)
 
-        # Save only "light" operations
-        if self.preset_name in ['ultra_light', 'ultra_steady_state']:
-            light_models = ['dt', 'dtreg', 'logit', 'linear', 'lasso', 'ridge', 'knn', 'ar']
-            included_operations = light_models + available_data_operation
-            available_operations = [_ for _ in available_operations if _ in included_operations]
-        elif self.preset_name in ['ts']:
-            # Presets for time series forecasting
-            available_operations = ['lagged', 'sparse_lagged', 'ar', 'gaussian_filter', 'smoothing',
-                                    'ridge', 'linear', 'lasso', 'dtreg', 'scaling', 'normalization',
-                                    'pca', 'cut', 'polyfit', 'ets', 'glm']
-        elif self.preset_name == 'tree_reg':
-            tree_reg = ['dtreg', 'rfr', 'treg', 'adareg', 'catboostreg', 'gbr', 'lgbmreg', 'xgbreg']
-            included_operations = tree_reg + available_data_operation
-            available_operations = [_ for _ in available_operations if _ in included_operations]
-        elif self.preset_name == 'tree_class':
-            tree_class = ['dt', 'rf', 'catboost', 'lgbm', 'xgboost']
-            included_operations = tree_class + available_data_operation
-            available_operations = [_ for _ in available_operations if _ in included_operations]
-        if self.preset_name == 'gpu':
+        if 'gpu' in self.preset_name:
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
             available_operations = repository.suitable_operation(task_type=self.task.task_type)
 
         return available_operations
 
-    def _new_operations_without_heavy(self, excluded_models_dict, available_operations) -> list:
+    @staticmethod
+    def new_operations_without_heavy(excluded_operations, available_operations) -> list:
         """ Create new list without heavy operations """
-        if self.preset_name in excluded_models_dict.keys():
-            excluded_operations = excluded_models_dict[self.preset_name]
-            available_operations = [_ for _ in available_operations if _ not in excluded_operations]
+        available_operations = [_ for _ in available_operations if _ not in excluded_operations]
 
         return available_operations

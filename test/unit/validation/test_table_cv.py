@@ -118,7 +118,7 @@ def test_composer_with_cv_optimization_correct():
 
     composer_requirements = PipelineComposerRequirements(primary=available_model_types,
                                                          secondary=available_model_types,
-                                                         timeout=timedelta(minutes=1),
+                                                         timeout=timedelta(minutes=0.2),
                                                          num_of_generations=2, cv_folds=3)
 
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
@@ -138,9 +138,9 @@ def test_composer_with_cv_optimization_correct():
 def test_cv_api_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
-                       'timeout': 0.0001,
-                       'preset': 'ultra_light',
-                       'cv_folds': 10}
+                       'timeout': 0.1,
+                       'preset': 'fast_train',
+                       'cv_folds': 2}
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose, dataset_to_validate = get_data(task)
     model = Fedot(problem='classification', composer_params=composer_params, verbose_level=2)

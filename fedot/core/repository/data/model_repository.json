@@ -139,6 +139,7 @@
   "operations": {
     "adareg": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "ts", "*tree"],
       "tags": [
         "boosting",
         "non_multi"
@@ -146,6 +147,7 @@
     },
     "ar": {
       "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -154,6 +156,7 @@
     },
     "arima": {
       "meta": "ts_model",
+      "presets": ["ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -168,18 +171,21 @@
     },
     "bernb": {
       "meta": "sklearn_class",
+      "presets": ["fast_train"],
       "tags": [
         "bayesian"
       ]
     },
     "catboost": {
       "meta": "sklearn_class",
+      "presets": ["*tree"],
       "tags": [
         "boosting"
       ]
     },
     "catboostreg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "non_multi"
@@ -187,6 +193,7 @@
     },
     "dt": {
       "meta": "sklearn_class",
+      "presets": ["fast_train", "*tree"],
       "tags": [
         "tree",
         "interpretable"
@@ -194,6 +201,7 @@
     },
     "dtreg": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "ts", "*tree"],
       "tags": [
         "tree",
         "interpretable"
@@ -201,16 +209,19 @@
     },
     "gbr": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "non_multi"
       ]
     },
     "kmeans": {
-      "meta": "sklearn_clust"
+      "meta": "sklearn_clust",
+      "presets": ["fast_train"]
     },
     "knn": {
       "meta": "custom_class",
+      "presets": ["fast_train"],
       "tags": [
         "simple",
         "correct_params"
@@ -218,6 +229,7 @@
     },
     "knnreg": {
       "meta": "custom_regr",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "correct_params"
@@ -225,6 +237,7 @@
     },
     "lasso": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "linear",
@@ -233,6 +246,7 @@
     },
     "lda": {
       "meta": "custom_class",
+      "presets": ["fast_train"],
       "tags": [
         "discriminant",
         "linear",
@@ -248,6 +262,7 @@
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "tree",
@@ -256,6 +271,7 @@
     },
     "linear": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "linear",
@@ -264,6 +280,7 @@
     },
     "logit": {
       "meta": "sklearn_class",
+      "presets": ["fast_train"],
       "tags": [
         "simple",
         "linear",
@@ -278,6 +295,7 @@
     },
     "multinb": {
       "meta": "sklearn_class",
+      "presets": ["fast_train"],
       "tags": [
         "non-default",
         "bayesian"
@@ -285,6 +303,7 @@
     },
     "qda": {
       "meta": "custom_class",
+      "presets": ["fast_train"],
       "tags": [
         "discriminant",
         "quadratic"
@@ -292,14 +311,17 @@
     },
     "rf": {
       "meta": "sklearn_class",
+      "presets": ["fast_train", "*tree"],
       "tags": ["tree"]
     },
     "rfr": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "*tree"],
       "tags": ["tree"]
     },
     "ridge": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "linear",
@@ -308,6 +330,7 @@
     },
     "polyfit": {
       "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "non_lagged",
@@ -318,12 +341,14 @@
     },
     "sgdr": {
       "meta": "sklearn_regr",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "non_multi"
       ]
     },
     "stl_arima": {
       "meta": "ts_model",
+      "presets": ["ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -332,6 +357,7 @@
     },
     "glm": {
       "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -341,6 +367,7 @@
     },
     "ets": {
       "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
       "tags": [
         "simple",
         "interpretable",
@@ -369,12 +396,14 @@
     },
     "treg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "tree"
       ]
     },
     "xgboost": {
       "meta": "sklearn_class",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "tree"
@@ -382,6 +411,7 @@
     },
     "xgbreg": {
       "meta": "sklearn_regr",
+      "presets": ["*tree"],
       "tags": [
         "boosting",
         "tree",
