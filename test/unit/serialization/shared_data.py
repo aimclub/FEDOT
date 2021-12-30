@@ -1,7 +1,5 @@
 from enum import Enum
 
-from fedot.core.serializers import BasicSerializer
-
 from .mocks.serialization_mocks import MockNode
 
 TEST_UUID = '41d79d06c3d8478f89e7d1008c96a864'
@@ -26,7 +24,7 @@ class TestClass:
         pass
 
 
-class TestSerializableClass(BasicSerializer):
+class TestSerializableClass:
     def __init__(self, data_dct: dict = None):
         if data_dct is None:
             self.test_a = 'test_a'

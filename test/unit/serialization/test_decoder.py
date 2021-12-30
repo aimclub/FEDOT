@@ -1,14 +1,11 @@
-from copy import deepcopy
-from test.unit.serialization.test_encoder import MOCK_NODE_1_COPY
-from types import FunctionType, MethodType
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import CLASS_PATH_KEY, SIMPLE_OBJECT_INIT_DATA, decoder
+from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 
 from .dataclasses.serialization_dataclasses import DecoderTestCase
-from .fixtures.serialization_fixtures import _get_class_fixture
-from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation, MockPipelineTemplate
+from .fixtures.serialization_fixtures import _get_class_fixture, _mock_classes_fixture
+from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
 from .shared_data import (
     MOCK_NODE_1,
     MOCK_NODE_2,
@@ -27,7 +24,7 @@ DECODER_CASES = [
     ),
     DecoderTestCase(
         test_input={
-            SIMPLE_OBJECT_INIT_DATA: {'hex': TEST_UUID},
+            'hex': TEST_UUID,
             CLASS_PATH_KEY: UUID
         },
         test_answer=UUID(TEST_UUID)
@@ -36,11 +33,11 @@ DECODER_CASES = [
         test_input={
             CLASS_PATH_KEY: UUID
         },
-        test_answer=TypeError()
+        test_answer=KeyError()
     ),
     DecoderTestCase(
         test_input={
-            SIMPLE_OBJECT_INIT_DATA: 'test_val',
+            'value': 'test_val',
             CLASS_PATH_KEY: TestEnum
         },
         test_answer=TestEnum.test_val
@@ -76,13 +73,6 @@ DECODER_CASES = [
             CLASS_PATH_KEY: MockOperation
         },
         test_answer=MockOperation('my_operation')
-    ),
-    DecoderTestCase(
-        test_input={
-            'struct_id': 'my_id',
-            CLASS_PATH_KEY: MockPipelineTemplate
-        },
-        test_answer=MockPipelineTemplate('my_id')
     )
 ]
 
@@ -96,79 +86,46 @@ DECODER_CASES.extend([
     )
 ])
 
-MOCK_NODE_1_COPY = deepcopy(MOCK_NODE_1)
-MOCK_NODE_2_COPY = deepcopy(MOCK_NODE_2)
-MOCK_NODE_3_COPY = deepcopy(MOCK_NODE_3)
-
 DECODER_CASES.extend([
     DecoderTestCase(
         test_input={
             'name': 'node1',
             'nodes_from': [
-                MOCK_NODE_2_COPY,
-                MOCK_NODE_3_COPY
+                MOCK_NODE_2,
+                MOCK_NODE_3
             ],
-            '_serialization_id': 0,
             CLASS_PATH_KEY: MockNode
         },
-        test_answer=MOCK_NODE_1_COPY
+        test_answer=MOCK_NODE_1
     ),
 ])
 
-MOCK_NODE_3_COPY = MockNode('name3')
-MOCK_NODE_3_COPY._serialization_id = 2
-
-MOCK_NODE_2_COPY = MockNode('name2')
-MOCK_NODE_2_COPY._serialization_id = 1
-MOCK_NODE_3_COPY_1 = MockNode('name2')
-MOCK_NODE_3_COPY_1._serialization_id = 2
-vars(MOCK_NODE_2_COPY).update({
-    'nodes_from': [
-        MOCK_NODE_3_COPY_1
-    ]
-})
-
-MOCK_NODE_1_COPY = MockNode('name1')
-MOCK_NODE_1_COPY._serialization_id = 0
-MOCK_NODE_2_COPY_2 = MockNode('name2')
-MOCK_NODE_2_COPY_2._serialization_id = 1
-MOCK_NODE_3_COPY_2 = MockNode('name3')
-MOCK_NODE_3_COPY_2._serialization_id = 2
-vars(MOCK_NODE_2_COPY_2).update({
-    'nodes_from': [
-        MOCK_NODE_3_COPY_2
-    ]
-})
-MOCK_NODE_3_COPY_3 = MockNode('name3')
-MOCK_NODE_3_COPY_3._serialization_id = 2
-vars(MOCK_NODE_1_COPY).update({
-    'nodes_from': [
-        MOCK_NODE_2_COPY_2,
-        MOCK_NODE_3_COPY_3
-    ]
-})
+MOCK_NODE_1_SERIALIZED = MockNode(MOCK_NODE_1.name, [node._serialization_id for node in MOCK_NODE_1.nodes_from])
+MOCK_NODE_2_SERIALIZED = MockNode(MOCK_NODE_2.name, [node._serialization_id for node in MOCK_NODE_2.nodes_from])
+MOCK_NODE_3_SERIALIZED = MockNode(MOCK_NODE_3.name, [node._serialization_id for node in MOCK_NODE_3.nodes_from])
 
 DECODER_CASES.extend([
     DecoderTestCase(
         test_input={
             'nodes': [
-                MOCK_NODE_1_COPY,
-                MOCK_NODE_2_COPY,
-                MOCK_NODE_3_COPY
+                MOCK_NODE_1_SERIALIZED,
+                MOCK_NODE_2_SERIALIZED,
+                MOCK_NODE_3_SERIALIZED
             ],
             CLASS_PATH_KEY: MockGraph
         },
-        test_answer=MockGraph([MOCK_NODE_1_COPY, MOCK_NODE_2_COPY, MOCK_NODE_3_COPY])
+        test_answer=MockGraph([MOCK_NODE_1, MOCK_NODE_2, MOCK_NODE_3])
     )
 ])
 
 
 @pytest.mark.parametrize('case', DECODER_CASES)
-def test_decoder(case: DecoderTestCase, _get_class_fixture):
+def test_decoder(case: DecoderTestCase, _get_class_fixture, _mock_classes_fixture):
+    deserializer = Serializer()
     if isinstance(case.test_answer, Exception):
         with pytest.raises(type(case.test_answer)):
-            decoder(case.test_input)
+            deserializer.object_hook(case.test_input)
     else:
-        decoded = decoder(case.test_input)
+        decoded = deserializer.object_hook(case.test_input)
         assert isinstance(decoded, type(case.test_answer)), 'Decoded object has wrong type'
         assert decoded == case.test_answer, f'Object was decoded incorrectly'

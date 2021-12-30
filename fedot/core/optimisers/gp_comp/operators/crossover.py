@@ -1,11 +1,10 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Any, Callable, List, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Union
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.gp_operators import \
-    (equivalent_subtree, replace_subtrees)
+from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
@@ -66,10 +65,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                     if are_correct:
                         operator = ParentOperator(operator_type='crossover',
                                                   operator_name=str(crossover_type),
-                                                  parent_objects=[
-                                                      params.adapter.restore_as_template(ind_first.graph),
-                                                      params.adapter.restore_as_template(ind_second.graph)
-                                                  ])
+                                                  parent_objects=[ind_first, ind_second])
                         for graph in new_graphs:
                             new_ind = Individual(graph)
                             new_ind.parent_operators = []

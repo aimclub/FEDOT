@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Callable, List, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals
@@ -47,7 +47,7 @@ def decremental_regularization(population: List[Individual], objective_function:
             add_ind.parent_operators.append(
                 ParentOperator(operator_type='regularization',
                                operator_name='decremental_regularization',
-                               parent_objects=[params.adapter.restore_as_template(ind.graph)]))
+                               parent_objects=[ind]))
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
 

@@ -1,10 +1,9 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import Any, Callable, List, TYPE_CHECKING, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Union
 
 import numpy as np
-
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -12,7 +11,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import ComparableEnum as Enum, DEFAULT_PARAMS_STUB
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.utils import DEFAULT_PARAMS_STUB, ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -138,7 +138,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                     new_individual.parent_operators.append(
                         ParentOperator(operator_type='mutation',
                                        operator_name=str(mutation_name),
-                                       parent_objects=[params.adapter.restore_as_template(ind.graph)]))
+                                       parent_objects=[ind]))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '

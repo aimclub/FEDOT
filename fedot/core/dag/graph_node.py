@@ -1,10 +1,9 @@
 from typing import List, Optional, Union
 
 from fedot.core.dag.node_operator import NodeOperator
-from fedot.core.serializers import GraphNodeSerializer
 
 
-class GraphNode(GraphNodeSerializer):
+class GraphNode:
     """
     Class for node definition in the DAG-based structure
 

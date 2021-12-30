@@ -1,14 +1,15 @@
 from copy import copy
 from typing import Optional
 
+import numpy as np
+from fedot.core.log import default_log
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
+    DataOperationImplementation
+)
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
-
-from fedot.core.log import default_log
-from fedot.core.operations.evaluation.operation_implementations. \
-    implementation_interfaces import DataOperationImplementation
 
 
 class FilterImplementation(DataOperationImplementation):
@@ -76,7 +77,7 @@ class FilterImplementation(DataOperationImplementation):
 
         modified_input_data.features = old_features[mask]
         modified_input_data.target = old_target[mask]
-        modified_input_data.idx = old_idx[mask]
+        modified_input_data.idx = np.array(old_idx)[mask]
 
         return modified_input_data
 

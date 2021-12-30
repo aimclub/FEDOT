@@ -1,7 +1,7 @@
 from uuid import UUID
 
 import pytest
-from fedot.core.serializers.json_helpers import MODULE_X_NAME_DELIMITER, _get_class
+from fedot.core.serializers import MODULE_X_NAME_DELIMITER, Serializer
 
 from .dataclasses.serialization_dataclasses import GetClassCase
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
@@ -45,5 +45,5 @@ GET_CLASS_CASES = [
 
 @pytest.mark.parametrize('case', GET_CLASS_CASES)
 def test_encoder(case: GetClassCase):
-    cls_obj = _get_class(case.test_input)
+    cls_obj = Serializer._get_class(case.test_input)
     assert cls_obj == case.test_answer, 'Decoded class is wrong'

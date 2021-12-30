@@ -1,31 +1,32 @@
 import csv
 import datetime
 import itertools
+import json
 import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.serializers import Serializer
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
 
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
-from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
-from fedot.core.serializers import OptHistorySerializer, ParentOperatorSerializer
 from fedot.core.utils import default_fedot_data_dir
 
 
 @dataclass
-class ParentOperator(ParentOperatorSerializer):
+class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List[PipelineTemplate]
+    parent_objects: List['Individual']
     uid: str = None
 
     def __post_init__(self):
@@ -33,7 +34,7 @@ class ParentOperator(ParentOperatorSerializer):
             self.uid = str(uuid4())
 
 
-class OptHistory(OptHistorySerializer):
+class OptHistory:
     """
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
@@ -104,6 +105,20 @@ class OptHistory(OptHistorySerializer):
                 ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             print(ex)
+
+    def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
+        if json_file_path is None:
+            return json.dumps(self, indent=4, cls=Serializer)
+        with open(json_file_path, mode='w') as json_fp:
+            json.dump(self, json_fp, indent=4, cls=Serializer)
+
+    @staticmethod
+    def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'OptHistory':
+        try:
+            return json.loads(json_str_or_file_path, cls=Serializer)
+        except json.JSONDecodeError as exc:
+            with open(json_str_or_file_path, mode='r') as json_fp:
+                return json.load(json_fp, cls=Serializer)
 
     def clean_results(self, path: Optional[str] = None):
         if not path:

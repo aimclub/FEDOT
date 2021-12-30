@@ -2,24 +2,29 @@ import json
 import os
 
 from fedot.api.main import Fedot
+from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.serializers import json_helpers
+from fedot.core.serializers import Serializer
 from fedot.core.utils import fedot_project_root
 
 
 def test_parent_operator():
     pipeline = Pipeline(PrimaryNode('linear'))
+    adapter = PipelineAdapter()
+    ind = Individual(adapter.adapt(pipeline))
+    ind.graph.uid = pipeline.uid
     mutation_type = MutationTypesEnum.simple
 
     operator_for_history = ParentOperator(operator_type='mutation',
                                           operator_name=str(mutation_type),
-                                          parent_objects=[PipelineTemplate(pipeline)])
+                                          parent_objects=[ind])
 
-    assert operator_for_history.parent_objects[0].unique_pipeline_id == pipeline.uid
+    assert operator_for_history.parent_objects[0].graph.uid == pipeline.uid
     assert operator_for_history.operator_type == 'mutation'
 
 
@@ -37,6 +42,6 @@ def test_operators_in_history():
     assert 1 <= len(auto_model.history.individuals) <= 3
 
     # test history dumps
-    dumped_history = json.dumps(auto_model.history, default=json_helpers.encoder)
+    dumped_history = auto_model.history.save()
 
     assert dumped_history is not None
