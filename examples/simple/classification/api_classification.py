@@ -2,7 +2,7 @@ from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
 
-def run_classification_example(timeout=None):
+def run_classification_example(timeout: float = None):
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
@@ -24,4 +24,4 @@ def run_classification_example(timeout=None):
 
 
 if __name__ == '__main__':
-    run_classification_example()
+    run_classification_example(timeout=2)
