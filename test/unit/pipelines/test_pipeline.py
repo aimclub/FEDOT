@@ -23,6 +23,7 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 from test.unit.pipelines.test_pipeline_tuning import classification_dataset
+from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
 np.random.seed(1)
@@ -459,3 +460,15 @@ def test_pipeline_unfit(data_fixture, request):
         assert pipeline.predict(data)
 
 
+def test_ts_forecasting_pipeline_with_poly_features():
+    """ Test pipeline with polynomial features in ts forecasting task """
+    lagged_node = PrimaryNode('lagged')
+    poly_node = SecondaryNode('poly_features', nodes_from=[lagged_node])
+    ridge_node = SecondaryNode('ridge', nodes_from=[poly_node])
+    pipeline = Pipeline(ridge_node)
+
+    train_data, test_data = get_ts_data(n_steps=25, forecast_length=5)
+
+    pipeline.fit(train_data)
+    prediction = pipeline.predict(test_data)
+    assert prediction is not None

@@ -5,7 +5,6 @@ import numpy as np
 from fedot.core.log import Log, default_log
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.data_types import TableTypesCorrector
 
 
@@ -25,8 +24,9 @@ class DataMerger:
             self.log = log
 
     def merge(self):
-        """ Method automatically determine which merge function should be
-        applied """
+        """
+        Method automatically determine which merge function should be applied
+        """
 
         if len(self.outputs) == 1 and self.outputs[0].data_type in [DataTypesEnum.image, DataTypesEnum.text]:
             # TODO implement correct merge
@@ -69,7 +69,7 @@ class DataMerger:
         if first_data_type == DataTypesEnum.table and len(self.outputs) > 1:
             updated_info.prepare_parent_mask(self.outputs)
 
-        updated_info = self.update_column_types(updated_info, first_data_type, task)
+        updated_info = self.update_column_types(updated_info, first_data_type)
         return idx, features, target, task, first_data_type, updated_info
 
     def combine_datasets_table(self):
@@ -112,13 +112,10 @@ class DataMerger:
             target = np.ravel(np.array(target))
         return idx, features, target, is_main_target, task
 
-    def update_column_types(self, supplementary_data: SupplementaryData, data_type: DataTypesEnum,
-                            task: TaskTypesEnum):
+    def update_column_types(self, supplementary_data: SupplementaryData, data_type: DataTypesEnum):
         """ Store information about column types in tabular data for merged data """
         if data_type is not DataTypesEnum.table:
             # Data is not tabular
-            return supplementary_data
-        if task.task_type == TaskTypesEnum.ts_forecasting:
             return supplementary_data
 
         # Types for features columns

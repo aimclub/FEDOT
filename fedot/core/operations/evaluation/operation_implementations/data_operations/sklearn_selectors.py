@@ -6,20 +6,21 @@ from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
 from fedot.core.data.data import OutputData
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import EncodedInvariantImplementation
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
+    DataOperationImplementation
 
 
-class FeatureSelectionImplementation(EncodedInvariantImplementation):
+class FeatureSelectionImplementation(DataOperationImplementation):
     """ Class for applying feature selection operations on tabular data """
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.inner_model = None
         self.operation = None
-        self.ids_to_process = None
-        self.bool_ids = None
         self.is_not_fitted = None
+
+        # Number of columns in features table
+        self.features_columns_number = None
 
         # Bool mask where True - remain column and False - drop it
         self.remain_features_mask = None
@@ -33,23 +34,23 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         features = input_data.features
         target = input_data.target
 
-        bool_ids, ids_to_process = self._reasonability_check(features)
-        self.ids_to_process = ids_to_process
-        self.bool_ids = bool_ids
+        # Define number of columns in the features table
+        if len(features.shape) == 1:
+            self.features_columns_number = 1
+        else:
+            self.features_columns_number = features.shape[1]
 
-        if len(ids_to_process) > 0:
-            features_to_process = np.array(features[:, ids_to_process])
-
-            if self._is_input_data_one_dimensional(features_to_process):
+        if self.features_columns_number > 1:
+            if self._is_input_data_one_dimensional(features):
                 self.is_not_fitted = True
                 return self.operation
             try:
-                self.operation.fit(features_to_process, target)
+                self.operation.fit(features, target)
             except ValueError:
                 # For time series forecasting not available multi-targets
-                self.operation.fit(features_to_process, target[:, 0])
+                self.operation.fit(features, target[:, 0])
         else:
-            pass
+            self.is_not_fitted = True
         return self.operation
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
@@ -64,10 +65,7 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
 
         features = input_data.features
         source_features_shape = features.shape
-        if len(self.ids_to_process) > 0:
-            transformed_features = self._make_new_table(features)
-        else:
-            transformed_features = features
+        transformed_features = self._make_new_table(features)
 
         # Update features
         output_data = self._convert_to_output(input_data,
@@ -83,14 +81,15 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         if len(source_features_shape) < 2:
             return output_data
         else:
-            cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
-            if cols_number_removed > 0:
-                # There are several columns, which were dropped
-                col_types = output_data.supplementary_data.column_types['features']
+            if self.features_columns_number > 1:
+                cols_number_removed = source_features_shape[1] - output_data.predict.shape[1]
+                if cols_number_removed > 0:
+                    # There are several columns, which were dropped
+                    col_types = output_data.supplementary_data.column_types['features']
 
-                # Calculate
-                remained_column_types = np.array(col_types)[self.remain_features_mask]
-                output_data.supplementary_data.column_types['features'] = list(remained_column_types)
+                    # Calculate
+                    remained_column_types = np.array(col_types)[self.remain_features_mask]
+                    output_data.supplementary_data.column_types['features'] = list(remained_column_types)
 
     def _make_new_table(self, features):
         """
@@ -101,20 +100,9 @@ class FeatureSelectionImplementation(EncodedInvariantImplementation):
         :return transformed_features: transformed features table
         """
 
-        features_to_process = np.array(features[:, self.ids_to_process])
         # Bool vector - mask for columns
         self.remain_features_mask = self.operation.support_
-        transformed_part = features_to_process[:, self.remain_features_mask]
-
-        # If there are no binary features in the dataset
-        if len(self.bool_ids) == 0:
-            transformed_features = transformed_part
-        else:
-            # Stack transformed features and bool features
-            bool_features = np.array(features[:, self.bool_ids])
-            frames = (bool_features, transformed_part)
-            transformed_features = np.hstack(frames)
-
+        transformed_features = features[:, self.remain_features_mask]
         return transformed_features
 
     @staticmethod

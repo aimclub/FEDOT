@@ -60,38 +60,18 @@ class LaggedImplementation(DataOperationImplementation):
 
         if is_fit_pipeline_stage:
             # Transformation for fit stage of the pipeline
-            target = new_input_data.target
+            target = np.array(new_input_data.target)
             features = np.array(new_input_data.features)
-            # Prepare features for training
-            new_idx, self.features_columns = ts_to_table(idx=old_idx,
-                                                         time_series=features,
-                                                         window_size=self.window_size,
-                                                         is_lag=True)
 
-            # Sparsing matrix of lagged features
-            if self.sparse_transform:
-                self.features_columns = _sparse_matrix(self.log, self.features_columns, self.n_components, self.use_svd)
-            # Transform target
-
-            new_idx, self.features_columns, new_target = prepare_target(all_idx=input_data.idx,
-                                                                        idx=new_idx,
-                                                                        features_columns=self.features_columns,
-                                                                        target=target,
-                                                                        forecast_length=forecast_length)
+            new_target, new_idx = self._apply_transformation_for_fit(new_input_data, features,
+                                                                     target, forecast_length, old_idx)
 
             # Update target for Input Data
             new_input_data.target = new_target
             new_input_data.idx = new_idx
         else:
             # Transformation for predict stage of the pipeline
-            if self.sparse_transform:
-                self.features_columns = self.features_columns[-1]
-
-            if not self.sparse_transform:
-                features = np.array(new_input_data.features)
-                self.features_columns = features[-self.window_size:]
-
-            self.features_columns = self.features_columns.reshape(1, -1)
+            self._apply_transformation_for_predict(new_input_data, forecast_length)
 
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
@@ -109,6 +89,89 @@ class LaggedImplementation(DataOperationImplementation):
             target_n_rows, target_n_cols = output_data.target.shape
             column_types.update({'target': [str(float)] * target_n_cols})
         output_data.supplementary_data.column_types = column_types
+
+    def _apply_transformation_for_fit(self, input_data: InputData, features: np.array, target: np.array,
+                                      forecast_length: int, old_idx: np.array):
+        """ Apply lagged transformation on each time series in the current dataset """
+        # Shape of the time series
+        if len(features.shape) > 1:
+            # Multivariate time series
+            n_elements, n_time_series = features.shape
+        else:
+            n_time_series = 1
+        all_transformed_features = None
+        for current_ts_id in range(n_time_series):
+            # For each time series in the array
+            if n_time_series == 1:
+                current_ts = features
+            else:
+                current_ts = np.ravel(features[:, current_ts_id])
+
+            # Prepare features for training
+            new_idx, transformed_cols = ts_to_table(idx=old_idx,
+                                                    time_series=current_ts,
+                                                    window_size=self.window_size,
+                                                    is_lag=True)
+
+            # Sparsing matrix of lagged features
+            if self.sparse_transform:
+                transformed_cols = _sparse_matrix(self.log,
+                                                  transformed_cols,
+                                                  self.n_components,
+                                                  self.use_svd)
+            # Transform target
+            new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
+                                                                   idx=new_idx,
+                                                                   features_columns=transformed_cols,
+                                                                   target=target,
+                                                                   forecast_length=forecast_length)
+            if current_ts_id == 0:
+                # Init full lagged table
+                all_transformed_features = transformed_cols
+            else:
+                all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
+
+        input_data.features = all_transformed_features
+        self.features_columns = all_transformed_features
+        return new_target, new_idx
+
+    def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
+        """ Apply lagged transformation for every column (time series) in the dataset """
+        if self.sparse_transform:
+            # TODO refactor to apply with new unseen data in more flexible way
+            self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
+            # Target can be None
+            simple_target = np.arange(0, len(input_data.idx))
+            self._apply_transformation_for_fit(input_data, input_data.features,
+                                               simple_target, forecast_length,
+                                               input_data.idx)
+
+            self.features_columns = self.features_columns[-1].reshape(1, -1)
+            return self.features_columns
+
+        if len(input_data.features.shape) > 1:
+            # Multivariate time series
+            n_elements, n_time_series = input_data.features.shape
+        else:
+            n_time_series = 1
+
+        all_transformed_features = None
+        for current_ts_id in range(n_time_series):
+            # For each time series
+            if n_time_series == 1:
+                current_ts = input_data.features
+            else:
+                current_ts = np.ravel(input_data.features[:, current_ts_id])
+
+            # Take last window_size elements for current ts
+            last_part_of_ts = current_ts[-self.window_size:].reshape(1, -1)
+            if current_ts_id == 0:
+                all_transformed_features = last_part_of_ts
+            else:
+                all_transformed_features = np.hstack((all_transformed_features, last_part_of_ts))
+
+        self.features_columns = all_transformed_features
+        return all_transformed_features
 
 
 class SparseLaggedTransformationImplementation(LaggedImplementation):

@@ -10,7 +10,7 @@ from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    CutImplementation
+    CutImplementation, LaggedTransformationImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -81,8 +81,8 @@ def get_small_classification_dataset():
 
 def get_time_series():
     """ Function returns time series for time series forecasting task """
-    len_forecast = 100
-    synthetic_ts = generate_synthetic_data(length=1000)
+    len_forecast = 5
+    synthetic_ts = generate_synthetic_data(length=80)
 
     train_data = synthetic_ts[:-len_forecast]
     test_data = synthetic_ts[-len_forecast:]
@@ -107,6 +107,20 @@ def get_time_series():
     return train_input, predict_input, test_data
 
 
+def get_multivariate_time_series():
+    """ Generate several time series in one InputData block """
+    ts_1 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).reshape((-1, 1))
+    ts_2 = np.array([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]).reshape((-1, 1))
+    several_ts = np.hstack((ts_1, ts_2))
+
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=2))
+    train_input = InputData(idx=np.arange(0, len(several_ts)),
+                            features=several_ts, target=np.ravel(ts_1),
+                            task=task, data_type=DataTypesEnum.ts)
+    return train_input
+
+
 def get_nan_inf_data():
     supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT]*4})
     train_input = InputData(idx=[0, 1, 2, 3],
@@ -123,11 +137,14 @@ def get_nan_inf_data():
 
 
 def get_single_feature_data(task=None):
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_INT],
+                                                'target': [NAME_CLASS_INT]})
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=np.array([[1], [2], [3], [7], [8], [9]]),
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
-                            data_type=DataTypesEnum.table)
+                            data_type=DataTypesEnum.table,
+                            supplementary_data=supp_data)
 
     return train_input
 
@@ -137,7 +154,6 @@ def get_mixed_data(task=None, extended=False):
     are created in such a way that in any splitting there will be categories in the
     test part that were not in the train.
     """
-
     if extended:
         features = np.array([[1, '0', '1', 1, '5', 'blue', 'blue'],
                              [2, '1', '0', 0, '4', 'blue', 'da'],
@@ -145,6 +161,10 @@ def get_mixed_data(task=None, extended=False):
                              [np.nan, np.nan, '1', np.nan, '2', 'not blue', 'di'],
                              [8, '1', '1', 0, '1', 'not blue', 'da bu'],
                              [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
+        features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_STR, NAME_CLASS_INT,
+                          NAME_CLASS_STR, NAME_CLASS_STR, NAME_CLASS_STR]
+        supp_data = SupplementaryData(column_types={'features': features_types,
+                                                    'target': [NAME_CLASS_INT]})
     else:
         features = np.array([[1, '0', 1],
                              [2, '1', 0],
@@ -152,13 +172,16 @@ def get_mixed_data(task=None, extended=False):
                              [7, '1', 1],
                              [8, '1', 1],
                              [9, '0', 0]], dtype=object)
+        features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_INT]
+        supp_data = SupplementaryData(column_types={'features': features_types,
+                                                    'target': [NAME_CLASS_INT]})
 
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=features,
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
                             data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=supp_data)
 
     return train_input
 
@@ -328,15 +351,14 @@ def test_feature_selection_of_single_features():
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)
-        data_functions = [get_single_feature_data(task), get_mixed_data(task)]
-        list_with_operations = list(product(model_names, data_functions))
 
-        for data_operation, train_input in list_with_operations:
+        for data_operation in model_names:
             node_data_operation = PrimaryNode(data_operation)
 
             assert node_data_operation.fitted_operation is None
 
             # Fit and predict for pipeline
+            train_input = get_single_feature_data(task)
             node_data_operation.fit(train_input)
             predicted_output = node_data_operation.predict(train_input)
             predicted = predicted_output.predict
@@ -433,3 +455,33 @@ def test_label_encoding_correct():
     assert predicted_train.predict[1, 0] == 1
     # Label 'c' was not in the training sample - convert it into 2
     assert predicted_test.predict[0, 0] == 2
+
+
+def test_lagged_with_multivariate_time_series():
+    """
+    Checking the correct processing of multivariate time series in the lagged operation
+    """
+    correct_fit_output = np.array([[0., 1., 10., 11.],
+                                   [1., 2., 11., 12.],
+                                   [2., 3., 12., 13.],
+                                   [3., 4., 13., 14.],
+                                   [4., 5., 14., 15.],
+                                   [5., 6., 15., 16.],
+                                   [6., 7., 16., 17.]])
+    correct_predict_output = np.array([[8, 9, 18, 19]])
+
+    input_data = get_multivariate_time_series()
+    lagged = LaggedTransformationImplementation(**{'window_size': 2})
+
+    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
+    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+
+    # Check correctness on fit stage
+    lagged_features = transformed_for_fit.predict
+    assert lagged_features.shape == correct_fit_output.shape
+    assert np.all(np.isclose(lagged_features, correct_fit_output))
+
+    # Check correctness on predict stage
+    lagged_predict = transformed_for_predict.predict
+    assert lagged_predict.shape == correct_predict_output.shape
+    assert np.all(np.isclose(lagged_predict, correct_predict_output))

@@ -113,6 +113,17 @@ def get_statsmodels_pipeline():
     return pipeline
 
 
+def get_multiple_ts_pipeline():
+    node_filter_first = PrimaryNode('smoothing')
+    node_filter_first.custom_params = {'window_size': 2}
+    node_filter_second = PrimaryNode('gaussian_filter')
+    node_filter_second.custom_params = {'sigma': 2}
+
+    node_lagged = SecondaryNode('lagged', nodes_from=[node_filter_first, node_filter_second])
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
+    return Pipeline(node_ridge)
+
+
 def test_arima_pipeline_fit_correct():
     train_data, test_data = get_ts_data(n_steps=300, forecast_length=5)
 
@@ -302,3 +313,16 @@ def test_clstm_in_pipeline():
     predicted = pipeline.predict(test_data).predict[0]
 
     assert len(predicted) == horizon
+
+
+def test_ts_forecasting_with_multiple_series_in_lagged():
+    """ Test pipeline predict correctly when lagged operation get several time series """
+    horizon = 3
+    n_steps = 50
+    train_data, test_data = get_ts_data(n_steps=n_steps + horizon,  forecast_length=horizon)
+
+    pipeline = get_multiple_ts_pipeline()
+    pipeline.fit(train_data)
+    predict_output = pipeline.predict(test_data)
+
+    assert len(np.ravel(predict_output.predict)) == horizon
