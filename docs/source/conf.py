@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'FEDOT'
-copyright = '2020-2021, NSS Lab'
+copyright = '2020-2022, NSS Lab'
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.4.1'
+release = '0.5.0'
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be
