@@ -137,11 +137,14 @@ def get_nan_inf_data():
 
 
 def get_single_feature_data(task=None):
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_INT],
+                                                'target': [NAME_CLASS_INT]})
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=np.array([[1], [2], [3], [7], [8], [9]]),
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
-                            data_type=DataTypesEnum.table)
+                            data_type=DataTypesEnum.table,
+                             supplementary_data=supp_data)
 
     return train_input
 
@@ -151,7 +154,6 @@ def get_mixed_data(task=None, extended=False):
     are created in such a way that in any splitting there will be categories in the
     test part that were not in the train.
     """
-
     if extended:
         features = np.array([[1, '0', '1', 1, '5', 'blue', 'blue'],
                              [2, '1', '0', 0, '4', 'blue', 'da'],
@@ -159,6 +161,10 @@ def get_mixed_data(task=None, extended=False):
                              [np.nan, np.nan, '1', np.nan, '2', 'not blue', 'di'],
                              [8, '1', '1', 0, '1', 'not blue', 'da bu'],
                              [9, '0', '0', 0, '0', 'not blue', 'dai']], dtype=object)
+        features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_STR, NAME_CLASS_INT,
+                          NAME_CLASS_STR, NAME_CLASS_STR, NAME_CLASS_STR]
+        supp_data = SupplementaryData(column_types={'features': features_types,
+                                                    'target': [NAME_CLASS_INT]})
     else:
         features = np.array([[1, '0', 1],
                              [2, '1', 0],
@@ -166,13 +172,16 @@ def get_mixed_data(task=None, extended=False):
                              [7, '1', 1],
                              [8, '1', 1],
                              [9, '0', 0]], dtype=object)
+        features_types = [NAME_CLASS_INT, NAME_CLASS_STR, NAME_CLASS_INT]
+        supp_data = SupplementaryData(column_types={'features': features_types,
+                                                    'target': [NAME_CLASS_INT]})
 
     train_input = InputData(idx=[0, 1, 2, 3, 4, 5],
                             features=features,
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
                             data_type=DataTypesEnum.table,
-                            supplementary_data=SupplementaryData(was_preprocessed=False))
+                            supplementary_data=supp_data)
 
     return train_input
 
@@ -342,15 +351,14 @@ def test_feature_selection_of_single_features():
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)
-        data_functions = [get_single_feature_data(task), get_mixed_data(task)]
-        list_with_operations = list(product(model_names, data_functions))
 
-        for data_operation, train_input in list_with_operations:
+        for data_operation in model_names:
             node_data_operation = PrimaryNode(data_operation)
 
             assert node_data_operation.fitted_operation is None
 
             # Fit and predict for pipeline
+            train_input = get_single_feature_data(task)
             node_data_operation.fit(train_input)
             predicted_output = node_data_operation.predict(train_input)
             predicted = predicted_output.predict
