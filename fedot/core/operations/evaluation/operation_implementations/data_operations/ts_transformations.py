@@ -146,8 +146,7 @@ class LaggedImplementation(DataOperationImplementation):
                                                simple_target, forecast_length,
                                                input_data.idx)
 
-            self.features_columns = self.features_columns[-1]
-            self.features_columns = self.features_columns.reshape(1, -1)
+            self.features_columns = self.features_columns[-1].reshape(1, -1)
             return self.features_columns
 
         if len(input_data.features.shape) > 1:
@@ -165,8 +164,7 @@ class LaggedImplementation(DataOperationImplementation):
                 current_ts = np.ravel(input_data.features[:, current_ts_id])
 
             # Take last window_size elements for current ts
-            last_part_of_ts = current_ts[-self.window_size:]
-            last_part_of_ts = last_part_of_ts.reshape(1, -1)
+            last_part_of_ts = current_ts[-self.window_size:].reshape(1, -1)
             if current_ts_id == 0:
                 all_transformed_features = last_part_of_ts
             else:
