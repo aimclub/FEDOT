@@ -144,7 +144,7 @@ def get_single_feature_data(task=None):
                             target=np.array([[0], [0], [0], [1], [1], [1]]),
                             task=task,
                             data_type=DataTypesEnum.table,
-                             supplementary_data=supp_data)
+                            supplementary_data=supp_data)
 
     return train_input
 
