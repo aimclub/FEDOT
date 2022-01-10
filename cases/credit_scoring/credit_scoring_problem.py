@@ -56,6 +56,15 @@ def get_scoring_data():
 
     return full_path_train, full_path_test
 
+def get_scoring_data_regr():
+    file_path_train = 'cases/data/scoring/scoring_train_regr.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/scoring/scoring_test_regr.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    return full_path_train, full_path_test
 
 if __name__ == '__main__':
     full_path_train, full_path_test = get_scoring_data()
