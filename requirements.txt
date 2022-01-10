@@ -9,7 +9,7 @@ pytest>=6.2.*
 anytree>=2.8.*
 typing>=3.7.*
 scikit_learn>=0.2.4; python_version <= '3.6'
-scikit_learn>=1.0.0; python_version >= '3.7'
+scikit_learn==1.0.0; python_version >= '3.7'
 matplotlib==3.0.2; python_version < '3.8'
 matplotlib>=3.3.1; python_version >= '3.8'
 networkx>=2.4
