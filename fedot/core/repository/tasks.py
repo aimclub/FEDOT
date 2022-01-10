@@ -6,12 +6,12 @@ from fedot.core.utils import ComparableEnum as Enum
 
 @dataclass
 class TaskParams:
-    pass
+    is_main_task: bool = True
 
 
 @dataclass
 class TsForecastingParams(TaskParams):
-    forecast_length: int
+    forecast_length: int = 1
 
     def __post_init__(self):
         if self.forecast_length < 1:

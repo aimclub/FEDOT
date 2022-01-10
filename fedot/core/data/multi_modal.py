@@ -19,7 +19,8 @@ class MultiModalData(dict):
 
     @property
     def task(self):
-        return next(iter(self.values())).task
+        return ([v for v in self.values()
+                 if v.task.task_params is None or v.task.task_params.is_main_task])[0].task
 
     @task.setter
     def task(self, value):

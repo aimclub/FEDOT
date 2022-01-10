@@ -2,8 +2,8 @@ from typing import List
 
 import numpy as np
 
-from fedot.core.log import Log, default_log
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TableTypesCorrector
 
@@ -240,8 +240,11 @@ class TaskTargetMerger:
 
         # If all t_flags are True - there is no need to merge targets
         if all(flag is True for flag in t_flags):
-            target = self.outputs[0].target
-            task = self.outputs[0].task
+            main_outputs = [o for o in self.outputs if
+                            (o.task.task_params is None or o.task.task_params.is_main_task)]
+
+            target = main_outputs[0].target
+            task = main_outputs[0].task
             is_main_target = True
             return target, is_main_target, task
         # If there is an "ignore" (False) flag - need to apply intelligent merge
