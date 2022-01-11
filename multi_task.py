@@ -33,15 +33,16 @@ predict_data = MultiModalData({
 ds_regr = PrimaryNode('data_source_table/regr')
 ds_class = PrimaryNode('data_source_table/class')
 
-imp_regr = SecondaryNode('simple_imputation', nodes_from=[ds_regr])
-imp_class = SecondaryNode('simple_imputation', nodes_from=[ds_class])
+# imp_regr = SecondaryNode('simple_imputation', nodes_from=[ds_regr])
+# imp_class = SecondaryNode('simple_imputation', nodes_from=[ds_class])
 
-regr_node = SecondaryNode('ridge', nodes_from=[imp_regr])
-class_node = SecondaryNode('logit', nodes_from=[imp_class])
+regr_node = SecondaryNode('ridge', nodes_from=[ds_regr])
+class_node = SecondaryNode('logit', nodes_from=[ds_class])
 
 root = SecondaryNode('linear', nodes_from=[regr_node, class_node])
 
 pipeline = Pipeline(root)
+pipeline.show()
 
 pipeline.fit(fit_data)
 pipeline.predict(predict_data)
