@@ -409,7 +409,10 @@ class DataPreprocessor:
         """ Apply inverse Label Encoding operation for target column """
         data_source_names = list(self.target_encoders.keys())
         # Choose data source node name with main target - TODO implement it
-        main_target_source_name = data_source_names[0]
+        if len(data_source_names) > 1:
+            main_target_source_name = data_source_names[0]
+        else:
+            main_target_source_name = DEFAULT_SOURCE_NAME
 
         if self.target_encoders.get(main_target_source_name) is not None:
             # Check if column contains string objects
