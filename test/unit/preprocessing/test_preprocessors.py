@@ -124,12 +124,12 @@ def test_complicated_table_types_processed_correctly():
     train_data, test_data = data_with_complicated_types()
 
     pipeline = Pipeline(PrimaryNode('dt'))
-    pipeline.preprocessor.types_corrector.categorical_max_classes_th = 13
+    pipeline.preprocessor.types_correctors.categorical_max_classes_th = 13
     train_predicted = pipeline.fit(train_data)
     pipeline.predict(test_data)
 
     # Table types corrector after fitting
-    types_corrector = pipeline.preprocessor.types_corrector
+    types_corrector = pipeline.preprocessor.types_correctors
     assert train_predicted.features.shape[1] == 52
     # Column with id 2 was removed be data preprocessor and column with source id 5 became 4th
     assert types_corrector.columns_to_del[0] == 4

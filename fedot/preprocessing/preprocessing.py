@@ -36,8 +36,6 @@ class DataPreprocessor:
     optional - depends on what operations are in the pipeline, gap-filling
     is applied if there is no imputation operation in the pipeline, categorical
     encoding is applied if there is no encoder in the structure of the pipeline etc.
-
-    TODO refactor for multimodal data preprocessing
     """
 
     def __init__(self, log: Log = None):
@@ -49,15 +47,31 @@ class DataPreprocessor:
         # Cannot be processed due to incorrect types or large number of nans
         self.ids_incorrect_features = []
         # Categorical preprocessor for binary categorical features
-        self.binary_categorical_processor = BinaryCategoricalPreprocessor()
-        self.structure_analysis = PipelineStructureExplorer()
-        self.types_corrector = TableTypesCorrector()
+        self.binary_categorical_processors = {}
+        self.structure_analysis = {}
+        self.types_correctors = {}
+        self.helpers_were_initialized = False
         self.log = log
 
         if not log:
             self.log = default_log(__name__)
         else:
             self.log = log
+
+    def _init_supplementary_preprocessors(self, data: Union[InputData, MultiModalData]):
+        """ Initialize helpers for preprocessor
+
+        :param data: data class with input data for preprocessing
+        """
+        if self.helpers_were_initialized:
+            # Preprocessors have been already initialized
+            return None
+        self.helpers_were_initialized = True
+
+        if isinstance(data, InputData):
+            self.binary_categorical_processors = {'default': BinaryCategoricalPreprocessor()}
+            self.structure_analysis = {'default': PipelineStructureExplorer()}
+            self.types_correctors = {'default': TableTypesCorrector()}
 
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]):
         """
@@ -66,6 +80,7 @@ class DataPreprocessor:
         drop rows where target cells are none
         """
         # TODO add advanced gapfilling for time series and advanced gap-filling
+        self._init_supplementary_preprocessors(data)
 
         if isinstance(data, InputData):
             data = self._prepare_unimodal_for_fit(data)
@@ -95,6 +110,8 @@ class DataPreprocessor:
         :param pipeline: pipeline to prepare data for
         :param data: data to preprocess
         """
+        self._init_supplementary_preprocessors(data)
+
         if isinstance(data, InputData):
             # TODO implement preprocessing for MultiModal data
             if not data_type_is_table(data):
@@ -152,8 +169,8 @@ class DataPreprocessor:
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
-            self.types_corrector.convert_data_for_fit(data)
-            if self.types_corrector.target_converting_has_errors:
+            self.types_correctors.convert_data_for_fit(data)
+            if self.types_correctors.target_converting_has_errors:
                 data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical target if necessary and apply it
@@ -165,8 +182,8 @@ class DataPreprocessor:
             data.idx = np.array(data.idx)
 
             # Process categorical features
-            self.binary_categorical_processor.fit(data)
-            data = self.binary_categorical_processor.transform(data)
+            self.binary_categorical_processors.fit(data)
+            data = self.binary_categorical_processors.transform(data)
 
         return data
 
@@ -182,12 +199,12 @@ class DataPreprocessor:
             self.take_only_correct_features(data)
 
             # Perform preprocessing for types - launch after correct features selection
-            self.types_corrector.convert_data_for_predict(data)
+            self.types_correctors.convert_data_for_predict(data)
 
             data = self._clean_extra_spaces(data)
             # Wrap indices in numpy array
             data.idx = np.array(data.idx)
-            data = self.binary_categorical_processor.transform(data)
+            data = self.binary_categorical_processors.transform(data)
 
             self._apply_categorical_encoding(data)
         return data
