@@ -29,7 +29,7 @@ def get_single_task_multimodal_tabular_data():
     # Create features table
     features_first = np.array([[0, '  a'], [1, ' a '], [2, '  b'], [3, np.nan], [4, '  a'],
                                [5, '  b'], [6, 'b  '], [7, '  c'], [8, ' c ']], dtype=object)
-    features_second = np.array([[10, '  a'], [11, ' a '], [12, '  b'], [13, np.nan], [14, '  a'],
+    features_second = np.array([[10, '  a'], [11, ' a '], [12, '  b'], [13, ' a '], [14, '  a'],
                                 [15, '  b'], [16, 'b  '], [17, '  c'], [18, ' c ']], dtype=object)
 
     target = np.array([0, 1, 0, 1, 1, 1, 1, 0, 0], dtype=int)

@@ -4,6 +4,8 @@ import numpy as np
 
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
+DEFAULT_SOURCE_NAME = 'default'
+
 
 class PipelineStructureExplorer:
     """ Class for performing pipeline structure exploration.
@@ -22,7 +24,7 @@ class PipelineStructureExplorer:
         self.pipeline = None
         self.paths = {}
 
-    def check_structure_by_tag(self, pipeline, tag_to_check: str):
+    def check_structure_by_tag(self, pipeline, tag_to_check: str, source_name: str):
         """
         In the pipeline structure, a node with an operation with the appropriate tag is searched for.
         In this case the operations must have priority in the pipeline - in the PrimaryNode or not far from it.
@@ -35,9 +37,11 @@ class PipelineStructureExplorer:
         :param pipeline: pipeline to check
         :param tag_to_check: find appropriate operation by desired tag
         (for example encoding or imputing)
+        :param source_name: label of primary node for current input data. Set as 'default' if
+        pipeline prepared for unimodal data
         """
         if len(pipeline.nodes) < 2:
-            # Single-node pipeline needed in preprocessing
+            # Preprocessing needed for single-node pipeline
             return False
         self.path_id = 0
         self.pipeline = pipeline
@@ -50,11 +54,21 @@ class PipelineStructureExplorer:
         root_df = info_df[info_df['node_type'] == 'root']
         root_id = root_df.iloc[0]['node_id']
         for primary_id in primary_df['node_id']:
-            for path in nx.all_simple_paths(self.graph, source=primary_id, target=root_id):
-                # For all paths perform checking if path (branch) has wanted operation
-                # in correct location or not
-                self.check_path(path, tag_to_check)
-                self.path_id += 1
+            if source_name == DEFAULT_SOURCE_NAME:
+                # Check all possible paths in the pipeline
+                for path in nx.all_simple_paths(self.graph, source=primary_id, target=root_id):
+                    # For all paths perform checking if path (branch) has wanted operation
+                    # in correct location or not
+                    self.check_path(path, tag_to_check)
+                    self.path_id += 1
+            else:
+                node_info = primary_df[primary_df['node_id'] == primary_id]
+                node_name = node_info['node_label'].iloc[0].operation.operation_type
+                if source_name == node_name:
+                    # Only this path is going to be checked
+                    for path in nx.all_simple_paths(self.graph, source=primary_id, target=root_id):
+                        self.check_path(path, tag_to_check)
+                        self.path_id += 1
 
         correct_branches = [branch['correctness'] for path_id, branch in self.paths.items()]
         if all(path_correctness is True for path_correctness in correct_branches):
