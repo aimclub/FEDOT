@@ -269,7 +269,7 @@ class PipelineTemplate:
             path_to_preprocessor = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
             restored_data_preprocessor = joblib.load(path_to_preprocessor)
             pipeline.preprocessor = restored_data_preprocessor
-        elif 'preprocessing' in dict_fitted_operations:
+        elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
             tmp_path = 'preprocessing.tmp'
             with open(tmp_path, 'wb') as f:
                 f.write(BytesIO(dict_fitted_operations['preprocessing']).getbuffer())
