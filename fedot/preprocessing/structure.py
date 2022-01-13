@@ -24,7 +24,7 @@ class PipelineStructureExplorer:
         self.pipeline = None
         self.paths = {}
 
-    def check_structure_by_tag(self, pipeline, tag_to_check: str, source_name: str):
+    def check_structure_by_tag(self, pipeline, tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):
         """
         In the pipeline structure, a node with an operation with the appropriate tag is searched for.
         In this case the operations must have priority in the pipeline - in the PrimaryNode or not far from it.

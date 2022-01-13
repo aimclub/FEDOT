@@ -50,7 +50,6 @@ class DataPreprocessor:
         self.binary_categorical_processors = {}
         self.types_correctors = {}
         self.structure_analysis = PipelineStructureExplorer()
-        self.helpers_were_initialized = False
         self.log = log
 
         if not log:
@@ -63,7 +62,9 @@ class DataPreprocessor:
 
         :param data: data class with input data for preprocessing
         """
-        if self.helpers_were_initialized:
+        categorical_sources = list(self.binary_categorical_processors.keys())
+        types_sources = list(self.types_correctors.keys())
+        if len(categorical_sources) == len(types_sources) and len(types_sources) > 0:
             # Preprocessors have been already initialized
             return None
         self.helpers_were_initialized = True
@@ -407,12 +408,7 @@ class DataPreprocessor:
 
     def apply_inverse_target_encoding(self, column_to_transform: np.array) -> np.array:
         """ Apply inverse Label Encoding operation for target column """
-        data_source_names = list(self.target_encoders.keys())
-        # Choose data source node name with main target - TODO implement it
-        if len(data_source_names) > 1:
-            main_target_source_name = data_source_names[0]
-        else:
-            main_target_source_name = DEFAULT_SOURCE_NAME
+        main_target_source_name = self._determine_target_converter()
 
         if self.target_encoders.get(main_target_source_name) is not None:
             # Check if column contains string objects
@@ -425,6 +421,22 @@ class DataPreprocessor:
         else:
             # Return source column
             return column_to_transform
+
+    def _determine_target_converter(self):
+        """
+        For inverse target transformation there is a need to determine
+        which target encoder to use (if there are several targets in
+        single MultiModal pipeline).
+        TODO refactor for multi-task
+        """
+        data_source_names = list(self.target_encoders.keys())
+        # Choose data source node name with main target
+        if len(data_source_names) > 1:
+            main_target_source_name = data_source_names[0]
+        else:
+            main_target_source_name = DEFAULT_SOURCE_NAME
+
+        return main_target_source_name
 
     @staticmethod
     def _create_onehot_encoder(data: InputData) -> Union[OneHotEncodingImplementation, None]:
@@ -528,7 +540,7 @@ def merge_preprocessors(api_preprocessor: DataPreprocessor,
 
     # Update optional preprocessing (take it from obtained pipeline)
     new_data_preprocessor.structure_analysis = pipeline_preprocessor.structure_analysis
-    if new_data_preprocessor.features_encoders is None:
-        # Store features encoder from obtained pipeline
+    if len(new_data_preprocessor.features_encoders.keys()) == 0:
+        # Store features encoder from obtained pipeline because in API there are no encoding
         new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
     return new_data_preprocessor
