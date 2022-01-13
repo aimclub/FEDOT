@@ -8,6 +8,7 @@ from uuid import uuid4
 
 import joblib
 import numpy as np
+
 from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
@@ -268,6 +269,12 @@ class PipelineTemplate:
             path_to_preprocessor = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
             restored_data_preprocessor = joblib.load(path_to_preprocessor)
             pipeline.preprocessor = restored_data_preprocessor
+        elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
+            tmp_path = 'preprocessing.tmp'
+            with open(tmp_path, 'wb') as f:
+                f.write(BytesIO(dict_fitted_operations['preprocessing']).getbuffer())
+            pipeline.preprocessor = joblib.load(tmp_path)
+            os.remove(tmp_path)
 
     def roll_pipeline_structure(self, operation_object: ['OperationTemplate',
                                                          'AtomizedModelTemplate'],
