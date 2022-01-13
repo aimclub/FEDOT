@@ -50,6 +50,7 @@ class DataPreprocessor:
         self.binary_categorical_processors = {}
         self.types_correctors = {}
         self.structure_analysis = PipelineStructureExplorer()
+        self.main_target_source_name = None
         self.log = log
 
         if not log:
@@ -82,6 +83,17 @@ class DataPreprocessor:
         else:
             raise ValueError('Unknown type of data.')
 
+    def _init_main_target_source_name(self, multi_data: MultiModalData):
+        """ Define for MultiModal data branches with main target and side ones """
+        if self.main_target_source_name is not None:
+            # Target name has been already defined
+            return None
+
+        for data_source_name, input_data in multi_data.items():
+            if input_data.supplementary_data.is_main_target:
+                self.main_target_source_name = data_source_name
+                break
+
     def obligatory_prepare_for_fit(self, data: Union[InputData, MultiModalData]):
         """
         Perform obligatory preprocessing for pipeline fit method.
@@ -95,6 +107,7 @@ class DataPreprocessor:
             data = self._prepare_obligatory_unimodal_for_fit(data, source_name=DEFAULT_SOURCE_NAME)
 
         elif isinstance(data, MultiModalData):
+            self._init_main_target_source_name(data)
             for data_source_name, values in data.items():
                 data[data_source_name] = self._prepare_obligatory_unimodal_for_fit(values,
                                                                                    source_name=data_source_name)
@@ -127,6 +140,7 @@ class DataPreprocessor:
             self._prepare_optional_for_fit(pipeline, data, DEFAULT_SOURCE_NAME)
         else:
             # Multimodal data
+            self._init_main_target_source_name(data)
             for data_source_name, values in data.items():
                 self._prepare_optional_for_fit(pipeline, values, data_source_name)
 
@@ -402,7 +416,10 @@ class DataPreprocessor:
         if self.target_encoders.get(source_name) is not None:
             # Target encoders have already been fitted
             data.supplementary_data.column_types['target'] = [NAME_CLASS_INT]
-            return self.target_encoders[source_name].transform(data.target)
+            encoded_target = self.target_encoders[source_name].transform(data.target)
+            if len(encoded_target.shape) == 1:
+                encoded_target = encoded_target.reshape((-1, 1))
+            return encoded_target
         else:
             return data.target
 
@@ -417,7 +434,12 @@ class DataPreprocessor:
                 # There is no need to perform converting (it was performed already)
                 return column_to_transform
             # It is needed to apply fitted encoder to apply inverse transformation
-            return self.target_encoders[main_target_source_name].inverse_transform(column_to_transform)
+            transformed = self.target_encoders[main_target_source_name].inverse_transform(column_to_transform)
+
+            # Convert one-dimensional array into column
+            if len(transformed.shape) == 1:
+                transformed = transformed.reshape((-1, 1))
+            return transformed
         else:
             # Return source column
             return column_to_transform
@@ -427,16 +449,12 @@ class DataPreprocessor:
         For inverse target transformation there is a need to determine
         which target encoder to use (if there are several targets in
         single MultiModal pipeline).
-        TODO refactor for multi-task
         """
-        data_source_names = list(self.target_encoders.keys())
         # Choose data source node name with main target
-        if len(data_source_names) > 1:
-            main_target_source_name = data_source_names[0]
+        if self.main_target_source_name is None:
+            return DEFAULT_SOURCE_NAME
         else:
-            main_target_source_name = DEFAULT_SOURCE_NAME
-
-        return main_target_source_name
+            return self.main_target_source_name
 
     @staticmethod
     def _create_onehot_encoder(data: InputData) -> Union[OneHotEncodingImplementation, None]:

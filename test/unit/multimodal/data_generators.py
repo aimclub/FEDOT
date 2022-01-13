@@ -32,11 +32,11 @@ def get_single_task_multimodal_tabular_data():
     features_second = np.array([[10, '  a'], [11, ' a '], [12, '  b'], [13, ' a '], [14, '  a'],
                                 [15, '  b'], [16, 'b  '], [17, '  c'], [18, ' c ']], dtype=object)
 
-    target = np.array([0, 1, 0, 1, 1, 1, 1, 0, 0], dtype=int)
+    target = np.array(['true', 'false', 'true', 'false', 'false', 'false', 'false', 'true', 'true'], dtype=str)
 
     input_first = InputData(idx=np.arange(0, 9), features=features_first,
                             target=target, task=task, data_type=DataTypesEnum.table)
-    input_second = InputData(idx=np.arange(0, 9), features=features_first,
+    input_second = InputData(idx=np.arange(0, 9), features=features_second,
                              target=target, task=task, data_type=DataTypesEnum.table)
 
     mm_data = MultiModalData({'data_source_table/first': input_first,

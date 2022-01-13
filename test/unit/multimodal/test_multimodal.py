@@ -6,8 +6,10 @@ def test_multimodal_predict_correct():
     mm_data, pipeline = get_single_task_multimodal_tabular_data()
 
     pipeline.fit(mm_data)
+    predicted_labels = pipeline.predict(mm_data, output_mode='labels')
     predicted = pipeline.predict(mm_data)
 
     # Union of several tables into one feature table
-    assert predicted.features.shape == (9, 25)
-    assert predicted.predict[0, 0] < 0.5
+    assert predicted.features.shape == (9, 24)
+    assert predicted.predict[0, 0] > 0.5
+    assert predicted_labels.predict[0, 0] == 'true'
