@@ -21,7 +21,6 @@ class PipelineStructureExplorer:
     def __init__(self):
         self.path_id = None
         self.graph = None
-        self.pipeline = None
         self.paths = {}
 
     def check_structure_by_tag(self, pipeline, tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):
@@ -44,7 +43,6 @@ class PipelineStructureExplorer:
             # Preprocessing needed for single-node pipeline
             return False
         self.path_id = 0
-        self.pipeline = pipeline
         self.graph, node_labels = graph_structure_as_nx_graph(pipeline)
 
         # Assign information for all nodes in the graph
