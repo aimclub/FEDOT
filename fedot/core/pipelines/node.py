@@ -350,6 +350,8 @@ class SecondaryNode(Node):
         parent_results, target = _combine_parents(parent_nodes, input_data,
                                                   parent_operation)
 
+        if len(parent_results) and parent_results[0].target is not None and len(parent_results[0].target.shape) == 1:
+            parent_results[0].target = parent_results[0].target[..., None]
         secondary_input = InputData.from_predictions(outputs=parent_results)
         # Update info about visited nodes
         parent_operations = [node.operation.operation_type for node in parent_nodes]
