@@ -40,4 +40,4 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: 
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(timeout=5)
+    run_ts_forecasting_example(timeout=0.5)
