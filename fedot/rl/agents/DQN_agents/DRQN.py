@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 
 class DRQN(nn.Module):
     def __init__(self, input_shape, num_actions, gru_size, body=None, bidir=False, device='cpu'):
@@ -13,7 +13,6 @@ class DRQN(nn.Module):
         self.num_directions = 2 if self.bidir else 1
         self.device = device
 
-        self.body = body(input_shape, num_actions)
         self.gru = nn.GRU(
             self.body.feature_size(),
             self.gru_size,
