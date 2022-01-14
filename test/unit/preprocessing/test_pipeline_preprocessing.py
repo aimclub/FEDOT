@@ -7,6 +7,9 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
+from fedot.preprocessing.data_types import TableTypesCorrector
+from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.preprocessing.test_preprocessing_though_api import data_with_only_categorical_features, \
     data_with_too_much_nans, data_with_spaces_and_nans_in_features, data_with_nans_in_target_column, \
@@ -49,6 +52,29 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
     return input_data
 
 
+def correct_preprocessing_params(pipeline, numerical_min_uniques: int = None,
+                                 categorical_max_classes_th: int = None):
+    """
+    Correct preprocessing classes parameters
+
+    :param pipeline: pipeline without initialized preprocessors
+    :param numerical_min_uniques: if number of unique values in the column lower, than
+    threshold - convert column into categorical feature
+    :param categorical_max_classes_th: if categorical column contains too much unique values
+    convert it into numerical
+    """
+    table_corrector = TableTypesCorrector()
+
+    if numerical_min_uniques is not None:
+        table_corrector.numerical_min_uniques = numerical_min_uniques
+    if categorical_max_classes_th is not None:
+        table_corrector.categorical_max_classes_th = categorical_max_classes_th
+    pipeline.preprocessor.types_correctors.update({DEFAULT_SOURCE_NAME: table_corrector})
+    pipeline.preprocessor.binary_categorical_processors.update({DEFAULT_SOURCE_NAME: BinaryCategoricalPreprocessor()})
+
+    return pipeline
+
+
 def test_only_categorical_data_process_correctly():
     """
     Check if data with only categorical features processed correctly
@@ -69,7 +95,7 @@ def test_nans_columns_process_correctly():
     pipeline = Pipeline(PrimaryNode('ridge'))
     data_with_nans = data_with_too_much_nans()
 
-    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
+    pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
     pipeline.fit(data_with_nans)
 
     # Ridge should use only one feature to make prediction
@@ -147,7 +173,8 @@ def test_pipeline_with_imputer():
     imputation_node = PrimaryNode('simple_imputation')
     final_node = SecondaryNode('ridge', nodes_from=[imputation_node])
     pipeline = Pipeline(final_node)
-    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
+
+    pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
@@ -229,7 +256,7 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
 
     pipeline = Pipeline(PrimaryNode('dt'))
-    pipeline.preprocessor.types_corrector.numerical_min_uniques = 5
+    pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
     pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 

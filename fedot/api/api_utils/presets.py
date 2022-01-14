@@ -46,7 +46,7 @@ class OperationsPreset:
             preset_name = 'best_quality'
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
-                    'resample']
+                    'resample', 'stl_arima']
 
         if '*' in preset_name:
             self.modification_using = True

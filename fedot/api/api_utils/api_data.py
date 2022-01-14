@@ -5,14 +5,14 @@ import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.data_definition import data_strategy_selector
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log
-from fedot.preprocessing.preprocessing import DataPreprocessor
-from fedot.core.utils import probs_to_labels
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column
+from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import probs_to_labels
+from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 class ApiDataProcessor:
@@ -40,7 +40,7 @@ class ApiDataProcessor:
                     features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                     target: Union[str, np.ndarray, pd.Series] = None,
                     is_predict=False):
-        """ Prepare data for fedot pipeline composing.
+        """ Prepare data for FEDOT pipeline composing.
         Obligatory preprocessing steps are applying also. If features is dictionary
         there is a need to process MultiModalData
         """

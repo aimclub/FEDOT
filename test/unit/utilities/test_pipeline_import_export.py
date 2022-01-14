@@ -11,6 +11,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
+from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
 from test.unit.api.test_main_api import get_dataset
 from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_ts_data, get_simple_ts_pipeline
@@ -27,7 +28,8 @@ def preprocessing_files_before_and_after_tests(request):
              'test_export_import_for_one_pipeline_object_correctly_3', 'data_model_classification',
              'test_absolute_relative_paths_correctly_no_exception', 'test_export_one_hot_encoding_operation',
              'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception',
-             'test_save_pipeline_with_np_int_type', 'test_pipeline_with_preprocessing_serialized_correctly']
+             'test_save_pipeline_with_np_int_type', 'test_pipeline_with_preprocessing_serialized_correctly',
+             'test_multimodal_pipeline_serialized_correctly']
 
     delete_files = create_func_delete_files(paths)
     delete_files()
@@ -435,3 +437,22 @@ def test_pipeline_with_preprocessing_serialized_correctly():
     mae_after = mean_absolute_error(mixed_input.target, after_output.predict)
 
     assert np.isclose(mae_before, mae_after)
+
+
+def test_multimodal_pipeline_serialized_correctly():
+    """
+    Checks that MultiModal pipelining together with complex preprocessing
+    (gap filling and categorical encoding) is serialized correctly
+    """
+    save_path = 'test_multimodal_pipeline_serialized_correctly'
+    mm_data, pipeline = get_single_task_multimodal_tabular_data()
+
+    pipeline.fit(mm_data)
+    before_save_predicted_labels = pipeline.predict(mm_data, output_mode='labels')
+    pipeline.save(path=save_path)
+
+    pipeline_loaded = Pipeline()
+    pipeline_loaded.load(create_correct_path(save_path))
+    after_load_predicted_labels = pipeline_loaded.predict(mm_data, output_mode='labels')
+
+    assert np.array_equal(before_save_predicted_labels.predict, after_load_predicted_labels.predict)

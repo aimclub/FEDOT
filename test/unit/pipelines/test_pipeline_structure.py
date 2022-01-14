@@ -1,6 +1,6 @@
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.preprocessing.structure import PipelineStructureExplorer
+from fedot.preprocessing.structure import PipelineStructureExplorer, DEFAULT_SOURCE_NAME
 
 
 def test_correct_pipeline_encoder_imputer_validation():

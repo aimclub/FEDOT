@@ -7,8 +7,10 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 
-from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column
+from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
+    correct_preprocessing_params
 
 
 def generate_linear_pipeline():
@@ -124,16 +126,16 @@ def test_complicated_table_types_processed_correctly():
     train_data, test_data = data_with_complicated_types()
 
     pipeline = Pipeline(PrimaryNode('dt'))
-    pipeline.preprocessor.types_corrector.categorical_max_classes_th = 13
+    pipeline = correct_preprocessing_params(pipeline, categorical_max_classes_th=13)
     train_predicted = pipeline.fit(train_data)
     pipeline.predict(test_data)
 
     # Table types corrector after fitting
-    types_corrector = pipeline.preprocessor.types_corrector
+    types_correctors = pipeline.preprocessor.types_correctors
     assert train_predicted.features.shape[1] == 52
     # Column with id 2 was removed be data preprocessor and column with source id 5 became 4th
-    assert types_corrector.columns_to_del[0] == 4
+    assert types_correctors[DEFAULT_SOURCE_NAME].columns_to_del[0] == 4
     # Source id 9 became 7th - column must be converted into float
-    assert types_corrector.categorical_into_float[0] == 7
+    assert types_correctors[DEFAULT_SOURCE_NAME].categorical_into_float[0] == 7
     # Three columns in the table must be converted into string
-    assert len(types_corrector.numerical_into_str) == 3
+    assert len(types_correctors[DEFAULT_SOURCE_NAME].numerical_into_str) == 3

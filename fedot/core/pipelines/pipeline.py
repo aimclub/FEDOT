@@ -1,4 +1,4 @@
-from copy import deepcopy, copy
+from copy import deepcopy
 from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
