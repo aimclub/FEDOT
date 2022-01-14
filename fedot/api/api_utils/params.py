@@ -20,6 +20,7 @@ class ApiParams:
         self.metric_to_compose = None
         self.task_params = None
         self.metric_name = None
+        self.initial_assumption = None
 
     def check_input_params(self, **input_params):
         self.metric_to_compose = None
@@ -67,7 +68,8 @@ class ApiParams:
             'task': self.task,
             'logger': self.log,
             'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose
+            'composer_metric': self.metric_to_compose,
+            'initial_assumption': self.initial_assumption
         }
 
         return {**param_dict, **self.api_params}
@@ -79,22 +81,16 @@ class ApiParams:
         :param input_data - data for preprocessing
         :param recommendations - dict with recommendations
         """
+        # TODO fix multimodality
         if isinstance(input_data, MultiModalData):
+            self.api_params['cv_folds'] = None  # there are no support for muttimodal data now
             for data_source_name, values in input_data.items():
-                return self.accept_and_apply_recommendations(input_data[data_source_name],
-                                                             recommendations[data_source_name])
+                self.accept_and_apply_recommendations(input_data[data_source_name],
+                                                      recommendations[data_source_name])
         else:
             if 'label_encoded' in recommendations:
                 self.log.info("Change preset due of label encoding")
-                return self.change_preset_for_label_encoded_data(input_data.task)
-            else:
-                param_dict = {
-                    'task': self.task,
-                    'logger': self.log,
-                    'metric_name': self.metric_name,
-                    'composer_metric': self.metric_to_compose
-                }
-                return {**param_dict, **self.api_params}
+                self.change_preset_for_label_encoded_data(input_data.task)
 
     def change_preset_for_label_encoded_data(self, task: Task):
         """ Change preset on tree like preset, if data had been label encoded """
@@ -109,9 +105,9 @@ class ApiParams:
             'task': self.task,
             'logger': self.log,
             'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose
+            'composer_metric': self.metric_to_compose,
+            'initial_assumption': self.initial_assumption
         }
-        return {**param_dict, **self.api_params}
 
     @staticmethod
     def get_default_evo_params(problem: str):
@@ -127,8 +123,10 @@ class ApiParams:
                   'history_folder': None,
                   'stopping_after_n_generation': 10}
 
-        if problem in ['classification', 'regression']:
+        if problem in ['classification', 'regression', 'ts_forecasting']:
             params['cv_folds'] = 3
+        if problem in ['ts_forecasting']:
+            params['validation_blocks'] = 1
         return params
 
     @staticmethod

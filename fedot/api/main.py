@@ -77,7 +77,6 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
                  safe_mode=True):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -88,8 +87,7 @@ class Fedot:
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level,
-                        'initial_assumption': initial_assumption}
+                        'seed': seed, 'verbose_level': verbose_level}
         self.api_params = self.composer_params.initialize_params(**input_params)
         self.api_params['current_model'] = None
 
@@ -97,8 +95,8 @@ class Fedot:
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.api_params['tuner_metric'] = self.tuner_metrics
 
-        # Update timeout and initial_assumption parameters
-        self.update_params(timeout, initial_assumption)
+        # Update timeout parameter
+        self.update_params(timeout)
         self.data_processor = ApiDataProcessor(task=self.api_params['task'],
                                                log=self.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -132,8 +130,8 @@ class Fedot:
         full_train_not_preprocessed = deepcopy(self.train_data)
         recommendations = self.data_analyser.give_recommendation(self.train_data)
         self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
-        self.api_params = self.composer_params.accept_and_apply_recommendations(self.train_data, recommendations)
-
+        self.composer_params.accept_and_apply_recommendations(self.train_data, recommendations)
+        self.api_params = {**self.api_params, **self.composer_params.api_params}
         self._init_remote_if_necessary()
         self.api_params['train_data'] = self.train_data
 
@@ -330,12 +328,9 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.api_params['logger'].info('Predictions was saved in current directory.')
 
-    def update_params(self, timeout, initial_assumption):
+    def update_params(self, timeout):
         if timeout is not None:
             self.api_params['timeout'] = timeout
-
-        if initial_assumption is not None:
-            self.api_params['initial_assumption'] = initial_assumption
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
