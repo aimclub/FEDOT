@@ -65,24 +65,24 @@ def test_output_classification_converting_correct():
 
 
 def test_predefined_initial_assumption():
+    """ Check if predefined initial assumption and other api params don't lose while preprocessing is performing"""
     train_input, _, _ = get_dataset(task_type='classification')
     initial_pipeline = classification_pipeline_without_balancing()
     available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
                             'scaling', 'normalization', 'pca', 'kernel_pca']
-    timeout = 1
-    model = Fedot(problem='classification', timeout=timeout,
-                  verbose_level=4, composer_params={'timeout': timeout,
+
+    model = Fedot(problem='classification', timeout=1,
+                  verbose_level=4, composer_params={'timeout': 1,
                                                     'available_operations': available_operations,
                                                     'initial_assumption': initial_pipeline})
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,
                                                         target=train_input.target,
                                                         is_predict=False)
-    old_params = deepcopy(model.api_params)
+    old_params = deepcopy(model.params)
     recommendations = model.data_analyser.give_recommendation(model.train_data)
     model.data_processor.accept_and_apply_recommendations(model.train_data, recommendations)
-    model.composer_params.accept_and_apply_recommendations(model.train_data, recommendations)
-    model.api_params = {**model.api_params, **model.composer_params.api_params}
+    model.params.accept_and_apply_recommendations(model.train_data, recommendations)
 
-    assert model.api_params['initial_assumption'] is not None
-    assert len(old_params) == len(model.api_params)
+    assert model.params.api_params['initial_assumption'] is not None
+    assert len(old_params.api_params) == len(model.params.api_params)

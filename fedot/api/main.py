@@ -82,23 +82,23 @@ class Fedot:
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
-        self.composer_params = ApiParams()
+        self.params = ApiParams()
         self.timeout_set_in_init = timeout
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level}
-        self.api_params = self.composer_params.initialize_params(**input_params)
-        self.api_params['current_model'] = None
+        self.params.initialize_params(**input_params)
+        self.params.api_params['current_model'] = None
 
-        metric_name = self.api_params['metric_name']
+        metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
-        self.api_params['tuner_metric'] = self.tuner_metrics
+        self.params.api_params['tuner_metric'] = self.tuner_metrics
 
         # Update timeout parameter
         self.update_params(timeout)
-        self.data_processor = ApiDataProcessor(task=self.api_params['task'],
-                                               log=self.api_params['logger'])
+        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
+                                               log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target = None
@@ -130,18 +130,18 @@ class Fedot:
         full_train_not_preprocessed = deepcopy(self.train_data)
         recommendations = self.data_analyser.give_recommendation(self.train_data)
         self.data_processor.accept_and_apply_recommendations(self.train_data, recommendations)
-        self.composer_params.accept_and_apply_recommendations(self.train_data, recommendations)
-        self.api_params = {**self.api_params, **self.composer_params.api_params}
+        self.params.accept_and_apply_recommendations(self.train_data, recommendations)
         self._init_remote_if_necessary()
-        self.api_params['train_data'] = self.train_data
+        self.params.api_params['train_data'] = self.train_data
 
         if predefined_model is not None:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
             if self.timeout_set_in_init is not None:
-                self.api_params['timeout'] = self.timeout_set_in_init
-            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(**self.api_params)
+                self.params.api_params['timeout'] = self.timeout_set_in_init
+            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
+                **self.params.api_params)
 
         self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
 
@@ -189,7 +189,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.api_params['task'].task_type == TaskTypesEnum.classification:
+        if self.params.api_params['task'].task_type == TaskTypesEnum.classification:
             self.test_data = self.data_processor.define_data(target=self.target,
                                                              features=features, is_predict=True)
 
@@ -222,7 +222,7 @@ class Fedot:
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
-        if self.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
+        if self.params.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
         self.test_data = self.data_processor.define_data(target=self.target,
@@ -253,18 +253,18 @@ class Fedot:
         """
 
         if self.prediction is not None:
-            if self.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
+            if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
                 plot_forecast(self.test_data, self.prediction)
-            elif self.api_params['task'].task_type == TaskTypesEnum.regression:
+            elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
-            elif self.api_params['task'].task_type == TaskTypesEnum.classification:
+            elif self.params.api_params['task'].task_type == TaskTypesEnum.classification:
                 self.predict_proba(self.test_data)
                 plot_roc_auc(self.test_data, self.prediction)
             else:
-                self.api_params['logger'].error('Not supported yet')
-                raise NotImplementedError(f"For task {self.api_params['task']} plot prediction is not supported")
+                self.params.api_params['logger'].error('Not supported yet')
+                raise NotImplementedError(f"For task {self.params.api_params['task']} plot prediction is not supported")
         else:
-            self.api_params['logger'].error('No prediction to visualize')
+            self.params.api_params['logger'].error('No prediction to visualize')
             raise ValueError(f'Prediction from model is empty')
 
     def get_metrics(self,
@@ -278,7 +278,7 @@ class Fedot:
         :return: the values of quality metrics
         """
         if metric_names is None:
-            metric_names = self.api_params['metric_name']
+            metric_names = self.params.api_params['metric_name']
 
         if target is not None:
             if self.test_data is None:
@@ -297,7 +297,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.metrics.get_composer_metrics_mapping(metric_name) is NotImplemented:
-                self.api_params['logger'].warn(f'{metric_name} is not available as metric')
+                self.params.api_params['logger'].warn(f'{metric_name} is not available as metric')
             else:
                 composer_metric = self.metrics.get_composer_metrics_mapping(metric_name)
                 metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
@@ -326,16 +326,16 @@ class Fedot:
             prediction = predicted_data.predict
         pd.DataFrame({'Index': predicted_data.idx,
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
-        self.api_params['logger'].info('Predictions was saved in current directory.')
+        self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
     def update_params(self, timeout):
         if timeout is not None:
-            self.api_params['timeout'] = timeout
+            self.params.api_params['timeout'] = timeout
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
         if remote.use_remote and remote.remote_task_params is not None:
-            task = self.api_params['task']
+            task = self.params.api_params['task']
             if task.task_type == TaskTypesEnum.ts_forecasting:
                 task_str = \
                     f'Task(TaskTypesEnum.ts_forecasting, ' \
@@ -386,7 +386,7 @@ class Fedot:
         elif predefined_model == 'auto':
             # Generate initial assumption automatically
             pipelines = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
-                                                                                     self.api_params['task'])
+                                                                                     self.params.api_params['task'])
         elif isinstance(predefined_model, str):
             model = PrimaryNode(predefined_model)
             pipelines = [Pipeline(model)]
@@ -395,5 +395,5 @@ class Fedot:
 
         # Perform fitting
         fit_and_check_correctness(pipelines, data=self.train_data,
-                                  logger=self.api_params['logger'])
+                                  logger=self.params.api_params['logger'])
         return pipelines[0]

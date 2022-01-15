@@ -60,19 +60,18 @@ class ApiParams:
                                          input_params['task_params'])
         self.metric_name = self.get_default_metric(input_params['problem'])
 
-    def initialize_params(self, **input_params):
-        self.get_initial_params(**input_params)
-        preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
-        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,
             'logger': self.log,
             'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose,
-            'initial_assumption': self.initial_assumption
+            'composer_metric': self.metric_to_compose
         }
+        self.api_params = {**self.api_params, **param_dict}
 
-        return {**param_dict, **self.api_params}
+    def initialize_params(self, **input_params):
+        self.get_initial_params(**input_params)
+        preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
+        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
@@ -83,13 +82,13 @@ class ApiParams:
         """
         # TODO fix multimodality
         if isinstance(input_data, MultiModalData):
-            self.api_params['cv_folds'] = None  # there are no support for muttimodal data now
+            self.api_params['cv_folds'] = None  # there are no support for multimodal data now
             for data_source_name, values in input_data.items():
                 self.accept_and_apply_recommendations(input_data[data_source_name],
                                                       recommendations[data_source_name])
         else:
             if 'label_encoded' in recommendations:
-                self.log.info("Change preset due of label encoding")
+                self.log.info("Change preset due to label encoding")
                 self.change_preset_for_label_encoded_data(input_data.task)
 
     def change_preset_for_label_encoded_data(self, task: Task):
@@ -105,9 +104,9 @@ class ApiParams:
             'task': self.task,
             'logger': self.log,
             'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose,
-            'initial_assumption': self.initial_assumption
+            'composer_metric': self.metric_to_compose
         }
+        self.api_params = {**self.api_params, **param_dict}
 
     @staticmethod
     def get_default_evo_params(problem: str):
@@ -126,7 +125,7 @@ class ApiParams:
         if problem in ['classification', 'regression', 'ts_forecasting']:
             params['cv_folds'] = 3
         if problem in ['ts_forecasting']:
-            params['validation_blocks'] = 1
+            params['validation_blocks'] = 2
         return params
 
     @staticmethod
