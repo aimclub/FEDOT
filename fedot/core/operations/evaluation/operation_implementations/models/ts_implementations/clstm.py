@@ -2,8 +2,19 @@ from copy import copy
 from typing import Optional
 
 import numpy as np
-import torch
-import torch.nn as nn
+
+try:
+    import torch
+    import torch.nn as nn
+except ModuleNotFoundError:
+    class TorchMock:
+        Module = list
+
+
+    torch = object()
+
+    nn = TorchMock
+    print('Torch non installed - continue.')
 
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import DataLoader, TensorDataset

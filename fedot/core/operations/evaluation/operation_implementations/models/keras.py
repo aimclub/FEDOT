@@ -2,7 +2,12 @@ import os
 from typing import Optional
 
 import numpy as np
-import tensorflow as tf
+
+try:
+    import tensorflow as tf
+except ModuleNotFoundError:
+    print('Tensorflow non installed, continue')
+
 from sklearn import preprocessing
 
 from fedot.core.data.data import InputData, OutputData
