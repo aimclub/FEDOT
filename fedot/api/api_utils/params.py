@@ -122,9 +122,10 @@ class ApiParams:
                   'history_folder': None,
                   'stopping_after_n_generation': 10}
 
-        if problem in ['classification', 'regression', 'ts_forecasting']:
+        if problem in ['classification', 'regression']:
             params['cv_folds'] = 3
-        if problem in ['ts_forecasting']:
+        if problem == 'ts_forecasting':
+            params['cv_folds'] = 3
             params['validation_blocks'] = 2
         return params
 

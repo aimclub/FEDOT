@@ -57,7 +57,7 @@ class Fedot:
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
             'validation_blocks' - number of validation blocks for time series forecasting
-            'initial_assumption' - initial assumption for composing
+            'initial_assumption' - initial assumption for composer
             'genetic_scheme' - name of the genetic scheme
             'history_folder' - name of the folder for composing history
             'metric' - metric for quality calculation during composing
@@ -68,6 +68,7 @@ class Fedot:
         2 - warnings and info, 3-4 - basic and detailed debug)
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
+    :param initial_assumption: initial assumption for composer
     """
 
     def __init__(self,
@@ -77,13 +78,19 @@ class Fedot:
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
-                 safe_mode=True):
+                 safe_mode=True,
+                 initial_assumption: Union[Pipeline, List[Pipeline]] = None
+                 ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
         self.timeout_set_in_init = timeout
+
+        # overwrite composer-level initial assumption on api-level initial assumption
+        if initial_assumption is not None:
+            composer_params['initial_assumption'] = initial_assumption
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
