@@ -88,10 +88,6 @@ class Fedot:
         self.params = ApiParams()
         self.timeout_set_in_init = timeout
 
-        # overwrite composer-level initial assumption on api-level initial assumption
-        if initial_assumption is not None:
-            composer_params['initial_assumption'] = initial_assumption
-
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level}
@@ -102,8 +98,8 @@ class Fedot:
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
 
-        # Update timeout parameter
-        self.update_params(timeout)
+        # Update timeout and initial_assumption parameters
+        self.update_params(timeout, initial_assumption)
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -335,9 +331,11 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
-    def update_params(self, timeout):
+    def update_params(self, timeout, initial_assumption):
         if timeout is not None:
             self.params.api_params['timeout'] = timeout
+        if initial_assumption is not None:
+            self.params.api_params['initial_assumption'] = initial_assumption
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
