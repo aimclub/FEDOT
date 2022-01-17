@@ -1,7 +1,11 @@
+from copy import deepcopy
+
 import numpy as np
 
+from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
+from fedot.api.main import Fedot
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -58,3 +62,27 @@ def test_output_classification_converting_correct():
     data_processor.correct_predictions(metric_name='f1', real=real, prediction=prediction)
 
     assert int(prediction.predict[1]) == 1
+
+
+def test_predefined_initial_assumption():
+    """ Check if predefined initial assumption and other api params don't lose while preprocessing is performing"""
+    train_input, _, _ = get_dataset(task_type='classification')
+    initial_pipeline = classification_pipeline_without_balancing()
+    available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
+                            'scaling', 'normalization', 'pca', 'kernel_pca']
+
+    model = Fedot(problem='classification', timeout=1,
+                  verbose_level=4, composer_params={'timeout': 1,
+                                                    'available_operations': available_operations,
+                                                    'initial_assumption': initial_pipeline})
+    model.target = train_input.target
+    model.train_data = model.data_processor.define_data(features=train_input.features,
+                                                        target=train_input.target,
+                                                        is_predict=False)
+    old_params = deepcopy(model.params)
+    recommendations = model.data_analyser.give_recommendation(model.train_data)
+    model.data_processor.accept_and_apply_recommendations(model.train_data, recommendations)
+    model.params.accept_and_apply_recommendations(model.train_data, recommendations)
+
+    assert model.params.api_params['initial_assumption'] is not None
+    assert len(old_params.api_params) == len(model.params.api_params)

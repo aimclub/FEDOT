@@ -1,5 +1,6 @@
 import pandas as pd
 
+from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
@@ -15,7 +16,10 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: 
     task_parameters = TsForecastingParams(forecast_length=forecast_length)
 
     # init model for the time series forecasting
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=timeout,
+    model = Fedot(problem='ts_forecasting',
+                  task_params=task_parameters,
+                  timeout=timeout,
+                  composer_params={'initial_assumption': ts_polyfit_ridge_pipeline(2)},
                   preset='fast_train')
 
     # run AutoML model design in the same way

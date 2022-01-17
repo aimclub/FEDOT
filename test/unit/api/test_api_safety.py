@@ -78,8 +78,8 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     model.predict(features=data)
 
     # the should be only tree like models + data operations
-    assert len(model.api_params['available_operations']) == 6
-    assert 'logit' not in model.api_params['available_operations']
+    assert len(model.params.api_params['available_operations']) == 6
+    assert 'logit' not in model.params.api_params['available_operations']
 
 
 def test_api_fit_predict_with_pseudo_large_dataset_with_onehot_correct():
@@ -93,4 +93,4 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_onehot_correct():
     model.fit(features=data, predefined_model='auto')
     model.predict(features=data)
     # there should be all light models + data operations
-    assert 'logit' in model.api_params['available_operations']
+    assert 'logit' in model.params.api_params['available_operations']

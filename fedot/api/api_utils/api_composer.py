@@ -97,6 +97,7 @@ class ApiComposer:
         :param task: task for solving
         :param metric_function: function for individuals evaluating
         :param composer_requirements: params for composer
+        :param optimiser: optimiser for composer
         :param optimizer_parameters: params for optimizer
         :param data: data for evaluating
         :param logger: log object
