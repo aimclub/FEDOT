@@ -3,16 +3,16 @@ from typing import Optional
 
 import numpy as np
 
+
+class TorchMock:
+    Module = list
+
+
 try:
     import torch
     import torch.nn as nn
 except ModuleNotFoundError:
-    class TorchMock:
-        Module = list
-
-
     torch = object()
-
     nn = TorchMock
     print('Torch non installed - continue.')
 
