@@ -1,69 +1,130 @@
+import random
+
 import numpy as np
 import torch
-from torch.autograd.variable import Variable
+import torch.nn.functional as F
 
-from fedot.rl.agents.DQN_Agents.DQN import DQN
-from fedot.rl.utilities.replay_buffer import ReplayBuffer
+from fedot.rl.agents.DQN import DQN
+from fedot.rl.utils.replay_buffer import ReplayBuffer
 
 
 class BaseAgent(object):
-    def __init__(self, env, input_size, n_actions, batch_size, gamma, epsilon, device='cpu'):
-        self.device = device
-        self.model = DQN(input_size, n_actions).to(device)
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
+    def __init__(self, state_size, action_size, dqn_type='DQN', replay_memory_size=1e5, batch_size=64, gamma=0.99,
+                 learning_rate=1e-3, target_tau=2e-3, update_rate=4, seed=0, device='cpu'):
+        """
+        DQN's family Parameters
+
+        :param state_size (int): dim of each state
+        :param action_size (int): dim of each action
+        :param dqn_type (string): 'DQN' for vanilla QNetwork
+        :param replay_memory_size (int): size of replay memory of buffer (ussually 5e4 to 5e6)
+        :param batch_size (int): size of the memory batch used for model updates
+        :param gamma (float): discounted value of future rewards (usually from .90 to .99)
+        :param learning_rate (float): the rate of model learning
+        :param target_tau (float): interpolation parameter for weights soft update
+        :param update_rate (int): network weight will be update after chosen rate
+        :param seed (int): random seed for initializing training point
+        """
+        self.state_size = state_size
+        self.action_size = action_size
+        self.dqn_type = dqn_type
+        self.buffer_size = int(replay_memory_size)
         self.batch_size = batch_size
-        self.replay_buffer = ReplayBuffer(capacity=1000)
-        self.state = env.reset()
-        self.losses = []
-        self.all_rewards = []
-        self.total_reward = 0.0
         self.gamma = gamma
-        self.epsilon = epsilon
+        self.lr = learning_rate
+        self.tau = target_tau
+        self.update_rate = update_rate
+        self.seed = random.seed(seed)
+        self.device = device
 
-    def step(self, env):
-        action = self.model.act(self.state, self.epsilon)
+        """
+        DQN Agent Q-Network
+        # For DQN training, two nerual network models are employed;
+        # (a) A network that is updated every (step % update_rate == 0)
+        # (b) A target network, with weights updated to equal the network at a slower (target_tau) rate.
+        # The slower modulation of the target network weights operates to stabilize learning.
+        """
 
-        next_state, reward, done, _ = env.step(action)
-        self.replay_buffer.push(self.state, action, reward, next_state, done)
+        self.network = DQN(state_size, action_size, seed).to(device) if self.dqn_type == 'DQN' else None
+        self.target_network = DQN(state_size, action_size, seed).to(device) if self.dqn_type == 'DQN' else None
+        self.optimizer = torch.optim.Adam(self.network.parameters(), lr=self.lr)
 
-        self.state = next_state
-        self.total_reward += reward
+        # Replay memory
+        self.memory = ReplayBuffer(action_size, self.batch_size, self.batch_size, seed, device)
 
-        if done:
-            self.state = env.reset()
-            self.all_rewards.append(self.total_reward)
-            self.total_reward = 0
+        # Time step
+        self.time_step = 0
 
-        if len(self.replay_buffer) > self.batch_size:
-            loss = self.compute_td_loss(self.batch_size)
-            self.losses.append(loss.data[0])
+    def step(self, state, action, reward, next_state, done):
+        # Save experience in replay memory
+        self.memory.add(state, action, reward, next_state, done)
 
-    def compute_td_loss(self, batch_size):
-        state, action, reward, next_state, done = self.replay_buffer.sample(batch_size)
+        # Learn every UPDATE_EVERY time steps.
+        self.time_step = (self.time_step + 1) % self.update_rate
 
-        state = Variable(torch.FloatTensor(np.float32(state))).to(self.device)
-        action = Variable(torch.LongTensor(action)).to(self.device)
-        reward = Variable(torch.FloatTensor(reward)).to(self.device)
-        next_state = Variable(torch.FloatTensor(np.float32(next_state)), volatile=False).to(self.device)
-        done = Variable(torch.FloatTensor(done)).to(self.device)
+        if self.time_step == 0:
+            #  If enough samples are available in memory, get random subset and learn
+            if len(self.memory) > self.batch_size:
+                exp = self.memory.sample()
+                self.learn(exp, self.gamma)
 
-        q_values = self.model(state)
-        next_q_values = self.model(next_state)
+    def act(self, state, eps=0.0):
+        """
+        Returns actions for given state as per current policy
 
-        q_value = q_values.gather(1, action.unsqueeze(1)).squeeze(1)
-        next_q_value = next_q_values.max(1)[0]
-        expected_q_value = reward + self.gamma + next_q_value * (1 - done)
+        :param state: current state
+        :param eps: rate for epsilon-greedy action selection
+        :return: action
+        """
+        state = torch.from_numpy(state).float().unsqueeze(0).to(self.device)
 
-        loss = (q_value - Variable(expected_q_value.data)).pow(2).mean()
+        self.network.eval()
 
+        with torch.no_grad():
+            action_values = self.network(state)
+
+        self.network.train()
+
+        # Epsilon-greedy action selection
+        # TODO: add another method for action selection, e.g. Monte-Carlo method
+        if random.random() > eps:
+            return np.argmax(action_values.cpu().data.numpy())
+        else:
+            return random.choice(np.arange(self.action_size))
+
+    def learn(self, exp, gamma):
+
+        states, actions, rewards, next_states, dones = exp
+
+        # Get Q values from current observations (s, a) using model network
+        q_sa = self.network(states).gather(1, actions)
+
+        # Regular (Vanilla) DQN
+        #  Get max Q values for (s', a') from target model
+        q_sa_prime_target_values = self.target_network(next_states).detach()
+        q_sa_prime_targets = q_sa_prime_target_values.max(1)[0].unsqueeze(1)
+
+        # Compute Q targets for current states
+        q_sa_targets = rewards + (gamma * q_sa_prime_targets * (1 - dones))
+
+        # Compute loss
+        loss = F.mse_loss(q_sa, q_sa_targets)
+
+        # Minimize loss & network backprop
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
 
-        return loss
+        self.soft_update(self.network, self.target_network, self.tau)
 
-    def get_total_reward(self):
-        return self.total_reward
-
-    def get_all_rewards(self):
-        return self.all_rewards
+    @staticmethod
+    def soft_update(local_model, target_model, tau):
+        """
+        Soft update model parameters: W_target = τ * W_local + (1 - τ) * W_target
+        :param local_model: weights will be copied from
+        :param target_model: weights will be copied to
+        :param tau: interpolation parameter
+        :return:
+        """
+        for target_params, local_params in zip(target_model.parameters(), local_model.parameters()):
+            target_params.data.copy_(tau * local_params.data + (1.0 - tau) * target_params.data)
