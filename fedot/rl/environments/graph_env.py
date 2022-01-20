@@ -78,27 +78,30 @@ class GraphEnv(gym.Env):
                               ((in_degree > 0 or index < self.input_nodes) and index < (self.network_size - 1))]
 
         if action[0] not in valid_source_nodes:
-            self.time_step += 1
-            return self.observation, reward, done, {"time_step": self.time_step}
-            # raise ValueError('Action {} does not have a valid from node'.format(action))
+            # self.time_step += 1
+            # reward = -1
+            # return self.observation, reward, done, {"time_step": self.time_step}
+            raise ValueError('Action {} does not have a valid from node'.format(action))
 
         new_edge = [(action[0], action[1])]
         self.graph.add_edges_from(new_edge)
 
         if not nx.algorithms.dag.is_directed_acyclic_graph(self.graph):
-            self.graph.remove_edges_from(new_edge)
-            self.time_step += 1
-            return self.observation, reward, done, {"time_step": self.time_step}
-            # raise ValueError('Action {} violates the DAG property'.format(action))
+            # self.graph.remove_edges_from(new_edge)
+            # reward = -1
+            # self.time_step += 1
+            # return self.observation, reward, done, {"time_step": self.time_step}
+            raise ValueError('Action {} violates the DAG property'.format(action))
 
         self.observation = nx.to_numpy_matrix(self.graph).astype(int)
 
         if not self.observation_space.contains(self.observation):
-            self.graph.remove_edges_from(new_edge)
-            self.observation = nx.to_numpy_matrix(self.graph).astype(int)
-            self.time_step += 1
-            return self.observation, reward, done, {"time_step": self.time_step}
-            # raise ValueError('Action {} makes a duplicate edge'.format(action))
+            # self.graph.remove_edges_from(new_edge)
+            # self.observation = nx.to_numpy_matrix(self.graph).astype(int)
+            # reward = -1
+            # self.time_step += 1
+            # return self.observation, reward, done, {"time_step": self.time_step}
+            raise ValueError('Action {} makes a duplicate edge'.format(action))
 
         if nx.is_isomorphic(self.graph, self.true_graph):
             reward = 1
@@ -117,7 +120,7 @@ class GraphEnv(gym.Env):
 
     def get_action_size(self):
         """Gets the action_size for the gym env into the correct shape for a neural network"""
-        return len(list(product(range(self.input_nodes), range(self.network_size))))
+        return len(list(product(range(self.network_size), range(self.network_size))))
 
     def get_observation_size(self):
         return self.network_size ** 2
