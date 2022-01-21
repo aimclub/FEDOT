@@ -8,16 +8,19 @@ from fedot.rl.environments.graph_env import GraphEnv
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    num_episodes = 5
-    num_nodes = 4
-    input_nodes = 1
+    num_episodes = 100
+    num_nodes = 5
+    input_nodes = 2
     eps = 1.0
     eps_min = 0.05
     eps_decay = 0.99
     scores = []
-    scores_avg_window = 100
+    times = []
+    avg_scores_list = []
+    avg_times_list = []
+    scores_avg_window = 10
 
-    action_list = list(product(range(num_nodes), range(num_nodes)))
+    action_list = list(product(range(num_nodes), range(num_nodes))) * 2
 
     env = GraphEnv(network_size=num_nodes, input_nodes=input_nodes)
 
@@ -31,29 +34,47 @@ if __name__ == '__main__':
         state = env.reset()
 
         episode_score = 0
-
-        env.render_truth()
+        done = 0
 
         while True:
             idx_action = agent.act(state, eps)
-            action = action_list[idx_action]
 
-            next_state, reward, done, info = env.step(action)
+            if idx_action < len(action_list) / 2:
+                i, j = action_list[idx_action]
+                action = tuple([i, j, 0])
+            else:
+                i, j = action_list[idx_action]
+                action = tuple([i, j, 1])
+            try:
+                next_state, reward, done, info = env.step(action)
 
-            agent.step(state, idx_action, reward, next_state, done)
+                agent.step(state, idx_action, reward, next_state, done)
 
-            state = next_state
+                state = next_state
 
-            episode_score += reward
+                episode_score += reward
 
-            env.render()
+                if episode == num_episodes:
+                    env.render()
+
+            except:
+                episode_score -= 0.25
 
             if done:
+                if episode == num_episodes:
+                    env.render_truth()
+                    env.render()
                 break
 
         scores.append(episode_score)
+        times.append(info['time_step'])
         avg_score = np.mean(scores[episode - min(episode, scores_avg_window):episode + 1])
+        avg_time = np.mean(times[episode - min(episode, scores_avg_window):episode + 1])
 
         eps = max(eps_min, eps_decay * eps)
 
-        print('\rEpisode {}\tAverage Score: {:.2f}'.format(episode, avg_score), end="")
+        print('\rEpisode {}\tAverage Score: {:.2f}, {}'.format(episode, avg_score, info['time_step']), end="")
+
+    print('\n')
+    print(scores)
+    print(times)
