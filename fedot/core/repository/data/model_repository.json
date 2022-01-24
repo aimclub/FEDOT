@@ -151,7 +151,8 @@
       "tags": [
         "simple",
         "interpretable",
-        "non_lagged"
+        "non_lagged",
+        "in_sample_refit"
       ]
     },
     "arima": {
@@ -160,7 +161,8 @@
       "tags": [
         "simple",
         "interpretable",
-        "non_lagged"
+        "non_lagged",
+        "in_sample_refit"
       ]
     },
     "clstm": {

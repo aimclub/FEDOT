@@ -79,7 +79,7 @@ def out_of_sample_ts_forecast(pipeline, input_data: InputData,
 
 
 def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData],
-                          horizon: int = None, force_refit: bool = False) -> np.array:
+                          horizon: int = None) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
     series, rather than the previously predicted parts of the time series,
@@ -90,13 +90,16 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     :param pipeline: Pipeline for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
-    :param force_refit: is there need to fit on supplemented time-series
     :return final_forecast: array with forecast
-    """
 
+    Warning! Sources indices in input_data parameter will be ignored
+    """
     # Divide data on samples into pre-history and validation part
     task = input_data.task
     exception_if_not_ts_task(task)
+
+    # Is there need to fit on supplemented time-series
+    force_refit = is_force_refit_needed(pipeline)
 
     if isinstance(input_data, InputData):
         time_series = np.array(input_data.features)
@@ -339,3 +342,13 @@ def generate_ids(source_input, output_data, expand: bool):
         indices_range = np.arange(clipped_starting_values + 1,
                                   len(source_idx) + 1)
     return indices_range
+
+
+def is_force_refit_needed(pipeline) -> bool:
+    """ Determine if force refit needed for current pipeline based on nodes tags """
+    is_needed = False
+    for node in pipeline.nodes:
+        if 'in_sample_refit' in node.tags:
+            is_needed = True
+
+    return is_needed
