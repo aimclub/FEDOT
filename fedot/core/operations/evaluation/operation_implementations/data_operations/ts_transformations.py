@@ -602,7 +602,7 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
         updated_idx.append(idx[-1])
         updated_idx = np.array(updated_idx)
     else:
-        updated_idx = idx[:len(idx) - window_size]
+        updated_idx = idx[:len(idx) - window_size + 1]
 
     return updated_idx, features_columns
 
