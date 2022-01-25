@@ -138,15 +138,9 @@ class LaggedImplementation(DataOperationImplementation):
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
         """ Apply lagged transformation for every column (time series) in the dataset """
         if self.sparse_transform:
-            # TODO refactor to apply with new unseen data in more flexible way
             self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
-            # Target can be None
-            simple_target = np.arange(0, len(input_data.idx))
-            self._apply_transformation_for_fit(input_data, input_data.features,
-                                               simple_target, forecast_length,
-                                               input_data.idx)
-
-            self.features_columns = self.features_columns[-1].reshape(1, -1)
+            transformed_cols = self._update_features_for_sparse(input_data, forecast_length)
+            self.features_columns = transformed_cols[-1].reshape(1, -1)
             return self.features_columns
 
         if len(input_data.features.shape) > 1:
@@ -172,6 +166,20 @@ class LaggedImplementation(DataOperationImplementation):
 
         self.features_columns = all_transformed_features
         return all_transformed_features
+
+    def _update_features_for_sparse(self, input_data: InputData, forecast_length: int):
+        """ For sparse lagged implementation there is a need to make """
+        # Prepare features for training
+        new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
+                                                time_series=input_data.features,
+                                                window_size=self.window_size,
+                                                is_lag=True)
+        # Sparsing
+        transformed_cols = _sparse_matrix(self.log,
+                                          transformed_cols,
+                                          self.n_components,
+                                          self.use_svd)
+        return transformed_cols
 
 
 class SparseLaggedTransformationImplementation(LaggedImplementation):
@@ -577,7 +585,7 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     # Convert data to lagged form
     lagged_dataframe = pd.DataFrame({'t_id': time_series})
     vals = lagged_dataframe['t_id']
-    for i in range(1, window_size + 1):
+    for i in range(1, window_size):
         frames = [lagged_dataframe, vals.shift(i)]
         lagged_dataframe = pd.concat(frames, axis=1)
 
@@ -586,15 +594,15 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
 
     transformed = np.array(lagged_dataframe)
 
-    # Remove extra column (it will go to target)
-    features_columns = transformed[:, 1:]
     # Generate dataset with features
-    features_columns = np.fliplr(features_columns)
+    features_columns = np.fliplr(transformed)
 
     if is_lag:
-        updated_idx = idx[window_size:]
+        updated_idx = list(idx[window_size:])
+        updated_idx.append(idx[-1])
+        updated_idx = np.array(updated_idx)
     else:
-        updated_idx = idx[:len(idx)-window_size]
+        updated_idx = idx[:len(idx) - window_size]
 
     return updated_idx, features_columns
 
@@ -661,6 +669,8 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     :return updated_features: clipped lagged feature table
     :return updated_target: lagged target table
     """
+    # Remove last repeated element
+    idx = idx[: -1]
 
     # Update target (clip first "window size" values)
     row_nums = [list(all_idx).index(i) for i in idx]
@@ -679,9 +689,8 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
         df.dropna(inplace=True)
         updated_target = np.array(df)
 
-        threshold = -forecast_length + 1
-        updated_idx = idx[: threshold]
-        updated_features = features_columns[: threshold]
+        updated_idx = idx[: -forecast_length + 1]
+        updated_features = features_columns[: -forecast_length]
     else:
         updated_idx = idx
         updated_features = features_columns

@@ -49,6 +49,20 @@ def get_simple_short_lagged_pipeline():
     return pipeline
 
 
+def get_ts_pipelines_for_testing():
+    """ Generate simple specific pipelines for testing """
+    node_lagged = PrimaryNode('sparse_lagged')
+    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    sparse_lagged_pipeline = Pipeline(node_final)
+
+    node_lagged = PrimaryNode('lagged')
+    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
+    lagged_pipeline = Pipeline(node_final)
+
+    arima_pipeline = Pipeline(PrimaryNode('arima'))
+    return arima_pipeline, sparse_lagged_pipeline, lagged_pipeline
+
+
 def test_out_of_sample_ts_forecast_correct():
     simple_length = 2
     multi_length = 10
@@ -101,22 +115,19 @@ def test_in_sample_arima_forecast_correct():
     multi_length = 10
     train_input, predict_input = prepare_ts_for_in_sample(simple_length, multi_length)
 
-    node_lagged = PrimaryNode('sparse_lagged')
-    node_final = SecondaryNode('linear', nodes_from=[node_lagged])
-    ts_pipeline = Pipeline(node_final)
-    ts_pipeline.fit(train_input)
+    ts_pipelines = get_ts_pipelines_for_testing()
+    full_ts = predict_input.features
+    for ts_pipeline in ts_pipelines:
+        ts_pipeline.fit(train_input)
 
-    multi_predicted = in_sample_ts_forecast(pipeline=ts_pipeline,
-                                            input_data=predict_input,
-                                            horizon=multi_length)
+        multi_predicted = in_sample_ts_forecast(pipeline=ts_pipeline,
+                                                input_data=predict_input,
+                                                horizon=multi_length)
 
-    import matplotlib.pyplot as plt
-    plt.plot(np.arange(0, len(predict_input.features)), predict_input.features, label='Actual time series')
-    start_id = train_input.idx[-1] + 1
-    plt.plot(np.arange(start_id, start_id + len(multi_predicted)), multi_predicted, label='Predicted')
-    plt.grid()
-    plt.legend()
-    plt.show()
+        # Validate without last element
+        metric = mean_absolute_error(full_ts[-multi_length: -1], multi_predicted[: -1])
+        # Metric should be low
+        assert metric < 0.05
 
 
 def test_fitted_values_correct():

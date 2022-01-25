@@ -209,7 +209,7 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
         else:
             # if indices can be incremented
             indices_range = np.arange(copied_data.idx[0],
-                                      copied_data.idx[-1] + forecast_length + 1)
+                                      copied_data.idx[-1] + forecast_length)
 
         # Lagged matrix with indices in cells
         _, idx_matrix = ts_to_table(idx=indices_range,
