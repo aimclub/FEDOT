@@ -69,8 +69,3 @@ def test_external_static_optimizer_with_external_parameters(data_fixture, reques
     expected_pipeline = Pipeline(PrimaryNode('lgbm'))
 
     assert obtained_pipeline.root_node.descriptive_id == expected_pipeline.root_node.descriptive_id
-
-
-
-
-

@@ -7,7 +7,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: float = None):
-    train_data_path = f'{fedot_project_root()}/examples/data/ts/salaries.csv'
+    train_data_path = f'{fedot_project_root()}/examples/data/ts/australia.csv'
 
     target = pd.read_csv(train_data_path)['value']
 
@@ -19,7 +19,6 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: 
     model = Fedot(problem='ts_forecasting',
                   task_params=task_parameters,
                   timeout=timeout,
-                  composer_params={'initial_assumption': ts_polyfit_ridge_pipeline(2)},
                   preset='fast_train')
 
     # run AutoML model design in the same way
@@ -40,4 +39,4 @@ def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: 
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(timeout=0.5)
+    run_ts_forecasting_example(timeout=2)
