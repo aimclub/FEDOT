@@ -106,7 +106,7 @@ def test_in_sample_ts_forecast_correct():
     assert is_forecast_correct
 
 
-def test_in_sample_arima_forecast_correct():
+def test_in_sample_ts_models_forecast_correct():
     """
     To be applied in in-sample forecasting method for AR, ARIMA and some other
     models it is required to use refit after each prediction
@@ -127,7 +127,7 @@ def test_in_sample_arima_forecast_correct():
         # Validate without last element
         metric = mean_absolute_error(full_ts[-multi_length: -1], multi_predicted[: -1])
         # Metric should be low
-        assert metric < 0.05
+        assert metric < 0.04
 
 
 def test_fitted_values_correct():

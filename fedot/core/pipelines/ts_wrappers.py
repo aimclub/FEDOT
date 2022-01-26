@@ -219,7 +219,6 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
 
         # For every index calculate mean predictions (by all forecast steps)
         final_predictions = []
-        indices_range = indices_range[:-1]
         for index in indices_range:
             vals = predicted_matrix[idx_matrix == index]
             mean_value = np.mean(vals)

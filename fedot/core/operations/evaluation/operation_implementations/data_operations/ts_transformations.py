@@ -139,7 +139,7 @@ class LaggedImplementation(DataOperationImplementation):
         """ Apply lagged transformation for every column (time series) in the dataset """
         if self.sparse_transform:
             self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
-            transformed_cols = self._update_features_for_sparse(input_data, forecast_length)
+            transformed_cols = self._update_features_for_sparse(input_data)
             self.features_columns = transformed_cols[-1].reshape(1, -1)
             return self.features_columns
 
@@ -167,7 +167,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.features_columns = all_transformed_features
         return all_transformed_features
 
-    def _update_features_for_sparse(self, input_data: InputData, forecast_length: int):
+    def _update_features_for_sparse(self, input_data: InputData):
         """ For sparse lagged implementation there is a need to make """
         # Prepare features for training
         new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
@@ -692,8 +692,9 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
         updated_idx = idx[: -forecast_length + 1]
         updated_features = features_columns[: -forecast_length]
     else:
+        # Forecast horizon equals to 1
         updated_idx = idx
-        updated_features = features_columns
+        updated_features = features_columns[: -1]
         updated_target = ts_target
 
     return updated_idx, updated_features, updated_target
