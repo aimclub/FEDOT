@@ -1,7 +1,7 @@
 import datetime
 import gc
 import traceback
-from typing import Callable, List, Type, Union
+from typing import Callable, List, Type, Union, Optional, Dict
 
 import numpy as np
 from deap import tools
@@ -35,6 +35,7 @@ class ApiComposer:
         self.metrics = ApiMetrics(problem)
         self.initial_assumptions = ApiInitialAssumptions()
         self.optimiser = EvoGraphOptimiser
+        self.optimizer_external_parameters = None
         self.current_model = None
         self.best_models = None
         self.history = None
@@ -89,7 +90,8 @@ class ApiComposer:
                                 optimizer_parameters: GraphOptimiserParameters,
                                 data: Union[InputData, MultiModalData],
                                 logger: Log,
-                                initial_assumption: Union[Pipeline, List[Pipeline]] = None):
+                                initial_assumption: Union[Pipeline, List[Pipeline]] = None,
+                                optimizer_external_parameters: Optional[Dict] = None):
         """
         Return GPComposerBuilder with parameters and if it is necessary
         initial_assumption in it
@@ -102,11 +104,12 @@ class ApiComposer:
         :param data: data for evaluating
         :param logger: log object
         :param initial_assumption: list of initial pipelines
+        :param optimizer_external_parameters: eternal parameters for optimizer
         """
 
         builder = ComposerBuilder(task=task). \
             with_requirements(composer_requirements). \
-            with_optimiser(optimiser, optimizer_parameters). \
+            with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters). \
             with_metrics(metric_function).with_logger(logger)
 
         if initial_assumption is None:
@@ -203,12 +206,12 @@ class ApiComposer:
             history_folder=composer_params.get('history_folder'),
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
-
         builder = self.get_gp_composer_builder(task=api_params['task'],
                                                metric_function=metric_function,
                                                composer_requirements=composer_requirements,
                                                optimiser=self.optimiser,
                                                optimizer_parameters=optimizer_parameters,
+                                               optimizer_external_parameters=self.optimizer_external_parameters,
                                                data=api_params['train_data'],
                                                initial_assumption=api_params['initial_assumption'],
                                                logger=api_params['logger'])

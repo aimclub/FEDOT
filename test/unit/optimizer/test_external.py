@@ -10,6 +10,7 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
+
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
@@ -32,6 +33,8 @@ class StaticOptimizer(GraphOptimiser):
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True):
+        if 'external_parameters' in dir(self):
+            return OptGraph(OptNode(self.external_parameters['node_name']))
         return OptGraph(OptNode('xgboost'))
 
 
@@ -43,10 +46,31 @@ def test_external_static_optimizer(data_fixture, request):
     automl = Fedot(problem='classification', timeout=0.1, verbose_level=4,
                    preset='fast_train', composer_params={'with_tuning': False})
     automl.api_composer.optimiser = StaticOptimizer
-
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 
     expected_pipeline = Pipeline(PrimaryNode('xgboost'))
 
     assert obtained_pipeline.root_node.descriptive_id == expected_pipeline.root_node.descriptive_id
+
+
+@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+def test_external_static_optimizer_with_external_parameters(data_fixture, request):
+    data = request.getfixturevalue(data_fixture)
+    train_data, test_data = train_test_data_setup(data=data)
+
+    automl = Fedot(problem='classification', timeout=0.1, verbose_level=4,
+                   preset='fast_train', composer_params={'with_tuning': False})
+    automl.api_composer.optimiser = StaticOptimizer
+    automl.api_composer.optimizer_external_parameters = {'node_name': 'lgbm'}
+    obtained_pipeline = automl.fit(train_data)
+    automl.predict(test_data)
+
+    expected_pipeline = Pipeline(PrimaryNode('lgbm'))
+
+    assert obtained_pipeline.root_node.descriptive_id == expected_pipeline.root_node.descriptive_id
+
+
+
+
+
