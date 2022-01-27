@@ -169,7 +169,7 @@ class LaggedImplementation(DataOperationImplementation):
         return all_transformed_features
 
     def _update_features_for_sparse(self, input_data: InputData):
-        """ For sparse lagged implementation there is a need to make """
+        """ Make sparse matrix which will be used during forecasting """
         # Prepare features for training
         new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
                                                 time_series=input_data.features,
