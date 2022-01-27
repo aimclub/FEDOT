@@ -200,8 +200,7 @@ class SearchSpace:
                 'max_skips': (hp.uniform, [50, 500000])
             },
             'isolation_forest': {
-                'n_estimators': (hp.choice, [[100]]),
-                'max_features': (hp.uniform, [0.05, 1.01]),
+                'max_features': (hp.uniform, [0.05, 0.99]),
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'rfe_lin_reg': {

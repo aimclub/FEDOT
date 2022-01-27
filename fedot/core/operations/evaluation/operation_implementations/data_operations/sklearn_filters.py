@@ -52,7 +52,7 @@ class FilterImplementation(DataOperationImplementation):
             mask = self.operation.inlier_mask_
             if mask is not None:
                 # Update data
-                modified_input_data = self._update_data(input_data, mask)
+                modified_input_data = update_data(input_data, mask)
             else:
                 self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
 
@@ -64,27 +64,13 @@ class FilterImplementation(DataOperationImplementation):
     def get_params(self) -> Dict[str, Any]:
         return self.operation.get_params()
 
-    @staticmethod
-    def _update_data(input_data: InputData, mask: np.ndarray) -> InputData:
-        """ Method for updating target and features"""
-
-        modified_input_data = copy(input_data)
-        old_features = modified_input_data.features
-        old_target = modified_input_data.target
-        old_idx = modified_input_data.idx
-
-        modified_input_data.features = old_features[mask]
-        modified_input_data.target = old_target[mask]
-        modified_input_data.idx = np.array(old_idx)[mask]
-
-        return modified_input_data
-
 
 class RegRANSACImplementation(FilterImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.max_iter = 10
         self.parameters_changed = False
+        self.params = params
 
     def get_params(self):
         params_dict = self.params
@@ -150,6 +136,7 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
 class IsolationForestImplementation(DataOperationImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
+        self.log = default_log(__name__)
 
         if not params:
             # Default parameters
@@ -199,7 +186,7 @@ class IsolationForestImplementation(DataOperationImplementation):
             mask = self._get_inlier_mask(input_data)
             if mask is not None:
                 # Update data
-                modified_input_data = self._update_data(input_data, mask)
+                modified_input_data = update_data(input_data, mask)
             else:
                 self.log.info("Isolation Forest: didn't fit correctly. Return all objects")
 
@@ -211,17 +198,18 @@ class IsolationForestImplementation(DataOperationImplementation):
     def get_params(self) -> Dict[str, Any]:
         return self.operation.get_params()
 
-    @staticmethod
-    def _update_data(input_data: InputData, mask: np.ndarray) -> InputData:
-        """ Method for updating target and features"""
 
-        modified_input_data = copy(input_data)
-        old_features = modified_input_data.features
-        old_target = modified_input_data.target
-        old_idx = modified_input_data.idx
+def update_data(input_data: InputData, mask: np.ndarray) -> InputData:
+    """ Method for updating target and features"""
 
-        modified_input_data.features = old_features[mask]
-        modified_input_data.target = old_target[mask]
-        modified_input_data.idx = np.array(old_idx)[mask]
+    modified_input_data = copy(input_data)
+    old_features = modified_input_data.features
+    old_target = modified_input_data.target
+    old_idx = modified_input_data.idx
 
-        return modified_input_data
+    modified_input_data.features = old_features[mask]
+    modified_input_data.target = old_target[mask]
+    modified_input_data.idx = np.array(old_idx)[mask]
+
+    return modified_input_data
+
