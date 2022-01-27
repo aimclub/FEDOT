@@ -8,6 +8,8 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     PolyFeaturesImplementation, ScalingImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
     OneHotEncodingImplementation, LabelEncodingImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters import \
+    IsolationForestImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -21,7 +23,8 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'kernel_pca': KernelPCAImplementation,
         'poly_features': PolyFeaturesImplementation,
         'one_hot_encoding': OneHotEncodingImplementation,
-        'label_encoding': LabelEncodingImplementation
+        'label_encoding': LabelEncodingImplementation,
+        'isolation_forest': IsolationForestImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

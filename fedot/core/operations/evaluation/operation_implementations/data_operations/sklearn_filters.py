@@ -2,14 +2,17 @@ from copy import copy
 from typing import Optional
 
 import numpy as np
-from fedot.core.log import default_log
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
-    DataOperationImplementation
-)
+
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.ensemble import IsolationForest
+
+from fedot.core.log import default_log
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
+    DataOperationImplementation
+)
 
 
 class FilterImplementation(DataOperationImplementation):
@@ -147,3 +150,72 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
             self.operation = RANSACRegressor(base_estimator=self.inner_model,
                                              **params)
         self.params = params
+
+
+class IsolationForestImplementation(FilterImplementation):
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+
+        if not params:
+            # Default parameters
+            self.operation = IsolationForest()
+        else:
+            self.operation = IsolationForest(**params)
+        self.params = params
+
+    def fit(self, input_data):
+        """ Method for fit filter
+
+        :param input_data: data with features, target and ids to process
+        :return operation: trained operation (optional output)
+        """
+
+        self.operation.fit(input_data.features, input_data.target)
+
+        return self
+
+    def predict(self, input_data):
+
+        return self.operation.predict(input_data.features)
+
+    def _get_inlier_mask(self, input_data):
+        predictions = self.operation.predict(input_data.features)
+        mask = []
+        for pred in predictions:
+            if pred == 1:
+                mask.append(True)
+            else:
+                mask.append(False)
+        return mask
+
+    def transform(self, input_data, is_fit_pipeline_stage: bool):
+        """ Method for making prediction
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return output_data: filtered input data by rows
+        """
+
+        features = input_data.features
+        if is_fit_pipeline_stage:
+            # For fit stage - filter data
+            mask = self._get_inlier_mask(input_data)
+            if mask is not None:
+                inner_features = features[mask]
+                # Update data
+                modified_input_data = self._update_data(input_data, mask)
+            else:
+                self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
+                inner_features = features
+                modified_input_data = copy(input_data)
+
+        else:
+            # For predict stage there is a need to safe all the data
+            inner_features = features
+            modified_input_data = copy(input_data)
+
+        # Convert it to OutputData
+        output_data = self._convert_to_output(modified_input_data,
+                                              inner_features)
+        return output_data
+
