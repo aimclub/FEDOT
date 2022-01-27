@@ -13,7 +13,7 @@ def plot_forecast(data: InputData, prediction: OutputData):
     :param data: the InputData with actual time series as features
     :param prediction: the OutputData with predictions
     """
-    actual_time_series = data.features
+    actual_time_series = np.concatenate([data.features, data.target], axis=0)
     target = data.target
     predict = prediction.predict
     if len(actual_time_series) < 72:
