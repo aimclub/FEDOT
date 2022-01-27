@@ -92,9 +92,10 @@ def test_ts_to_lagged_table():
                             (60., 70., 80., 90.),
                             (70., 80., 90., 100.),
                             (80., 90., 100., 110.),
-                            (90., 100., 110., 120.))
+                            (90., 100., 110., 120.),
+                            (100., 110., 120., 130.))
 
-    correct_new_idx = (4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    correct_new_idx = (4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 13)
 
     # Convert into tuple for comparison
     new_idx_as_tuple = tuple(new_idx)

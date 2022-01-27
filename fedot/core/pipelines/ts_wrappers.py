@@ -79,24 +79,26 @@ def out_of_sample_ts_forecast(pipeline, input_data: InputData,
 
 
 def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData],
-                          horizon: int = None, force_refit: bool = False) -> np.array:
+                          horizon: int = None) -> np.array:
     """
     Method allows to make in-sample forecasting. The actual values of the time
     series, rather than the previously predicted parts of the time series,
-    are used for forecasting next parts.
+    are used for forecasting next parts. Sources indices in input_data parameter
+    will be ignored
     time series ----------------|---|---|---|
     forecast                    |---|---|---|
 
     :param pipeline: Pipeline for making time series forecasting
     :param input_data: data for prediction
     :param horizon: forecasting horizon
-    :param force_refit: is there need to fit on supplemented time-series
     :return final_forecast: array with forecast
     """
-
     # Divide data on samples into pre-history and validation part
     task = input_data.task
     exception_if_not_ts_task(task)
+
+    # Is there need to fit on supplemented time-series
+    force_refit = is_force_refit_needed(pipeline)
 
     if isinstance(input_data, InputData):
         time_series = np.array(input_data.features)
@@ -206,7 +208,7 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
         else:
             # if indices can be incremented
             indices_range = np.arange(copied_data.idx[0],
-                                      copied_data.idx[-1] + forecast_length + 1)
+                                      copied_data.idx[-1] + forecast_length)
 
         # Lagged matrix with indices in cells
         _, idx_matrix = ts_to_table(idx=indices_range,
@@ -216,7 +218,6 @@ def fitted_values(source_input: InputData, train_predicted: OutputData, horizon_
 
         # For every index calculate mean predictions (by all forecast steps)
         final_predictions = []
-        indices_range = indices_range[:-1]
         for index in indices_range:
             vals = predicted_matrix[idx_matrix == index]
             mean_value = np.mean(vals)
@@ -339,3 +340,13 @@ def generate_ids(source_input, output_data, expand: bool):
         indices_range = np.arange(clipped_starting_values + 1,
                                   len(source_idx) + 1)
     return indices_range
+
+
+def is_force_refit_needed(pipeline) -> bool:
+    """ Determine if force refit needed for current pipeline based on nodes tags """
+    is_needed = False
+    for node in pipeline.nodes:
+        if 'in_sample_refit' in node.tags:
+            return True
+
+    return is_needed

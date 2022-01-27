@@ -5,6 +5,7 @@ import numpy as np
 from statsmodels.genmod.families import Gaussian, Gamma, InverseGaussian, Poisson, Tweedie
 from statsmodels.genmod.families.links import log as lg, identity, sqrt, inverse_power, inverse_squared, Power
 from statsmodels.genmod.generalized_linear_model import GLM
+from statsmodels.tools.sm_exceptions import PerfectSeparationError
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
@@ -220,7 +221,6 @@ class AutoRegImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-
     def get_params(self):
         return self.params
 
@@ -257,8 +257,9 @@ class ExpSmoothingImplementation(ModelImplementation):
         target = input_data.target
 
         if is_fit_pipeline_stage:
-            predictions = self.model.predict(start=old_idx[0],
-                                             end=old_idx[-1])
+            # Indexing for statsmodels is different
+            predictions = self.model.predict(start=old_idx[0] + 1,
+                                             end=old_idx[-1] + 1)
             _, predict = ts_to_table(idx=old_idx,
                                      time_series=predictions,
                                      window_size=forecast_length)
@@ -271,8 +272,8 @@ class ExpSmoothingImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1]
+            start_id = old_idx[-1] - forecast_length + 2
+            end_id = old_idx[-1] + 1
             predictions = self.model.predict(start=start_id,
                                              end=end_id)
             predict = predictions
