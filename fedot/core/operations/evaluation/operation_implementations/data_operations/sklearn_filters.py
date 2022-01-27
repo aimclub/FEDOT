@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Optional
+from typing import Optional, Dict, Any
 
 import numpy as np
 
@@ -13,6 +13,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
+from fedot.core.data.data import InputData, OutputData
 
 
 class FilterImplementation(DataOperationImplementation):
@@ -25,7 +26,7 @@ class FilterImplementation(DataOperationImplementation):
 
         self.log = default_log(__name__)
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method for fit filter
 
         :param input_data: data with features, target and ids to process
@@ -36,7 +37,7 @@ class FilterImplementation(DataOperationImplementation):
 
         return self.operation
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
         """ Method for making prediction
 
         :param input_data: data with features, target and ids to process
@@ -60,11 +61,11 @@ class FilterImplementation(DataOperationImplementation):
                                               modified_input_data.features)
         return output_data
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return self.operation.get_params()
 
     @staticmethod
-    def _update_data(input_data, mask):
+    def _update_data(input_data: InputData, mask: np.ndarray) -> InputData:
         """ Method for updating target and features"""
 
         modified_input_data = copy(input_data)
@@ -92,7 +93,7 @@ class RegRANSACImplementation(FilterImplementation):
         else:
             return params_dict
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         iter_ = 0
 
         while iter_ < self.max_iter:
@@ -157,7 +158,7 @@ class IsolationForestImplementation(DataOperationImplementation):
             self.operation = IsolationForest(**params)
         self.params = params
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData) -> 'NonLinearRegRANSACImplementation':
         """ Method for fit filter
 
         :param input_data: data with features, target and ids to process
@@ -168,11 +169,11 @@ class IsolationForestImplementation(DataOperationImplementation):
 
         return self
 
-    def predict(self, input_data):
+    def predict(self, input_data: InputData) -> np.ndarray:
 
         return self.operation.predict(input_data.features)
 
-    def _get_inlier_mask(self, input_data):
+    def _get_inlier_mask(self, input_data: InputData) -> np.ndarray:
         """ Method for making boolean mask of inliers classified as False
 
         :param input_data: data with features, target and ids to process
@@ -183,7 +184,7 @@ class IsolationForestImplementation(DataOperationImplementation):
         mask = predictions == 1
         return mask
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
         """ Method for making prediction
 
         :param input_data: data with features, target and ids to process
@@ -207,11 +208,11 @@ class IsolationForestImplementation(DataOperationImplementation):
                                               modified_input_data.features)
         return output_data
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return self.operation.get_params()
 
     @staticmethod
-    def _update_data(input_data, mask):
+    def _update_data(input_data: InputData, mask: np.ndarray) -> InputData:
         """ Method for updating target and features"""
 
         modified_input_data = copy(input_data)

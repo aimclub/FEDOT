@@ -69,9 +69,9 @@ def convert_to_labels(root_operation, prediction):
 
 def run_classification_tuning_experiment(pipeline, tuner=None):
     samples = [50, 100, 150, 550]
-    features = [5, 10, 20]
-    classes = [2, 2, 2]
-    options = [{'informative': 1, 'redundant': 0,
+    features = [5, 5, 10, 20]
+    classes = [2, 2, 2, 2]
+    options = [{'informative': 2, 'redundant': 0,
                 'repeated': 0, 'clusters_per_class': 1},
                {'informative': 2, 'redundant': 1,
                 'repeated': 1, 'clusters_per_class': 1},
