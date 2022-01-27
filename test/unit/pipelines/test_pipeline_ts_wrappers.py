@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -125,9 +125,9 @@ def test_in_sample_ts_models_forecast_correct():
                                                 horizon=multi_length)
 
         # Validate without last element
-        metric = mean_absolute_error(full_ts[-multi_length: -1], multi_predicted[: -1])
-        # Metric should be low
-        assert metric < 0.04
+        metric = mean_absolute_percentage_error(full_ts[-multi_length: -1], multi_predicted[: -1])
+        # Metric should be low - forecast should almost repeat the actual line
+        assert metric < 0.001
 
 
 def test_fitted_values_correct():

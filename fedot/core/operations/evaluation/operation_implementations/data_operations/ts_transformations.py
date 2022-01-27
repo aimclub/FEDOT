@@ -140,6 +140,7 @@ class LaggedImplementation(DataOperationImplementation):
         if self.sparse_transform:
             self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
             transformed_cols = self._update_features_for_sparse(input_data)
+            # Take last row in the lagged table and reshape into array with 1 row and n columns
             self.features_columns = transformed_cols[-1].reshape(1, -1)
             return self.features_columns
 

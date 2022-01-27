@@ -348,6 +348,6 @@ def is_force_refit_needed(pipeline) -> bool:
     is_needed = False
     for node in pipeline.nodes:
         if 'in_sample_refit' in node.tags:
-            is_needed = True
+            return True
 
     return is_needed
