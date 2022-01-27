@@ -83,7 +83,8 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     """
     Method allows to make in-sample forecasting. The actual values of the time
     series, rather than the previously predicted parts of the time series,
-    are used for forecasting next parts.
+    are used for forecasting next parts. Sources indices in input_data parameter
+    will be ignored
     time series ----------------|---|---|---|
     forecast                    |---|---|---|
 
@@ -91,8 +92,6 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     :param input_data: data for prediction
     :param horizon: forecasting horizon
     :return final_forecast: array with forecast
-
-    Warning! Sources indices in input_data parameter will be ignored
     """
     # Divide data on samples into pre-history and validation part
     task = input_data.task
