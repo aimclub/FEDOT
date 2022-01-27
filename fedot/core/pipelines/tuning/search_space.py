@@ -199,6 +199,11 @@ class SearchSpace:
                 'max_trials': (hp.uniform, [50, 500]),
                 'max_skips': (hp.uniform, [50, 500000])
             },
+            'isolation_forest': {
+                'n_estimators': (hp.choice, [[100]]),
+                'max_features': (hp.uniform, [0.05, 1.01]),
+                'bootstrap': (hp.choice, [[True, False]])
+            },
             'rfe_lin_reg': {
                 'n_features_to_select': (hp.choice, [[0.5, 0.7, 0.9]]),
                 'step': (hp.choice, [[0.1, 0.15, 0.2]])

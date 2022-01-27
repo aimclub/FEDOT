@@ -44,27 +44,20 @@ class FilterImplementation(DataOperationImplementation):
         :return output_data: filtered input data by rows
         """
 
-        features = input_data.features
+        modified_input_data = input_data
+
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self.operation.inlier_mask_
             if mask is not None:
-                inner_features = features[mask]
                 # Update data
                 modified_input_data = self._update_data(input_data, mask)
             else:
                 self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
-                inner_features = features
-                modified_input_data = copy(input_data)
-
-        else:
-            # For predict stage there is a need to safe all the data
-            inner_features = features
-            modified_input_data = copy(input_data)
 
         # Convert it to OutputData
         output_data = self._convert_to_output(modified_input_data,
-                                              inner_features)
+                                              modified_input_data.features)
         return output_data
 
     def get_params(self):
@@ -187,9 +180,7 @@ class IsolationForestImplementation(DataOperationImplementation):
         """
 
         predictions = self.predict(input_data)
-        mask = []
-        for pred in predictions:
-                mask.append(pred == 1)
+        mask = predictions == 1
         return mask
 
     def transform(self, input_data, is_fit_pipeline_stage: bool):
@@ -200,16 +191,12 @@ class IsolationForestImplementation(DataOperationImplementation):
         :return output_data: filtered input data by rows
         """
 
-        features = input_data.features
-
-        inner_features = features
         modified_input_data = input_data
 
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self._get_inlier_mask(input_data)
             if mask is not None:
-                inner_features = features[mask]
                 # Update data
                 modified_input_data = self._update_data(input_data, mask)
             else:
@@ -217,7 +204,7 @@ class IsolationForestImplementation(DataOperationImplementation):
 
         # Convert it to OutputData
         output_data = self._convert_to_output(modified_input_data,
-                                              inner_features)
+                                              modified_input_data.features)
         return output_data
 
     def get_params(self):
@@ -237,4 +224,3 @@ class IsolationForestImplementation(DataOperationImplementation):
         modified_input_data.idx = np.array(old_idx)[mask]
 
         return modified_input_data
-

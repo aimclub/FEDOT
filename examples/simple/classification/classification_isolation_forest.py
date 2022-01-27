@@ -4,8 +4,6 @@ from sklearn.model_selection import train_test_split
 
 from examples.simple.classification.classification_pipelines import classification_isolation_forest_pipeline
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -70,8 +68,8 @@ def convert_to_labels(root_operation, prediction):
 
 
 def run_classification_tuning_experiment(pipeline, tuner=None):
-    samples = [50, 550, 150]
-    features = [1, 5, 10]
+    samples = [50, 100, 150, 550]
+    features = [5, 10, 20]
     classes = [2, 2, 2]
     options = [{'informative': 1, 'redundant': 0,
                 'repeated': 0, 'clusters_per_class': 1},
@@ -86,7 +84,7 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
         print('=======================================')
         print(f'\nAmount of samples {samples_amount}, '
               f'amount of features {features_amount}, '
-              f'amount of clsses {classes_amount}, '
+              f'amount of classes {classes_amount}, '
               f'additional options {features_options}')
 
         x_train, y_train, x_test, y_test = get_classification_dataset(features_options,
