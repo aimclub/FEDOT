@@ -33,7 +33,6 @@ def run_ts_forecasting_example(dataset='australia', horizon: int= 30, timeout: f
                             task=task,
                             data_type=DataTypesEnum.ts)
     train_data, test_data = train_test_data_setup(train_input)
-    test_target = np.ravel(test_data.target)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',

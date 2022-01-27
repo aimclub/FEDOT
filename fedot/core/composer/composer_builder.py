@@ -22,7 +22,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 class ComposerBuilder:
     def __init__(self, task: Task):
-        self.optimizer_external_parameters = None
+        self.optimizer_external_parameters = {}
         self._composer = GPComposer()
         self.optimiser = EvoGraphOptimiser
         self.optimiser_parameters = GPGraphOptimiserParameters()
@@ -105,10 +105,8 @@ class ComposerBuilder:
                                    requirements=self._composer.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters, log=self._composer.log,
-                                   metrics=self._composer.metrics)
-
-        if self.optimizer_external_parameters:
-            optimiser.external_parameters = self.optimizer_external_parameters
+                                   metrics=self._composer.metrics,
+                                   **self.optimizer_external_parameters)
 
         self._composer.optimiser = optimiser
 

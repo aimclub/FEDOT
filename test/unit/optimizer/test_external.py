@@ -26,15 +26,17 @@ class StaticOptimizer(GraphOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
-                 log: Log = None):
+                 log: Log = None,
+                 **kwargs):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
         self.change_types = []
+        self.node_name = kwargs.get('node_name')
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True):
-        if 'external_parameters' in dir(self):
-            return OptGraph(OptNode(self.external_parameters['node_name']))
+        if self.node_name:
+            return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('xgboost'))
 
 
