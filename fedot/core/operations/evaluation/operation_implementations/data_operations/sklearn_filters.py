@@ -70,7 +70,8 @@ class FilterImplementation(DataOperationImplementation):
     def get_params(self):
         return self.operation.get_params()
 
-    def _update_data(self, input_data, mask):
+    @staticmethod
+    def _update_data(input_data, mask):
         """ Method for updating target and features"""
 
         modified_input_data = copy(input_data)
@@ -152,7 +153,7 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
         self.params = params
 
 
-class IsolationForestImplementation(FilterImplementation):
+class IsolationForestImplementation(DataOperationImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
 
@@ -179,13 +180,16 @@ class IsolationForestImplementation(FilterImplementation):
         return self.operation.predict(input_data.features)
 
     def _get_inlier_mask(self, input_data):
-        predictions = self.operation.predict(input_data.features)
+        """ Method for making boolean mask of inliers classified as False
+
+        :param input_data: data with features, target and ids to process
+        :return mask: boolean mask of inliers classified as False
+        """
+
+        predictions = self.predict(input_data)
         mask = []
         for pred in predictions:
-            if pred == 1:
-                mask.append(True)
-            else:
-                mask.append(False)
+                mask.append(pred == 1)
         return mask
 
     def transform(self, input_data, is_fit_pipeline_stage: bool):
@@ -197,6 +201,10 @@ class IsolationForestImplementation(FilterImplementation):
         """
 
         features = input_data.features
+
+        inner_features = features
+        modified_input_data = input_data
+
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self._get_inlier_mask(input_data)
@@ -205,17 +213,28 @@ class IsolationForestImplementation(FilterImplementation):
                 # Update data
                 modified_input_data = self._update_data(input_data, mask)
             else:
-                self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
-                inner_features = features
-                modified_input_data = copy(input_data)
-
-        else:
-            # For predict stage there is a need to safe all the data
-            inner_features = features
-            modified_input_data = copy(input_data)
+                self.log.info("Isolation Forest: didn't fit correctly. Return all objects")
 
         # Convert it to OutputData
         output_data = self._convert_to_output(modified_input_data,
                                               inner_features)
         return output_data
+
+    def get_params(self):
+        return self.operation.get_params()
+
+    @staticmethod
+    def _update_data(input_data, mask):
+        """ Method for updating target and features"""
+
+        modified_input_data = copy(input_data)
+        old_features = modified_input_data.features
+        old_target = modified_input_data.target
+        old_idx = modified_input_data.idx
+
+        modified_input_data.features = old_features[mask]
+        modified_input_data.target = old_target[mask]
+        modified_input_data.idx = np.array(old_idx)[mask]
+
+        return modified_input_data
 
