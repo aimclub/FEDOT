@@ -253,4 +253,3 @@ def update_data(input_data: InputData, mask: np.ndarray) -> InputData:
     modified_input_data.idx = np.array(old_idx)[mask]
 
     return modified_input_data
-
