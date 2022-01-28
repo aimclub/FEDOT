@@ -45,20 +45,18 @@ class FilterImplementation(DataOperationImplementation):
         :return output_data: filtered input data by rows
         """
 
-        modified_input_data = input_data
-
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self.operation.inlier_mask_
             if mask is not None:
                 # Update data
-                modified_input_data = update_data(input_data, mask)
+                input_data = update_data(input_data, mask)
             else:
                 self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
 
         # Convert it to OutputData
-        output_data = self._convert_to_output(modified_input_data,
-                                              modified_input_data.features)
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features)
         return output_data
 
     def get_params(self) -> Dict[str, Any]:
@@ -145,7 +143,7 @@ class IsolationForestImplementation(DataOperationImplementation):
             self.operation = IsolationForest(**params)
         self.params = params
 
-    def fit(self, input_data: InputData) -> 'NonLinearRegRANSACImplementation':
+    def fit(self, input_data: InputData) -> 'IsolationForest':
         """ Method for fit filter
 
         :param input_data: data with features, target and ids to process
@@ -154,11 +152,7 @@ class IsolationForestImplementation(DataOperationImplementation):
 
         self.operation.fit(input_data.features, input_data.target)
 
-        return self
-
-    def predict(self, input_data: InputData) -> np.ndarray:
-
-        return self.operation.predict(input_data.features)
+        return self.operation
 
     def _get_inlier_mask(self, input_data: InputData) -> np.ndarray:
         """ Method for making boolean mask of inliers classified as False
@@ -167,7 +161,7 @@ class IsolationForestImplementation(DataOperationImplementation):
         :return mask: boolean mask of inliers classified as False
         """
 
-        predictions = self.predict(input_data)
+        predictions = self.operation.predict(input_data.features)
         mask = predictions == 1
         return mask
 
@@ -179,20 +173,18 @@ class IsolationForestImplementation(DataOperationImplementation):
         :return output_data: filtered input data by rows
         """
 
-        modified_input_data = input_data
-
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self._get_inlier_mask(input_data)
             if mask is not None:
                 # Update data
-                modified_input_data = update_data(input_data, mask)
+                input_data = update_data(input_data, mask)
             else:
                 self.log.info("Isolation Forest: didn't fit correctly. Return all objects")
 
         # Convert it to OutputData
-        output_data = self._convert_to_output(modified_input_data,
-                                              modified_input_data.features)
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features)
         return output_data
 
     def get_params(self) -> Dict[str, Any]:

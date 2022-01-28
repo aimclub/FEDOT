@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
+from copy import deepcopy
 
 from examples.simple.classification.classification_pipelines import classification_isolation_forest_pipeline
 from fedot.core.data.data import InputData
@@ -69,7 +70,7 @@ def convert_to_labels(root_operation, prediction):
 
 def run_classification_tuning_experiment(pipeline, tuner=None):
     samples = [50, 100, 150, 550]
-    features = [5, 5, 10, 20]
+    features = [3, 5, 10, 20]
     classes = [2, 2, 2, 2]
     options = [{'informative': 2, 'redundant': 0,
                 'repeated': 0, 'clusters_per_class': 1},
