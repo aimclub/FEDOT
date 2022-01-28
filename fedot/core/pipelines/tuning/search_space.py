@@ -199,7 +199,12 @@ class SearchSpace:
                 'max_trials': (hp.uniform, [50, 500]),
                 'max_skips': (hp.uniform, [50, 500000])
             },
-            'isolation_forest': {
+            'isolation_forest_reg': {
+                'max_samples': (hp.uniform, [0.05, 0.99]),
+                'max_features': (hp.uniform, [0.05, 0.99]),
+                'bootstrap': (hp.choice, [[True, False]])
+            },
+            'isolation_forest_class': {
                 'max_samples': (hp.uniform, [0.05, 0.99]),
                 'max_features': (hp.uniform, [0.05, 0.99]),
                 'bootstrap': (hp.choice, [[True, False]])

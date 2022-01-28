@@ -174,8 +174,12 @@
 			"presets": ["fast_train", "*tree"],
 			"tags": ["affects_target", "non_linear", "filtering", "correct_params", "non_applicable_for_ts"]
 		},
-		"isolation_forest": {
-			"meta": "custom_preprocessing",
+		"isolation_forest_reg": {
+			"meta": "regression_preprocessing",
+			"tags": ["non_linear", "filtering"]
+		},
+		"isolation_forest_class": {
+			"meta": "classification_preprocessing",
 			"tags": ["non_linear", "filtering"]
 		},
 		"rfe_lin_reg": {

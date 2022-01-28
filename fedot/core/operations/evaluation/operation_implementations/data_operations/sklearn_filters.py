@@ -131,7 +131,12 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
         self.params = params
 
 
-class IsolationForestImplementation(DataOperationImplementation):
+class IsolationForestRegImplementation(DataOperationImplementation):
+    """
+    Isolation Forest algorithm based on ExtraTreeRegressor
+    Task type - regression
+    """
+
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         self.log = default_log(__name__)
@@ -189,6 +194,58 @@ class IsolationForestImplementation(DataOperationImplementation):
 
     def get_params(self) -> Dict[str, Any]:
         return self.operation.get_params()
+
+
+class IsolationForestClassImplementation(IsolationForestRegImplementation):
+    """
+    Isolation Forest algorithm based on ExtraTreeRegressor
+    Task type - classification
+    """
+
+    @staticmethod
+    def _is_inlier_mask_correct(input_targets: np.ndarray, modified_targets: np.ndarray) -> bool:
+        """ Method for checking if inlier mask is correct
+        Inlier mask considered correct if after its application no class is completely or partially
+        removed from the dataset by more than 80 percent
+
+        :param input_targets: targets from input_data
+        :param modified_targets: targets from modified_targets
+        :return True if mask is correct otherwise False
+        """
+
+        if np.unique(input_targets).shape != np.unique(modified_targets).shape:
+            return False
+        for counts in zip(np.unique(input_targets, return_counts=True)[1],
+                          np.unique(modified_targets, return_counts=True)[1]):
+            if counts[0] > 5 * counts[1]:
+                return False
+        return True
+
+    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+        """ Method for making prediction
+
+        :param input_data: data with features, target and ids to process
+        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return output_data: filtered input data by rows
+        """
+
+        modified_input_data = input_data
+
+        if is_fit_pipeline_stage:
+            # For fit stage - filter data
+            mask = self._get_inlier_mask(input_data)
+            if mask is not None:
+                # Update data
+                modified_input_data = update_data(input_data, mask)
+                if not self._is_inlier_mask_correct(input_data.target, modified_input_data.target):
+                    modified_input_data = input_data
+            else:
+                self.log.info("Isolation Forest: didn't fit correctly. Return all objects")
+
+        # Convert it to OutputData
+        output_data = self._convert_to_output(modified_input_data,
+                                              modified_input_data.features)
+        return output_data
 
 
 def update_data(input_data: InputData, mask: np.ndarray) -> InputData:
