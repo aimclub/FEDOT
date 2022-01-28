@@ -181,11 +181,8 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self._get_inlier_mask(input_data)
-            if mask is not None:
-                # Update data
-                input_data = update_data(input_data, mask)
-            else:
-                self.log.info("Isolation Forest: didn't fit correctly. Return all objects")
+            # Update data
+            input_data = update_data(input_data, mask)
 
         # Convert it to OutputData
         output_data = self._convert_to_output(input_data,
@@ -229,22 +226,17 @@ class IsolationForestClassImplementation(IsolationForestRegImplementation):
         :return output_data: filtered input data by rows
         """
 
-        modified_input_data = input_data
-
         if is_fit_pipeline_stage:
             # For fit stage - filter data
             mask = self._get_inlier_mask(input_data)
-            if mask is not None:
-                # Update data
-                modified_input_data = update_data(input_data, mask)
-                if not self._is_inlier_mask_correct(input_data.target, modified_input_data.target):
-                    modified_input_data = input_data
-            else:
-                self.log.info("Isolation Forest: didn't fit correctly. Return all objects")
+            # Update data
+            modified_input_data = update_data(input_data, mask)
+            if self._is_inlier_mask_correct(input_data.target, modified_input_data.target):
+                input_data = modified_input_data
 
         # Convert it to OutputData
-        output_data = self._convert_to_output(modified_input_data,
-                                              modified_input_data.features)
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features)
         return output_data
 
 
