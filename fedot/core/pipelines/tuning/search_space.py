@@ -200,6 +200,7 @@ class SearchSpace:
                 'max_skips': (hp.uniform, [50, 500000])
             },
             'isolation_forest': {
+                'max_samples': (hp.uniform, [0.05, 0.99]),
                 'max_features': (hp.uniform, [0.05, 0.99]),
                 'bootstrap': (hp.choice, [[True, False]])
             },
