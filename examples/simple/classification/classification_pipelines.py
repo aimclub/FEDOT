@@ -98,6 +98,17 @@ def classification_random_forest_pipeline():
     return Pipeline(node_final)
 
 
+def classification_isolation_forest_pipeline():
+    """
+    Returns pipeline with the following structure:
+    scaling -> isolation_forest -> rf -> final prediction
+    """
+    node_first = PrimaryNode('scaling')
+    node_second = SecondaryNode('isolation_forest_class', nodes_from=[node_first])
+    node_final = SecondaryNode('rf', nodes_from=[node_second])
+    return Pipeline(node_final)
+
+
 def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:

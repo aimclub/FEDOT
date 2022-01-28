@@ -199,6 +199,16 @@ class SearchSpace:
                 'max_trials': (hp.uniform, [50, 500]),
                 'max_skips': (hp.uniform, [50, 500000])
             },
+            'isolation_forest_reg': {
+                'max_samples': (hp.uniform, [0.05, 0.99]),
+                'max_features': (hp.uniform, [0.05, 0.99]),
+                'bootstrap': (hp.choice, [[True, False]])
+            },
+            'isolation_forest_class': {
+                'max_samples': (hp.uniform, [0.05, 0.99]),
+                'max_features': (hp.uniform, [0.05, 0.99]),
+                'bootstrap': (hp.choice, [[True, False]])
+            },
             'rfe_lin_reg': {
                 'n_features_to_select': (hp.choice, [[0.5, 0.7, 0.9]]),
                 'step': (hp.choice, [[0.1, 0.15, 0.2]])

@@ -10,6 +10,8 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
+    import IsolationForestRegImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -42,7 +44,8 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
         'ransac_non_lin_reg': NonLinearRegRANSACImplementation,
         'rfe_lin_reg': LinearRegFSImplementation,
         'rfe_non_lin_reg': NonLinearRegFSImplementation,
-        'decompose': DecomposerRegImplementation
+        'decompose': DecomposerRegImplementation,
+        'isolation_forest_reg': IsolationForestRegImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

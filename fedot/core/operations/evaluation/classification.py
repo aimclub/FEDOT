@@ -15,6 +15,8 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
     keras import FedotCNNImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
+    import IsolationForestClassImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -113,6 +115,7 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
         'rfe_non_lin_class': NonLinearClassFSImplementation,
         'class_decompose': DecomposerClassImplementation,
         'resample': ResampleImplementation,
+        'isolation_forest_class': IsolationForestClassImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
