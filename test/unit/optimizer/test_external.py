@@ -10,6 +10,7 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
+
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
@@ -25,13 +26,17 @@ class StaticOptimizer(GraphOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
-                 log: Log = None):
+                 log: Log = None,
+                 **kwargs):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
         self.change_types = []
+        self.node_name = kwargs.get('node_name')
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True):
+        if self.node_name:
+            return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('xgboost'))
 
 
@@ -41,12 +46,12 @@ def test_external_static_optimizer(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     automl = Fedot(problem='classification', timeout=0.1, verbose_level=4,
-                   preset='fast_train', composer_params={'with_tuning': False})
-    automl.api_composer.optimiser = StaticOptimizer
-
+                   preset='fast_train', composer_params={'with_tuning': False,
+                                                         'optimizer': StaticOptimizer,
+                                                         'optimizer_external_params': {'node_name': 'lgbm'}})
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 
-    expected_pipeline = Pipeline(PrimaryNode('xgboost'))
+    expected_pipeline = Pipeline(PrimaryNode('lgbm'))
 
     assert obtained_pipeline.root_node.descriptive_id == expected_pipeline.root_node.descriptive_id

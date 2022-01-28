@@ -1,4 +1,4 @@
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Dict
 
 from deap import tools
 
@@ -22,6 +22,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 class ComposerBuilder:
     def __init__(self, task: Task):
+        self.optimizer_external_parameters = {}
         self._composer = GPComposer()
         self.optimiser = EvoGraphOptimiser
         self.optimiser_parameters = GPGraphOptimiserParameters()
@@ -29,11 +30,14 @@ class ComposerBuilder:
         self.set_default_composer_params()
 
     def with_optimiser(self, optimiser: Optional[GraphOptimiser] = None,
-                       parameters: Optional[GraphOptimiserParameters] = None):
+                       parameters: Optional[GraphOptimiserParameters] = None,
+                       optimizer_external_parameters: Optional[Dict] = None):
         if optimiser is not None:
             self.optimiser = optimiser
         if parameters is not None:
             self.optimiser_parameters = parameters
+        if optimizer_external_parameters is not None:
+            self.optimizer_external_parameters = optimizer_external_parameters
         return self
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
@@ -101,7 +105,8 @@ class ComposerBuilder:
                                    requirements=self._composer.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters, log=self._composer.log,
-                                   metrics=self._composer.metrics)
+                                   metrics=self._composer.metrics,
+                                   **self.optimizer_external_parameters)
 
         self._composer.optimiser = optimiser
 

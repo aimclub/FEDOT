@@ -1,43 +1,59 @@
+import numpy as np
 import pandas as pd
 
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.api.main import Fedot
-from fedot.core.repository.tasks import TsForecastingParams
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
+datasets = {
+    'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
+    'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
+    'salaries': f'{fedot_project_root()}/examples/data/ts/salaries.csv',
+    'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
-def run_ts_forecasting_example(with_plot=True, with_pipeline_vis=True, timeout: float = None):
-    train_data_path = f'{fedot_project_root()}/examples/data/ts/salaries.csv'
 
-    target = pd.read_csv(train_data_path)['value']
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None):
+    time_series = pd.read_csv(datasets[dataset])
 
-    # Define forecast length and define parameters - forecast length
-    forecast_length = 30
-    task_parameters = TsForecastingParams(forecast_length=forecast_length)
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=horizon))
+    if dataset not in ['australia']:
+        idx = pd.to_datetime(time_series['idx'].values)
+    else:
+        # non datetime indexes
+        idx = time_series['idx'].values
+    time_series = time_series['value'].values
+    train_input = InputData(idx=idx,
+                            features=time_series,
+                            target=time_series,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
+    train_data, test_data = train_test_data_setup(train_input)
 
     # init model for the time series forecasting
     model = Fedot(problem='ts_forecasting',
-                  task_params=task_parameters,
+                  task_params=task.task_params,
                   timeout=timeout,
-                  composer_params={'initial_assumption': ts_polyfit_ridge_pipeline(2)},
                   preset='fast_train')
 
     # run AutoML model design in the same way
-    pipeline = model.fit(features=train_data_path, target='value')
-    if with_pipeline_vis:
-        pipeline.show()
+    pipeline = model.fit(train_data)
+    pipeline.show()
 
     # use model to obtain forecast
-    forecast = model.predict(features=train_data_path)
-
+    forecast = model.predict(test_data)
+    target = np.ravel(test_data.target)
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
     # plot forecasting result
-    if with_plot:
-        model.plot_prediction()
+    model.plot_prediction()
 
     return forecast
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(timeout=0.5)
+    run_ts_forecasting_example(dataset='stackoverflow', horizon=30, timeout=0.5)
