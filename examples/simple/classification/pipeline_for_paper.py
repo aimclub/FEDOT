@@ -2,7 +2,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-def simple_linear_pipeline():
+def simple_ensemble_pipeline():
     node_first = PrimaryNode('scaling')
     node_isolation_forest = SecondaryNode('isolation_forest_class',
                                           nodes_from=[node_first])
