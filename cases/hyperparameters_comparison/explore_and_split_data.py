@@ -17,14 +17,13 @@ for filename in os.listdir(short_path):
     data.rename(columns={data.columns.values[-1]: 'target'}, inplace=True)
 
     name = filename.replace('.csv', '')
-    task = data_sources.loc[name]['task']
     rows = data.shape[0]
 
     features_dtypes = data.iloc[:, :-1].dtypes.astype(str).value_counts().to_dict()
 
     cat_features = features_dtypes['object'] if 'object' in features_dtypes else 0
     num_features = data.shape[1] - cat_features - 1
-    if task == 'classification':
+    if data_sources.loc[name]['task'] == 'classification':
         data['target'] = OrdinalEncoder().fit_transform(data[['target']])
         num_classes = data['target'].nunique()
     else:
@@ -39,7 +38,7 @@ for filename in os.listdir(short_path):
     train, test = train_test_split(data,
                                    test_size=test_size,
                                    random_state=16777216,
-                                   stratify=data['target'] if task == 'classification' else None)
+                                   stratify=data.iloc[:, -1])
 
     train.index = [i for i in range(train.shape[0])]
     test.index = [i for i in range(test.shape[0])]
