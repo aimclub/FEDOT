@@ -1,0 +1,3 @@
+name,rows,num_features,cat_features,num_classes,task,source
+adult,48842,6,8,2,classification,https://www.openml.org/d/1590
+mammography,11183,6,0,2,classification,https://www.openml.org/d/310
