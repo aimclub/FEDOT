@@ -1,4 +1,6 @@
 name,task,source
 adult,classification,https://www.openml.org/d/1590
 bank-marketing,classification,https://www.openml.org/d/1461
+electricity,classification,https://www.openml.org/d/151
+fried,regression,https://www.openml.org/d/564
 mammography,classification,https://www.openml.org/d/310

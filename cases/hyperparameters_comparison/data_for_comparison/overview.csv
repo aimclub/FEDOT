@@ -1,3 +1,6 @@
 name,rows,num_features,cat_features,num_classes,task,source
 adult,48842,6,8,2,classification,https://www.openml.org/d/1590
+bank-marketing,45211,7,9,2,classification,https://www.openml.org/d/1461
+electricity,45312,8,0,2,classification,https://www.openml.org/d/151
+fried,40768,10,0,-1,regression,https://www.openml.org/d/564
 mammography,11183,6,0,2,classification,https://www.openml.org/d/310
