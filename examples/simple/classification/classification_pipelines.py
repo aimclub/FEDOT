@@ -211,17 +211,20 @@ def classification_with_regression_pipeline():
     ↑          ↓                  ↓
    data        ↓                   xgboost -> final prediction
     ↓          ↓                  ↑
-    ↓    -> decompose -> rfr
+    ↓    -> decompose -> rfr ->
 
 
     Where logit - logistic regression, rfr - random forest regression, xgboost - xg boost classifier
     """
 
-    logit_node_primary = PrimaryNode('logit')
-    decompose_node_primary = PrimaryNode('decompose')
+    node_scaling = PrimaryNode('scaling')
 
-    rfr_node_third = SecondaryNode('rfr', nodes_from=[decompose_node_primary])
-    xgboost_root = SecondaryNode('xgboost', nodes_from=[logit_node_primary, rfr_node_third])
+    logit_node_second = SecondaryNode('logit', nodes_from=[node_scaling])
+    class_decompose_node_second = SecondaryNode('class_decompose', nodes_from=[node_scaling, logit_node_second])
+
+    rfr_node_third = SecondaryNode('rfr', nodes_from=[class_decompose_node_second])
+
+    xgboost_root = SecondaryNode('xgboost', nodes_from=[logit_node_second, rfr_node_third])
 
     pipeline = Pipeline(xgboost_root)
 
