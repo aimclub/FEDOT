@@ -103,7 +103,7 @@ def get_classification_data(classes_amount: int = 2):
 
 def test_finding_side_root_node():
     """
-    The function tests finding side root node in pipeline with the following structure:
+    Returns pipeline with the following structure:
 
     ↑    ->   logit      ->
     ↑          ↓                  ↓
@@ -114,32 +114,22 @@ def test_finding_side_root_node():
     Where logit - logistic regression, rfr - random forest regression, xgboost - xg boost classifier
     """
 
-    reg_root_node = 'rfr'
-
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
-    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
+    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
+    assert reg_pipeline.nodes[0] is pipeline.nodes[1]
 
-    assert reg_pipeline.root_node.operation.operation_type == reg_root_node
 
-
-def test_pipeline_for_side_task_predict():
-    """ The function checks whether the pipeline for the side task
-    gives correct predictions
-    """
-
+def test_pipeline_predict():
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
+    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
 
     train_data, test_data = data_with_complicated_types()
     pipeline.fit_from_scratch(train_data)
-    predicted_labels = pipeline.predict(test_data)
-    preds = predicted_labels.predict
 
-    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
-    reg_predicted_labels = reg_pipeline.predict(test_data)
-    reg_preds = reg_predicted_labels.predict
+    reg_pipeline.preprocessor = pipeline.preprocessor
+    predicted_labels = reg_pipeline.predict(test_data)
 
-    assert reg_predicted_labels is not None
-    assert not (preds == reg_preds).all()
+    assert predicted_labels is not None
 
 
 def test_order_by_data_flow_len_correct():
