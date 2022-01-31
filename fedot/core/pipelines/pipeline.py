@@ -312,16 +312,24 @@ class Pipeline(Graph):
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
 
-    @property
-    def last_reg_node(self) -> Optional[Node]:
+    def pipeline_from_side_root_node(self, task_type: TaskTypesEnum) -> 'Pipeline':
+        """
+        Method returns pipeline formed from the last node solving the given problem and all its parents
+
+        :param task_type: task type last node to search for
+        :returns: pipeline formed from the last node solving the given problem and all its parents
+        """
+
         max_distance = 0
-        last_reg_node = None
+        side_root_node = None
         for node in self.nodes:
-            if TaskTypesEnum.regression in node.operation.acceptable_task_types \
+            if task_type in node.operation.acceptable_task_types \
                     and node.distance_to_primary_level >= max_distance:
-                last_reg_node = node
+                side_root_node = node
                 max_distance = node.distance_to_primary_level
-        return last_reg_node
+
+        pipeline = Pipeline(side_root_node)
+        return pipeline
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):

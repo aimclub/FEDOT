@@ -8,15 +8,8 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 
-def test_multi_modal_pipeline():
-    task = Task(TaskTypesEnum.classification)
+def generate_multi_modal_pipeline():
     images_size = (128, 128)
-
-    files_path = os.path.join('test', 'data', 'multi_modal')
-    path = os.path.join(str(fedot_project_root()), files_path)
-
-    train_num, _, train_img, _, train_text, _ = \
-        prepare_multi_modal_data(path, task, images_size, with_split=False)
 
     # image
     image_node = PrimaryNode('cnn')
@@ -47,6 +40,20 @@ def test_multi_modal_pipeline():
 
     pipeline = Pipeline(SecondaryNode('logit', nodes_from=[numeric_node, image_node, text_node]))
 
+    return pipeline
+
+
+def test_multi_modal_pipeline():
+    pipeline = generate_multi_modal_pipeline()
+
+    files_path = os.path.join('test', 'data', 'multi_modal')
+    path = os.path.join(str(fedot_project_root()), files_path)
+    task = Task(TaskTypesEnum.classification)
+    images_size = (128, 128)
+
+    train_num, _, train_img, _, train_text, _ = \
+        prepare_multi_modal_data(path, task, images_size, with_split=False)
+
     fit_data = MultiModalData({
         'data_source_img': train_img,
         'data_source_table': train_num,
@@ -57,3 +64,12 @@ def test_multi_modal_pipeline():
     prediction = pipeline.predict(fit_data)
 
     assert prediction is not None
+
+
+def test_finding_side_root_node_in_multi_modal_pipeline():
+    pipeline = generate_multi_modal_pipeline()
+
+    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
+
+    assert reg_pipeline.nodes[0] is pipeline.nodes[2]
+

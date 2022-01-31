@@ -12,6 +12,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.preprocessing.test_preprocessors import data_with_complicated_types
 
 
 def generate_pipeline_with_decomposition(primary_operation, secondary_operation):
@@ -98,6 +99,37 @@ def get_classification_data(classes_amount: int = 2):
                               task=task, data_type=DataTypesEnum.table)
 
     return train_input, predict_input
+
+
+def test_finding_side_root_node():
+    """
+    Returns pipeline with the following structure:
+
+    ↑    ->   logit      ->
+    ↑          ↓                  ↓
+   scaling     ↓                   xgboost -> final prediction
+    ↓          ↓                  ↑
+    ↓    -> decompose -> rfr ->
+
+    Where logit - logistic regression, rfr - random forest regression, xgboost - xg boost classifier
+    """
+
+    pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
+    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
+    assert reg_pipeline.nodes[0] is pipeline.nodes[1]
+
+
+def test_pipeline_predict():
+    pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
+    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
+
+    train_data, test_data = data_with_complicated_types()
+    pipeline.fit_from_scratch(train_data)
+
+    reg_pipeline.preprocessor = pipeline.preprocessor
+    predicted_labels = reg_pipeline.predict(test_data)
+
+    assert predicted_labels is not None
 
 
 def test_order_by_data_flow_len_correct():
