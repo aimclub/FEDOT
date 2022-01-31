@@ -14,6 +14,7 @@ from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.core.repository.tasks import TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -310,6 +311,17 @@ class Pipeline(Graph):
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
+
+    @property
+    def last_reg_node(self) -> Optional[Node]:
+        max_distance = 0
+        last_reg_node = None
+        for node in self.nodes:
+            if TaskTypesEnum.regression in node.operation.acceptable_task_types \
+                    and node.distance_to_primary_level >= max_distance:
+                last_reg_node = node
+                max_distance = node.distance_to_primary_level
+        return last_reg_node
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):

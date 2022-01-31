@@ -201,3 +201,31 @@ def classification_xgboost_complex_pipeline():
 
     pipeline.add_node(root_of_tree)
     return pipeline
+
+
+def classification_with_regression_pipeline():
+    """
+    Returns pipeline with the following structure:
+
+    ↑    ->   logit      ->
+    ↑          ↓                  ↓
+   data        ↓                   xgboost -> final prediction
+    ↓          ↓                  ↑
+    ↓    -> decompose -> rfr
+
+
+    Where logit - logistic regression, rfr - random forest regression, xgboost - xg boost classifier
+    """
+
+    logit_node_primary = PrimaryNode('logit')
+    decompose_node_primary = PrimaryNode('decompose')
+
+    rfr_node_third = SecondaryNode('rfr', nodes_from=[decompose_node_primary])
+    xgboost_root = SecondaryNode('xgboost', nodes_from=[logit_node_primary, rfr_node_third])
+
+    pipeline = Pipeline(xgboost_root)
+
+    return pipeline
+
+
+
