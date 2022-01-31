@@ -1,0 +1,1211 @@
+buying,maint,doors,persons,lug_boot,safety
+med   ,low  ,3    ,2      ,small   ,low
+high  ,low  ,5more,4      ,big     ,high
+high  ,high ,2    ,4      ,med     ,med
+vhigh ,high ,3    ,more   ,big     ,low
+high  ,high ,3    ,more   ,med     ,low
+high  ,med  ,4    ,2      ,big     ,med
+high  ,med  ,4    ,4      ,small   ,high
+high  ,med  ,3    ,more   ,med     ,low
+low   ,med  ,3    ,4      ,big     ,high
+high  ,med  ,2    ,more   ,big     ,high
+low   ,high ,4    ,2      ,big     ,med
+high  ,med  ,3    ,more   ,small   ,med
+high  ,low  ,2    ,more   ,big     ,med
+med   ,high ,2    ,2      ,small   ,high
+low   ,low  ,4    ,2      ,small   ,low
+low   ,vhigh,4    ,4      ,big     ,high
+med   ,low  ,2    ,2      ,big     ,high
+low   ,vhigh,5more,4      ,big     ,low
+low   ,med  ,2    ,4      ,big     ,high
+high  ,high ,2    ,2      ,small   ,low
+med   ,vhigh,2    ,4      ,small   ,high
+high  ,low  ,4    ,2      ,big     ,high
+high  ,high ,4    ,more   ,small   ,high
+med   ,med  ,5more,2      ,med     ,low
+vhigh ,low  ,4    ,more   ,small   ,med
+med   ,med  ,5more,2      ,med     ,high
+vhigh ,vhigh,2    ,2      ,small   ,med
+vhigh ,med  ,5more,4      ,big     ,high
+med   ,high ,5more,4      ,small   ,low
+low   ,low  ,5more,4      ,small   ,low
+high  ,high ,4    ,2      ,med     ,low
+high  ,med  ,2    ,2      ,small   ,med
+med   ,vhigh,4    ,more   ,med     ,low
+vhigh ,vhigh,4    ,4      ,small   ,low
+vhigh ,high ,2    ,more   ,small   ,low
+low   ,high ,4    ,2      ,small   ,high
+low   ,med  ,3    ,more   ,med     ,med
+vhigh ,med  ,3    ,4      ,med     ,high
+med   ,vhigh,5more,2      ,big     ,low
+high  ,low  ,2    ,more   ,small   ,low
+low   ,high ,3    ,2      ,big     ,low
+med   ,med  ,4    ,4      ,med     ,low
+vhigh ,low  ,4    ,more   ,med     ,high
+high  ,low  ,2    ,2      ,med     ,low
+low   ,high ,3    ,more   ,big     ,low
+low   ,high ,5more,4      ,med     ,med
+low   ,low  ,5more,more   ,small   ,high
+low   ,med  ,5more,4      ,big     ,med
+low   ,low  ,2    ,more   ,med     ,high
+vhigh ,vhigh,5more,more   ,big     ,med
+vhigh ,low  ,3    ,4      ,small   ,med
+vhigh ,vhigh,3    ,more   ,small   ,high
+high  ,med  ,3    ,4      ,small   ,med
+vhigh ,high ,2    ,4      ,med     ,high
+med   ,vhigh,3    ,4      ,big     ,high
+low   ,high ,5more,4      ,small   ,med
+vhigh ,med  ,2    ,4      ,big     ,low
+vhigh ,vhigh,3    ,4      ,big     ,high
+vhigh ,low  ,4    ,more   ,small   ,high
+med   ,high ,5more,more   ,big     ,high
+high  ,high ,3    ,2      ,med     ,low
+low   ,high ,2    ,4      ,small   ,med
+vhigh ,high ,4    ,more   ,big     ,high
+low   ,vhigh,3    ,more   ,big     ,med
+low   ,low  ,5more,more   ,small   ,low
+low   ,med  ,4    ,4      ,med     ,med
+high  ,low  ,5more,more   ,med     ,med
+low   ,vhigh,2    ,more   ,med     ,med
+low   ,high ,2    ,more   ,big     ,med
+med   ,low  ,5more,2      ,big     ,low
+vhigh ,vhigh,4    ,4      ,small   ,med
+med   ,med  ,4    ,4      ,big     ,low
+vhigh ,low  ,5more,more   ,big     ,med
+vhigh ,low  ,4    ,4      ,small   ,med
+vhigh ,vhigh,3    ,4      ,med     ,high
+high  ,high ,4    ,2      ,small   ,low
+vhigh ,vhigh,3    ,2      ,big     ,med
+med   ,vhigh,3    ,2      ,med     ,med
+high  ,vhigh,4    ,more   ,med     ,high
+low   ,high ,2    ,more   ,big     ,high
+high  ,low  ,5more,2      ,big     ,high
+low   ,med  ,5more,2      ,med     ,high
+low   ,high ,4    ,2      ,big     ,low
+vhigh ,high ,5more,4      ,small   ,med
+vhigh ,med  ,2    ,more   ,big     ,high
+med   ,med  ,3    ,4      ,big     ,high
+high  ,vhigh,3    ,more   ,big     ,low
+high  ,vhigh,5more,4      ,big     ,low
+low   ,vhigh,3    ,4      ,small   ,med
+med   ,med  ,2    ,more   ,big     ,high
+med   ,med  ,3    ,more   ,big     ,high
+low   ,high ,4    ,more   ,med     ,high
+med   ,vhigh,4    ,2      ,big     ,high
+low   ,vhigh,4    ,more   ,big     ,high
+low   ,med  ,5more,more   ,med     ,med
+low   ,high ,5more,4      ,med     ,high
+high  ,med  ,5more,2      ,small   ,med
+vhigh ,low  ,2    ,4      ,big     ,high
+med   ,low  ,2    ,2      ,small   ,high
+low   ,high ,2    ,more   ,med     ,high
+med   ,low  ,2    ,4      ,small   ,med
+vhigh ,low  ,2    ,4      ,med     ,low
+vhigh ,med  ,2    ,4      ,big     ,high
+vhigh ,med  ,3    ,4      ,big     ,low
+high  ,low  ,4    ,more   ,small   ,low
+low   ,low  ,4    ,4      ,big     ,low
+low   ,vhigh,5more,2      ,big     ,high
+low   ,vhigh,2    ,2      ,big     ,high
+high  ,vhigh,4    ,4      ,small   ,low
+low   ,med  ,4    ,2      ,med     ,low
+vhigh ,vhigh,5more,more   ,small   ,med
+med   ,high ,2    ,4      ,med     ,med
+med   ,med  ,2    ,more   ,small   ,high
+med   ,high ,3    ,4      ,big     ,med
+high  ,low  ,3    ,2      ,big     ,low
+med   ,low  ,4    ,4      ,small   ,low
+low   ,high ,5more,2      ,big     ,high
+vhigh ,high ,5more,more   ,med     ,med
+vhigh ,high ,2    ,4      ,small   ,high
+vhigh ,low  ,2    ,more   ,small   ,med
+med   ,high ,3    ,2      ,med     ,low
+low   ,high ,2    ,2      ,big     ,low
+low   ,high ,2    ,more   ,med     ,low
+low   ,low  ,5more,more   ,med     ,low
+vhigh ,high ,2    ,4      ,med     ,med
+vhigh ,low  ,3    ,2      ,med     ,high
+med   ,med  ,2    ,4      ,big     ,med
+vhigh ,high ,4    ,4      ,big     ,med
+med   ,vhigh,4    ,2      ,big     ,med
+high  ,vhigh,4    ,more   ,big     ,med
+vhigh ,vhigh,5more,more   ,small   ,low
+high  ,vhigh,5more,more   ,big     ,high
+med   ,low  ,3    ,4      ,small   ,med
+high  ,low  ,5more,more   ,small   ,med
+vhigh ,vhigh,3    ,2      ,small   ,med
+med   ,high ,3    ,more   ,big     ,low
+low   ,high ,5more,4      ,big     ,high
+high  ,low  ,5more,4      ,med     ,high
+low   ,vhigh,2    ,2      ,med     ,high
+vhigh ,low  ,2    ,4      ,big     ,low
+high  ,low  ,4    ,2      ,big     ,med
+low   ,high ,3    ,4      ,small   ,med
+vhigh ,med  ,2    ,more   ,small   ,high
+low   ,high ,3    ,more   ,small   ,high
+low   ,low  ,4    ,4      ,small   ,med
+low   ,med  ,3    ,more   ,big     ,low
+low   ,vhigh,2    ,4      ,small   ,low
+high  ,high ,5more,4      ,small   ,low
+vhigh ,low  ,4    ,4      ,med     ,med
+low   ,vhigh,5more,2      ,med     ,low
+med   ,med  ,2    ,2      ,big     ,med
+high  ,high ,3    ,2      ,big     ,high
+low   ,low  ,2    ,more   ,big     ,high
+med   ,high ,5more,4      ,med     ,low
+high  ,high ,4    ,more   ,big     ,med
+vhigh ,med  ,2    ,2      ,big     ,med
+med   ,vhigh,3    ,more   ,med     ,med
+low   ,low  ,3    ,more   ,big     ,med
+low   ,med  ,5more,2      ,small   ,low
+high  ,med  ,4    ,more   ,med     ,high
+high  ,high ,3    ,2      ,med     ,med
+high  ,vhigh,5more,4      ,small   ,low
+high  ,high ,3    ,more   ,small   ,med
+vhigh ,vhigh,2    ,4      ,med     ,high
+low   ,low  ,5more,4      ,med     ,low
+vhigh ,high ,2    ,2      ,small   ,low
+vhigh ,high ,4    ,more   ,med     ,low
+vhigh ,low  ,3    ,2      ,small   ,high
+low   ,med  ,3    ,4      ,small   ,high
+low   ,low  ,4    ,2      ,small   ,high
+med   ,low  ,5more,4      ,big     ,med
+vhigh ,low  ,4    ,4      ,med     ,high
+high  ,vhigh,2    ,4      ,med     ,med
+low   ,med  ,2    ,more   ,big     ,high
+vhigh ,med  ,5more,more   ,big     ,low
+high  ,vhigh,3    ,more   ,small   ,high
+vhigh ,high ,4    ,4      ,small   ,low
+low   ,vhigh,4    ,2      ,med     ,med
+high  ,high ,4    ,4      ,big     ,low
+low   ,low  ,3    ,2      ,small   ,med
+vhigh ,high ,3    ,2      ,big     ,med
+low   ,high ,3    ,more   ,med     ,low
+low   ,vhigh,3    ,2      ,med     ,med
+med   ,low  ,2    ,more   ,big     ,med
+vhigh ,med  ,2    ,2      ,small   ,low
+high  ,vhigh,4    ,4      ,med     ,med
+low   ,high ,4    ,4      ,small   ,med
+med   ,vhigh,2    ,4      ,med     ,high
+med   ,low  ,4    ,more   ,small   ,high
+vhigh ,med  ,4    ,4      ,big     ,med
+vhigh ,vhigh,4    ,more   ,big     ,low
+vhigh ,med  ,3    ,2      ,big     ,med
+low   ,low  ,4    ,2      ,big     ,med
+med   ,vhigh,4    ,4      ,med     ,med
+high  ,med  ,4    ,more   ,med     ,low
+high  ,low  ,2    ,more   ,small   ,med
+med   ,high ,5more,more   ,small   ,low
+vhigh ,low  ,5more,4      ,big     ,low
+low   ,high ,5more,more   ,med     ,med
+med   ,low  ,2    ,2      ,med     ,low
+high  ,vhigh,2    ,more   ,med     ,low
+vhigh ,vhigh,5more,more   ,big     ,low
+med   ,high ,4    ,4      ,big     ,high
+med   ,med  ,2    ,2      ,big     ,high
+vhigh ,vhigh,4    ,more   ,small   ,low
+vhigh ,low  ,5more,more   ,small   ,low
+low   ,med  ,2    ,more   ,med     ,high
+low   ,med  ,4    ,4      ,big     ,high
+high  ,med  ,2    ,more   ,med     ,high
+vhigh ,med  ,2    ,more   ,med     ,high
+vhigh ,high ,2    ,2      ,med     ,high
+vhigh ,low  ,2    ,2      ,med     ,high
+high  ,high ,4    ,more   ,small   ,med
+vhigh ,med  ,4    ,2      ,big     ,low
+med   ,high ,3    ,more   ,big     ,high
+vhigh ,low  ,4    ,4      ,big     ,high
+med   ,med  ,2    ,4      ,small   ,high
+high  ,low  ,4    ,4      ,big     ,med
+vhigh ,high ,3    ,more   ,small   ,low
+vhigh ,vhigh,5more,2      ,big     ,high
+med   ,med  ,2    ,more   ,med     ,low
+low   ,med  ,4    ,more   ,small   ,low
+med   ,high ,3    ,2      ,small   ,high
+low   ,high ,2    ,4      ,med     ,low
+high  ,vhigh,4    ,more   ,small   ,med
+low   ,high ,5more,4      ,small   ,high
+low   ,vhigh,3    ,more   ,small   ,high
+high  ,med  ,5more,2      ,med     ,high
+med   ,vhigh,2    ,2      ,small   ,high
+low   ,high ,2    ,2      ,big     ,high
+med   ,low  ,2    ,2      ,big     ,low
+vhigh ,med  ,4    ,2      ,med     ,high
+high  ,low  ,3    ,2      ,small   ,med
+high  ,med  ,3    ,2      ,med     ,low
+med   ,vhigh,3    ,more   ,big     ,med
+high  ,high ,5more,4      ,med     ,high
+med   ,low  ,2    ,4      ,med     ,low
+low   ,low  ,5more,4      ,small   ,high
+low   ,vhigh,3    ,more   ,big     ,high
+low   ,med  ,2    ,4      ,small   ,med
+high  ,low  ,5more,4      ,small   ,low
+vhigh ,med  ,5more,more   ,small   ,med
+vhigh ,high ,2    ,4      ,big     ,med
+high  ,low  ,2    ,4      ,small   ,med
+med   ,vhigh,3    ,2      ,small   ,high
+vhigh ,vhigh,4    ,4      ,big     ,high
+med   ,high ,5more,2      ,small   ,med
+high  ,low  ,5more,2      ,small   ,low
+low   ,low  ,5more,4      ,med     ,high
+low   ,high ,4    ,2      ,med     ,low
+med   ,vhigh,3    ,more   ,small   ,high
+low   ,med  ,4    ,2      ,small   ,med
+vhigh ,low  ,5more,2      ,small   ,med
+low   ,vhigh,2    ,more   ,big     ,med
+low   ,low  ,5more,2      ,med     ,low
+vhigh ,vhigh,2    ,2      ,med     ,high
+low   ,vhigh,5more,more   ,med     ,low
+vhigh ,low  ,3    ,4      ,big     ,high
+high  ,low  ,5more,more   ,big     ,low
+vhigh ,low  ,2    ,more   ,big     ,high
+vhigh ,low  ,4    ,2      ,big     ,high
+med   ,med  ,3    ,4      ,med     ,med
+low   ,high ,4    ,4      ,med     ,med
+vhigh ,med  ,4    ,more   ,big     ,low
+vhigh ,vhigh,2    ,more   ,small   ,high
+low   ,med  ,5more,2      ,big     ,low
+vhigh ,med  ,5more,2      ,small   ,low
+vhigh ,vhigh,3    ,more   ,small   ,low
+high  ,low  ,2    ,more   ,med     ,high
+vhigh ,med  ,3    ,more   ,small   ,med
+med   ,low  ,3    ,2      ,big     ,med
+vhigh ,med  ,5more,4      ,small   ,low
+med   ,low  ,5more,more   ,big     ,med
+vhigh ,med  ,5more,2      ,big     ,low
+low   ,vhigh,4    ,more   ,small   ,med
+med   ,high ,3    ,4      ,med     ,med
+high  ,low  ,4    ,2      ,med     ,low
+med   ,vhigh,3    ,more   ,med     ,high
+med   ,vhigh,4    ,2      ,med     ,med
+med   ,med  ,3    ,more   ,small   ,high
+med   ,vhigh,2    ,4      ,med     ,med
+high  ,med  ,5more,2      ,med     ,med
+high  ,med  ,3    ,2      ,big     ,med
+high  ,vhigh,4    ,2      ,big     ,high
+med   ,med  ,3    ,2      ,med     ,high
+high  ,vhigh,3    ,more   ,big     ,high
+high  ,high ,3    ,4      ,small   ,med
+vhigh ,med  ,4    ,more   ,big     ,high
+low   ,vhigh,3    ,4      ,big     ,high
+high  ,high ,2    ,2      ,big     ,low
+low   ,vhigh,4    ,2      ,big     ,high
+vhigh ,vhigh,3    ,more   ,med     ,med
+vhigh ,med  ,5more,4      ,small   ,med
+med   ,high ,5more,4      ,big     ,high
+med   ,low  ,2    ,more   ,small   ,low
+low   ,high ,2    ,2      ,small   ,med
+high  ,vhigh,4    ,more   ,med     ,low
+high  ,vhigh,2    ,2      ,med     ,med
+vhigh ,high ,3    ,more   ,med     ,high
+high  ,vhigh,3    ,more   ,med     ,high
+med   ,low  ,4    ,more   ,big     ,med
+high  ,med  ,2    ,more   ,big     ,low
+vhigh ,low  ,3    ,4      ,med     ,low
+high  ,med  ,5more,more   ,big     ,low
+high  ,low  ,3    ,2      ,big     ,med
+high  ,vhigh,4    ,4      ,big     ,high
+low   ,vhigh,4    ,more   ,med     ,high
+high  ,vhigh,4    ,4      ,big     ,low
+med   ,med  ,4    ,2      ,big     ,low
+low   ,vhigh,3    ,more   ,med     ,med
+low   ,high ,4    ,more   ,small   ,high
+vhigh ,vhigh,2    ,more   ,big     ,high
+low   ,low  ,3    ,4      ,small   ,low
+vhigh ,low  ,5more,more   ,med     ,med
+vhigh ,vhigh,5more,2      ,small   ,med
+low   ,med  ,4    ,2      ,med     ,high
+vhigh ,med  ,5more,more   ,med     ,low
+med   ,low  ,4    ,4      ,med     ,high
+med   ,high ,3    ,4      ,small   ,low
+high  ,high ,5more,more   ,big     ,high
+vhigh ,high ,5more,4      ,small   ,high
+med   ,high ,2    ,4      ,med     ,low
+med   ,med  ,3    ,4      ,med     ,low
+low   ,low  ,5more,more   ,big     ,low
+vhigh ,vhigh,2    ,more   ,small   ,low
+vhigh ,high ,2    ,more   ,big     ,high
+med   ,low  ,4    ,more   ,big     ,high
+vhigh ,low  ,3    ,4      ,med     ,high
+vhigh ,high ,3    ,4      ,small   ,low
+med   ,med  ,4    ,2      ,med     ,med
+med   ,med  ,2    ,4      ,big     ,low
+low   ,vhigh,2    ,4      ,small   ,high
+low   ,med  ,4    ,more   ,med     ,high
+low   ,low  ,5more,4      ,big     ,low
+low   ,low  ,3    ,2      ,big     ,high
+high  ,med  ,3    ,more   ,big     ,med
+vhigh ,vhigh,2    ,4      ,med     ,low
+high  ,high ,3    ,more   ,big     ,low
+med   ,high ,2    ,more   ,med     ,high
+low   ,low  ,4    ,4      ,med     ,high
+vhigh ,high ,5more,2      ,big     ,low
+vhigh ,med  ,3    ,2      ,med     ,med
+vhigh ,vhigh,4    ,4      ,small   ,high
+vhigh ,high ,4    ,more   ,med     ,high
+med   ,vhigh,3    ,2      ,small   ,med
+low   ,vhigh,4    ,2      ,small   ,med
+med   ,vhigh,2    ,2      ,med     ,low
+low   ,high ,4    ,4      ,big     ,high
+low   ,vhigh,3    ,2      ,med     ,low
+high  ,vhigh,4    ,2      ,med     ,med
+vhigh ,high ,5more,2      ,med     ,low
+vhigh ,high ,2    ,2      ,big     ,med
+high  ,med  ,3    ,2      ,med     ,med
+high  ,vhigh,3    ,more   ,big     ,med
+med   ,low  ,3    ,4      ,med     ,med
+high  ,low  ,4    ,more   ,big     ,low
+vhigh ,vhigh,3    ,2      ,small   ,low
+vhigh ,low  ,2    ,2      ,med     ,low
+vhigh ,med  ,2    ,2      ,big     ,low
+low   ,low  ,2    ,2      ,small   ,med
+vhigh ,med  ,3    ,more   ,big     ,high
+med   ,med  ,3    ,more   ,big     ,low
+high  ,high ,4    ,2      ,med     ,high
+vhigh ,med  ,4    ,2      ,med     ,med
+med   ,low  ,2    ,more   ,med     ,low
+vhigh ,med  ,4    ,more   ,small   ,low
+vhigh ,med  ,3    ,more   ,small   ,high
+vhigh ,vhigh,2    ,2      ,small   ,high
+med   ,vhigh,5more,2      ,small   ,high
+high  ,low  ,2    ,2      ,small   ,med
+low   ,med  ,3    ,4      ,med     ,high
+med   ,vhigh,4    ,4      ,med     ,low
+high  ,med  ,5more,4      ,med     ,low
+med   ,low  ,2    ,4      ,big     ,low
+high  ,low  ,4    ,more   ,med     ,high
+low   ,high ,5more,2      ,small   ,med
+low   ,med  ,2    ,4      ,med     ,high
+med   ,med  ,2    ,2      ,med     ,high
+low   ,low  ,4    ,2      ,med     ,med
+high  ,high ,3    ,more   ,small   ,high
+low   ,low  ,2    ,more   ,med     ,low
+vhigh ,vhigh,5more,2      ,med     ,low
+high  ,high ,4    ,more   ,med     ,low
+high  ,low  ,3    ,more   ,small   ,low
+low   ,vhigh,5more,4      ,big     ,med
+med   ,vhigh,5more,4      ,med     ,high
+high  ,low  ,2    ,4      ,med     ,low
+low   ,low  ,5more,4      ,big     ,high
+low   ,low  ,4    ,more   ,big     ,high
+vhigh ,med  ,5more,2      ,big     ,high
+vhigh ,vhigh,3    ,2      ,med     ,med
+low   ,med  ,3    ,more   ,small   ,med
+vhigh ,med  ,5more,more   ,med     ,med
+med   ,low  ,5more,more   ,small   ,high
+med   ,med  ,5more,2      ,small   ,med
+med   ,med  ,4    ,4      ,big     ,high
+vhigh ,high ,3    ,4      ,small   ,med
+high  ,high ,3    ,4      ,med     ,low
+vhigh ,low  ,3    ,4      ,small   ,high
+med   ,vhigh,2    ,4      ,small   ,low
+high  ,vhigh,3    ,2      ,med     ,low
+vhigh ,high ,5more,2      ,small   ,high
+med   ,vhigh,5more,more   ,med     ,low
+high  ,low  ,5more,more   ,big     ,med
+low   ,high ,3    ,4      ,big     ,high
+med   ,low  ,5more,4      ,small   ,high
+med   ,high ,2    ,2      ,big     ,med
+vhigh ,vhigh,4    ,more   ,small   ,high
+vhigh ,low  ,2    ,4      ,small   ,high
+med   ,low  ,3    ,more   ,small   ,high
+med   ,low  ,2    ,4      ,small   ,high
+vhigh ,med  ,5more,more   ,big     ,med
+vhigh ,med  ,2    ,4      ,med     ,med
+low   ,low  ,5more,4      ,small   ,med
+high  ,high ,5more,2      ,med     ,high
+high  ,high ,4    ,4      ,med     ,high
+high  ,med  ,3    ,more   ,small   ,high
+med   ,med  ,5more,2      ,big     ,high
+high  ,med  ,2    ,4      ,med     ,high
+med   ,high ,5more,more   ,big     ,low
+vhigh ,vhigh,4    ,more   ,big     ,med
+high  ,med  ,5more,more   ,small   ,med
+low   ,med  ,2    ,2      ,med     ,low
+low   ,med  ,2    ,more   ,big     ,low
+vhigh ,vhigh,4    ,2      ,med     ,low
+med   ,high ,5more,4      ,med     ,med
+high  ,high ,3    ,2      ,small   ,high
+high  ,high ,2    ,4      ,big     ,high
+low   ,vhigh,4    ,2      ,big     ,med
+high  ,high ,4    ,4      ,small   ,med
+vhigh ,med  ,5more,more   ,small   ,high
+vhigh ,vhigh,5more,more   ,med     ,med
+high  ,high ,4    ,4      ,med     ,med
+vhigh ,high ,5more,2      ,big     ,med
+low   ,med  ,3    ,2      ,small   ,low
+high  ,high ,5more,2      ,big     ,high
+med   ,low  ,5more,more   ,med     ,low
+med   ,low  ,3    ,4      ,big     ,low
+vhigh ,low  ,2    ,more   ,big     ,med
+med   ,vhigh,2    ,more   ,small   ,high
+low   ,high ,3    ,2      ,med     ,high
+high  ,vhigh,3    ,2      ,med     ,med
+med   ,low  ,3    ,more   ,big     ,high
+high  ,high ,5more,4      ,small   ,med
+low   ,med  ,3    ,2      ,big     ,high
+vhigh ,vhigh,4    ,more   ,med     ,high
+med   ,med  ,4    ,more   ,med     ,high
+med   ,vhigh,3    ,4      ,small   ,low
+low   ,low  ,2    ,4      ,big     ,low
+vhigh ,low  ,2    ,2      ,small   ,low
+med   ,low  ,2    ,more   ,small   ,med
+high  ,low  ,3    ,more   ,med     ,med
+med   ,high ,4    ,more   ,big     ,low
+med   ,med  ,2    ,more   ,med     ,med
+high  ,med  ,2    ,more   ,med     ,low
+vhigh ,low  ,4    ,4      ,big     ,low
+vhigh ,high ,2    ,more   ,med     ,high
+high  ,vhigh,5more,more   ,med     ,high
+vhigh ,vhigh,2    ,2      ,med     ,med
+high  ,high ,2    ,more   ,med     ,high
+low   ,vhigh,2    ,2      ,small   ,high
+vhigh ,high ,5more,more   ,big     ,high
+high  ,vhigh,2    ,more   ,big     ,high
+med   ,med  ,3    ,2      ,small   ,med
+low   ,med  ,2    ,more   ,small   ,high
+low   ,high ,5more,2      ,small   ,high
+high  ,high ,5more,2      ,big     ,low
+low   ,high ,4    ,more   ,med     ,low
+high  ,med  ,2    ,more   ,small   ,med
+vhigh ,med  ,4    ,2      ,big     ,med
+med   ,med  ,5more,2      ,small   ,low
+med   ,vhigh,3    ,more   ,big     ,low
+vhigh ,vhigh,4    ,2      ,med     ,med
+vhigh ,vhigh,2    ,more   ,big     ,low
+low   ,low  ,2    ,2      ,small   ,low
+med   ,med  ,4    ,more   ,big     ,low
+low   ,high ,3    ,2      ,small   ,med
+high  ,high ,5more,more   ,big     ,med
+med   ,low  ,3    ,2      ,med     ,med
+med   ,med  ,3    ,4      ,small   ,high
+med   ,low  ,2    ,4      ,med     ,med
+high  ,med  ,4    ,4      ,med     ,med
+high  ,vhigh,4    ,2      ,small   ,low
+high  ,high ,4    ,4      ,big     ,high
+high  ,low  ,2    ,4      ,small   ,low
+high  ,high ,5more,2      ,small   ,low
+high  ,low  ,5more,2      ,med     ,med
+high  ,vhigh,3    ,more   ,small   ,med
+high  ,low  ,4    ,2      ,med     ,med
+low   ,med  ,3    ,4      ,big     ,med
+low   ,med  ,4    ,2      ,big     ,high
+vhigh ,high ,3    ,more   ,small   ,high
+med   ,high ,3    ,2      ,small   ,low
+high  ,high ,2    ,4      ,small   ,med
+high  ,low  ,3    ,more   ,small   ,med
+low   ,high ,5more,2      ,med     ,med
+vhigh ,vhigh,4    ,more   ,med     ,med
+high  ,vhigh,2    ,2      ,small   ,high
+high  ,low  ,3    ,more   ,big     ,low
+low   ,med  ,3    ,4      ,small   ,low
+high  ,med  ,3    ,more   ,med     ,high
+vhigh ,low  ,5more,more   ,big     ,low
+vhigh ,vhigh,4    ,more   ,small   ,med
+med   ,vhigh,4    ,more   ,med     ,high
+vhigh ,low  ,4    ,2      ,big     ,low
+low   ,med  ,4    ,2      ,big     ,low
+med   ,vhigh,5more,2      ,med     ,high
+low   ,med  ,3    ,2      ,small   ,med
+med   ,vhigh,2    ,2      ,med     ,high
+med   ,med  ,2    ,4      ,small   ,low
+vhigh ,high ,2    ,2      ,big     ,low
+med   ,low  ,4    ,4      ,big     ,high
+low   ,low  ,2    ,more   ,small   ,med
+high  ,vhigh,3    ,2      ,med     ,high
+med   ,vhigh,2    ,4      ,big     ,med
+high  ,high ,3    ,2      ,big     ,low
+high  ,low  ,3    ,more   ,med     ,high
+med   ,med  ,4    ,4      ,med     ,high
+vhigh ,high ,3    ,4      ,med     ,low
+med   ,high ,3    ,more   ,small   ,med
+vhigh ,vhigh,5more,4      ,big     ,high
+med   ,low  ,4    ,2      ,small   ,low
+vhigh ,vhigh,4    ,2      ,small   ,high
+low   ,vhigh,4    ,4      ,small   ,high
+low   ,high ,4    ,more   ,small   ,low
+high  ,vhigh,4    ,2      ,med     ,high
+med   ,low  ,3    ,2      ,med     ,high
+high  ,high ,5more,more   ,med     ,med
+med   ,med  ,3    ,2      ,big     ,med
+vhigh ,vhigh,2    ,more   ,med     ,high
+vhigh ,med  ,2    ,4      ,big     ,med
+high  ,vhigh,2    ,4      ,big     ,high
+low   ,vhigh,4    ,more   ,big     ,low
+low   ,vhigh,2    ,more   ,small   ,low
+vhigh ,high ,5more,more   ,small   ,high
+med   ,vhigh,4    ,4      ,big     ,med
+med   ,med  ,4    ,2      ,small   ,med
+low   ,low  ,3    ,2      ,med     ,med
+low   ,high ,4    ,2      ,med     ,high
+vhigh ,low  ,5more,2      ,big     ,high
+low   ,high ,2    ,4      ,big     ,med
+low   ,med  ,3    ,more   ,big     ,high
+high  ,high ,3    ,4      ,small   ,low
+high  ,high ,2    ,more   ,big     ,low
+high  ,vhigh,4    ,2      ,big     ,med
+high  ,med  ,3    ,more   ,big     ,high
+low   ,high ,5more,more   ,med     ,low
+high  ,low  ,2    ,more   ,small   ,high
+vhigh ,high ,2    ,more   ,med     ,low
+low   ,med  ,4    ,4      ,small   ,low
+med   ,high ,5more,more   ,small   ,high
+med   ,high ,3    ,2      ,med     ,med
+high  ,med  ,5more,4      ,small   ,high
+high  ,med  ,2    ,more   ,big     ,med
+med   ,low  ,2    ,more   ,med     ,high
+med   ,low  ,3    ,more   ,small   ,med
+med   ,high ,3    ,2      ,big     ,med
+med   ,high ,5more,more   ,big     ,med
+high  ,low  ,5more,4      ,small   ,high
+vhigh ,high ,5more,more   ,big     ,med
+low   ,low  ,4    ,more   ,big     ,low
+vhigh ,high ,4    ,4      ,med     ,high
+med   ,low  ,3    ,4      ,big     ,high
+vhigh ,vhigh,3    ,more   ,big     ,low
+low   ,low  ,5more,more   ,med     ,med
+low   ,low  ,3    ,more   ,med     ,low
+low   ,vhigh,3    ,more   ,med     ,low
+high  ,vhigh,4    ,4      ,med     ,low
+high  ,vhigh,5more,more   ,small   ,low
+vhigh ,low  ,2    ,2      ,small   ,med
+low   ,vhigh,5more,more   ,small   ,low
+low   ,low  ,3    ,more   ,med     ,high
+high  ,low  ,2    ,more   ,med     ,low
+low   ,med  ,5more,2      ,big     ,high
+high  ,high ,3    ,more   ,big     ,high
+vhigh ,med  ,2    ,more   ,med     ,low
+vhigh ,vhigh,3    ,2      ,med     ,low
+high  ,high ,4    ,2      ,big     ,high
+low   ,high ,2    ,4      ,big     ,low
+high  ,med  ,4    ,4      ,small   ,low
+high  ,high ,5more,2      ,small   ,high
+vhigh ,low  ,5more,2      ,med     ,high
+vhigh ,high ,5more,more   ,small   ,low
+med   ,med  ,4    ,2      ,small   ,low
+vhigh ,high ,4    ,4      ,med     ,low
+low   ,med  ,2    ,4      ,big     ,low
+vhigh ,high ,4    ,2      ,med     ,high
+med   ,low  ,3    ,4      ,small   ,high
+low   ,vhigh,2    ,more   ,small   ,high
+low   ,low  ,5more,4      ,med     ,med
+low   ,high ,4    ,more   ,big     ,high
+vhigh ,high ,3    ,more   ,med     ,med
+low   ,high ,2    ,more   ,big     ,low
+vhigh ,vhigh,3    ,4      ,med     ,med
+med   ,med  ,4    ,4      ,small   ,low
+med   ,low  ,4    ,4      ,med     ,low
+low   ,med  ,2    ,4      ,small   ,high
+high  ,high ,5more,2      ,med     ,low
+med   ,vhigh,5more,more   ,med     ,high
+vhigh ,high ,2    ,2      ,med     ,med
+low   ,high ,2    ,4      ,med     ,med
+high  ,low  ,2    ,4      ,med     ,high
+vhigh ,high ,5more,2      ,med     ,high
+med   ,vhigh,5more,2      ,small   ,med
+high  ,med  ,3    ,2      ,small   ,med
+high  ,vhigh,5more,more   ,small   ,med
+low   ,low  ,2    ,2      ,med     ,high
+vhigh ,low  ,3    ,2      ,small   ,med
+low   ,med  ,4    ,4      ,med     ,high
+vhigh ,low  ,4    ,more   ,small   ,low
+med   ,low  ,4    ,2      ,big     ,high
+low   ,low  ,3    ,more   ,small   ,med
+med   ,low  ,5more,4      ,small   ,med
+low   ,high ,5more,4      ,med     ,low
+high  ,low  ,4    ,4      ,small   ,high
+low   ,high ,3    ,4      ,med     ,high
+high  ,high ,5more,4      ,big     ,low
+med   ,med  ,4    ,2      ,med     ,high
+med   ,low  ,4    ,4      ,big     ,low
+med   ,vhigh,2    ,more   ,med     ,med
+high  ,vhigh,3    ,4      ,med     ,med
+med   ,med  ,3    ,4      ,big     ,low
+low   ,high ,3    ,more   ,big     ,med
+vhigh ,vhigh,3    ,2      ,big     ,high
+med   ,low  ,2    ,2      ,small   ,med
+vhigh ,high ,2    ,2      ,big     ,high
+med   ,med  ,3    ,2      ,big     ,high
+low   ,low  ,2    ,2      ,big     ,high
+med   ,high ,4    ,4      ,med     ,med
+low   ,high ,5more,more   ,small   ,med
+high  ,high ,2    ,2      ,med     ,high
+vhigh ,low  ,3    ,more   ,med     ,high
+low   ,low  ,2    ,more   ,big     ,med
+low   ,vhigh,4    ,4      ,big     ,low
+vhigh ,med  ,3    ,4      ,small   ,high
+vhigh ,med  ,2    ,2      ,big     ,high
+med   ,vhigh,4    ,2      ,med     ,low
+med   ,med  ,2    ,more   ,small   ,low
+vhigh ,med  ,4    ,more   ,med     ,high
+low   ,low  ,5more,2      ,small   ,high
+low   ,low  ,4    ,2      ,big     ,high
+high  ,vhigh,2    ,2      ,med     ,high
+low   ,vhigh,5more,more   ,med     ,med
+high  ,vhigh,4    ,4      ,med     ,high
+high  ,high ,4    ,more   ,med     ,high
+vhigh ,vhigh,3    ,more   ,big     ,high
+high  ,med  ,4    ,4      ,med     ,low
+med   ,high ,5more,4      ,med     ,high
+low   ,vhigh,4    ,more   ,big     ,med
+low   ,high ,3    ,4      ,big     ,low
+med   ,med  ,5more,4      ,small   ,high
+low   ,vhigh,3    ,2      ,big     ,high
+med   ,low  ,2    ,4      ,big     ,med
+high  ,med  ,2    ,2      ,med     ,low
+low   ,vhigh,4    ,4      ,med     ,high
+vhigh ,low  ,3    ,more   ,big     ,low
+high  ,med  ,4    ,4      ,med     ,high
+high  ,vhigh,5more,4      ,med     ,med
+high  ,med  ,4    ,more   ,small   ,med
+low   ,low  ,4    ,more   ,med     ,high
+vhigh ,med  ,3    ,4      ,med     ,low
+low   ,vhigh,3    ,more   ,big     ,low
+med   ,vhigh,4    ,more   ,med     ,med
+high  ,high ,5more,4      ,small   ,high
+med   ,vhigh,5more,more   ,med     ,med
+low   ,high ,5more,more   ,big     ,high
+med   ,vhigh,2    ,4      ,big     ,high
+vhigh ,low  ,2    ,more   ,med     ,med
+high  ,high ,4    ,more   ,small   ,low
+low   ,med  ,2    ,more   ,small   ,low
+low   ,vhigh,5more,2      ,med     ,med
+med   ,high ,2    ,2      ,small   ,low
+low   ,vhigh,5more,more   ,big     ,low
+med   ,vhigh,5more,4      ,small   ,high
+med   ,med  ,4    ,more   ,small   ,med
+vhigh ,vhigh,5more,4      ,small   ,low
+high  ,med  ,2    ,2      ,small   ,high
+vhigh ,low  ,5more,4      ,big     ,med
+vhigh ,high ,3    ,2      ,small   ,low
+high  ,low  ,3    ,2      ,med     ,med
+vhigh ,low  ,2    ,2      ,big     ,low
+low   ,vhigh,3    ,4      ,big     ,low
+low   ,vhigh,3    ,4      ,med     ,high
+med   ,med  ,5more,more   ,med     ,med
+vhigh ,low  ,2    ,4      ,small   ,low
+med   ,high ,2    ,more   ,med     ,low
+med   ,low  ,2    ,2      ,med     ,high
+high  ,vhigh,3    ,more   ,small   ,low
+high  ,low  ,3    ,4      ,med     ,low
+vhigh ,low  ,5more,4      ,med     ,med
+high  ,vhigh,3    ,2      ,big     ,high
+med   ,low  ,2    ,4      ,big     ,high
+high  ,med  ,3    ,more   ,big     ,low
+med   ,med  ,4    ,more   ,med     ,med
+med   ,vhigh,4    ,more   ,big     ,med
+high  ,vhigh,2    ,4      ,med     ,high
+high  ,med  ,2    ,more   ,med     ,med
+med   ,high ,2    ,more   ,big     ,high
+med   ,med  ,3    ,2      ,small   ,low
+high  ,med  ,5more,more   ,big     ,med
+vhigh ,med  ,2    ,2      ,small   ,med
+med   ,high ,4    ,more   ,small   ,low
+low   ,vhigh,2    ,2      ,big     ,med
+vhigh ,low  ,5more,4      ,big     ,high
+vhigh ,high ,3    ,2      ,small   ,med
+med   ,vhigh,4    ,more   ,small   ,high
+vhigh ,med  ,4    ,2      ,small   ,low
+med   ,low  ,5more,2      ,small   ,low
+low   ,high ,3    ,2      ,small   ,high
+low   ,vhigh,2    ,4      ,small   ,med
+low   ,high ,4    ,4      ,small   ,low
+low   ,med  ,4    ,4      ,med     ,low
+high  ,vhigh,5more,2      ,small   ,med
+high  ,vhigh,5more,2      ,med     ,low
+vhigh ,med  ,3    ,4      ,big     ,high
+vhigh ,high ,5more,4      ,big     ,med
+high  ,low  ,5more,2      ,med     ,low
+med   ,med  ,4    ,2      ,big     ,med
+med   ,med  ,5more,more   ,small   ,low
+vhigh ,low  ,3    ,more   ,med     ,low
+med   ,low  ,3    ,more   ,big     ,med
+med   ,med  ,5more,4      ,med     ,high
+med   ,med  ,5more,4      ,med     ,low
+low   ,med  ,5more,4      ,small   ,med
+high  ,med  ,4    ,4      ,big     ,low
+vhigh ,low  ,4    ,2      ,small   ,low
+low   ,med  ,2    ,4      ,big     ,med
+vhigh ,low  ,5more,4      ,med     ,low
+high  ,high ,4    ,more   ,big     ,high
+med   ,med  ,4    ,4      ,big     ,med
+low   ,low  ,3    ,2      ,med     ,high
+vhigh ,low  ,4    ,2      ,med     ,high
+high  ,high ,4    ,2      ,small   ,high
+high  ,vhigh,3    ,4      ,med     ,low
+high  ,med  ,4    ,4      ,big     ,high
+low   ,med  ,3    ,4      ,med     ,med
+low   ,vhigh,4    ,4      ,small   ,med
+vhigh ,low  ,4    ,4      ,big     ,med
+vhigh ,vhigh,3    ,more   ,small   ,med
+low   ,med  ,5more,more   ,small   ,high
+low   ,low  ,2    ,more   ,small   ,high
+med   ,vhigh,2    ,4      ,med     ,low
+vhigh ,high ,4    ,more   ,big     ,low
+high  ,med  ,4    ,more   ,small   ,low
+low   ,vhigh,5more,2      ,small   ,med
+vhigh ,med  ,3    ,more   ,big     ,low
+med   ,low  ,3    ,4      ,med     ,high
+med   ,high ,5more,more   ,med     ,low
+vhigh ,med  ,4    ,more   ,med     ,med
+vhigh ,med  ,3    ,2      ,small   ,med
+vhigh ,high ,4    ,4      ,big     ,high
+med   ,vhigh,2    ,more   ,small   ,low
+low   ,low  ,3    ,4      ,med     ,low
+low   ,high ,3    ,2      ,big     ,high
+high  ,low  ,2    ,2      ,med     ,med
+high  ,vhigh,5more,more   ,big     ,med
+med   ,vhigh,5more,more   ,big     ,low
+med   ,vhigh,4    ,more   ,big     ,high
+high  ,med  ,5more,2      ,small   ,low
+med   ,med  ,4    ,2      ,big     ,high
+med   ,med  ,5more,4      ,small   ,med
+med   ,med  ,5more,4      ,big     ,med
+med   ,med  ,3    ,more   ,med     ,med
+vhigh ,med  ,3    ,2      ,med     ,low
+high  ,vhigh,3    ,4      ,big     ,med
+vhigh ,vhigh,3    ,2      ,med     ,high
+med   ,low  ,4    ,4      ,small   ,high
+low   ,low  ,4    ,4      ,big     ,high
+vhigh ,high ,4    ,2      ,med     ,med
+vhigh ,low  ,3    ,more   ,small   ,high
+high  ,low  ,3    ,4      ,small   ,low
+high  ,high ,4    ,4      ,small   ,high
+high  ,med  ,5more,4      ,big     ,low
+med   ,vhigh,2    ,2      ,med     ,med
+low   ,med  ,4    ,more   ,big     ,med
+high  ,med  ,4    ,2      ,med     ,high
+high  ,low  ,4    ,2      ,med     ,high
+high  ,vhigh,5more,4      ,med     ,high
+low   ,high ,2    ,4      ,med     ,high
+med   ,high ,2    ,more   ,small   ,med
+med   ,med  ,3    ,4      ,small   ,med
+med   ,vhigh,3    ,2      ,small   ,low
+vhigh ,med  ,5more,4      ,med     ,low
+vhigh ,vhigh,4    ,2      ,small   ,med
+high  ,high ,4    ,2      ,big     ,low
+high  ,med  ,3    ,4      ,big     ,med
+vhigh ,med  ,5more,4      ,big     ,low
+high  ,high ,4    ,2      ,med     ,med
+low   ,med  ,5more,2      ,big     ,med
+low   ,high ,4    ,4      ,med     ,low
+vhigh ,low  ,2    ,2      ,big     ,med
+med   ,vhigh,4    ,2      ,small   ,high
+high  ,low  ,4    ,4      ,small   ,med
+med   ,high ,3    ,more   ,med     ,low
+high  ,high ,3    ,more   ,small   ,low
+vhigh ,med  ,4    ,2      ,big     ,high
+low   ,vhigh,3    ,2      ,small   ,low
+high  ,vhigh,2    ,more   ,big     ,med
+high  ,low  ,3    ,more   ,med     ,low
+low   ,med  ,3    ,2      ,small   ,high
+vhigh ,med  ,5more,4      ,med     ,high
+vhigh ,low  ,4    ,more   ,big     ,low
+low   ,high ,2    ,more   ,small   ,high
+med   ,high ,4    ,2      ,med     ,med
+med   ,vhigh,4    ,4      ,big     ,high
+med   ,high ,5more,4      ,small   ,med
+med   ,med  ,3    ,more   ,small   ,low
+high  ,high ,4    ,4      ,small   ,low
+high  ,low  ,5more,4      ,med     ,low
+med   ,high ,3    ,2      ,big     ,high
+med   ,low  ,3    ,more   ,small   ,low
+high  ,med  ,5more,4      ,med     ,high
+med   ,vhigh,5more,more   ,small   ,low
+vhigh ,vhigh,5more,4      ,med     ,med
+low   ,med  ,5more,4      ,big     ,low
+med   ,vhigh,5more,2      ,small   ,low
+vhigh ,high ,2    ,more   ,big     ,low
+med   ,high ,4    ,more   ,small   ,med
+high  ,med  ,2    ,4      ,big     ,med
+med   ,med  ,2    ,2      ,small   ,med
+low   ,low  ,3    ,4      ,med     ,med
+vhigh ,med  ,2    ,2      ,med     ,med
+med   ,vhigh,5more,more   ,small   ,med
+vhigh ,vhigh,5more,2      ,small   ,low
+low   ,vhigh,2    ,4      ,big     ,med
+low   ,vhigh,5more,2      ,small   ,low
+low   ,low  ,2    ,2      ,big     ,med
+high  ,vhigh,2    ,4      ,big     ,med
+low   ,med  ,5more,more   ,small   ,low
+high  ,med  ,4    ,2      ,small   ,med
+low   ,med  ,2    ,2      ,small   ,med
+high  ,med  ,3    ,4      ,big     ,low
+vhigh ,low  ,4    ,4      ,med     ,low
+high  ,high ,5more,more   ,med     ,high
+high  ,vhigh,3    ,4      ,small   ,low
+low   ,low  ,5more,2      ,small   ,med
+med   ,high ,5more,2      ,big     ,high
+med   ,low  ,2    ,2      ,big     ,med
+med   ,vhigh,2    ,more   ,big     ,high
+vhigh ,high ,4    ,more   ,med     ,med
+high  ,high ,4    ,2      ,big     ,med
+med   ,low  ,5more,more   ,med     ,high
+vhigh ,high ,5more,4      ,big     ,low
+high  ,low  ,3    ,2      ,med     ,low
+low   ,vhigh,4    ,more   ,med     ,med
+high  ,vhigh,4    ,2      ,small   ,med
+med   ,low  ,2    ,more   ,big     ,high
+low   ,high ,4    ,2      ,med     ,med
+med   ,vhigh,5more,4      ,big     ,high
+high  ,med  ,5more,more   ,small   ,low
+low   ,high ,5more,more   ,big     ,low
+low   ,vhigh,4    ,more   ,small   ,low
+vhigh ,med  ,3    ,4      ,small   ,med
+low   ,low  ,4    ,4      ,med     ,med
+vhigh ,low  ,5more,2      ,med     ,med
+med   ,med  ,5more,more   ,med     ,low
+low   ,vhigh,5more,4      ,med     ,med
+vhigh ,med  ,4    ,4      ,big     ,low
+vhigh ,vhigh,5more,4      ,big     ,med
+vhigh ,vhigh,3    ,4      ,small   ,low
+vhigh ,vhigh,2    ,4      ,small   ,med
+vhigh ,med  ,2    ,more   ,med     ,med
+low   ,vhigh,2    ,2      ,med     ,med
+vhigh ,low  ,5more,2      ,med     ,low
+high  ,low  ,4    ,more   ,small   ,med
+med   ,low  ,4    ,2      ,big     ,low
+med   ,vhigh,2    ,more   ,med     ,low
+vhigh ,vhigh,2    ,4      ,big     ,high
+vhigh ,low  ,3    ,4      ,big     ,low
+vhigh ,high ,5more,4      ,med     ,low
+high  ,vhigh,4    ,more   ,big     ,high
+high  ,vhigh,2    ,more   ,small   ,low
+low   ,med  ,4    ,more   ,small   ,med
+vhigh ,low  ,5more,more   ,small   ,high
+vhigh ,med  ,3    ,4      ,med     ,med
+low   ,high ,2    ,2      ,med     ,med
+high  ,low  ,5more,4      ,big     ,low
+low   ,med  ,4    ,2      ,small   ,low
+low   ,high ,2    ,2      ,small   ,low
+high  ,vhigh,4    ,more   ,small   ,high
+vhigh ,med  ,5more,2      ,small   ,high
+med   ,med  ,3    ,4      ,small   ,low
+high  ,high ,3    ,4      ,big     ,high
+high  ,med  ,5more,2      ,big     ,high
+high  ,med  ,3    ,2      ,big     ,high
+low   ,vhigh,3    ,2      ,small   ,high
+med   ,low  ,2    ,more   ,small   ,high
+low   ,low  ,4    ,2      ,med     ,low
+vhigh ,vhigh,4    ,2      ,med     ,high
+high  ,low  ,4    ,more   ,med     ,low
+med   ,vhigh,3    ,more   ,big     ,high
+vhigh ,high ,4    ,2      ,big     ,high
+vhigh ,high ,2    ,2      ,med     ,low
+low   ,low  ,5more,4      ,big     ,med
+med   ,vhigh,3    ,2      ,big     ,low
+med   ,low  ,5more,more   ,small   ,low
+med   ,med  ,2    ,2      ,small   ,high
+low   ,low  ,4    ,more   ,big     ,med
+vhigh ,high ,3    ,2      ,med     ,high
+med   ,high ,5more,2      ,small   ,high
+med   ,high ,4    ,4      ,small   ,low
+low   ,vhigh,3    ,more   ,small   ,low
+low   ,low  ,5more,more   ,big     ,high
+high  ,high ,5more,4      ,med     ,med
+high  ,high ,5more,2      ,big     ,med
+low   ,high ,2    ,more   ,small   ,med
+med   ,med  ,4    ,2      ,med     ,low
+med   ,high ,4    ,more   ,med     ,low
+high  ,low  ,5more,more   ,small   ,high
+high  ,low  ,4    ,2      ,small   ,high
+low   ,low  ,4    ,4      ,small   ,low
+low   ,med  ,2    ,4      ,med     ,low
+low   ,low  ,2    ,4      ,med     ,med
+low   ,low  ,5more,2      ,big     ,low
+med   ,high ,2    ,4      ,small   ,high
+high  ,high ,5more,more   ,med     ,low
+med   ,vhigh,3    ,4      ,med     ,med
+vhigh ,med  ,4    ,4      ,med     ,med
+vhigh ,vhigh,5more,4      ,small   ,high
+low   ,med  ,3    ,2      ,big     ,low
+vhigh ,vhigh,2    ,more   ,small   ,med
+vhigh ,low  ,3    ,2      ,med     ,med
+high  ,high ,5more,4      ,med     ,low
+vhigh ,low  ,2    ,4      ,big     ,med
+low   ,vhigh,5more,more   ,big     ,high
+low   ,vhigh,5more,2      ,big     ,med
+high  ,vhigh,3    ,2      ,small   ,low
+low   ,vhigh,5more,4      ,small   ,high
+med   ,high ,2    ,4      ,big     ,med
+med   ,low  ,5more,2      ,med     ,low
+low   ,high ,4    ,4      ,small   ,high
+low   ,vhigh,3    ,2      ,med     ,high
+med   ,high ,4    ,more   ,small   ,high
+high  ,vhigh,2    ,4      ,small   ,high
+med   ,vhigh,4    ,4      ,small   ,med
+med   ,vhigh,4    ,more   ,small   ,low
+low   ,low  ,4    ,4      ,med     ,low
+high  ,low  ,5more,2      ,small   ,high
+vhigh ,med  ,4    ,more   ,med     ,low
+med   ,high ,4    ,4      ,med     ,high
+high  ,med  ,5more,more   ,small   ,high
+high  ,med  ,5more,more   ,med     ,med
+vhigh ,low  ,4    ,4      ,small   ,low
+low   ,med  ,3    ,2      ,med     ,high
+med   ,med  ,2    ,2      ,med     ,low
+vhigh ,med  ,5more,2      ,med     ,low
+high  ,low  ,4    ,4      ,med     ,high
+low   ,vhigh,5more,4      ,med     ,low
+vhigh ,vhigh,4    ,4      ,big     ,low
+high  ,med  ,2    ,4      ,small   ,low
+med   ,vhigh,3    ,more   ,small   ,low
+vhigh ,high ,3    ,2      ,small   ,high
+vhigh ,low  ,3    ,4      ,small   ,low
+high  ,vhigh,5more,2      ,big     ,low
+low   ,high ,5more,2      ,small   ,low
+vhigh ,vhigh,5more,2      ,big     ,med
+high  ,high ,2    ,more   ,small   ,low
+vhigh ,low  ,5more,2      ,small   ,low
+med   ,low  ,5more,2      ,small   ,med
+med   ,high ,3    ,4      ,big     ,low
+med   ,high ,4    ,2      ,small   ,low
+high  ,high ,3    ,2      ,big     ,med
+low   ,low  ,5more,more   ,small   ,med
+low   ,vhigh,5more,4      ,big     ,high
+high  ,vhigh,2    ,4      ,big     ,low
+low   ,high ,5more,2      ,med     ,high
+high  ,high ,2    ,2      ,small   ,med
+high  ,med  ,4    ,2      ,med     ,low
+low   ,high ,3    ,2      ,big     ,med
+high  ,med  ,2    ,more   ,small   ,low
+low   ,vhigh,4    ,4      ,small   ,low
+low   ,vhigh,2    ,4      ,med     ,high
+med   ,vhigh,2    ,more   ,small   ,med
+vhigh ,med  ,4    ,2      ,small   ,high
+high  ,vhigh,4    ,more   ,med     ,med
+low   ,high ,3    ,4      ,med     ,med
+high  ,high ,2    ,4      ,big     ,med
+vhigh ,med  ,2    ,4      ,med     ,low
+high  ,vhigh,4    ,4      ,small   ,med
+vhigh ,med  ,3    ,2      ,small   ,high
+med   ,low  ,3    ,2      ,big     ,low
+high  ,vhigh,5more,4      ,med     ,low
+low   ,vhigh,2    ,4      ,med     ,med
+low   ,high ,4    ,4      ,big     ,low
+vhigh ,low  ,5more,2      ,big     ,low
+vhigh ,high ,2    ,more   ,small   ,med
+vhigh ,med  ,4    ,4      ,big     ,high
+med   ,vhigh,5more,2      ,med     ,low
+high  ,low  ,3    ,2      ,small   ,high
+high  ,med  ,4    ,4      ,small   ,med
+med   ,high ,5more,more   ,med     ,high
+high  ,high ,4    ,4      ,big     ,med
+vhigh ,low  ,5more,4      ,small   ,med
+high  ,med  ,4    ,2      ,med     ,med
+vhigh ,high ,4    ,more   ,big     ,med
+high  ,vhigh,5more,more   ,small   ,high
+high  ,low  ,2    ,2      ,big     ,high
+high  ,med  ,3    ,2      ,small   ,low
+vhigh ,low  ,3    ,4      ,big     ,med
+low   ,low  ,2    ,2      ,small   ,high
+low   ,low  ,2    ,4      ,med     ,high
+low   ,high ,4    ,4      ,big     ,med
+vhigh ,med  ,5more,more   ,small   ,low
+high  ,med  ,3    ,4      ,med     ,low
+med   ,med  ,5more,more   ,small   ,med
+low   ,low  ,3    ,4      ,big     ,high
+vhigh ,vhigh,2    ,2      ,big     ,high
+vhigh ,med  ,2    ,4      ,small   ,high
+med   ,low  ,2    ,2      ,med     ,med
+vhigh ,vhigh,3    ,4      ,small   ,med
+low   ,low  ,2    ,4      ,big     ,high
+high  ,low  ,2    ,4      ,med     ,med
+vhigh ,low  ,3    ,more   ,big     ,med
+high  ,vhigh,2    ,2      ,big     ,high
+low   ,low  ,2    ,more   ,big     ,low
+low   ,med  ,2    ,2      ,big     ,low
+vhigh ,low  ,3    ,2      ,med     ,low
+high  ,med  ,4    ,4      ,big     ,med
+vhigh ,low  ,2    ,more   ,med     ,high
+med   ,high ,4    ,2      ,small   ,med
+low   ,med  ,2    ,2      ,med     ,high
+vhigh ,vhigh,4    ,4      ,big     ,med
+med   ,low  ,2    ,2      ,small   ,low
+vhigh ,low  ,3    ,2      ,big     ,high
+med   ,med  ,5more,4      ,small   ,low
+high  ,med  ,4    ,2      ,small   ,low
+high  ,high ,3    ,4      ,med     ,med
+vhigh ,high ,3    ,2      ,big     ,low
+low   ,high ,2    ,4      ,small   ,high
+low   ,high ,5more,more   ,med     ,high
+low   ,high ,3    ,more   ,med     ,high
+med   ,vhigh,3    ,more   ,med     ,low
+high  ,med  ,2    ,2      ,med     ,med
+low   ,med  ,3    ,more   ,med     ,low
+high  ,low  ,2    ,more   ,med     ,med
+high  ,low  ,4    ,4      ,small   ,low
+vhigh ,vhigh,2    ,more   ,med     ,med
+med   ,low  ,2    ,more   ,big     ,low
+med   ,high ,4    ,2      ,small   ,high
+low   ,high ,5more,4      ,big     ,med
+vhigh ,med  ,3    ,more   ,big     ,med
+low   ,med  ,5more,more   ,med     ,high
+low   ,low  ,4    ,more   ,small   ,med
+vhigh ,high ,2    ,2      ,small   ,high
+low   ,high ,4    ,2      ,small   ,med
+med   ,med  ,5more,more   ,big     ,high
+med   ,vhigh,2    ,2      ,big     ,med
+med   ,vhigh,5more,more   ,big     ,high
+vhigh ,high ,5more,more   ,med     ,high
+vhigh ,vhigh,3    ,2      ,big     ,low
+high  ,vhigh,3    ,4      ,small   ,high
+low   ,med  ,5more,4      ,small   ,high
+high  ,med  ,4    ,more   ,big     ,low
+high  ,med  ,2    ,4      ,big     ,high
+vhigh ,low  ,5more,2      ,big     ,med
+high  ,vhigh,2    ,2      ,big     ,med
+vhigh ,med  ,2    ,more   ,big     ,low
+med   ,med  ,4    ,more   ,big     ,high
+med   ,med  ,4    ,4      ,small   ,med
+high  ,vhigh,4    ,more   ,small   ,low
+low   ,vhigh,3    ,2      ,big     ,med
+vhigh ,low  ,3    ,more   ,big     ,high
+med   ,high ,2    ,more   ,big     ,low
+med   ,high ,2    ,2      ,med     ,med
+high  ,high ,5more,2      ,med     ,med
+med   ,vhigh,4    ,4      ,small   ,low
+high  ,low  ,2    ,4      ,small   ,high
+low   ,high ,3    ,2      ,med     ,low
+high  ,vhigh,4    ,2      ,big     ,low
+low   ,low  ,3    ,2      ,med     ,low
+med   ,high ,5more,2      ,med     ,high
+vhigh ,vhigh,4    ,2      ,big     ,high
+high  ,med  ,5more,more   ,med     ,high
+low   ,med  ,4    ,4      ,big     ,low
+low   ,high ,2    ,2      ,small   ,high
+low   ,high ,5more,4      ,small   ,low
+low   ,high ,2    ,more   ,small   ,low
+med   ,low  ,5more,4      ,big     ,high
+low   ,low  ,3    ,4      ,big     ,low
+high  ,low  ,2    ,more   ,big     ,high
+high  ,low  ,5more,4      ,small   ,med
+vhigh ,med  ,2    ,2      ,small   ,high
+vhigh ,low  ,5more,4      ,small   ,low
+med   ,low  ,3    ,more   ,med     ,low
+med   ,med  ,4    ,more   ,med     ,low
+vhigh ,low  ,2    ,more   ,small   ,low
+low   ,vhigh,3    ,2      ,big     ,low
+low   ,med  ,2    ,4      ,small   ,low
+high  ,med  ,5more,2      ,big     ,low
+high  ,med  ,2    ,2      ,big     ,low
+med   ,vhigh,5more,4      ,med     ,med
+med   ,low  ,3    ,more   ,med     ,med
+low   ,high ,5more,more   ,big     ,med
+low   ,low  ,5more,2      ,big     ,high
+med   ,low  ,4    ,more   ,med     ,low
+vhigh ,low  ,4    ,2      ,med     ,med
+vhigh ,med  ,5more,2      ,small   ,med
+med   ,low  ,4    ,2      ,med     ,high
+low   ,med  ,5more,more   ,big     ,high
+med   ,low  ,2    ,more   ,med     ,med
+med   ,high ,3    ,4      ,med     ,low
+med   ,high ,4    ,4      ,big     ,med
+vhigh ,vhigh,4    ,4      ,med     ,high
+high  ,high ,5more,more   ,big     ,low
+vhigh ,high ,4    ,2      ,small   ,high
+med   ,low  ,4    ,more   ,big     ,low
+low   ,low  ,2    ,2      ,med     ,low
+high  ,med  ,3    ,2      ,small   ,high
+med   ,vhigh,4    ,4      ,small   ,high
+high  ,vhigh,2    ,more   ,big     ,low
+vhigh ,high ,4    ,4      ,big     ,low
+low   ,med  ,3    ,more   ,med     ,high
+vhigh ,high ,2    ,more   ,med     ,med
+med   ,med  ,2    ,more   ,big     ,med
+high  ,high ,2    ,more   ,big     ,high
+low   ,low  ,5more,2      ,small   ,low
+vhigh ,vhigh,5more,2      ,med     ,med
+med   ,med  ,4    ,more   ,big     ,med
+high  ,low  ,5more,4      ,med     ,med
+high  ,low  ,4    ,more   ,big     ,high
+med   ,vhigh,4    ,2      ,med     ,high
+high  ,vhigh,5more,4      ,big     ,med
+vhigh ,low  ,5more,more   ,med     ,high
+vhigh ,low  ,3    ,more   ,med     ,med
+vhigh ,low  ,4    ,2      ,big     ,med
+low   ,vhigh,2    ,2      ,small   ,low
+low   ,low  ,4    ,2      ,med     ,high
+low   ,vhigh,5more,more   ,small   ,med
+vhigh ,high ,3    ,2      ,big     ,high
+low   ,low  ,4    ,2      ,big     ,low
+low   ,vhigh,4    ,4      ,med     ,low
+med   ,low  ,3    ,2      ,small   ,high
+vhigh ,vhigh,2    ,4      ,small   ,low
+low   ,vhigh,2    ,4      ,med     ,low
+med   ,low  ,5more,2      ,big     ,high
+high  ,med  ,2    ,2      ,big     ,med
+high  ,low  ,3    ,4      ,big     ,high
+vhigh ,vhigh,2    ,4      ,small   ,high
+high  ,high ,3    ,2      ,med     ,high
+med   ,low  ,3    ,4      ,big     ,med
+vhigh ,vhigh,2    ,4      ,big     ,med
+med   ,vhigh,4    ,4      ,big     ,low
+med   ,high ,4    ,more   ,big     ,med
+med   ,vhigh,4    ,2      ,small   ,low
+vhigh ,vhigh,4    ,2      ,big     ,low
+med   ,vhigh,5more,4      ,small   ,med
+low   ,low  ,3    ,4      ,small   ,high
+vhigh ,vhigh,4    ,4      ,med     ,low
+med   ,high ,2    ,4      ,big     ,low
+med   ,high ,4    ,4      ,big     ,low
+low   ,vhigh,3    ,more   ,small   ,med
+med   ,med  ,2    ,4      ,big     ,high
+high  ,med  ,4    ,2      ,small   ,high
+vhigh ,med  ,4    ,2      ,med     ,low
+vhigh ,low  ,2    ,4      ,med     ,high
+vhigh ,vhigh,3    ,more   ,med     ,high
+low   ,med  ,4    ,more   ,big     ,low
+low   ,med  ,5more,2      ,small   ,high
+low   ,med  ,3    ,2      ,med     ,med
+vhigh ,med  ,2    ,more   ,small   ,med
+med   ,med  ,3    ,4      ,med     ,high
+high  ,vhigh,3    ,4      ,big     ,high
+med   ,vhigh,2    ,2      ,small   ,med
+high  ,vhigh,5more,4      ,small   ,med
+low   ,low  ,3    ,2      ,big     ,low
+vhigh ,vhigh,5more,more   ,big     ,high
+med   ,high ,2    ,2      ,med     ,high
+low   ,med  ,4    ,2      ,big     ,med
+med   ,low  ,3    ,more   ,big     ,low
+med   ,high ,5more,4      ,big     ,low
+vhigh ,med  ,4    ,4      ,med     ,high
+low   ,med  ,3    ,more   ,small   ,high
+high  ,vhigh,4    ,2      ,small   ,high
+low   ,high ,4    ,more   ,med     ,med
+med   ,high ,3    ,4      ,med     ,high
+high  ,high ,4    ,2      ,small   ,med
+vhigh ,vhigh,5more,more   ,small   ,high
+high  ,med  ,3    ,2      ,big     ,low
+med   ,vhigh,4    ,4      ,med     ,high
+low   ,high ,3    ,more   ,small   ,low
+low   ,high ,4    ,more   ,big     ,med
+high  ,high ,5more,more   ,small   ,low
+high  ,low  ,4    ,2      ,small   ,low
+low   ,med  ,2    ,more   ,small   ,med
+low   ,low  ,3    ,4      ,small   ,med
+vhigh ,high ,3    ,2      ,med     ,low
+low   ,med  ,4    ,2      ,small   ,high
+vhigh ,low  ,2    ,2      ,med     ,med
+vhigh ,vhigh,4    ,2      ,small   ,low
+low   ,vhigh,5more,more   ,small   ,high
+vhigh ,med  ,3    ,more   ,med     ,high
+vhigh ,high ,4    ,2      ,big     ,low
+med   ,vhigh,3    ,4      ,med     ,low
+med   ,low  ,4    ,2      ,small   ,high
+high  ,med  ,3    ,4      ,med     ,high
+low   ,high ,3    ,more   ,small   ,med
+low   ,vhigh,5more,4      ,med     ,high
+high  ,low  ,5more,4      ,big     ,med
+vhigh ,low  ,2    ,more   ,big     ,low
+med   ,low  ,3    ,more   ,med     ,high
+vhigh ,high ,2    ,more   ,big     ,med
+low   ,med  ,4    ,2      ,med     ,med
+low   ,high ,2    ,more   ,med     ,med
+med   ,vhigh,4    ,2      ,small   ,med
+vhigh ,vhigh,3    ,4      ,med     ,low
+low   ,med  ,5more,more   ,big     ,low
+vhigh ,vhigh,2    ,2      ,big     ,med
+low   ,med  ,3    ,more   ,big     ,med
+low   ,high ,3    ,2      ,small   ,low
+vhigh ,high ,3    ,more   ,med     ,low
