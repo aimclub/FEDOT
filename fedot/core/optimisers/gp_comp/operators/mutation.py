@@ -4,6 +4,7 @@ from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Any, Callable, List, Union
 
 import numpy as np
+
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -137,7 +138,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                     new_individual.parent_operators.append(
                         ParentOperator(operator_type='mutation',
                                        operator_name=str(mutation_name),
-                                       parent_objects=[ind]))
+                                       parent_individuals=[ind]))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '

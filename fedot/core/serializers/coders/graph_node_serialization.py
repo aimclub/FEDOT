@@ -1,7 +1,6 @@
 from typing import Any, Dict
 
 from fedot.core.dag.graph_node import GraphNode
-
 from . import any_to_json
 
 
@@ -17,7 +16,7 @@ def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
     encoded['content']['name'] = str(encoded['content']['name'])
     if encoded['nodes_from']:
         encoded['nodes_from'] = [
-            node._serialization_id
+            node.uid
             for node in encoded['nodes_from']
         ]
     return encoded

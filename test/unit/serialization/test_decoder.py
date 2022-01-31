@@ -1,10 +1,6 @@
-from uuid import UUID
-
-import pytest
-from fedot.core.serializers import CLASS_PATH_KEY, Serializer
-
+from fedot.core.serializers import CLASS_PATH_KEY
 from .dataclasses.serialization_dataclasses import DecoderTestCase
-from .fixtures.serialization_fixtures import _get_class_fixture, _mock_classes_fixture
+from .fixtures.serialization_fixtures import *
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
 from .shared_data import (
     MOCK_NODE_1,
@@ -16,6 +12,8 @@ from .shared_data import (
     TestSerializableClass,
     test_func
 )
+
+_ = mock_classes_fixture
 
 DECODER_CASES = [
     DecoderTestCase(
@@ -100,9 +98,9 @@ DECODER_CASES.extend([
     ),
 ])
 
-MOCK_NODE_1_SERIALIZED = MockNode(MOCK_NODE_1.name, [node._serialization_id for node in MOCK_NODE_1.nodes_from])
-MOCK_NODE_2_SERIALIZED = MockNode(MOCK_NODE_2.name, [node._serialization_id for node in MOCK_NODE_2.nodes_from])
-MOCK_NODE_3_SERIALIZED = MockNode(MOCK_NODE_3.name, [node._serialization_id for node in MOCK_NODE_3.nodes_from])
+MOCK_NODE_1_SERIALIZED = MockNode(MOCK_NODE_1.name, [node.uid for node in MOCK_NODE_1.nodes_from])
+MOCK_NODE_2_SERIALIZED = MockNode(MOCK_NODE_2.name, [node.uid for node in MOCK_NODE_2.nodes_from])
+MOCK_NODE_3_SERIALIZED = MockNode(MOCK_NODE_3.name, [node.uid for node in MOCK_NODE_3.nodes_from])
 
 DECODER_CASES.extend([
     DecoderTestCase(
@@ -120,7 +118,7 @@ DECODER_CASES.extend([
 
 
 @pytest.mark.parametrize('case', DECODER_CASES)
-def test_decoder(case: DecoderTestCase, _get_class_fixture, _mock_classes_fixture):
+def test_decoder(case: DecoderTestCase, get_class_fixture, mock_classes_fixture):
     deserializer = Serializer()
     if isinstance(case.test_answer, Exception):
         with pytest.raises(type(case.test_answer)):

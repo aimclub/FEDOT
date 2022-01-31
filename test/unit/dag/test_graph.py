@@ -73,12 +73,13 @@ def test_delete_primary_node():
 
 
 def test_graph_copy():
-    pipeline = Graph(GraphNode(content='n1'))
-    pipeline_copy = copy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
+    graph = Graph(GraphNode(content='n1'))
+    graph_copy = copy(graph)
+    assert id(graph) != id(graph_copy)
 
 
-def test_pipeline_deepcopy():
-    pipeline = Graph(GraphNode(content='n1'))
-    pipeline_copy = deepcopy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
+def test_graph_deepcopy():
+    graph = Graph(GraphNode(content='n1'))
+    graph_copy = deepcopy(graph)
+    graph.nodes[0] = GraphNode(content='n11')
+    assert graph != graph_copy

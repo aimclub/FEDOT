@@ -2,7 +2,6 @@ from itertools import product
 from typing import Any, Dict, Type
 
 from fedot.core.dag.graph import Graph
-
 from . import any_to_json
 
 
@@ -16,8 +15,6 @@ def graph_to_json(obj: Graph) -> Dict[str, Any]:
         for k, v in any_to_json(obj).items()
         if k != 'operator'  # to prevent circular reference
     }
-    for idx, node in enumerate(serialized_obj['nodes']):
-        node._serialization_id = idx
     return serialized_obj
 
 
@@ -31,7 +28,7 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
     for node in nodes:
         if node.nodes_from:
             for (idx, inner_node_idx), outer_node in product(enumerate(node.nodes_from), nodes):
-                if inner_node_idx == outer_node._serialization_id:
+                if inner_node_idx == outer_node.uid:
                     node.nodes_from[idx] = outer_node
     obj.nodes = nodes
     vars(obj).update(**{k: v for k, v in json_obj.items() if k != 'nodes'})

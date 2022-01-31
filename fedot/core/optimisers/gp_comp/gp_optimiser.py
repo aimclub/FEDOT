@@ -32,6 +32,7 @@ from fedot.core.repository.quality_metrics_repository import MetricsEnum
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
 
+
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
     """
         This class is for defining the parameters of optimiser
@@ -125,6 +126,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.population = None
         self.initial_graph = initial_graph
+        self.prev_best = None
 
     def _create_randomized_pop_from_inital_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
         """
@@ -141,7 +143,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             n_iter -= 1
             new_ind = mutation(types=self.parameters.mutation_types,
                                params=self.graph_generation_params,
-                               ind=Individual(deepcopy(initial_graph)),
+                               ind=Individual(initial_graph),
                                requirements=initial_req,
                                max_depth=self.max_depth, log=self.log,
                                add_to_history=False)
@@ -227,8 +229,11 @@ class EvoGraphOptimiser(GraphOptimiser):
                 new_population = []
 
                 for parent_num in range(0, len(selected_individuals), 2):
-                    new_population += self.reproduce(selected_individuals[parent_num],
-                                                     selected_individuals[parent_num + 1])
+                    if parent_num + 1 < len(selected_individuals):
+                        new_population += self.reproduce(selected_individuals[parent_num],
+                                                         selected_individuals[parent_num + 1])
+                    else:
+                        new_population += self.reproduce(selected_individuals[parent_num])
 
                 new_population = self._evaluate_individuals(new_population, objective_function,
                                                             timer=t,
@@ -357,6 +362,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                                    max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
         for ind in new_inds:
             ind.fitness = None
+
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
@@ -383,7 +389,6 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
-
 
     def result_individual(self) -> Union[Any, List[Any]]:
         if not self.parameters.multi_objective:

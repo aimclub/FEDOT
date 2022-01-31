@@ -1,4 +1,5 @@
 from typing import List, Optional, Union
+from uuid import uuid4
 
 from fedot.core.dag.node_operator import NodeOperator
 
@@ -23,6 +24,7 @@ class GraphNode:
             content = {'name': content}
         self.content = content
         self._operator = NodeOperator(self)
+        self.uid = str(uuid4())
 
     def __str__(self):
         return str(self.content['name'])

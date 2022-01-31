@@ -47,11 +47,11 @@ def decremental_regularization(population: List[Individual], objective_function:
             add_ind.parent_operators.append(
                 ParentOperator(operator_type='regularization',
                                operator_name='decremental_regularization',
-                               parent_objects=[ind]))
+                               parent_individuals=[ind]))
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
 
-    is_multi_obj = (population[0].fitness) is MultiObjFitness
+    is_multi_obj = population[0].fitness is MultiObjFitness
     if additional_inds:
         evaluate_individuals(additional_inds, objective_function, params,
                              is_multi_obj, timer=timer)

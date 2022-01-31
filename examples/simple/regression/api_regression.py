@@ -1,3 +1,5 @@
+import os
+
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -6,6 +8,7 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_regression_example():
+    print(os.getcwd())
     data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
 
     data = InputData.from_csv(data_path,

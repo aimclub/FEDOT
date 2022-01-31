@@ -1,19 +1,12 @@
-import gc
-import multiprocessing
-import timeit
 import warnings
-from contextlib import closing
 from copy import deepcopy
 from random import choice, randint
-from types import SimpleNamespace
-from typing import Any, Callable, List, Tuple, Union, Dict
+from typing import Any, List, Tuple
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.evaluating import multiprocessing_mapping, single_evaluating, determine_n_jobs
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
@@ -147,7 +140,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     else:
         evaluated_individuals = single_evaluating(reversed_individuals)
 
-    if len(evaluated_individuals) == 0:
+    if len(evaluated_individuals) == 0 and len(reversed_individuals) != 0:
         raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
 
     return evaluated_individuals

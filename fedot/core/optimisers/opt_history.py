@@ -24,7 +24,7 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List['Individual']
+    parent_individuals: List['Individual']
     uid: str = None
 
     def __post_init__(self):
@@ -44,10 +44,12 @@ class OptHistory:
         self.save_folder: Optional[str] = save_folder
 
     def add_to_history(self, individuals: List['Individual']):
-        self.individuals.append([deepcopy(ind) for ind in individuals])
+        new_inds = [deepcopy(ind) for ind in individuals]
+        self.individuals.append(new_inds)
 
     def add_to_archive_history(self, individuals: List['Individual']):
-        self.archive_history.append([ind for ind in individuals])
+        new_inds = [deepcopy(ind) for ind in individuals]
+        self.archive_history.append(new_inds)
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()
@@ -94,7 +96,7 @@ class OptHistory:
                 last_gen = self.individuals[last_gen_id]
                 for ind_id, individual in enumerate(last_gen):
                     # TODO support multi-objective case
-                    ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.uid))
+                    ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
                     additional_info = \
                         {'fitness_name': self.short_metrics_names[0],
                          'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
