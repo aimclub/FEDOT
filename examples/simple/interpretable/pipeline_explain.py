@@ -1,13 +1,30 @@
 import os
 import pandas as pd
 
-from examples.simple.pipeline_tune import get_simple_pipeline
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from fedot.explainability.explainers import explain_pipeline
 
 
-if __name__ == '__main__':
+def get_example_pipeline():
+    """ Function return simple pipeline with the following structure:
+    xgboost \
+             -> logit
+      knn   |
+    """
+    first = PrimaryNode(operation_type='xgboost')
+    second = PrimaryNode(operation_type='knn')
+    final = SecondaryNode(operation_type='logit',
+                          nodes_from=[first, second])
+
+    pipeline = Pipeline(final)
+
+    return pipeline
+
+
+def run_pipeline_explain():
     # Specifying paths
     train_data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'cancer', 'cancer_train.csv')
     figure_path = 'pipeline_explain_example.png'
@@ -22,7 +39,7 @@ if __name__ == '__main__':
     train_data = InputData.from_csv(train_data_path)
 
     # Pipeline composition
-    pipeline = get_simple_pipeline()
+    pipeline = get_example_pipeline()
 
     # Pipeline fitting
     pipeline.fit(train_data, use_fitted=False)
@@ -34,3 +51,7 @@ if __name__ == '__main__':
     print(f'Built surrogate model: {explainer.surrogate_str}')
     explainer.visualize(save_path=figure_path, dpi=200, feature_names=feature_names, class_names=class_names,
                         precision=6)
+
+
+if __name__ == '__main__':
+    run_pipeline_explain()
