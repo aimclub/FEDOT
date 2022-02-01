@@ -1,27 +1,10 @@
 import os
 import pandas as pd
 
+from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
 from fedot.explainability.explainers import explain_pipeline
-
-
-def get_example_pipeline():
-    """ Function return simple pipeline with the following structure:
-    xgboost \
-             -> logit
-      knn   |
-    """
-    first = PrimaryNode(operation_type='xgboost')
-    second = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='logit',
-                          nodes_from=[first, second])
-
-    pipeline = Pipeline(final)
-
-    return pipeline
 
 
 def run_pipeline_explain():
@@ -39,7 +22,7 @@ def run_pipeline_explain():
     train_data = InputData.from_csv(train_data_path)
 
     # Pipeline composition
-    pipeline = get_example_pipeline()
+    pipeline = classification_complex_pipeline()
 
     # Pipeline fitting
     pipeline.fit(train_data, use_fitted=False)
