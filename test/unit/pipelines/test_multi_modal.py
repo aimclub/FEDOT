@@ -50,12 +50,6 @@ def generate_multi_task_pipeline():
     scaling_node_regr = SecondaryNode('scaling', nodes_from=[ds_regr])
     scaling_node_class = SecondaryNode('scaling', nodes_from=[ds_class])
 
-    pca_node_regr = SecondaryNode('pca', nodes_from=[scaling_node_regr])
-    pca_node_regr.custom_params = {'n_components': 0.2}
-
-    pca_node_class = SecondaryNode('pca', nodes_from=[scaling_node_class])
-    pca_node_class.custom_params = {'n_components': 0.2}
-
     class_node = SecondaryNode('dt', nodes_from=[scaling_node_class])
 
     root_regr = SecondaryNode('dtreg', nodes_from=[scaling_node_regr, class_node])

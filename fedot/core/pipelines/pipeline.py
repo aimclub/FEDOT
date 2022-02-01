@@ -323,7 +323,8 @@ class Pipeline(Graph):
         max_distance = 0
         side_root_node = None
         for node in self.nodes:
-            if task_type in node.operation.acceptable_task_types and node.distance_to_primary_level >= max_distance:
+            if task_type in node.operation.acceptable_task_types \
+                    and node.distance_to_primary_level >= max_distance:
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
 
