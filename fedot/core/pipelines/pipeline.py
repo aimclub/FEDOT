@@ -15,23 +15,9 @@ from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from fedot.core.repository.tasks import TaskTypesEnum
-
-from fedot.core.operations.evaluation.common_preprocessing import FedotPreprocessingStrategy
-from fedot.core.operations.evaluation.data_source import DataSourceStrategy
-from fedot.core.operations.evaluation.regression import FedotRegressionPreprocessingStrategy
-from fedot.core.operations.evaluation.classification import FedotClassificationPreprocessingStrategy
-from fedot.core.operations.evaluation.time_series import FedotTsTransformingStrategy
-from fedot.core.operations.evaluation.text import FedotTextPreprocessingStrategy
+from fedot.core.operations.model import Model
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
-
-preprocessing_strategies = [FedotPreprocessingStrategy,
-                            DataSourceStrategy,
-                            FedotRegressionPreprocessingStrategy,
-                            FedotClassificationPreprocessingStrategy,
-                            FedotTsTransformingStrategy,
-                            FedotTextPreprocessingStrategy]
-
 
 class Pipeline(Graph):
     """
@@ -338,7 +324,7 @@ class Pipeline(Graph):
         side_root_node = None
         for node in self.nodes:
             if task_type in node.operation.acceptable_task_types \
-                    and node.operation.metadata.supported_strategies not in preprocessing_strategies \
+                    and isinstance(node.operation, Model) \
                     and node.distance_to_primary_level >= max_distance:
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
