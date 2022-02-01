@@ -218,19 +218,18 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     :return : bool value is it good to maximize metric or not
     """
 
+    if isinstance(target[0], str):
+        # Target for classification contain string objects
+        le = LabelEncoder()
+        target = le.fit_transform(target)
+
     if loss_params is None:
-        if isinstance(target[0], str):
-            # Target for classification contain string objects
-            le = LabelEncoder()
-            target = le.fit_transform(target)
-        metric = loss_function(target, target)
-    else:
-        try:
-            metric = loss_function(target, target, **loss_params)
-        except Exception:
-            # Multiclass classification task
-            metric = 1
-    if int(round(metric)) == 0:
-        return False
-    else:
+        loss_params = {}
+
+    optimal_metric = loss_function(target, target, **loss_params)
+    not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
+
+    if optimal_metric > not_optimal_metric:
         return True
+    else:
+        return False
