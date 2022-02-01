@@ -115,21 +115,26 @@ def test_finding_side_root_node():
     """
 
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
-    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
+    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
     assert reg_pipeline.nodes[0] is pipeline.nodes[1]
 
 
-def test_pipeline_predict():
+def test_pipeline_for_side_task_predict():
+    """ The function checks whether the pipeline for the side task
+    gives correct predictions
+    """
+
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
-    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
 
     train_data, test_data = data_with_complicated_types()
     pipeline.fit_from_scratch(train_data)
+    predicted_labels = pipeline.predict(test_data)
 
-    reg_pipeline.preprocessor = pipeline.preprocessor
-    predicted_labels = reg_pipeline.predict(test_data)
+    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
+    reg_predicted_labels = reg_pipeline.predict(test_data)
 
-    assert predicted_labels is not None
+    assert reg_predicted_labels is not None
+    assert reg_predicted_labels is not predicted_labels
 
 
 def test_order_by_data_flow_len_correct():

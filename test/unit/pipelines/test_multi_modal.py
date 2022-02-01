@@ -43,6 +43,28 @@ def generate_multi_modal_pipeline():
     return pipeline
 
 
+def generate_multi_task_pipeline():
+    ds_regr = PrimaryNode('data_source_table/regr')
+    ds_class = PrimaryNode('data_source_table/class')
+
+    scaling_node_regr = SecondaryNode('scaling', nodes_from=[ds_regr])
+    scaling_node_class = SecondaryNode('scaling', nodes_from=[ds_class])
+
+    pca_node_regr = SecondaryNode('pca', nodes_from=[scaling_node_regr])
+    pca_node_regr.custom_params = {'n_components': 0.2}
+
+    pca_node_class = SecondaryNode('pca', nodes_from=[scaling_node_class])
+    pca_node_class.custom_params = {'n_components': 0.2}
+
+    class_node = SecondaryNode('dt', nodes_from=[scaling_node_class])
+
+    root_regr = SecondaryNode('dtreg', nodes_from=[scaling_node_regr, class_node])
+
+    initial_pipeline = Pipeline(root_regr)
+
+    return initial_pipeline
+
+
 def test_multi_modal_pipeline():
     pipeline = generate_multi_modal_pipeline()
 
@@ -67,9 +89,10 @@ def test_multi_modal_pipeline():
 
 
 def test_finding_side_root_node_in_multi_modal_pipeline():
-    pipeline = generate_multi_modal_pipeline()
+    pipeline = generate_multi_task_pipeline()
 
-    reg_pipeline = pipeline.pipeline_from_side_root_node(task_type=TaskTypesEnum.regression)
+    class_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)
+    reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
 
-    assert reg_pipeline.nodes[0] is pipeline.nodes[2]
-
+    assert reg_pipeline.nodes[0] is pipeline.nodes[0]
+    assert class_pipeline.nodes[0] is pipeline.nodes[3]

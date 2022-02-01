@@ -312,7 +312,7 @@ class Pipeline(Graph):
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
 
-    def pipeline_from_side_root_node(self, task_type: TaskTypesEnum) -> 'Pipeline':
+    def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
         """
         Method returns pipeline formed from the last node solving the given problem and all its parents
 
@@ -323,12 +323,12 @@ class Pipeline(Graph):
         max_distance = 0
         side_root_node = None
         for node in self.nodes:
-            if task_type in node.operation.acceptable_task_types \
-                    and node.distance_to_primary_level >= max_distance:
+            if task_type in node.operation.acceptable_task_types and node.distance_to_primary_level >= max_distance:
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
 
         pipeline = Pipeline(side_root_node)
+        pipeline.preprocessor = self.preprocessor
         return pipeline
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:

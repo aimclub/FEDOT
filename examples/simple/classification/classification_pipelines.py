@@ -201,7 +201,3 @@ def classification_xgboost_complex_pipeline():
 
     pipeline.add_node(root_of_tree)
     return pipeline
-
-
-
-
