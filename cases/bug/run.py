@@ -35,7 +35,7 @@ def main():
     elif task_type == "reg":
         y_pred = pd.DataFrame({target_col: y_pred})
 
-    y_pred.to_csv(output_path, index=None)
+    y_pred.to_csv(output_path, index=False)
 
 
 if __name__ == "__main__":

@@ -386,9 +386,10 @@ def process_one_column(target_column, data_frame, data_array):
         features = data_array[1:].T
         target = None
 
-    target = np.array(target)
-    if len(target.shape) < 2:
-        target = target.reshape((-1, 1))
+    if target is not None:
+        target = np.array(target)
+        if len(target.shape) < 2:
+            target = target.reshape((-1, 1))
 
     return features, target
 
