@@ -1,0 +1,15 @@
+buying,maint,doors,persons,lug_boot,safety,class
+med   ,high ,2    ,2      ,big     ,low   ,2
+low   ,vhigh,2    ,2      ,big     ,low   ,2
+low   ,vhigh,5more,more   ,med     ,high  ,0
+med   ,med  ,5more,2      ,med     ,med   ,2
+high  ,med  ,5more,more   ,big     ,high  ,0
+low   ,med  ,5more,more   ,big     ,med   ,1
+high  ,med  ,4    ,more   ,med     ,med   ,0
+high  ,high ,3    ,4      ,med     ,high  ,0
+high  ,low  ,4    ,more   ,small   ,high  ,0
+med   ,high ,4    ,more   ,med     ,med   ,0
+med   ,vhigh,4    ,more   ,small   ,med   ,2
+low   ,low  ,2    ,4      ,med     ,low   ,2
+high  ,med  ,2    ,2      ,big     ,high  ,2
+med   ,high ,5more,2      ,big     ,med   ,2

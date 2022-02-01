@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
-from examples.advanced.multi_modal_pipeline import (prepare_multi_modal_data)
+from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
@@ -377,3 +377,22 @@ def test_pipeline_preprocessing_through_api_correctly():
     predicted = pipeline.predict(data, output_mode='labels')
 
     assert predicted.predict[-1] == 'green-orange'
+
+
+def test_data_from_csv_load_correctly():
+    """
+    Check if data obtained from csv files processed correctly for fit and
+    predict stages when for predict stage there is no target column in csv file
+    """
+    task = Task(TaskTypesEnum.regression)
+    path_train = 'test/data/empty_target_tables/train.csv'
+    path_test = 'test/data/empty_target_tables/test.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), path_train)
+    full_path_test = os.path.join(str(fedot_project_root()), path_test)
+
+    data_loader = ApiDataProcessor(task)
+    train_input = data_loader.define_data(features=full_path_train, target='class')
+    test_input = data_loader.define_data(features=full_path_test, is_predict=True)
+
+    assert train_input.target.shape == (14, 1)
+    assert test_input.target is None
