@@ -67,6 +67,8 @@ class TupleStrategy(StrategyDefineData):
 
 
 class PandasStrategy(StrategyDefineData):
+    """ Class for wrapping pandas DataFrames into InputData """
+
     def define_data(self, features: pd.DataFrame,
                     ml_task: Task,
                     target: str = None,

@@ -1,4 +1,6 @@
 import os
+import platform
+import tempfile
 from enum import Enum
 from pathlib import Path
 
@@ -18,9 +20,12 @@ def default_fedot_data_dir() -> str:
     """ Returns the folder where all the output data
     is recorded to. Default: home/Fedot
     """
-    default_data_path = os.path.join(str(Path.home()), 'Fedot')
-    if 'Fedot' not in os.listdir(str(Path.home())):
+    temp_folder = Path("/tmp" if platform.system() == "Darwin" else tempfile.gettempdir())
+    default_data_path = os.path.join(temp_folder, 'FEDOT')
+
+    if 'FEDOT' not in os.listdir(temp_folder):
         os.mkdir(default_data_path)
+
     return default_data_path
 
 

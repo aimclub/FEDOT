@@ -11,13 +11,13 @@ class TorchMock:
 try:
     import torch
     import torch.nn as nn
+    from torch.utils.data import DataLoader, TensorDataset
 except ModuleNotFoundError:
     torch = object()
     nn = TorchMock
     print('Torch non installed - continue.')
 
 from sklearn.preprocessing import StandardScaler
-from torch.utils.data import DataLoader, TensorDataset
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
