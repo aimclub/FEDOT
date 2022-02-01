@@ -1,13 +1,13 @@
 import os
 import pandas as pd
 
-from examples.simple.pipeline_tune import get_simple_pipeline
+from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.utils import fedot_project_root
 from fedot.explainability.explainers import explain_pipeline
 
 
-if __name__ == '__main__':
+def run_pipeline_explain():
     # Specifying paths
     train_data_path = os.path.join(fedot_project_root(), 'cases', 'data', 'cancer', 'cancer_train.csv')
     figure_path = 'pipeline_explain_example.png'
@@ -22,7 +22,7 @@ if __name__ == '__main__':
     train_data = InputData.from_csv(train_data_path)
 
     # Pipeline composition
-    pipeline = get_simple_pipeline()
+    pipeline = classification_complex_pipeline()
 
     # Pipeline fitting
     pipeline.fit(train_data, use_fitted=False)
@@ -34,3 +34,7 @@ if __name__ == '__main__':
     print(f'Built surrogate model: {explainer.surrogate_str}')
     explainer.visualize(save_path=figure_path, dpi=200, feature_names=feature_names, class_names=class_names,
                         precision=6)
+
+
+if __name__ == '__main__':
+    run_pipeline_explain()
