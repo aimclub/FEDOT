@@ -14,9 +14,10 @@ from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.operations.model import Model
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
-
 
 class Pipeline(Graph):
     """
@@ -310,6 +311,27 @@ class Pipeline(Graph):
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]
+
+    def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
+        """
+        Method returns pipeline formed from the last node solving the given problem and all its parents
+
+        :param task_type: task type last node to search for
+        :returns: pipeline formed from the last node solving the given problem and all its parents
+        """
+
+        max_distance = 0
+        side_root_node = None
+        for node in self.nodes:
+            if task_type in node.operation.acceptable_task_types \
+                    and isinstance(node.operation, Model) \
+                    and node.distance_to_primary_level >= max_distance:
+                side_root_node = node
+                max_distance = node.distance_to_primary_level
+
+        pipeline = Pipeline(side_root_node)
+        pipeline.preprocessor = self.preprocessor
+        return pipeline
 
     def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):
