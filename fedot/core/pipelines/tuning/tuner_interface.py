@@ -226,8 +226,20 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     if loss_params is None:
         loss_params = {}
 
-    optimal_metric = loss_function(target, target, **loss_params)
-    not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
+    try:
+        optimal_metric = loss_function(target, target, **loss_params)
+        not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
+    except Exception:
+        n_unique = len(np.unique(target))
+        multi_target_zeros = np.zeros((target.shape[0], n_unique))
+        optimal_multi_target, not_optimal_multi_target = multi_target_zeros.copy(), multi_target_zeros.copy()
+
+        for i, t in enumerate(target):
+            optimal_multi_target[i, t[0]] = 1
+        not_optimal_multi_target[:, 0] = 1
+
+        optimal_metric = loss_function(target, optimal_multi_target, **loss_params)
+        not_optimal_metric = loss_function(target, not_optimal_multi_target, **loss_params)
 
     if optimal_metric > not_optimal_metric:
         return True
