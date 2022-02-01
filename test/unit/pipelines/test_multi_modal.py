@@ -50,9 +50,11 @@ def generate_multi_task_pipeline():
     scaling_node_regr = SecondaryNode('scaling', nodes_from=[ds_regr])
     scaling_node_class = SecondaryNode('scaling', nodes_from=[ds_class])
 
-    class_node = SecondaryNode('dt', nodes_from=[scaling_node_class])
+    dt_class_node = SecondaryNode('dt', nodes_from=[scaling_node_class])
 
-    root_regr = SecondaryNode('dtreg', nodes_from=[scaling_node_regr, class_node])
+    scaling_node_class_2 = SecondaryNode('scaling', nodes_from=[dt_class_node])
+
+    root_regr = SecondaryNode('dtreg', nodes_from=[scaling_node_regr, scaling_node_class_2])
 
     initial_pipeline = Pipeline(root_regr)
 
@@ -83,10 +85,13 @@ def test_multi_modal_pipeline():
 
 
 def test_finding_side_root_node_in_multi_modal_pipeline():
+    reg_root_node = 'dtreg'
+    class_root_node = 'dt'
+
     pipeline = generate_multi_task_pipeline()
 
-    class_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)
     reg_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.regression)
+    class_pipeline = pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)
 
-    assert reg_pipeline.nodes[0] is pipeline.nodes[0]
-    assert class_pipeline.nodes[0] is pipeline.nodes[3]
+    assert reg_pipeline.root_node.operation.operation_type == reg_root_node
+    assert class_pipeline.root_node.operation.operation_type == class_root_node
