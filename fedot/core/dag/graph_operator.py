@@ -3,22 +3,23 @@ from typing import Any, List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.pipelines.node import PrimaryNode
 
 
 class GraphOperator:
     def __init__(self, graph=None):
         self._graph = graph
 
-    def delete_node(self, node: GraphNode):
-        def make_secondary_node_as_primary(node_child, new_type):
-            # TODO move classes definition to additional methods
-            new_primary_node = new_type(content=node_child.content)
-            this_node_children = self.node_children(node_child)
-            for node in this_node_children:
-                index = node.nodes_from.index(node_child)
-                node.nodes_from.remove(node_child)
-                node.nodes_from.insert(index, new_primary_node)
+    def make_secondary_node_as_primary(self, node_child, new_type):
+        # TODO move classes definition to additional methods
+        new_primary_node = new_type(content=node_child.content)
+        this_node_children = self.node_children(node_child)
+        for node in this_node_children:
+            index = node.nodes_from.index(node_child)
+            node.nodes_from.remove(node_child)
+            node.nodes_from.insert(index, new_primary_node)
 
+    def delete_node(self, node: GraphNode):
         node_children_cached = self.node_children(node)
         self_root_node_cached = self._graph.root_node
 
@@ -31,7 +32,7 @@ class GraphOperator:
         elif not node.nodes_from:
             for node_child in node_children_cached:
                 if not node_child.nodes_from:
-                    make_secondary_node_as_primary(node_child, type(node))
+                    self.make_secondary_node_as_primary(node_child, type(node))
         self._graph.nodes.clear()
         self.add_node(self_root_node_cached)
 
@@ -126,6 +127,19 @@ class GraphOperator:
                 new_child = GraphNode(nodes_from=[], content=child.content)
                 new_child.nodes_from.append(parent)
                 self.update_node(child, new_child)
+
+    def _clean_up_leftovers(self, node: GraphNode):
+        if not self._graph.operator.node_children(node):
+            self._graph.nodes.remove(node)
+            if node.nodes_from:
+                for node in node.nodes_from:
+                    self._clean_up_leftovers(node)
+        if not self._graph.operator.node_children(node):
+            self.make_secondary_node_as_primary(node, PrimaryNode)
+
+    def disconnect_neighboring_nodes(self, node_parent: GraphNode, node_child: GraphNode):
+        node_child.nodes_from.remove(node_parent)
+        self._clean_up_leftovers(node_parent)
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
         if len(self._graph.nodes) == 0:
