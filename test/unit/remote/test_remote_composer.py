@@ -5,7 +5,7 @@ import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
-from fedot.core.utils import fedot_project_root, default_fedot_data_dir
+from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.test_client import TestClient
 from fedot.remote.remote_evaluator import RemoteEvaluator, RemoteTaskParams
 
@@ -45,7 +45,8 @@ def test_pseudo_remote_composer_classification():
     composer_params = {
         'pop_size': 3,
         'timeout': 0.1,
-        'cv_folds': None
+        'cv_folds': None,
+        'with_tuning': False
     }
 
     preset = 'best_quality'
@@ -74,7 +75,8 @@ def test_pseudo_remote_composer_ts_forecasting():
         mode='remote',
         dataset_name='short_time_series')
 
-    client = TestClient(connect_params, exec_params, output_path='./test/data/remote')
+    client = TestClient(connect_params, exec_params,
+                        output_path=os.path.join(fedot_project_root(), 'test', 'data', 'remote'))
 
     evaluator = RemoteEvaluator()
 
@@ -86,7 +88,8 @@ def test_pseudo_remote_composer_ts_forecasting():
     composer_params = {
         'pop_size': 10,
         'timeout': 0.2,
-        'cv_folds': None
+        'cv_folds': None,
+        'with_tuning': False
     }
 
     preset = 'best_quality'

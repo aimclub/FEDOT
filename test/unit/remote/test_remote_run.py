@@ -17,7 +17,7 @@ def run_around_tests():
 
 def test_fit_fedot_pipeline_classification():
     config_file = os.path.join(fedot_project_root(),
-                               'test', 'data', './remote/remote_config_class')
+                               'test', 'data', 'remote', 'remote_config_class')
     status = fit_pipeline(config_file)
     assert status is True
 

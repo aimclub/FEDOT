@@ -4,6 +4,7 @@ import os
 from typing import Union
 
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 
 tmp_task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=1))
 
@@ -56,5 +57,9 @@ class PipelineRunConfig:
             config.read(file, encoding='utf-8')
 
         processed_config = PipelineRunConfig(config)
+
+        if '{fedot_base_path}' in processed_config.input_data:
+            processed_config.input_data = \
+                processed_config.input_data.format(fedot_base_path=fedot_project_root())
 
         return processed_config
