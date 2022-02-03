@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from typing import Callable, ClassVar
 from copy import deepcopy, copy
 from datetime import timedelta
@@ -235,7 +236,7 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
         optimal_multi_target, not_optimal_multi_target = multi_target_zeros.copy(), multi_target_zeros.copy()
 
         for i, t in enumerate(target):
-            optimal_multi_target[i, t[0]] = 1
+            optimal_multi_target[i, t[0] if isinstance(t, Iterable) else t] = 1
         not_optimal_multi_target[:, 0] = 1
 
         optimal_metric = loss_function(target, optimal_multi_target, **loss_params)
