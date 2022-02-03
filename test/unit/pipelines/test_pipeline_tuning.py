@@ -104,6 +104,16 @@ def get_not_default_search_space():
     return SearchSpace(custom_search_space=custom_search_space)
 
 
+def custom_maximized_metrics(y_true, y_pred):
+    mse_value = mse(y_true, y_pred, squared=False)
+    return -(mse_value + 2) * 0.5
+
+
+def custom_minimized_metrics(y_true, y_pred):
+    acc_value = acc(y_true, y_pred)
+    return 100 - (acc_value + 2) * 0.5
+
+
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
 def test_custom_params_setter(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
@@ -358,11 +368,9 @@ def test_complex_search_space_tuning_correct():
 def test_greater_is_better():
     target = np.array([1, 0, 1, 0, 1])
     multi_target = np.array([2, 0, 1, 0, 1, 2])
-    acc_greater = _greater_is_better(target, acc, None)
-    assert acc_greater
-    roc_greater = _greater_is_better(target, roc, None)
-    assert roc_greater
-    multiroc_greater = _greater_is_better(multi_target, roc, {'multi_class': 'ovo'})
-    assert multiroc_greater
-    mse_greater = _greater_is_better(target, mse, None)
-    assert not mse_greater
+    assert _greater_is_better(target, acc, None)
+    assert _greater_is_better(target, roc, None)
+    assert _greater_is_better(multi_target, roc, {'multi_class': 'ovo'})
+    assert _greater_is_better(target, custom_maximized_metrics, None)
+    assert not _greater_is_better(target, mse, None)
+    assert not _greater_is_better(target, custom_minimized_metrics, None)
