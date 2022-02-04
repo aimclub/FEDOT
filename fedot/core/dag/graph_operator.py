@@ -157,6 +157,8 @@ class GraphOperator:
 
         if node_child.nodes_from is None or node_parent not in node_child.nodes_from:
             return
+        elif node_parent not in self._graph.nodes or node_child not in self._graph.nodes:
+            return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
             # TODO remove workaround after replacement for PrimaryNode
