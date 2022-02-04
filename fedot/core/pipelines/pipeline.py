@@ -19,6 +19,7 @@ from fedot.core.operations.model import Model
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
+
 class Pipeline(Graph):
     """
     Base class used for composite model structure definition
