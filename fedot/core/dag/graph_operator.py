@@ -132,6 +132,8 @@ class GraphOperator:
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
+        Method removes nodes and edges that do not the result of the pipeline
+
         Leftovers - edges and nodes that remain after the removal of the edge / node
         and do not affect the result of the pipeline
         """
@@ -144,9 +146,21 @@ class GraphOperator:
 
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
                          is_clean_up_leftovers: bool = True):
-        if len(node_child.nodes_from) == 1:
+        """
+        Method to remove an edge between two nodes
+
+        :param node_parent: the node from which the removing edge comes out
+        :param node_child: the node in which the removing edge enters
+        :param is_clean_up_leftovers: bool flag whether to remove the remaining
+        invalid vertices and edges or not
+        """
+
+        if node_child.nodes_from is None or node_parent not in node_child.nodes_from:
+            return
+        elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
-            self._make_secondary_node_as_primary(node_child, type(self._graph.nodes[-1]))
+            # TODO remove workaround after replacement for PrimaryNode
+            self._make_secondary_node_as_primary(node_child, PrimaryNode)
         else:
             node_child.nodes_from.remove(node_parent)
 
