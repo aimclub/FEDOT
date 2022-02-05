@@ -366,6 +366,7 @@ def test_complex_search_space_tuning_correct():
 
 
 def test_greater_is_better():
+    """ Tests _greater_is_better function correctness"""
     target = np.array([1, 0, 1, 0, 1])
     multi_target = np.array([2, 0, 1, 0, 1, 2])
     assert _greater_is_better(target, acc, None)
