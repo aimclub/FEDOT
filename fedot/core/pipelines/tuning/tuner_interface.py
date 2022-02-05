@@ -5,6 +5,7 @@ from copy import deepcopy, copy
 from datetime import timedelta
 
 import numpy as np
+from scipy.sparse import csr_matrix
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.log import Log, default_log
@@ -208,6 +209,27 @@ class HyperoptTuner(ABC):
             return MAX_METRIC_VALUE
 
 
+def _create_multi_target_prediction(target, optimal=True):
+    """ Function creates an array of shape (target len, num classes)
+    with classes probabilities from target values, used in _greater_is_better
+
+    :param target: target for define what problem is solving (max or min)
+    :param optimal: whether return optimal probabilities or not
+
+    :return : 2d-array of classes probabilities
+    """
+
+    len_target = target.shape[0]
+
+    if optimal:
+        multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target), target))).A
+    else:
+        multi_target = np.zeros((len_target, len(np.unique(target))))
+        multi_target[:, 0] = 1
+
+    return multi_target
+
+
 def _greater_is_better(target, loss_function, loss_params) -> bool:
     """ Function checks is metric (loss function) need to be minimized or
     maximized
@@ -231,13 +253,8 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
         optimal_metric = loss_function(target, target, **loss_params)
         not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
     except Exception:
-        n_unique = len(np.unique(target))
-        multi_target_zeros = np.zeros((target.shape[0], n_unique))
-        optimal_multi_target, not_optimal_multi_target = multi_target_zeros.copy(), multi_target_zeros.copy()
-
-        for i, t in enumerate(target):
-            optimal_multi_target[i, t[0] if isinstance(t, Iterable) else t] = 1
-        not_optimal_multi_target[:, 0] = 1
+        optimal_multi_target = _create_multi_target_prediction(target, True)
+        not_optimal_multi_target = _create_multi_target_prediction(target, False)
 
         optimal_metric = loss_function(target, optimal_multi_target, **loss_params)
         not_optimal_metric = loss_function(target, not_optimal_multi_target, **loss_params)
