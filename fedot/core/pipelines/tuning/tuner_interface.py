@@ -222,7 +222,8 @@ def _create_multi_target_prediction(target, optimal=True):
     len_target = target.shape[0]
 
     if optimal:
-        multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target), target))).A
+        multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target),
+                                                         target.reshape((len_target,))))).A
     else:
         multi_target = np.zeros((len_target, len(np.unique(target))))
         multi_target[:, 0] = 1
