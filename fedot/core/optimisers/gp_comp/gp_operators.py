@@ -1,3 +1,4 @@
+import multiprocessing
 import timeit
 import warnings
 from copy import deepcopy
@@ -113,10 +114,8 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
 
 
 def evaluate_individuals(individuals_set, objective_function, graph_generation_params,
-                         is_multi_objective: bool, timer=None):
+                         is_multi_objective: bool, workers=1, timer=None):
     logger = default_log('individuals evaluation logger')
-
-    num_of_successful_evals = 0
     reversed_set = individuals_set[::-1]
 
     # TODO refactor
@@ -127,26 +126,47 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
         restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
         pre_evaluated_objects = fitter.compute_pipelines(restored_graphs)
 
-    evaluated_individuals = []
+    for i in range(len(reversed_set)):
+        reversed_set[i] = {'id': i + 1, 'ind': reversed_set[i],
+                           'pre_evaluated_objects': pre_evaluated_objects,
+                           'objective_function': objective_function,
+                           'is_multi_objective': is_multi_objective,
+                           'graph_generation_params': graph_generation_params,
+                           'timer': timer if i != 0 else None}
 
-    for ind_num, ind in enumerate(reversed_set):
-        start_time = timeit.default_timer()
-
-        graph = ind.graph
-        if len(pre_evaluated_objects) > 0:
-            graph = pre_evaluated_objects[ind_num]
-        ind.fitness = calculate_objective(graph, objective_function,
-                                          is_multi_objective, graph_generation_params)
-        ind.computation_time = timeit.default_timer() - start_time
-        if ind.fitness is not None:
-            num_of_successful_evals += 1
-            evaluated_individuals.append(ind)
-        if timer is not None and num_of_successful_evals > 0:
-            if timer.is_time_limit_reached():
-                break
+    with multiprocessing.Pool(workers) as pool:
+        evaluated_individuals = pool.map(individual_evaluation, reversed_set)
     if len(evaluated_individuals) == 0:
         raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
+    evaluated_individuals = list(filter(lambda x: x, evaluated_individuals))
+
     return evaluated_individuals
+
+
+def individual_evaluation(args):
+    start_time = timeit.default_timer()
+
+    ind = args['ind']
+    ind_num = args['id']
+    pre_evaluated_objects = args['pre_evaluated_objects']
+    objective_function = args['objective_function']
+    is_multi_objective = args['is_multi_objective']
+    graph_generation_params = args['graph_generation_params']
+    timer = args['timer']
+    graph = ind.graph
+
+    if timer is not None and timer.is_time_limit_reached():
+        return None
+
+    if len(pre_evaluated_objects) > 0:
+        graph = pre_evaluated_objects[ind_num]
+    ind.fitness = calculate_objective(graph, objective_function,
+                                      is_multi_objective, graph_generation_params)
+    ind.computation_time = timeit.default_timer() - start_time
+
+    if ind.fitness is None:
+        return None
+    return ind
 
 
 def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable,

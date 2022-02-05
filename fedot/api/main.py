@@ -1,3 +1,4 @@
+import multiprocessing
 from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
@@ -70,6 +71,7 @@ class Fedot:
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param initial_assumption: initial assumption for composer
+    :param workers: num of workers for parallelization (-1 for use all cpu's)
     """
 
     def __init__(self,
@@ -80,7 +82,8 @@ class Fedot:
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
                  safe_mode=True,
-                 initial_assumption: Union[Pipeline, List[Pipeline]] = None
+                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
+                 workers: int = 1
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -97,6 +100,9 @@ class Fedot:
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
+        if workers > multiprocessing.cpu_count() or workers == -1:
+            workers = multiprocessing.cpu_count()
+        self.params.api_params['workers'] = workers
 
         # Update timeout, num_of_generations and initial_assumption parameters
         if composer_params is not None and 'timeout' in composer_params:

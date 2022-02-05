@@ -25,7 +25,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, correct_if_has_nans
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -182,7 +182,9 @@ class EvoGraphOptimiser(GraphOptimiser):
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc="Generations", unit='gen', initial=1) if show_progress else None
 
-            self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
+            self.population = self._evaluate_individuals(self.population, objective_function,
+                                                         timer=t,
+                                                         workers=self.requirements.workers)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -230,7 +232,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                     new_population += self.reproduce(selected_individuals[parent_num],
                                                      selected_individuals[parent_num + 1])
 
-                new_population = self._evaluate_individuals(new_population, objective_function, timer=t)
+                new_population = self._evaluate_individuals(new_population, objective_function,
+                                                            timer=t,
+                                                            workers=self.requirements.workers)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -399,13 +403,14 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.archive.items
         return best
 
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
+    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, workers=4):
         evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
-                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
-        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
-        return individuals_set
+                                                     is_multi_objective=self.parameters.multi_objective,
+                                                     workers=workers,
+                                                     timer=timer)
+        return evaluated_individuals
 
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
