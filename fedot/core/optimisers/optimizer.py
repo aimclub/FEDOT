@@ -128,8 +128,8 @@ class GraphOptimiser:
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
                                                      timer=timer, is_multi_objective=self.parameters.multi_objective)
-
-        return evaluated_individuals
+        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
+        return individuals_set
 
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
@@ -152,3 +152,17 @@ class GraphGenerationParams:
     adapter: BaseOptimizationAdapter = DirectAdapter()
     rules_for_constraint: Optional[List[Callable]] = None
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
+
+
+def correct_if_has_nans(individuals, log):
+    len_before = len(individuals)
+    individuals = [ind for ind in individuals if ind.fitness is not None]
+    len_after = len(individuals)
+
+    if len_after != len_before:
+        log.info(f'None were removed from candidates')
+
+    if len(individuals) == 0:
+        raise ValueError('All evaluations of fitness was unsuccessful.')
+
+    return individuals

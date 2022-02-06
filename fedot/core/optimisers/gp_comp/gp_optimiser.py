@@ -25,7 +25,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, correct_if_has_nans
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -410,7 +410,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                      is_multi_objective=self.parameters.multi_objective,
                                                      n_jobs=n_jobs,
                                                      timer=timer)
-        return evaluated_individuals
+        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
+        return individuals_set
 
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
