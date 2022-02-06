@@ -100,8 +100,6 @@ class Fedot:
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
-        if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
-            n_jobs = multiprocessing.cpu_count()
         self.params.api_params['n_jobs'] = n_jobs
 
         # Update timeout, num_of_generations and initial_assumption parameters

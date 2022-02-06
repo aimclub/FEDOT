@@ -118,47 +118,76 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
 def evaluate_individuals(individuals_set, objective_function, graph_generation_params,
                          is_multi_objective: bool, n_jobs=1, timer=None):
     logger = default_log('individuals evaluation logger')
-    reversed_set = individuals_set[::-1]
-
+    reversed_individuals = individuals_set[::-1]
     # TODO refactor
     fitter = RemoteEvaluator()
     pre_evaluated_objects = []
     if fitter.use_remote:
         logger.info('Remote fit used')
-        restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_set]
+        restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_individuals]
         pre_evaluated_objects = fitter.compute_pipelines(restored_graphs)
 
-    for i in range(len(reversed_set)):
-        reversed_set[i] = {'id': i + 1, 'ind': reversed_set[i],
-                           'pre_evaluated_objects': pre_evaluated_objects,
-                           'objective_function': objective_function,
-                           'is_multi_objective': is_multi_objective,
-                           'graph_generation_params': graph_generation_params,
-                           'timer': timer if i != 0 else None}  # one individual must fit
+    if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
+        n_jobs = multiprocessing.cpu_count()
 
-    with multiprocessing.Pool(n_jobs) as pool:
-        evaluated_individuals = pool.map(individual_evaluation, reversed_set)
-    if len(evaluated_individuals) == 0:
-        raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
-    evaluated_individuals = list(filter(lambda x: x, evaluated_individuals))
+    for i in range(len(reversed_individuals)):
+        reversed_individuals[i] = {'ind_num': i, 'ind': reversed_individuals[i],
+                                   'pre_evaluated_objects': pre_evaluated_objects,
+                                   'objective_function': objective_function,
+                                   'is_multi_objective': is_multi_objective,
+                                   'graph_generation_params': graph_generation_params,
+                                   'timer': timer if i != 0 or n_jobs == 1 else None}  # one individual must fit
+
+    if n_jobs != 1:
+        evaluated_individuals = multiprocessing_mapping(n_jobs, reversed_individuals)
+        evaluated_individuals = list(filter(lambda x: x, evaluated_individuals))
+    else:
+        evaluated_individuals = single_evaluating(reversed_individuals)
 
     return evaluated_individuals
 
 
-def individual_evaluation(args: Dict) -> Union[Individual, None]:
-    start_time = timeit.default_timer()
-    args = SimpleNamespace(**args)
-    graph = args.ind.graph
+def single_evaluating(reversed_individuals):
+    evaluated_individuals = []
+    num_of_successful_evals = 0
+    for ind in reversed_individuals:
+        individual = SimpleNamespace(**ind)
+        start_time = timeit.default_timer()
 
-    if args.timer is not None and args.timer.is_time_limit_reached():
+        graph = individual.ind.graph
+        if len(individual.pre_evaluated_objects) > 0:
+            graph = individual.pre_evaluated_objects[individual.ind_num]
+        individual.ind.fitness = calculate_objective(graph, individual.objective_function,
+                                                     individual.is_multi_objective, individual.graph_generation_params)
+        individual.computation_time = timeit.default_timer() - start_time
+        if individual.ind.fitness is not None:
+            evaluated_individuals.append(individual.ind)
+            num_of_successful_evals += 1
+        if individual.timer is not None and num_of_successful_evals > 0:
+            if individual.timer.is_time_limit_reached():
+                return evaluated_individuals
+    return evaluated_individuals
+
+
+def multiprocessing_mapping(n_jobs, reversed_set):
+    with multiprocessing.Pool(n_jobs) as pool:
+        return pool.map(individual_evaluation, reversed_set)
+
+
+def individual_evaluation(individual: Dict) -> Union[Individual, None]:
+    start_time = timeit.default_timer()
+    individual = SimpleNamespace(**individual)
+    graph = individual.ind.graph
+
+    if individual.timer is not None and individual.timer.is_time_limit_reached():
         return
 
-    if len(args.pre_evaluated_objects) > 0:
-        graph = args.pre_evaluated_objects[args.ind_num]
-    args.ind.fitness = calculate_objective(graph, args.objective_function,
-                                           args.is_multi_objective, args.graph_generation_params)
-    args.ind.computation_time = timeit.default_timer() - start_time
-    return args.ind
+    if len(individual.pre_evaluated_objects) > 0:
+        graph = individual.pre_evaluated_objects[individual.ind_num]
+    individual.ind.fitness = calculate_objective(graph, individual.objective_function,
+                                                 individual.is_multi_objective, individual.graph_generation_params)
+    individual.ind.computation_time = timeit.default_timer() - start_time
+    return individual.ind
 
 
 def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable,
