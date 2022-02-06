@@ -129,6 +129,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
 
     if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
         n_jobs = multiprocessing.cpu_count()
+    logger.info(f"Number of used CPU's: {n_jobs}")
 
     for i in range(len(reversed_individuals)):
         reversed_individuals[i] = {'ind_num': i, 'ind': reversed_individuals[i],
