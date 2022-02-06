@@ -3,10 +3,12 @@ import timeit
 import warnings
 from copy import deepcopy
 from random import choice, randint
-from typing import Any, Callable, List, Tuple, Union
+from types import SimpleNamespace
+from typing import Any, Callable, List, Tuple, Union, Dict
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.utils import DEFAULT_PARAMS_STUB
@@ -132,7 +134,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
                            'objective_function': objective_function,
                            'is_multi_objective': is_multi_objective,
                            'graph_generation_params': graph_generation_params,
-                           'timer': timer if i != 0 else None}
+                           'timer': timer if i != 0 else None}  # one individual must fit
 
     with multiprocessing.Pool(n_jobs) as pool:
         evaluated_individuals = pool.map(individual_evaluation, reversed_set)
@@ -143,30 +145,20 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
     return evaluated_individuals
 
 
-def individual_evaluation(args):
+def individual_evaluation(args: Dict) -> Union[Individual, None]:
     start_time = timeit.default_timer()
+    args = SimpleNamespace(**args)
+    graph = args.ind.graph
 
-    ind = args['ind']
-    ind_num = args['id']
-    pre_evaluated_objects = args['pre_evaluated_objects']
-    objective_function = args['objective_function']
-    is_multi_objective = args['is_multi_objective']
-    graph_generation_params = args['graph_generation_params']
-    timer = args['timer']
-    graph = ind.graph
+    if args.timer is not None and args.timer.is_time_limit_reached():
+        return
 
-    if timer is not None and timer.is_time_limit_reached():
-        return None
-
-    if len(pre_evaluated_objects) > 0:
-        graph = pre_evaluated_objects[ind_num]
-    ind.fitness = calculate_objective(graph, objective_function,
-                                      is_multi_objective, graph_generation_params)
-    ind.computation_time = timeit.default_timer() - start_time
-
-    if ind.fitness is None:
-        return None
-    return ind
+    if len(args.pre_evaluated_objects) > 0:
+        graph = args.pre_evaluated_objects[args.ind_num]
+    args.ind.fitness = calculate_objective(graph, args.objective_function,
+                                           args.is_multi_objective, args.graph_generation_params)
+    args.ind.computation_time = timeit.default_timer() - start_time
+    return args.ind
 
 
 def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable,
