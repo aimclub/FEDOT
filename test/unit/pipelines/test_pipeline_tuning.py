@@ -4,7 +4,7 @@ from random import seed
 import numpy as np
 from hyperopt import hp, tpe, rand
 import pytest
-from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc
+from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -15,6 +15,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -101,6 +102,16 @@ def get_not_default_search_space():
         }
     }
     return SearchSpace(custom_search_space=custom_search_space)
+
+
+def custom_maximized_metrics(y_true, y_pred):
+    mse_value = mse(y_true, y_pred, squared=False)
+    return -(mse_value + 2) * 0.5
+
+
+def custom_minimized_metrics(y_true, y_pred):
+    acc_value = acc(y_true, y_pred)
+    return 100 - (acc_value + 2) * 0.5
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
@@ -352,3 +363,15 @@ def test_complex_search_space_tuning_correct():
                                                           loss_function=mse)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params
+
+
+def test_greater_is_better():
+    """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
+    target = np.array([1, 0, 1, 0, 1])
+    multi_target = np.array([2, 0, 1, 0, 1, 2])
+    assert _greater_is_better(target, acc, None)
+    assert _greater_is_better(target, roc, None)
+    assert _greater_is_better(multi_target, roc, {'multi_class': 'ovo'})
+    assert _greater_is_better(target, custom_maximized_metrics, None)
+    assert not _greater_is_better(target, mse, None)
+    assert not _greater_is_better(target, custom_minimized_metrics, None)

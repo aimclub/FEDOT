@@ -4,6 +4,7 @@ from copy import deepcopy, copy
 from datetime import timedelta
 
 import numpy as np
+from scipy.sparse import csr_matrix
 from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.log import Log, default_log
@@ -207,6 +208,28 @@ class HyperoptTuner(ABC):
             return MAX_METRIC_VALUE
 
 
+def _create_multi_target_prediction(target, optimal=True):
+    """ Function creates an array of shape (target len, num classes)
+    with classes probabilities from target values, used in _greater_is_better
+
+    :param target: target for define what problem is solving (max or min)
+    :param optimal: whether return optimal probabilities or not
+
+    :return : 2d-array of classes probabilities
+    """
+
+    len_target = target.shape[0]
+
+    if optimal:
+        multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target),
+                                                         target.reshape((len_target,))))).A
+    else:
+        multi_target = np.zeros((len_target, len(np.unique(target))))
+        multi_target[:, 0] = 1
+
+    return multi_target
+
+
 def _greater_is_better(target, loss_function, loss_params) -> bool:
     """ Function checks is metric (loss function) need to be minimized or
     maximized
@@ -218,19 +241,25 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
     :return : bool value is it good to maximize metric or not
     """
 
+    if isinstance(target[0], str):
+        # Target for classification contain string objects
+        le = LabelEncoder()
+        target = le.fit_transform(target)
+
     if loss_params is None:
-        if isinstance(target[0], str):
-            # Target for classification contain string objects
-            le = LabelEncoder()
-            target = le.fit_transform(target)
-        metric = loss_function(target, target)
-    else:
-        try:
-            metric = loss_function(target, target, **loss_params)
-        except Exception:
-            # Multiclass classification task
-            metric = 1
-    if int(round(metric)) == 0:
-        return False
-    else:
+        loss_params = {}
+
+    try:
+        optimal_metric = loss_function(target, target, **loss_params)
+        not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
+    except Exception:
+        optimal_multi_target = _create_multi_target_prediction(target, True)
+        not_optimal_multi_target = _create_multi_target_prediction(target, False)
+
+        optimal_metric = loss_function(target, optimal_multi_target, **loss_params)
+        not_optimal_metric = loss_function(target, not_optimal_multi_target, **loss_params)
+
+    if optimal_metric > not_optimal_metric:
         return True
+    else:
+        return False
