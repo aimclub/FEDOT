@@ -403,7 +403,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.archive.items
         return best
 
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=4):
+    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=1):
         evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
