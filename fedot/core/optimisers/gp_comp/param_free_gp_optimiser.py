@@ -73,7 +73,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                         desc='Generations', unit='gen', initial=1) if show_progress else None
 
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t,
-                                                         workers=self.requirements.workers)
+                                                         n_jobs=self.requirements.n_jobs)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -113,7 +113,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     new_population = list(self.reproduce(self.population[0]))
                     new_population = self._evaluate_individuals(new_population, objective_function,
                                                                 timer=t,
-                                                                workers=self.requirements.workers)
+                                                                n_jobs=self.requirements.n_jobs)
                 else:
                     num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
 
@@ -130,7 +130,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                     new_population = self._evaluate_individuals(new_population, objective_function,
                                                                 timer=t,
-                                                                workers=self.requirements.workers)
+                                                                n_jobs=self.requirements.n_jobs)
 
                 self.requirements.pop_size = self.next_population_size(new_population)
                 num_of_new_individuals = self.offspring_size(offspring_rate)

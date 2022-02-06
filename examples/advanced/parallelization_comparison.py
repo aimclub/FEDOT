@@ -15,7 +15,7 @@ def count_pipelines(opt_history):
     return count
 
 
-def run_experiments(timeout: float = None, partitions_n=10, n_workers=-1):
+def run_experiments(timeout: float = None, partitions_n=10, n_n_jobs=-1):
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
@@ -29,12 +29,12 @@ def run_experiments(timeout: float = None, partitions_n=10, n_workers=-1):
     for i in range(1, partitions_n + 1):
         partitions.append(int(data_len * (i / partitions_n)))
 
-    pipelines_count = {1: [], n_workers: []}
-    for n_worker in [1, n_workers]:
+    pipelines_count = {1: [], n_n_jobs: []}
+    for n_worker in [1, n_n_jobs]:
         for partition in partitions:
-            print(f'Workers: {n_worker}, {partition} rows in dataset')
+            print(f'n_jobs: {n_worker}, {partition} rows in dataset')
             train_data = train_data.iloc[:partition, :]
-            auto_model = Fedot(problem=problem, seed=42, timeout=timeout, workers=n_worker,
+            auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=n_worker,
                                composer_params={'with_tuning': False}, preset='fast_train')
             auto_model.fit(features=train_data_path, target='target')
             auto_model.predict_proba(features=test_data_path)
@@ -46,11 +46,11 @@ def run_experiments(timeout: float = None, partitions_n=10, n_workers=-1):
     plt.xlabel = 'rows in train dataset'
     plt.ylabel = 'Num of pipelines'
     plt.plot(partitions, pipelines_count[1], label='one process')
-    plt.plot(partitions, pipelines_count[n_workers], label=f'{n_workers} processes')
+    plt.plot(partitions, pipelines_count[n_n_jobs], label=f'{n_n_jobs} processes')
     plt.legend()
     plt.grid()
     plt.show()
 
 
 if __name__ == '__main__':
-    run_experiments(timeout=10, partitions_n=5, n_workers=-1)
+    run_experiments(timeout=10, partitions_n=5, n_n_jobs=-1)

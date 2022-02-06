@@ -114,7 +114,7 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
 
 
 def evaluate_individuals(individuals_set, objective_function, graph_generation_params,
-                         is_multi_objective: bool, workers=1, timer=None):
+                         is_multi_objective: bool, n_jobs=1, timer=None):
     logger = default_log('individuals evaluation logger')
     reversed_set = individuals_set[::-1]
 
@@ -134,7 +134,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
                            'graph_generation_params': graph_generation_params,
                            'timer': timer if i != 0 else None}
 
-    with multiprocessing.Pool(workers) as pool:
+    with multiprocessing.Pool(n_jobs) as pool:
         evaluated_individuals = pool.map(individual_evaluation, reversed_set)
     if len(evaluated_individuals) == 0:
         raise AttributeError('Too much fitness evaluation errors. Composing stopped.')

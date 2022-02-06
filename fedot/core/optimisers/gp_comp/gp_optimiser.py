@@ -184,7 +184,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
             self.population = self._evaluate_individuals(self.population, objective_function,
                                                          timer=t,
-                                                         workers=self.requirements.workers)
+                                                         n_jobs=self.requirements.n_jobs)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -234,7 +234,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = self._evaluate_individuals(new_population, objective_function,
                                                             timer=t,
-                                                            workers=self.requirements.workers)
+                                                            n_jobs=self.requirements.n_jobs)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -403,12 +403,12 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.archive.items
         return best
 
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, workers=4):
+    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=4):
         evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
                                                      is_multi_objective=self.parameters.multi_objective,
-                                                     workers=workers,
+                                                     n_jobs=n_jobs,
                                                      timer=timer)
         return evaluated_individuals
 

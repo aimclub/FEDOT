@@ -47,7 +47,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
-    :attribute workers: num of workers
+    :attribute n_jobs: num of n_jobs
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -56,7 +56,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
     start_depth: int = None
     validation_blocks: int = None
-    workers: int = 1
+    n_jobs: int = 1
 
 
 class GPComposer(Composer):

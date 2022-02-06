@@ -199,7 +199,7 @@ class ApiComposer:
                                          cv_folds=composer_params['cv_folds'],
                                          validation_blocks=composer_params['validation_blocks'],
                                          timeout=timeout_for_composing,
-                                         workers=api_params['workers'])
+                                         n_jobs=api_params['n_jobs'])
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -376,7 +376,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None, workers=4)
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None, n_jobs=4)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
