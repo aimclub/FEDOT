@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Union, Tuple
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -222,3 +222,15 @@ class GraphOperator:
         index_degree_pairs = graph.degree
         node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
         return node_degrees
+
+    def get_all_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
+        """
+        Method to get all available edges in a given graph
+        """
+
+        edges = []
+        for node in self._graph.nodes:
+            if node.nodes_from:
+                for parent_node in node.nodes_from:
+                    edges.append([parent_node, node])
+        return edges
