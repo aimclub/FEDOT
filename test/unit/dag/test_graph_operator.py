@@ -170,7 +170,7 @@ def test_disconnect_nodes_method_first():
 
     pipeline.operator.disconnect_nodes(knn_node, knn_root_node)
 
-    assert (res_pipeline == pipeline)
+    assert res_pipeline == pipeline
 
 
 def test_disconnect_nodes_method_second():
@@ -184,7 +184,7 @@ def test_disconnect_nodes_method_second():
 
     pipeline.operator.disconnect_nodes(xgboost_node, knn_node)
 
-    assert(res_pipeline == pipeline)
+    assert res_pipeline == pipeline
 
 
 def test_disconnect_nodes_method_third():
@@ -198,7 +198,7 @@ def test_disconnect_nodes_method_third():
 
     pipeline.operator.disconnect_nodes(qda_node, knn_root_node)
 
-    assert (res_pipeline == pipeline)
+    assert res_pipeline == pipeline
 
 
 def test_disconnect_nodes_method_fourth():
@@ -211,7 +211,7 @@ def test_disconnect_nodes_method_fourth():
     knn_root_node = res_pipeline.nodes[0]
 
     res_pipeline.operator.disconnect_nodes(xgboost_node, knn_root_node)
-    assert (res_pipeline == pipeline)
+    assert res_pipeline == pipeline
 
 
 def test_disconnect_nodes_method_fifth():
@@ -224,7 +224,7 @@ def test_disconnect_nodes_method_fifth():
     knn_root_node = SecondaryNode('knn', nodes_from=[xgboost_node])
 
     res_pipeline.operator.disconnect_nodes(xgboost_node, knn_root_node)
-    assert (res_pipeline == pipeline)
+    assert res_pipeline == pipeline
 
 
 # ------------------------------------------------------------------------------
@@ -242,4 +242,4 @@ def test_get_all_edges():
     res_edges = [[knn, logit], [qda_second, knn], [qda_first, knn], [lda, qda_second]]
 
     edges = pipeline.operator.get_all_edges()
-    assert(res_edges == edges)
+    assert res_edges == edges
