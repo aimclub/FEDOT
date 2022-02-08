@@ -2,13 +2,12 @@ import numpy as np
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.data_types import TableTypesCorrector
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
-
 from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
     correct_preprocessing_params
 
@@ -127,7 +126,7 @@ def test_complicated_table_types_processed_correctly():
 
     pipeline = Pipeline(PrimaryNode('dt'))
     pipeline = correct_preprocessing_params(pipeline, categorical_max_classes_th=13)
-    train_predicted = pipeline.fit(train_data)
+    train_predicted = pipeline.fit(train_data, use_fitted=True)
     pipeline.predict(test_data)
 
     # Table types corrector after fitting

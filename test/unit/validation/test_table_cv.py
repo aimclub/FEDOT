@@ -1,13 +1,14 @@
+import os
 from datetime import timedelta
 
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -16,6 +17,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
+from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset
 from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 
@@ -29,9 +31,9 @@ def sample_pipeline():
 
 
 def get_data(task):
-    full_path_train, full_path_test = get_scoring_data()
-    dataset_to_compose = InputData.from_csv(full_path_train, task=task)
-    dataset_to_validate = InputData.from_csv(full_path_test, task=task)
+    file_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
+    input_data = InputData.from_csv(file_path, task=task)
+    dataset_to_compose, dataset_to_validate = train_test_data_setup(input_data)
 
     return dataset_to_compose, dataset_to_validate
 
@@ -40,7 +42,10 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
     log = default_log(__name__)
 
-    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset, cv_folds=10,
+    classification_dataset_cv = [(classification_dataset, classification_dataset),
+                                 (classification_dataset, classification_dataset)]
+
+    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset_cv,
                                             metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
                                                      ClassificationMetricsEnum.accuracy,
                                                      ClassificationMetricsEnum.logloss],

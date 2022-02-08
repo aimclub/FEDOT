@@ -4,13 +4,16 @@ import shelve
 import uuid
 from collections import namedtuple
 
+from fedot.core.log import default_log
 from fedot.core.utils import default_fedot_data_dir
 
 CachedState = namedtuple('CachedState', 'operation')
 
 
 class OperationsCache:
-    def __init__(self, db_path=None, clear_exiting=True):
+    def __init__(self, log=None, db_path=None, clear_exiting=True):
+        self.log = default_log(__name__) if log is None else log
+
         if not db_path:
             self.db_path = f'{str(default_fedot_data_dir())}/tmp_{str(uuid.uuid4())}'
         else:
@@ -19,15 +22,18 @@ class OperationsCache:
         if clear_exiting:
             self.clear()
 
-    def save_node(self, node):
+    def save_node(self, node, partial_id='all'):
         if node.fitted_operation is not None:
-            _save_cache_for_node(self.db_path, node.descriptive_id,
+            _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
                                  CachedState(node.fitted_operation))
 
-    def save_pipeline(self, pipeline):
-        for node in pipeline.nodes:
-            _save_cache_for_node(self.db_path, node.descriptive_id,
-                                 CachedState(node.fitted_operation))
+    def save_pipeline(self, pipeline, partial_id='all'):
+        try:
+            for node in pipeline.nodes:
+                _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
+                                     CachedState(node.fitted_operation))
+        except Exception as ex:
+            self.log.info(f'Cache can not be saved: {ex}. Continue.')
 
     def clear(self, tmp_only=False):
         if not tmp_only:
@@ -37,8 +43,8 @@ class OperationsCache:
         folder_path = f'{str(default_fedot_data_dir())}/tmp_*'
         clear_folder(folder_path)
 
-    def get(self, node):
-        found_operation = _load_cache_for_node(self.db_path, node.descriptive_id)
+    def get(self, node, partial_id='all'):
+        found_operation = _load_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}')
         # TODO: Add node and node from cache "fitted on data" field comparison
         return found_operation
 

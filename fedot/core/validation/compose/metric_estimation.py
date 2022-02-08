@@ -1,11 +1,14 @@
 import gc
 
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 
 
 def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
-                      metrics: list, evaluated_metrics: list, vb_number: int = None):
+                      metrics: list, evaluated_metrics: list,
+                      fold_num: int = None, vb_number: int = None,
+                      cache: OperationsCache = None):
     """ Pipeline training and metrics assessment
 
     :param pipeline: pipeline for validation
@@ -13,9 +16,14 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
     :param test_data: InputData for validation
     :param metrics: list with metrics for evaluation
     :param evaluated_metrics: list with metrics values
-    :param vb_number: number of validation blocks
+    :param fold_num: number of fold for cross-validation
+    :param vb_number: number of validation blocks for time series
+    :param cache: instance of cache class
     """
-    pipeline.fit_from_scratch(train_data)
+    if cache is not None:
+        pipeline.fit_from_cache(cache, fold_num)
+
+    pipeline.fit(train_data, use_fitted=cache is not None)
 
     for index, metric in enumerate(metrics):
         if callable(metric):
@@ -24,6 +32,9 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
             metric_func = MetricsRepository().metric_by_id(metric)
         metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
         evaluated_metrics[index].extend([metric_value])
+
+    if cache is not None:
+        cache.save_pipeline(pipeline, fold_num)
 
     # enforce memory cleaning
     pipeline.unfit()

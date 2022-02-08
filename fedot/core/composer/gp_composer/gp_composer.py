@@ -20,6 +20,7 @@ from fedot.core.repository.quality_metrics_repository import (MetricsEnum,
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -75,7 +76,7 @@ class GPComposer(Composer):
         super().__init__(metrics=metrics, composer_requirements=composer_requirements,
                          initial_pipelines=initial_pipelines)
 
-        self.cache = OperationsCache()
+        self.cache = OperationsCache(log=logger)
 
         self.optimiser = optimiser
         self.cache_path = None
@@ -131,7 +132,8 @@ class GPComposer(Composer):
             self.cache.clear()
         else:
             self.cache.clear(tmp_only=True)
-            self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
+            self.cache = OperationsCache(log=self.log, db_path=self.cache_path,
+                                         clear_exiting=not self.use_existing_cache)
 
         opt_result = self.optimiser.optimise(objective_function_for_pipeline,
                                              on_next_iteration_callback=on_next_iteration_callback)
@@ -159,18 +161,25 @@ class GPComposer(Composer):
             if self.composer_requirements.validation_blocks is None:
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.composer_requirements.validation_blocks = 3
-            metric_function_for_nodes = partial(ts_metric_calculation, data,
+
+            cv_data_sets = list(ts_cv_generator(data, folds=self.composer_requirements.cv_folds,
+                                                validation_blocks=self.composer_requirements.validation_blocks,
+                                                log=self.log))
+
+            metric_function_for_nodes = partial(ts_metric_calculation, cv_data_sets,
                                                 self.composer_requirements.cv_folds,
                                                 self.composer_requirements.validation_blocks,
                                                 self.metrics,
                                                 log=self.log)
+
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-            metric_function_for_nodes = partial(table_metric_calculation, data,
-                                                self.composer_requirements.cv_folds,
-                                                self.metrics,
-                                                log=self.log)
+            cv_data_sets = list(tabular_cv_generator(data, self.composer_requirements.cv_folds))
 
+            metric_function_for_nodes = partial(table_metric_calculation, cv_data_sets,
+                                                self.metrics,
+                                                log=self.log,
+                                                cache=self.cache)
         return metric_function_for_nodes
 
     def composer_metric(self, metrics,
@@ -185,17 +194,14 @@ class GPComposer(Composer):
                 metrics = [metrics]
 
             if self.cache is not None:
-                # TODO improve cache
                 pipeline.fit_from_cache(self.cache)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
 
             pipeline.fit(input_data=train_data,
-                         time_constraint=self.composer_requirements.max_pipeline_fit_time)
-            try:
-                self.cache.save_pipeline(pipeline)
-            except Exception as ex:
-                self.log.info(f'Cache can not be saved: {ex}. Continue.')
+                         time_constraint=self.composer_requirements.max_pipeline_fit_time,
+                         use_fitted=self.cache is not None)
+            self.cache.save_pipeline(pipeline)
 
             evaluated_metrics = ()
             for metric in metrics:

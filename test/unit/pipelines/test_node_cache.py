@@ -226,14 +226,15 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
 
 
-def test_cache_historical_state_using(data_setup):
+def test_cache_historical_state_using_with_cv(data_setup):
+    cv_fold = 1
     cache = OperationsCache()
     train, _ = data_setup
     pipeline = pipeline_first()
 
     # pipeline fitted, model goes to cache
     pipeline.fit(input_data=train)
-    cache.save_pipeline(pipeline)
+    cache.save_pipeline(pipeline, partial_id=cv_fold)
     new_node = SecondaryNode(operation_type='logit')
     old_node = pipeline.root_node.nodes_from[0]
 
@@ -244,16 +245,16 @@ def test_cache_historical_state_using(data_setup):
     assert not cache.get(pipeline.root_node)
     # fit modified pipeline
     pipeline.fit(input_data=train)
-    cache.save_pipeline(pipeline)
+    cache.save_pipeline(pipeline, partial_id=cv_fold)
     # cache is actual now
-    assert cache.get(pipeline.root_node)
+    assert cache.get(pipeline.root_node, partial_id=cv_fold)
 
     # change node back
     pipeline.update_node(old_node=pipeline.root_node.nodes_from[0],
                          new_node=old_node)
     # cache is actual without new fitting,
     # because the cached model was saved after first fit
-    assert cache.get(pipeline.root_node)
+    assert cache.get(pipeline.root_node, partial_id=cv_fold)
 
 
 def test_multi_pipeline_caching_with_cache(data_setup):
