@@ -15,8 +15,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
-from fedot.core.repository.quality_metrics_repository import (MetricsEnum,
-                                                              MetricsRepository)
+from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
