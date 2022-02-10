@@ -5,12 +5,13 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.timer import Timer
 from fedot.core.optimisers.utils.population_utils import input_data_characteristics
-from fedot.core.pipelines.node import Node, PrimaryNode
+from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -46,6 +47,18 @@ class Pipeline(Graph):
         # Define data preprocessor
         self.preprocessor = DataPreprocessor(self.log)
         super().__init__(nodes)
+        self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
+
+    def _graph_nodes_to_pipeline_nodes(self):
+        """Method to update nodes types after performing some action on the pipeline
+        via GraphOperator, if any of them are GraphNode type"""
+
+        for node in self.nodes:
+            if node.nodes_from and not isinstance(node, PrimaryNode) \
+                    and not isinstance(node, SecondaryNode):
+                self.operator.update_node(old_node=node,
+                                          new_node=SecondaryNode(nodes_from=node.nodes_from,
+                                                                 content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """

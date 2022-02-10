@@ -7,8 +7,9 @@ from fedot.core.pipelines.node import PrimaryNode
 
 
 class GraphOperator:
-    def __init__(self, graph=None):
+    def __init__(self, graph=None, postproc_nodes=None):
         self._graph = graph
+        self._postproc_nodes = postproc_nodes
 
     def _make_secondary_node_as_primary(self, node_child: GraphNode, new_type):
         # TODO move classes definition to additional methods
@@ -129,6 +130,7 @@ class GraphOperator:
                 new_child = GraphNode(nodes_from=[], content=child.content)
                 new_child.nodes_from.append(parent)
                 self.update_node(child, new_child)
+        self._postproc_nodes()
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
