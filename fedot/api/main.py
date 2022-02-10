@@ -86,6 +86,8 @@ class Fedot:
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
+        if composer_params is not None and 'timeout' in composer_params:
+            timeout = composer_params['timeout']
         self.timeout_set_in_init = timeout
 
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
@@ -98,8 +100,8 @@ class Fedot:
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
 
-        # Update timeout and initial_assumption parameters
-        self.update_params(timeout, initial_assumption)
+        # Update timeout, num_of_generations and initial_assumption parameters
+        self.update_params(timeout, self.params.api_params['num_of_generations'], initial_assumption)
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -331,9 +333,21 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
-    def update_params(self, timeout, initial_assumption):
-        if timeout is not None:
+    def update_params(self, timeout, num_of_generations, initial_assumption):
+        if timeout in [-1, None]:
+            self.params.api_params['timeout'] = None
+            if num_of_generations is None:
+                raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
+            self.params.api_params['num_of_generations'] = num_of_generations
+        elif timeout > 0:
             self.params.api_params['timeout'] = timeout
+            if num_of_generations is not None:
+                self.params.api_params['num_of_generations'] = num_of_generations
+            else:
+                self.params.api_params['num_of_generations'] = 10000
+        else:
+            raise ValueError(f'invalid "timeout" value: timeout={timeout}')
+
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
 

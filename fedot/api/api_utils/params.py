@@ -31,10 +31,6 @@ class ApiParams:
             np.random.seed(input_params['seed'])
             random.seed(input_params['seed'])
 
-        if input_params['timeout'] is not None:
-            self.api_params['timeout'] = self.api_params['timeout']
-            self.api_params['num_of_generations'] = 10000
-
         if 'metric' in self.api_params:
             self.api_params['composer_metric'] = self.api_params['metric']
             del self.api_params['metric']
