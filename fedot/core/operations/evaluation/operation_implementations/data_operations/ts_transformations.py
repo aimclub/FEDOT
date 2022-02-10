@@ -123,17 +123,21 @@ class LaggedImplementation(DataOperationImplementation):
             new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
                                                                    idx=new_idx,
                                                                    features_columns=transformed_cols,
-                                                                   target=target,
+                                                                   target=target[:, current_ts_id],
                                                                    forecast_length=forecast_length)
             if current_ts_id == 0:
                 # Init full lagged table
                 all_transformed_features = transformed_cols
+                all_transformed_target = new_target
             else:
-                all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
+                #all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
+                all_transformed_features = np.vstack((all_transformed_features, transformed_cols))
+                all_transformed_target = np.vstack((all_transformed_target, new_target))
 
         input_data.features = all_transformed_features
         self.features_columns = all_transformed_features
-        return new_target, new_idx
+        #return new_target, new_idx
+        return all_transformed_target, new_idx
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
         """ Apply lagged transformation for every column (time series) in the dataset """
@@ -674,7 +678,9 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     idx = idx[: -1]
 
     # Update target (clip first "window size" values)
-    row_nums = [list(all_idx).index(i) for i in idx]
+    a = list(all_idx)
+    #row_nums = [list(all_idx).index(i) for i in idx]
+    row_nums = [np.where(all_idx == i)[0][0] for i in idx]
     ts_target = target[row_nums]
 
     # Multi-target transformation
