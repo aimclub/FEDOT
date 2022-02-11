@@ -37,7 +37,7 @@ class HyperoptTuner(ABC):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
-        self.max_seconds = int(timeout.seconds)
+        self.max_seconds = int(timeout.seconds) if timeout is not None else None
         self.init_pipeline = None
         self.init_metric = None
         self.is_need_to_maximize = None

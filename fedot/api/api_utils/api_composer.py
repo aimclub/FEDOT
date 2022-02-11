@@ -169,7 +169,11 @@ class ApiComposer:
         primary_operations, secondary_operations = self.divide_operations(composer_params['available_operations'],
                                                                           api_params['task'])
 
-        timeout_for_composing = api_params['timeout'] / 2 if tuning_params['with_tuning'] else api_params['timeout']
+        if api_params['timeout'] is None:
+            timeout_for_composing = None
+        else:
+            timeout_for_composing = api_params['timeout'] / 2 if tuning_params['with_tuning'] else api_params['timeout']
+            timeout_for_composing = datetime.timedelta(minutes=timeout_for_composing)
         starting_time_for_composing = datetime.datetime.now()
         # the choice and initialisation of the GP composer
         composer_requirements = \
@@ -181,7 +185,7 @@ class ApiComposer:
                                          num_of_generations=composer_params['num_of_generations'],
                                          cv_folds=composer_params['cv_folds'],
                                          validation_blocks=composer_params['validation_blocks'],
-                                         timeout=datetime.timedelta(minutes=timeout_for_composing))
+                                         timeout=timeout_for_composing)
 
         spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
         spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
@@ -252,10 +256,13 @@ class ApiComposer:
 
             iterations = 20 if api_params['timeout'] is None else 1000
 
-            if spending_time_for_composing < timeout_for_composing:
-                timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
+            if timeout_for_composing is not None:
+                if spending_time_for_composing < int(timeout_for_composing.total_seconds() / 60):
+                    timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
+                else:
+                    timeout_for_tuning = api_params['timeout'] / 2
             else:
-                timeout_for_tuning = api_params['timeout'] / 2
+                timeout_for_tuning = None
 
             # Tune all nodes in the pipeline
             vb_number = composer_requirements.validation_blocks
