@@ -6,7 +6,7 @@ from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
 class GraphOperator:
-    def __init__(self, graph=None, postproc_nodes=None):
+    def __init__(self, graph=None, postproc_nodes=GraphNode.empty_postproc):
         self._graph = graph
         self._postproc_nodes = postproc_nodes
 
@@ -22,8 +22,7 @@ class GraphOperator:
                 node_children_cached[0].nodes_from.append(node_from)
         self._graph.nodes.clear()
         self.add_node(self_root_node_cached)
-        if self._postproc_nodes:
-            self._postproc_nodes()
+        self._postproc_nodes()
 
     def delete_subtree(self, node: GraphNode):
         """Delete node with all the parents it has"""
@@ -116,8 +115,7 @@ class GraphOperator:
                 new_child = GraphNode(nodes_from=[], content=child.content)
                 new_child.nodes_from.append(parent)
                 self.update_node(child, new_child)
-        if self._postproc_nodes:
-            self._postproc_nodes()
+        self._postproc_nodes()
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
@@ -150,8 +148,7 @@ class GraphOperator:
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
-            if self._postproc_nodes:
-                self._postproc_nodes(node_child)
+            self._postproc_nodes(node_child)
         else:
             node_child.nodes_from.remove(node_parent)
 
