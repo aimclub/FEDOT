@@ -3,24 +3,12 @@ from typing import Any, List, Optional, Union, Tuple
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.core.pipelines.node import PrimaryNode
 
 
 class GraphOperator:
     def __init__(self, graph=None, postproc_nodes=None):
         self._graph = graph
         self._postproc_nodes = postproc_nodes
-
-    def _make_secondary_node_as_primary(self, node_child: GraphNode, new_type):
-        # TODO move classes definition to additional methods
-        new_primary_node = new_type(content=node_child.content)
-        this_node_children = self.node_children(node_child)
-        node_child_index = self._graph.nodes.index(node_child)
-        for node in this_node_children:
-            index = node.nodes_from.index(node_child)
-            node.nodes_from.remove(node_child)
-            node.nodes_from.insert(index, new_primary_node)
-        self._graph.nodes[node_child_index] = new_primary_node
 
     def delete_node(self, node: GraphNode):
         node_children_cached = self.node_children(node)
@@ -32,12 +20,10 @@ class GraphOperator:
         if node.nodes_from and len(node_children_cached) == 1:
             for node_from in node.nodes_from:
                 node_children_cached[0].nodes_from.append(node_from)
-        elif not node.nodes_from:
-            for node_child in node_children_cached:
-                if not node_child.nodes_from:
-                    self._make_secondary_node_as_primary(node_child, type(node))
         self._graph.nodes.clear()
         self.add_node(self_root_node_cached)
+        if self._postproc_nodes:
+            self._postproc_nodes()
 
     def delete_subtree(self, node: GraphNode):
         """Delete node with all the parents it has"""
@@ -130,7 +116,8 @@ class GraphOperator:
                 new_child = GraphNode(nodes_from=[], content=child.content)
                 new_child.nodes_from.append(parent)
                 self.update_node(child, new_child)
-        self._postproc_nodes()
+        if self._postproc_nodes:
+            self._postproc_nodes()
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
@@ -163,8 +150,8 @@ class GraphOperator:
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
-            # TODO remove workaround after replacement for PrimaryNode
-            self._make_secondary_node_as_primary(node_child, PrimaryNode)
+            if self._postproc_nodes:
+                self._postproc_nodes(node_child)
         else:
             node_child.nodes_from.remove(node_parent)
 

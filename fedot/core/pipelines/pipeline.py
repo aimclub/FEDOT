@@ -49,16 +49,24 @@ class Pipeline(Graph):
         super().__init__(nodes)
         self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
 
-    def _graph_nodes_to_pipeline_nodes(self):
+    def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
         """Method to update nodes types after performing some action on the pipeline
         via GraphOperator, if any of them are GraphNode type"""
 
-        for node in self.nodes:
-            if node.nodes_from and not isinstance(node, PrimaryNode) \
-                    and not isinstance(node, SecondaryNode):
+        if not nodes:
+            nodes = self.nodes
+
+        for node in nodes:
+            if node.nodes_from and not isinstance(node, SecondaryNode):
                 self.operator.update_node(old_node=node,
                                           new_node=SecondaryNode(nodes_from=node.nodes_from,
                                                                  content=node.content))
+            elif not node.nodes_from and not self.operator.node_children(node):
+                self.nodes.remove(node)
+            elif not node.nodes_from and not isinstance(node, PrimaryNode):
+                self.operator.update_node(old_node=node,
+                                          new_node=PrimaryNode(nodes_from=node.nodes_from,
+                                                               content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
