@@ -90,9 +90,6 @@ class Fedot:
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
-        if composer_params is not None and 'timeout' in composer_params:
-            timeout = composer_params['timeout']
-        self.timeout_set_in_init = timeout
 
         input_params = {'problem': problem, 'preset': preset,
                         'composer_params': composer_params, 'task_params': task_params,
@@ -105,7 +102,10 @@ class Fedot:
         self.params.api_params['tuner_metric'] = self.tuner_metrics
 
         # Update timeout, num_of_generations and initial_assumption parameters
+        if composer_params is not None and 'timeout' in composer_params:
+            timeout = composer_params['timeout']
         self.update_params(timeout, self.params.api_params['num_of_generations'], initial_assumption)
+        self.timeout_set_in_init = self.params.api_params['timeout']
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
