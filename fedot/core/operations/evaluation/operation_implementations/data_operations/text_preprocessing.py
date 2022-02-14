@@ -42,7 +42,8 @@ class TextCleanImplementation(DataOperationImplementation):
 
         clean_data = []
         for text in input_data.features:
-            words = set(self._word_vectorize(text))
+            text = str(text).lower()
+            words = self._word_vectorize(text)
             without_stop_words = self._remove_stop_words(words)
             words = self._lemmatization(without_stop_words)
             words = [word for word in words if word.isalpha()]
@@ -98,4 +99,4 @@ class TextCleanImplementation(DataOperationImplementation):
         return text
 
     def get_params(self):
-        return {'language': self.lang}
+        raise NotImplementedError()

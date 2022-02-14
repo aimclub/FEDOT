@@ -28,7 +28,7 @@ class DataMerger:
         Method automatically determine which merge function should be applied
         """
 
-        if len(self.outputs) == 1 and self.outputs[0].data_type in [DataTypesEnum.image, DataTypesEnum.text]:
+        if len(self.outputs) == 1 and self.outputs[0].data_type in [DataTypesEnum.image]:
             # TODO implement correct merge
             idx = self.outputs[0].idx
             features = self.outputs[0].features

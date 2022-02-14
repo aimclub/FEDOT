@@ -4,7 +4,7 @@ from fedot.core.operations.operation import Operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
-
+import numpy as np
 
 class Model(Operation):
     """
@@ -31,7 +31,7 @@ class Model(Operation):
         is_regression_task = output_data.task.task_type is TaskTypesEnum.regression
         is_ts_forecasting_task = output_data.task.task_type is TaskTypesEnum.ts_forecasting
 
-        predict_shape = output_data.predict.shape
+        predict_shape = np.array(output_data.predict).shape
         # Add information about features
         if is_regression_task or is_ts_forecasting_task:
             if len(predict_shape) < 2:

@@ -111,7 +111,7 @@ def _split_text(data, task, split_ratio, with_shuffle=False):
     :param with_shuffle: is data needed to be shuffled or not
     """
 
-    return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
+    return _split_any(data, task, DataTypesEnum.text, split_ratio, with_shuffle)
 
 
 def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
