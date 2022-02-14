@@ -29,6 +29,7 @@ TIMEOUT_CASES = [
     )
 ]
 
+
 @pytest.mark.parametrize('case', TIMEOUT_CASES)
 def test_timeout(case: TimeoutParams):
     composer_params = {
@@ -44,15 +45,13 @@ def test_timeout(case: TimeoutParams):
     if isinstance(case.test_answer, ValueError):
         with pytest.raises(ValueError):
             Fedot(problem=task_type, seed=42, preset=preset, verbose_level=4,
-                       timeout=composer_params['timeout'],
-                       composer_params=composer_params, task_params=TsForecastingParams(forecast_length=1))
+                  timeout=composer_params['timeout'],
+                  composer_params=composer_params, task_params=TsForecastingParams(forecast_length=1))
     else:
         auto_model = Fedot(problem=task_type, seed=42, preset=preset, verbose_level=4,
-                        timeout=composer_params['timeout'],
-                        composer_params=composer_params, task_params=TsForecastingParams(forecast_length=1))
+                           timeout=composer_params['timeout'],
+                           composer_params=composer_params, task_params=TsForecastingParams(forecast_length=1))
         auto_model.fit(features=train_data, target='target')
         history: OptHistory = auto_model.history
-
-        print(len(history.individuals), history.individuals)
 
         assert case.test_answer(history)
