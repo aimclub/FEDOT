@@ -92,7 +92,7 @@ class OptGraph:
 
         self.uid = str(uuid4())
         self.nodes = []
-        self.operator = GraphOperator(self)
+        self.operator = GraphOperator(self, self._empty_postproc)
         self._serialization_id = uuid4().hex
 
         if nodes:
@@ -101,6 +101,9 @@ class OptGraph:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
+
+    def _empty_postproc(self, nodes=None):
+        pass
 
     @property
     def _node_adapter(self):

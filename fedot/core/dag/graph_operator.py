@@ -6,7 +6,7 @@ from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
 class GraphOperator:
-    def __init__(self, graph=None, postproc_nodes=GraphNode.empty_postproc):
+    def __init__(self, graph=None, postproc_nodes=None):
         self._graph = graph
         self._postproc_nodes = postproc_nodes
 
@@ -39,6 +39,7 @@ class GraphOperator:
         self._graph.nodes.remove(old_node)
         self._graph.nodes.append(new_node)
         self.sort_nodes()
+        self._postproc_nodes()
 
     def update_subtree(self, old_node: GraphNode, new_node: GraphNode):
         """Exchange subtrees with old and new nodes as roots of subtrees"""
@@ -115,7 +116,6 @@ class GraphOperator:
                 new_child = GraphNode(nodes_from=[], content=child.content)
                 new_child.nodes_from.append(parent)
                 self.update_node(child, new_child)
-        self._postproc_nodes()
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
