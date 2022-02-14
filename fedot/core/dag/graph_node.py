@@ -40,7 +40,3 @@ class GraphNode:
     @property
     def distance_to_primary_level(self):
         return self._operator.distance_to_primary_level()
-
-    @staticmethod
-    def empty_postproc(nodes=None):
-        pass
