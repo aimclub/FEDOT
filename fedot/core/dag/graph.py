@@ -19,7 +19,7 @@ class Graph:
     def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
         self.uid = str(uuid4())
         self.nodes = []
-        self.operator = GraphOperator(self)
+        self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
             if isinstance(nodes, list):
@@ -27,6 +27,9 @@ class Graph:
                     self.add_node(node)
             else:
                 self.add_node(nodes)
+
+    def _empty_postproc(self, nodes=None):
+        pass
 
     def add_node(self, new_node: 'GraphNode'):
         """
