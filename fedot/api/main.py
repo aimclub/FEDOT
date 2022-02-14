@@ -47,6 +47,8 @@ class Fedot:
         - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
+        - 'None' or '-1' means infinite time
+        - if composer_params param has 'timeout' key - its value will be used instead
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
             'max_depth' - max depth of the pipeline
@@ -54,6 +56,7 @@ class Fedot:
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
             'timeout' - composing time (minutes)
+                - 'None' or '-1' means infinite time
             'available_operations' - list of model names to use
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
