@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import timedelta
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -74,7 +75,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 timeout: Optional[float] = None,
+                 timeout: Optional[float] = 5.0,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
@@ -90,7 +91,7 @@ class Fedot:
             timeout = composer_params['timeout']
         self.timeout_set_in_init = timeout
 
-        input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
+        input_params = {'problem': problem, 'preset': preset,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level}
         self.params.initialize_params(**input_params)
