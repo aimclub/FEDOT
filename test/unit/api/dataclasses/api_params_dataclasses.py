@@ -3,6 +3,7 @@ from typing import Callable, Union
 
 from fedot.core.optimisers.opt_history import OptHistory
 
+
 @dataclass
 class TimeoutParams:
     test_input: dict
