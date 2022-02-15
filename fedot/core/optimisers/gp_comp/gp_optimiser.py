@@ -124,7 +124,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.population = None
         self.initial_graph = initial_graph
 
-    def _create_randomized_pop_from_inital_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
+    def _create_randomized_pop_from_initial_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
         """
         Fill first population with mutated variants of the initial_graphs
         :param initial_graphs: Initial assumption for first population
@@ -159,7 +159,7 @@ class EvoGraphOptimiser(GraphOptimiser):
     def _init_population(self):
         if self.initial_graph:
             adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
-            self.population = self._create_randomized_pop_from_inital_graph(adapted_graphs)
+            self.population = self._create_randomized_pop_from_initial_graph(adapted_graphs)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
         return self.population
