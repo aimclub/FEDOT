@@ -22,12 +22,22 @@ class OperationsCache:
         if clear_exiting:
             self.clear()
 
-    def save_node(self, node, partial_id='all'):
+    def save_node(self, node, partial_id=''):
+        """
+        :param node: node for caching
+        :param partial_id: optional part of cache item UID
+                            (can be used to specify the number of CV fold)
+        """
         if node.fitted_operation is not None:
             _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
                                  CachedState(node.fitted_operation))
 
-    def save_pipeline(self, pipeline, partial_id='all'):
+    def save_pipeline(self, pipeline, partial_id=''):
+        """
+        :param pipeline: pipeline for caching
+        :param partial_id: optional part of cache item UID
+                            (can be used to specify the number of CV fold)
+        """
         try:
             for node in pipeline.nodes:
                 _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
@@ -43,9 +53,14 @@ class OperationsCache:
         folder_path = f'{str(default_fedot_data_dir())}/tmp_*'
         clear_folder(folder_path)
 
-    def get(self, node, partial_id='all'):
-        found_operation = _load_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}')
-        # TODO: Add node and node from cache "fitted on data" field comparison
+    def get(self, node, partial_id=''):
+        """
+        :param node: node which fitted state should be loaded from cache
+        :param partial_id: optional part of cache item UID
+                            (can be used to specify the number of CV fold)
+        """
+        found_operation = _load_cache_for_node(self.db_path,
+                                               f'{node.descriptive_id}_{partial_id}')
         return found_operation
 
 

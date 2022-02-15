@@ -1,39 +1,39 @@
-from typing import Callable, Tuple, Optional, List, Union
+from typing import Callable, Optional, Tuple
 
 import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.compose.metric_estimation import metric_evaluation
+from fedot.core.validation.split import tabular_cv_generator
 
 
-def table_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData, InputData]]],
+def table_metric_calculation(reference_data: InputData, cv_folds: int,
                              metrics: [str, Callable], pipeline: Optional[Pipeline],
                              cache: Optional[OperationsCache] = None,
                              log=None) -> [Tuple[float, ...], None]:
     """ Perform cross validation on tabular data for regression and classification tasks
 
     :param reference_data: InputData for validation
+    :param cv_folds: number of folds to split data
     :param metrics: name of metric or callable object
     :param pipeline: Pipeline for validation
     :param cache: cache manager for fitted models
     :param log: object for logging
     """
-    if ((isinstance(reference_data, InputData) and reference_data.task.task_type is TaskTypesEnum.clustering) or
-            (isinstance(reference_data, List) and reference_data[0][0].task.task_type is TaskTypesEnum.clustering)):
-        raise NotImplementedError(f"Tabular cross validation for clustering is not supported")
 
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
     try:
         evaluated_metrics = [[] for _ in range(len(metrics))]
-        for fold_num, data_pair in enumerate(reference_data):
-            train_data, test_data = data_pair
+        fold_id = 0
+        for train_data, test_data in tabular_cv_generator(reference_data, cv_folds):
             # Calculate metric value for every fold of data
             evaluated_metrics = metric_evaluation(pipeline=pipeline, train_data=train_data,
                                                   test_data=test_data, metrics=metrics,
-                                                  evaluated_metrics=evaluated_metrics, fold_num=fold_num, cache=cache)
+                                                  evaluated_metrics=evaluated_metrics, fold_id=fold_id,
+                                                  cache=cache)
+            fold_id += 1
         evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
         log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
 

@@ -7,7 +7,7 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository
 
 def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
                       metrics: list, evaluated_metrics: list,
-                      fold_num: int = None, vb_number: int = None,
+                      fold_id: int = None, vb_number: int = None,
                       cache: OperationsCache = None):
     """ Pipeline training and metrics assessment
 
@@ -16,12 +16,12 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
     :param test_data: InputData for validation
     :param metrics: list with metrics for evaluation
     :param evaluated_metrics: list with metrics values
-    :param fold_num: number of fold for cross-validation
+    :param fold_id: id of fold for cross-validation
     :param vb_number: number of validation blocks for time series
     :param cache: instance of cache class
     """
     if cache is not None:
-        pipeline.fit_from_cache(cache, fold_num)
+        pipeline.fit_from_cache(cache, fold_id)
 
     pipeline.fit(train_data, use_fitted=cache is not None)
 
@@ -34,7 +34,7 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
         evaluated_metrics[index].extend([metric_value])
 
     if cache is not None:
-        cache.save_pipeline(pipeline, fold_num)
+        cache.save_pipeline(pipeline, fold_id)
 
     # enforce memory cleaning
     pipeline.unfit()

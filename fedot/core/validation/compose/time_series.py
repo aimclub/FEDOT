@@ -1,11 +1,11 @@
-from typing import Callable, Optional, Tuple
-from typing import Union, List
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.validation.compose.metric_estimation import metric_evaluation
+from fedot.core.validation.split import ts_cv_generator
 
 
 def ts_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData, InputData]]],
@@ -29,15 +29,16 @@ def ts_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData,
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
     try:
         evaluated_metrics = [[] for _ in range(len(metrics))]
-        fold_num = 0
-        for train_data, test_data, validation_blocks_num in reference_data:
-            # Calculate metric value for every fold of data
+        fold_id = 0
+        for train_data, test_data, validation_blocks_number in ts_cv_generator(
+                reference_data, cv_folds, validation_blocks, log):
+            # Calculate metric value for each fold of data
             evaluated_metrics = metric_evaluation(pipeline=pipeline, train_data=train_data,
                                                   test_data=test_data, metrics=metrics,
                                                   evaluated_metrics=evaluated_metrics,
-                                                  vb_number=validation_blocks_num,
-                                                  fold_num=fold_num, cache=cache)
-            fold_num += 1
+                                                  vb_number=validation_blocks_number,
+                                                  fold_id=fold_id, cache=cache)
+            fold_id += 1
         evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
         log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
     except Exception as ex:

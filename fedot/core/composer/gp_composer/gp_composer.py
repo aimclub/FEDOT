@@ -20,7 +20,6 @@ from fedot.core.repository.quality_metrics_repository import (MetricsEnum,
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
-from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -162,11 +161,7 @@ class GPComposer(Composer):
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.composer_requirements.validation_blocks = 3
 
-            cv_data_sets = list(ts_cv_generator(data, folds=self.composer_requirements.cv_folds,
-                                                validation_blocks=self.composer_requirements.validation_blocks,
-                                                log=self.log))
-
-            metric_function_for_nodes = partial(ts_metric_calculation, cv_data_sets,
+            metric_function_for_nodes = partial(ts_metric_calculation, data,
                                                 self.composer_requirements.cv_folds,
                                                 self.composer_requirements.validation_blocks,
                                                 self.metrics,
@@ -174,9 +169,9 @@ class GPComposer(Composer):
 
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-            cv_data_sets = list(tabular_cv_generator(data, self.composer_requirements.cv_folds))
 
-            metric_function_for_nodes = partial(table_metric_calculation, cv_data_sets,
+            metric_function_for_nodes = partial(table_metric_calculation, data,
+                                                self.composer_requirements.cv_folds,
                                                 self.metrics,
                                                 log=self.log,
                                                 cache=self.cache)
