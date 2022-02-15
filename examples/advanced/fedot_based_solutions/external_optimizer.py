@@ -54,7 +54,8 @@ def run_with_random_search_composer():
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     automl = Fedot(problem='classification', timeout=1, verbose_level=4,
-                   preset='light_notun')
+                   preset='fast_train')
+
     automl.api_composer.optimiser = RandomSearchOptimizer
 
     automl.fit(train_data_path)

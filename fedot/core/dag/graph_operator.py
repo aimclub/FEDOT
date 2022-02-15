@@ -148,7 +148,7 @@ class GraphOperator:
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
-            self._postproc_nodes(node_child)
+            self._postproc_nodes()
         else:
             node_child.nodes_from.remove(node_parent)
 

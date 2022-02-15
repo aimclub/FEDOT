@@ -6,11 +6,13 @@ from typing import Callable, List, Optional, Tuple, Union
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
+from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -51,6 +53,8 @@ class Pipeline(Graph):
             nodes = self.nodes
 
         for node in nodes:
+            if not isinstance(node, GraphNode):
+                continue
             if node.nodes_from and not isinstance(node, SecondaryNode):
                 self.operator.update_node(old_node=node,
                                           new_node=SecondaryNode(nodes_from=node.nodes_from,
