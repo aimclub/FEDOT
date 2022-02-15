@@ -8,7 +8,7 @@ from fedot.rl.environments.graph_env import GraphEnv
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    num_episodes = 100
+    num_episodes = 2000
     num_nodes = 5
     input_nodes = 2
     eps = 1.0
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     times = []
     avg_scores_list = []
     avg_times_list = []
-    scores_avg_window = 10
+    scores_avg_window = 50
 
     action_list = list(product(range(num_nodes), range(num_nodes))) * 2
 
