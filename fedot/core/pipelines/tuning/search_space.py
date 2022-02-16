@@ -76,8 +76,7 @@ class SearchSpace:
                 'max_depth': (hp.choice, [range(1, 7)]),
                 'learning_rate': (hp.uniform, [0.1, 0.9]),
                 'subsample': (hp.uniform, [0.05, 0.99]),
-                'min_child_weight': (hp.choice, [range(1, 21)]),
-                'nthread': (hp.choice, [[1]])
+                'min_child_weight': (hp.choice, [range(1, 21)])
             },
             'svr': {
                 'loss': (hp.choice, [["epsilon_insensitive", "squared_epsilon_insensitive"]]),

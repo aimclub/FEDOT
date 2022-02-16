@@ -1,4 +1,8 @@
 {
+  "xgboost": {
+    "eval_metric": "mlogloss",
+    "nthread": -1
+  },
   "catboost": {
     "allow_writing_files": false,
     "verbose": false
