@@ -6,6 +6,7 @@ from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 import numpy as np
 from tqdm import tqdm
+from deap.tools import ParetoFront
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -105,7 +106,10 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
-        self.archive = self.parameters.archive_type if self.parameters.archive_type else SimpleArchive()
+        if isinstance(self.parameters.archive_type, ParetoFront):
+            self.archive = self.parameters.archive_type
+        else:
+            self.archive = SimpleArchive()
 
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
