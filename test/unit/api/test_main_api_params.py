@@ -43,17 +43,16 @@ def test_timeout(case: TimeoutParams):
 
     task_type = 'ts_forecasting'
     preset = 'fast_train'
+    fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': 4,
+                   'timeout': composer_params['timeout'],
+                   'composer_params': composer_params, 'task_params': TsForecastingParams(forecast_length=1)}
 
     train_data, test_data, _ = get_dataset(task_type)
     if isinstance(case.test_answer, ValueError):
         with pytest.raises(ValueError):
-            Fedot(problem=task_type, seed=42, preset=preset, verbose_level=4,
-                  timeout=composer_params['timeout'],
-                  composer_params=composer_params, task_params=TsForecastingParams(forecast_length=1))
+            Fedot(**fedot_input)
     else:
-        auto_model = Fedot(problem=task_type, seed=42, preset=preset, verbose_level=4,
-                           timeout=composer_params['timeout'],
-                           composer_params=composer_params, task_params=TsForecastingParams(forecast_length=1))
+        auto_model = Fedot(**fedot_input)
         auto_model.fit(features=train_data, target='target')
         history: OptHistory = auto_model.history
 
