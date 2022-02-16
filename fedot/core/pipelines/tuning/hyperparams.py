@@ -73,7 +73,7 @@ class ParametersChanger:
         else:
             # Dictionary with parameters
             try:
-                current_value = self.current_params[parameter_name]
+                current_value = self.current_params.get(parameter_name)
             except Exception as exec:
                 self.logger.warn(f'The following error occurred during the hyperparameter configuration.{exec}')
                 current_value = None
