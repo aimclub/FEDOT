@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import Node
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log, Log
 from fedot.core.operations.operation_template import extract_operation_params
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.operations_hp_sensitivity.problem import OneOperationProblem
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
+from fedot.sensitivity.operations_hp_sensitivity.problem import OneOperationProblem
 from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import analyze_method_by_name, \
     sample_method_by_name
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, HyperparamsAnalysisMetaParams
@@ -45,7 +45,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
                 is_dispersion_analysis: bool = False) -> Union[dict, float]:
 
         # check whether the pipeline is fitted
-        if not self._pipeline.fitted_on_data:
+        if not self._pipeline.is_fitted:
             self._pipeline.fit(self._train_data)
 
         # create problem

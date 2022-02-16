@@ -290,7 +290,6 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
         global_cache_len_after = len(cache.dict)
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None
-    assert new_pipeline.fitted_on_data is not None
 
 
 def test_gp_composer_builder_default_params_correct():
