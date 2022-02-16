@@ -3,8 +3,8 @@ import pytest
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.repository.tasks import TsForecastingParams
-from .test_main_api import get_dataset
-from .dataclasses.api_params_dataclasses import TimeoutParams
+from test.unit.api.test_main_api import get_dataset
+from .dataclasses.main_api_params_dataclasses import TimeoutParams
 
 TIMEOUT_CASES = [
     TimeoutParams(
