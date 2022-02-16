@@ -16,7 +16,7 @@ TIMEOUT_CASES = [
         test_answer=lambda hist: len(hist.individuals) == 1
     ),
     TimeoutParams(
-        test_input={'timeout': 1, 'num_of_generations': 15},
+        test_input={'timeout': 0.1, 'num_of_generations': 15},
         test_answer=lambda hist: len(hist.individuals) < 15
     ),
     TimeoutParams(
@@ -24,8 +24,8 @@ TIMEOUT_CASES = [
         test_answer=ValueError()
     ),
     TimeoutParams(
-        test_input={'timeout': -1, 'num_of_generations': 4},
-        test_answer=lambda hist: len(hist.individuals) == 4
+        test_input={'timeout': -1, 'num_of_generations': 3},
+        test_answer=lambda hist: len(hist.individuals) == 3
     )
 ]
 
@@ -35,6 +35,9 @@ def test_timeout(case: TimeoutParams):
     composer_params = {
         'max_depth': 1,
         'max_arity': 1,
+        'pop_size': 1,
+        'with_tuning': False,
+        'validation_blocks': 1,
         **case.test_input
     }
 
