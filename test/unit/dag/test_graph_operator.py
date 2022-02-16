@@ -248,7 +248,7 @@ def test_get_all_edges():
 
 def test_postproc_nodes():
     """
-    Test to check if the postproc_nodes method correctly converts the nodes types
+    Test to check if the postproc_nodes method correctly process the nodes types
     """
 
     pipeline = get_pipeline()
