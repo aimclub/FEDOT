@@ -226,12 +226,10 @@ class ApiComposer:
         api_params['logger'].message('Pipeline composition started')
         pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
 
-        pipeline_for_return = pipeline_gp_composed
-
         if isinstance(pipeline_gp_composed, list):
             for pipeline in pipeline_gp_composed:
                 pipeline.log = api_params['logger']
-            pipeline_for_return = pipeline_gp_composed[0]
+            pipeline_gp_composed = pipeline_gp_composed[0]
             best_candidates = gp_composer.optimiser.archive
         else:
             best_candidates = [pipeline_gp_composed]
@@ -262,13 +260,13 @@ class ApiComposer:
             # Tune all nodes in the pipeline
             vb_number = composer_requirements.validation_blocks
             folds = composer_requirements.cv_folds
-            pipeline_for_return = pipeline_for_return.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                                          loss_params=loss_params,
-                                                                          input_data=api_params['train_data'],
-                                                                          iterations=iterations,
-                                                                          timeout=timeout_for_tuning,
-                                                                          cv_folds=folds,
-                                                                          validation_blocks=vb_number)
+            pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
+                                                                            loss_params=loss_params,
+                                                                            input_data=api_params['train_data'],
+                                                                            iterations=iterations,
+                                                                            timeout=timeout_for_tuning,
+                                                                            cv_folds=folds,
+                                                                            validation_blocks=vb_number)
 
         api_params['logger'].message('Model composition finished')
 
@@ -277,7 +275,7 @@ class ApiComposer:
         # enforce memory cleaning
         gc.collect()
 
-        return pipeline_for_return, best_candidates, history
+        return pipeline_gp_composed, best_candidates, history
 
     def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):
         """ Function allow to obtain metric for tuner by its name
