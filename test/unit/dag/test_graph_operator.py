@@ -246,8 +246,11 @@ def test_get_all_edges():
     assert res_edges == edges
 
 
-# Test to check if the postproc_nodes method correctly converts the nodes types
 def test_postproc_nodes():
+    """
+    Test to check if the postproc_nodes method correctly converts the nodes types
+    """
+
     pipeline = get_pipeline()
 
     lda_node = pipeline.nodes[-2]
