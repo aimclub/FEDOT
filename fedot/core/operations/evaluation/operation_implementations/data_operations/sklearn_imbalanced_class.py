@@ -72,11 +72,13 @@ class ResampleImplementation(DataOperationImplementation):
             target = new_input_data.target
 
             if len(np.unique(target)) != 2:
+                # Imbalanced multi-class balancing is not supported.
                 return self._return_source_data(input_data)
 
             unique_class, counts_class = np.unique(target, return_counts=True)
 
             if counts_class[0] == counts_class[1]:
+                # Number of elements from each class are equal. Transformation is not required.
                 return self._return_source_data(input_data)
 
             min_data, maj_data = self._get_data_by_target(features, target,
