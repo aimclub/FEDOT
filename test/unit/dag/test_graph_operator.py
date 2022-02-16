@@ -3,6 +3,7 @@ from copy import deepcopy
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.optimisers.graph import OptNode
 
 
 def get_pipeline():
@@ -243,3 +244,23 @@ def test_get_all_edges():
 
     edges = pipeline.operator.get_all_edges()
     assert res_edges == edges
+
+
+# Test to check if the postproc_nodes method correctly converts the nodes types
+def test_postproc_nodes():
+    pipeline = get_pipeline()
+
+    lda_node = pipeline.nodes[-2]
+    qda_node = pipeline.nodes[-1]
+
+    pipeline.operator.connect_nodes(lda_node, qda_node)
+
+    for node in pipeline.nodes:
+        assert(isinstance(node, PrimaryNode) or isinstance(node, SecondaryNode))
+
+    # Check that the postproc_nodes method does not change the type of OptNode type nodes
+    new_node = OptNode({'name': "opt"})
+    pipeline.operator.update_node(old_node=lda_node,
+                                  new_node=new_node)
+    opt_node = pipeline.nodes[3]
+    assert(isinstance(opt_node, OptNode))
