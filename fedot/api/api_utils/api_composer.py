@@ -253,10 +253,7 @@ class ApiComposer:
 
             iterations = 20 if api_params['timeout'] is None else 1000
 
-            if spending_time_for_composing < timeout_for_composing:
-                timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
-            else:
-                timeout_for_tuning = api_params['timeout'] / 2
+            timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
 
             # Tune all nodes in the pipeline
             vb_number = composer_requirements.validation_blocks
