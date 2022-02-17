@@ -467,7 +467,7 @@ def apply_type_transformation(table: np.array, column_types: list, log: Log):
                     # Most likely case: ['a', '1.5'] -> [np.nan, 1.5]
                     label_ids = np.ravel(np.argwhere(current_column == unseen_label))
                     current_column[label_ids] = np.nan
-                    table[:, column_id] = current_column.astype(current_type)
+                    table[:, column_id] = current_column.astype(float)
 
     return table
 

@@ -101,7 +101,7 @@ class GPComposer(Composer):
 
         self.optimiser.graph_generation_params.advisor.task = data.task
 
-        if data.task == TaskTypesEnum.ts_forecasting:
+        if data.task.task_type == TaskTypesEnum.ts_forecasting:
             self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
         else:
             self.optimiser.graph_generation_params.rules_for_constraint = common_rules
