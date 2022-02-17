@@ -4,3 +4,6 @@ coverage:
       default:
         threshold: 1%
     patch: false
+ignore:
+  - "fedot/remote"  # external computational client can not be fully tested
+  - "fedot/sensitivity" # unit test are moved to integration test due to the time restrictions
