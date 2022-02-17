@@ -251,7 +251,6 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             iterations = 20 if api_params['timeout'] is None else 1000
-            
             timeout_in_sec = datetime.timedelta(minutes=api_params['timeout']).total_seconds()
             timeout_for_tuning = timeout_in_sec - spending_time_for_composing.total_seconds()
 
