@@ -183,8 +183,6 @@ class ApiComposer:
                                          validation_blocks=composer_params['validation_blocks'],
                                          timeout=datetime.timedelta(minutes=timeout_for_composing))
 
-        spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
-        spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
         if composer_params['genetic_scheme'] == 'steady_state':
@@ -234,6 +232,9 @@ class ApiComposer:
         else:
             best_candidates = [pipeline_gp_composed]
             pipeline_gp_composed.log = api_params['logger']
+
+        spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
+        spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
 
         if tuning_params['with_tuning']:
             api_params['logger'].message('Hyperparameters tuning started')
@@ -287,7 +288,7 @@ class ApiComposer:
         :return tuner_loss: loss function for tuner
         :return loss_params: parameters for tuner loss (can be None in some cases)
         """
-        loss_params_dict = {roc_auc: {'multi_class': 'ovr'},
+        loss_params_dict = {roc_auc: {'multi_class': 'ovr', 'average': 'macro'},
                             mean_squared_error: {'squared': False}}
 
         if task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:

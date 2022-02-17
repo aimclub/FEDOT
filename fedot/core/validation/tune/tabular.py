@@ -17,5 +17,7 @@ def cv_tabular_predictions(pipeline, reference_data: InputData, cv_folds: int):
         predictions.extend(predicted_values)
         targets.extend(actual_values)
 
-    predictions, targets = np.ravel(np.array(predictions)), np.ravel(np.array(targets))
+    if train_data.num_classes <= 2:
+        predictions, targets = np.ravel(np.array(predictions)), np.ravel(np.array(targets))
+
     return predictions, targets
