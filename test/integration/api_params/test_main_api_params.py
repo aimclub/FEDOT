@@ -1,10 +1,19 @@
+from dataclasses import dataclass
+from typing import Callable, Union
+
 import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.repository.tasks import TsForecastingParams
 from test.unit.api.test_main_api import get_dataset
-from .dataclasses.main_api_params_dataclasses import TimeoutParams
+
+
+@dataclass
+class TimeoutParams:
+    test_input: dict
+    test_answer: Union[Callable[[OptHistory], bool], ValueError]
+
 
 TIMEOUT_CASES = [
     TimeoutParams(
