@@ -234,7 +234,6 @@ class ApiComposer:
             pipeline_gp_composed.log = api_params['logger']
 
         spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
-        spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
 
         if tuning_params['with_tuning']:
             api_params['logger'].message('Hyperparameters tuning started')
@@ -252,20 +251,27 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             iterations = 20 if api_params['timeout'] is None else 1000
+            
+            timeout_in_sec = datetime.timedelta(minutes=api_params['timeout']).total_seconds()
+            timeout_for_tuning = timeout_in_sec - spending_time_for_composing.total_seconds()
 
-            timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
-
-            # Tune all nodes in the pipeline
-            vb_number = composer_requirements.validation_blocks
-            folds = composer_requirements.cv_folds
-            pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                                            loss_params=loss_params,
-                                                                            input_data=api_params['train_data'],
-                                                                            iterations=iterations,
-                                                                            timeout=timeout_for_tuning,
-                                                                            cv_folds=folds,
-                                                                            validation_blocks=vb_number)
-
+            if timeout_for_tuning < 15:
+                api_params['logger'].info(f'Time for pipeline composing  was {str(spending_time_for_composing)}.'
+                                          f'The remaining {timeout_for_tuning} seconds are not enough '
+                                          f'to tune the hyperparameters.'
+                                          f'Composed pipeline will be returned without tuning hyperparameters.')
+            else:
+                # Tune all nodes in the pipeline
+                timeout_for_tuning = api_params['timeout'] - int(spending_time_for_composing.total_seconds() / 60)
+                vb_number = composer_requirements.validation_blocks
+                folds = composer_requirements.cv_folds
+                pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
+                                                                                loss_params=loss_params,
+                                                                                input_data=api_params['train_data'],
+                                                                                iterations=iterations,
+                                                                                timeout=timeout_for_tuning,
+                                                                                cv_folds=folds,
+                                                                                validation_blocks=vb_number)
         api_params['logger'].message('Model composition finished')
 
         history = gp_composer.optimiser.history
