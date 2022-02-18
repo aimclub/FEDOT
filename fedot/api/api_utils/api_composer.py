@@ -236,8 +236,6 @@ class ApiComposer:
         spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
 
         if tuning_params['with_tuning']:
-            api_params['logger'].message('Hyperparameters tuning started')
-
             if tuning_params['tuner_metric'] is None:
                 # Default metric for tuner
                 tune_metrics = TunerMetricByTask(api_params['task'].task_type)
@@ -261,6 +259,7 @@ class ApiComposer:
                                           f'Composed pipeline will be returned without tuning hyperparameters.')
             else:
                 # Tune all nodes in the pipeline
+                api_params['logger'].message('Hyperparameters tuning started')
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
