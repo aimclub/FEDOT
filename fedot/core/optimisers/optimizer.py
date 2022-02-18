@@ -98,7 +98,7 @@ class GraphOptimiser:
         pass
 
     def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10) -> bool:
-        """ Function for the comparison of fitness values between pais of individuals
+        """ Function for the comparison of fitness values between pairs of individuals
         :param first_fitness: fitness for individual A
         :param second_fitness: fitness for individual B
         :param atol: absolute tolerance parameter (see Notes).

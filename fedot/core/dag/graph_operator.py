@@ -148,12 +148,13 @@ class GraphOperator:
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
-            self._postproc_nodes()
         else:
             node_child.nodes_from.remove(node_parent)
 
         if is_clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
+
+        self._postproc_nodes()
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
         if len(self._graph.nodes) == 0:
