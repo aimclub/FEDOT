@@ -169,7 +169,11 @@ class ApiComposer:
         primary_operations, secondary_operations = self.divide_operations(composer_params['available_operations'],
                                                                           api_params['task'])
 
-        timeout_for_composing = api_params['timeout'] / 2 if tuning_params['with_tuning'] else api_params['timeout']
+        if api_params['timeout'] is None:
+            timeout_for_composing = None
+        else:
+            timeout_for_composing = api_params['timeout'] / 2 if tuning_params['with_tuning'] else api_params['timeout']
+            timeout_for_composing = datetime.timedelta(minutes=timeout_for_composing)
         starting_time_for_composing = datetime.datetime.now()
         # the choice and initialisation of the GP composer
         composer_requirements = \
@@ -181,7 +185,7 @@ class ApiComposer:
                                          num_of_generations=composer_params['num_of_generations'],
                                          cv_folds=composer_params['cv_folds'],
                                          validation_blocks=composer_params['validation_blocks'],
-                                         timeout=datetime.timedelta(minutes=timeout_for_composing))
+                                         timeout=timeout_for_composing)
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -269,6 +273,7 @@ class ApiComposer:
                                                                                 timeout=round(timeout_for_tuning / 60),
                                                                                 cv_folds=folds,
                                                                                 validation_blocks=vb_number)
+
         api_params['logger'].message('Model composition finished')
 
         history = gp_composer.optimiser.history

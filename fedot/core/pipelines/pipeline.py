@@ -226,7 +226,7 @@ class Pipeline(Graph):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: dict = None,
                             input_data: Union[InputData, MultiModalData] = None,
-                            iterations=50, timeout: int = 5,
+                            iterations=50, timeout: Optional[int] = 5,
                             cv_folds: int = None,
                             validation_blocks: int = 3) -> 'Pipeline':
         """ Tune all hyperparameters of nodes simultaneously via black-box
@@ -236,7 +236,8 @@ class Pipeline(Graph):
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
 
-        timeout = timedelta(minutes=timeout)
+        if timeout is not None:
+            timeout = timedelta(minutes=timeout)
         pipeline_tuner = PipelineTuner(pipeline=self,
                                        task=copied_input_data.task,
                                        iterations=iterations,
