@@ -1,4 +1,5 @@
 from copy import deepcopy
+from datetime import timedelta
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -46,6 +47,8 @@ class Fedot:
         - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
+        - None or -1 means infinite time
+        - if composer_params param has 'timeout' key - its value will be used instead
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
             'max_depth' - max depth of the pipeline
@@ -53,6 +56,7 @@ class Fedot:
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
             'timeout' - composing time (minutes)
+                - None or -1 means infinite time
             'available_operations' - list of model names to use
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
@@ -74,7 +78,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 timeout: Optional[float] = None,
+                 timeout: Optional[float] = 5.0,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
@@ -86,9 +90,8 @@ class Fedot:
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
-        self.timeout_set_in_init = timeout
 
-        input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
+        input_params = {'problem': problem, 'preset': preset,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level}
         self.params.initialize_params(**input_params)
@@ -98,8 +101,11 @@ class Fedot:
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
 
-        # Update timeout and initial_assumption parameters
-        self.update_params(timeout, initial_assumption)
+        # Update timeout, num_of_generations and initial_assumption parameters
+        if composer_params is not None and 'timeout' in composer_params:
+            timeout = composer_params['timeout']
+        self.update_params(timeout, self.params.api_params['num_of_generations'], initial_assumption)
+        self.timeout_set_in_init = self.params.api_params['timeout']
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -331,9 +337,21 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
-    def update_params(self, timeout, initial_assumption):
-        if timeout is not None:
+    def update_params(self, timeout, num_of_generations, initial_assumption):
+        if timeout in [-1, None]:
+            self.params.api_params['timeout'] = None
+            if num_of_generations is None:
+                raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
+            self.params.api_params['num_of_generations'] = num_of_generations
+        elif timeout > 0:
             self.params.api_params['timeout'] = timeout
+            if num_of_generations is not None:
+                self.params.api_params['num_of_generations'] = num_of_generations
+            else:
+                self.params.api_params['num_of_generations'] = 10000
+        else:
+            raise ValueError(f'invalid "timeout" value: timeout={timeout}')
+
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
 

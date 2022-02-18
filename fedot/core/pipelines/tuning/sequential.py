@@ -43,8 +43,11 @@ class SequentialTuner(HyperoptTuner):
             iterations_per_node = 1
 
         # Calculate amount of seconds we can apply per node
-        seconds_per_node = round(self.max_seconds / nodes_amount)
-        seconds_per_node = int(seconds_per_node)
+        if self.max_seconds is not None:
+            seconds_per_node = round(self.max_seconds / nodes_amount)
+            seconds_per_node = int(seconds_per_node)
+        else:
+            seconds_per_node = None
 
         # Tuning performed sequentially for every node - so get ids of nodes
         nodes_ids = self.get_nodes_order(nodes_number=nodes_amount)
