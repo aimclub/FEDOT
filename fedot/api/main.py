@@ -13,7 +13,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.api.api_utils.params import ApiParams
-from fedot.api.api_utils.api_data import ApiDataProcessor, update_indices_for_time_series
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.explainability.explainers import explain_pipeline
@@ -27,6 +27,7 @@ class Fedot:
     """
     Main class for FEDOT API.
     Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
+
     :param problem: the name of modelling problem to solve:
         - classification
         - regression
@@ -120,6 +121,7 @@ class Fedot:
             predefined_model: Union[str, Pipeline] = None):
         """
         Fit the graph with a predefined structure or compose and fit the new graph
+
         :param features: the array with features of train data
         :param target: the array with target values of train data
         :param predefined_model: the name of the atomic model or Pipeline instance.
@@ -159,6 +161,7 @@ class Fedot:
                 save_predictions: bool = False):
         """
         Predict new target using already fitted model
+
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with prediction values
@@ -182,6 +185,7 @@ class Fedot:
                       probs_for_all_classes: bool = False):
         """
         Predict the probability of new target using already fitted classification model
+
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :param probs_for_all_classes: return probability for each class even for binary case
@@ -212,6 +216,7 @@ class Fedot:
                  save_predictions: bool = False):
         """
         Forecast the new values of time series
+
         :param pre_history: the array with features for pre-history of the forecast
         :param forecast_length: num of steps to forecast
         :param save_predictions: if True-save predictions as csv-file in working directory.
@@ -230,9 +235,6 @@ class Fedot:
                                                          features=pre_history,
                                                          is_predict=True)
 
-        # If it is time series forecasting task - prepare new indices for predict
-        self.test_data = update_indices_for_time_series(self.test_data, forecast_length)
-
         self.current_pipeline = Pipeline(self.current_pipeline.root_node)
         # TODO add incremental forecast
         self.prediction = self.current_pipeline.predict(self.test_data)
@@ -246,6 +248,7 @@ class Fedot:
     def load(self, path):
         """
         Load saved graph from disk
+
         :param path to json file with model
         """
         self.current_pipeline.load(path)
@@ -275,6 +278,7 @@ class Fedot:
                     metric_names: Union[str, List[str]] = None) -> dict:
         """
         Get quality metrics for the fitted graph
+
         :param target: the array with target values of test data
         :param metric_names: the names of required metrics
         :return: the values of quality metrics
