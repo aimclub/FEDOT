@@ -248,7 +248,11 @@ def test_get_all_edges():
 
 def test_postproc_nodes():
     """
-    Test to check if the postproc_nodes method correctly process the nodes types
+    Test to check if the postproc_nodes method correctly process GraphNodes
+    In the process of connecting nodes, GraphNode may appear in the pipeline,
+    so the method should change their type to an acceptable one
+
+    postproc_nodes method is called at the end of the update_node method
     """
 
     pipeline = get_pipeline()
@@ -261,9 +265,24 @@ def test_postproc_nodes():
     for node in pipeline.nodes:
         assert(isinstance(node, PrimaryNode) or isinstance(node, SecondaryNode))
 
+
+def test_postproc_opt_nodes():
+    """
+    Test to check if the postproc_nodes method correctly process OptNodes
+    The method should skip OptNodes without changing their type
+
+    postproc_nodes method is called at the end of the update_node method
+    """
+    pipeline = get_pipeline()
+
+    lda_node = pipeline.nodes[-2]
+    qda_node = pipeline.nodes[-1]
+
+    pipeline.operator.connect_nodes(lda_node, qda_node)
+
     # Check that the postproc_nodes method does not change the type of OptNode type nodes
     new_node = OptNode({'name': "opt"})
     pipeline.operator.update_node(old_node=lda_node,
                                   new_node=new_node)
     opt_node = pipeline.nodes[3]
-    assert(isinstance(opt_node, OptNode))
+    assert (isinstance(opt_node, OptNode))
