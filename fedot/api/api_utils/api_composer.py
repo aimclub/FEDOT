@@ -187,8 +187,6 @@ class ApiComposer:
                                          validation_blocks=composer_params['validation_blocks'],
                                          timeout=timeout_for_composing)
 
-        spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
-        spending_time_for_composing = int(spending_time_for_composing.total_seconds() / 60)  # convert in minutes
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
         if composer_params['genetic_scheme'] == 'steady_state':
@@ -239,9 +237,9 @@ class ApiComposer:
             best_candidates = [pipeline_gp_composed]
             pipeline_gp_composed.log = api_params['logger']
 
-        if tuning_params['with_tuning']:
-            api_params['logger'].message('Hyperparameters tuning started')
+        spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
 
+        if tuning_params['with_tuning']:
             if tuning_params['tuner_metric'] is None:
                 # Default metric for tuner
                 tune_metrics = TunerMetricByTask(api_params['task'].task_type)
@@ -255,25 +253,26 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             iterations = 20 if api_params['timeout'] is None else 1000
+            timeout_in_sec = datetime.timedelta(minutes=api_params['timeout']).total_seconds()
+            timeout_for_tuning = timeout_in_sec - spending_time_for_composing.total_seconds()
 
-            if timeout_for_composing is not None:
-                if spending_time_for_composing < int(timeout_for_composing.total_seconds() / 60):
-                    timeout_for_tuning = api_params['timeout'] - spending_time_for_composing
-                else:
-                    timeout_for_tuning = api_params['timeout'] / 2
+            if timeout_for_tuning < 15:
+                api_params['logger'].info(f'Time for pipeline composing  was {str(spending_time_for_composing)}.'
+                                          f'The remaining {timeout_for_tuning} seconds are not enough '
+                                          f'to tune the hyperparameters.'
+                                          f'Composed pipeline will be returned without tuning hyperparameters.')
             else:
-                timeout_for_tuning = None
-
-            # Tune all nodes in the pipeline
-            vb_number = composer_requirements.validation_blocks
-            folds = composer_requirements.cv_folds
-            pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                                            loss_params=loss_params,
-                                                                            input_data=api_params['train_data'],
-                                                                            iterations=iterations,
-                                                                            timeout=timeout_for_tuning,
-                                                                            cv_folds=folds,
-                                                                            validation_blocks=vb_number)
+                # Tune all nodes in the pipeline
+                api_params['logger'].message('Hyperparameters tuning started')
+                vb_number = composer_requirements.validation_blocks
+                folds = composer_requirements.cv_folds
+                pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
+                                                                                loss_params=loss_params,
+                                                                                input_data=api_params['train_data'],
+                                                                                iterations=iterations,
+                                                                                timeout=round(timeout_for_tuning / 60),
+                                                                                cv_folds=folds,
+                                                                                validation_blocks=vb_number)
 
         api_params['logger'].message('Model composition finished')
 
@@ -294,7 +293,7 @@ class ApiComposer:
         :return tuner_loss: loss function for tuner
         :return loss_params: parameters for tuner loss (can be None in some cases)
         """
-        loss_params_dict = {roc_auc: {'multi_class': 'ovr'},
+        loss_params_dict = {roc_auc: {'multi_class': 'ovr', 'average': 'macro'},
                             mean_squared_error: {'squared': False}}
 
         if task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
