@@ -122,6 +122,20 @@ class ApiDataProcessor:
                 self.recommendations[name](input_data, *rec.values())
 
 
+def update_indices_for_time_series(test_data: InputData, forecast_length: int):
+    """ Replace indices for time series for predict stage """
+    if isinstance(test_data, MultiModalData):
+        # Process multimodal data - change indices in every data block
+        for data_source_name, input_data in test_data.items():
+            last_id = len(input_data.idx)
+            input_data.idx = np.arange(last_id, last_id + forecast_length)
+    else:
+        # Simple input data
+        last_id = len(test_data.idx)
+        test_data.idx = np.arange(last_id, last_id + forecast_length)
+    return test_data
+
+
 def _convert_to_two_classes(predict):
     """ Prepare array with predicted probabilities for correct binarization
     Example: array [[0.5], [0.7]] will be converted into [[0.5, 0.5], [0.3, 0.7]]
