@@ -122,7 +122,7 @@ class ApiDataProcessor:
                 self.recommendations[name](input_data, *rec.values())
 
 
-def update_indices_for_time_series(test_data: InputData, forecast_length: int):
+def update_indices_for_time_series(test_data: Union[InputData, MultiModalData], forecast_length: int):
     """ Replace indices for time series for predict stage """
     if isinstance(test_data, MultiModalData):
         # Process multimodal data - change indices in every data block
