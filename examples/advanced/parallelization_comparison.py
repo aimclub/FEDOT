@@ -46,7 +46,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
     plt.xlabel = 'rows in train dataset'
     plt.ylabel = 'Num of pipelines'
     plt.plot(partitions, pipelines_count[1], label='one process')
-    plt.plot(partitions, pipelines_count[_n_jobs], label=f'{_n_jobs} processes')
+    plt.plot(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes')
     plt.legend()
     plt.grid()
     plt.show()
