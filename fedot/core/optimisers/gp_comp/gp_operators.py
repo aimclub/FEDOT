@@ -181,14 +181,23 @@ def individual_evaluation(individual: Dict) -> Union[Individual, None]:
     graph = individual.ind.graph
 
     if individual.timer is not None and individual.timer.is_time_limit_reached():
+        print(f"{individual.ind_num} not done because timer")
         return
 
     if len(individual.pre_evaluated_objects) > 0:
         graph = individual.pre_evaluated_objects[individual.ind_num]
+    replace_n_jobs_in_nodes(graph)
     individual.ind.fitness = calculate_objective(graph, individual.objective_function,
                                                  individual.is_multi_objective, individual.graph_generation_params)
     individual.ind.computation_time = timeit.default_timer() - start_time
     return individual.ind
+
+
+def replace_n_jobs_in_nodes(graph: OptGraph):
+    """ Function to prevent memory overflow due to many processes running in time"""
+    for node in graph.nodes:
+        if 'n_jobs' in node.content['params']:
+            del node.content['params']['n_jobs']
 
 
 def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable,
