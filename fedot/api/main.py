@@ -1,17 +1,14 @@
 from copy import deepcopy
-from datetime import timedelta
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
 
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.initial_assumptions import preprocessing_builder
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
@@ -384,7 +381,6 @@ class Fedot:
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
         """Create explanation for 'current_pipeline' according to the selected 'method'.
         An `Explainer` instance is returned.
-
         :param features: samples to be explained. If `None`, `train_data` from last fit is used.
         :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
         :param visualize: print and plot the explanation simultaneously, defaults to True.

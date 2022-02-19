@@ -15,7 +15,7 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.preprocessing.preprocessing import DataPreprocessor
+from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
@@ -212,6 +212,7 @@ class Pipeline(Graph):
                                                                            data=copied_input_data)
         copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
                                                                           data=copied_input_data)
+        copied_input_data = update_indices_for_time_series(copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
