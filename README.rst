@@ -159,6 +159,7 @@ In Russian:
 - Details of FEDOT-based solution for Emergency DataHack - `habr.com <https://habr.com/ru/post/577886/>`__
 
 In Chinese:
+
 - Presentation of FEDOT in Open innovations 2.0 conference - `youtube.com <https://www.youtube.com/watch?v=PEET0EbCSCY>`__
 
 
