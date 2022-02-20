@@ -1,7 +1,8 @@
+import datetime
 import json
 
 import pandas as pd
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, cm, colors
 
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
@@ -30,27 +31,39 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
         partitions.append(int(data_len * (i / partitions_n)))
 
     pipelines_count = {1: [], n_jobs: []}
-    for _n_jobs in [1, n_jobs]:
-        for partition in partitions:
+    times_ = {1: [], n_jobs: []}
+
+    for partition in partitions:
+        for _n_jobs in [n_jobs]:
             print(f'n_jobs: {_n_jobs}, {partition} rows in dataset')
             train_data = train_data.iloc[:partition, :]
+            start_time = datetime.datetime.now()
             auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=_n_jobs,
-                               composer_params={'with_tuning': False}, preset='fast_train')
+                               composer_params={'with_tuning': False}, preset='fast_train', verbose_level=4)
             auto_model.fit(features=train_data_path, target='target')
             auto_model.predict_proba(features=test_data_path)
             c_pipelines = count_pipelines(auto_model.history.save())
             pipelines_count[_n_jobs].append(c_pipelines)
+            times_[_n_jobs].append((datetime.datetime.now() - start_time) / 60)
             print(f'Count of pipelines: {c_pipelines}')
 
     plt.title('Num of pipelines that were evaluated correctly')
-    plt.xlabel = 'rows in train dataset'
-    plt.ylabel = 'Num of pipelines'
-    plt.plot(partitions, pipelines_count[1], label='one process')
-    plt.plot(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes')
+    plt.xlabel('rows in train dataset')
+    plt.ylabel('Num of pipelines')
+    c_norm = colors.Normalize(vmin=timeout - timeout / 2, vmax=timeout + timeout / 2)
+    plt.plot(partitions, pipelines_count[1], label='one process', zorder=1)
+    plt.scatter(partitions, pipelines_count[1], label='one process', c=times_[1],
+                cmap=cm.get_cmap('cool'), norm=c_norm,zorder=2)
+    plt.plot(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes', zorder=1)
+    plt.scatter(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes', c=times_[n_jobs],
+                cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
+    print(times_)
+    cb = plt.colorbar(cm.ScalarMappable(norm=c_norm, cmap=cm.get_cmap('cool')))
+    cb.ax.set_ylabel('time in minutes', rotation=90)
     plt.legend()
     plt.grid()
     plt.show()
 
 
 if __name__ == '__main__':
-    run_experiments(timeout=10, partitions_n=5, n_jobs=-1)
+    run_experiments(timeout=10, partitions_n=1, n_jobs=-1)

@@ -156,6 +156,7 @@ def single_evaluating(reversed_individuals):
     num_of_successful_evals = 0
     for ind in reversed_individuals:
         individual = SimpleNamespace(**ind)
+        print(f"{individual.ind_num} started" )
         start_time = timeit.default_timer()
 
         graph = individual.ind.graph
@@ -167,6 +168,9 @@ def single_evaluating(reversed_individuals):
         if individual.ind.fitness is not None:
             evaluated_individuals.append(individual.ind)
             num_of_successful_evals += 1
+            print(f"{individual.ind_num} successfully end")
+        else:
+            print(f"{individual.ind_num} fitness error")
         if individual.timer is not None and num_of_successful_evals > 0:
             if individual.timer.is_time_limit_reached():
                 return evaluated_individuals
@@ -179,6 +183,7 @@ def multiprocessing_mapping(n_jobs, reversed_set):
 
 
 def individual_evaluation(individual: Dict) -> Union[Individual, None]:
+    print(f"{individual['ind_num']} started")
     start_time = timeit.default_timer()
     individual = SimpleNamespace(**individual)
     graph = individual.ind.graph
@@ -193,6 +198,10 @@ def individual_evaluation(individual: Dict) -> Union[Individual, None]:
     individual.ind.fitness = calculate_objective(graph, individual.objective_function,
                                                  individual.is_multi_objective, individual.graph_generation_params)
     individual.ind.computation_time = timeit.default_timer() - start_time
+    if individual.ind.fitness is None:
+        print(f"{individual.ind_num} not done because error")
+    else:
+        print(f"{individual.ind_num} done in {individual.ind.computation_time}")
     return individual.ind
 
 
