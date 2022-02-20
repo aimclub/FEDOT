@@ -70,10 +70,18 @@ def make_measurement(func,
     tracemalloc.stop()
 
     output_train = pipeline.predict(train)
-    score_train = metrics(output_train.target, output_train.predict)
-
     output_test = pipeline.predict(test)
-    score_test = metrics(output_test.target, output_test.predict)
+
+    try:
+        score_train = metrics(output_train.target, output_train.predict)
+        score_test = metrics(output_test.target, output_test.predict)
+    except Exception:
+        if output_test.predict.shape[1] == 1:
+            score_train = metrics(output_train.target, output_train.predict.astype(int))
+            score_test = metrics(output_test.target, output_test.predict.astype(int))
+        else:
+            score_train = metrics(output_train.target, output_train.predict.argmax(axis=1))
+            score_test = metrics(output_test.target, output_test.predict.argmax(axis=1))
 
     return score_train, score_test, time_spent, memory_spent, pipeline.root_node.descriptive_id + ''
 
@@ -262,7 +270,7 @@ params = {
 }
 
 ss = SearchSpace(params, True)
-n_threads = 4
+n_threads = 1
 n_experiments = 3
 n_iter = [50, 200]
 timeout = timedelta(minutes=30)
