@@ -9,12 +9,20 @@ test_size = 0.2
 
 overview = pd.DataFrame(columns=['name', 'rows', 'num_features', 'cat_features', 'num_classes'])
 
-data_sources = pd.read_csv('data_for_comparison/data_sources.csv', index_col='name')
+data_sources = pd.read_csv('data_for_comparison/data_sources.csv', index_col='name', low_memory=True)
 
 short_path = 'data_for_comparison/original_datasets'
 for filename in os.listdir(short_path):
     data = pd.read_csv(short_path + '/' + filename)
     data.rename(columns={data.columns.values[-1]: 'target'}, inplace=True)
+    if 'ID' in data.columns:
+        data.drop(columns='ID', inplace=True)
+    if 'id' in data.columns:
+        data.drop(columns='id', inplace=True)
+    if 'index' in data.columns:
+        data.drop(columns='index', inplace=True)
+    if 'Index' in data.columns:
+        data.drop(columns='Index', inplace=True)
 
     name = filename.replace('.csv', '')
     task = data_sources.loc[name]['task']
