@@ -8,7 +8,7 @@ FEDOT
    :maxdepth: 2
 
    fedot
-   cases
+   benchmarks
    installation
    quickstart
    features
