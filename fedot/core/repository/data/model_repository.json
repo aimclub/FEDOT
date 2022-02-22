@@ -196,6 +196,13 @@
         "non_multi"
       ]
     },
+    "catboost": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting"
+      ]
+    },
     "catboostreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
@@ -429,6 +436,14 @@
       "tags": [
         "non-default",
         "text"
+      ]
+    },
+    "xgboost": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting",
+        "tree"
       ]
     },
     "xgbreg": {
