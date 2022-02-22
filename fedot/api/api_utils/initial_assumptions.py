@@ -44,7 +44,7 @@ class ApiInitialAssumptions:
                 pipelines = [create_rf_classifier_pipeline(node_prepocessed)]
         elif task.task_type == TaskTypesEnum.regression:
             if has_categorical_features:
-                pipelines = [create_rf_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_prepocessed)]
             else:
                 pipelines = [create_rfr_regression_pipeline(node_prepocessed)]
         else:
