@@ -8,7 +8,7 @@ def test_presets_classification():
     task = Task(TaskTypesEnum.classification)
     class_operations = get_operations_for_task(task=task, mode='all')
 
-    excluded_tree = ['xgboost', 'catboost']
+    excluded_tree = ['xgboost', 'catboost', 'xgbreg', 'catboostreg']
     filtered_operations = set(class_operations).difference(set(excluded_tree))
     available_operations = list(filtered_operations)
 
