@@ -13,7 +13,7 @@ The subset of PMLB benchmarks were evaluated for FEDOT, `TPOT <http://epistasisl
 .. |Metrics for prediction| image:: ../img/img_benchmarks/fedot_classregr.png
    :width: 80%
 
-As we can see from Table 6, the results obtained during the
+As we can see from the table, the results obtained during the
 experiments demonstrate the advantage of composite pipeline
 created by the proposed approach over competitors. The only
 exception is a single case for regression and classification problems respectively, where the maximum value of the quality metric was obtained using a static pipeline.
