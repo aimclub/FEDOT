@@ -44,6 +44,7 @@ class DataMerger:
             return idx, features, target, task, data_type, updated_info
 
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
+                                  DataTypesEnum.multi_ts: self.combine_datasets_table,
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
 
@@ -346,6 +347,10 @@ def tables_mapping(idx_list, object_list, common_idx):
             number_of_variables_in_prediction = current_object.shape[1]
             for i in range(number_of_variables_in_prediction):
                 predict = current_object[:, i]
+                if predict.shape != mask.shape:
+                    lag_size = current_idx[0]
+                    repit_num = predict.shape[0]/(mask.shape[0]-lag_size)
+                    mask = np.tile(mask, int(repit_num))
                 filtered_predict = predict[mask]
 
                 # Convert to column

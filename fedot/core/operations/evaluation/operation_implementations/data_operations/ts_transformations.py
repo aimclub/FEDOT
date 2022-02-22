@@ -120,23 +120,28 @@ class LaggedImplementation(DataOperationImplementation):
                                                   self.n_components,
                                                   self.use_svd)
             # Transform target
+            if input_data.data_type == DataTypesEnum.multi_ts:
+                current_target = target[:, current_ts_id]
+            else:
+                current_target = target
             new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
                                                                    idx=new_idx,
                                                                    features_columns=transformed_cols,
-                                                                   target=target[:, current_ts_id],
+                                                                   target=current_target,
                                                                    forecast_length=forecast_length)
             if current_ts_id == 0:
                 # Init full lagged table
                 all_transformed_features = transformed_cols
                 all_transformed_target = new_target
             else:
-                #all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
-                all_transformed_features = np.vstack((all_transformed_features, transformed_cols))
-                all_transformed_target = np.vstack((all_transformed_target, new_target))
+                if input_data.data_type == DataTypesEnum.multi_ts:
+                    all_transformed_features = np.vstack((all_transformed_features, transformed_cols))
+                    all_transformed_target = np.vstack((all_transformed_target, new_target))
+                else:
+                    all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
 
         input_data.features = all_transformed_features
         self.features_columns = all_transformed_features
-        #return new_target, new_idx
         return all_transformed_target, new_idx
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
@@ -167,8 +172,13 @@ class LaggedImplementation(DataOperationImplementation):
             if current_ts_id == 0:
                 all_transformed_features = last_part_of_ts
             else:
-                all_transformed_features = np.hstack((all_transformed_features, last_part_of_ts))
+                if input_data.data_type == DataTypesEnum.multi_ts:
+                    all_transformed_features = np.vstack((all_transformed_features, last_part_of_ts))
+                else:
+                    all_transformed_features = np.hstack((all_transformed_features, last_part_of_ts))
 
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            all_transformed_features = np.expand_dims(all_transformed_features[0], axis=0)
         self.features_columns = all_transformed_features
         return all_transformed_features
 
@@ -678,9 +688,11 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     idx = idx[: -1]
 
     # Update target (clip first "window size" values)
-    a = list(all_idx)
-    #row_nums = [list(all_idx).index(i) for i in idx]
-    row_nums = [np.where(all_idx == i)[0][0] for i in idx]
+    if len(np.array(all_idx).shape) > 1:
+        row_nums = [np.where(all_idx == i)[0][0] for i in idx]
+    else:
+        row_nums = [list(all_idx).index(i) for i in idx]
+
     ts_target = target[row_nums]
 
     # Multi-target transformation

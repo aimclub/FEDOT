@@ -127,7 +127,7 @@
     },
     "ts_model": {
       "description": "Implementations of the time series models",
-      "input_type": "[DataTypesEnum.ts]",
+      "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.time_series",

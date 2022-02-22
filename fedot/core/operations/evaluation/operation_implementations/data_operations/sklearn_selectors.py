@@ -4,6 +4,8 @@ import numpy as np
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 
 from fedot.core.data.data import OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
@@ -120,7 +122,7 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.inner_model = LinearRegression(normalize=True)
+        self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
 
         if not params:
             # Default parameters

@@ -16,7 +16,7 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 
 # implementation of custom model without fitting
-def domain_model_imitation_predict(fitted_model: any, predict_data: np.array, params: dict):
+def domain_model_imitation_predict(fitted_model: any, idx: np.array, predict_data: np.array, params: dict):
     # TODO real custom model or more realistic imitation
     a = params.get('a')
     b = params.get('b')
@@ -138,4 +138,4 @@ if __name__ == '__main__':
     time_series = np.array(df['value'])
     run_pipeline_tuning(time_series=time_series,
                         len_forecast=50,
-                        pipeline_type='with_fit')  # mean custom ml model with fit, 'without_fit' - means domain model
+                        pipeline_type='without_fit')  # mean custom ml model with fit, 'without_fit' - means domain model

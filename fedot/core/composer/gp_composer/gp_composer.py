@@ -1,5 +1,6 @@
 import gc
 import platform
+import traceback
 from dataclasses import dataclass
 from functools import partial
 from multiprocessing import set_start_method
@@ -214,6 +215,8 @@ class GPComposer(Composer):
             gc.collect()
         except Exception as ex:
             self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
+            print(traceback.format_exc())
+
             evaluated_metrics = None
         return evaluated_metrics
 

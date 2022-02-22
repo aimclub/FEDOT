@@ -495,7 +495,7 @@ class DataPreprocessor:
         two-dimensional arrays, time series - one-dim array
         """
 
-        if data_type_is_table(data):
+        if data_type_is_table(data) or data.data_type == DataTypesEnum.multi_ts:
             if len(data.features.shape) < 2:
                 data.features = data.features.reshape((-1, 1))
             if data.target is not None and len(data.target.shape) < 2:

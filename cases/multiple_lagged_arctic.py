@@ -1,5 +1,6 @@
 import os
 import datetime
+from copy import deepcopy
 from typing import Any, List
 
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -34,43 +35,97 @@ def create_complex_train(points_list, forecast_length):
     return complex_train
 
 
-points = ['61_91', '56_86', '61_86', '66_86', '66_91', '66_96']
+def initial_pipeline():
+    """
+        Return pipeline with the following structure:
+        lagged - ridge \
+                        -> ridge -> final forecast
+        lagged - ridge /
+        """
+    node_lagged_1 = PrimaryNode("lagged")
+    node_lagged_2 = PrimaryNode("lagged")
 
-forecast_length = 60
-# target point
-time_series = pd.read_csv('data/arctic/61_91_topaz.csv')['ssh'].values
-x_test = time_series[:-forecast_length]
-y_test = time_series[-forecast_length:]
-y_train = time_series[:-forecast_length]
+    node_ridge_1 = SecondaryNode("ridge", nodes_from=[node_lagged_1])
+    node_ridge_2 = SecondaryNode("ridge", nodes_from=[node_lagged_2])
 
-x_train = create_complex_train(points, forecast_length)
+    node_final = SecondaryNode("ridge", nodes_from=[node_ridge_1, node_ridge_2])
+    pipeline = Pipeline(node_final)
 
-inds = np.arange(len(time_series))
-idx_train = inds[:-forecast_length]
-idx_train = np.tile(idx_train, (6, 1)).T
-idx_test = inds[-forecast_length:]
-idx_test = np.tile(idx_test, (6, 1)).T
+    return pipeline
 
-# Prepare data to train the operation
 
-task = Task(TaskTypesEnum.ts_forecasting,
-            TsForecastingParams(forecast_length=forecast_length))
-train_data = InputData(idx=idx_train, features=x_train, target=x_train,
-                       task=task, data_type=DataTypesEnum.multi_ts)
-test_data = InputData(idx=idx_test, features=x_test, target=y_test,
-                      task=task, data_type=DataTypesEnum.multi_ts)
+def get_available_operations():
+    """ Function returns available operations for primary and secondary nodes """
+    primary_operations = ['lagged']
+    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
+                            'scaling']
+    return primary_operations, secondary_operations
 
-node_lagged_1 = PrimaryNode("lagged")
-node_final = SecondaryNode("ridge", nodes_from=[node_lagged_1])
-pipeline = Pipeline(node_final)
 
-pipeline.fit(train_data)
+def run_multiple_ts_forecasting(forecast_length):
 
-prediction = pipeline.predict(test_data)
-predict = np.ravel(np.array(prediction.predict))
+    # points prefixes
+    points = ['61_91', '56_86', '61_86', '66_86']
 
-plt.plot(np.ravel(test_data.idx[:, 0]), test_data.target, label='test')
-plt.plot(np.ravel(train_data.idx[:, 0]), np.ravel(train_data.target[:, 0]), label='history')
-plt.plot(np.ravel(test_data.idx[:, 0]), predict, label='prediction')
-plt.legend()
-plt.show()
+    # target point
+    time_series = pd.read_csv('data/arctic/61_91_topaz.csv')['ssh'].values
+    x_test = time_series[:-forecast_length]
+    y_test = time_series[-forecast_length:]
+
+    x_train = create_complex_train(points, forecast_length)
+
+    # indices preparation
+    idx = np.arange(len(time_series))
+    idx_train = idx[:-forecast_length]
+    idx_test = idx[-forecast_length:]
+
+    # Prepare data to train the operation
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
+    train_data = InputData(idx=idx_train, features=x_train, target=x_train,
+                           task=task, data_type=DataTypesEnum.multi_ts)
+    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
+                          task=task, data_type=DataTypesEnum.multi_ts)
+
+    pipeline = initial_pipeline()
+    train_data_copied = deepcopy(train_data)
+    pipeline.fit(train_data)
+    prediction_before = np.ravel(np.array(pipeline.predict(test_data).predict))
+
+    rmse_before = mean_squared_error(test_data.target, prediction_before, squared=False)
+    mae_before = mean_absolute_error(test_data.target, prediction_before)
+
+    # pipeline structure optimization
+    primary_operations, secondary_operations = get_available_operations()
+    composer_requirements = PipelineComposerRequirements(
+        primary=primary_operations,
+        secondary=secondary_operations, max_arity=3,
+        max_depth=8, pop_size=10, num_of_generations=30,
+        crossover_prob=0.8, mutation_prob=0.8,
+        timeout=datetime.timedelta(minutes=10),
+        validation_blocks=1)
+    mutation_types = [parameter_change_mutation, MutationTypesEnum.single_change, MutationTypesEnum.single_drop,
+                      MutationTypesEnum.single_add, MutationTypesEnum.single_edge]
+    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
+
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    builder = ComposerBuilder(task=task). \
+        with_optimiser(parameters=optimiser_parameters). \
+        with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_initial_pipelines([pipeline])
+    composer = builder.build()
+
+    obtained_pipeline = composer.compose_pipeline(data=train_data_copied)
+    obtained_pipeline.fit_from_scratch(train_data_copied)
+    prediction_after = obtained_pipeline.predict(test_data)
+    predict_after = np.ravel(np.array(prediction_after.predict))
+
+    plt.plot(np.ravel(test_data.idx), y_test, label='test')
+    plt.plot(np.ravel(train_data.idx), np.ravel(train_data.target[:, 0]), label='history')
+    plt.plot(np.ravel(test_data.idx), prediction_before, label='prediction')
+    plt.plot(np.ravel(test_data.idx), predict_after, label='prediction_after')
+    plt.legend()
+    plt.show()
+
+if __name__ == '__main__':
+    run_multiple_ts_forecasting(forecast_length=60)

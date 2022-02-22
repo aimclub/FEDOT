@@ -1,4 +1,5 @@
 from copy import deepcopy
+import numpy as np
 from typing import Tuple, Union
 
 from sklearn.model_selection import train_test_split
@@ -36,6 +37,38 @@ def _split_time_series(data, task, *args, **kwargs):
 
     test_data = InputData(idx=idx_test, features=x_test, target=y_test,
                           task=task, data_type=DataTypesEnum.ts,
+                          supplementary_data=data.supplementary_data)
+    return train_data, test_data
+
+
+def _split_multi_time_series(data, task, *args, **kwargs):
+    """ Split time series data into train and test parts
+
+    :param data: array with data to split (not InputData)
+    :param task: task to solve
+    """
+
+    input_features = data.features
+    input_target = data.target
+    forecast_length = task.task_params.forecast_length
+
+    # Source time series divide into two parts
+    x_train = input_features[:-forecast_length]
+    x_test = input_features[:-forecast_length]
+
+    y_train = input_target[:-forecast_length]
+    y_test = input_target[-forecast_length:, 0:1]
+
+    idx_train = data.idx[:-forecast_length]
+    idx_test = data.idx[-forecast_length:]
+
+    # Prepare data to train the operation
+    train_data = InputData(idx=idx_train, features=x_train, target=y_train,
+                           task=task, data_type=DataTypesEnum.multi_ts,
+                           supplementary_data=data.supplementary_data)
+
+    test_data = InputData(idx=idx_test, features=x_test, target=y_test,
+                          task=task, data_type=DataTypesEnum.multi_ts,
                           supplementary_data=data.supplementary_data)
 
     return train_data, test_data
@@ -130,6 +163,7 @@ def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
         task = data.task
 
         split_func_dict = {
+            DataTypesEnum.multi_ts: _split_multi_time_series,
             DataTypesEnum.ts: _split_time_series,
             DataTypesEnum.table: _split_table,
             DataTypesEnum.image: _split_image,
