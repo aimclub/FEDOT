@@ -8,13 +8,17 @@ def test_presets_classification():
     task = Task(TaskTypesEnum.classification)
     class_operations = get_operations_for_task(task=task, mode='all')
 
+    excluded_tree = ['xgboost', 'catboost']
+    filtered_operations = set(class_operations).difference(set(excluded_tree))
+    available_operations = list(filtered_operations)
+
     preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
     operations_for_best_quality = preset_best_quality._filter_operations_by_preset()
 
     preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
     operations_for_fast_train = preset_fast_train._filter_operations_by_preset()
 
-    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(class_operations)
+    assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(available_operations)
     assert {'dt', 'logit', 'knn'} <= set(operations_for_fast_train)
 
 
