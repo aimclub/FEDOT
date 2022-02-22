@@ -239,7 +239,7 @@ class ApiComposer:
 
         spending_time_for_composing = datetime.datetime.now() - starting_time_for_composing
 
-        if tuning_params['with_tuning']:
+        if tuning_params['with_tuning'] and timeout_for_composing is not None:
             if tuning_params['tuner_metric'] is None:
                 # Default metric for tuner
                 tune_metrics = TunerMetricByTask(api_params['task'].task_type)
@@ -270,7 +270,9 @@ class ApiComposer:
                                                                                 loss_params=loss_params,
                                                                                 input_data=api_params['train_data'],
                                                                                 iterations=iterations,
-                                                                                timeout=round(timeout_for_tuning / 60),
+                                                                                timeout=int(np.ceil(
+                                                                                    abs(timeout_for_tuning)
+                                                                                    / 60)),
                                                                                 cv_folds=folds,
                                                                                 validation_blocks=vb_number)
 
