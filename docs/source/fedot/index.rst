@@ -8,6 +8,7 @@ FEDOT
    :maxdepth: 2
 
    fedot
+   benchmarks
    installation
    quickstart
    features
