@@ -1,4 +1,5 @@
 import math
+import multiprocessing
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
@@ -32,7 +33,6 @@ from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
-
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
     """
