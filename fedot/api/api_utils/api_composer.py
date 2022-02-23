@@ -1,7 +1,7 @@
 import datetime
 import gc
 import traceback
-from typing import Callable, List, Type, Union, Optional, Dict
+from typing import Callable, Dict, List, Optional, Type, Union
 
 import numpy as np
 from deap import tools
@@ -239,7 +239,7 @@ class ApiComposer:
 
         spended_time_for_composing = datetime.datetime.now() - starting_time_for_composing
 
-        if tuning_params['with_tuning'] and timeout_for_composing is not None:
+        if tuning_params['with_tuning']:
             if tuning_params['tuner_metric'] is None:
                 # Default metric for tuner
                 tune_metrics = TunerMetricByTask(api_params['task'].task_type)
@@ -253,8 +253,11 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             iterations = 20 if api_params['timeout'] is None else 1000
-            timeout_in_sec = datetime.timedelta(minutes=api_params['timeout']).total_seconds()
-            timeout_for_tuning = timeout_in_sec - spended_time_for_composing.total_seconds()
+            if api_params['timeout'] not in [None, -1]:
+                timeout_in_sec = datetime.timedelta(minutes=api_params['timeout']).total_seconds()
+                timeout_for_tuning = timeout_in_sec - spended_time_for_composing.total_seconds()
+            else:
+                timeout_for_tuning = spended_time_for_composing.total_seconds()
 
             if timeout_for_tuning < 15:
                 api_params['logger'].info(f'Time for pipeline composing  was {str(spended_time_for_composing)}.'
