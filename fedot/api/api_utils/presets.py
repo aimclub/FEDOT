@@ -47,6 +47,7 @@ class OperationsPreset:
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample', 'stl_arima']
+        excluded_tree = ['xgboost', 'catboost', 'xgbreg', 'catboostreg']
 
         if '*' in preset_name:
             self.modification_using = True
@@ -71,6 +72,9 @@ class OperationsPreset:
         if 'gpu' in self.preset_name:
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
             available_operations = repository.suitable_operation(task_type=self.task.task_type)
+
+        filtered_operations = set(available_operations).difference(set(excluded_tree))
+        available_operations = list(filtered_operations)
 
         return available_operations
 

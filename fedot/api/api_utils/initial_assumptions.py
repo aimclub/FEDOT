@@ -39,14 +39,14 @@ class ApiInitialAssumptions:
                          create_ar_pipeline(node_prepocessed)]
         elif task.task_type == TaskTypesEnum.classification:
             if has_categorical_features:
-                pipelines = [create_xgboost_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rf_classifier_pipeline(node_prepocessed)]
             else:
-                pipelines = [create_xgboost_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rf_classifier_pipeline(node_prepocessed)]
         elif task.task_type == TaskTypesEnum.regression:
             if has_categorical_features:
-                pipelines = [create_xgboost_regression_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_prepocessed)]
             else:
-                pipelines = [create_xgboost_regression_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_prepocessed)]
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
         return pipelines
@@ -179,3 +179,11 @@ def create_xgboost_classifier_pipeline(node_preprocessed):
 
 def create_xgboost_regression_pipeline(node_preprocessed):
     return Pipeline(SecondaryNode('xgbreg', nodes_from=[node_preprocessed]))
+
+
+def create_rf_classifier_pipeline(node_preprocessed):
+    return Pipeline(SecondaryNode('rf', nodes_from=[node_preprocessed]))
+
+
+def create_rfr_regression_pipeline(node_preprocessed):
+    return Pipeline(SecondaryNode('rfr', nodes_from=[node_preprocessed]))
