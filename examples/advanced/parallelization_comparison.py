@@ -53,8 +53,8 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
     plt.ylabel('Num of pipelines that were evaluated correctly')
     c_norm = colors.Normalize(vmin=timeout - timeout / 2, vmax=timeout + timeout / 2)
     plt.plot(partitions, pipelines_count[1], label='one process', zorder=1)
-    plt.scatter(partitions, pipelines_count[1],  c=times_[1],
-                cmap=cm.get_cmap('cool'), norm=c_norm,zorder=2)
+    plt.scatter(partitions, pipelines_count[1], c=times_[1],
+                cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
     plt.plot(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes', zorder=1)
     plt.scatter(partitions, pipelines_count[n_jobs], c=times_[n_jobs],
                 cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
