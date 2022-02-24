@@ -133,16 +133,19 @@ class LaggedImplementation(DataOperationImplementation):
                 # Init full lagged table
                 all_transformed_features = transformed_cols
                 all_transformed_target = new_target
+                all_transformed_idx = np.array(new_idx)
             else:
                 if input_data.data_type == DataTypesEnum.multi_ts:
                     all_transformed_features = np.vstack((all_transformed_features, transformed_cols))
                     all_transformed_target = np.vstack((all_transformed_target, new_target))
+                    all_transformed_idx = np.hstack((all_transformed_idx, np.array(new_idx)))
+
                 else:
                     all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
 
         input_data.features = all_transformed_features
         self.features_columns = all_transformed_features
-        return all_transformed_target, new_idx
+        return all_transformed_target, all_transformed_idx
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
         """ Apply lagged transformation for every column (time series) in the dataset """

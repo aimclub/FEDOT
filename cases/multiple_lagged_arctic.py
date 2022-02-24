@@ -116,6 +116,7 @@ def run_multiple_ts_forecasting(forecast_length):
     composer = builder.build()
 
     obtained_pipeline = composer.compose_pipeline(data=train_data_copied)
+    obtained_pipeline.show()
     obtained_pipeline.fit_from_scratch(train_data_copied)
     prediction_after = obtained_pipeline.predict(test_data)
     predict_after = np.ravel(np.array(prediction_after.predict))
