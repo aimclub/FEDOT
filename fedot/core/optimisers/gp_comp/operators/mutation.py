@@ -2,8 +2,10 @@ from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Any, Callable, List, Union
+from uuid import uuid4
 
 import numpy as np
+
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -121,6 +123,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
 
     for _ in range(MAX_NUM_OF_ATTEMPTS):
         new_graph = deepcopy(ind.graph)
+        new_graph._serialization_id = uuid4().hex
         num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
 
         new_graph, mutation_names = _adapt_and_apply_mutations(new_graph=new_graph, mutation_prob=mutation_prob,
@@ -138,7 +141,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                     new_individual.parent_operators.append(
                         ParentOperator(operator_type='mutation',
                                        operator_name=str(mutation_name),
-                                       parent_objects=[ind]))
+                                       parent_objects=[ind.graph._serialization_id]))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '

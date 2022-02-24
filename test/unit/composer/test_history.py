@@ -22,7 +22,7 @@ def test_parent_operator():
 
     operator_for_history = ParentOperator(operator_type='mutation',
                                           operator_name=str(mutation_type),
-                                          parent_objects=[ind])
+                                          parent_objects=[ind.graph._serialization_id])
 
     assert operator_for_history.parent_objects[0].graph.uid == pipeline.uid
     assert operator_for_history.operator_type == 'mutation'

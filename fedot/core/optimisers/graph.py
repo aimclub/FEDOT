@@ -90,7 +90,7 @@ class OptGraph:
         else:
             self.log = log
 
-        self.uid = str(uuid4())
+        self.uid = uuid4().hex
         self.nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)
         self._serialization_id = uuid4().hex
@@ -189,7 +189,8 @@ class OptGraph:
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        result.uid = uuid4()
+        result.uid = uuid4().hex
+        # result._serialization_id = uuid4().hex
         return result
 
     def __deepcopy__(self, memo=None):
@@ -198,7 +199,8 @@ class OptGraph:
         memo[id(self)] = result
         for k, v in self.__dict__.items():
             setattr(result, k, deepcopy(v, memo))
-        result.uid = uuid4()
+        result.uid = uuid4().hex
+        # result._serialization_id = uuid4().hex
         return result
 
 

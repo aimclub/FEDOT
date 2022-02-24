@@ -106,7 +106,9 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=OptNode,
                             transform_func=self._transform_to_opt_node)
         graph = OptGraph(source_pipeline.nodes)
-        graph.uid = source_pipeline.uid
+        graph.uid = adaptee.uid
+        from uuid import UUID
+        graph._serialization_id = UUID(adaptee.uid).hex
         return graph
 
     def restore(self, opt_graph: OptGraph, computation_time=None):
@@ -118,7 +120,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
-        pipeline.uid = source_graph.uid
+        pipeline.uid = opt_graph.uid
         pipeline.computation_time = computation_time
         return pipeline
 

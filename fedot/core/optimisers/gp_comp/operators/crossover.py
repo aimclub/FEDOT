@@ -1,6 +1,7 @@
 from copy import deepcopy
 from random import choice, random
 from typing import TYPE_CHECKING, Any, Callable, List, Union
+from uuid import uuid4
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -46,7 +47,9 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
 
                     is_custom_operator = isinstance(ind_first, OptGraph)
                     input_obj_first = deepcopy(ind_first.graph)
+                    input_obj_first._serialization_id = uuid4().hex
                     input_obj_second = deepcopy(ind_first.graph)
+                    input_obj_second._serialization_id = uuid4().hex
                     if is_custom_operator:
                         input_obj_first = params.adapter.restore(input_obj_first)
                         input_obj_second = params.adapter.restore(input_obj_second)
@@ -65,7 +68,10 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                     if are_correct:
                         operator = ParentOperator(operator_type='crossover',
                                                   operator_name=str(crossover_type),
-                                                  parent_objects=[ind_first, ind_second])
+                                                  parent_objects=[
+                                                      ind_first.graph._serialization_id,
+                                                      ind_second.graph._serialization_id
+                                                  ])
                         for graph in new_graphs:
                             new_ind = Individual(graph)
                             new_ind.parent_operators = []

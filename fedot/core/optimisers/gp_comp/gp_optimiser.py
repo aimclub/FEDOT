@@ -143,7 +143,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             n_iter -= 1
             new_ind = mutation(types=self.parameters.mutation_types,
                                params=self.graph_generation_params,
-                               ind=Individual(deepcopy(initial_graph)),
+                               ind=Individual(initial_graph),
                                requirements=initial_req,
                                max_depth=self.max_depth, log=self.log,
                                add_to_history=False)

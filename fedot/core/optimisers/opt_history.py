@@ -4,6 +4,7 @@ import itertools
 import json
 import os
 import shutil
+
 from copy import deepcopy
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,7 +27,7 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List['Individual']
+    parent_objects: List[str]
     uid: str = None
 
     def __post_init__(self):

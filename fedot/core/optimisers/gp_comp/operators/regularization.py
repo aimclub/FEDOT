@@ -47,7 +47,7 @@ def decremental_regularization(population: List[Individual], objective_function:
             add_ind.parent_operators.append(
                 ParentOperator(operator_type='regularization',
                                operator_name='decremental_regularization',
-                               parent_objects=[ind]))
+                               parent_objects=[ind.graph._serialization_id]))
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
 

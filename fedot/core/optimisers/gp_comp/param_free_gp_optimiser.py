@@ -141,10 +141,11 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 if not self.parameters.multi_objective and self.with_elitism:
                     self.population.append(self.prev_best)
 
-                from uuid import uuid4
-                self.population = [deepcopy(ind) for ind in self.population]
-                for ind in self.population:
-                    ind.graph._serialization_id = uuid4().hex
+                # from uuid import uuid4
+                # self.population = [deepcopy(ind) for ind in self.population]
+                # for ind in self.population:
+                #     ind.graph.uid = uuid4().hex
+                #     ind.graph._serialization_id = uuid4().hex
 
                 if self.archive is not None:
                     self.archive.update(self.population)
