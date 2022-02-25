@@ -127,7 +127,7 @@ def create_classification_pipeline_with_preprocessing():
     node_scaling = PrimaryNode('scaling')
     node_rfe = PrimaryNode('rfe_lin_class')
 
-    xgb_node = SecondaryNode('xgboost', nodes_from=[node_scaling])
+    rf_node = SecondaryNode('rf', nodes_from=[node_scaling])
     logit_node = SecondaryNode('logit', nodes_from=[node_rfe])
 
     knn_root = SecondaryNode('knn', nodes_from=[xgb_node, logit_node])
@@ -140,14 +140,14 @@ def create_classification_pipeline_with_preprocessing():
 def create_four_depth_pipeline():
     knn_node = PrimaryNode('knn')
     lda_node = PrimaryNode('lda')
-    xgb_node = PrimaryNode('xgboost')
+    rf_node = PrimaryNode('rf')
     logit_node = PrimaryNode('logit')
 
     logit_node_second = SecondaryNode('logit', nodes_from=[knn_node, lda_node])
-    xgb_node_second = SecondaryNode('xgboost', nodes_from=[logit_node])
+    rf_node_second = SecondaryNode('rf', nodes_from=[logit_node])
 
-    qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_second])
-    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, xgb_node])
+    qda_node_third = SecondaryNode('qda', nodes_from=[rf_node_second])
+    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, rf_node])
 
     knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
@@ -369,7 +369,7 @@ def test_extract_subtree_root():
     pipeline = create_four_depth_pipeline()
     pipeline_template = PipelineTemplate(pipeline)
 
-    expected_types = ['knn', 'logit', 'knn', 'lda', 'xgboost']
+    expected_types = ['knn', 'logit', 'knn', 'lda', 'rf']
     new_root_node_id = 4
 
     root_node = extract_subtree_root(root_operation_id=new_root_node_id,
