@@ -196,21 +196,6 @@
         "non_multi"
       ]
     },
-    "catboost": {
-      "meta": "sklearn_class",
-      "presets": ["*tree"],
-      "tags": [
-        "boosting"
-      ]
-    },
-    "catboostreg": {
-      "meta": "sklearn_regr",
-      "presets": ["*tree"],
-      "tags": [
-        "boosting",
-        "non_multi"
-      ]
-    },
     "cntvect": {
       "meta": "text_classification_sklearn",
       "tags": [
@@ -278,22 +263,6 @@
         "discriminant",
         "linear",
         "correct_params"
-      ]
-    },
-    "lgbm": {
-      "meta": "sklearn_class",
-      "tags": [
-        "boosting",
-        "tree"
-      ]
-    },
-    "lgbmreg": {
-      "meta": "sklearn_regr",
-      "presets": ["*tree"],
-      "tags": [
-        "boosting",
-        "tree",
-        "non_multi"
       ]
     },
     "linear": {
@@ -436,23 +405,6 @@
       "tags": [
         "non-default",
         "text"
-      ]
-    },
-    "xgboost": {
-      "meta": "sklearn_class",
-      "presets": ["*tree"],
-      "tags": [
-        "boosting",
-        "tree"
-      ]
-    },
-    "xgbreg": {
-      "meta": "sklearn_regr",
-      "presets": ["*tree"],
-      "tags": [
-        "boosting",
-        "tree",
-        "non_multi"
       ]
     },
     "cnn": {

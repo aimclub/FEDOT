@@ -192,7 +192,7 @@ class ApiComposer:
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
-        mutations = [boosting_mutation, parameter_change_mutation,
+        mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
                      MutationTypesEnum.single_add]

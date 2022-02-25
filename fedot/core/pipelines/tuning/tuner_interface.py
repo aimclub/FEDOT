@@ -246,8 +246,17 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
         le = LabelEncoder()
         target = le.fit_transform(target)
 
+    nb_classes = len(np.unique(target))
+
     if loss_params is None:
         loss_params = {}
+
+    if nb_classes > 2:
+        target_converted = target.reshape(-1).tolist()
+        target_converted = [int(x) for x in target_converted]
+        if min(target_converted) == 1:
+            target_converted = [x - 1 for x in target_converted]
+        target = np.eye(nb_classes)[target_converted]
 
     try:
         optimal_metric = loss_function(target, target, **loss_params)
