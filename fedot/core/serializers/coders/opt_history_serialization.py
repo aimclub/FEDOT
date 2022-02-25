@@ -1,4 +1,5 @@
 import itertools
+
 from typing import TYPE_CHECKING, Any, Dict, List, Type
 
 from fedot.core.optimisers.adapters import PipelineAdapter
