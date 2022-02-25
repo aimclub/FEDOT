@@ -86,7 +86,7 @@ def create_pipeline() -> Pipeline:
     node_lda = PrimaryNode('lda')
     node_lda.custom_params = {'n_components': 1}
 
-    node_xgboost = PrimaryNode('xgboost')
+    node_rf = PrimaryNode('rf')
 
     node_knn = PrimaryNode('knn')
     node_knn.custom_params = {'n_neighbors': 9}
@@ -96,18 +96,18 @@ def create_pipeline() -> Pipeline:
     node_knn_second.nodes_from = [node_lda, node_knn]
 
     node_logit_second = SecondaryNode('logit')
-    node_logit_second.nodes_from = [node_xgboost, node_lda]
+    node_logit_second.nodes_from = [node_rf, node_lda]
 
     node_lda_second = SecondaryNode('lda')
     node_lda_second.custom_params = {'n_components': 1}
     node_lda_second.nodes_from = [node_logit_second, node_knn_second, node_logit]
 
-    node_xgboost_second = SecondaryNode('xgboost')
-    node_xgboost_second.nodes_from = [node_logit, node_logit_second, node_knn]
+    node_rf_second = SecondaryNode('rf')
+    node_rf_second.nodes_from = [node_logit, node_logit_second, node_knn]
 
     node_knn_third = SecondaryNode('knn')
     node_knn_third.custom_params = {'n_neighbors': 8}
-    node_knn_third.nodes_from = [node_lda_second, node_xgboost_second]
+    node_knn_third.nodes_from = [node_lda_second, node_rf_second]
 
     pipeline = Pipeline(node_knn_third)
 
