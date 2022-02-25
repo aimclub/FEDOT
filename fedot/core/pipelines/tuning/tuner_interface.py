@@ -270,7 +270,7 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
     if loss_params is None:
         loss_params = {}
 
-    if data_type is not DataTypesEnum.ts:
+    if data_type is not DataTypesEnum.ts or DataTypesEnum.text:
         target = _convert_target_dimension(target)
 
     try:

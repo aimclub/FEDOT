@@ -66,7 +66,7 @@ class ApiInitialAssumptions:
             node_final = SecondaryNode('rf', nodes_from=[])
             node_final.nodes_from = self.create_first_multimodal_nodes(data, has_categorical_features, has_gaps)
         elif task.task_type == TaskTypesEnum.regression:
-            node_final = SecondaryNode('xgbreg', nodes_from=[])
+            node_final = SecondaryNode('rfrreg', nodes_from=[])
             node_final.nodes_from = self.create_first_multimodal_nodes(data, has_categorical_features, has_gaps)
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")

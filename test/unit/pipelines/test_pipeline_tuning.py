@@ -40,7 +40,7 @@ def classification_dataset():
 
 
 def get_simple_regr_pipeline():
-    final = PrimaryNode(operation_type='xgbreg')
+    final = PrimaryNode(operation_type='rfr')
     pipeline = Pipeline(final)
 
     return pipeline
@@ -50,7 +50,7 @@ def get_complex_regr_pipeline():
     node_scaling = PrimaryNode(operation_type='scaling')
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
     node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
-    final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear])
+    final = SecondaryNode('rfr', nodes_from=[node_ridge, node_linear])
     pipeline = Pipeline(final)
 
     return pipeline
@@ -82,13 +82,13 @@ def get_not_default_search_space():
         'ridge': {
             'alpha': (hp.uniform, [0.01, 5.0])
         },
-        'xgbreg': {
+        'rfr': {
             'n_estimators': (hp.choice, [[100]]),
             'max_depth': (hp.choice, [range(1, 7)]),
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.choice, [np.arange(0.15, 1.01, 0.05)])
         },
-        'xgboost': {
+        'rf': {
             'max_depth': (hp.choice, [range(1, 5)]),
             'subsample': (hp.uniform, [0.1, 0.9]),
             'min_child_weight': (hp.choice, [range(1, 15)])

@@ -106,10 +106,6 @@
 	  "meta": "custom_class",
 	  "tags": ["no_prob", "expensive"]
 	},
-	"xgboost": {
-	  "meta": "sklearn_class",
-	  "tags": ["boosting"]
-	},
 	"bernb": {
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian"]
@@ -125,10 +121,6 @@
 	"ridge": {
 	  "meta": "sklearn_regr",
 	  "tags": ["simple", "linear", "interpretable"]
-	},
-	"xgbreg": {
-	  "meta": "sklearn_regr",
-	  "tags": ["boosting", "non_multi"]
 	},
 	"adareg": {
 	  "meta": "sklearn_regr",
