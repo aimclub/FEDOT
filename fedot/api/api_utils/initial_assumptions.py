@@ -63,7 +63,7 @@ class ApiInitialAssumptions:
                     node_last = SecondaryNode('ridge', [node_lagged])
                     node_final.nodes_from.append(node_last)
         elif task.task_type == TaskTypesEnum.classification:
-            node_final = SecondaryNode('xgboost', nodes_from=[])
+            node_final = SecondaryNode('rf', nodes_from=[])
             node_final.nodes_from = self.create_first_multimodal_nodes(data, has_categorical_features, has_gaps)
         elif task.task_type == TaskTypesEnum.regression:
             node_final = SecondaryNode('xgbreg', nodes_from=[])
@@ -171,14 +171,6 @@ def create_ar_pipeline(node_preprocessed=None):
         node_smoothing = PrimaryNode('smoothing')
     node_final = SecondaryNode('ar', nodes_from=[node_smoothing])
     return Pipeline(node_final)
-
-
-def create_xgboost_classifier_pipeline(node_preprocessed):
-    return Pipeline(SecondaryNode('xgboost', nodes_from=[node_preprocessed]))
-
-
-def create_xgboost_regression_pipeline(node_preprocessed):
-    return Pipeline(SecondaryNode('xgbreg', nodes_from=[node_preprocessed]))
 
 
 def create_rf_classifier_pipeline(node_preprocessed):

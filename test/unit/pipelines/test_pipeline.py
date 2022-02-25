@@ -178,7 +178,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[first, second, third])
 
     pipeline = Pipeline()
@@ -189,7 +189,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = deepcopy(second)
     third = deepcopy(third)
 
-    final_shuffled = SecondaryNode(operation_type='xgboost',
+    final_shuffled = SecondaryNode(operation_type='rf',
                                    nodes_from=[third, first, second])
 
     pipeline_shuffled = Pipeline()
@@ -264,12 +264,12 @@ def test_pipeline_str():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
-    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [rf, logit, lda, knn]}"
 
     # when
     actual_pipeline_description = str(pipeline)
@@ -282,19 +282,19 @@ def test_pipeline_repr():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
-    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [rf, logit, lda, knn]}"
 
     assert repr(pipeline) == expected_pipeline_description
 
 
 def test_update_node_in_pipeline_correct():
     first = PrimaryNode(operation_type='logit')
-    final = SecondaryNode(operation_type='xgboost', nodes_from=[first])
+    final = SecondaryNode(operation_type='rf', nodes_from=[first])
 
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -312,7 +312,7 @@ def test_delete_node_with_redirection():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = SecondaryNode(operation_type='knn', nodes_from=[first, second])
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[third])
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -328,7 +328,7 @@ def test_delete_primary_node():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = SecondaryNode(operation_type='knn', nodes_from=[first])
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[second, third])
     pipeline = Pipeline(final)
 
@@ -345,16 +345,16 @@ def test_delete_primary_node():
 def test_update_subtree():
     # given
     pipeline = get_pipeline()
-    subroot_parent = PrimaryNode('xgboost')
-    subroot = SecondaryNode('xgboost', nodes_from=[subroot_parent])
+    subroot_parent = PrimaryNode('rf')
+    subroot = SecondaryNode('rf', nodes_from=[subroot_parent])
     node_to_replace = pipeline.nodes[2]
 
     # when
     pipeline.update_subtree(node_to_replace, subroot)
 
     # then
-    assert pipeline.nodes[2].operation.operation_type == 'xgboost'
-    assert pipeline.nodes[3].operation.operation_type == 'xgboost'
+    assert pipeline.nodes[2].operation.operation_type == 'rf'
+    assert pipeline.nodes[3].operation.operation_type == 'rf'
 
 
 def test_delete_subtree():

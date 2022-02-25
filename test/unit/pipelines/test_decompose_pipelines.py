@@ -19,7 +19,7 @@ def generate_pipeline_with_decomposition(primary_operation, secondary_operation)
     """ The function generates a pipeline in which there is an operation of
     decomposing the target variable into residuals
                      secondary_operation
-    primary_operation                       xgboost
+    primary_operation                       rf
                      class_decompose -> rfr
 
     :param primary_operation: name of operation to place in primary node
@@ -30,8 +30,8 @@ def generate_pipeline_with_decomposition(primary_operation, secondary_operation)
     node_second = SecondaryNode(secondary_operation, nodes_from=[node_first])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    full_pipeline = Pipeline(node_xgboost)
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    full_pipeline = Pipeline(node_rf)
     return full_pipeline
 
 
@@ -47,8 +47,8 @@ def generate_pipeline_with_filtering():
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_logit, node_scaling])
     node_ransac = SecondaryNode('ransac_lin_reg', nodes_from=[node_decompose])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_ransac])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
-    full_pipeline = Pipeline(node_xgboost)
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_logit])
+    full_pipeline = Pipeline(node_rf)
     return full_pipeline
 
 
@@ -61,10 +61,10 @@ def generate_cascade_decompose_pipeline():
     node_second = SecondaryNode('logit', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_scaling])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    node_decompose_new = SecondaryNode('class_decompose', nodes_from=[node_xgboost, node_scaling])
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    node_decompose_new = SecondaryNode('class_decompose', nodes_from=[node_rf, node_scaling])
     node_rfr_2 = SecondaryNode('rfr', nodes_from=[node_decompose_new])
-    node_final = SecondaryNode('logit', nodes_from=[node_rfr_2, node_xgboost])
+    node_final = SecondaryNode('logit', nodes_from=[node_rfr_2, node_rf])
     pipeline = Pipeline(node_final)
     return pipeline
 

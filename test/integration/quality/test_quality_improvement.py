@@ -14,7 +14,7 @@ def test_classification_quality_improvement():
     problem = 'classification'
 
     baseline_model = Fedot(problem=problem)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
     expected_baseline_quality = 0.823
 
     baseline_model.predict_proba(features=test_data_path)

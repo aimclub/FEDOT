@@ -122,7 +122,7 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
 
 def baseline_pipeline():
     pipeline = Pipeline()
-    last_node = SecondaryNode(operation_type='xgboost',
+    last_node = SecondaryNode(operation_type='rf',
                               nodes_from=[])
     for requirement_model in ['knn', 'logit']:
         new_node = PrimaryNode(requirement_model)
@@ -248,7 +248,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
-    available_model_types = ['xgboost', 'knn']
+    available_model_types = ['rf', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
@@ -268,7 +268,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
 def test_gp_composer_saving_info_from_process(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
-    available_model_types = ['xgboost', 'knn']
+    available_model_types = ['rf', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,

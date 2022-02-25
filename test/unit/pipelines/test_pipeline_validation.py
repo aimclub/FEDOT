@@ -198,15 +198,15 @@ def pipeline_with_incorrect_parent_amount_for_decompose():
     node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_scaling])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
-    pipeline = Pipeline(node_xgboost)
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_logit])
+    pipeline = Pipeline(node_rf)
     return pipeline
 
 
 def pipeline_with_incorrect_parents_position_for_decompose():
     """ Pipeline structure:
          scaling
-    logit                       xgboost
+    logit                       rf
          class_decompose -> rfr
     """
 
@@ -214,8 +214,8 @@ def pipeline_with_incorrect_parents_position_for_decompose():
     node_second = SecondaryNode('scaling', nodes_from=[node_first])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    pipeline = Pipeline(node_xgboost)
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    pipeline = Pipeline(node_rf)
     return pipeline
 
 

@@ -86,9 +86,9 @@ def _model_metadata_example(path):
 
 
 def test_names_with_postfix():
-    name_with_postfix = 'xgboost/best_model_ever'
+    name_with_postfix = 'rf/best_model_ever'
     name_without_postfix = get_operation_type_from_id(name_with_postfix)
-    assert name_without_postfix == 'xgboost'
+    assert name_without_postfix == 'rf'
 
 
 def test_operation_types_repository_repr():

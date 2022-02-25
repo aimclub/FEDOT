@@ -39,9 +39,9 @@ def scoring_dataset():
 def get_pipeline():
     knn_node = PrimaryNode('knn')
     lda_node = PrimaryNode('qda')
-    xgb_node = PrimaryNode('xgboost')
+    rf_node = PrimaryNode('rf')
 
-    final = SecondaryNode('xgboost', nodes_from=[knn_node, lda_node, xgb_node])
+    final = SecondaryNode('rf', nodes_from=[knn_node, lda_node, rf_node])
 
     pipeline = Pipeline(final)
 
@@ -160,7 +160,7 @@ def test_node_deletion_sample_method():
     _, train_data, test_data, _, result_dir = given_data()
     primary_first = PrimaryNode('knn')
     primary_second = PrimaryNode('knn')
-    central = SecondaryNode('xgboost', nodes_from=[primary_first, primary_second])
+    central = SecondaryNode('rf', nodes_from=[primary_first, primary_second])
     secondary_first = SecondaryNode('lda', nodes_from=[central])
     secondary_second = SecondaryNode('lda', nodes_from=[central])
     root = SecondaryNode('logit', nodes_from=[secondary_first, secondary_second])

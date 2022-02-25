@@ -16,7 +16,7 @@ def pipeline_first():  # tested pipeline
     pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
+        [SecondaryNode(model) for model in ('rf', 'rf', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
@@ -63,10 +63,10 @@ def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse)
 
 def test_hierarchy_pos():
     pipeline = pipeline_first()
-    real_hierarchy_levels_y = {0: ['xgboost'], 1: ['xgboost', 'knn'],
+    real_hierarchy_levels_y = {0: ['rf'], 1: ['rf', 'knn'],
                                2: ['logit', 'lda', 'logit', 'lda']}
-    real_hierarchy_levels_x = {0: ['logit'], 1: ['xgboost'], 2: ['lda'],
-                               3: ['xgboost'], 4: ['logit'], 5: ['knn'], 6: ['lda']}
+    real_hierarchy_levels_x = {0: ['logit'], 1: ['rf'], 2: ['lda'],
+                               3: ['rf'], 4: ['logit'], 5: ['knn'], 6: ['lda']}
     pipeline_template = PipelineTemplate(pipeline)
     graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
     pos = hierarchy_pos(graph.to_undirected(), root=0)
