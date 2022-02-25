@@ -251,7 +251,7 @@ def _convert_target_dimension(target):
     return target
 
 
-def _greater_is_better(target, loss_function, loss_params) -> bool:
+def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
     """ Function checks is metric (loss function) need to be minimized or
     maximized
 
@@ -267,12 +267,11 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
         le = LabelEncoder()
         target = le.fit_transform(target)
 
-
-
     if loss_params is None:
         loss_params = {}
 
-    target = _convert_target_dimension(target)
+    if data_type is not DataTypesEnum.ts:
+        target = _convert_target_dimension(target)
 
     try:
         optimal_metric = loss_function(target, target, **loss_params)
