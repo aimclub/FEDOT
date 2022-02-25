@@ -10,7 +10,7 @@ def regression_three_depth_manual_pipeline():
                              knnreg - > final prediction
              knnreg -> rfr /
 
-    Where xgboost - xg boosting algorithm, dtreg - tree regression, knn - K nearest neighbors regression,
+    Where rf - xg boosting algorithm, dtreg - tree regression, knn - K nearest neighbors regression,
    """
     xgb_primary = PrimaryNode('xgbreg')
     knn_primary = PrimaryNode('knnreg')

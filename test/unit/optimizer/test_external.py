@@ -37,7 +37,7 @@ class StaticOptimizer(GraphOptimiser):
                  show_progress: bool = True):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
-        return OptGraph(OptNode('xgboost'))
+        return OptGraph(OptNode('rf'))
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

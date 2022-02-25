@@ -32,11 +32,11 @@ def create_pipeline() -> Pipeline:
     node_lda = PrimaryNode('lda')
     node_lda.custom_params = {'solver': 'lsqr'}
 
-    node_xgboost = SecondaryNode('xgboost')
-    node_xgboost.custom_params = {'n_components': 1}
-    node_xgboost.nodes_from = [node_logit, node_lda]
+    node_rf = SecondaryNode('rf')
+    node_rf.custom_params = {'n_components': 1}
+    node_rf.nodes_from = [node_logit, node_lda]
 
-    pipeline.add_node(node_xgboost)
+    pipeline.add_node(node_rf)
 
     return pipeline
 

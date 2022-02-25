@@ -11,7 +11,7 @@ from fedot.core.pipelines.node import Node
 class OperationTemplateAbstract(ABC):
     """
     Base class used for create different types of operation ("atomized_operation"
-    or others like ("knn", "xgboost")).
+    or others like ("knn", "rf")).
     Atomized_operation is pipeline which can be used like general operation.
     """
 
