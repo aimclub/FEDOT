@@ -13,8 +13,14 @@ The subset of PMLB benchmarks were evaluated for FEDOT, `TPOT <http://epistasisl
 .. |Metrics for prediction| image:: ../img/img_benchmarks/fedot_classregr.png
    :width: 80%
 
-As we can see from the table, the results obtained during the
-experiments demonstrate the advantage of composite pipeline
-created by the proposed approach over competitors. The only
-exception is a single case for regression and classification problems respectively, where the maximum value of the quality metric was obtained using a static pipeline.
+As we can see from the table, the results obtained during the experiments demonstrate the advantage of composite pipeline
+created by the proposed approach over competitors. The only exception is a single case for regression and classification problems respectively, where the maximum value of the quality metric was obtained using a static pipeline.
 
+Also, the comparison was conducted againsts the state-of-the-art AutoGluon framework.
+
+|Comparison of FEDOT and AutoGluon|
+
+.. |Comparison of FEDOT and AutoGluon| image:: ../img/img_benchmarks/fedot_classregr_gluon.png
+   :width: 80%
+
+There is a small advantage of the FEDOT for F1 and ROC AUC metrics, but the other metrics are near equal.
