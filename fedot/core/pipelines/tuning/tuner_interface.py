@@ -271,7 +271,10 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
         loss_params = {}
 
     if data_type is not DataTypesEnum.ts or DataTypesEnum.text:
-        target = _convert_target_dimension(target)
+        try:
+            target = _convert_target_dimension(target)
+        except Exception:
+            target = target
 
     try:
         optimal_metric = loss_function(target, target, **loss_params)
