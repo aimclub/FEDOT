@@ -222,7 +222,7 @@ class ApiComposer:
                                              'initial_assumption'],
                                          logger=api_params['logger'])
         gp_composer = None
-        if pipeline_fit_time >= timeout_for_composing:
+        if pipeline_fit_time >= timeout_for_composing / composer_params['pop_size']:
             api_params['logger'].message('Timeout is too small for composing, so it is skipped.')
             pipeline_gp_composed = fitted_initial_pipeline
         else:
