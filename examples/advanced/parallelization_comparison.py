@@ -75,4 +75,4 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
 
 
 if __name__ == '__main__':
-    run_experiments(timeout=10, partitions_n=5, n_jobs=-1)
+    run_experiments(timeout=2, partitions_n=5, n_jobs=-1)
