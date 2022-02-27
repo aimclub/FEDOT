@@ -1,4 +1,3 @@
-import datetime
 import json
 import timeit
 
@@ -18,6 +17,15 @@ def count_pipelines(opt_history):
 
 
 def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
+    """
+    Performs experiment to show how much better to use multiprocessing mode in FEDOT
+
+    :param timeout: timeout for optimization
+    :param partitions_n: on how many folds you want. f.e. if dataset contains 20000 rows, partition_n=5 will create
+    such folds: [4000 rows, 8000 rows, 1200 rows, 16000 rows, 20000 rows]
+    :param n_jobs: how many processors you want to use in a multiprocessing mode
+
+    """
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
