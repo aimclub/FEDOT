@@ -275,7 +275,7 @@ class ApiComposer:
                 api_params['logger'].message('Hyperparameters tuning started')
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
-                timeout_for_tuning = round(abs(timeout_for_tuning) / 60)
+                timeout_for_tuning = abs(timeout_for_tuning) / 60
                 pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
                                                                                 loss_params=loss_params,
                                                                                 input_data=api_params['train_data'],
