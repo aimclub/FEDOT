@@ -223,11 +223,14 @@ class ApiComposer:
                                          logger=api_params['logger'])
         gp_composer = None
         if pipeline_fit_time >= timeout_for_composing / composer_params['pop_size']:
-            api_params['logger'].message('Timeout is too small for composing, so it is skipped.')
+            api_params['logger'].message(f'Timeout is too small for composing '
+                                         f'because fit_time is {pipeline_fit_time.total_seconds()} sec.,,'
+                                         ' so it is skipped.')
             pipeline_gp_composed = fitted_initial_pipeline
         else:
             gp_composer = builder.build()
-            api_params['logger'].message('Pipeline composition started')
+            api_params['logger'].message(f'Pipeline composition started '
+                                         f'for fit_time {pipeline_fit_time.total_seconds()} sec')
             pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
 
         if isinstance(pipeline_gp_composed, list):
