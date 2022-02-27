@@ -192,15 +192,27 @@
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
-        "bayesian",
-        "non_multi"
+        "bayesian", "non_multi"
+      ]
+    },
+    "catboost": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "non-default"
+      ]
+    },
+    "catboostreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "non_multi", "non-default"
       ]
     },
     "cntvect": {
       "meta": "text_classification_sklearn",
       "tags": [
-        "non-default",
-        "text"
+        "non-default", "text"
       ]
     },
     "dt": {
@@ -260,18 +272,27 @@
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
-        "discriminant",
-        "linear",
-        "correct_params"
+        "discriminant", "linear", "correct_params"
+      ]
+    },
+    "lgbm": {
+      "meta": "sklearn_class",
+      "tags": [
+        "boosting", "tree", "non-default"
+      ]
+    },
+    "lgbmreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non_multi", "non-default"
       ]
     },
     "linear": {
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "simple",
-        "linear",
-        "interpretable"
+        "simple", "linear", "interpretable"
       ]
     },
     "logit": {
@@ -403,15 +424,27 @@
     "word2vec": {
       "meta": "text_classification_gensim",
       "tags": [
-        "non-default",
-        "text"
+        "non-default", "text"
+      ]
+    },
+    "xgboost": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non-default"
+      ]
+    },
+    "xgbreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non_multi", "non-default"
       ]
     },
     "cnn": {
       "meta": "custom_class",
       "tags": [
-        "deep",
-        "non-default"
+        "deep", "non-default"
       ],
       "input_type": "[DataTypesEnum.image]",
       "output_type": "[DataTypesEnum.table]"

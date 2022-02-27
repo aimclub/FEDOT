@@ -4,18 +4,18 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.metrics import ApiMetrics
+from fedot.api.api_utils.params import ApiParams
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
+from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
-from fedot.api.api_utils.params import ApiParams
-from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
@@ -149,11 +149,19 @@ class Fedot:
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
                 **self.params.api_params)
 
-        self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+        # Final fit for obtained pipeline on full dataset
+        if self.history is not None:
+            self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+            self.params.api_params['logger'].message('Final pipeline was fitted')
+        else:
+            self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
+
+        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
+
         return self.current_pipeline
 
     def predict(self,
@@ -375,7 +383,7 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-            self.current_pipeline.fit(full_train_not_preprocessed)
+        self.current_pipeline.fit(full_train_not_preprocessed)
 
     def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
@@ -412,7 +420,8 @@ class Fedot:
         else:
             raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 
+        final_pipeline = pipelines[0]
         # Perform fitting
-        fit_and_check_correctness(pipelines, data=self.train_data,
-                                  logger=self.params.api_params['logger'])
-        return pipelines[0]
+        final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
+                                                      logger=self.params.api_params['logger'])
+        return final_pipeline
