@@ -43,7 +43,9 @@ def initial_pipeline():
         lagged - ridge /
         """
     node_lagged_1 = PrimaryNode("lagged")
+    node_lagged_1.custom_params = {'window_size': 50}
     node_lagged_2 = PrimaryNode("lagged")
+    node_lagged_2.custom_params = {'window_size': 30}
 
     node_ridge_1 = SecondaryNode("ridge", nodes_from=[node_lagged_1])
     node_ridge_2 = SecondaryNode("ridge", nodes_from=[node_lagged_2])
@@ -57,8 +59,7 @@ def initial_pipeline():
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
     primary_operations = ['lagged']
-    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear',
-                            'scaling']
+    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear']
     return primary_operations, secondary_operations
 
 
@@ -100,9 +101,9 @@ def run_multiple_ts_forecasting(forecast_length):
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=30,
+        max_depth=4, pop_size=10, num_of_generations=30,
         crossover_prob=0.8, mutation_prob=0.8,
-        timeout=datetime.timedelta(minutes=10),
+        timeout=datetime.timedelta(minutes=20),
         validation_blocks=1)
     mutation_types = [parameter_change_mutation, MutationTypesEnum.single_change, MutationTypesEnum.single_drop,
                       MutationTypesEnum.single_add, MutationTypesEnum.single_edge]

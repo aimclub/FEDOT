@@ -113,7 +113,10 @@ def is_pipeline_contains_ts_operations(pipeline: 'Pipeline'):
     # List with operations in considering pipeline
     operations_in_pipeline = []
     for node in pipeline.nodes:
-        operations_in_pipeline.append(node.operation.operation_type)
+        try:
+            operations_in_pipeline.append(node.operation.operation_type)
+        except Exception as e:
+            print(e)
 
     if len(set(ts_operations) & set(operations_in_pipeline)) > 0:
         return True

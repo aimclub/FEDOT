@@ -122,7 +122,7 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
+        self.inner_model = LinearRegression(normalize=True)
 
         if not params:
             # Default parameters

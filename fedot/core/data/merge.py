@@ -182,9 +182,13 @@ class DataMerger:
                 common_idx = idx
             else:
                 common_idx = common_idx & idx
+        # if indeces repeats (for multi_ts data type)
+        start_el = list(common_idx)[0]
+        repits_num = list(idx_list[0]).count(start_el)
+        common_idx = list(common_idx) * repits_num
 
-        # Convert to list
-        common_idx = np.array(list(common_idx))
+        # Convert numpy
+        common_idx = np.array(common_idx)
         if len(common_idx) == 0:
             raise ValueError(f'There are no common indices for outputs')
 
@@ -347,10 +351,10 @@ def tables_mapping(idx_list, object_list, common_idx):
             number_of_variables_in_prediction = current_object.shape[1]
             for i in range(number_of_variables_in_prediction):
                 predict = current_object[:, i]
-                if predict.shape != mask.shape:
+                '''if predict.shape != mask.shape:
                     lag_size = current_idx[0]
                     repit_num = predict.shape[0]/(mask.shape[0]-lag_size)
-                    mask = np.tile(mask, int(repit_num))
+                    mask = np.tile(mask, int(repit_num))'''
                 filtered_predict = predict[mask]
 
                 # Convert to column

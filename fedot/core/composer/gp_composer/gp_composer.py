@@ -214,6 +214,7 @@ class GPComposer(Composer):
             pipeline.unfit()
             gc.collect()
         except Exception as ex:
+            pipeline.show()
             self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
             print(traceback.format_exc())
 
