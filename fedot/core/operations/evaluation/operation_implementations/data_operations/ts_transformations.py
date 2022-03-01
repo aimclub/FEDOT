@@ -263,18 +263,33 @@ class TsSmoothingImplementation(DataOperationImplementation):
         :return output_data: output data with smoothed time series
         """
 
-        source_ts = pd.Series(input_data.features)
+        source_ts = input_data.features
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            full_smoothed_ts = []
+            for ts_n in range(source_ts.shape[1]):
+                ts = pd.Series(source_ts[:, ts_n])
+                # Apply smoothing operation
+                smoothed_ts = ts.rolling(window=self.window_size).mean()
+                smoothed_ts = np.array(smoothed_ts)
 
-        # Apply smoothing operation
-        smoothed_ts = source_ts.rolling(window=self.window_size).mean()
-        smoothed_ts = np.array(smoothed_ts)
+                # Filling first nans with source values
+                smoothed_ts[:self.window_size] = ts[:self.window_size]
+                full_smoothed_ts.append(smoothed_ts)
+            output_data = self._convert_to_output(input_data,
+                                                  np.array(full_smoothed_ts).T,
+                                                  data_type=DataTypesEnum.multi_ts)
+        else:
+            source_ts = pd.Series(input_data.features)
+            # Apply smoothing operation
+            smoothed_ts = source_ts.rolling(window=self.window_size).mean()
+            smoothed_ts = np.array(smoothed_ts)
 
-        # Filling first nans with source values
-        smoothed_ts[:self.window_size] = source_ts[:self.window_size]
+            # Filling first nans with source values
+            smoothed_ts[:self.window_size] = source_ts[:self.window_size]
 
-        output_data = self._convert_to_output(input_data,
-                                              np.ravel(smoothed_ts),
-                                              data_type=DataTypesEnum.ts)
+            output_data = self._convert_to_output(input_data,
+                                                  np.ravel(smoothed_ts),
+                                                  data_type=DataTypesEnum.ts)
 
         return output_data
 
@@ -370,9 +385,14 @@ class GaussianFilterImplementation(DataOperationImplementation):
         smoothed_ts = gaussian_filter(source_ts, sigma=self.sigma)
         smoothed_ts = np.array(smoothed_ts)
 
-        output_data = self._convert_to_output(input_data,
-                                              np.ravel(smoothed_ts),
-                                              data_type=DataTypesEnum.ts)
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            output_data = self._convert_to_output(input_data,
+                                                  smoothed_ts,
+                                                  data_type=DataTypesEnum.multi_ts)
+        else:
+            output_data = self._convert_to_output(input_data,
+                                                  np.ravel(smoothed_ts),
+                                                  data_type=DataTypesEnum.ts)
 
         return output_data
 
@@ -418,10 +438,20 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
         source_ts = np.array(input_data.features)
         # Apply differential operation
-        differential_ts = self._differential_filter(source_ts)
-        output_data = self._convert_to_output(input_data,
-                                              np.ravel(differential_ts),
-                                              data_type=DataTypesEnum.ts)
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            full_differential_ts = []
+            for ts_n in range(source_ts.shape[1]):
+                ts = source_ts[:, ts_n]
+                differential_ts = self._differential_filter(ts)
+                full_differential_ts.append(differential_ts)
+            output_data = self._convert_to_output(input_data,
+                                                  np.array(full_differential_ts).T,
+                                                  data_type=DataTypesEnum.multi_ts)
+        else:
+            differential_ts = self._differential_filter(source_ts)
+            output_data = self._convert_to_output(input_data,
+                                                  np.ravel(differential_ts),
+                                                  data_type=DataTypesEnum.ts)
 
         return output_data
 
@@ -542,7 +572,7 @@ class CutImplementation(DataOperationImplementation):
         input_copy.target = output_values
         output_data = self._convert_to_output(input_copy,
                                               output_values,
-                                              data_type=DataTypesEnum.ts)
+                                              data_type=input_data.data_type)
         return output_data
 
     def get_params(self):
@@ -601,11 +631,14 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     :return features_columns: lagged time series feature table
     """
     # Convert data to lagged form
-    lagged_dataframe = pd.DataFrame({'t_id': time_series})
-    vals = lagged_dataframe['t_id']
-    for i in range(1, window_size):
-        frames = [lagged_dataframe, vals.shift(i)]
-        lagged_dataframe = pd.concat(frames, axis=1)
+    try:
+        lagged_dataframe = pd.DataFrame({'t_id': time_series})
+        vals = lagged_dataframe['t_id']
+        for i in range(1, window_size):
+            frames = [lagged_dataframe, vals.shift(i)]
+            lagged_dataframe = pd.concat(frames, axis=1)
+    except Exception as e:
+        print(e)
 
     # Remove incomplete rows
     lagged_dataframe.dropna(inplace=True)
