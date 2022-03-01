@@ -184,19 +184,19 @@
 		},
 		"rfe_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["linear", "feature_selection", "non_applicable_for_ts"]
+			"tags": ["linear", "feature_selection", "non_applicable_for_ts", "non-default"]
 		},
 		"rfe_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts"]
+			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts", "non-default"]
 		},
 		"rfe_lin_class": {
 			"meta": "classification_preprocessing",
-			"tags": ["linear", "feature_selection"]
+			"tags": ["linear", "feature_selection", "non-default"]
 		},
 		"rfe_non_lin_class": {
 			"meta": "classification_preprocessing",
-			"tags": ["non_linear", "feature_selection"]
+			"tags": ["non_linear", "feature_selection", "non-default"]
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
