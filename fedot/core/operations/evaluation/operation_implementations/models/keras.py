@@ -9,7 +9,6 @@ except ModuleNotFoundError:
     print('Tensorflow non installed, continue')
 
 from sklearn import preprocessing
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation. \
@@ -57,7 +56,7 @@ def create_simple_cnn(input_shape: tuple,
             tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(num_classes, activation="softmax"),
+            tf.keras.layers.Dense(num_classes, activation="sigmoid"),
         ]
     )
 
@@ -82,8 +81,9 @@ def fit_cnn(train_data: InputData,
     if len(x_train.shape) < 4:
         transformed_x_train = np.expand_dims(x_train, -1)
 
-    le = preprocessing.OneHotEncoder()
-    y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
+    if len(train_data.target.shape) < 2:
+        le = preprocessing.OneHotEncoder()
+        y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
 
     if optimizer_params is None:
         optimizer_params = {'loss': "categorical_crossentropy",
@@ -91,9 +91,7 @@ def fit_cnn(train_data: InputData,
                             'metrics': ["accuracy"]}
 
     model.compile(**optimizer_params)
-
     model.num_classes = train_data.num_classes
-
     if logger is None:
         logger = default_log(__name__)
 
@@ -120,7 +118,6 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
     if np.max(transformed_x_test) > 1:
         logger.warn('Test data set was not scaled. The data was divided by 255.')
     transformed_x_test = np.expand_dims(x_test, -1)
-
     if output_mode == 'labels':
         prediction = trained_model.predict(transformed_x_test)
     elif output_mode in ['probs', 'full_probs', 'default']:
@@ -165,7 +162,12 @@ class FedotCNNImplementation(ModelImplementation):
         :param train_data: data to train the model
         """
 
-        self.classes = np.unique(train_data.target)
+        # TODO make case for multiclass multioutput task
+        # check for multioutput target
+        if len(train_data.target.shape) < 2:
+            self.classes = np.unique(train_data.target)
+        else:
+            self.classes = np.arange(train_data.target.shape[1])
 
         if self.model is None:
             self.model = cnn_model_dict[self.params['architecture_type']](input_shape=self.params['image_shape'],

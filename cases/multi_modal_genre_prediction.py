@@ -1,5 +1,5 @@
 import datetime
-from examples.multi_modal_pipeline_genres import calculate_validation_metric, \
+from examples.advanced.multi_modal_pipeline import calculate_validation_metric, \
     generate_initial_pipeline_and_data, prepare_multi_modal_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
@@ -10,16 +10,17 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedelta(minutes=2)):
+def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedelta(minutes=1)):
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
-    train_num, test_num, train_text, test_text = prepare_multi_modal_data(files_path, task,
-                                                                          images_size)
+    train_num, test_num, train_img, test_img, train_text, test_text = \
+        prepare_multi_modal_data(files_path, task, images_size)
 
-    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
-                                                                          train_num, test_num,
-                                                                          train_text, test_text)
+    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
+                                                                                  train_num, test_num,
+                                                                                  train_img, test_img,
+                                                                                  train_text, test_text)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='model')
@@ -30,7 +31,7 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     composer_requirements = PipelineComposerRequirements(
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
-        max_depth=3, pop_size=5, num_of_generations=5,
+        max_depth=5, pop_size=5, num_of_generations=5,
         crossover_prob=0.8, mutation_prob=0.8, timeout=timeout)
 
     # GP optimiser parameters choice
@@ -43,14 +44,21 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     # the multi modal template (with data sources) is passed as initial assumption for composer
     builder = ComposerBuilder(task=task).with_requirements(composer_requirements). \
         with_metrics(metric_function).with_optimiser(parameters=optimiser_parameters).with_logger(logger=logger). \
-        with_initial_pipelines(pipeline).with_cache('multi_modal_opt.cache')
+        with_initial_pipelines([initial_pipeline]).with_cache('multi_modal_opt.cache')
 
-    pipeline.fit(input_data=fit_data)
+    # Create GP-based composer
+    composer = builder.build()
+
+    # the optimal pipeline generation by composition - the most time-consuming task
+    pipeline_evo_composed = composer.compose_pipeline(data=fit_data,
+                                                      is_visualise=True)
+
+    pipeline_evo_composed.fit(input_data=fit_data)
 
     if is_visualise:
-        pipeline.show()
+        pipeline_evo_composed.show()
 
-    prediction = pipeline.predict(predict_data, output_mode='labels')
+    prediction = pipeline_evo_composed.predict(predict_data, output_mode='labels')
     err = calculate_validation_metric(test_text, prediction)
 
     print(f'F1 micro for validation sample is {err}')

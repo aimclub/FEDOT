@@ -7,7 +7,7 @@ from sklearn.metrics import mean_squared_error
 
 from cases.credit_scoring.credit_scoring_problem import run_credit_scoring_problem
 from cases.metocean_forecasting_problem import run_metocean_forecasting_problem
-from cases.multi_modal_rating_prediction import run_multi_modal_case
+from cases.multi_modal_genre_prediction import run_multi_modal_case
 from cases.river_levels_prediction.river_level_case_manual import run_river_experiment
 from cases.spam_detection import run_text_problem_from_saved_meta_file
 from cases.time_series_gapfilling_case import run_gapfilling_case
