@@ -43,9 +43,11 @@ def initial_pipeline():
                         -> ridge -> final forecast
         lagged - ridge /
         """
-    node_gaus = PrimaryNode("smoothing")
-    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus])
+    node_gaus = PrimaryNode("gaussian_filter")
+    node_smooth = PrimaryNode("smoothing")
+    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus, node_smooth])
     node_lagged_1.custom_params = {'window_size': 50}
+
     node_lagged_2 = PrimaryNode("lagged")
     node_lagged_2.custom_params = {'window_size': 30}
 
@@ -60,7 +62,7 @@ def initial_pipeline():
 
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged', 'smoothing', 'gaussian_filter', 'diff_filter']
+    primary_operations = ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter']
     secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear']
     return primary_operations, secondary_operations
 

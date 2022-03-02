@@ -182,13 +182,7 @@ class DataMerger:
                 common_idx = idx
             else:
                 common_idx = common_idx & idx
-        # if indeces repeats (for multi_ts data type)
-        start_el = list(common_idx)[0]
-        repits_num = list(idx_list[0]).count(start_el)
-        common_idx = list(common_idx) * repits_num
 
-        # Convert numpy
-        common_idx = np.array(common_idx)
         if len(common_idx) == 0:
             raise ValueError(f'There are no common indices for outputs')
 
@@ -337,9 +331,13 @@ def tables_mapping(idx_list, object_list, common_idx):
 
     common_tables = []
     for number in range(len(idx_list)):
-        # Create mask where True - appropriate objects
         current_idx = idx_list[number]
-        mask = np.in1d(np.array(current_idx), common_idx)
+        # if indeces repeats (for multi_ts data type)
+        start_el = list(common_idx)[0]
+        repeats_num = list(current_idx).count(start_el)
+        common_idx_new = list(common_idx) * repeats_num
+        # Create mask where True - appropriate objects
+        mask = np.in1d(np.array(current_idx), common_idx_new)
 
         current_object = object_list[number]
         if len(current_object.shape) == 1:
