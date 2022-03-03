@@ -231,7 +231,7 @@ class Pipeline(Graph):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             loss_params: dict = None,
                             input_data: Union[InputData, MultiModalData] = None,
-                            iterations=50, timeout: Optional[int] = 5,
+                            iterations=50, timeout: Optional[float] = 5,
                             cv_folds: int = None,
                             validation_blocks: int = 3) -> 'Pipeline':
         """ Tune all hyperparameters of nodes simultaneously via black-box

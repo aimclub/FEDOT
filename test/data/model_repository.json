@@ -183,6 +183,20 @@
     "custom": {
 		"meta": "custom_model",
 		"tags": ["all_purpose", "non-default"]
-	}
+	},
+	"xgboost": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non-default"
+      ]
+    },
+    "xgbreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non_multi", "non-default"
+      ]
+    }
   }
 }

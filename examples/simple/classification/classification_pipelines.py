@@ -73,9 +73,9 @@ def classification_complex_pipeline(log: Log = None):
     """
     Returns pipeline with the following structure:
 
-    rf \
-             -> logit -> final prediction
-      knn   /
+    rf  \
+         -> logit -> final prediction
+    knn /
     """
     first = PrimaryNode(operation_type='rf')
     second = PrimaryNode(operation_type='knn')
@@ -113,11 +113,11 @@ def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
-         svc ->  logit \
-                        \
-                         rf -> final prediction
-             knn -> knn /
-                   /
+    svc -> logit \
+                  \
+                    rf -> final prediction
+        knn -> knn /
+                  /
     svc -> logit /
 
     Where svc - support vector classifier, logit - logistic regression, knn - K nearest neighbors classifier,
@@ -148,10 +148,10 @@ def classification_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
-          logit \
-                 knn \
-        rf /     knn -> final prediction
-       rf -> qda /
+    logit \
+           knn \
+      rf /     knn -> final prediction
+    rf -> qda /
 
     Where rf - xg boost classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     qda - discriminant analysis
@@ -183,7 +183,7 @@ def classification_rf_complex_pipeline():
               lda /
 
 
-    Where lda - discriminant analysis, logit - logistic regression, rf - xg boost classifier,
+    Where lda - discriminant analysis, logit - logistic regression, rf - random forest classifier,
     knn - K nearest neighbors classifier
     """
     pipeline = Pipeline()

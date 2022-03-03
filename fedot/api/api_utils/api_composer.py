@@ -255,8 +255,8 @@ class ApiComposer:
         if timeout_for_tuning < 15:
             api_params['logger'].info(f'Time for pipeline composing was {str(spended_time_for_composing)}.\n'
                                       f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
-                                      f'to tune the hyperparameters. '
-                                      f'Composed pipeline will be returned without tuning.')
+                                      f'to tune the hyperparameters.')
+            api_params['logger'].info('Composed pipeline returned without tuning.')
         else:
             if tuning_params['with_tuning']:
                 if tuning_params['tuner_metric'] is None:

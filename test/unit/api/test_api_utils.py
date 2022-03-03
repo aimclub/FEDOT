@@ -41,7 +41,7 @@ def test_compose_fedot_model_with_tuning():
                                                                               genetic_scheme=None),
                                                          tuning_params=dict(with_tuning=True,
                                                                             tuner_metric=None))
-    expected = ('test_log', 'INFO', 'Tuner metric is None, roc_auc_score was set as default')
+    expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
     logs.check_present(expected, order_matters=False)
 
 

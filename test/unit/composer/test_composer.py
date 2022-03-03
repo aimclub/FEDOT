@@ -200,6 +200,8 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
                                        y_score=predicted_gp_composed.predict)
     population_len = sum([len(history) for history in gp_composer.history.individuals]) / len(
         gp_composer.history.individuals)
+    first_check = population_len != len(gp_composer.history.individuals[0])
+    second_check = roc_on_valid_gp_composed > 0.6
     assert population_len != len(gp_composer.history.individuals[0])
     assert roc_on_valid_gp_composed > 0.6
 
