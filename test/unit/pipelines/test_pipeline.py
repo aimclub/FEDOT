@@ -1,6 +1,7 @@
 import datetime
 import os
 import platform
+import random
 import time
 from copy import copy, deepcopy
 from multiprocessing import set_start_method
@@ -170,6 +171,8 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
 
 
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
+    random.seed(1)
+    np.random.seed(1)
     data = data_setup
     # Preprocess data - determine features columns
     data = DataPreprocessor().obligatory_prepare_for_fit(data)
@@ -178,7 +181,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='rf',
+    final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second, third])
 
     pipeline = Pipeline()
@@ -189,7 +192,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = deepcopy(second)
     third = deepcopy(third)
 
-    final_shuffled = SecondaryNode(operation_type='rf',
+    final_shuffled = SecondaryNode(operation_type='logit',
                                    nodes_from=[third, first, second])
 
     pipeline_shuffled = Pipeline()

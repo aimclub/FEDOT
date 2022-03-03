@@ -173,6 +173,7 @@ def test_composition_time(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
+    """ Checks that when a metric stagnates, the number of individuals in the population increases """
     random.seed(1)
     np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
@@ -184,7 +185,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     metric_function = ClassificationMetricsEnum.ROCAUC
 
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=2,
+                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=3,
                                        crossover_prob=0.4, mutation_prob=0.5)
 
     opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
@@ -198,10 +199,10 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
     roc_on_valid_gp_composed = roc_auc(y_true=dataset_to_validate.target,
                                        y_score=predicted_gp_composed.predict)
-    population_len = sum([len(history) for history in gp_composer.history.individuals]) / len(
-        gp_composer.history.individuals)
-    first_check = population_len != len(gp_composer.history.individuals[0])
-    second_check = roc_on_valid_gp_composed > 0.6
+
+    all_individuals = len(gp_composer.history.individuals)
+    population_len = sum([len(history) for history in gp_composer.history.individuals]) / all_individuals
+
     assert population_len != len(gp_composer.history.individuals[0])
     assert roc_on_valid_gp_composed > 0.6
 
