@@ -25,8 +25,6 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
 
     pipeline.fit(train_data, use_fitted=cache is not None)
 
-    return [0]
-
     for index, metric in enumerate(metrics):
         if callable(metric):
             metric_func = metric
