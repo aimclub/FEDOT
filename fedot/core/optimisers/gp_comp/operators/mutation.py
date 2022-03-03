@@ -129,7 +129,8 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                                                                requirements=requirements, params=params,
                                                                max_depth=max_depth)
 
-        try:
+        is_correct_graph = constraint_function(new_graph, params)
+        if is_correct_graph:
             rules = params.rules_for_constraint
             object_for_validation = params.adapter.restore(deepcopy(new_graph))
             validate(object_for_validation, rules, params.advisor.task)
@@ -143,8 +144,6 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                                        operator_name=str(mutation_name),
                                        parent_individuals=[ind]))
             return new_individual
-        except ValueError:
-            pass
 
     log.debug('Number of mutation attempts exceeded. '
               'Please check composer requirements for correctness.')
