@@ -1,5 +1,5 @@
 from random import choice, random
-from typing import Any
+from typing import List, Any
 
 from fedot.core.optimisers.gp_comp.operators.mutation import get_mutation_prob
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -84,4 +84,20 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
     node_final = SecondaryNode(choice(requirements.secondary),
                                nodes_from=[existing_pipeline.root_node, node_boost])
     pipeline = Pipeline(node_final)
+
+    filter_pipeline_with_available_operations(pipeline,
+                                              list(set(requirements.primary + requirements.secondary)))
+
     return pipeline
+
+
+def filter_pipeline_with_available_operations(pipeline: Pipeline, available_operations: List[str]):
+    """ Iterates through all nodes of the pipeline and removes those that
+    are not specified in available operations """
+
+    pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
+    for i, operation in enumerate(pipeline_operations):
+        if operation not in available_operations:
+            for node in pipeline.nodes:
+                if node.operation.operation_type == operation:
+                    pipeline.operator.delete_node(node=node)

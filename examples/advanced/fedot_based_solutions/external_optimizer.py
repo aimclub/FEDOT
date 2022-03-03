@@ -63,4 +63,5 @@ def run_with_random_search_composer():
     print(automl.get_metrics())
 
 
-run_with_random_search_composer()
+if __name__ == '__main__':
+    run_with_random_search_composer()

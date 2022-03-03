@@ -12,7 +12,6 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
-from fedot.core.optimisers.utils.population_utils import input_data_characteristics
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -59,7 +58,7 @@ class Pipeline(Graph):
                 self.operator.update_node(old_node=node,
                                           new_node=SecondaryNode(nodes_from=node.nodes_from,
                                                                  content=node.content))
-            elif not node.nodes_from and not self.operator.node_children(node):
+            elif not node.nodes_from and not self.operator.node_children(node) and node != self.root_node:
                 self.nodes.remove(node)
             elif not node.nodes_from and not isinstance(node, PrimaryNode):
                 self.operator.update_node(old_node=node,
