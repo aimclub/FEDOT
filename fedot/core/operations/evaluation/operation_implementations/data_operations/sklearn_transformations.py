@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import KernelPCA, PCA
+from sklearn.decomposition import KernelPCA, PCA, FastICA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
@@ -128,6 +128,21 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
             self.pca = KernelPCA()
         else:
             self.pca = KernelPCA(**params)
+        self.params = params
+
+
+class FastICAImplementation(ComponentAnalysisImplementation):
+    """ Class for applying PCA from sklearn
+
+    :param params: optional, dictionary with the hyperparameters
+    """
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            # Default parameters
+            self.pca = FastICA()
+        else:
+            self.pca = FastICA(**params)
         self.params = params
 
 
