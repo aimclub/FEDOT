@@ -168,9 +168,17 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
     def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
         """ Firstly perform filtration of columns """
+        clipped_input_data = input_data
         if self.columns_to_take is not None:
-            input_data = input_data.subset_features(self.columns_to_take)
-        output_data = super().transform(input_data, is_fit_pipeline_stage)
+            clipped_input_data = input_data.subset_features(self.columns_to_take)
+        output_data = super().transform(clipped_input_data, is_fit_pipeline_stage)
+
+        if self.columns_to_take is not None:
+            # Get generated features from poly function
+            generated_features = output_data.predict[:, self.th_columns:]
+            # Concat source features with generated one
+            all_features = np.hstack((input_data.features, generated_features))
+            output_data.predict = all_features
         return output_data
 
     def get_params(self):

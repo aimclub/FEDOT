@@ -508,4 +508,4 @@ def test_poly_features_on_big_datasets():
     transformed_features = poly_node.predict(train_input)
 
     n_rows, n_cols = transformed_features.predict.shape
-    assert n_cols == 65
+    assert n_cols == 85
