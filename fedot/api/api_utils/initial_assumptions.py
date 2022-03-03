@@ -8,7 +8,6 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.composer.gp_composer.specific_operators import filter_pipeline_with_available_operations
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -41,6 +40,18 @@ class ApiInitialAssumptions:
         return initial_assumption
 
     @staticmethod
+    def _filter_pipeline_with_available_operations(pipeline: Pipeline, available_operations: List[str]):
+        """ Iterates through all nodes of the pipeline and removes those that
+        are not specified in available operations """
+
+        pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
+        for i, operation in enumerate(pipeline_operations):
+            if operation not in available_operations:
+                for node in pipeline.nodes:
+                    if node.operation.operation_type == operation:
+                        pipeline.operator.delete_node(node=node)
+
+    @staticmethod
     def _get_non_repeating_operations(task: Task, data: Union[InputData, MultiModalData],
                                       available_operations: List[str], used_operations: List[str]):
         """ Returns operations that can be used to further form the pipeline and which are not yet in it
@@ -68,6 +79,10 @@ class ApiInitialAssumptions:
         """ Creates a pipeline for Uni-data using only available operations """
 
         node_prepocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
+        if not node_prepocessed:
+            node = PrimaryNode(choice(available_operations))
+            return [Pipeline(node)]
+
         preprocessing_operations = [node.operation.operation_type
                                     for node in node_prepocessed.ordered_subnodes_hierarchy()]
 
@@ -80,7 +95,7 @@ class ApiInitialAssumptions:
         secondary_node = SecondaryNode(node_operation, nodes_from=[node_prepocessed])
         pipeline = Pipeline(secondary_node)
 
-        filter_pipeline_with_available_operations(pipeline=pipeline, available_operations=available_operations)
+        self._filter_pipeline_with_available_operations(pipeline=pipeline, available_operations=available_operations)
         return [pipeline]
 
     def create_multidata_pipelines_on_available_operations(self, task: Task, data: MultiModalData,
@@ -90,8 +105,7 @@ class ApiInitialAssumptions:
         """ Creates a pipeline for Multi-data using only available operations """
 
         if task.task_type == TaskTypesEnum.ts_forecasting:
-            node = PrimaryNode(choice(available_operations))
-            pipeline = Pipeline(node)
+            pipelines = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
         elif task.task_type == TaskTypesEnum.classification or \
                 task.task_type == TaskTypesEnum.regression:
             first_nodes_pipe = self.create_first_multimodal_nodes(data, has_categorical_features, has_gaps)[0]
@@ -104,12 +118,12 @@ class ApiInitialAssumptions:
 
             node_operation = choice(non_repeating_operations)
             secondary_node = SecondaryNode(node_operation, nodes_from=[first_nodes_pipe.root_node])
-            pipeline = Pipeline(secondary_node)
+            pipelines = [Pipeline(secondary_node)]
 
-            filter_pipeline_with_available_operations(pipeline=pipeline, available_operations=available_operations)
+            self._filter_pipeline_with_available_operations(pipeline=pipelines[0], available_operations=available_operations)
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
-        return [pipeline]
+        return pipelines
 
     def create_unidata_pipelines(self,
                                  task: Task,
