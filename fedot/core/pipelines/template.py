@@ -163,7 +163,7 @@ class PipelineTemplate:
                         node['custom_params'][key] = None
 
         # Store information about preprocessing
-        preprocessing_path = os.path.join('preprocessing', 'data_preprocessor.pkl')
+        preprocessing_path = ['preprocessing', 'data_preprocessor.pkl']
 
         json_object = {
             "total_pipeline_operations": list(self.total_pipeline_operations),
@@ -186,7 +186,11 @@ class PipelineTemplate:
             return None
 
         # Save preprocessing module
-        dict_fitted_operations['preprocessing'] = self.export_preprocessing(path)
+        preprocessing_path = self.export_preprocessing(path)
+        if isinstance(preprocessing_path, str):
+            preprocessing_splitted = os.path.split(preprocessing_path)
+            preprocessing_path = [preprocessing_splitted[-2], preprocessing_splitted[-1]]
+        dict_fitted_operations['preprocessing'] = preprocessing_path
         return dict_fitted_operations
 
     def _prepare_paths(self, path: str, with_time: bool = True):
