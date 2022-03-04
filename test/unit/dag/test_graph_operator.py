@@ -1,9 +1,9 @@
 from copy import deepcopy
 
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.optimisers.graph import OptNode
 
 
 def get_pipeline():
@@ -148,10 +148,10 @@ def get_res_pipeline_test_second():
 def get_res_pipeline_test_third():
     scaling_node_primary = PrimaryNode('scaling')
 
-    xgb_rf = SecondaryNode('rf', nodes_from=[scaling_node_primary])
-    xgb_rf_second = SecondaryNode('rf', nodes_from=[scaling_node_primary])
+    rf_node = SecondaryNode('rf', nodes_from=[scaling_node_primary])
+    rf_node_second = SecondaryNode('rf', nodes_from=[scaling_node_primary])
 
-    knn_node_third = SecondaryNode('knn', nodes_from=[xgb_rf, xgb_rf_second])
+    knn_node_third = SecondaryNode('knn', nodes_from=[rf_node, rf_node_second])
 
     knn_root = SecondaryNode('knn', nodes_from=[knn_node_third])
 

@@ -2,8 +2,9 @@ import os
 from random import seed
 
 import numpy as np
-from hyperopt import hp, tpe, rand
 import pytest
+from hyperopt import hp, tpe, rand
+from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc
 
 from fedot.core.data.data import InputData
@@ -12,15 +13,13 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     GLMImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
-
-from hyperopt.pyll.stochastic import sample as hp_sample
 
 seed(1)
 np.random.seed(1)
@@ -83,13 +82,13 @@ def get_not_default_search_space():
         'ridge': {
             'alpha': (hp.uniform, [0.01, 5.0])
         },
-        'rfr': {
+        'xgbreg': {
             'n_estimators': (hp.choice, [[100]]),
             'max_depth': (hp.choice, [range(1, 7)]),
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.choice, [np.arange(0.15, 1.01, 0.05)])
         },
-        'rf': {
+        'xgb': {
             'max_depth': (hp.choice, [range(1, 5)]),
             'subsample': (hp.uniform, [0.1, 0.9]),
             'min_child_weight': (hp.choice, [range(1, 15)])
