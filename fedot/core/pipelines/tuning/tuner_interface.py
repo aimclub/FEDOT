@@ -230,7 +230,28 @@ def _create_multi_target_prediction(target, optimal=True):
     return multi_target
 
 
-def _greater_is_better(target, loss_function, loss_params) -> bool:
+def _convert_target_dimension(target):
+    """ Function check number of unique classes and converted target
+    for multiclass metrics
+
+    :param target: target for define what problem is solving (max or min)
+
+    :return : 2d-array of classes probabilities
+    """
+
+    nb_classes = len(np.unique(target))
+
+    if nb_classes > 2:
+        target_converted = target.reshape(-1).tolist()
+        target_converted = [int(x) for x in target_converted]
+        if min(target_converted) == 1:
+            target_converted = [x - 1 for x in target_converted]
+        target = np.eye(nb_classes)[target_converted]
+
+    return target
+
+
+def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
     """ Function checks is metric (loss function) need to be minimized or
     maximized
 
@@ -248,6 +269,12 @@ def _greater_is_better(target, loss_function, loss_params) -> bool:
 
     if loss_params is None:
         loss_params = {}
+
+    if data_type is not DataTypesEnum.ts or DataTypesEnum.text:
+        try:
+            target = _convert_target_dimension(target)
+        except Exception:
+            target = target
 
     try:
         optimal_metric = loss_function(target, target, **loss_params)

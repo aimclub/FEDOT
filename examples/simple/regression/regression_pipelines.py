@@ -6,16 +6,16 @@ def regression_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
-          xgbreg -> dtreg  \
-                             knnreg - > final prediction
-             knnreg -> rfr /
+          rfr -> dtreg  \
+                         knnreg - > final prediction
+          knnreg -> rfr /
 
-    Where xgboost - xg boosting algorithm, dtreg - tree regression, knn - K nearest neighbors regression,
+    Where rf - random forest, dtreg - tree regression, knn - K nearest neighbors regression,
    """
-    xgb_primary = PrimaryNode('xgbreg')
+    rfr_primary = PrimaryNode('rfr')
     knn_primary = PrimaryNode('knnreg')
 
-    dtreg_secondary = SecondaryNode('dtreg', nodes_from=[xgb_primary])
+    dtreg_secondary = SecondaryNode('dtreg', nodes_from=[rfr_primary])
     rfr_secondary = SecondaryNode('rfr', nodes_from=[knn_primary])
 
     knnreg_root = SecondaryNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])

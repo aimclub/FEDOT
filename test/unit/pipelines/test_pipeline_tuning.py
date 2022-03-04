@@ -2,8 +2,9 @@ import os
 from random import seed
 
 import numpy as np
-from hyperopt import hp, tpe, rand
 import pytest
+from hyperopt import hp, tpe, rand
+from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc
 
 from fedot.core.data.data import InputData
@@ -12,14 +13,13 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     GLMImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
+from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
-
-from hyperopt.pyll.stochastic import sample as hp_sample
 
 seed(1)
 np.random.seed(1)
@@ -40,7 +40,7 @@ def classification_dataset():
 
 
 def get_simple_regr_pipeline():
-    final = PrimaryNode(operation_type='xgbreg')
+    final = PrimaryNode(operation_type='rfr')
     pipeline = Pipeline(final)
 
     return pipeline
@@ -50,7 +50,7 @@ def get_complex_regr_pipeline():
     node_scaling = PrimaryNode(operation_type='scaling')
     node_ridge = SecondaryNode('ridge', nodes_from=[node_scaling])
     node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
-    final = SecondaryNode('xgbreg', nodes_from=[node_ridge, node_linear])
+    final = SecondaryNode('rfr', nodes_from=[node_ridge, node_linear])
     pipeline = Pipeline(final)
 
     return pipeline
@@ -369,9 +369,10 @@ def test_greater_is_better():
     """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
     target = np.array([1, 0, 1, 0, 1])
     multi_target = np.array([2, 0, 1, 0, 1, 2])
-    assert _greater_is_better(target, acc, None)
-    assert _greater_is_better(target, roc, None)
-    assert _greater_is_better(multi_target, roc, {'multi_class': 'ovo'})
-    assert _greater_is_better(target, custom_maximized_metrics, None)
-    assert not _greater_is_better(target, mse, None)
-    assert not _greater_is_better(target, custom_minimized_metrics, None)
+    data_type = DataTypesEnum.table
+    assert _greater_is_better(target, acc, None, data_type)
+    assert _greater_is_better(target, roc, None, data_type)
+    assert _greater_is_better(multi_target, roc, {'multi_class': 'ovo'}, data_type)
+    assert _greater_is_better(target, custom_maximized_metrics, None, data_type)
+    assert not _greater_is_better(target, mse, None, data_type)
+    assert not _greater_is_better(target, custom_minimized_metrics, None, data_type)

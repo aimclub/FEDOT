@@ -223,7 +223,7 @@ def test_ts_single_pipeline_model_without_multiotput_support():
                           task=task,
                           data_type=DataTypesEnum.ts)
 
-    for model_id in ['xgbreg', 'gbr', 'adareg', 'svr', 'sgdr']:
+    for model_id in ['rfr', 'gbr', 'adareg', 'svr', 'sgdr']:
         pipeline = get_simple_ts_pipeline(model_root=model_id, window_size=2)
 
         # making predictions for the missing part in the time series

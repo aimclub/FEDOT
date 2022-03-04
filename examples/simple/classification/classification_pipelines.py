@@ -73,11 +73,11 @@ def classification_complex_pipeline(log: Log = None):
     """
     Returns pipeline with the following structure:
 
-    xgboost \
-             -> logit -> final prediction
-      knn   /
+    rf  \
+         -> logit -> final prediction
+    knn /
     """
-    first = PrimaryNode(operation_type='xgboost')
+    first = PrimaryNode(operation_type='rf')
     second = PrimaryNode(operation_type='knn')
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
@@ -113,11 +113,11 @@ def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
-         svc ->  logit \
-                        \
-                         rf -> final prediction
-             knn -> knn /
-                   /
+    svc -> logit \
+                  \
+                    rf -> final prediction
+        knn -> knn /
+                  /
     svc -> logit /
 
     Where svc - support vector classifier, logit - logistic regression, knn - K nearest neighbors classifier,
@@ -148,17 +148,17 @@ def classification_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
-          logit \
-                 knn \
-        xgboost /     knn -> final prediction
-       xgbost -> qda /
+    logit \
+           knn \
+      rf /     knn -> final prediction
+    rf -> qda /
 
-    Where xgboost - xg boost classifier, logit - logistic regression, knn - K nearest neighbors classifier,
+    Where rf - xg boost classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     qda - discriminant analysis
    """
     logit_node_primary = PrimaryNode('logit')
-    xgb_node_primary = PrimaryNode('xgboost')
-    xgb_node_primary_second = PrimaryNode('xgboost')
+    xgb_node_primary = PrimaryNode('rf')
+    xgb_node_primary_second = PrimaryNode('rf')
 
     qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_primary_second])
     knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_primary, xgb_node_primary])
@@ -170,26 +170,26 @@ def classification_three_depth_manual_pipeline():
     return pipeline
 
 
-def classification_xgboost_complex_pipeline():
+def classification_rf_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
         logit \
-              xgboost \
+              rf \
          lda /         \
-                       xgboost -> final prediction
+                       rf -> final prediction
         logit -> knn /
                    /
               lda /
 
 
-    Where lda - discriminant analysis, logit - logistic regression, xgboost - xg boost classifier,
+    Where lda - discriminant analysis, logit - logistic regression, rf - random forest classifier,
     knn - K nearest neighbors classifier
     """
     pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
+        [SecondaryNode(model) for model in ('rf', 'rf', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):

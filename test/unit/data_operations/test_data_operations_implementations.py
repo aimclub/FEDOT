@@ -1,4 +1,4 @@
-from itertools import product
+import os
 
 import numpy as np
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
@@ -485,3 +485,27 @@ def test_lagged_with_multivariate_time_series():
     lagged_predict = transformed_for_predict.predict
     assert lagged_predict.shape == correct_predict_output.shape
     assert np.all(np.isclose(lagged_predict, correct_predict_output))
+
+
+def test_poly_features_on_big_datasets():
+    """
+    Use a table with a large number of features to run a poly features operation.
+    For a large number of features the operation should not greatly increase the
+    number of columns.
+    """
+    test_file_path = str(os.path.dirname(__file__))
+    file = os.path.join('../../data', 'advanced_classification.csv')
+    train_input = InputData.from_csv(os.path.join(test_file_path, file),
+                                     task=Task(TaskTypesEnum.classification))
+
+    # Take only small number of rows from dataset
+    train_input.features = train_input.features[5: 20, :]
+    train_input.idx = np.arange(len(train_input.features))
+    train_input.target = train_input.target[5: 20].reshape((-1, 1))
+
+    poly_node = Pipeline(PrimaryNode('poly_features'))
+    poly_node.fit(train_input)
+    transformed_features = poly_node.predict(train_input)
+
+    n_rows, n_cols = transformed_features.predict.shape
+    assert n_cols == 85

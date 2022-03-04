@@ -25,7 +25,7 @@ path = os.path.join(folder, 'scoring_train.csv')
 start = datetime.now()
 data = InputData.from_csv(path)
 data.subset_indices([1, 2, 3, 4, 5, 20])
-pipeline = Pipeline(PrimaryNode('xgboost'))
+pipeline = Pipeline(PrimaryNode('rf'))
 pipeline.fit_from_scratch(data)
 end = datetime.now()
 
@@ -57,7 +57,7 @@ evaluator.init(
     remote_task_params=remote_task_params
 )
 
-pipelines = [Pipeline(PrimaryNode('xgboost'))] * num_parallel
+pipelines = [Pipeline(PrimaryNode('rf'))] * num_parallel
 fitted_pipelines = evaluator.compute_pipelines(pipelines)
 
 [print(p.is_fitted) for p in fitted_pipelines]
