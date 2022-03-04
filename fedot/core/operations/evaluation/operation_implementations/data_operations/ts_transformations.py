@@ -121,11 +121,9 @@ class LaggedImplementation(DataOperationImplementation):
                                                   self.use_svd)
             # Transform target
             if input_data.data_type == DataTypesEnum.multi_ts:
-                if current_ts_id >= target.shape[1]:
-                    ts_id = current_ts_id - target.shape[1]
-                    current_target = target[:, ts_id]
-                else:
-                    current_target = target[:, current_ts_id]
+                while current_ts_id >= target.shape[1]:
+                    current_ts_id = current_ts_id - target.shape[1]
+                current_target = target[:, current_ts_id]
             else:
                 current_target = target
             new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
