@@ -10,7 +10,7 @@ from typing import Any, Callable, List, Tuple, Union, Dict
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.evaluating import multiprocessing_mapping, single_evaluating, correct_n_jobs
+from fedot.core.optimisers.gp_comp.evaluating import multiprocessing_mapping, single_evaluating, determine_n_jobs
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -130,7 +130,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
         restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_individuals]
         pre_evaluated_objects = fitter.compute_pipelines(restored_graphs)
 
-    n_jobs = correct_n_jobs(n_jobs, logger)
+    n_jobs = determine_n_jobs(n_jobs, logger)
 
     for i in range(len(reversed_individuals)):
         timer_needed = timer if i != 0 or n_jobs == 1 else None

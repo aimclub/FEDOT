@@ -175,6 +175,11 @@ class Pipeline(Graph):
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
         """
         Remove fitted operations for all nodes.
+
+        :param mode:
+            - 'all' - All models will be unfitted
+            - 'data_operations' - All data operations will be unfitted
+        :param unfit_preprocessor: should we unfit preprocessor
         """
         for node in self.nodes:
             if mode == 'all' or (mode == 'data_operations' and type(node.content['name']) == DataOperation):

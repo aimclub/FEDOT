@@ -26,17 +26,19 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
     if __name__ != '__main__':
         cache = None
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
-
-    evaluated_metrics = [[] for _ in range(len(metrics))]
-    fold_id = 0
-    for train_data, test_data in tabular_cv_generator(reference_data, cv_folds):
-        # Calculate metric value for every fold of data
-        evaluated_metrics = metric_evaluation(pipeline=pipeline, train_data=train_data,
-                                              test_data=test_data, metrics=metrics,
-                                              evaluated_metrics=evaluated_metrics, fold_id=fold_id,
-                                              cache=cache)
-        fold_id += 1
-    evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
-    log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
-
+    try:
+        evaluated_metrics = [[] for _ in range(len(metrics))]
+        fold_id = 0
+        for train_data, test_data in tabular_cv_generator(reference_data, cv_folds):
+            # Calculate metric value for every fold of data
+            evaluated_metrics = metric_evaluation(pipeline=pipeline, train_data=train_data,
+                                                  test_data=test_data, metrics=metrics,
+                                                  evaluated_metrics=evaluated_metrics, fold_id=fold_id,
+                                                  cache=cache)
+            fold_id += 1
+        evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
+        log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
+    except Exception as ex:
+        log.debug(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
+        evaluated_metrics = None
     return evaluated_metrics

@@ -50,10 +50,7 @@ def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callabl
     return fitness
 
 
-
-
-
-def correct_n_jobs(n_jobs, logger):
+def determine_n_jobs(n_jobs, logger):
     if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
         n_jobs = multiprocessing.cpu_count()
     logger.info(f"Number of used CPU's: {n_jobs}")
@@ -86,4 +83,4 @@ def replace_n_jobs_in_nodes(graph: OptGraph):
     """ Function to prevent memory overflow due to many processes running in time"""
     for node in graph.nodes:
         if 'n_jobs' in node.content['params']:
-            del node.content['params']['n_jobs']
+            node.content['params']['n_jobs'] = 1

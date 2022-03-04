@@ -40,7 +40,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
         partitions.append(int(data_len * (i / partitions_n)))
 
     pipelines_count = {1: [], n_jobs: []}
-    times_ = {1: [], n_jobs: []}
+    times = {1: [], n_jobs: []}
 
     for partition in partitions:
         for _n_jobs in [1, n_jobs]:
@@ -53,7 +53,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
             auto_model.predict_proba(features=test_data_path)
             c_pipelines = count_pipelines(auto_model.history.save())
             pipelines_count[_n_jobs].append(c_pipelines)
-            times_[_n_jobs].append((timeit.default_timer() - start_time) / 60)
+            times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
             print(f'Count of pipelines: {c_pipelines}')
 
     plt.title('Comparison parallel mode with a single mode')
@@ -61,12 +61,12 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
     plt.ylabel('Num of pipelines that were evaluated correctly')
     c_norm = colors.Normalize(vmin=timeout - timeout / 2, vmax=timeout + timeout / 2)
     plt.plot(partitions, pipelines_count[1], label='one process', zorder=1)
-    plt.scatter(partitions, pipelines_count[1], c=times_[1],
+    plt.scatter(partitions, pipelines_count[1], c=times[1],
                 cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
     plt.plot(partitions, pipelines_count[n_jobs], label=f'{n_jobs} processes', zorder=1)
-    plt.scatter(partitions, pipelines_count[n_jobs], c=times_[n_jobs],
+    plt.scatter(partitions, pipelines_count[n_jobs], c=times[n_jobs],
                 cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
-    print(times_)
+    print(times)
     cb = plt.colorbar(cm.ScalarMappable(norm=c_norm, cmap=cm.get_cmap('cool')))
     cb.ax.set_ylabel('time for optimization in minutes', rotation=90)
     plt.legend()
