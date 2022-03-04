@@ -67,10 +67,11 @@ class Model(Operation):
 
         start_idx = list(output_data.idx)[0]
         repeat_num = list(output_data.idx).count(start_idx)
-        non_repeat_idx_len = int(len(output_data.idx)/repeat_num)
+        if repeat_num != 1:
+            non_repeat_idx_len = int(len(output_data.idx)/repeat_num)
 
-        output_data.idx = list(output_data.idx)[:non_repeat_idx_len]
-        output_data.predict = output_data.predict[:non_repeat_idx_len, :]
-        output_data.target = output_data.target[:non_repeat_idx_len, :]
-        output_data.supplementary_data.column_types = column_info
+            output_data.idx = list(output_data.idx)[:non_repeat_idx_len]
+            output_data.predict = output_data.predict[:non_repeat_idx_len, :]
+            output_data.target = output_data.target[:non_repeat_idx_len, :]
+            output_data.supplementary_data.column_types = column_info
         return output_data

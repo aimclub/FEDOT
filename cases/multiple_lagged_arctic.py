@@ -45,8 +45,7 @@ def initial_pipeline():
         """
     node_gaus = PrimaryNode("gaussian_filter")
     node_smooth = PrimaryNode("smoothing")
-    node_smooth2 = PrimaryNode("smoothing")
-    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus, node_smooth, node_smooth2])
+    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus, node_smooth])
     node_lagged_1.custom_params = {'window_size': 50}
 
     node_lagged_2 = PrimaryNode("lagged")
