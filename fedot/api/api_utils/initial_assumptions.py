@@ -80,7 +80,7 @@ class ApiInitialAssumptions:
                     node_lagged = PrimaryNode('lagged')
                     operations_to_choose_from = \
                         self._get_operations_for_the_task(task_type=TaskTypesEnum.regression, data_type=data.data_type,
-                                                          repo='all', available_operations=available_operations)
+                                                          repo='model', available_operations=available_operations)
                     if not operations_to_choose_from:
                         logger.message("Unable to construct an initial assumption from the passed "
                                        "available operations, default initial assumption will be used")
@@ -94,11 +94,10 @@ class ApiInitialAssumptions:
                         task.task_type == TaskTypesEnum.classification:
                     operations_to_choose_from = \
                         self._get_operations_for_the_task(task_type=task.task_type, data_type=data.data_type,
-                                                          repo='all', available_operations=available_operations)
+                                                          repo='model', available_operations=available_operations)
                     if not operations_to_choose_from:
                         logger.message("Unable to construct an initial assumption from the passed "
                                        "available operations, default initial assumption will be used")
-                        print('HERE2')
                         correct_pipelines.append(pipeline)
                         continue
 

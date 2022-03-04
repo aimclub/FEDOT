@@ -392,12 +392,12 @@ def test_boosting_mutation_for_linear_graph():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_boosting = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[boosting_mutation],
-                                        params=graph_params,
-                                        ind=Individual(linear_one_node),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_boosting:
+            graph_after_mutation = mutation(types=[boosting_mutation],
+                                            params=graph_params,
+                                            ind=Individual(linear_one_node),
+                                            requirements=composer_requirements,
+                                            log=default_log(__name__), max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -443,12 +443,12 @@ def test_boosting_mutation_for_non_lagged_ts_model():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_boosting = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[boosting_mutation],
-                                        params=graph_params,
-                                        ind=Individual(linear_two_nodes),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_boosting:
+            graph_after_mutation = mutation(types=[boosting_mutation],
+                                            params=graph_params,
+                                            ind=Individual(linear_two_nodes),
+                                            requirements=composer_requirements,
+                                            log=default_log(__name__), max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
