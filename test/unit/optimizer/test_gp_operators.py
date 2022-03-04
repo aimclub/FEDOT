@@ -433,7 +433,7 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     # to ensure hyperparameters of custom models
     boosting_graph = adapter.adapt(adapter.restore(boosting_graph))
 
-    available_operations = [node.content['name'].operation_type for node in boosting_graph.nodes]
+    available_operations = [node.content['name'] for node in boosting_graph.nodes]
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations, mutation_prob=1)
 
