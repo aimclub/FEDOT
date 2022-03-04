@@ -153,13 +153,13 @@
 			]
 		},
 		"fast_ica": {
-			"meta": "independent_components_extraction",
+			"meta": "dimension_transformation",
 			"presets": ["ts", "*tree"],
 			"tags": [
 				"non_linear",
-				"independent_components_extraction",
+				"dimensionality_transforming",
 				"correct_params",
-				"applicable_for_ts"
+				"non_applicable_for_ts"
 			]
 		},
 		"poly_features": {
