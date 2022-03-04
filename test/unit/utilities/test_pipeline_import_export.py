@@ -30,7 +30,6 @@ def preprocessing_files_before_and_after_tests(request):
              'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception',
              'test_save_pipeline_with_np_int_type', 'test_pipeline_with_preprocessing_serialized_correctly',
              'test_multimodal_pipeline_serialized_correctly']
-    paths = []
 
     delete_files = create_func_delete_files(paths)
     delete_files()
