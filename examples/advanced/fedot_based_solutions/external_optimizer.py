@@ -53,8 +53,10 @@ def run_with_random_search_composer():
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
+    composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt']}
+
     automl = Fedot(problem='classification', timeout=1, verbose_level=4,
-                   preset='fast_train')
+                   preset='fast_train', composer_params=composer_params)
 
     automl.api_composer.optimiser = RandomSearchOptimizer
 

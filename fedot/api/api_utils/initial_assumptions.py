@@ -4,10 +4,12 @@ from typing import List, Union
 from fedot.core.data.data import InputData
 from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.log import Log
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 
@@ -16,23 +18,23 @@ class ApiInitialAssumptions:
     def get_initial_assumption(self,
                                data: Union[InputData, MultiModalData],
                                task: Task,
-                               available_operations: List[str] = None) -> List[Pipeline]:
+                               available_operations: List[str] = None,
+                               logger: Log = None) -> List[Pipeline]:
 
         has_categorical_features = data_has_categorical_features(data)
         has_gaps = data_has_missing_values(data)
 
         if isinstance(data, MultiModalData):
             if available_operations:
-                initial_assumption = \
-                    self.create_multidata_pipelines_on_available_operations(task, data, has_categorical_features,
-                                                                            has_gaps, available_operations)
-            else:
-                initial_assumption = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
+                logger.message("Available operations are not taken into account when "
+                               "forming the initial assumption for multi-modal data")
+            initial_assumption = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
         elif isinstance(data, InputData):
             if available_operations:
                 initial_assumption = \
                     self.create_unidata_pipelines_on_available_operations(task, data, has_categorical_features,
-                                                                          has_gaps, available_operations)
+                                                                          has_gaps, available_operations,
+                                                                          logger)
             else:
                 initial_assumption = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
         else:
@@ -40,90 +42,71 @@ class ApiInitialAssumptions:
         return initial_assumption
 
     @staticmethod
-    def _filter_pipeline_with_available_operations(pipeline: Pipeline, available_operations: List[str]):
-        """ Iterates through all nodes of the pipeline and removes those that
-        are not specified in available operations """
+    def _get_operations_for_the_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo: str,
+                                     available_operations: List[str]):
+        """ Returns the intersection of the sets of passed available operations and
+        operations that are suitable for solving the given problem """
 
-        pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
-        for i, operation in enumerate(pipeline_operations):
-            if operation not in available_operations:
-                for node in pipeline.nodes:
-                    if node.operation.operation_type == operation:
-                        pipeline.operator.delete_node(node=node)
+        operations_for_the_task = \
+            OperationTypesRepository(repo).suitable_operation(task_type=task_type,
+                                                              data_type=data_type)[0]
+        operations_to_choose_from = [operation for operation in operations_for_the_task
+                                     if operation in available_operations]
+        return operations_to_choose_from
 
     @staticmethod
-    def _get_non_repeating_operations(task: Task, data: Union[InputData, MultiModalData],
-                                      available_operations: List[str], used_operations: List[str]):
-        """ Returns operations that can be used to further form the pipeline and which are not yet in it
+    def _are_only_available_operations(pipeline: Pipeline, available_operations: List[str]):
+        """ Checks if the pipeline contains only nodes with passed available operations """
 
-        :param task: task
-        :param data: data
-        :param available_operations: operations that are set to form a pipeline
-        :param used_operations: operations that are already used in the pipeline
-        """
-
-        operations = OperationTypesRepository('all').suitable_operation(task_type=task.task_type,
-                                                                        data_type=data.data_type)[0]
-        operations_to_choose_from = [operation for operation in operations if operation in available_operations]
-        if not operations_to_choose_from:
-            raise ValueError(f"The specified avaialable operations: {available_operations} are "
-                             f"not suitable for solving {task.task_type} task")
-
-        non_repeating_operations = [operation for operation in operations_to_choose_from
-                                    if operation not in used_operations]
-        return non_repeating_operations
+        for node in pipeline.nodes:
+            if node.operation.operation_type not in available_operations:
+                return False
+        return True
 
     def create_unidata_pipelines_on_available_operations(self, task: Task, data: InputData,
                                                          has_categorical_features: bool, has_gaps: bool,
-                                                         available_operations: List[str]) -> List[Pipeline]:
+                                                         available_operations: List[str],
+                                                         logger: Log) -> List[Pipeline]:
         """ Creates a pipeline for Uni-data using only available operations """
 
-        node_prepocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
-        if not node_prepocessed:
-            node = PrimaryNode(choice(available_operations))
-            return [Pipeline(node)]
+        pipelines = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
+        correct_pipelines = []
 
-        preprocessing_operations = [node.operation.operation_type
-                                    for node in node_prepocessed.ordered_subnodes_hierarchy()]
+        for pipeline in pipelines:
+            if self._are_only_available_operations(pipeline, available_operations):
+                correct_pipelines.append(pipeline)
+            else:
+                if task.task_type == TaskTypesEnum.ts_forecasting:
+                    node_lagged = PrimaryNode('lagged')
+                    operations_to_choose_from = \
+                        self._get_operations_for_the_task(task_type=TaskTypesEnum.regression, data_type=data.data_type,
+                                                          repo='all', available_operations=available_operations)
+                    if not operations_to_choose_from:
+                        logger.message("Unable to construct an initial assumption from the passed "
+                                       "available operations, default initial assumption will be used")
+                        correct_pipelines.append(pipeline)
+                        continue
 
-        non_repeating_operations = self._get_non_repeating_operations(task, data, available_operations,
-                                                                      preprocessing_operations)
-        if not non_repeating_operations:
-            return [Pipeline(node_prepocessed)]
+                    node_final = SecondaryNode(choice([operations_to_choose_from]), nodes_from=[node_lagged])
+                    correct_pipelines.append(Pipeline(node_final))
 
-        node_operation = choice(non_repeating_operations)
-        secondary_node = SecondaryNode(node_operation, nodes_from=[node_prepocessed])
-        pipeline = Pipeline(secondary_node)
+                elif task.task_type == TaskTypesEnum.regression or \
+                        task.task_type == TaskTypesEnum.classification:
+                    operations_to_choose_from = \
+                        self._get_operations_for_the_task(task_type=task.task_type, data_type=data.data_type,
+                                                          repo='all', available_operations=available_operations)
+                    if not operations_to_choose_from:
+                        logger.message("Unable to construct an initial assumption from the passed "
+                                       "available operations, default initial assumption will be used")
+                        print('HERE2')
+                        correct_pipelines.append(pipeline)
+                        continue
 
-        self._filter_pipeline_with_available_operations(pipeline=pipeline, available_operations=available_operations)
-        return [pipeline]
-
-    def create_multidata_pipelines_on_available_operations(self, task: Task, data: MultiModalData,
-                                                           has_categorical_features: bool,
-                                                           has_gaps: bool,
-                                                           available_operations: List[str]) -> List[Pipeline]:
-        """ Creates a pipeline for Multi-data using only available operations """
-
-        if task.task_type == TaskTypesEnum.ts_forecasting:
-            pipelines = self.create_multidata_pipelines(task, data, has_categorical_features, has_gaps)
-        elif task.task_type == TaskTypesEnum.classification or \
-                task.task_type == TaskTypesEnum.regression:
-            first_nodes_pipe = self.create_first_multimodal_nodes(data, has_categorical_features, has_gaps)[0]
-            first_operations = [node.operation.operation_type for node in first_nodes_pipe.nodes]
-
-            non_repeating_operations = self._get_non_repeating_operations(task, data,
-                                                                          available_operations, first_operations)
-            if not non_repeating_operations:
-                return [first_nodes_pipe]
-
-            node_operation = choice(non_repeating_operations)
-            secondary_node = SecondaryNode(node_operation, nodes_from=[first_nodes_pipe.root_node])
-            pipelines = [Pipeline(secondary_node)]
-
-            self._filter_pipeline_with_available_operations(pipeline=pipelines[0], available_operations=available_operations)
-        else:
-            raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
-        return pipelines
+                    node = PrimaryNode(choice(operations_to_choose_from))
+                    correct_pipelines.append(Pipeline(node))
+                else:
+                    raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
+        return correct_pipelines
 
     def create_unidata_pipelines(self,
                                  task: Task,

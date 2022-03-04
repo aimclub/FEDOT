@@ -460,8 +460,7 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     data_train, data_test = get_ts_data()
     pipeline.fit(data_train)
     result = pipeline.predict(data_test)
-    # assert result is not None
-    assert True
+    assert result is not None
 
 
 def test_pipeline_adapters_params_correct():

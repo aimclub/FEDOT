@@ -158,9 +158,14 @@ class ApiComposer:
         if not composer_params['available_operations']:
             composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
         else:
-            api_params['initial_assumption'] = self.initial_assumptions.\
-                    get_initial_assumption(api_params['train_data'], api_params['task'],
-                                           composer_params['available_operations'])
+            if api_params['task'] == TaskTypesEnum.ts_forecasting and \
+                    'lagged' not in api_params['available_operations']:
+                api_params['available_operations'].append('lagged')
+
+            if not api_params['initial_assumption']:
+                api_params['initial_assumption'] = self.initial_assumptions.\
+                        get_initial_assumption(api_params['train_data'], api_params['task'],
+                                               composer_params['available_operations'], api_params['logger'])
 
         api_params['logger'].message('Composition started. Parameters tuning: {}. ''Set of candidate models: {}. '
                                      'Time limit: {} min'.format(tuning_params['with_tuning'],

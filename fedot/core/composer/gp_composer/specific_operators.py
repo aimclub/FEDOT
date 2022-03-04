@@ -93,6 +93,9 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
 
     # Check if all nodes in the boosting pipeline can be used according to available_operations
     available_operations = list(set(requirements.primary + requirements.secondary))
+    if task_type == TaskTypesEnum.ts_forecasting:
+        all_data_operations.append('lagged')
+
     for node in node_boost.ordered_subnodes_hierarchy():
         if node.content['name'].__str__() not in available_operations:
             return pipeline
