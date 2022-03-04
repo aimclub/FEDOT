@@ -88,7 +88,7 @@ def get_not_default_search_space():
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.choice, [np.arange(0.15, 1.01, 0.05)])
         },
-        'xgb': {
+        'xgboost': {
             'max_depth': (hp.choice, [range(1, 5)]),
             'subsample': (hp.uniform, [0.1, 0.9]),
             'min_child_weight': (hp.choice, [range(1, 15)])
