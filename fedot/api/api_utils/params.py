@@ -158,7 +158,7 @@ def check_timeout_vs_generations(api_params):
     timeout = api_params['timeout']
     num_of_generations = api_params['num_of_generations']
     if timeout in [-1, None]:
-        timeout['timeout'] = None
+        api_params['timeout'] = None
         if num_of_generations is None:
             raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
         api_params['num_of_generations'] = num_of_generations

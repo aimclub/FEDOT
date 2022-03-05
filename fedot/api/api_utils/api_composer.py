@@ -233,7 +233,8 @@ class ApiComposer:
                                          initial_assumption=api_params['initial_assumption'],
                                          logger=api_params['logger'])
         gp_composer = None
-        if init_pipeline_fit_time >= timer.datetime_composing / composer_params['pop_size']:
+        timeout_were_set = timer.datetime_composing not in [-1, None]
+        if timeout_were_set and init_pipeline_fit_time >= timer.datetime_composing / composer_params['pop_size']:
             api_params['logger'].message(f'Timeout is too small for composing '
                                          f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.,'
                                          ' so it is skipped.')
@@ -243,7 +244,7 @@ class ApiComposer:
             # Launch pipeline structure composition
             timer.start_composing()
             gp_composer = builder.build()
-            api_params['logger'].message(f'Pipeline composition started '
+            api_params['logger'].message(f'Pipeline composition started. Initial pipeline was fitted '
                                          f'for fit_time {init_pipeline_fit_time.total_seconds()} sec.')
             pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
 

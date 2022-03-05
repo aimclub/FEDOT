@@ -80,4 +80,6 @@ class ApiTime:
 
     @property
     def datetime_composing(self):
+        if self.timeout_for_composing is None:
+            return None
         return datetime.timedelta(minutes=self.timeout_for_composing)
