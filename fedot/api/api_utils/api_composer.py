@@ -365,7 +365,7 @@ def fit_and_check_correctness(pipeline: Pipeline,
         pipeline.fit(data)
         pipeline.predict(data_test)
 
-        fit_time = start_init_fit - datetime.datetime.now()
+        fit_time = datetime.datetime.now() - start_init_fit
         logger.message('Initial pipeline was fitted successfully')
     except Exception as ex:
         fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
