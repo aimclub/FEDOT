@@ -272,7 +272,6 @@ class ApiComposer:
 
         # enforce memory cleaning
         gc.collect()
-
         return pipeline_gp_composed, best_candidates, history
 
     def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):

@@ -70,7 +70,7 @@ class ApiTime:
         spended_time_for_composing = self.end_composing() + self.init_pipeline_fit_time
         all_timeout = float(self.time_for_automl)
 
-        iterations = 20 if all_timeout is None else 1000
+        iterations = 1000
         if self.time_for_automl not in [None, -1]:
             timeout_in_sec = datetime.timedelta(minutes=all_timeout).total_seconds()
             timeout_for_tuning = timeout_in_sec - spended_time_for_composing.total_seconds()
