@@ -91,22 +91,20 @@ class Fedot:
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
 
-        input_params = {'problem': problem, 'preset': preset,
+        # Define parameters, that were set via init in init
+        input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level}
+                        'seed': seed, 'verbose_level': verbose_level,
+                        'initial_assumption': initial_assumption}
         self.params.initialize_params(**input_params)
-        self.params.api_params['current_model'] = None
 
+        # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
         self.params.api_params['n_jobs'] = n_jobs
 
-        # Update timeout, num_of_generations and initial_assumption parameters
-        if composer_params is not None and 'timeout' in composer_params:
-            timeout = composer_params['timeout']
-        self.update_params(timeout, self.params.api_params['num_of_generations'], initial_assumption)
-        self.timeout_set_in_init = self.params.api_params['timeout']
+        # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -148,8 +146,6 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
-            if self.timeout_set_in_init is not None:
-                self.params.api_params['timeout'] = self.timeout_set_in_init
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
                 **self.params.api_params)
 
@@ -347,22 +343,28 @@ class Fedot:
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
     def update_params(self, timeout, num_of_generations, initial_assumption):
-        if timeout in [-1, None]:
-            self.params.api_params['timeout'] = None
-            if num_of_generations is None:
-                raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
-            self.params.api_params['num_of_generations'] = num_of_generations
-        elif timeout > 0:
-            self.params.api_params['timeout'] = timeout
-            if num_of_generations is not None:
-                self.params.api_params['num_of_generations'] = num_of_generations
-            else:
-                self.params.api_params['num_of_generations'] = 10000
-        else:
-            raise ValueError(f'invalid "timeout" value: timeout={timeout}')
-
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
+
+    def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
+                method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
+        """Create explanation for 'current_pipeline' according to the selected 'method'.
+        An `Explainer` instance is returned.
+        :param features: samples to be explained. If `None`, `train_data` from last fit is used.
+        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
+        :param visualize: print and plot the explanation simultaneously, defaults to True.
+            The explanation can be retrieved later by executing `explainer.visualize()`.
+        """
+        pipeline = self.current_pipeline
+        if features is None:
+            data = self.train_data
+        else:
+            data = self.data_processor.define_data(features=features,
+                                                   is_predict=False)
+        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
+                                     visualize=visualize, **kwargs)
+
+        return explainer
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
@@ -388,26 +390,6 @@ class Fedot:
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
         self.current_pipeline.fit(full_train_not_preprocessed)
-
-    def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
-                method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
-        """Create explanation for 'current_pipeline' according to the selected 'method'.
-        An `Explainer` instance is returned.
-        :param features: samples to be explained. If `None`, `train_data` from last fit is used.
-        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
-        :param visualize: print and plot the explanation simultaneously, defaults to True.
-            The explanation can be retrieved later by executing `explainer.visualize()`.
-        """
-        pipeline = self.current_pipeline
-        if features is None:
-            data = self.train_data
-        else:
-            data = self.data_processor.define_data(features=features,
-                                                   is_predict=False)
-        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
-                                     visualize=visualize, **kwargs)
-
-        return explainer
 
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """

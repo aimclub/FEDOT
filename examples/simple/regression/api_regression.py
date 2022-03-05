@@ -1,5 +1,3 @@
-import numpy as np
-
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -14,13 +12,8 @@ def run_regression_example():
     problem = 'regression'
 
     composer_params = {'history_folder': 'custom_history_folder'}
-    baseline_model = Fedot(problem=problem, composer_params=composer_params,
-                           preset='stable')
-    baseline_model.fit(features=train)
-
-    baseline_model.predict(features=test)
-    print(baseline_model.get_metrics())
-    auto_model = Fedot(problem=problem, seed=42, timeout=1)
+    auto_model = Fedot(problem=problem, seed=42, composer_params=composer_params,
+                       timeout=1)
     auto_model.fit(features=train, target='target')
     prediction = auto_model.predict(features=test)
     print(auto_model.get_metrics())
