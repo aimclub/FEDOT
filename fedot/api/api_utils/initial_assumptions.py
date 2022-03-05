@@ -12,6 +12,8 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.log import Log
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
+UNSUITABLE_AVAILABLE_OPERATIONS_MSG = "Unable to construct an initial assumption from the passed " \
+                                      "available operations, default initial assumption will be used"
 
 
 class ApiInitialAssumptions:
@@ -50,8 +52,7 @@ class ApiInitialAssumptions:
         operations_for_the_task = \
             OperationTypesRepository(repo).suitable_operation(task_type=task_type,
                                                               data_type=data_type)[0]
-        operations_to_choose_from = [operation for operation in operations_for_the_task
-                                     if operation in available_operations]
+        operations_to_choose_from = list(set(operations_for_the_task).intersection(available_operations))
         return operations_to_choose_from
 
     @staticmethod
@@ -82,8 +83,7 @@ class ApiInitialAssumptions:
                         self._get_operations_for_the_task(task_type=TaskTypesEnum.regression, data_type=data.data_type,
                                                           repo='model', available_operations=available_operations)
                     if not operations_to_choose_from:
-                        logger.message("Unable to construct an initial assumption from the passed "
-                                       "available operations, default initial assumption will be used")
+                        logger.message(UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
                         correct_pipelines.append(pipeline)
                         continue
 
@@ -96,8 +96,7 @@ class ApiInitialAssumptions:
                         self._get_operations_for_the_task(task_type=task.task_type, data_type=data.data_type,
                                                           repo='model', available_operations=available_operations)
                     if not operations_to_choose_from:
-                        logger.message("Unable to construct an initial assumption from the passed "
-                                       "available operations, default initial assumption will be used")
+                        logger.message(UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
                         correct_pipelines.append(pipeline)
                         continue
 

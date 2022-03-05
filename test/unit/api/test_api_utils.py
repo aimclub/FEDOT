@@ -5,6 +5,7 @@ import numpy as np
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
+from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -12,6 +13,8 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from ..api.test_main_api import get_dataset
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.log import default_log
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 
 from testfixtures import LogCapture
 
@@ -86,3 +89,55 @@ def test_predefined_initial_assumption():
 
     assert model.params.api_params['initial_assumption'] is not None
     assert len(old_params.api_params) == len(model.params.api_params)
+
+
+def test_the_formation_of_initial_assumption():
+    """ Checks that the initial assumption is formed based on the given available operations """
+
+    train_input, _, _ = get_dataset(task_type='classification')
+    train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
+    logger = default_log('FEDOT logger', verbose_level=4)
+    available_operations = ['dt']
+
+    api_initial_assumption = ApiInitialAssumptions()
+    initial_assumption = \
+        api_initial_assumption.get_initial_assumption(data=train_input, task=Task(TaskTypesEnum.classification),
+                                                      available_operations=available_operations,
+                                                      logger=logger)
+    res_init_assumption = Pipeline(PrimaryNode('dt'))
+    assert initial_assumption[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
+
+
+def test_init_assumption_with_inappropriate_available_operations():
+    """ Checks that if given available operations are not suitable for the task,
+    then the default initial assumption will be formed """
+
+    train_input, _, _ = get_dataset(task_type='classification')
+    train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
+    logger = default_log('FEDOT logger', verbose_level=4)
+    available_operations = ['linear', 'xgboost', 'lagged']
+
+    api_initial_assumption = ApiInitialAssumptions()
+    initial_assumption = \
+        api_initial_assumption.get_initial_assumption(data=train_input, task=Task(TaskTypesEnum.classification),
+                                                      available_operations=available_operations,
+                                                      logger=logger)
+    primary = PrimaryNode('scaling')
+    root = SecondaryNode('rf', nodes_from=[primary])
+    res_init_assumption = Pipeline(root)
+
+    assert initial_assumption[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
+
+
+def test_api_composer_divide_operations():
+    """ Checks whether the composer correctly divides operations into primary and secondary """
+
+    available_operations = ['logit', 'rf', 'dt', 'xgboost']
+
+    api_composer = ApiComposer(problem='classification')
+    primary, secondary = \
+        api_composer.divide_operations(task=Task(TaskTypesEnum.classification),
+                                       available_operations=available_operations)
+
+    assert primary == available_operations
+    assert secondary == available_operations
