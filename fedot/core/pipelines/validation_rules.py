@@ -179,8 +179,8 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents is not None:
                     __check_connection(parent_operation, forbidden_parents)
-            parents_operations = [parent.operation.operation_type for parent in parent_nodes]
-            __has_correct_parents(parents_operations, models)
+            #parents_operations = [parent.operation.operation_type for parent in parent_nodes]
+            #__has_correct_parents(parents_operations, models)
     return True
 
 

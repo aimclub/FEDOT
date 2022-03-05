@@ -330,16 +330,23 @@ def tables_mapping(idx_list, object_list, common_idx):
     """
 
     common_tables = []
+
+    # if indeces repeats (for multi_ts data type)
+    repeats_num = int(min(obj.shape[0] for obj in object_list)/len(common_idx))
+    common_idx_new = list(common_idx) * repeats_num
+
     for number in range(len(idx_list)):
         current_idx = idx_list[number]
-        # if indeces repeats (for multi_ts data type)
-        start_el = list(common_idx)[0]
-        repeats_num = list(current_idx).count(start_el)
-        common_idx_new = list(common_idx) * repeats_num
+        current_object = object_list[number]
+
+        if len(current_idx) < current_object.shape[0]:
+            repeats_num = int(current_object.shape[0]/len(current_idx))
+            current_idx = list(current_idx) * repeats_num
+
         # Create mask where True - appropriate objects
         mask = np.in1d(np.array(current_idx), common_idx_new)
 
-        current_object = object_list[number]
+
         if len(current_object.shape) == 1:
             filtered_predict = current_object[mask]
             filtered_predict = filtered_predict.reshape((-1, 1))
@@ -349,11 +356,11 @@ def tables_mapping(idx_list, object_list, common_idx):
             number_of_variables_in_prediction = current_object.shape[1]
             for i in range(number_of_variables_in_prediction):
                 predict = current_object[:, i]
-                '''if predict.shape != mask.shape:
-                    lag_size = current_idx[0]
-                    repit_num = predict.shape[0]/(mask.shape[0]-lag_size)
-                    mask = np.tile(mask, int(repit_num))'''
-                filtered_predict = predict[mask]
+
+                try:
+                    filtered_predict = predict[mask]
+                except Exception as e:
+                    print(e)
 
                 # Convert to column
                 filtered_predict = filtered_predict.reshape((-1, 1))

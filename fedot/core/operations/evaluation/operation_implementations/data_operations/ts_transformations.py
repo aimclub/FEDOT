@@ -633,14 +633,12 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     :return features_columns: lagged time series feature table
     """
     # Convert data to lagged form
-    try:
-        lagged_dataframe = pd.DataFrame({'t_id': time_series})
-        vals = lagged_dataframe['t_id']
-        for i in range(1, window_size):
-            frames = [lagged_dataframe, vals.shift(i)]
-            lagged_dataframe = pd.concat(frames, axis=1)
-    except Exception as e:
-        print(e)
+
+    lagged_dataframe = pd.DataFrame({'t_id': time_series})
+    vals = lagged_dataframe['t_id']
+    for i in range(1, window_size):
+        frames = [lagged_dataframe, vals.shift(i)]
+        lagged_dataframe = pd.concat(frames, axis=1)
 
     # Remove incomplete rows
     lagged_dataframe.dropna(inplace=True)
@@ -726,10 +724,7 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
     idx = idx[: -1]
 
     # Update target (clip first "window size" values)
-    if len(np.array(all_idx).shape) > 1:
-        row_nums = [np.where(all_idx == i)[0][0] for i in idx]
-    else:
-        row_nums = [list(all_idx).index(i) for i in idx]
+    row_nums = [list(all_idx).index(i) for i in idx]
 
     ts_target = target[row_nums]
 

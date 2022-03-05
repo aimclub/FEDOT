@@ -45,7 +45,7 @@ def initial_pipeline():
         """
     node_gaus = PrimaryNode("gaussian_filter")
     node_smooth = PrimaryNode("smoothing")
-    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus, node_smooth])
+    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus])
     node_lagged_1.custom_params = {'window_size': 50}
 
     node_lagged_2 = PrimaryNode("lagged")
@@ -60,10 +60,41 @@ def initial_pipeline():
     return pipeline
 
 
+'''def initial_pipeline():
+    """
+        Return pipeline with the following structure:
+        lagged - ridge \
+                        -> ridge -> final forecast
+        lagged - ridge /
+        """
+    node_gaus = PrimaryNode("gaussian_filter")
+    node_smooth = PrimaryNode("smoothing")
+    node_lagged_1 = SecondaryNode("lagged", nodes_from=[node_gaus, node_smooth])
+    node_lagged_1.custom_params = {'window_size': 50}
+
+    node_lagged_2 = PrimaryNode("lagged")
+    node_lagged_2.custom_params = {'window_size': 30}
+
+    node_ridge_1 = SecondaryNode("ridge", nodes_from=[node_lagged_1])
+    node_ridge_2 = SecondaryNode("ridge", nodes_from=[node_lagged_2])
+
+    node_final = SecondaryNode("ridge", nodes_from=[node_ridge_1, node_ridge_2])
+
+    node_lagged_3 = PrimaryNode("lagged")
+    node_lagged_3.custom_params = {'window_size': 50}
+    node_ridge_3 = SecondaryNode("ridge", nodes_from=[node_lagged_3])
+
+    node_final2 = SecondaryNode("ridge", nodes_from=[node_final, node_ridge_3])
+
+    pipeline = Pipeline(node_final2)
+    pipeline.show()
+    return pipeline'''
+
+
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
     primary_operations = ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter']
-    secondary_operations = ['lagged', 'ridge', 'lasso', 'knnreg', 'linear']
+    secondary_operations = ['lagged', 'ridge', 'lasso', 'linear']
     return primary_operations, secondary_operations
 
 
