@@ -123,18 +123,37 @@
 		},
 		"scaling": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple"]
+			"presets": [
+				"fast_train",
+				"ts",
+				"*tree"
+			],
+			"tags": [
+				"simple"
+			]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple"]
+			"presets": [
+				"fast_train",
+				"ts",
+				"*tree"
+			],
+			"tags": [
+				"simple"
+			]
 		},
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
-			"presets": ["fast_train", "*tree"],
-		  	"tags": ["simple", "imputation", "categorical-ignore"]
+			"presets": [
+				"fast_train",
+				"*tree"
+			],
+			"tags": [
+				"simple",
+				"imputation",
+				"categorical-ignore"
+			]
 		},
 		"pca": {
 			"meta": "dimension_transformation",
@@ -268,18 +287,33 @@
 			"tags": ["non_applicable_for_ts"]
 		},
 		"decompose": {
-		  "meta": "regression_preprocessing",
-		  "presets": ["fast_train", "ts", "*tree"],
-		  "tags": ["non-default", "decompose"]
+			"meta": "regression_preprocessing",
+			"presets": [
+				"fast_train",
+				"ts",
+				"*tree"
+			],
+			"tags": [
+				"non-default",
+				"decompose"
+			]
 		},
 		"class_decompose": {
-		  "meta": "classification_preprocessing",
-		  "presets": ["fast_train", "*tree"],
-		  "tags": ["non-default", "decompose"]
-        },
-      "resample": {
-        "meta": "classification_preprocessing",
-        "tags": ["imbalanced"]
+			"meta": "classification_preprocessing",
+			"presets": [
+				"fast_train",
+				"*tree"
+			],
+			"tags": [
+				"non-default",
+				"decompose"
+			]
+		},
+		"resample": {
+			"meta": "classification_preprocessing",
+			"tags": [
+				"imbalanced"
+			]
 		}
 	}
 }
