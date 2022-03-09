@@ -255,7 +255,7 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
 
     if 'class_decompose' not in pipeline_operations:
         # There are no decompose operations in the pipeline
-        if number_of_unique_pipeline_operations != operations_for_task:
+        if number_of_unique_pipeline_operations != len(operations_for_task):
             # There are operations in the pipeline that solve different tasks
             __check_multitask_operation_location(pipeline, all_operations)
 
@@ -273,6 +273,8 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
 
     # Check for correct descendants after classification decompose
     for node in pipeline.nodes:
+        if node.nodes_from is None:
+            continue
         parent_operations = [node.operation.operation_type for node in node.nodes_from]
         if 'class_decompose' in parent_operations:
             # Check is this model for regression task

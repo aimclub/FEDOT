@@ -23,13 +23,14 @@ common_rules = [has_one_root,
                 has_no_conflicts_with_data_flow,
                 has_no_conflicts_in_decompose,
                 has_correct_data_connections,
-                has_correct_data_sources,
-                has_no_conflicts_during_multitask,
-                has_no_conflicts_after_class_decompose]
+                has_correct_data_sources]
 
 ts_rules = [is_pipeline_contains_ts_operations,
             only_non_lagged_operations_are_primary,
             has_no_data_flow_conflicts_in_ts_pipeline]
+
+class_rules = [has_no_conflicts_during_multitask,
+               has_no_conflicts_after_class_decompose]
 
 
 def validate(graph: Graph, rules: List[Callable] = None, task=None):
@@ -49,6 +50,9 @@ def validate(graph: Graph, rules: List[Callable] = None, task=None):
     # Perform time series specific rules
     if task and task.task_type is TaskTypesEnum.ts_forecasting:
         for rule_func in ts_rules:
+            _rule_check(graph, rule_func)
+    elif task and task.task_type is TaskTypesEnum.classification:
+        for rule_func in class_rules:
             _rule_check(graph, rule_func)
     return True
 
