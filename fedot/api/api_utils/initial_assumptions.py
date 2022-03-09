@@ -64,9 +64,11 @@ class ApiInitialAssumptions:
                 return False
         return True
 
-    def _create_correct_unidata_pipeline(self, task, data, pipeline, available_operations, logger):
-        """ Creates a pilepine from the available operations. If it is impossible to create a valid pipeline
-        from the given available operations, returns the default one """
+    def _create_unidata_pipeline_on_random_operation(self, task, data, pipeline, available_operations, logger):
+        """ Creates pipeline from one model randomly selected from the pool of available operations.
+        For time series problem, first node with 'lagged' operation, then the randomly selected model.
+        If it is impossible to create a valid pipeline from the given available operations,
+        returns the default one """
 
         if task.task_type == TaskTypesEnum.ts_forecasting:
             node_lagged = PrimaryNode('lagged')
@@ -106,7 +108,9 @@ class ApiInitialAssumptions:
             if self._are_only_available_operations(pipeline, available_operations):
                 correct_pipelines.append(pipeline)
             else:
-                correct_pipeline = self._create_correct_unidata_pipeline(task, data, pipeline, available_operations, logger)
+                correct_pipeline = self._create_unidata_pipeline_on_random_operation(task, data,
+                                                                                     pipeline, available_operations,
+                                                                                     logger)
                 correct_pipelines.append(correct_pipeline)
         return correct_pipelines
 
