@@ -53,13 +53,13 @@ def get_available_operations():
 
 pipeline = ts_complex_ridge_pipeline()
 
-time_series = pd.read_csv('data/arctic/61_91_topaz.csv')
-#time_series = pd.read_csv(f'{fedot_project_root()}/examples/data/ts/australia.csv')
+#time_series = pd.read_csv('data/arctic/61_91_topaz.csv')
+time_series = pd.read_csv(f'{fedot_project_root()}/examples/data/ts/australia.csv')
 task = Task(TaskTypesEnum.ts_forecasting,
             TsForecastingParams(forecast_length=90))
 
-time_series = time_series['ssh'].values
-#time_series = time_series['value'].values
+#time_series = time_series['ssh'].values
+time_series = time_series['value'].values
 idx = np.arange(len(time_series))
 train_input = InputData(idx=idx,
                         features=time_series,

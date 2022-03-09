@@ -346,7 +346,6 @@ def tables_mapping(idx_list, object_list, common_idx):
         # Create mask where True - appropriate objects
         mask = np.in1d(np.array(current_idx), common_idx_new)
 
-
         if len(current_object.shape) == 1:
             filtered_predict = current_object[mask]
             filtered_predict = filtered_predict.reshape((-1, 1))
@@ -356,11 +355,7 @@ def tables_mapping(idx_list, object_list, common_idx):
             number_of_variables_in_prediction = current_object.shape[1]
             for i in range(number_of_variables_in_prediction):
                 predict = current_object[:, i]
-
-                try:
-                    filtered_predict = predict[mask]
-                except Exception as e:
-                    print(e)
+                filtered_predict = predict[mask]
 
                 # Convert to column
                 filtered_predict = filtered_predict.reshape((-1, 1))

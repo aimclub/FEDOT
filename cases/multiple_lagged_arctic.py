@@ -98,8 +98,32 @@ def get_available_operations():
     return primary_operations, secondary_operations
 
 
-def run_multiple_ts_forecasting(forecast_length):
+def compose_pipeline(pipeline, train_data, task):
+    # pipeline structure optimization
+    primary_operations, secondary_operations = get_available_operations()
+    composer_requirements = PipelineComposerRequirements(
+        primary=primary_operations,
+        secondary=secondary_operations, max_arity=3,
+        max_depth=4, pop_size=10, num_of_generations=50,
+        crossover_prob=0.8, mutation_prob=0.8,
+        timeout=datetime.timedelta(minutes=10),
+        validation_blocks=1)
+    mutation_types = [parameter_change_mutation, MutationTypesEnum.single_change, MutationTypesEnum.single_drop,
+                      MutationTypesEnum.single_add]
+    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
 
+    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
+    builder = ComposerBuilder(task=task). \
+        with_optimiser(parameters=optimiser_parameters). \
+        with_requirements(composer_requirements). \
+        with_metrics(metric_function).with_initial_pipelines([pipeline])
+    composer = builder.build()
+
+    obtained_pipeline = composer.compose_pipeline(data=train_data)
+    return obtained_pipeline
+
+
+def prepare_data(forecast_length):
     # points prefixes
     points = ['61_91', '56_86', '61_86', '66_86']
 
@@ -122,48 +146,45 @@ def run_multiple_ts_forecasting(forecast_length):
                            task=task, data_type=DataTypesEnum.multi_ts)
     test_data = InputData(idx=idx_test, features=x_test, target=y_test,
                           task=task, data_type=DataTypesEnum.multi_ts)
+    return train_data, test_data, task, x_test, y_test
+
+
+def run_multiple_ts_forecasting(forecast_length):
+    train_data, test_data, task, x_test, y_test = prepare_data(forecast_length)
 
     pipeline = initial_pipeline()
-    train_data_copied = deepcopy(train_data)
+
     pipeline.fit(train_data)
     prediction_before = np.ravel(np.array(pipeline.predict(test_data).predict))
 
     rmse_before = mean_squared_error(test_data.target, prediction_before, squared=False)
     mae_before = mean_absolute_error(test_data.target, prediction_before)
 
-    # pipeline structure optimization
-    primary_operations, secondary_operations = get_available_operations()
-    composer_requirements = PipelineComposerRequirements(
-        primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=4, pop_size=10, num_of_generations=30,
-        crossover_prob=0.8, mutation_prob=0.8,
-        timeout=datetime.timedelta(minutes=10),
-        validation_blocks=1)
-    mutation_types = [parameter_change_mutation, MutationTypesEnum.single_change, MutationTypesEnum.single_drop,
-                      MutationTypesEnum.single_add]
-    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
-
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    builder = ComposerBuilder(task=task). \
-        with_optimiser(parameters=optimiser_parameters). \
-        with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_pipelines([pipeline])
-    composer = builder.build()
-
-    obtained_pipeline = composer.compose_pipeline(data=train_data_copied)
+    obtained_pipeline = compose_pipeline(pipeline, train_data, task)
+    obtained_pipeline_ = deepcopy(obtained_pipeline)
     obtained_pipeline.show()
-    obtained_pipeline.fit_from_scratch(train_data_copied)
+    obtained_pipeline.fit_from_scratch(train_data)
     prediction_after = obtained_pipeline.predict(test_data)
     predict_after = np.ravel(np.array(prediction_after.predict))
+
+
+    obtained_pipeline_.fine_tune_all_nodes(input_data=train_data,
+                                            loss_function=mean_squared_error,
+                                            loss_params={'squared': False},
+                                            iterations=100)
+
+    obtained_pipeline_.fit_from_scratch(train_data)
+    prediction_after_tuning = obtained_pipeline_.predict(test_data)
+    predict_after_tuning = np.ravel(np.array(prediction_after_tuning.predict))
+
 
     plt.plot(np.ravel(test_data.idx), y_test, label='test')
     plt.plot(np.ravel(train_data.idx), np.ravel(train_data.target[:, 0]), label='history')
     plt.plot(np.ravel(test_data.idx), prediction_before, label='prediction')
     plt.plot(np.ravel(test_data.idx), predict_after, label='prediction_after')
+    plt.plot(np.ravel(test_data.idx), predict_after_tuning, label='prediction_after_tuning')
     plt.legend()
     plt.show()
-
 
 def run_via_api():
     forecast_length = 60
@@ -204,6 +225,5 @@ def run_via_api():
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
 if __name__ == '__main__':
-    #run_via_api()
     run_multiple_ts_forecasting(forecast_length=60)
 
