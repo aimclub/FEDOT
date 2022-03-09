@@ -148,7 +148,8 @@
 				"non_linear",
 				"dimensionality_transforming",
 				"correct_params",
-				"non_applicable_for_ts"
+				"non_applicable_for_ts",
+				"non-default"
 			]
 		},
 		"poly_features": {
