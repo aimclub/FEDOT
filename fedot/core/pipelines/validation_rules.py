@@ -240,30 +240,34 @@ def has_no_conflicts_during_multitask(pipeline: Pipeline):
     """
     Now if the classification task is solved, one part of the pipeline can solve
     the regression task if used after class_decompose. If class_decompose is followed
-    by a classification operation, then this pipelining is incorrect
+    by a classification operation, then this pipelining is incorrect.
+    Validation perform only for classification pipelines.
     """
 
-    all_operations = get_operations_for_task(task=Task(TaskTypesEnum.classification), mode='all')
+    classification_operations = get_operations_for_task(task=Task(TaskTypesEnum.classification), mode='all')
     pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
     pipeline_operations = set(pipeline_operations)
 
     number_of_unique_pipeline_operations = len(pipeline_operations)
-    operations_for_task = set(all_operations).intersection(pipeline_operations)
+    pipeline_operations_for_classification = set(classification_operations).intersection(pipeline_operations)
 
-    if len(operations_for_task) == 0:
+    if len(pipeline_operations_for_classification) == 0:
         return True
 
     if 'class_decompose' not in pipeline_operations:
         # There are no decompose operations in the pipeline
-        if number_of_unique_pipeline_operations != len(operations_for_task):
+        if number_of_unique_pipeline_operations != len(pipeline_operations_for_classification):
             # There are operations in the pipeline that solve different tasks
-            __check_multitask_operation_location(pipeline, all_operations)
+            __check_multitask_operation_location(pipeline, classification_operations)
 
     return True
 
 
 def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
-    """ After the class_decompose operation, a regression model is required """
+    """
+    After the class_decompose operation, a regression model is required.
+    Validation perform only for classification pipelines.
+    """
     error_message = f'{ERROR_PREFIX} After classification decompose it is required to use regression model'
     pipeline_operations = [node.operation.operation_type for node in pipeline.nodes]
     if 'class_decompose' not in pipeline_operations:
@@ -281,7 +285,7 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
             if node.operation.operation_type not in regression_operations:
                 raise ValueError(error_message)
 
-    return UnicodeTranslateError
+    return True
 
 
 def __check_connection(parent_operation, forbidden_parents):
@@ -319,7 +323,7 @@ def __check_decomposer_has_two_parents(nodes_to_check: list):
                              f' expected, but {len(parents)} were given')
 
 
-def __check_multitask_operation_location(pipeline: Pipeline, all_operations_for_task: list):
+def __check_multitask_operation_location(pipeline: Pipeline, operations_for_classification: list):
     """
     Investigate paths for different tasks in the pipeline. If the pipeline solves
     several tasks simultaneously and there are no transitive operations in its
@@ -335,9 +339,9 @@ def __check_multitask_operation_location(pipeline: Pipeline, all_operations_for_
     primary_operations = set(primary_operations)
     unique_primary_operations_number = len(primary_operations)
 
-    primary_operations_for_task = set(all_operations_for_task).intersection(primary_operations)
+    primary_operations_for_classification = set(operations_for_classification).intersection(primary_operations)
 
-    if unique_primary_operations_number != len(primary_operations_for_task):
+    if unique_primary_operations_number != len(primary_operations_for_classification):
         # There are difference in tasks are in the primary nodes
         return True
     else:
