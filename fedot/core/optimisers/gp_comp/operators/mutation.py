@@ -11,7 +11,6 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import DEFAULT_PARAMS_STUB, ComparableEnum as Enum
 
 if TYPE_CHECKING:
@@ -263,7 +262,7 @@ def single_add_mutation(graph: Any, requirements, params, max_depth, *args, **kw
 
 def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     """
-    Add new node between two sequential existing modes
+    Change node between two sequential existing modes
     """
     node = choice(graph.nodes)
     nodes_from = node.nodes_from
@@ -285,7 +284,7 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
 
 def single_drop_mutation(graph: Any, params, *args, **kwargs):
     """
-    Add new node between two sequential existing modes
+    Drop single node from graph
     """
     node_to_del = choice(graph.nodes)
     node_name = node_to_del.content['name']

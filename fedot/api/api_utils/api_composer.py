@@ -150,13 +150,29 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
+    def _set_initial_assumption(self, api_params: dict, composer_params: dict):
+        """ Generates and sets an initial assumption, if not given, from the given available operations
+        Also, since it is impossible to form a valid pipeline for the time series problem without 'lagged' operation,
+        if it is not in the list of available ones, it is added """
+
+        if api_params['task'] == TaskTypesEnum.ts_forecasting and \
+                'lagged' not in api_params['available_operations']:
+            api_params['available_operations'].append('lagged')
+
+        if not api_params['initial_assumption']:
+            api_params['initial_assumption'] = self.initial_assumptions. \
+                get_initial_assumption(api_params['train_data'], api_params['task'],
+                                       composer_params['available_operations'], api_params['logger'])
+
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict):
         """ Function for composing FEDOT pipeline model """
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
 
-        if composer_params['available_operations'] is None:
+        if not composer_params['available_operations']:
             composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
+        else:
+            self._set_initial_assumption(api_params=api_params, composer_params=composer_params)
 
         api_params['logger'].message('Composition started. Parameters tuning: {}. ''Set of candidate models: {}. '
                                      'Time limit: {} min'.format(tuning_params['with_tuning'],
