@@ -4,8 +4,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-from fedot.rl.agents.DQN import DQN
-from fedot.rl.utils.replay_buffer import ReplayBuffer
+from fedot.rl.old.agents.DQN import DQN
+from fedot.rl.old.utils.replay_buffer import ReplayBuffer
 
 
 class BaseAgent(object):

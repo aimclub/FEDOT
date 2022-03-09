@@ -224,7 +224,8 @@
       "presets": ["fast_train"],
       "tags": [
         "simple",
-        "correct_params"
+        "correct_params",
+        "reinforce"
       ]
     },
     "knnreg": {
@@ -275,7 +276,8 @@
       "tags": [
         "simple",
         "linear",
-        "interpretable"
+        "interpretable",
+        "reinforce"
       ]
     },
     "logit": {
@@ -311,8 +313,14 @@
     },
     "rf": {
       "meta": "sklearn_class",
-      "presets": ["fast_train", "*tree"],
-      "tags": ["tree"]
+      "presets": [
+        "fast_train",
+        "*tree"
+      ],
+      "tags": [
+        "tree",
+        "reinforce"
+      ]
     },
     "rfr": {
       "meta": "sklearn_regr",
@@ -378,7 +386,8 @@
       "meta": "custom_class",
       "tags": [
         "no_prob",
-        "expensive"
+        "expensive",
+        "reinforce"
       ]
     },
     "svr": {

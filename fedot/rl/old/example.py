@@ -3,8 +3,8 @@ from itertools import product
 import numpy as np
 import torch
 
-from fedot.rl.agents.base_agent import BaseAgent
-from fedot.rl.environments.graph_env import GraphEnv
+from fedot.rl.old.agents.base_agent import BaseAgent
+from fedot.rl.old.environments.graph_env import GraphEnv
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
