@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
-from fedot.pattern_wrappers import singleton
+from fedot.utilities.pattern_wrappers import singleton
 from fedot.remote.infrastructure.clients.client import Client
 
 

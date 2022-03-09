@@ -1,6 +1,6 @@
 import datetime
 
-from fedot.pattern_wrappers import singleton
+from fedot.utilities.pattern_wrappers import singleton
 
 COMPOSING_TUNING_PROPORTION = 0.6
 
@@ -70,13 +70,12 @@ class ApiTime:
         spended_time_for_composing = self.end_composing() + self.init_pipeline_fit_time
         all_timeout = float(self.time_for_automl)
 
-        iterations = 1000
         if self.time_for_automl not in [None, -1]:
             timeout_in_sec = datetime.timedelta(minutes=all_timeout).total_seconds()
             timeout_for_tuning = timeout_in_sec - spended_time_for_composing.total_seconds()
         else:
             timeout_for_tuning = spended_time_for_composing.total_seconds()
-        return timeout_for_tuning, iterations
+        return timeout_for_tuning
 
     @property
     def datetime_composing(self):
