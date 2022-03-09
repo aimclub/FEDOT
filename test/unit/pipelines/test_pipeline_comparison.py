@@ -9,15 +9,15 @@ from fedot.core.pipelines.pipeline import Pipeline
 
 
 def pipeline_first():
-    #    XG
+    #    RF
     #  |     \
-    # XG     KNN
+    # RF     KNN
     # |  \    |  \
     # LR LDA LR  LDA
     pipeline = Pipeline()
 
     root_of_tree, root_child_first, root_child_second = \
-        [SecondaryNode(model) for model in ('xgboost', 'xgboost', 'knn')]
+        [SecondaryNode(model) for model in ('rf', 'rf', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
@@ -32,14 +32,14 @@ def pipeline_first():
 
 
 def pipeline_second():
-    #      XG
+    #      RF
     #   |      \
-    #  XG      KNN
+    #  RF      KNN
     #  | \      |  \
-    # LR XG   LR   LDA
+    # LR RF   LR   LDA
     #    |  \
     #   KNN  LDA
-    new_node = SecondaryNode('xgboost')
+    new_node = SecondaryNode('rf')
     for model_type in ('knn', 'lda'):
         new_node.nodes_from.append(PrimaryNode(model_type))
     pipeline = pipeline_first()
@@ -49,10 +49,10 @@ def pipeline_second():
 
 
 def pipeline_third():
-    #      XG
+    #      RF
     #   /  |  \
     #  KNN LDA KNN
-    root_of_tree = SecondaryNode('xgboost')
+    root_of_tree = SecondaryNode('rf')
     for model_type in ('knn', 'lda', 'knn'):
         root_of_tree.nodes_from.append(PrimaryNode(model_type))
     pipeline = Pipeline()
@@ -65,14 +65,14 @@ def pipeline_third():
 
 
 def pipeline_fourth():
-    #      XG
+    #      RF
     #   |  \  \
-    #  KNN  XG  KNN
+    #  KNN  RF  KNN
     #      |  \
     #    KNN   KNN
 
     pipeline = pipeline_third()
-    new_node = SecondaryNode('xgboost')
+    new_node = SecondaryNode('rf')
     [new_node.nodes_from.append(PrimaryNode('knn')) for _ in range(2)]
     pipeline.update_subtree(pipeline.root_node.nodes_from[1], new_node)
 
