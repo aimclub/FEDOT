@@ -1,8 +1,7 @@
 import datetime
 
+from fedot.api.api_utils.constants import COMPOSING_TUNING_PROPORTION
 from fedot.utilities.pattern_wrappers import singleton
-
-COMPOSING_TUNING_PROPORTION = 0.6
 
 
 @singleton

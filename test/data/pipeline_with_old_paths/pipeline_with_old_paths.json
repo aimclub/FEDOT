@@ -12,7 +12,7 @@
 			"custom_params": "default_params",
 			"params": "default_params",
 			"nodes_from": [],
-			"fitted_operation_path": "fitted_operations\\operation_1.pkl",
+			"fitted_operation_path": "fitted_operations/operation_1.pkl",
 			"rating": null
 		},
 		{
@@ -24,10 +24,10 @@
 			"nodes_from": [
 				1
 			],
-			"fitted_operation_path": "fitted_operations\\operation_0.pkl",
+			"fitted_operation_path": "fitted_operations/operation_0.pkl",
 			"rating": null
 		}
 	],
-	"preprocessing": "preprocessing\\data_preprocessor.pkl",
+	"preprocessing": "preprocessing/data_preprocessor.pkl",
 	"descriptive_id": "(/n_scaling_default_params;)/n_ridge_default_params"
 }

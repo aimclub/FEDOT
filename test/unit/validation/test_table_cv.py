@@ -124,6 +124,7 @@ def test_cv_api_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'timeout': 0.1,
+                       'pop_size': 4,
                        'preset': 'fast_train',
                        'cv_folds': 2}
     task = Task(task_type=TaskTypesEnum.classification)

@@ -3,6 +3,7 @@ from typing import Optional, Dict, Union
 
 import numpy as np
 
+from fedot.api.api_utils.constants import DEFAULT_TIMEOUT_API_MINUTES, DEFAULT_FORECAST_LENGTH
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -13,7 +14,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 class ApiParams:
 
     def __init__(self):
-        self.default_forecast_length = 30
         self.api_params = None
         self.log = None
         self.task = None
@@ -32,6 +32,7 @@ class ApiParams:
         self.api_params = check_timeout_vs_generations(self.api_params)
 
     def get_initial_params(self, **input_params):
+        merge_and_correct_timeout_params(input_params)
         if input_params['composer_params'] is None:
             self.api_params = self.get_default_evo_params(problem=input_params['problem'])
         else:
@@ -105,8 +106,8 @@ class ApiParams:
             self.metric_to_compose = self.api_params['composer_metric']
 
         if input_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
-            self.log.warn('The value of the forecast depth was set to {}.'.format(self.default_forecast_length))
-            self.task_params = TsForecastingParams(forecast_length=self.default_forecast_length)
+            self.log.warn('The value of the forecast depth was set to {}.'.format(DEFAULT_FORECAST_LENGTH))
+            self.task_params = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
         if input_params['problem'] == 'clustering':
             raise ValueError('This type of task is not not supported in API now')
@@ -171,3 +172,16 @@ def check_timeout_vs_generations(api_params):
     else:
         raise ValueError(f'invalid "timeout" value: timeout={timeout}')
     return api_params
+
+
+def merge_and_correct_timeout_params(input_params):
+    """ Merge timeout parameter from composer parameters and from API """
+    if input_params['composer_params'] is None:
+        # Composer parameters were skipped during initialisation
+        return input_params
+
+    composer_parameters = input_params['composer_params']
+    if composer_parameters.get('timeout') is not None:
+        if np.isclose(input_params['timeout'], DEFAULT_TIMEOUT_API_MINUTES):
+            # Replace default API values with composer dictionary value
+            input_params['timeout'] = composer_parameters['timeout']
