@@ -90,7 +90,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
         available_operations.append('lagged')
 
     for node in node_boost.ordered_subnodes_hierarchy():
-        if node.content['name'].__str__() not in available_operations:
+        if str(node.content['name']) not in available_operations:
             return pipeline
 
     node_final = SecondaryNode(choice(requirements.secondary),

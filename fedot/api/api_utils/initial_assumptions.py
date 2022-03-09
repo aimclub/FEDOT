@@ -64,6 +64,36 @@ class ApiInitialAssumptions:
                 return False
         return True
 
+    def _create_correct_unidata_pipeline(self, task, data, pipeline, available_operations, logger):
+        """ Creates a pilepine from the available operations. If it is impossible to create a valid pipeline
+        from the given available operations, returns the default one """
+
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            node_lagged = PrimaryNode('lagged')
+            operations_to_choose_from = \
+                self._get_operations_for_the_task(task_type=TaskTypesEnum.regression, data_type=data.data_type,
+                                                  repo='model', available_operations=available_operations)
+            if not operations_to_choose_from:
+                logger.message(UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
+                return pipeline
+
+            node_final = SecondaryNode(choice([operations_to_choose_from]), nodes_from=[node_lagged])
+            return Pipeline(node_final)
+
+        elif task.task_type == TaskTypesEnum.regression or \
+                task.task_type == TaskTypesEnum.classification:
+            operations_to_choose_from = \
+                self._get_operations_for_the_task(task_type=task.task_type, data_type=data.data_type,
+                                                  repo='model', available_operations=available_operations)
+            if not operations_to_choose_from:
+                logger.message(UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
+                return pipeline
+
+            node = PrimaryNode(choice(operations_to_choose_from))
+            return Pipeline(node)
+        else:
+            raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
+
     def create_unidata_pipelines_on_available_operations(self, task: Task, data: InputData,
                                                          has_categorical_features: bool, has_gaps: bool,
                                                          available_operations: List[str],
@@ -72,38 +102,12 @@ class ApiInitialAssumptions:
 
         pipelines = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
         correct_pipelines = []
-
         for pipeline in pipelines:
             if self._are_only_available_operations(pipeline, available_operations):
                 correct_pipelines.append(pipeline)
             else:
-                if task.task_type == TaskTypesEnum.ts_forecasting:
-                    node_lagged = PrimaryNode('lagged')
-                    operations_to_choose_from = \
-                        self._get_operations_for_the_task(task_type=TaskTypesEnum.regression, data_type=data.data_type,
-                                                          repo='model', available_operations=available_operations)
-                    if not operations_to_choose_from:
-                        logger.message(UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
-                        correct_pipelines.append(pipeline)
-                        continue
-
-                    node_final = SecondaryNode(choice([operations_to_choose_from]), nodes_from=[node_lagged])
-                    correct_pipelines.append(Pipeline(node_final))
-
-                elif task.task_type == TaskTypesEnum.regression or \
-                        task.task_type == TaskTypesEnum.classification:
-                    operations_to_choose_from = \
-                        self._get_operations_for_the_task(task_type=task.task_type, data_type=data.data_type,
-                                                          repo='model', available_operations=available_operations)
-                    if not operations_to_choose_from:
-                        logger.message(UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
-                        correct_pipelines.append(pipeline)
-                        continue
-
-                    node = PrimaryNode(choice(operations_to_choose_from))
-                    correct_pipelines.append(Pipeline(node))
-                else:
-                    raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
+                correct_pipeline = self._create_correct_unidata_pipeline(task, data, pipeline, available_operations, logger)
+                correct_pipelines.append(correct_pipeline)
         return correct_pipelines
 
     def create_unidata_pipelines(self,
