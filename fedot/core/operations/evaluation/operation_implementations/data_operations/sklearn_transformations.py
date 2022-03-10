@@ -132,7 +132,7 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
 
 
 class FastICAImplementation(ComponentAnalysisImplementation):
-    """ Class for applying PCA from sklearn
+    """ Class for applying FastICA from sklearn
 
     :param params: optional, dictionary with the hyperparameters
     """

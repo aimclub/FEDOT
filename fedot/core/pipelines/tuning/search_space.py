@@ -186,6 +186,9 @@ class SearchSpace:
             'kernel_pca': {
                 'n_components': (hp.choice, [range(1, 20)])
             },
+            'fast_ica': {
+                'n_components': (hp.choice, [range(1, 20)])
+            },
             'ransac_lin_reg': {
                 'min_samples': (hp.uniform, [0.1, 0.9]),
                 'residual_threshold': (hp.choice, [[0.1, 1.0, 100.0, 500.0, 1000.0]]),
