@@ -184,7 +184,8 @@ class SearchSpace:
                 'svd_solver': (hp.choice, [['full']])
             },
             'kernel_pca': {
-                'n_components': (hp.choice, [range(1, 20)])
+                'n_components': (hp.choice, [range(1, 20)]),
+                'kernel': (hp.choice, [['linear', 'poly', 'rbf', 'sigmoid', 'cosine', 'precomputed']])
             },
             'fast_ica': {
                 'n_components': (hp.choice, [range(1, 20)])
