@@ -152,6 +152,16 @@
 				"non-default"
 			]
 		},
+		"fast_ica": {
+			"meta": "dimension_transformation",
+			"presets": ["ts", "*tree"],
+			"tags": [
+				"non_linear",
+				"dimensionality_transforming",
+				"correct_params",
+				"non_applicable_for_ts"
+			]
+		},
 		"poly_features": {
 			"meta": "dimension_transformation",
 			"tags": ["non_linear", "dimensionality_transforming", "non_applicable_for_ts"]
