@@ -119,26 +119,26 @@ class ApiInitialAssumptions:
                                  has_categorical_features: bool,
                                  has_gaps: bool) -> List[Pipeline]:
         # TODO refactor as builder
-        node_prepocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
+        node_preprocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
         if task.task_type == TaskTypesEnum.ts_forecasting:
-            pipelines = [create_glm_ridge_pipeline(node_prepocessed),
-                         create_lagged_ridge_pipeline(node_prepocessed),
-                         create_polyfit_ridge_pipeline(node_prepocessed),
-                         create_ar_pipeline(node_prepocessed)]
+            pipelines = [create_glm_ridge_pipeline(node_preprocessed),
+                         create_lagged_ridge_pipeline(node_preprocessed),
+                         create_polyfit_ridge_pipeline(node_preprocessed),
+                         create_ar_pipeline(node_preprocessed)]
         elif task.task_type == TaskTypesEnum.classification:
             if has_categorical_features:
-                pipelines = [create_rf_classifier_pipeline(node_prepocessed),
-                             create_logit_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rf_classifier_pipeline(node_preprocessed),
+                             create_logit_classifier_pipeline(node_preprocessed)]
             else:
-                pipelines = [create_rf_classifier_pipeline(node_prepocessed),
-                             create_logit_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rf_classifier_pipeline(node_preprocessed),
+                             create_logit_classifier_pipeline(node_preprocessed)]
         elif task.task_type == TaskTypesEnum.regression:
             if has_categorical_features:
-                pipelines = [create_rfr_regression_pipeline(node_prepocessed),
-                             create_ridge_regression_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_preprocessed),
+                             create_ridge_regression_pipeline(node_preprocessed)]
             else:
-                pipelines = [create_rfr_regression_pipeline(node_prepocessed),
-                             create_ridge_regression_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_preprocessed),
+                             create_ridge_regression_pipeline(node_preprocessed)]
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
         return pipelines

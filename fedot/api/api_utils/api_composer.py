@@ -7,7 +7,7 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
-from fedot.api.api_utils.constants import MINIMUM_SECONDS_FOR_TUNING, DEFAULT_NUMBER_TUNING_ITERATIONS
+from fedot.api.api_utils.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -234,7 +234,7 @@ class ApiComposer:
                                          initial_assumption=api_params['initial_assumption'],
                                          logger=api_params['logger'])
         gp_composer = None
-        timeout_were_set = timer.datetime_composing not in [-1, None]
+        timeout_were_set = timer.datetime_composing is not None
         if timeout_were_set and init_pipeline_fit_time >= timer.datetime_composing / composer_params['pop_size']:
             api_params['logger'].message(f'Timeout is too small for composing '
                                          f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.,'
@@ -317,7 +317,7 @@ class ApiComposer:
 
         timeout_for_tuning = timer.determine_resources_for_tuning()
 
-        if timeout_for_tuning < MINIMUM_SECONDS_FOR_TUNING:
+        if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
             api_params['logger'].info(f'Time for pipeline composing was {str(timer.composing_spend_time)}.\n'
                                       f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
                                       f'to tune the hyperparameters.')
@@ -344,7 +344,7 @@ class ApiComposer:
             pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
                                                                             loss_params=loss_params,
                                                                             input_data=api_params['train_data'],
-                                                                            iterations=DEFAULT_NUMBER_TUNING_ITERATIONS,
+                                                                            iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
                                                                             timeout=timeout_for_tuning,
                                                                             cv_folds=folds,
                                                                             validation_blocks=vb_number)

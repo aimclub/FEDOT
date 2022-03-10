@@ -3,7 +3,7 @@ from typing import Optional, Dict, Union
 
 import numpy as np
 
-from fedot.api.api_utils.constants import DEFAULT_TIMEOUT_API_MINUTES, DEFAULT_FORECAST_LENGTH
+from fedot.api.api_utils.constants import DEFAULT_FORECAST_LENGTH, DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -162,12 +162,8 @@ def check_timeout_vs_generations(api_params):
         api_params['timeout'] = None
         if num_of_generations is None:
             raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
-        api_params['num_of_generations'] = num_of_generations
     elif timeout > 0:
-        api_params['timeout'] = timeout
-        if num_of_generations is not None:
-            api_params['num_of_generations'] = num_of_generations
-        else:
+        if num_of_generations is None:
             api_params['num_of_generations'] = 10000
     else:
         raise ValueError(f'invalid "timeout" value: timeout={timeout}')
@@ -182,6 +178,6 @@ def merge_and_correct_timeout_params(input_params):
 
     composer_parameters = input_params['composer_params']
     if composer_parameters.get('timeout') is not None:
-        if np.isclose(input_params['timeout'], DEFAULT_TIMEOUT_API_MINUTES):
+        if np.isclose(input_params['timeout'], DEFAULT_API_TIMEOUT_MINUTES):
             # Replace default API values with composer dictionary value
             input_params['timeout'] = composer_parameters['timeout']

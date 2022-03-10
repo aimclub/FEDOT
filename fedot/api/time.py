@@ -31,7 +31,7 @@ class ApiTime:
 
     def __define_timeouts_for_stages(self):
         """ Determine timeouts for tuning and composing """
-        if self.time_for_automl is None:
+        if self.time_for_automl in [None, -1]:
             self.timeout_for_composing = None
         else:
             # Time for composing based on tuning parameters
@@ -66,6 +66,9 @@ class ApiTime:
         Based on time spend for composing and initial pipeline fit determine
         how much time and how many iterations are needed for tuning
         """
+        if self.init_pipeline_fit_time is None:
+            raise ValueError('Api timer must contain information about initial pipeline fit time')
+
         spended_time_for_composing = self.end_composing() + self.init_pipeline_fit_time
         all_timeout = float(self.time_for_automl)
 

@@ -8,7 +8,7 @@ import pandas as pd
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.constants import DEFAULT_TIMEOUT_API_MINUTES
+from fedot.api.api_utils.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.data.data import InputData, OutputData
@@ -78,7 +78,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 timeout: Optional[float] = DEFAULT_TIMEOUT_API_MINUTES,
+                 timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
