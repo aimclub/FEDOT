@@ -23,6 +23,7 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
     :param cache: cache manager for fitted models
     :param log: object for logging
     """
+    # TODO add support for multiprocessing
     if __name__ != '__main__':
         cache = None
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
