@@ -380,7 +380,7 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     test_pipeline_first = pipeline_first()
-    time_constraint = datetime.timedelta(minutes=0.01)
+    time_constraint = datetime.timedelta(seconds=1)
     predicted_first = None
     computation_time_first = None
     process_start_time = time.time()
@@ -391,8 +391,10 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
         computation_time_first = test_pipeline_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
-    time_constraint = datetime.timedelta(minutes=0.05)
+    time_constraint = datetime.timedelta(seconds=2)
+    test_pipeline_first.unfit(unfit_preprocessor=True)
     process_start_time = time.time()
+
     try:
         test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:

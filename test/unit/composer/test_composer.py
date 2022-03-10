@@ -274,9 +274,9 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     available_model_types = ['rf', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
-                                       max_pipeline_fit_time=datetime.timedelta(minutes=5))
+                                       max_arity=2, max_depth=4, pop_size=3, num_of_generations=1,
+                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2
+                                       )
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(

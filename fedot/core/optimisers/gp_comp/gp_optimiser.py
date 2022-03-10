@@ -1,4 +1,5 @@
 import math
+import multiprocessing
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
@@ -32,7 +33,6 @@ from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
-
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
     """
@@ -182,7 +182,9 @@ class EvoGraphOptimiser(GraphOptimiser):
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc="Generations", unit='gen', initial=1) if show_progress else None
 
-            self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
+            self.population = self._evaluate_individuals(self.population, objective_function,
+                                                         timer=t,
+                                                         n_jobs=self.requirements.n_jobs)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -230,7 +232,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                     new_population += self.reproduce(selected_individuals[parent_num],
                                                      selected_individuals[parent_num + 1])
 
-                new_population = self._evaluate_individuals(new_population, objective_function, timer=t)
+                new_population = self._evaluate_individuals(new_population, objective_function,
+                                                            timer=t,
+                                                            n_jobs=self.requirements.n_jobs)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -399,11 +403,13 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.archive.items
         return best
 
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
+    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=1):
         evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
-                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
+                                                     is_multi_objective=self.parameters.multi_objective,
+                                                     n_jobs=n_jobs,
+                                                     timer=timer)
         individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
         return individuals_set
 

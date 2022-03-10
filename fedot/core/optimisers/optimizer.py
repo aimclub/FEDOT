@@ -159,10 +159,10 @@ def correct_if_has_nans(individuals, log):
     individuals = [ind for ind in individuals if ind.fitness is not None]
     len_after = len(individuals)
 
-    if len_after != len_before:
-        log.info(f'None were removed from candidates')
-
-    if len(individuals) == 0:
+    if len_after == 0:
         raise ValueError('All evaluations of fitness was unsuccessful.')
+
+    if len_after != len_before:
+        log.info(f'None values were removed from candidates')
 
     return individuals

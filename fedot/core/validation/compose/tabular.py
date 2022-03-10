@@ -1,3 +1,4 @@
+import traceback
 from typing import Callable, Optional, Tuple
 
 import numpy as np
@@ -22,7 +23,9 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
     :param cache: cache manager for fitted models
     :param log: object for logging
     """
-
+    # TODO add support for multiprocessing
+    if __name__ != '__main__':
+        cache = None
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
     try:
         evaluated_metrics = [[] for _ in range(len(metrics))]
@@ -36,7 +39,6 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
             fold_id += 1
         evaluated_metrics = tuple(map(lambda x: np.mean(x), evaluated_metrics))
         log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
-
     except Exception as ex:
         log.debug(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
         evaluated_metrics = None
