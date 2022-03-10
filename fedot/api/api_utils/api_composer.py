@@ -7,7 +7,7 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
-from fedot.api.api_utils.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
+from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -168,7 +168,8 @@ class ApiComposer:
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict):
         """ Function for composing FEDOT pipeline model """
         # Initialize timer for all AutoMl operations
-        timer = ApiTime(**{'time_for_automl': api_params['timeout'], 'with_tuning': tuning_params['with_tuning']})
+        timer = ApiTime(time_for_automl=api_params['timeout'],
+                        with_tuning=tuning_params['with_tuning'])
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
 
@@ -243,11 +244,11 @@ class ApiComposer:
             pipeline_gp_composed = fitted_initial_pipeline
         else:
             # Launch pipeline structure composition
-            timer.start_composing()
-            gp_composer = builder.build()
-            api_params['logger'].message(f'Pipeline composition started. Initial pipeline was fitted '
-                                         f'for fit_time {init_pipeline_fit_time.total_seconds()} sec.')
-            pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
+            with timer.launch_composing():
+                gp_composer = builder.build()
+                api_params['logger'].message(f'Pipeline composition started. Initial pipeline was fitted '
+                                             f'for fit_time {init_pipeline_fit_time.total_seconds()} sec.')
+                pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
 
         if isinstance(pipeline_gp_composed, list):
             for pipeline in pipeline_gp_composed:
@@ -258,11 +259,10 @@ class ApiComposer:
             best_candidates = [pipeline_gp_composed]
             pipeline_gp_composed.log = api_params['logger']
 
-        timer.init_pipeline_fit_time = init_pipeline_fit_time
         pipeline_gp_composed = self.tune_final_pipeline(api_params=api_params, tuning_params=tuning_params,
                                                         composer_requirements=composer_requirements,
                                                         pipeline_gp_composed=pipeline_gp_composed,
-                                                        timer=timer)
+                                                        timer=timer, init_pipeline_fit_time=init_pipeline_fit_time)
 
         api_params['logger'].message('Model generation finished')
 
@@ -309,13 +309,13 @@ class ApiComposer:
 
     def tune_final_pipeline(self, api_params, tuning_params,
                             composer_requirements, pipeline_gp_composed,
-                            timer: ApiTime):
+                            timer: ApiTime, init_pipeline_fit_time):
         """ Launch tuning procedure for obtained pipeline by composer """
         if tuning_params['with_tuning'] is False:
             # Return source pipeline
             return pipeline_gp_composed
 
-        timeout_for_tuning = timer.determine_resources_for_tuning()
+        timeout_for_tuning = timer.determine_resources_for_tuning(init_pipeline_fit_time)
 
         if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
             api_params['logger'].info(f'Time for pipeline composing was {str(timer.composing_spend_time)}.\n'
@@ -336,20 +336,20 @@ class ApiComposer:
                                                                     task=api_params['task'])
 
             # Tune all nodes in the pipeline
-            timer.start_tuning()
-            api_params['logger'].message('Hyperparameters tuning started')
-            vb_number = composer_requirements.validation_blocks
-            folds = composer_requirements.cv_folds
-            timeout_for_tuning = abs(timeout_for_tuning) / 60
-            pipeline_gp_composed = pipeline_gp_composed.fine_tune_all_nodes(loss_function=tuner_loss,
-                                                                            loss_params=loss_params,
-                                                                            input_data=api_params['train_data'],
-                                                                            iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
-                                                                            timeout=timeout_for_tuning,
-                                                                            cv_folds=folds,
-                                                                            validation_blocks=vb_number)
-            api_params['logger'].message('Hyperparameters tuning finished')
-            timer.end_tuning()
+            with timer.launch_tuning():
+                api_params['logger'].message('Hyperparameters tuning started')
+                vb_number = composer_requirements.validation_blocks
+                folds = composer_requirements.cv_folds
+                timeout_for_tuning = abs(timeout_for_tuning) / 60
+                pipeline_gp_composed = pipeline_gp_composed.\
+                    fine_tune_all_nodes(loss_function=tuner_loss,
+                                        loss_params=loss_params,
+                                        input_data=api_params['train_data'],
+                                        iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
+                                        timeout=timeout_for_tuning,
+                                        cv_folds=folds,
+                                        validation_blocks=vb_number)
+                api_params['logger'].message('Hyperparameters tuning finished')
         return pipeline_gp_composed
 
 

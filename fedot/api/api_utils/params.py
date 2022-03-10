@@ -3,7 +3,7 @@ from typing import Optional, Dict, Union
 
 import numpy as np
 
-from fedot.api.api_utils.constants import DEFAULT_FORECAST_LENGTH, DEFAULT_API_TIMEOUT_MINUTES
+from fedot.core.constants import DEFAULT_FORECAST_LENGTH, DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -115,8 +115,8 @@ class ApiParams:
     @staticmethod
     def get_default_evo_params(problem: str):
         """ Dictionary with default parameters for composer """
-        params = {'max_depth': 5,
-                  'max_arity': 6,
+        params = {'max_depth': 6,
+                  'max_arity': 3,
                   'pop_size': 20,
                   'num_of_generations': 50,
                   'timeout': 2,
