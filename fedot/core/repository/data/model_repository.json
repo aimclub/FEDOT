@@ -272,7 +272,7 @@
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
-        "discriminant", "linear", "correct_params"
+        "discriminant", "linear", "correct_params", "non-default"
       ]
     },
     "lgbm": {
