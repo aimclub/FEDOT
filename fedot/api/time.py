@@ -43,10 +43,6 @@ class ApiTime:
         """ Wrap composing process with timer """
         self.starting_time_for_composing = datetime.datetime.now()
         yield
-        if self.starting_time_for_composing is None:
-            # Composing has not been started previously
-            return self.composing_spend_time
-
         self.composing_spend_time = datetime.datetime.now() - self.starting_time_for_composing
 
     @contextmanager
@@ -54,9 +50,6 @@ class ApiTime:
         """ Wrap tuning process with timer """
         self.starting_time_for_tuning = datetime.datetime.now()
         yield
-        if self.starting_time_for_tuning is None:
-            # Pipeline tuning has not been started previously
-            return self.tuning_spend_time
         self.tuning_spend_time = datetime.datetime.now() - self.starting_time_for_tuning
 
     def determine_resources_for_tuning(self, init_pipeline_fit_time: datetime.timedelta):
@@ -81,8 +74,3 @@ class ApiTime:
         if self.timeout_for_composing is None:
             return None
         return datetime.timedelta(minutes=self.timeout_for_composing)
-
-    def __exit__(self, *args):
-        self.log.info(f'Composition time: {round(self.minutes_from_start, 3)} min')
-        if self.process_terminated:
-            self.log.info('Algorithm was terminated due to processing time limit')
