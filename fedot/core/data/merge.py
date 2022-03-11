@@ -336,15 +336,16 @@ def tables_mapping(idx_list, object_list, common_idx):
     common_idx_new = list(common_idx) * repeats_num
 
     for number in range(len(idx_list)):
-        current_idx = idx_list[number]
+        current_idx = list(idx_list[number])
         current_object = object_list[number]
 
         if len(current_idx) < current_object.shape[0]:
             repeats_num = int(current_object.shape[0]/len(current_idx))
             current_idx = list(current_idx) * repeats_num
-
         # Create mask where True - appropriate objects
-        mask = np.in1d(np.array(current_idx), common_idx_new)
+        current_idx = np.array(current_idx, dtype=int)
+        common_idx_new = np.array(common_idx_new)
+        mask = np.isin(current_idx, common_idx_new)
 
         if len(current_object.shape) == 1:
             filtered_predict = current_object[mask]

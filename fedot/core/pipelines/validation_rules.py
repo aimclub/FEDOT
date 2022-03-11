@@ -179,8 +179,6 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents is not None:
                     __check_connection(parent_operation, forbidden_parents)
-            #parents_operations = [parent.operation.operation_type for parent in parent_nodes]
-            #__has_correct_parents(parents_operations, models)
     return True
 
 
@@ -299,13 +297,6 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
 def __check_connection(parent_operation, forbidden_parents):
     if parent_operation in forbidden_parents:
         raise ValueError(f'{ERROR_PREFIX} Pipeline has incorrect subgraph with wrong parent nodes combination')
-
-
-def __has_correct_parents(parents_operations: list, models_list: list):
-    if 'lagged' in parents_operations:
-        if any(el in models_list for el in parents_operations):
-            raise ValueError(f'{ERROR_PREFIX} Lagged operation and model are parents at the same time')
-    return True
 
 
 def __check_decompose_parent_position(nodes_to_check: list):

@@ -183,7 +183,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)
         else:
-            operation_implementation.fit(train_data.features, train_data.target)
+            try:
+                operation_implementation.fit(train_data.features, train_data.target)
+            except Exception as e:
+                print(e)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
