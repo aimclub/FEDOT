@@ -7,6 +7,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
@@ -125,7 +126,7 @@ def test_cv_api_correct():
                        'max_arity': 2,
                        'timeout': 0.1,
                        'pop_size': 4,
-                       'preset': 'fast_train',
+                       'preset': FAST_TRAIN_PRESET_NAME,
                        'cv_folds': 2}
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose, dataset_to_validate = get_data(task)

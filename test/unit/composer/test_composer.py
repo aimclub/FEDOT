@@ -16,6 +16,7 @@ from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, \
     sample_split_ratio_for_tasks
 from fedot.core.composer.random_composer import RandomSearchComposer
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -356,7 +357,7 @@ def test_gp_composer_early_stopping():
                   composer_params={'stopping_after_n_generation': 1,
                                    'pop_size': 2,
                                    'with_tuning': False},
-                  preset='fast_train')
+                  preset=FAST_TRAIN_PRESET_NAME)
     model.fit(train_data)
     spent_time = datetime.datetime.now() - start
 

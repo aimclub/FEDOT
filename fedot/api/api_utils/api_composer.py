@@ -7,6 +7,7 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
+from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
@@ -66,6 +67,7 @@ class ApiComposer:
     def obtain_model(self, **common_dict):
         self.best_models = None
         self.history = None
+        preset = common_dict['preset']
         # Prepare parameters
         api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
 
@@ -73,7 +75,8 @@ class ApiComposer:
         self.current_model, self.best_models, self.history = self.compose_fedot_model(
             api_params=api_params_dict,
             composer_params=composer_params_dict,
-            tuning_params=tuner_params_dict)
+            tuning_params=tuner_params_dict,
+            preset=preset)
 
         if isinstance(self.best_models, tools.ParetoFront):
             self.best_models.__class__ = ParetoFront
@@ -83,6 +86,8 @@ class ApiComposer:
 
     def get_gp_composer_builder(self, task: Task,
                                 metric_function,
+                                preset: str,
+                                full_minutes_timeout: int,
                                 composer_requirements: PipelineComposerRequirements,
                                 optimiser: Type[GraphOptimiser],
                                 optimizer_parameters: GraphOptimiserParameters,
@@ -96,6 +101,8 @@ class ApiComposer:
 
         :param task: task for solving
         :param metric_function: function for individuals evaluating
+        :param preset: name of using preset
+        :param full_minutes_timeout: number of minutes for all AutoML
         :param composer_requirements: params for composer
         :param optimiser: optimiser for composer
         :param optimizer_parameters: params for optimizer
@@ -121,6 +128,8 @@ class ApiComposer:
             initial_pipelines = initial_assumption
         # Check initial assumption
         fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger)
+        updated_preset = change_preset_based_on_initial_fit(fit_time, full_minutes_timeout, preset)
+
         builder = builder.with_initial_pipelines(initial_pipelines)
         return builder, fitted_pipeline, fit_time
 
@@ -165,7 +174,8 @@ class ApiComposer:
                 get_initial_assumption(api_params['train_data'], api_params['task'],
                                        composer_params['available_operations'], api_params['logger'])
 
-    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict):
+    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
+                            preset: str):
         """ Function for composing FEDOT pipeline model """
         # Initialize timer for all AutoMl operations
         timer = ApiTime(time_for_automl=api_params['timeout'],
@@ -227,6 +237,8 @@ class ApiComposer:
         builder, fitted_initial_pipeline, init_pipeline_fit_time = \
             self.get_gp_composer_builder(task=api_params['task'],
                                          metric_function=metric_function,
+                                         preset=preset,
+                                         full_minutes_timeout=api_params['timeout'],
                                          composer_requirements=composer_requirements,
                                          optimiser=self.optimiser,
                                          optimizer_parameters=optimizer_parameters,

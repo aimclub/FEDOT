@@ -1,5 +1,10 @@
-from copy import copy
+import datetime
 
+from copy import copy
+from typing import Union
+
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
+    FAST_TRAIN_PRESET_NAME
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -43,7 +48,7 @@ class OperationsPreset:
         preset_name = self.preset_name
         if 'stable' in self.preset_name:
             # Use best_quality preset but exclude several operations
-            preset_name = 'best_quality'
+            preset_name = BEST_QUALITY_PRESET_NAME
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample', 'stl_arima']
@@ -84,3 +89,30 @@ class OperationsPreset:
         available_operations = [_ for _ in available_operations if _ not in excluded_operations]
 
         return available_operations
+
+
+def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,
+                                       full_minutes_timeout: Union[int, None],
+                                       preset: str) -> str:
+    """
+    If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
+
+    :param fit_time: spend time for fit initial pipeline
+    :param full_minutes_timeout: minutes for AutoML algorithm
+    :param preset: name of preset to use
+    """
+    if preset != 'auto':
+        return preset
+
+    if full_minutes_timeout is None:
+        return BEST_QUALITY_PRESET_NAME
+
+    # Change preset to appropriate one
+    init_fit_minutes = fit_time.total_seconds() / 60
+    one_fit_percent = (init_fit_minutes / full_minutes_timeout) * 100
+
+    if one_fit_percent > 0.5:
+        # It is possible to train only 200 pipelines during optimisation - use simplified preset
+        return FAST_TRAIN_PRESET_NAME
+    else:
+        return BEST_QUALITY_PRESET_NAME

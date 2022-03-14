@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -337,8 +338,9 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     :return : list with operation aliases
     """
     # Preset None means that all operations will be returned
-    if preset is not None and 'best_quality' in preset:
-        preset = None
+    if preset is not None:
+        if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
+            preset = None
 
     task_type = task.task_type if task else None
     if mode != 'all':

@@ -5,6 +5,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 # Additional custom functions
 from cases.industrial.processing import multi_automl_fit_forecast, plot_results
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.multi_modal import prepare_multimodal_data
 
 rcParams['figure.figsize'] = 15, 7
@@ -35,7 +36,7 @@ if __name__ == '__main__':
                        'pop_size': 20,
                        'num_of_generations': 20,
                        'timeout': 0.5,
-                       'preset': 'best_quality',
+                       'preset': BEST_QUALITY_PRESET_NAME,
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}

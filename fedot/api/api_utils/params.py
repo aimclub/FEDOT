@@ -3,7 +3,8 @@ from typing import Optional, Dict, Union
 
 import numpy as np
 
-from fedot.core.constants import DEFAULT_FORECAST_LENGTH, DEFAULT_API_TIMEOUT_MINUTES
+from fedot.core.constants import DEFAULT_FORECAST_LENGTH, \
+    DEFAULT_API_TIMEOUT_MINUTES, BEST_QUALITY_PRESET_NAME
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -39,6 +40,7 @@ class ApiParams:
             self.api_params = {**self.get_default_evo_params(problem=input_params['problem']),
                                **input_params['composer_params']}
 
+        self.api_params['preset'] = input_params['preset']
         self._check_input_params(**input_params)
 
         self.task = self.get_task_params(input_params['problem'],
@@ -121,7 +123,7 @@ class ApiParams:
                   'num_of_generations': 50,
                   'timeout': 2,
                   'with_tuning': True,
-                  'preset': 'best_quality',
+                  'preset': BEST_QUALITY_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
                   'stopping_after_n_generation': 10}

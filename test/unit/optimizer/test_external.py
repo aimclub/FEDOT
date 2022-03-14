@@ -3,6 +3,7 @@ from typing import Any, Callable, List, Optional, Union
 import pytest
 
 from fedot.api.main import Fedot
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -46,10 +47,11 @@ def test_external_static_optimizer(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     automl = Fedot(problem='classification', timeout=0.2, verbose_level=4,
-                   preset='fast_train', composer_params={'with_tuning': False,
-                                                         'optimizer': StaticOptimizer,
-                                                         'pop_size': 2,
-                                                         'optimizer_external_params': {'node_name': 'logit'}})
+                   preset=FAST_TRAIN_PRESET_NAME,
+                   composer_params={'with_tuning': False,
+                                    'optimizer': StaticOptimizer,
+                                    'pop_size': 2,
+                                    'optimizer_external_params': {'node_name': 'logit'}})
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 

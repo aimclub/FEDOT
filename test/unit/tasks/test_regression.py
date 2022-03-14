@@ -5,6 +5,7 @@ from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
 from fedot.api.main import Fedot
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -32,7 +33,7 @@ def get_simple_composer_params() -> dict:
               'num_of_generations': 2,
               'timeout': 0.1,
               'with_tuning': True,
-              'preset': 'fast_train'}
+              'preset': FAST_TRAIN_PRESET_NAME}
     return params
 
 

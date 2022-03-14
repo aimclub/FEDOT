@@ -12,6 +12,7 @@ from cases.metocean_forecasting_problem import prepare_input_data
 from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -30,7 +31,7 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 composer_params = {'max_depth': 1,
                    'max_arity': 2,
                    'timeout': 0.1,
-                   'preset': 'fast_train'}
+                   'preset': FAST_TRAIN_PRESET_NAME}
 
 
 def get_split_data_paths():
