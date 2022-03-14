@@ -37,10 +37,11 @@ class ApiParams:
         if input_params['composer_params'] is None:
             self.api_params = self.get_default_evo_params(problem=input_params['problem'])
         else:
+            if input_params.get('preset') is not None:
+                input_params['composer_params']['preset'] = input_params['preset']
             self.api_params = {**self.get_default_evo_params(problem=input_params['problem']),
                                **input_params['composer_params']}
 
-        self.api_params['preset'] = input_params['preset']
         self._check_input_params(**input_params)
 
         self.task = self.get_task_params(input_params['problem'],
@@ -82,7 +83,9 @@ class ApiParams:
         else:
             preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
-        del self.api_params['available_operations']
+
+        if self.api_params.get('available_operations') is not None:
+            del self.api_params['available_operations']
         self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,
