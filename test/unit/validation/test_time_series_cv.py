@@ -7,6 +7,7 @@ from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import \
     PipelineComposerRequirements
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
@@ -145,7 +146,7 @@ def test_api_cv_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'timeout': 0.05,
-                       'preset': 'fast_train',
+                       'preset': FAST_TRAIN_PRESET_NAME,
                        'cv_folds': folds,
                        'validation_blocks': validation_blocks}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)

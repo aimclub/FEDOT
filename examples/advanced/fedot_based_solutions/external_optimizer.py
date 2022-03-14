@@ -2,6 +2,7 @@ from typing import Any, Callable, List, Optional, Union
 
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -56,7 +57,7 @@ def run_with_random_search_composer():
     composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt']}
 
     automl = Fedot(problem='classification', timeout=1, verbose_level=4,
-                   preset='fast_train', composer_params=composer_params)
+                   preset=FAST_TRAIN_PRESET_NAME, composer_params=composer_params)
 
     automl.api_composer.optimiser = RandomSearchOptimizer
 

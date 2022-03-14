@@ -5,6 +5,7 @@ from pylab import rcParams
 # Additional custom functions
 from cases.industrial.processing import advanced_validation, automl_fit_forecast, plot_diesel_and_wind, \
     prepare_unimodal_for_validation
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 
 rcParams['figure.figsize'] = 15, 7
 
@@ -35,7 +36,7 @@ if __name__ == '__main__':
                        'pop_size': 20,
                        'num_of_generations': 100,
                        'timeout': 2,
-                       'preset': 'best_quality',
+                       'preset': BEST_QUALITY_PRESET_NAME,
                        'metric': 'rmse',
                        'cv_folds': 2,
                        'validation_blocks': 2}

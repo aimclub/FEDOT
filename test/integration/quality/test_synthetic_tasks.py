@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from fedot.api.main import Fedot
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -91,7 +92,7 @@ def test_synthetic_regression_automl():
                                                                  'rfe_non_lin_reg',
                                                                  'ridge',
                                                                  'linear']},
-                       preset='best_quality')
+                       preset=BEST_QUALITY_PRESET_NAME)
     auto_model.fit(features=test_data.features, target=test_data.target)
 
     auto_model.current_pipeline.fit(train_data)

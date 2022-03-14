@@ -4,6 +4,7 @@ import shutil
 import pytest
 
 from fedot.api.main import Fedot
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.test_client import TestClient
@@ -49,7 +50,7 @@ def test_pseudo_remote_composer_classification():
         'with_tuning': False
     }
 
-    preset = 'best_quality'
+    preset = BEST_QUALITY_PRESET_NAME
     automl = Fedot(problem='classification', preset=preset, composer_params=composer_params)
 
     path = os.path.join(fedot_project_root(), 'test', 'data', 'advanced_classification.csv')
@@ -92,7 +93,7 @@ def test_pseudo_remote_composer_ts_forecasting():
         'with_tuning': False
     }
 
-    preset = 'best_quality'
+    preset = BEST_QUALITY_PRESET_NAME
     automl = Fedot(problem='ts_forecasting', preset=preset, composer_params=composer_params,
                    task_params=TsForecastingParams(forecast_length=1))
 
