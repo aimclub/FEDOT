@@ -119,22 +119,26 @@ class ApiInitialAssumptions:
                                  has_categorical_features: bool,
                                  has_gaps: bool) -> List[Pipeline]:
         # TODO refactor as builder
-        node_prepocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
+        node_preprocessed = preprocessing_builder(task.task_type, has_gaps, has_categorical_features)
         if task.task_type == TaskTypesEnum.ts_forecasting:
-            pipelines = [create_glm_ridge_pipeline(node_prepocessed),
-                         create_lagged_ridge_pipeline(node_prepocessed),
-                         create_polyfit_ridge_pipeline(node_prepocessed),
-                         create_ar_pipeline(node_prepocessed)]
+            pipelines = [create_glm_ridge_pipeline(node_preprocessed),
+                         create_lagged_ridge_pipeline(node_preprocessed),
+                         create_polyfit_ridge_pipeline(node_preprocessed),
+                         create_ar_pipeline(node_preprocessed)]
         elif task.task_type == TaskTypesEnum.classification:
             if has_categorical_features:
-                pipelines = [create_rf_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rf_classifier_pipeline(node_preprocessed),
+                             create_logit_classifier_pipeline(node_preprocessed)]
             else:
-                pipelines = [create_rf_classifier_pipeline(node_prepocessed)]
+                pipelines = [create_rf_classifier_pipeline(node_preprocessed),
+                             create_logit_classifier_pipeline(node_preprocessed)]
         elif task.task_type == TaskTypesEnum.regression:
             if has_categorical_features:
-                pipelines = [create_rfr_regression_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_preprocessed),
+                             create_ridge_regression_pipeline(node_preprocessed)]
             else:
-                pipelines = [create_rfr_regression_pipeline(node_prepocessed)]
+                pipelines = [create_rfr_regression_pipeline(node_preprocessed),
+                             create_ridge_regression_pipeline(node_preprocessed)]
         else:
             raise NotImplementedError(f"Don't have initial pipeline for task type: {task.task_type}")
         return pipelines
@@ -216,6 +220,7 @@ def preprocessing_builder(task_type: TaskTypesEnum, has_gaps: bool = False, has_
 
 
 def create_lagged_ridge_pipeline(node_preprocessed=None):
+    """ Pipeline for time series forecasting task """
     if node_preprocessed:
         node_lagged = SecondaryNode('lagged', nodes_from=[node_preprocessed])
     else:
@@ -225,6 +230,7 @@ def create_lagged_ridge_pipeline(node_preprocessed=None):
 
 
 def create_glm_ridge_pipeline(node_preprocessed=None):
+    """ Pipeline for time series forecasting task """
     if node_preprocessed:
         node_glm = SecondaryNode('glm', nodes_from=[node_preprocessed])
         node_lagged = SecondaryNode('lagged', nodes_from=[node_preprocessed])
@@ -239,6 +245,7 @@ def create_glm_ridge_pipeline(node_preprocessed=None):
 
 
 def create_polyfit_ridge_pipeline(node_preprocessed=None):
+    """ Pipeline for time series forecasting task """
     if node_preprocessed:
         node_polyfit = SecondaryNode('polyfit', nodes_from=[node_preprocessed])
         node_lagged = SecondaryNode('lagged', nodes_from=[node_preprocessed])
@@ -253,6 +260,7 @@ def create_polyfit_ridge_pipeline(node_preprocessed=None):
 
 
 def create_ar_pipeline(node_preprocessed=None):
+    """ Pipeline for time series forecasting task """
     if node_preprocessed:
         node_smoothing = SecondaryNode('smoothing', nodes_from=[node_preprocessed])
     else:
@@ -265,5 +273,13 @@ def create_rf_classifier_pipeline(node_preprocessed):
     return Pipeline(SecondaryNode('rf', nodes_from=[node_preprocessed]))
 
 
+def create_logit_classifier_pipeline(node_preprocessed):
+    return Pipeline(SecondaryNode('logit', nodes_from=[node_preprocessed]))
+
+
 def create_rfr_regression_pipeline(node_preprocessed):
     return Pipeline(SecondaryNode('rfr', nodes_from=[node_preprocessed]))
+
+
+def create_ridge_regression_pipeline(node_preprocessed):
+    return Pipeline(SecondaryNode('ridge', nodes_from=[node_preprocessed]))

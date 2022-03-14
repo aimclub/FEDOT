@@ -10,6 +10,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from test.unit.api.test_main_api import get_dataset
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
@@ -456,3 +457,21 @@ def test_multimodal_pipeline_serialized_correctly():
     after_load_predicted_labels = pipeline_loaded.predict(mm_data, output_mode='labels')
 
     assert np.array_equal(before_save_predicted_labels.predict, after_load_predicted_labels.predict)
+
+
+def test_old_serialized_paths_load_correctly():
+    """
+    In older versions of FEDOT, pipelines were loaded using paths written to a json file.
+    The paths were represented as strings, not as lists. This test checks if the old version
+    pipelines can be loaded successfully using the new logic.
+    """
+    path = os.path.join(fedot_project_root(), 'test', 'data', 'pipeline_with_old_paths', 'pipeline_with_old_paths.json')
+
+    pipeline_loaded = Pipeline()
+    pipeline_loaded.load(path)
+
+    mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
+                                 extended=True)
+    loaded_pipeline_output = pipeline_loaded.predict(mixed_input)
+
+    assert loaded_pipeline_output is not None
