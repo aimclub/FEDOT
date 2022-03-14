@@ -7,8 +7,7 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
-from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
-from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
+from fedot.api.api_utils.presets import update_builder
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -30,6 +29,7 @@ from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.api.time import ApiTime
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 
 
 class ApiComposer:
@@ -128,9 +128,10 @@ class ApiComposer:
             initial_pipelines = initial_assumption
         # Check initial assumption
         fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger)
-        updated_preset = change_preset_based_on_initial_fit(fit_time, full_minutes_timeout, preset)
-
         builder = builder.with_initial_pipelines(initial_pipelines)
+
+        # Update builder if required
+        builder = update_builder(builder, composer_requirements, fit_time, full_minutes_timeout, preset)
         return builder, fitted_pipeline, fit_time
 
     def divide_operations(self,

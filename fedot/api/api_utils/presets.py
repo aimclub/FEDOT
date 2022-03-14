@@ -3,6 +3,9 @@ import datetime
 from copy import copy
 from typing import Union
 
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import \
+    PipelineComposerRequirements
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
     FAST_TRAIN_PRESET_NAME
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
@@ -33,9 +36,6 @@ class OperationsPreset:
         if self.preset_name is not None and 'available_operations' not in composer_params:
             available_operations = self._filter_operations_by_preset()
             updated_params['available_operations'] = available_operations
-
-        if updated_params['with_tuning']:
-            updated_params['with_tuning'] = True
 
         return updated_params
 
@@ -91,20 +91,35 @@ class OperationsPreset:
         return available_operations
 
 
+def update_builder(builder: ComposerBuilder,
+                   composer_requirements: PipelineComposerRequirements,
+                   fit_time: datetime.timedelta,
+                   full_minutes_timeout: Union[int, None], preset: str):
+    """ Updates the builder if a preset needs to be set automatically """
+    if preset != 'auto':
+        return builder
+
+    # Find appropriate preset
+    new_preset = change_preset_based_on_initial_fit(fit_time, full_minutes_timeout)
+
+    preset_manager = OperationsPreset(task=builder.task, preset_name=new_preset)
+    new_operations = preset_manager.composer_params_based_on_preset(composer_params={'preset': new_preset})
+    # Insert updated operations list into source composer parameters
+    composer_requirements.primary = new_operations['available_operations']
+    composer_requirements.secondary = new_operations['available_operations']
+    builder.with_requirements(composer_requirements)
+    return builder
+
+
 def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,
-                                       full_minutes_timeout: Union[int, None],
-                                       preset: str) -> str:
+                                       full_minutes_timeout: Union[int, None]) -> str:
     """
     If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
 
     :param fit_time: spend time for fit initial pipeline
     :param full_minutes_timeout: minutes for AutoML algorithm
-    :param preset: name of preset to use
     """
-    if preset != 'auto':
-        return preset
-
-    if full_minutes_timeout is None:
+    if full_minutes_timeout in [-1, None]:
         return BEST_QUALITY_PRESET_NAME
 
     # Change preset to appropriate one
