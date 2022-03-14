@@ -57,7 +57,7 @@ def _split_multi_time_series(data, task, *args, **kwargs):
     x_test = input_features[:-forecast_length]
 
     y_train = input_target[:-forecast_length]
-    y_test = input_target[-forecast_length:, 0:1]
+    y_test = input_target[-forecast_length:, :1]
 
     idx_train = data.idx[:-forecast_length]
     idx_test = data.idx[-forecast_length:]

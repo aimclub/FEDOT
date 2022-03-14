@@ -4,8 +4,6 @@ import numpy as np
 from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
 
 from fedot.core.data.data import OutputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \

@@ -1,5 +1,4 @@
 import sys
-import traceback
 from abc import abstractmethod
 
 import numpy as np
@@ -63,7 +62,6 @@ class QualityMetric:
             metric = cls.metric(reference_data, results)
         except Exception as ex:
             print(f'Metric evaluation error: {ex}')
-            print(traceback.format_exc())
         return metric
 
     @classmethod

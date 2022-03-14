@@ -633,7 +633,6 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
     :return features_columns: lagged time series feature table
     """
     # Convert data to lagged form
-
     lagged_dataframe = pd.DataFrame({'t_id': time_series})
     vals = lagged_dataframe['t_id']
     for i in range(1, window_size):
@@ -725,7 +724,6 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
 
     # Update target (clip first "window size" values)
     row_nums = [list(all_idx).index(i) for i in idx]
-
     ts_target = target[row_nums]
 
     # Multi-target transformation
