@@ -140,7 +140,7 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
                 cat_ids, non_cat_ids = find_categorical_columns(values.features, features_types)
                 data_has_categorical_columns = len(cat_ids) > 0
 
-    else:
+    elif data.supplementary_data.column_types: # if it's computed
         features_types = data.supplementary_data.column_types.get('features')
         cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
         data_has_categorical_columns = len(cat_ids) > 0
