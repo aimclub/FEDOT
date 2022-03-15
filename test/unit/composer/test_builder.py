@@ -8,10 +8,11 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-def test_gp_composer_builder():
+def prepare_builder_with_custom_params(return_all: bool):
     task = Task(TaskTypesEnum.classification)
 
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    available_model_types, _ = OperationTypesRepository().suitable_operation(
+        task_type=task.task_type)
 
     metric_function = ClassificationMetricsEnum.ROCAUC
 
@@ -19,15 +20,26 @@ def test_gp_composer_builder():
         primary=available_model_types,
         secondary=available_model_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=4,
-        crossover_prob=0.8, mutation_prob=1, timeout=datetime.timedelta(minutes=5))
+        crossover_prob=0.8, mutation_prob=1,
+        timeout=datetime.timedelta(minutes=5))
 
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(
+        genetic_scheme_type=scheme_type)
 
-    builder_with_custom_params = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
+    builder_with_custom_params = ComposerBuilder(task=task).with_requirements(
+        composer_requirements).with_metrics(
         metric_function).with_optimiser(parameters=optimiser_parameters)
 
-    composer_with_custom_params = builder_with_custom_params.build()
+    if return_all:
+        return builder_with_custom_params, scheme_type, metric_function, task
+    return builder_with_custom_params
+
+
+def test_gp_composer_builder():
+    builder, scheme_type, metric_function, task = prepare_builder_with_custom_params(return_all=True)
+
+    composer_with_custom_params = builder.build()
 
     assert composer_with_custom_params.optimiser.parameters.genetic_scheme_type == scheme_type
     assert composer_with_custom_params.metrics == [metric_function]
