@@ -138,4 +138,4 @@ if __name__ == '__main__':
     time_series = np.array(df['value'])
     run_pipeline_tuning(time_series=time_series,
                         len_forecast=50,
-                        pipeline_type='without_fit')  # mean custom ml model with fit, 'without_fit' - means domain model
+                        pipeline_type='with_fit')  # mean custom ml model with fit, 'without_fit' - means domain model
