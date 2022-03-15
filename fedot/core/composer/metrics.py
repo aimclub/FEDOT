@@ -172,7 +172,7 @@ class SMAPE(QualityMetric):
     @staticmethod
     def metric(reference: InputData, predicted: OutputData) -> float:
         numerator = 2 * np.abs(reference.target - predicted.predict)
-        denominator = (np.abs(reference.target) + np.abs(predicted.predict))
+        denominator = np.abs(reference.target) + np.abs(predicted.predict)
         return np.mean(100 * (numerator / denominator))
 
 
