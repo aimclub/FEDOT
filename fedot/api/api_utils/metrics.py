@@ -2,6 +2,7 @@ from typing import Callable, List, Union
 
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error,
                              mean_squared_error, r2_score, roc_auc_score)
+from fedot.core.composer.metrics import SMAPE
 
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
@@ -52,6 +53,7 @@ class ApiMetrics:
             'mse': mean_squared_error,
             'r2': r2_score,
             'rmse': mean_squared_error,
+            'smape': SMAPE.metric
         }
 
         return tuner_dict.get(metric_name)
