@@ -123,7 +123,8 @@ class RegressionAssumptions(TaskAssumptions):
         return 'rfr'
 
     def processing_pipelines(self, node_preprocessed: Optional[NodeT] = None) -> List[Pipeline]:
-        return [self.create_rfr_regression_pipeline(node_preprocessed)]
+        return [self.create_rfr_regression_pipeline(node_preprocessed),
+                self.create_ridge_regression_pipeline(node_preprocessed)]
 
     def fallback_pipeline(self, ops_filter: OperationsFilter, initial_node: Optional[NodeT] = None) -> Pipeline:
         random_choice_node = ops_filter.sample()
@@ -133,6 +134,10 @@ class RegressionAssumptions(TaskAssumptions):
     def create_rfr_regression_pipeline(node_preprocessed: Optional[NodeT]):
         return PipelineBuilder(node_preprocessed).node('rfr').to_pipeline()
 
+    @staticmethod
+    def create_ridge_regression_pipeline(node_preprocessed):
+        return PipelineBuilder(node_preprocessed).node('ridge').to_pipeline()
+
 
 class ClassificationAssumptions(TaskAssumptions):
 
@@ -140,7 +145,8 @@ class ClassificationAssumptions(TaskAssumptions):
         return 'rf'
 
     def processing_pipelines(self, node_preprocessed: Optional[NodeT] = None) -> List[Pipeline]:
-        return [self.create_rf_classifier_pipeline(node_preprocessed)]
+        return [self.create_rf_classifier_pipeline(node_preprocessed),
+                self.create_logit_classifier_pipeline(node_preprocessed)]
 
     def fallback_pipeline(self, ops_filter: OperationsFilter, initial_node: Optional[NodeT] = None) -> Pipeline:
         random_choice_node = ops_filter.sample()
@@ -149,6 +155,11 @@ class ClassificationAssumptions(TaskAssumptions):
     @staticmethod
     def create_rf_classifier_pipeline(node_preprocessed: Optional[NodeT]):
         return PipelineBuilder(node_preprocessed).node('rf').to_pipeline()
+
+    @staticmethod
+    def create_logit_classifier_pipeline(node_preprocessed):
+        return PipelineBuilder(node_preprocessed).node('logit')
+
 
 
 class PreprocessingBuilder:
