@@ -71,6 +71,7 @@ class ApiMetrics:
             'mse': RegressionMetricsEnum.MSE,
             'msle': RegressionMetricsEnum.MSLE,
             'mape': RegressionMetricsEnum.MAPE,
+            'smape': RegressionMetricsEnum.SMAPE,
             'r2': RegressionMetricsEnum.R2,
             'rmse': RegressionMetricsEnum.RMSE,
             'rmse_pen': RegressionMetricsEnum.RMSE_penalty,

@@ -166,6 +166,15 @@ class MAPE(QualityMetric):
                                               y_pred=predicted.predict)
 
 
+class SMAPE(QualityMetric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return np.mean(100 * (2 * np.abs((reference.target - predicted.predict)) /
+                              (np.abs(reference.target) + np.abs(predicted.predict))))
+
+
 class F1(QualityMetric):
     default_value = 0
     output_mode = 'labels'
