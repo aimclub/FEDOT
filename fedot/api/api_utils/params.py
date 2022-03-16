@@ -4,7 +4,7 @@ from typing import Optional, Dict, Union
 import numpy as np
 
 from fedot.core.constants import DEFAULT_FORECAST_LENGTH, \
-    DEFAULT_API_TIMEOUT_MINUTES, BEST_QUALITY_PRESET_NAME
+    DEFAULT_API_TIMEOUT_MINUTES, AUTO_PRESET_NAME
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -126,7 +126,7 @@ class ApiParams:
                   'num_of_generations': 50,
                   'timeout': 2,
                   'with_tuning': True,
-                  'preset': BEST_QUALITY_PRESET_NAME,
+                  'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
                   'stopping_after_n_generation': 10}
