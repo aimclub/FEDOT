@@ -8,7 +8,7 @@ from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
+from fedot.api.api_utils.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import (PipelineComposerRequirements)
@@ -35,7 +35,6 @@ class ApiComposer:
 
     def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
-        self.initial_assumptions = ApiInitialAssumptions()
         self.optimiser = EvoGraphOptimiser
         self.optimizer_external_parameters = None
         self.current_model = None
@@ -111,7 +110,7 @@ class ApiComposer:
             with_metrics(metric_function).with_logger(logger)
 
         if initial_assumption is None:
-            initial_pipelines = self.initial_assumptions.get_initial_assumption(data, task)
+            initial_pipelines = AssumptionsBuilder.get(task, data).build()
         elif isinstance(initial_assumption, Pipeline):
             initial_pipelines = [initial_assumption]
         else:
@@ -161,9 +160,11 @@ class ApiComposer:
             api_params['available_operations'].append('lagged')
 
         if not api_params['initial_assumption']:
-            api_params['initial_assumption'] = self.initial_assumptions. \
-                get_initial_assumption(api_params['train_data'], api_params['task'],
-                                       composer_params['available_operations'], api_params['logger'])
+            api_params['initial_assumption'] = AssumptionsBuilder\
+                .get(api_params['task'], api_params['train_data'])\
+                .with_logger(api_params['logger'])\
+                .from_operations(composer_params['available_operations'])\
+                .build()
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict):
         """ Function for composing FEDOT pipeline model """

@@ -7,6 +7,7 @@ import pandas as pd
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
+from fedot.api.api_utils.assumptions_builder import AssumptionsBuilder
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
@@ -391,8 +392,7 @@ class Fedot:
             pipelines = [predefined_model]
         elif predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
-                                                                                     self.params.api_params['task'])
+            pipelines = AssumptionsBuilder.get(self.params.api_params['task'], self.train_data).build()
         elif isinstance(predefined_model, str):
             model = PrimaryNode(predefined_model)
             pipelines = [Pipeline(model)]
