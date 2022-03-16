@@ -131,9 +131,6 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
 
         is_correct_graph = constraint_function(new_graph, params)
         if is_correct_graph:
-            rules = params.rules_for_constraint
-            object_for_validation = params.adapter.restore(deepcopy(new_graph))
-            validate(object_for_validation, rules, params.advisor.task)
             new_individual = Individual(new_graph)
             if add_to_history:
                 new_individual = Individual(new_graph)

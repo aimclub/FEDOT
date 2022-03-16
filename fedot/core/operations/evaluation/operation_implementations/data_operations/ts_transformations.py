@@ -120,6 +120,7 @@ class LaggedImplementation(DataOperationImplementation):
                                                   self.n_components,
                                                   self.use_svd)
             # Transform target
+            #current_target = self._current_target_for_each_ts(current_ts_id, target)
             if input_data.data_type == DataTypesEnum.multi_ts:
                 while current_ts_id >= target.shape[1]:
                     current_ts_id = current_ts_id - target.shape[1]
@@ -148,6 +149,28 @@ class LaggedImplementation(DataOperationImplementation):
         input_data.features = all_transformed_features
         self.features_columns = all_transformed_features
         return all_transformed_target, all_transformed_idx
+
+    def _multi_ts_transformation_for_fit(self, input_data):
+        pass
+
+    def _stack_multi_variable(self, all_features, all_target, all_idx, features, target, idx):
+        all_features = np.hstack((all_features, features))
+        return all_features, all_target, all_idx
+
+    def _stack_multi_ts(self, all_features, all_target, all_idx, features, target, idx):
+        all_features = np.vstack((all_features, features))
+        all_target = np.vstack((all_target, target))
+        all_idx = np.hstack((all_idx, np.array(idx)))
+        return all_features, all_target, all_idx
+
+    def _current_target_for_each_ts(self, current_ts_id, target):
+
+        if len(target.shape) > 1 and current_ts_id >= target.shape[1]:
+            while current_ts_id >= target.shape[1]:
+                current_ts_id = current_ts_id - target.shape[1]
+            return target[:, current_ts_id]
+        else:
+            return target
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
         """ Apply lagged transformation for every column (time series) in the dataset """
@@ -270,30 +293,27 @@ class TsSmoothingImplementation(DataOperationImplementation):
             full_smoothed_ts = []
             for ts_n in range(source_ts.shape[1]):
                 ts = pd.Series(source_ts[:, ts_n])
-                # Apply smoothing operation
-                smoothed_ts = ts.rolling(window=self.window_size).mean()
-                smoothed_ts = np.array(smoothed_ts)
-
-                # Filling first nans with source values
-                smoothed_ts[:self.window_size] = ts[:self.window_size]
+                smoothed_ts = self._apply_smoothing_to_series(ts)
                 full_smoothed_ts.append(smoothed_ts)
             output_data = self._convert_to_output(input_data,
                                                   np.array(full_smoothed_ts).T,
-                                                  data_type=DataTypesEnum.multi_ts)
+                                                  data_type=input_data.data_type)
         else:
             source_ts = pd.Series(input_data.features)
-            # Apply smoothing operation
-            smoothed_ts = source_ts.rolling(window=self.window_size).mean()
-            smoothed_ts = np.array(smoothed_ts)
-
-            # Filling first nans with source values
-            smoothed_ts[:self.window_size] = source_ts[:self.window_size]
-
+            smoothed_ts = np.ravel(self._apply_smoothing_to_series(source_ts))
             output_data = self._convert_to_output(input_data,
-                                                  np.ravel(smoothed_ts),
-                                                  data_type=DataTypesEnum.ts)
+                                                  smoothed_ts,
+                                                  data_type=input_data.data_type)
 
         return output_data
+
+    def _apply_smoothing_to_series(self, ts):
+        smoothed_ts = ts.rolling(window=self.window_size).mean()
+        smoothed_ts = np.array(smoothed_ts)
+
+        # Filling first nans with source values
+        smoothed_ts[:self.window_size] = ts[:self.window_size]
+        return smoothed_ts
 
     def get_params(self):
         return {'window_size': self.window_size}
@@ -448,12 +468,12 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
                 full_differential_ts.append(differential_ts)
             output_data = self._convert_to_output(input_data,
                                                   np.array(full_differential_ts).T,
-                                                  data_type=DataTypesEnum.multi_ts)
+                                                  data_type=input_data.data_type)
         else:
-            differential_ts = self._differential_filter(source_ts)
+            differential_ts = np.ravel(self._differential_filter(source_ts))
             output_data = self._convert_to_output(input_data,
-                                                  np.ravel(differential_ts),
-                                                  data_type=DataTypesEnum.ts)
+                                                  differential_ts,
+                                                  data_type=input_data.data_type)
 
         return output_data
 

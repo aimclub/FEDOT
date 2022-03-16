@@ -331,7 +331,7 @@ def tables_mapping(idx_list, object_list, common_idx):
 
     common_tables = []
 
-    # if indeces repeats (for multi_ts data type)
+    # if indices repeats (for multi_ts data type)
     repeats_num = int(min(obj.shape[0] for obj in object_list)/len(common_idx))
     common_idx_new = list(common_idx) * repeats_num
 

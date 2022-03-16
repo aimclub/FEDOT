@@ -1,5 +1,4 @@
 from copy import deepcopy
-import numpy as np
 from typing import Tuple, Union
 
 from sklearn.model_selection import train_test_split

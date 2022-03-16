@@ -10,12 +10,19 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+
+
+def calculate_metrics(target, predicted):
+    rmse = mean_squared_error(target, predicted, squared=True)
+    mae = mean_absolute_error(target, predicted)
+    return rmse, mae
 
 
 def create_complex_train(points_list, forecast_length):
@@ -121,8 +128,7 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
     pipeline.fit(train_data)
     prediction_before = np.ravel(np.array(pipeline.predict(test_data).predict))
     # metrics evaluation
-    rmse = mean_squared_error(test_data.target, prediction_before, squared=False)
-    mae = mean_absolute_error(test_data.target, prediction_before)
+    rmse, mae = calculate_metrics(test_data.target, prediction_before)
 
     # compose pipeline with initial approximation
     obtained_pipeline = compose_pipeline(pipeline, train_data, task)
@@ -132,8 +138,7 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
     prediction_after = obtained_pipeline.predict(test_data)
     predict_after = np.ravel(np.array(prediction_after.predict))
     # metrics evaluation
-    rmse_composing = mean_squared_error(test_data.target, predict_after, squared=True)
-    mae_composing = mean_absolute_error(test_data.target, predict_after)
+    rmse_composing, mae_composing = calculate_metrics(test_data.target, predict_after)
 
     # tuning composed pipeline
     obtained_pipeline_copy.fine_tune_all_nodes(input_data=train_data,
@@ -145,8 +150,7 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
     prediction_after_tuning = obtained_pipeline_copy.predict(test_data)
     predict_after_tuning = np.ravel(np.array(prediction_after_tuning.predict))
     # metrics evaluation
-    rmse_tuning = mean_squared_error(test_data.target, predict_after_tuning, squared=True)
-    mae_tuning = mean_absolute_error(test_data.target, predict_after_tuning)
+    rmse_tuning, mae_tuning = calculate_metrics(test_data.target, predict_after_tuning)
 
     # visualization of results
     if multi_ts:
