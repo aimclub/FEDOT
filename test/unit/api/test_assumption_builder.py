@@ -1,11 +1,10 @@
 from functools import partial
-from typing import List, Tuple, Union, Optional
+from typing import Union
 
 import numpy as np
 
 from fedot.api.api_utils.assumptions_builder \
-    import PreprocessingBuilder, PrimaryAssumptionsBuilder, MultiModalAssumptionsBuilder, AssumptionsBuilder
-from fedot.api.api_utils.pipeline_builder import OpT
+    import PreprocessingBuilder, UnimodalAssumptionsBuilder, MultiModalAssumptionsBuilder, AssumptionsBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -16,33 +15,35 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_pipeline_builder import pipelines_same
+from test.unit.pipelines.test_pipeline_builder import pipelines_same
 
 from test.unit.data_operations.test_data_operations_implementations \
-    import get_small_classification_dataset, get_time_series, get_small_regression_dataset
+    import get_time_series, get_small_regression_dataset
 from test.unit.api.test_main_api \
-    import get_dataset, load_categorical_unimodal, load_categorical_multidata
+    import get_dataset, load_categorical_unimodal
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 
 
-def pipeline_contains_one(pipeline: Pipeline, op: OpT) -> bool:
+def pipeline_contains_one(pipeline: Pipeline, operation_name: str) -> bool:
     def is_the_op(node: Node):
-        return node.operation.operation_type == op
+        return node.operation.operation_type == operation_name
 
     return any(map(is_the_op, pipeline.nodes))
 
 
-def pipeline_contains_all(pipeline: Pipeline, *op: OpT, negate=False) -> bool:
-    results = map(cond := partial(pipeline_contains_one, pipeline), op)
-    return all(results) if not negate else not any(results)
+def pipeline_contains_all(pipeline: Pipeline, *operation_name: str) -> bool:
+    contains_one = partial(pipeline_contains_one, pipeline)
+    return all(map(contains_one, operation_name))
 
 
-def pipeline_contains_any(pipeline: Pipeline, *op: OpT) -> bool:
-    return any(map(cond := partial(pipeline_contains_one, pipeline), op))
+def pipeline_contains_any(pipeline: Pipeline, *operation_name: str) -> bool:
+    contains_one = partial(pipeline_contains_one, pipeline)
+    return any(map(contains_one, operation_name))
 
 
 def get_suitable_operations_for_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo='model'):
-    return OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)[0]
+    operations, _ = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
+    return operations
 
 
 def get_test_ts_gaps_data():
@@ -122,8 +123,8 @@ def test_assumptions_builder_unsuitable_available_operations():
     logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['linear', 'xgboost', 'lagged']
 
-    default_builder = PrimaryAssumptionsBuilder(task, train_input).with_logger(logger)
-    checked_builder = PrimaryAssumptionsBuilder(task, train_input).with_logger(logger) \
+    default_builder = UnimodalAssumptionsBuilder(task, train_input).with_logger(logger)
+    checked_builder = UnimodalAssumptionsBuilder(task, train_input).with_logger(logger) \
         .from_operations(available_operations)
 
     assert default_builder.build() == checked_builder.build()
@@ -145,7 +146,6 @@ def test_assumptions_builder_suitable_available_operations_multidata():
     task = Task(TaskTypesEnum.classification)
     mm_data, _ = get_single_task_multimodal_tabular_data()
 
-    print('type data type: ', type(mm_data.data_type[0]))
     # TODO: Currently MultiDataAssumptionsBuilder ignores available operations, although this test passes
     # impl_test_assumptions_builder_suitable_available_operations(task, mm_data, data_type=mm_data.data_type[0])
     assert True
@@ -155,14 +155,12 @@ def impl_test_assumptions_builder_suitable_available_operations(
         task, train_input, data_type=None, logger=default_log('FEDOT logger', verbose_level=4)):
     if not data_type:
         data_type = train_input.data_type
-    print(f'data_type: {data_type}')
     available_operations = get_suitable_operations_for_task(task.task_type, data_type)
     assert available_operations
 
     default_builder = AssumptionsBuilder.get(task, train_input).with_logger(logger)
     baseline_pipeline = default_builder.build()[0]
     baseline_operation = baseline_pipeline.root_node.operation.operation_type
-    print(f'baseline op: {baseline_operation}, available ops: {available_operations}')
     available_operations.remove(baseline_operation)
 
     checked_builder = AssumptionsBuilder.get(task, train_input).with_logger(logger) \

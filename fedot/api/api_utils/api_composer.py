@@ -160,11 +160,11 @@ class ApiComposer:
             api_params['available_operations'].append('lagged')
 
         if not api_params['initial_assumption']:
-            api_params['initial_assumption'] = AssumptionsBuilder\
+            assumptions_builder = AssumptionsBuilder\
                 .get(api_params['task'], api_params['train_data'])\
                 .with_logger(api_params['logger'])\
-                .from_operations(composer_params['available_operations'])\
-                .build()
+                .from_operations(composer_params['available_operations'])
+            api_params['initial_assumption'] = assumptions_builder.build()
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict):
         """ Function for composing FEDOT pipeline model """

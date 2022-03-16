@@ -9,7 +9,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.api.api_utils.pipeline_builder import PipelineBuilder, Node
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
 
 class OperationsFilter:
@@ -46,17 +46,17 @@ class TaskAssumptions:
 
     @staticmethod
     def for_task(task: Task):
-        task2assumptions = {
+        task_to_assumptions = {
             TaskTypesEnum.classification: ClassificationAssumptions,
             TaskTypesEnum.regression: RegressionAssumptions,
             TaskTypesEnum.ts_forecasting: TSForecastingAssumptions,
         }
-        assumptions_cls = task2assumptions.get(task.task_type)
+        assumptions_cls = task_to_assumptions.get(task.task_type)
         if not assumptions_cls:
             raise NotImplementedError(f"Don't have assumptions for task type: {task.task_type}")
         return assumptions_cls()
 
-    def ensemble_op(self) -> str:
+    def ensemble_operation(self) -> str:
         """ Suitable ensemble operation used for MultiModalData case. """
         raise NotImplementedError()
 
@@ -69,14 +69,13 @@ class TaskAssumptions:
         Returns default Pipeline in the case when primary alternatives
         from .processing_pipelines() didn't pass OperationsFilter.
         Have access for OperationsFilter for sampling available operations.
-        :param initial_node:
         """
         raise NotImplementedError()
 
 
 class TSForecastingAssumptions(TaskAssumptions):
 
-    def ensemble_op(self) -> str:
+    def ensemble_operation(self) -> str:
         return 'ridge'
 
     def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
@@ -121,7 +120,7 @@ class TSForecastingAssumptions(TaskAssumptions):
 
 class RegressionAssumptions(TaskAssumptions):
 
-    def ensemble_op(self) -> str:
+    def ensemble_operation(self) -> str:
         return 'rfr'
 
     def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
@@ -143,7 +142,7 @@ class RegressionAssumptions(TaskAssumptions):
 
 class ClassificationAssumptions(TaskAssumptions):
 
-    def ensemble_op(self) -> str:
+    def ensemble_operation(self) -> str:
         return 'rf'
 
     def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
@@ -209,7 +208,7 @@ class AssumptionsBuilder:
         self.logger = default_log('FEDOT logger')
         self.data = data
         self.task = task
-        self.task_assumptions = TaskAssumptions.for_task(task)
+        self.assumptions_generator = TaskAssumptions.for_task(task)
 
     @staticmethod
     def get(task: Task, data: Union[InputData, MultiModalData]):
@@ -267,11 +266,11 @@ class UnimodalAssumptionsBuilder(AssumptionsBuilder):
             if self.ops_filter.satisfies(pipeline):
                 return pipeline
             else:
-                return self.task_assumptions.fallback_pipeline(self.ops_filter, initial_node)
+                return self.assumptions_generator.fallback_pipeline(self.ops_filter, initial_node)
 
         node_preprocessed: Optional[Node] = \
             PreprocessingBuilder.build_for_data(self.task.task_type, self.data, initial_node)
-        candidate_pipelines = self.task_assumptions.processing_pipelines(node_preprocessed)
+        candidate_pipelines = self.assumptions_generator.processing_pipelines(node_preprocessed)
         valid_pipelines = list(map(_filter_or_fallback, candidate_pipelines))
 
         return valid_pipelines
@@ -321,7 +320,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         # Then zip these alternatives together and add final node to get ensembles.
         ensembles: List[Pipeline] = []
         for pre_ensemble in zip(*subpipelines):
-            node_final = self.task_assumptions.ensemble_op()
+            node_final = self.assumptions_generator.ensemble_operation()
             ensemble_nodes = map(lambda pipeline: pipeline.root_node, pre_ensemble)
             ensemble_pipeline = PipelineBuilder(*ensemble_nodes).join_branches(node_final).to_pipeline()
             ensembles.append(ensemble_pipeline)
