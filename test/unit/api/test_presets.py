@@ -2,11 +2,14 @@ import datetime
 
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.presets import OperationsPreset, update_builder
+from fedot.api.main import Fedot
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
     FAST_TRAIN_PRESET_NAME, AUTO_PRESET_NAME
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.composer.test_builder import prepare_builder_with_custom_params
+from test.unit.api.test_main_api import data_with_binary_features_and_categorical_target
 
 
 def test_presets_classification():
@@ -60,15 +63,13 @@ def test_presets_inserting_in_params_correct():
     assert updated_candidates is not None
 
 
-def test_auto_preset_processed_correctly():
-    """ 'auto' preset must be replaced with appropriate preset based on initial pipeline fitting time """
-    builder = prepare_builder_with_custom_params(return_all=False)
-    source_available_operations = builder._composer.composer_requirements.primary
-    builder = update_builder(builder=builder,
-                             composer_requirements=builder._composer.composer_requirements,
-                             fit_time=datetime.timedelta(minutes=0.5),
-                             full_minutes_timeout=2,
-                             preset=AUTO_PRESET_NAME)
-    new_available_operations = builder._composer.composer_requirements.primary
+def test_auto_preset_converted_correctly():
+    """ Checks that the proposed method of automatic preset detection correctly converts a preset """
+    data = data_with_binary_features_and_categorical_target()
 
-    assert len(source_available_operations) != len(new_available_operations)
+    simple_init_assumption = Pipeline(PrimaryNode('logit'))
+    fedot_model = Fedot(problem='classification', preset=AUTO_PRESET_NAME,
+                        timeout=0.1, composer_params={'initial_assumption': simple_init_assumption})
+    # API must return initial assumption without starting composing and tuning
+    fedot_model.fit(data)
+    assert fedot_model.api_composer.preset_name == BEST_QUALITY_PRESET_NAME

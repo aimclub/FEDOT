@@ -2,10 +2,8 @@ import datetime
 from contextlib import contextmanager
 
 from fedot.core.constants import COMPOSING_TUNING_PROPORTION
-from fedot.utilities.pattern_wrappers import singleton
 
 
-@singleton
 class ApiTime:
     """
     A class for performing operations on the AutoML algorithm runtime at the API level
@@ -21,11 +19,11 @@ class ApiTime:
 
         # Time for composing
         self.starting_time_for_composing = None
-        self.composing_spend_time = 0
+        self.composing_spend_time = datetime.timedelta(minutes=0)
 
         # Time for tuning
         self.starting_time_for_tuning = None
-        self.tuning_spend_time = 0
+        self.tuning_spend_time = datetime.timedelta(minutes=0)
 
     def __define_timeouts_for_stages(self):
         """ Determine timeouts for tuning and composing """

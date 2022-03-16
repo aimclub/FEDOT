@@ -44,6 +44,9 @@ class ApiComposer:
         self.best_models = None
         self.history = None
 
+        self.preset_name = None
+        self.timer = None
+
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
         if composer_metric is None:
@@ -131,8 +134,10 @@ class ApiComposer:
         fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger)
         builder = builder.with_initial_pipelines(initial_pipelines)
 
-        # Update builder if required
-        builder = update_builder(builder, composer_requirements, fit_time, full_minutes_timeout, preset)
+        # Update builder and preset if required
+        builder, new_preset = update_builder(builder, composer_requirements, fit_time, full_minutes_timeout, preset)
+        # Store information about preset
+        self.preset_name = new_preset
         return builder, fitted_pipeline, fit_time
 
     def divide_operations(self,
@@ -182,8 +187,8 @@ class ApiComposer:
                             preset: str):
         """ Function for composing FEDOT pipeline model """
         # Initialize timer for all AutoMl operations
-        timer = ApiTime(time_for_automl=api_params['timeout'],
-                        with_tuning=tuning_params['with_tuning'])
+        self.timer = ApiTime(time_for_automl=api_params['timeout'],
+                             with_tuning=tuning_params['with_tuning'])
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
 
@@ -209,7 +214,7 @@ class ApiComposer:
                                                              num_of_generations=composer_params['num_of_generations'],
                                                              cv_folds=composer_params['cv_folds'],
                                                              validation_blocks=composer_params['validation_blocks'],
-                                                             timeout=timer.datetime_composing,
+                                                             timeout=self.timer.datetime_composing,
                                                              n_jobs=api_params['n_jobs'])
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
@@ -251,8 +256,8 @@ class ApiComposer:
                                          initial_assumption=api_params['initial_assumption'],
                                          logger=api_params['logger'])
         gp_composer = None
-        timeout_were_set = timer.datetime_composing is not None
-        if timeout_were_set and init_pipeline_fit_time >= timer.datetime_composing / composer_params['pop_size']:
+        timeout_were_set = self.timer.datetime_composing is not None
+        if timeout_were_set and init_pipeline_fit_time >= self.timer.datetime_composing / composer_params['pop_size']:
             api_params['logger'].message(f'Timeout is too small for composing '
                                          f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.,'
                                          ' so it is skipped.')
@@ -260,7 +265,7 @@ class ApiComposer:
             pipeline_gp_composed = fitted_initial_pipeline
         else:
             # Launch pipeline structure composition
-            with timer.launch_composing():
+            with self.timer.launch_composing():
                 gp_composer = builder.build()
                 api_params['logger'].message(f'Pipeline composition started. Initial pipeline was fitted '
                                              f'for fit_time {init_pipeline_fit_time.total_seconds()} sec.')
@@ -278,7 +283,8 @@ class ApiComposer:
         pipeline_gp_composed = self.tune_final_pipeline(api_params=api_params, tuning_params=tuning_params,
                                                         composer_requirements=composer_requirements,
                                                         pipeline_gp_composed=pipeline_gp_composed,
-                                                        timer=timer, init_pipeline_fit_time=init_pipeline_fit_time)
+                                                        timer=self.timer,
+                                                        init_pipeline_fit_time=init_pipeline_fit_time)
 
         api_params['logger'].message('Model generation finished')
 

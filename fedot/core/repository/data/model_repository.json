@@ -281,14 +281,14 @@
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting", "tree", "non-default"
+        "boosting", "tree"
       ]
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "tree", "non_multi", "non-default"
+        "boosting", "tree", "non_multi"
       ]
     },
     "linear": {
