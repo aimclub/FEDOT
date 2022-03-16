@@ -28,6 +28,7 @@ from test.unit.multimodal.data_generators import get_single_task_multimodal_tabu
 def pipeline_contains_one(pipeline: Pipeline, op: OpT) -> bool:
     def is_the_op(node: Node):
         return node.operation.operation_type == op
+
     return any(map(is_the_op, pipeline.nodes))
 
 
@@ -38,7 +39,6 @@ def pipeline_contains_all(pipeline: Pipeline, *op: OpT, negate=False) -> bool:
 
 def pipeline_contains_any(pipeline: Pipeline, *op: OpT) -> bool:
     return any(map(cond := partial(pipeline_contains_one, pipeline), op))
-
 
 
 def get_suitable_operations_for_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo='model'):
@@ -63,11 +63,14 @@ def preprocess(task_type: TaskTypesEnum, data: Union[InputData, MultiModalData])
 
 
 def test_preprocessing_builder_no_data():
-
     assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).to_pipeline(), 'scaling')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_gaps().to_pipeline(), 'simple_imputation')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_categorical().to_pipeline(), 'one_hot_encoding')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_gaps().with_categorical().to_pipeline(), 'simple_imputation', 'one_hot_encoding')
+    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_gaps().to_pipeline(),
+                                 'simple_imputation')
+    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_categorical().to_pipeline(),
+                                 'one_hot_encoding')
+    assert pipeline_contains_all(
+        PreprocessingBuilder(TaskTypesEnum.regression).with_gaps().with_categorical().to_pipeline(),
+        'simple_imputation', 'one_hot_encoding')
 
     # have default preprocessing pipelines
     assert PreprocessingBuilder(TaskTypesEnum.regression).to_pipeline() is not None
@@ -81,7 +84,6 @@ def test_preprocessing_builder_no_data():
 
 
 def test_preprocessing_builder_with_data():
-
     # TableTypesCorrector fills in .supplementary_data needed for preprocessing_builder
     data_reg = TableTypesCorrector().convert_data_for_fit(get_small_regression_dataset()[0])
     data_cats = TableTypesCorrector().convert_data_for_fit(load_categorical_unimodal()[0])
@@ -97,7 +99,6 @@ def test_preprocessing_builder_with_data():
 
 
 def test_assumptions_builder_for_multimodal_data():
-
     task = Task(TaskTypesEnum.classification)
     mm_data, _ = get_single_task_multimodal_tabular_data()
     logger = default_log('FEDOT logger', verbose_level=4)
@@ -108,7 +109,7 @@ def test_assumptions_builder_for_multimodal_data():
     assert pipeline_contains_all(mm_pipeline, *mm_data)
     assert len(list(filter(lambda node: isinstance(node, PrimaryNode), mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
-    assert mm_pipeline.length == mm_pipeline.depth * mm_data.num_classes - 1 # minus final ensemble node
+    assert mm_pipeline.length == mm_pipeline.depth * mm_data.num_classes - 1  # minus final ensemble node
 
 
 def test_assumptions_builder_unsuitable_available_operations():
@@ -152,7 +153,6 @@ def test_assumptions_builder_suitable_available_operations_multidata():
 
 def impl_test_assumptions_builder_suitable_available_operations(
         task, train_input, data_type=None, logger=default_log('FEDOT logger', verbose_level=4)):
-
     if not data_type:
         data_type = train_input.data_type
     print(f'data_type: {data_type}')
@@ -173,4 +173,3 @@ def impl_test_assumptions_builder_suitable_available_operations(
     assert not pipelines_same(baseline_pipeline, checked_pipeline)
     # check expected structure of pipeline
     assert pipeline_contains_any(checked_pipeline, *available_operations)
-
