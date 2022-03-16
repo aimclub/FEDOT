@@ -1,8 +1,8 @@
 from typing import Callable, List, Union
+import numpy as np
 
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error,
                              mean_squared_error, r2_score, roc_auc_score)
-from fedot.core.composer.metrics import SMAPE
 
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
@@ -53,7 +53,7 @@ class ApiMetrics:
             'mse': mean_squared_error,
             'r2': r2_score,
             'rmse': mean_squared_error,
-            'smape': SMAPE.metric
+            'smape': smape
         }
 
         return tuner_dict.get(metric_name)
@@ -81,3 +81,11 @@ class ApiMetrics:
             'node_num': ComplexityMetricsEnum.node_num
         }
         return composer_metric_dict[metric_name]
+
+
+def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """ Symmetric mean absolute percentage error """
+
+    numerator = 2 * np.abs(y_true - y_pred)
+    denominator = np.abs(y_true) + np.abs(y_pred)
+    return np.mean(100 * (numerator / denominator))
