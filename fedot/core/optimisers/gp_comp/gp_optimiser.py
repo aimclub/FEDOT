@@ -1,13 +1,11 @@
 import math
-import multiprocessing
 from copy import deepcopy
-from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 import numpy as np
-from tqdm import tqdm
 from deap.tools import ParetoFront
+from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -386,15 +384,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
 
-    def default_on_next_iteration_callback(self, individuals, archive):
-        try:
-            self.history.add_to_history(individuals)
-            self.history.save_current_results()
-            archive = deepcopy(archive)
-            if archive is not None:
-                self.history.add_to_archive_history(archive.items)
-        except Exception as ex:
-            self.log.warn(f'Callback was not successful because of {ex}')
 
     def result_individual(self) -> Union[Any, List[Any]]:
         if not self.parameters.multi_objective:

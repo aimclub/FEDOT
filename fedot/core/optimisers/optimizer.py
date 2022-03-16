@@ -116,7 +116,8 @@ class GraphOptimiser:
         """
         try:
             self.history.add_to_history(individuals)
-            self.history.save_current_results()
+            if self.history.save_folder:
+                self.history.save_current_results()
             archive = deepcopy(archive)
             if archive is not None:
                 self.history.add_to_archive_history(archive.items)
