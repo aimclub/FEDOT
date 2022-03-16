@@ -4,9 +4,6 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-OpT = Union[str, 'Operation']
-
-
 class PipelineBuilder:
     """ Builder for incremental construction of directed acyclic Pipelines.
     Semantics:
@@ -23,7 +20,7 @@ class PipelineBuilder:
     def _iend(self) -> int:
         return len(self.heads)
 
-    def add_node(self, operation_type: Optional[OpT], branch_idx: int = 0):
+    def add_node(self, operation_type: Optional[str], branch_idx: int = 0):
         """ Add single node to pipeline branch of specified index.
         If there are no heads => adds single PrimaryNode.
         If there is single head => adds single SecondaryNode using head as input.
@@ -44,13 +41,13 @@ class PipelineBuilder:
             self.heads.append(PrimaryNode(operation_type))
         return self
 
-    def add_sequence(self, *operation_type: OpT, branch_idx: int = 0):
+    def add_sequence(self, *operation_type: str, branch_idx: int = 0):
         """ Same as .node() but for many operations at once. """
         for operation in operation_type:
             self.add_node(operation, branch_idx)
         return self
 
-    def grow_branches(self, *operation_type: Optional[OpT]):
+    def grow_branches(self, *operation_type: Optional[str]):
         """ Add single node to each branch.
 
         Argument position means index of the branch to grow.
@@ -65,7 +62,7 @@ class PipelineBuilder:
             self.add_node(operation, i)
         return self
 
-    def add_branch(self, *operation_type: Optional[OpT], branch_idx: int = 0):
+    def add_branch(self, *operation_type: Optional[str], branch_idx: int = 0):
         """ Create branches at the tip of branch with branch_idx.
 
         None operations are filtered out.
@@ -92,7 +89,7 @@ class PipelineBuilder:
                 self.add_node(operation, self._iend)
         return self
 
-    def join_branches(self, operation_type: Optional[OpT]):
+    def join_branches(self, operation_type: Optional[str]):
         """ Joins all current branches with provided operation as ensemble node.
 
         If there are no branches => does nothing.

@@ -9,7 +9,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.api.api_utils.pipeline_builder import PipelineBuilder, OpT, Node
+from fedot.api.api_utils.pipeline_builder import PipelineBuilder, Node
 
 
 class OperationsFilter:
@@ -17,7 +17,7 @@ class OperationsFilter:
         """ Checks if all operations in a Pipeline satisify this filter. """
         return True
 
-    def sample(self) -> OpT:
+    def sample(self) -> str:
         """ Samples some operation that satisfies this filter. """
         raise NotImplementedError()
 
@@ -26,7 +26,7 @@ class WhitelistOperationsFilter(OperationsFilter):
     """ Simple OperationsFilter implementation based on two lists:
     one for all available operations, another for sampling operations. """
 
-    def __init__(self, available_ops: List[OpT], available_task_ops: Optional[List[OpT]] = None):
+    def __init__(self, available_ops: List[str], available_task_ops: Optional[List[str]] = None):
         super().__init__()
         self._whitelist = tuple(available_ops)
         self._choice_ops = tuple(available_task_ops) if available_task_ops else self._whitelist
@@ -37,7 +37,7 @@ class WhitelistOperationsFilter(OperationsFilter):
 
         return all(map(node_ok, pipeline.nodes))
 
-    def sample(self) -> OpT:
+    def sample(self) -> str:
         return choice(self._choice_ops)
 
 
@@ -56,7 +56,7 @@ class TaskAssumptions:
             raise NotImplementedError(f"Don't have assumptions for task type: {task.task_type}")
         return assumptions_cls()
 
-    def ensemble_op(self) -> OpT:
+    def ensemble_op(self) -> str:
         """ Suitable ensemble operation used for MultiModalData case. """
         raise NotImplementedError()
 
@@ -76,7 +76,7 @@ class TaskAssumptions:
 
 class TSForecastingAssumptions(TaskAssumptions):
 
-    def ensemble_op(self) -> OpT:
+    def ensemble_op(self) -> str:
         return 'ridge'
 
     def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
@@ -121,7 +121,7 @@ class TSForecastingAssumptions(TaskAssumptions):
 
 class RegressionAssumptions(TaskAssumptions):
 
-    def ensemble_op(self) -> OpT:
+    def ensemble_op(self) -> str:
         return 'rfr'
 
     def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
@@ -143,7 +143,7 @@ class RegressionAssumptions(TaskAssumptions):
 
 class ClassificationAssumptions(TaskAssumptions):
 
-    def ensemble_op(self) -> OpT:
+    def ensemble_op(self) -> str:
         return 'rf'
 
     def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
@@ -223,7 +223,7 @@ class AssumptionsBuilder:
     def with_logger(self, logger: Log):
         raise NotImplementedError('abstract')
 
-    def from_operations(self, available_ops: List[OpT]):
+    def from_operations(self, available_ops: List[str]):
         raise NotImplementedError('abstract')
 
     def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
@@ -248,7 +248,7 @@ class UnimodalAssumptionsBuilder(AssumptionsBuilder):
         self.logger = logger
         return self
 
-    def from_operations(self, available_ops: Optional[List[OpT]]):
+    def from_operations(self, available_ops: Optional[List[str]]):
         if available_ops:
             operations_to_choose_from = \
                 self._get_operations_for_the_task(task_type=self.task.task_type, data_type=self.data_type,
@@ -303,7 +303,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         return self
 
     # TODO: in principle, each data column in MultiModalData can have its own available_ops
-    def from_operations(self, available_ops: List[OpT]):
+    def from_operations(self, available_ops: List[str]):
         self.logger.message("Available operations are not taken into account when "
                             "forming the initial assumption for multi-modal data")
         # for _, subbuilder in self._subbuilders:
