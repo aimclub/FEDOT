@@ -84,3 +84,5 @@ def replace_n_jobs_in_nodes(graph: OptGraph):
     for node in graph.nodes:
         if 'n_jobs' in node.content['params']:
             node.content['params']['n_jobs'] = 1
+        if 'num_threads' in node.content['params']:
+            node.content['params']['num_threads'] = 1
