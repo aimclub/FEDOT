@@ -5,7 +5,6 @@ import pytest
 
 from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 from .dataclasses.serialization_dataclasses import EncoderTestCase
-from .fixtures.serialization_fixtures import mock_classes_fixture
 from .mocks.serialization_mocks import MockGraph, MockOperation
 from .shared_data import (
     MOCK_NODE_1,
@@ -17,8 +16,6 @@ from .shared_data import (
     TestSerializableClass,
     test_func
 )
-
-_ = mock_classes_fixture
 
 ENCODER_CASES = [
     EncoderTestCase(

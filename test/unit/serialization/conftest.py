@@ -15,8 +15,8 @@ from fedot.core.serializers.coders import (
     uuid_from_json,
     uuid_to_json
 )
-from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation
-from ..shared_data import TestClass, TestEnum, TestSerializableClass
+from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
+from .shared_data import TestClass, TestEnum, TestSerializableClass
 
 
 @pytest.fixture
