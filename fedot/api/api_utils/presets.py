@@ -7,7 +7,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import \
     PipelineComposerRequirements
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
-    FAST_TRAIN_PRESET_NAME
+    FAST_TRAIN_PRESET_NAME, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -106,7 +106,7 @@ def update_builder(builder: ComposerBuilder,
     new_operations = preset_manager.composer_params_based_on_preset(composer_params={'preset': new_preset})
     # Insert updated operations list into source composer parameters
     composer_requirements.primary = new_operations['available_operations']
-    composer_requirements.secondary = new_operations['available_operations']
+    composer_requirements.secondary = copy(new_operations['available_operations'])
     builder.with_requirements(composer_requirements)
     return builder, new_preset
 
@@ -124,10 +124,10 @@ def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,
 
     # Change preset to appropriate one
     init_fit_minutes = fit_time.total_seconds() / 60
-    one_fit_percent = (init_fit_minutes / full_minutes_timeout) * 100
-
-    if one_fit_percent > 0.5:
-        # It is possible to train only 200 pipelines during optimisation - use simplified preset
+    minimal_minutes_for_all_calculations = init_fit_minutes * MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+    
+    if minimal_minutes_for_all_calculations > full_minutes_timeout:
+        # It is possible to train only few number of pipelines during optimization - use simplified preset
         return FAST_TRAIN_PRESET_NAME
     else:
         return BEST_QUALITY_PRESET_NAME
