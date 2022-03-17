@@ -1,6 +1,10 @@
+from uuid import UUID
+
+import pytest
+
 from fedot.core.serializers import CLASS_PATH_KEY
 from .dataclasses.serialization_dataclasses import DecoderTestCase
-from .fixtures.serialization_fixtures import *
+from .fixtures.serialization_fixtures import mock_classes_fixture, get_class_fixture, Serializer
 from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
 from .shared_data import (
     MOCK_NODE_1,
@@ -13,7 +17,7 @@ from .shared_data import (
     test_func
 )
 
-_ = mock_classes_fixture
+_ = mock_classes_fixture, get_class_fixture
 
 DECODER_CASES = [
     DecoderTestCase(

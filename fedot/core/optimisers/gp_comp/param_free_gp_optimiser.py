@@ -1,4 +1,5 @@
 from copy import deepcopy
+from itertools import zip_longest
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
@@ -125,12 +126,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                     new_population = []
 
-                    for parent_num in range(0, len(selected_individuals), 2):
-                        if parent_num + 1 < len(selected_individuals):
-                            new_population += self.reproduce(selected_individuals[parent_num],
-                                                             selected_individuals[parent_num + 1])
-                        else:
-                            new_population += self.reproduce(selected_individuals[parent_num])
+                    for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
+                        new_population += self.reproduce(ind_1, ind_2)
 
                     new_population = self._evaluate_individuals(new_population, objective_function,
                                                                 timer=t,

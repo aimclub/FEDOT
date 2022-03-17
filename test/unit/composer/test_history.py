@@ -24,9 +24,9 @@ def test_parent_operator():
     mutation_type = MutationTypesEnum.simple
     operator_for_history = ParentOperator(operator_type='mutation',
                                           operator_name=str(mutation_type),
-                                          parent_individuals=[ind.uid])
+                                          parent_individuals=[ind])
 
-    assert operator_for_history.parent_individuals[0] == ind.uid
+    assert operator_for_history.parent_individuals[0] == ind
     assert operator_for_history.operator_type == 'mutation'
 
 
@@ -50,7 +50,7 @@ def test_ancestor_for_mutation():
 
     assert len(mutation_result.parent_operators) > 0
     assert mutation_result.parent_operators[-1].operator_type == 'mutation'
-    assert len(mutation_result.parent_operators[0 - 1].parent_individuals) == 1
+    assert len(mutation_result.parent_operators[-1].parent_individuals) == 1
     assert mutation_result.parent_operators[-1].parent_individuals[0].uid == parent_ind.uid
 
 
@@ -71,7 +71,7 @@ def test_ancestor_for_crossover():
     for crossover_result in crossover_results:
         assert len(crossover_result.parent_operators) > 0
         assert crossover_result.parent_operators[-1].operator_type == 'crossover'
-        assert len(crossover_result.parent_operators[0 - 1].parent_individuals) == 2
+        assert len(crossover_result.parent_operators[-1].parent_individuals) == 2
         assert crossover_result.parent_operators[-1].parent_individuals[0].uid == parent_ind_first.uid
         assert crossover_result.parent_operators[-1].parent_individuals[1].uid == parent_ind_second.uid
 

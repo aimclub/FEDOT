@@ -1,5 +1,5 @@
 import math
-from random import choice, randint
+from random import choice
 from typing import Any, List, TYPE_CHECKING
 
 from deap import tools
@@ -49,7 +49,7 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
         remaining_individuals = individuals
         individuals_pool_size = len(individuals)
         n_iter = 0
-        while len(chosen) < pop_size and n_iter < pop_size * 10 and len(remaining_individuals) > 0:
+        while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
             individual = selection(types, remaining_individuals, pop_size=1, params=graph_params)[0]
             if individual.uid not in [c.uid for c in chosen]:
                 chosen.append(individual)
@@ -63,12 +63,11 @@ def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
     chosen = []
     n_iter = 0
     while len(chosen) < pop_size and n_iter < pop_size * 10:
-        if len(individuals) == 0:
-            print("!")
+        if not individuals:
             return []
         if len(individuals) <= 1:
             return [individuals[0]] * pop_size
-        individual = individuals[randint(0, len(individuals) - 1)]
+        individual = choice(individuals)
         if individual.uid not in [c.uid for c in chosen]:
             chosen.append(individual)
     return chosen

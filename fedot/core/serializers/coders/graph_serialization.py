@@ -8,7 +8,6 @@ from . import any_to_json
 def graph_to_json(obj: Graph) -> Dict[str, Any]:
     """
     Uses regular serialization but excludes "operator" field to rid of circular references
-        also saves idx of each node from 'nodes' field to simplify deserialization
     """
     serialized_obj = {
         k: v
@@ -27,8 +26,8 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
     nodes = json_obj['nodes']
     for node in nodes:
         if node.nodes_from:
-            for (idx, inner_node_idx), outer_node in product(enumerate(node.nodes_from), nodes):
-                if inner_node_idx == outer_node.uid:
+            for (idx, inner_node_uid), outer_node in product(enumerate(node.nodes_from), nodes):
+                if inner_node_uid == outer_node.uid:
                     node.nodes_from[idx] = outer_node
     obj.nodes = nodes
     vars(obj).update(**{k: v for k, v in json_obj.items() if k != 'nodes'})

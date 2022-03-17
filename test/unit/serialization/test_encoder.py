@@ -1,8 +1,11 @@
 from copy import deepcopy
+from uuid import UUID
 
-from fedot.core.serializers import CLASS_PATH_KEY
+import pytest
+
+from fedot.core.serializers import CLASS_PATH_KEY, Serializer
 from .dataclasses.serialization_dataclasses import EncoderTestCase
-from .fixtures.serialization_fixtures import *
+from .fixtures.serialization_fixtures import mock_classes_fixture
 from .mocks.serialization_mocks import MockGraph, MockOperation
 from .shared_data import (
     MOCK_NODE_1,
