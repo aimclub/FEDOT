@@ -60,7 +60,7 @@ def get_test_ts_gaps_data():
 
 
 def preprocess(task_type: TaskTypesEnum, data: Union[InputData, MultiModalData]) -> Pipeline:
-    return Pipeline(PreprocessingBuilder.build_for_data(task_type, data))
+    return PreprocessingBuilder.builder_for_data(task_type, data).to_pipeline() or Pipeline()
 
 
 def test_preprocessing_builder_no_data():

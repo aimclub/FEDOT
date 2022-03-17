@@ -13,7 +13,7 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
 
 class OperationsFilter:
-    def satisfies(self, pipeline: Pipeline) -> bool:
+    def satisfies(self, pipeline: Optional[Pipeline]) -> bool:
         """ Checks if all operations in a Pipeline satisify this filter. """
         return True
 
@@ -31,18 +31,18 @@ class WhitelistOperationsFilter(OperationsFilter):
         self._whitelist = tuple(available_ops)
         self._choice_ops = tuple(available_task_ops) if available_task_ops else self._whitelist
 
-    def satisfies(self, pipeline: Pipeline) -> bool:
+    def satisfies(self, pipeline: Optional[Pipeline]) -> bool:
         def node_ok(node):
             return node.operation.operation_type in self._whitelist
 
-        return all(map(node_ok, pipeline.nodes))
+        return pipeline and all(map(node_ok, pipeline.nodes))
 
     def sample(self) -> str:
         return choice(self._choice_ops)
 
 
 class TaskAssumptions:
-    """ Abstracts task-specific pipeline assumptions from preprocessing and conditioned pipeline building. """
+    """ Abstracts task-specific pipeline assumptions. """
 
     @staticmethod
     def for_task(task: Task):
@@ -60,120 +60,97 @@ class TaskAssumptions:
         """ Suitable ensemble operation used for MultiModalData case. """
         raise NotImplementedError()
 
-    def processing_pipelines(self, node_preprocessed: Optional[Node]) -> List[Pipeline]:
-        """ Returns alternatives of core Pipelines (without preprocessing). """
+    def processing_builders(self) -> List[PipelineBuilder]:
+        """ Returns alternatives of PipelineBuilders for core processing (without preprocessing). """
         raise NotImplementedError()
 
-    def fallback_pipeline(self, ops_filter: OperationsFilter, initial_node: Optional[Node] = None) -> Pipeline:
+    def fallback_builder(self, ops_filter: OperationsFilter) -> PipelineBuilder:
         """
-        Returns default Pipeline in the case when primary alternatives
-        from .processing_pipelines() didn't pass OperationsFilter.
+        Returns default PipelineBuilder for case when primary alternatives are not valid.
         Have access for OperationsFilter for sampling available operations.
         """
         raise NotImplementedError()
 
 
 class TSForecastingAssumptions(TaskAssumptions):
+    """ Simple static dictionary-based assumptions for time series forecasting task. """
+
+    builders = {
+        'glm_ridge': PipelineBuilder()
+            .add_branch('glm', 'lagged')
+            .add_node('ridge', branch_idx=1)
+            .join_branches('ridge'),
+        'lagged_ridge': PipelineBuilder()
+            .add_sequence('lagged', 'ridge'),
+        'polyfit_ridge': PipelineBuilder()
+            .add_branch('polyfit', 'lagged') \
+            .grow_branches(None, 'ridge') \
+            .join_branches('ridge'),
+        'smoothing_ar': PipelineBuilder()
+            .add_sequence('smoothing', 'ar'),
+    }
 
     def ensemble_operation(self) -> str:
         return 'ridge'
 
-    def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
-        return [
-            self.create_glm_ridge_pipeline(node_preprocessed),
-            self.create_lagged_ridge_pipeline(node_preprocessed),
-            self.create_polyfit_ridge_pipeline(node_preprocessed),
-            self.create_ar_pipeline(node_preprocessed)
-        ]
+    def processing_builders(self) -> List[Pipeline]:
+        return list(self.builders.values())
 
-    def fallback_pipeline(self, ops_filter: OperationsFilter, initial_node: Optional[Node] = None) -> Pipeline:
+    def fallback_builder(self, ops_filter: OperationsFilter) -> PipelineBuilder:
         random_choice_node = ops_filter.sample()
-        return PipelineBuilder(initial_node).add_node('lagged').add_node(random_choice_node).to_pipeline()
-
-    @staticmethod
-    def create_lagged_ridge_pipeline(node_preprocessed: Optional[Node]):
-        return PipelineBuilder(node_preprocessed) \
-            .add_node('lagged') \
-            .add_node('ridge') \
-            .to_pipeline()
-
-    @staticmethod
-    def create_glm_ridge_pipeline(node_preprocessed: Optional[Node]):
-        return PipelineBuilder(node_preprocessed) \
-            .add_branch('glm', 'lagged') \
-            .add_node('ridge', branch_idx=1) \
-            .join_branches('ridge') \
-            .to_pipeline()
-
-    @staticmethod
-    def create_polyfit_ridge_pipeline(node_preprocessed: Optional[Node]):
-        return PipelineBuilder(node_preprocessed) \
-            .add_branch('polyfit', 'lagged') \
-            .grow_branches(None, 'ridge') \
-            .join_branches('ridge') \
-            .to_pipeline()
-
-    @staticmethod
-    def create_ar_pipeline(node_preprocessed: Optional[Node]):
-        return PipelineBuilder(node_preprocessed).add_sequence('smoothing', 'ar').to_pipeline()
+        return PipelineBuilder().add_node('lagged').add_node(random_choice_node)
 
 
 class RegressionAssumptions(TaskAssumptions):
+    """ Simple static dictionary-based assumptions for regression task. """
+
+    builders = {
+        'rfr': PipelineBuilder().add_node('rfr'),
+        'ridge': PipelineBuilder().add_node('ridge'),
+    }
 
     def ensemble_operation(self) -> str:
         return 'rfr'
 
-    def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
-        return [self.create_rfr_regression_pipeline(node_preprocessed),
-                self.create_ridge_regression_pipeline(node_preprocessed)]
+    def processing_builders(self) -> List[Pipeline]:
+        return list(self.builders.values())
 
-    def fallback_pipeline(self, ops_filter: OperationsFilter, initial_node: Optional[Node] = None) -> Pipeline:
+    def fallback_builder(self, ops_filter: OperationsFilter) -> PipelineBuilder:
         random_choice_node = ops_filter.sample()
-        return PipelineBuilder(initial_node).add_node(random_choice_node).to_pipeline()
-
-    @staticmethod
-    def create_rfr_regression_pipeline(node_preprocessed: Optional[Node]):
-        return PipelineBuilder(node_preprocessed).add_node('rfr').to_pipeline()
-
-    @staticmethod
-    def create_ridge_regression_pipeline(node_preprocessed):
-        return PipelineBuilder(node_preprocessed).add_node('ridge').to_pipeline()
+        return PipelineBuilder().add_node(random_choice_node)
 
 
 class ClassificationAssumptions(TaskAssumptions):
+    """ Simple static dictionary-based assumptions for classification task. """
+
+    builders = {
+        'rf': PipelineBuilder().add_node('rf'),
+        'logit': PipelineBuilder().add_node('logit'),
+    }
 
     def ensemble_operation(self) -> str:
         return 'rf'
 
-    def processing_pipelines(self, node_preprocessed: Optional[Node] = None) -> List[Pipeline]:
-        return [self.create_rf_classifier_pipeline(node_preprocessed),
-                self.create_logit_classifier_pipeline(node_preprocessed)]
+    def processing_builders(self) -> List[Pipeline]:
+        return list(self.builders.values())
 
-    def fallback_pipeline(self, ops_filter: OperationsFilter, initial_node: Optional[Node] = None) -> Pipeline:
+    def fallback_builder(self, ops_filter: OperationsFilter) -> PipelineBuilder:
         random_choice_node = ops_filter.sample()
-        return PipelineBuilder(initial_node).add_node(random_choice_node).to_pipeline()
-
-    @staticmethod
-    def create_rf_classifier_pipeline(node_preprocessed: Optional[Node]):
-        return PipelineBuilder(node_preprocessed).add_node('rf').to_pipeline()
-
-    @staticmethod
-    def create_logit_classifier_pipeline(node_preprocessed):
-        return PipelineBuilder(node_preprocessed).add_node('logit').to_pipeline()
+        return PipelineBuilder().add_node(random_choice_node)
 
 
 class PreprocessingBuilder:
     @classmethod
-    def build_for_data(cls,
-                       task_type: TaskTypesEnum,
-                       data: Union[InputData, MultiModalData],
-                       *initial_nodes: Optional[Node]) -> Optional[Node]:
+    def builder_for_data(cls,
+                         task_type: TaskTypesEnum,
+                         data: Union[InputData, MultiModalData],
+                         *initial_nodes: Optional[Node]) -> PipelineBuilder:
         preprocessing_builder = cls(task_type, *initial_nodes)
         if data_has_missing_values(data):
             preprocessing_builder = preprocessing_builder.with_gaps()
         if data_has_categorical_features(data):
             preprocessing_builder = preprocessing_builder.with_categorical()
-        return next(iter(preprocessing_builder.to_nodes()), None)  # first or none
+        return preprocessing_builder.to_builder()
 
     def __init__(self, task_type: TaskTypesEnum, *initial_nodes: Node):
         self.task_type = task_type
@@ -188,18 +165,18 @@ class PreprocessingBuilder:
             self._builder.add_node('one_hot_encoding')
         return self
 
-    def with_scaling(self) -> PipelineBuilder:
+    def with_scaling(self):
         if self.task_type != TaskTypesEnum.ts_forecasting:
             self._builder.add_node('scaling')
-        return self._builder
+        return self
 
-    def to_nodes(self) -> List[Node]:
-        """ Return result as list of nodes. Scaling is applied final by default. """
-        return self.with_scaling().to_nodes()
+    def to_builder(self) -> PipelineBuilder:
+        """ Return result as PipelineBuilder. Scaling is applied final by default. """
+        return self.with_scaling()._builder
 
     def to_pipeline(self) -> Optional[Pipeline]:
         """ Return result as Pipeline. Scaling is applied final by default. """
-        return self.with_scaling().to_pipeline()
+        return self.to_builder().to_pipeline()
 
 
 class AssumptionsBuilder:
@@ -225,8 +202,11 @@ class AssumptionsBuilder:
     def from_operations(self, available_ops: List[str]):
         raise NotImplementedError('abstract')
 
-    def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
+    def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
         raise NotImplementedError('abstract')
+
+    def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
+        return [builder.to_pipeline() for builder in self.to_builders(initial_node)]
 
 
 class UnimodalAssumptionsBuilder(AssumptionsBuilder):
@@ -261,19 +241,16 @@ class UnimodalAssumptionsBuilder(AssumptionsBuilder):
                 self.logger.message(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
 
-    def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
-        def _filter_or_fallback(pipeline: Pipeline) -> Pipeline:
-            if self.ops_filter.satisfies(pipeline):
-                return pipeline
-            else:
-                return self.assumptions_generator.fallback_pipeline(self.ops_filter, initial_node)
-
-        node_preprocessed: Optional[Node] = \
-            PreprocessingBuilder.build_for_data(self.task.task_type, self.data, initial_node)
-        candidate_pipelines = self.assumptions_generator.processing_pipelines(node_preprocessed)
-        valid_pipelines = list(map(_filter_or_fallback, candidate_pipelines))
-
-        return valid_pipelines
+    def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
+        preprocessing = \
+            PreprocessingBuilder.builder_for_data(self.task.task_type, self.data, initial_node)
+        valid_builders = []
+        for processing in self.assumptions_generator.processing_builders():
+            candidate_builder = preprocessing.merge_with(processing)
+            if not self.ops_filter.satisfies(candidate_builder.to_pipeline()):
+                candidate_builder = self.assumptions_generator.fallback_builder(self.ops_filter)
+            valid_builders.append(candidate_builder)
+        return valid_builders
 
     @staticmethod
     def _get_operations_for_the_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo: str,
@@ -309,7 +286,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         #     subbuilder.from_operations(available_ops)
         return self
 
-    def build(self, initial_node: Optional[Node] = None) -> List[Pipeline]:
+    def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
         # For each data source build its own list of alternatives of initial pipelines.
         subpipelines: List[List[Pipeline]] = []
         for data_source_name, subbuilder in self._subbuilders:
@@ -318,10 +295,14 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
             subpipelines.append(data_pipeline_alternatives)
 
         # Then zip these alternatives together and add final node to get ensembles.
-        ensembles: List[Pipeline] = []
+        ensemble_builders: List[PipelineBuilder] = []
         for pre_ensemble in zip(*subpipelines):
-            node_final = self.assumptions_generator.ensemble_operation()
+            ensemble_operation = self.assumptions_generator.ensemble_operation()
             ensemble_nodes = map(lambda pipeline: pipeline.root_node, pre_ensemble)
-            ensemble_pipeline = PipelineBuilder(*ensemble_nodes).join_branches(node_final).to_pipeline()
-            ensembles.append(ensemble_pipeline)
-        return ensembles
+            ensemble_builder = PipelineBuilder(*ensemble_nodes).join_branches(ensemble_operation)
+            ensemble_builders.append(ensemble_builder)
+        return ensemble_builders
+
+
+def first_or_none(iterable):
+    return next(iter(iterable), None)
