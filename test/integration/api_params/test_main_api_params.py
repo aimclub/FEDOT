@@ -4,7 +4,6 @@ from typing import Callable, Union
 import pytest
 
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.repository.tasks import TsForecastingParams
 from test.unit.api.test_main_api import get_dataset
@@ -52,7 +51,7 @@ def test_timeout(case: TimeoutParams):
     }
 
     task_type = 'ts_forecasting'
-    fedot_input = {'problem': task_type, 'seed': 42, 'preset': FAST_TRAIN_PRESET_NAME,
+    fedot_input = {'problem': task_type, 'seed': 42, 'preset': 'fast_train',
                    'verbose_level': 4,
                    'timeout': composer_params['timeout'],
                    'composer_params': composer_params, 'task_params': TsForecastingParams(forecast_length=1)}

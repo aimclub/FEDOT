@@ -1,16 +1,12 @@
-import json
 import os
 
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.serializers import Serializer
 from fedot.core.utils import fedot_project_root
 
 
@@ -36,7 +32,7 @@ def test_operators_in_history():
     auto_model = Fedot(problem='classification', seed=42,
                        timeout=0.1,
                        composer_params={'num_of_generations': 3, 'pop_size': 4},
-                       preset=FAST_TRAIN_PRESET_NAME)
+                       preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
     assert auto_model.history is not None

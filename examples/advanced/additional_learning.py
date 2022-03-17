@@ -3,7 +3,6 @@ from copy import deepcopy
 import pandas as pd
 
 from fedot.api.main import Fedot
-from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -21,7 +20,7 @@ def run_additional_learning_example():
 
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, seed=42, preset=BEST_QUALITY_PRESET_NAME, timeout=5,
+    auto_model = Fedot(problem=problem, seed=42, preset='best_quality', timeout=5,
                        composer_params={'initial_assumption': Pipeline(
                            SecondaryNode('logit',
                                          nodes_from=[
@@ -42,14 +41,14 @@ def run_additional_learning_example():
     train_data = train_data.head(5000)
     timeout = 1
 
-    auto_model_from_atomized = Fedot(problem=problem, seed=42, preset=BEST_QUALITY_PRESET_NAME, timeout=timeout,
+    auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
                                      composer_params={'initial_assumption': atomized_model}, verbose_level=2)
     auto_model_from_atomized.fit(features=deepcopy(train_data), target='target')
     auto_model_from_atomized.predict_proba(features=deepcopy(test_data))
     auto_model_from_atomized.current_pipeline.show()
     print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
-    auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset=BEST_QUALITY_PRESET_NAME, timeout=timeout,
+    auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
                                      composer_params={'initial_assumption': non_atomized_model}, verbose_level=2)
     auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')
     auto_model_from_pipeline.predict_proba(features=deepcopy(test_data))

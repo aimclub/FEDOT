@@ -7,7 +7,6 @@ from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -46,7 +45,7 @@ def test_compose_fedot_model_with_tuning():
                                                                               genetic_scheme=None),
                                                          tuning_params=dict(with_tuning=True,
                                                                             tuner_metric=None),
-                                                         preset=FAST_TRAIN_PRESET_NAME)
+                                                         preset='fast_train')
     expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
     logs.check_present(expected, order_matters=False)
 

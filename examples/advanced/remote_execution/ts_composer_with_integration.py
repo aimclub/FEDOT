@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 
 from cases.industrial.processing import multi_automl_fit_forecast, plot_diesel_and_wind, plot_results
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.multi_modal import prepare_multimodal_data
 from fedot.core.utils import fedot_project_root
 from fedot.remote.infrastructure.clients.datamall_client import DEFAULT_CONNECT_PARAMS, DEFAULT_EXEC_PARAMS, \
@@ -63,7 +62,7 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                        'pop_size': 20,
                        'num_of_generations': 100,
                        'timeout': timeout,
-                       'preset': FAST_TRAIN_PRESET_NAME,
+                       'preset': 'fast_train',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}
