@@ -73,8 +73,8 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                         for graph in new_graphs:
                             new_ind = Individual(graph)
                             new_ind.parent_operators = []
-                            new_ind.parent_operators.extend(ind_first.parent_operators)
-                            new_ind.parent_operators.extend(ind_second.parent_operators)
+                            new_ind.parent_operators.extend(deepcopy(ind_first.parent_operators))
+                            new_ind.parent_operators.extend(deepcopy(ind_second.parent_operators))
                             new_ind.parent_operators.append(operator)
                             new_inds.append(new_ind)
                         return new_inds

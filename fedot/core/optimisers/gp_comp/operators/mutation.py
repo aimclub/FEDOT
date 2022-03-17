@@ -133,7 +133,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
             new_individual = Individual(new_graph)
             if add_to_history:
                 new_individual = Individual(new_graph)
-                new_individual.parent_operators = ind.parent_operators
+                new_individual.parent_operators = deepcopy(ind.parent_operators)
                 for mutation_name in mutation_names:
                     new_individual.parent_operators.append(
                         ParentOperator(operator_type='mutation',
