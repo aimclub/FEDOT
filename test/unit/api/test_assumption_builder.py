@@ -140,19 +140,10 @@ def test_assumptions_builder_suitable_available_operations_unidata():
     impl_test_assumptions_builder_suitable_available_operations(task, train_input)
 
 
-def test_assumptions_builder_suitable_available_operations_multidata():
-    """ Check that when we provide suitable available operations then we get fallback pipeline. """
-
-    task = Task(TaskTypesEnum.classification)
-    mm_data, _ = get_single_task_multimodal_tabular_data()
-
-    # TODO: Currently MultiDataAssumptionsBuilder ignores available operations, although this test passes
-    # impl_test_assumptions_builder_suitable_available_operations(task, mm_data, data_type=mm_data.data_type[0])
-    assert True
-
-
 def impl_test_assumptions_builder_suitable_available_operations(
         task, train_input, data_type=None, logger=default_log('FEDOT logger', verbose_level=4)):
+    """ Check that available operations, when they are suitable for the task,
+    are taken into account by AssumptionsBuilder. This is implementation part of the test. """
     if not data_type:
         data_type = train_input.data_type
     available_operations = get_suitable_operations_for_task(task.task_type, data_type)

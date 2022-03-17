@@ -1,5 +1,8 @@
+from copy import deepcopy
 from typing import List, Union, Optional, Tuple
 
+from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -10,6 +13,7 @@ class PipelineBuilder:
     - Forward-only & addition-only (can't prepend or delete nodes).
     - Doesn't throw, doesn't fail: methods always have a way to interpret input given current graph state.
     - Is not responsible for the validity of resulting Pipeline (e.g. correct order, valid operations).
+    - Builds always new pipelines (on copies of nodes), preserves its state between builds. State doesn't leak outside.
     """
 
     def __init__(self, *initial_nodes: Optional[Node]):
@@ -82,8 +86,8 @@ class PipelineBuilder:
             return self
         if branch_idx < len(self.heads):
             input_node = self.heads.pop(branch_idx)
-            for operation in operations:
-                self.heads.insert(branch_idx, SecondaryNode(operation, nodes_from=[input_node]))
+            for i, operation in enumerate(operations):
+                self.heads.insert(branch_idx + i, SecondaryNode(operation, nodes_from=[input_node]))
         else:
             for operation in operations:
                 self.add_node(operation, self._iend)
@@ -108,22 +112,67 @@ class PipelineBuilder:
         """ Reset builder state. """
         self.heads = []
 
+    def merge_with(self, following_builder):
+        return merge_pipeline_builders(self, following_builder)
+
     def to_nodes(self) -> List[Node]:
         """
         Return list of final nodes and reset internal state.
         :return: list of final nodes, possibly empty.
         """
-        result = self.heads
-        self.reset()
-        return result
+        return deepcopy(self.heads)
 
     def to_pipeline(self) -> Optional[Pipeline]:
         """
-        Builds new Pipeline from current tips of branches and resets its state.
+        Builds new Pipeline from current tips of branches. Preserves builder state.
         :return: Pipeline if there exist nodes, None if there're no nodes.
         """
-        if self.heads:
-            built = Pipeline(self.heads)
-            self.reset()
-            return built
+        return Pipeline(self.to_nodes()) if self.heads else None
+
+
+def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilder) -> Optional[PipelineBuilder]:
+    """ Merge two pipeline builders.
+
+    Merging is defined for cases one-to-many and many-to-one nodes,
+    i.e. one final node to many initial nodes and many final nodes to one initial node.
+    Merging is undefined for the case of many-to-many nodes and None is returned.
+    Merging of the builder with itself is well-defined and leads to duplication of the pipeline.
+
+    If one of the builders is empty -- the other one is returned, no merging is performed.
+    State of the passed builders is preserved as they were, after merging new builder is returned.
+
+    :return: PipelineBuilder if merging is well-defined, None otherwise.
+    """
+
+    if not following.heads:
+        return previous
+    elif not previous.heads:
+        return following
+
+    lhs_nodes_final = previous.to_nodes()
+    rhs_tmp_graph = Graph(following.to_nodes())
+    rhs_nodes_initial = list(filter(lambda node: not node.nodes_from, rhs_tmp_graph.nodes))
+
+    # If merging one-to-one or one-to-many
+    if len(lhs_nodes_final) == 1:
+        final_node = lhs_nodes_final[0]
+        for initial_node in rhs_nodes_initial:
+            rhs_tmp_graph.update_node(initial_node,
+                                      SecondaryNode(initial_node.operation.operation_type, nodes_from=[final_node]))
+    # If merging many-to-one
+    elif len(rhs_nodes_initial) == 1:
+        initial_node = rhs_nodes_initial[0]
+        rhs_tmp_graph.update_node(initial_node,
+                                  SecondaryNode(initial_node.operation.operation_type, nodes_from=lhs_nodes_final))
+    # Merging is not defined for many-to-many case
+    else:
         return None
+
+    # Check that Graph didn't mess up with node types
+    if not all(map(lambda n: isinstance(n, Node), rhs_tmp_graph.nodes)):
+        raise ValueError("Expected Graph only with nodes of type 'Node'")
+
+    # Need all root_nodes, hence GraphOperator (Pipeline.root_node returns just a single node or throws)
+    root_nodes = GraphOperator(rhs_tmp_graph).root_node()
+    merged_builder = PipelineBuilder(root_nodes) if isinstance(root_nodes, Node) else PipelineBuilder(*root_nodes)
+    return merged_builder
