@@ -3,7 +3,6 @@ import pandas as pd
 
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -39,7 +38,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=timeout,
-                  preset=FAST_TRAIN_PRESET_NAME,
+                  preset='fast_train',
                   n_jobs=-1)
 
     # run AutoML model design in the same way

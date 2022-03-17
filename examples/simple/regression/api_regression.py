@@ -1,5 +1,4 @@
 from fedot.api.main import Fedot
-from fedot.core.constants import AUTO_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -16,7 +15,7 @@ def run_regression_example():
 
     composer_params = {'history_folder': 'custom_history_folder'}
     auto_model = Fedot(problem=problem, seed=42, composer_params=composer_params,
-                       preset=AUTO_PRESET_NAME,
+                       preset='auto',
                        timeout=2, verbose_level=1)
     auto_model.fit(features=train, target='target')
     prediction = auto_model.predict(features=test)

@@ -5,7 +5,6 @@ import pandas as pd
 from matplotlib import pyplot as plt, cm, colors
 
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.utils import fedot_project_root
 
 
@@ -49,7 +48,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
             train_data = train_data.iloc[:partition, :]
             start_time = timeit.default_timer()
             auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=_n_jobs,
-                               composer_params={'with_tuning': False}, preset=FAST_TRAIN_PRESET_NAME,
+                               composer_params={'with_tuning': False}, preset='fast_train',
                                verbose_level=4)
             auto_model.fit(features=train_data_path, target='target')
             auto_model.predict_proba(features=test_data_path)

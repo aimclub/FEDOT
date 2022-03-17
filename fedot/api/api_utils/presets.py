@@ -125,7 +125,6 @@ def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,
     # Change preset to appropriate one
     init_fit_minutes = fit_time.total_seconds() / 60
     minimal_minutes_for_all_calculations = init_fit_minutes * MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
-    
     if minimal_minutes_for_all_calculations > full_minutes_timeout:
         # It is possible to train only few number of pipelines during optimization - use simplified preset
         return FAST_TRAIN_PRESET_NAME

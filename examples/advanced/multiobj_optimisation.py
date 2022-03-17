@@ -1,6 +1,5 @@
 import pandas as pd
 from fedot.api.main import Fedot
-from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.utils import fedot_project_root
 
 
@@ -11,7 +10,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
     del test_data['class']
     problem = 'classification'
 
-    auto_model = Fedot(problem=problem, timeout=timeout, preset=BEST_QUALITY_PRESET_NAME,
+    auto_model = Fedot(problem=problem, timeout=timeout, preset='best_quality',
                        composer_params={'metric': ['f1', 'node_num'],
                                         'with_tuning': False}, seed=42)
     auto_model.fit(features=train_data, target='class')
