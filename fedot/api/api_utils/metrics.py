@@ -5,6 +5,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
+from fedot.core.composer.metrics import smape
 
 
 class ApiMetrics:
@@ -52,6 +53,7 @@ class ApiMetrics:
             'mse': mean_squared_error,
             'r2': r2_score,
             'rmse': mean_squared_error,
+            'smape': smape
         }
 
         return tuner_dict.get(metric_name)
@@ -71,6 +73,7 @@ class ApiMetrics:
             'mse': RegressionMetricsEnum.MSE,
             'msle': RegressionMetricsEnum.MSLE,
             'mape': RegressionMetricsEnum.MAPE,
+            'smape': RegressionMetricsEnum.SMAPE,
             'r2': RegressionMetricsEnum.R2,
             'rmse': RegressionMetricsEnum.RMSE,
             'rmse_pen': RegressionMetricsEnum.RMSE_penalty,
