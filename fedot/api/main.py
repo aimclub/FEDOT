@@ -1,3 +1,4 @@
+import multiprocessing
 from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
@@ -7,7 +8,6 @@ import pandas as pd
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.data.data import InputData, OutputData
@@ -77,7 +77,7 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
+                 timeout: Optional[float] = 5.0,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
@@ -91,20 +91,22 @@ class Fedot:
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
 
-        # Define parameters, that were set via init in init
-        input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
+        input_params = {'problem': problem, 'preset': preset,
                         'composer_params': composer_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level,
-                        'initial_assumption': initial_assumption}
+                        'seed': seed, 'verbose_level': verbose_level}
         self.params.initialize_params(**input_params)
+        self.params.api_params['current_model'] = None
 
-        # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
         self.params.api_params['n_jobs'] = n_jobs
 
-        # Initialize data processors for data preprocessing and preliminary data analysis
+        # Update timeout, num_of_generations and initial_assumption parameters
+        if composer_params is not None and 'timeout' in composer_params:
+            timeout = composer_params['timeout']
+        self.update_params(timeout, self.params.api_params['num_of_generations'], initial_assumption)
+        self.timeout_set_in_init = self.params.api_params['timeout']
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -146,6 +148,8 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
+            if self.timeout_set_in_init is not None:
+                self.params.api_params['timeout'] = self.timeout_set_in_init
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
                 **self.params.api_params)
 
@@ -343,8 +347,47 @@ class Fedot:
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
     def update_params(self, timeout, num_of_generations, initial_assumption):
+        if timeout in [-1, None]:
+            self.params.api_params['timeout'] = None
+            if num_of_generations is None:
+                raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
+            self.params.api_params['num_of_generations'] = num_of_generations
+        elif timeout > 0:
+            self.params.api_params['timeout'] = timeout
+            if num_of_generations is not None:
+                self.params.api_params['num_of_generations'] = num_of_generations
+            else:
+                self.params.api_params['num_of_generations'] = 10000
+        else:
+            raise ValueError(f'invalid "timeout" value: timeout={timeout}')
+
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
+
+    def _init_remote_if_necessary(self):
+        remote = RemoteEvaluator()
+        if remote.use_remote and remote.remote_task_params is not None:
+            task = self.params.api_params['task']
+            if task.task_type == TaskTypesEnum.ts_forecasting:
+                task_str = \
+                    f'Task(TaskTypesEnum.ts_forecasting, ' \
+                    f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
+            else:
+                task_str = f'Task({str(task.task_type)})'
+            remote.remote_task_params.task_type = task_str
+            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
+
+            if isinstance(self.target, str):
+                remote.remote_task_params.target = self.target
+
+    def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
+        """ Apply training procedure for obtained pipeline if dataset was clipped """
+        if recommendations:
+            # if data was cut we need to refit pipeline on full data
+            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
+                                                                 {k: v for k, v in recommendations.items()
+                                                                  if k != 'cut'})
+            self.current_pipeline.fit(full_train_not_preprocessed)
 
     def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
@@ -365,31 +408,6 @@ class Fedot:
                                      visualize=visualize, **kwargs)
 
         return explainer
-
-    def _init_remote_if_necessary(self):
-        remote = RemoteEvaluator()
-        if remote.use_remote and remote.remote_task_params is not None:
-            task = self.params.api_params['task']
-            if task.task_type == TaskTypesEnum.ts_forecasting:
-                task_str = \
-                    f'Task(TaskTypesEnum.ts_forecasting, ' \
-                    f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
-            else:
-                task_str = f'Task({str(task.task_type)})'
-            remote.remote_task_params.task_type = task_str
-            remote.remote_task_params.is_multi_modal = isinstance(self.train_data, MultiModalData)
-
-            if isinstance(self.target, str):
-                remote.remote_task_params.target = self.target
-
-    def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
-        """ Apply training procedure for obtained pipeline if dataset was clipped """
-        if 'cut' in recommendations:
-            # if data was cut we need to refit pipeline on full data
-            self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
-                                                                 {k: v for k, v in recommendations.items()
-                                                                  if k != 'cut'})
-        self.current_pipeline.fit(full_train_not_preprocessed)
 
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """
