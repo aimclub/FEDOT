@@ -28,7 +28,6 @@ class Fedot:
     """
     Main class for FEDOT API.
     Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
-
     :param problem: the name of modelling problem to solve:
         - classification
         - regression
@@ -123,7 +122,6 @@ class Fedot:
             predefined_model: Union[str, Pipeline] = None):
         """
         Fit the graph with a predefined structure or compose and fit the new graph
-
         :param features: the array with features of train data
         :param target: the array with target values of train data
         :param predefined_model: the name of the atomic model or Pipeline instance.
@@ -169,7 +167,6 @@ class Fedot:
                 save_predictions: bool = False):
         """
         Predict new target using already fitted model
-
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with prediction values
@@ -193,7 +190,6 @@ class Fedot:
                       probs_for_all_classes: bool = False):
         """
         Predict the probability of new target using already fitted classification model
-
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :param probs_for_all_classes: return probability for each class even for binary case
@@ -224,7 +220,6 @@ class Fedot:
                  save_predictions: bool = False):
         """
         Forecast the new values of time series
-
         :param pre_history: the array with features for pre-history of the forecast
         :param forecast_length: num of steps to forecast
         :param save_predictions: if True-save predictions as csv-file in working directory.
@@ -256,7 +251,6 @@ class Fedot:
     def load(self, path):
         """
         Load saved graph from disk
-
         :param path to json file with model
         """
         self.current_pipeline.load(path)
@@ -286,7 +280,6 @@ class Fedot:
                     metric_names: Union[str, List[str]] = None) -> dict:
         """
         Get quality metrics for the fitted graph
-
         :param target: the array with target values of test data
         :param metric_names: the names of required metrics
         :return: the values of quality metrics
@@ -384,7 +377,7 @@ class Fedot:
 
     def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
         """ Apply training procedure for obtained pipeline if dataset was clipped """
-        if 'cut' in recommendations:
+        if recommendations:
             # if data was cut we need to refit pipeline on full data
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
