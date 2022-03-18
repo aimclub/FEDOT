@@ -3,8 +3,9 @@ from typing import Union
 
 import numpy as np
 
-from fedot.api.api_utils.assumptions_builder \
-    import PreprocessingBuilder, UnimodalAssumptionsBuilder, MultiModalAssumptionsBuilder, AssumptionsBuilder
+from fedot.api.api_utils.assumptions.assumptions_builder \
+    import UniModalAssumptionsBuilder, MultiModalAssumptionsBuilder, AssumptionsBuilder
+from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -25,10 +26,10 @@ from test.unit.multimodal.data_generators import get_single_task_multimodal_tabu
 
 
 def pipeline_contains_one(pipeline: Pipeline, operation_name: str) -> bool:
-    def is_the_op(node: Node):
+    def is_the_operation(node: Node):
         return node.operation.operation_type == operation_name
 
-    return any(map(is_the_op, pipeline.nodes))
+    return any(map(is_the_operation, pipeline.nodes))
 
 
 def pipeline_contains_all(pipeline: Pipeline, *operation_name: str) -> bool:
@@ -123,8 +124,8 @@ def test_assumptions_builder_unsuitable_available_operations():
     logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['linear', 'xgboost', 'lagged']
 
-    default_builder = UnimodalAssumptionsBuilder(task, train_input).with_logger(logger)
-    checked_builder = UnimodalAssumptionsBuilder(task, train_input).with_logger(logger) \
+    default_builder = UniModalAssumptionsBuilder(task, train_input).with_logger(logger)
+    checked_builder = UniModalAssumptionsBuilder(task, train_input).with_logger(logger) \
         .from_operations(available_operations)
 
     assert default_builder.build() == checked_builder.build()

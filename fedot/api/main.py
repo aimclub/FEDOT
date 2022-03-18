@@ -7,7 +7,7 @@ import pandas as pd
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams

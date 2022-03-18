@@ -8,7 +8,7 @@ from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
-from fedot.api.api_utils.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import (PipelineComposerRequirements)
