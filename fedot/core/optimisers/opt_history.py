@@ -44,12 +44,11 @@ class OptHistory:
         self.save_folder: Optional[str] = save_folder
 
     def add_to_history(self, individuals: List['Individual']):
-        new_inds = list(map(deepcopy, individuals))
-
+        new_inds = deepcopy(individuals)
         self.individuals.append(new_inds)
 
     def add_to_archive_history(self, individuals: List['Individual']):
-        new_inds = list(map(deepcopy, individuals))
+        new_inds = deepcopy(individuals)
         self.archive_history.append(new_inds)
 
     def write_composer_history_to_csv(self, file='history.csv'):

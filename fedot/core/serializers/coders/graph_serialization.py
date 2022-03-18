@@ -1,4 +1,3 @@
-from itertools import product
 from typing import Any, Dict, Type
 
 from fedot.core.dag.graph import Graph
@@ -24,11 +23,13 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
     """
     obj = cls()
     nodes = json_obj['nodes']
+
+    lookup_dict = {node.uid: node for node in nodes}
+
     for node in nodes:
         if node.nodes_from:
-            for (idx, inner_node_uid), outer_node in product(enumerate(node.nodes_from), nodes):
-                if inner_node_uid == outer_node.uid:
-                    node.nodes_from[idx] = outer_node
+            for parent_node_idx, parent_node_uid in enumerate(node.nodes_from):
+                node.nodes_from[parent_node_idx] = lookup_dict.get(parent_node_uid, None)
     obj.nodes = nodes
     vars(obj).update(**{k: v for k, v in json_obj.items() if k != 'nodes'})
     return obj

@@ -51,7 +51,7 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
         n_iter = 0
         while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
             individual = selection(types, remaining_individuals, pop_size=1, params=graph_params)[0]
-            if individual.uid not in [c.uid for c in chosen]:
+            if individual.uid not in (c.uid for c in chosen):
                 chosen.append(individual)
                 if pop_size <= individuals_pool_size:
                     remaining_individuals.remove(individual)
@@ -68,7 +68,7 @@ def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
         if len(individuals) <= 1:
             return [individuals[0]] * pop_size
         individual = choice(individuals)
-        if individual.uid not in [c.uid for c in chosen]:
+        if individual.uid not in (c.uid for c in chosen):
             chosen.append(individual)
     return chosen
 
@@ -83,7 +83,7 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
     while len(chosen) < pop_size and n_iter < pop_size * 10:
         group = random_selection(individuals, group_size)
         best = min(group, key=lambda ind: ind.fitness)
-        if best.uid not in [c.uid for c in chosen]:
+        if best.uid not in (c.uid for c in chosen):
             chosen.append(best)
         n_iter += 1
 

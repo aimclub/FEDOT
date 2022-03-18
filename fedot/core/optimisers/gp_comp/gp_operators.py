@@ -141,7 +141,7 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
         evaluated_individuals = single_evaluating(reversed_individuals)
 
     if not evaluated_individuals and reversed_individuals:
-        raise AttributeError('Too much fitness evaluation errors. Composing stopped.')
+        raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
 
     return evaluated_individuals
 
