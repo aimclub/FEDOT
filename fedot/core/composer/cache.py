@@ -2,9 +2,13 @@ import glob
 import os
 import shelve
 import uuid
+
 from collections import namedtuple
+from typing import List, Union
 
 from fedot.core.log import default_log
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 
 CachedState = namedtuple('CachedState', 'operation')
@@ -22,29 +26,28 @@ class OperationsCache:
         if clear_exiting:
             self.clear()
 
-    def save_node(self, node, partial_id=''):
+    def save_nodes(self, nodes: Union[Node, List[Node]], partial_id=''):
         """
-        :param node: node for caching
+        :param nodes: node/nodes for caching
         :param partial_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
-        if node.fitted_operation is not None:
-            _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
-                                 CachedState(node.fitted_operation))
+        try:
+            with shelve.open(self.db_path) as cache:
+                if not isinstance(nodes, list):
+                    nodes = [nodes]
+                for node in nodes:
+                    _save_cache_for_node(cache, node, partial_id)
+        except Exception as ex:
+            self.log.info(f'Nodes can not be saved: {ex}. Continue')
 
-    def save_pipeline(self, pipeline, partial_id=None):
+    def save_pipeline(self, pipeline: Pipeline, partial_id=''):
         """
         :param pipeline: pipeline for caching
         :param partial_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
-        partial_id = partial_id or ''
-        try:
-            for node in pipeline.nodes:
-                _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
-                                     CachedState(node.fitted_operation))
-        except Exception as ex:
-            self.log.info(f'Cache can not be saved: {ex}. Continue.')
+        self.save_nodes(pipeline.nodes, partial_id)
 
     def clear(self, tmp_only=False):
         if not tmp_only:
@@ -65,12 +68,11 @@ class OperationsCache:
         return found_operation
 
 
-def _save_cache_for_node(db_path: str, structural_id: str,
-                         cache_from_node: CachedState):
-    if cache_from_node.operation is not None:
-        # if node successfully fitted
-        with shelve.open(db_path) as cache:
-            cache[structural_id] = cache_from_node
+def _save_cache_for_node(cache_shelf: shelve.Shelf, node: Node, partial_id=''):
+    cached_state = CachedState(node.fitted_operation)
+    if cached_state.operation is not None:
+        structural_id = f'{node.descriptive_id}_{partial_id}'
+        cache_shelf[structural_id] = cached_state
 
 
 def _load_cache_for_node(db_path: str, structural_id: str):
