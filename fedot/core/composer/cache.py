@@ -4,11 +4,14 @@ import shelve
 import uuid
 
 from collections import namedtuple
-from typing import List, Union
+from typing import TYPE_CHECKING, List, Union
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
-from fedot.core.pipelines.pipeline import Pipeline
+
+if TYPE_CHECKING:
+    from fedot.core.pipelines.pipeline import Pipeline
+
 from fedot.core.utils import default_fedot_data_dir
 
 CachedState = namedtuple('CachedState', 'operation')
@@ -41,7 +44,7 @@ class OperationsCache:
         except Exception as ex:
             self.log.info(f'Nodes can not be saved: {ex}. Continue')
 
-    def save_pipeline(self, pipeline: Pipeline, partial_id=''):
+    def save_pipeline(self, pipeline: 'Pipeline', partial_id=''):
         """
         :param pipeline: pipeline for caching
         :param partial_id: optional part of cache item UID
