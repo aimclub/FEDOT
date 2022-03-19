@@ -1,6 +1,6 @@
 {
   "xgboost": {
-    "eval_metric": "mlogloss",
+    "eval_metric": "mlogloss"
   },
   "catboost": {
     "allow_writing_files": false,
