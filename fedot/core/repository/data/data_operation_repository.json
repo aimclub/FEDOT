@@ -129,7 +129,8 @@
 				"*tree"
 			],
 			"tags": [
-				"simple"
+				"simple",
+				"reinforce"
 			]
 		},
 		"normalization": {
@@ -140,7 +141,8 @@
 				"*tree"
 			],
 			"tags": [
-				"simple"
+				"simple",
+				"reinforce"
 			]
 		},
 		"simple_imputation": {
@@ -152,7 +154,8 @@
 			"tags": [
 				"simple",
 				"imputation",
-				"categorical-ignore"
+				"categorical-ignore",
+				"reinforce"
 			]
 		},
 		"pca": {

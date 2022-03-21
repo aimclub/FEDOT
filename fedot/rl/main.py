@@ -1,11 +1,14 @@
 import os
+from os import makedirs
+from os.path import join, exists
 
 import numpy as np
 import torch
 import torch.nn as nn
+from tensorboardX import SummaryWriter
 from torch.distributions import Categorical
 
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.rl.pipeline_env import PipelineEnv
 
 
@@ -74,20 +77,49 @@ if __name__ == '__main__':
 
     pn = PolicyNetwork(in_dim, out_dim)
 
-    for episode in range(50000):
-        state = env.reset()
+    # Tensorboard
+    path_to_tbX = join(default_fedot_data_dir(), 'fedot', 'rl', 'logs', 'tensorboard')
 
-        for t in range(200):
+    if not exists(path_to_tbX):
+        makedirs(path_to_tbX)
+
+    tb_writer = SummaryWriter(logdir=path_to_tbX)
+    rewards = []
+    pipeline_length = []
+    correct_pipeline = 0
+    reward_window = 25
+
+    for episode in range(25000):
+        state = env.reset()
+        done = False
+        reward = 0
+
+        for t in range(25):
             action = pn.act(state)
-            state, reward, done, _ = env.step(action)
+            state, reward, done, info = env.step(action)
             pn.rewards.append(reward)
-            if done and reward >= 0:
-                env.render()
             if done:
+                env.render()
                 break
 
         loss = pn.update()
         total_reward = sum(pn.rewards)
         pn.policy_reset()
 
-        print(f'Episode {episode}, loss: {loss}, total_reward: {total_reward}')
+        rewards.append(reward)
+
+        # Tensorboard
+        tb_writer.add_scalar('reward per eps', reward, episode)
+        tb_writer.add_scalar('mean reward per eps', np.mean(rewards), episode)
+        tb_writer.add_scalar('time steps per eps', info['time_step'], episode)
+        tb_writer.add_scalar('metric values per eps', info['metric_value'], episode)
+
+        if episode >= reward_window:  # TODO: changes
+            tb_writer.add_scalar('mean window reward', np.mean(rewards[-reward_window:]), episode)
+
+        if info['length'] != -1:
+            correct_pipeline += 1
+            tb_writer.add_scalar('pipeline length', info['length'], correct_pipeline)
+            tb_writer.add_scalar('metric value correct pipelines', info['metric_value'], correct_pipeline)
+
+        print(f'Episode {episode}, loss: {loss}, total_reward: {total_reward}\n')

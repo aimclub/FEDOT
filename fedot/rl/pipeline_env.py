@@ -1,3 +1,5 @@
+from os.path import join
+
 import gym
 import numpy as np
 from gym import spaces
@@ -10,6 +12,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.utils import default_fedot_data_dir
 
 
 class PipelineEnv(gym.Env):
@@ -29,11 +32,15 @@ class PipelineEnv(gym.Env):
             .suitable_operation(task_type=self.task_type, tags=['reinforce'])
         self.actions_size = len(self.actions_list[0]) + 1
 
+        self.data_ops = OperationTypesRepository('data_operation') \
+            .suitable_operation(task_type=self.task_type, tags=['reinforce'])[0]
+
         self.action_space = spaces.Discrete(self.actions_size, start=2)
         self.observation_space = spaces.MultiDiscrete(
             np.full((self.pipeline_depth, self.pipeline_depth), self.empty_code))
 
         self.pipeline = None
+        self.pl_idx = 0
         self.nodes = []
         self.time_step = 0
         self.current_position = 0
@@ -46,8 +53,12 @@ class PipelineEnv(gym.Env):
     def render(self, mode='human'):
         if mode == 'human':
             if self.pipeline:
-                self.pipeline.show()
-            print('Pipeline', self.observation)
+                result_path = join(default_fedot_data_dir(), 'fedot', 'rl', 'logs', 'pipelines', f'pl_{self.pl_idx}')
+                self.pl_idx += 1
+                self.pipeline.show(path=result_path)
+                print('Pipeline', self.observation, '--', self.pipeline.root_node.descriptive_id)
+            else:
+                print('Pipeline', self.observation)
 
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
@@ -75,13 +86,19 @@ class PipelineEnv(gym.Env):
                 self.current_position += 1
                 self.time_step += 1
 
-        if action == self.actions_size + 1 and not self.nodes:
+        if action == self.actions_size + 1 and self.nodes == []:
             done = True
-            reward -= 150
-            return self.observation, reward, done, {'time_step': self.time_step, 'metric_value': self.metric_value}
+            reward -= 100
+
+            info = {'time_step': self.time_step,
+                    'metric_value': self.metric_value,
+                    'length': -1
+                    }
+
+            return self.observation, reward, done, info
 
         # Если действие является точкой в пайплайне, то формируем его и проверяем
-        if self.nodes and action == self.actions_size + 1 or self.current_position == len(self.observation):
+        if self.nodes != [] and action == self.actions_size + 1 or self.current_position == len(self.observation):
             self.pipeline = Pipeline(self.nodes[-1])
             pipeline = self.pipeline
             # Проверка пайплайна
@@ -95,14 +112,34 @@ class PipelineEnv(gym.Env):
 
                 reward = 100 * self.metric_value
                 done = True
-                return self.observation, reward, done, {'time_step': self.time_step, 'metric_value': self.metric_value}
+                info = {'time_step': self.time_step,
+                        'metric_value': self.metric_value,
+                        'length': len(self.nodes)
+                        }
+
+                return self.observation, reward, done, info
 
             except ValueError:
                 done = True
-                reward -= 100
-                return self.observation, reward, done, {'time_step': self.time_step, 'metric_value': self.metric_value}
+                reward -= 85
+
+                for i in [0, 1]:
+                    if self._is_data_operation(self.observation[i]):
+                        reward += 15
+
+            info = {'time_step': self.time_step,
+                    'metric_value': self.metric_value,
+                    'length': -1
+                    }
+
+            return self.observation, reward, done, info
         else:
-            return self.observation, reward, done, {'time_step': self.time_step, 'metric_value': self.metric_value}
+            info = {'time_step': self.time_step,
+                    'metric_value': self.metric_value,
+                    'length': -1
+                    }
+
+            return self.observation, reward, done, info
 
     def reset(self):
         self.pipeline = None
@@ -113,3 +150,10 @@ class PipelineEnv(gym.Env):
         self.observation = np.full(self.pipeline_depth, 1)
 
         return self.observation
+
+    def _is_data_operation(self, action):
+        if action != self.actions_size + 1 and action != 1:
+            if any(self.actions_list[0][action - 2] in op for op in self.data_ops):
+                return True
+        else:
+            return False
