@@ -48,12 +48,13 @@ def validate(graph: Graph, rules: List[Callable] = None, task=None):
         _rule_check(graph, rule_func)
 
     # Perform time series specific rules
-    if task and task.task_type is TaskTypesEnum.ts_forecasting:
-        for rule_func in ts_rules:
-            _rule_check(graph, rule_func)
-    elif task and task.task_type is TaskTypesEnum.classification:
-        for rule_func in class_rules:
-            _rule_check(graph, rule_func)
+    if task:
+        if task.task_type is TaskTypesEnum.ts_forecasting:
+            for rule_func in ts_rules:
+                _rule_check(graph, rule_func)
+        elif task.task_type is TaskTypesEnum.classification:
+            for rule_func in class_rules:
+                _rule_check(graph, rule_func)
     return True
 
 

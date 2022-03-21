@@ -108,7 +108,7 @@ class TableTypesCorrector:
         :param table: tabular dataset based on which new dataset will be generated
         :param converted_columns: dictionary with actions with table
         """
-        if len(converted_columns) == 0:
+        if not converted_columns:
             return table
 
         self.columns_to_del = [column_id for column_id, new_type_name in converted_columns.items() if
@@ -131,21 +131,20 @@ class TableTypesCorrector:
         if not features_with_mixed_types:
             return features
 
-        if features_with_mixed_types:
-            # There are mixed-types columns in features table - convert them
-            for mixed_column_id in features_with_mixed_types:
-                column_info = self.features_columns_info[mixed_column_id]
+        # There are mixed-types columns in features table - convert them
+        for mixed_column_id in features_with_mixed_types:
+            column_info = self.features_columns_info[mixed_column_id]
 
-                if column_info.get('str_number') > 0:
-                    # There are string elements in the array
-                    mixed_column = features[:, mixed_column_id]
-                    updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
-                                                                                        mixed_column_id)
-                    # Store information about converted columns
-                    self.features_converted_columns.update({mixed_column_id: new_type_name})
+            if column_info.get('str_number') > 0:
+                # There are string elements in the array
+                mixed_column = features[:, mixed_column_id]
+                updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
+                                                                                    mixed_column_id)
+                # Store information about converted columns
+                self.features_converted_columns.update({mixed_column_id: new_type_name})
 
-                    if updated_column is not None:
-                        features[:, mixed_column_id] = updated_column
+                if updated_column is not None:
+                    features[:, mixed_column_id] = updated_column
 
         return features
 
@@ -160,21 +159,20 @@ class TableTypesCorrector:
         if not target_with_mixed_types:
             return target
 
-        if target_with_mixed_types:
-            # There are mixed-types columns in features table - convert them
-            for mixed_column_id in target_with_mixed_types:
-                column_info = self.target_columns_info[mixed_column_id]
+        # There are mixed-types columns in features table - convert them
+        for mixed_column_id in target_with_mixed_types:
+            column_info = self.target_columns_info[mixed_column_id]
 
-                if column_info.get('str_number') > 0:
-                    # There are string elements in the array
-                    mixed_column = target[:, mixed_column_id]
-                    updated_column, new_type_name = self._convert_target_into_one_type(mixed_column, column_info,
-                                                                                       mixed_column_id, task)
-                    # Store information about converted columns
-                    self.target_converted_columns.update({mixed_column_id: new_type_name})
+            if column_info.get('str_number') > 0:
+                # There are string elements in the array
+                mixed_column = target[:, mixed_column_id]
+                updated_column, new_type_name = self._convert_target_into_one_type(mixed_column, column_info,
+                                                                                   mixed_column_id, task)
+                # Store information about converted columns
+                self.target_converted_columns.update({mixed_column_id: new_type_name})
 
-                    if updated_column is not None:
-                        target[:, mixed_column_id] = updated_column
+                if updated_column is not None:
+                    target[:, mixed_column_id] = updated_column
 
         return target
 
@@ -187,14 +185,14 @@ class TableTypesCorrector:
             # Information about column types is empty - there is a need to launch algorithm to collect info
             self.features_columns_info = define_column_types(predictors)
             predictors = self.features_types_converting(features=predictors)
-        if not self.target_columns_info and task.task_type != TaskTypesEnum.ts_forecasting:
+        if not self.target_columns_info and task.task_type is not TaskTypesEnum.ts_forecasting:
             self.target_columns_info = define_column_types(target)
             target = self.target_types_converting(target=target, task=task)
 
         features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
         self._check_columns_vs_types_number(predictors, features_types)
 
-        if target is None or task.task_type == TaskTypesEnum.ts_forecasting:
+        if target is None or task.task_type is TaskTypesEnum.ts_forecasting:
             return {'features': features_types}
         else:
             target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
@@ -233,7 +231,7 @@ class TableTypesCorrector:
         """
         if len(column_info['types']) == 2 and NAME_CLASS_NONE in column_info['types']:
             # Column contain only one data type and nans
-            filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_info['types']))
+            filtered_types = [x for x in column_info['types'] if x != NAME_CLASS_NONE]
             return mixed_column, filtered_types[0]
 
         string_objects_number = column_info['str_number']
@@ -419,7 +417,7 @@ def define_column_types(table: np.array):
         # Store only unique values
         set_column_types = set(column_types)
         # Convert types into string names
-        column_types_names = list(map(lambda x: str(x), set_column_types))
+        column_types_names = list(map(str, set_column_types))
 
         if len(column_types_names) > 1:
             # There are several types in one column
@@ -541,7 +539,7 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
             updated_column_types.append(column_types[0])
         elif len(column_types) == 2 and NAME_CLASS_NONE in column_types:
             # Column with one type and nans
-            filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_types))
+            filtered_types = [x for x in column_types if x != NAME_CLASS_NONE]
             updated_column_types.append(filtered_types[0])
         else:
             if any('str' in column_type_name for column_type_name in column_types):

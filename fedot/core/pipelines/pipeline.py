@@ -185,7 +185,7 @@ class Pipeline(Graph):
         :param unfit_preprocessor: should we unfit preprocessor
         """
         for node in self.nodes:
-            if mode == 'all' or (mode == 'data_operations' and type(node.content['name']) == DataOperation):
+            if mode == 'all' or (mode == 'data_operations' and isinstance(node.content['name'], DataOperation)):
                 node.unfit()
 
         if unfit_preprocessor:
@@ -336,10 +336,10 @@ class Pipeline(Graph):
         pipeline.preprocessor = self.preprocessor
         return pipeline
 
-    def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
+    def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):
-            for node in [n for n in self.nodes if isinstance(n, PrimaryNode)]:
-                if node.operation.operation_type in input_data.keys():
+            for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
+                if node.operation.operation_type in input_data:
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
                 else:

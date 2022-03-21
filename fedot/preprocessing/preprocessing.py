@@ -1,28 +1,33 @@
 from copy import copy
-from typing import Union
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, data_type_is_table
-from fedot.core.data.data import data_type_is_ts, OutputData
-from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values, \
+from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts
+from fedot.core.data.data_preprocessing import (
+    data_has_categorical_features,
+    data_has_missing_values,
+    find_categorical_columns,
     replace_inf_with_nans
-from fedot.core.data.data_preprocessing import find_categorical_columns
+)
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
-    OneHotEncodingImplementation, LabelEncodingImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
+from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
+    LabelEncodingImplementation,
+    OneHotEncodingImplementation
+)
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
     ImputationImplementation
+)
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
-from fedot.preprocessing.data_types import TableTypesCorrector, NAME_CLASS_INT
+from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
-from fedot.preprocessing.structure import PipelineStructureExplorer, DEFAULT_SOURCE_NAME
+from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
+from sklearn.preprocessing import LabelEncoder
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -43,7 +48,7 @@ class DataPreprocessor:
         # There was performed encoding for string target column or not
         self.target_encoders = {}
         self.features_encoders = {}
-        self.ids_relevant_features = {}
+        self.ids_relevant_features: Dict[str, List[int]] = {}
 
         # Cannot be processed due to incorrect types or large number of nans
         self.ids_incorrect_features = {}
@@ -64,9 +69,9 @@ class DataPreprocessor:
 
         :param data: data class with input data for preprocessing
         """
-        categorical_sources = list(self.binary_categorical_processors.keys())
-        types_sources = list(self.types_correctors.keys())
-        if len(categorical_sources) == len(types_sources) and len(types_sources) > 0:
+        categorical_sources = list(self.binary_categorical_processors)
+        types_sources = list(self.types_correctors)
+        if len(categorical_sources) == len(types_sources) and types_sources:
             # Preprocessors have been already initialized
             return None
         self.helpers_were_initialized = True
@@ -78,7 +83,7 @@ class DataPreprocessor:
             self.binary_categorical_processors.update({DEFAULT_SOURCE_NAME: BinaryCategoricalPreprocessor()})
             self.types_correctors.update({DEFAULT_SOURCE_NAME: TableTypesCorrector()})
         elif isinstance(data, MultiModalData):
-            for data_source in list(data.keys()):
+            for data_source in data:
                 self.binary_categorical_processors.update({data_source: BinaryCategoricalPreprocessor()})
                 self.types_correctors.update({data_source: TableTypesCorrector()})
         else:
@@ -166,12 +171,12 @@ class DataPreprocessor:
     def take_only_correct_features(self, data: InputData, source_name: str):
         """ Take only correct features in the table """
         current_relevant_ids = self.ids_relevant_features[source_name]
-        if len(current_relevant_ids) != 0:
+        if current_relevant_ids:
             data.features = data.features[:, current_relevant_ids]
 
     def _prepare_obligatory_unimodal_for_fit(self, data: InputData, source_name: str) -> InputData:
         """ Method process InputData for pipeline fit method """
-        if data.supplementary_data.was_preprocessed is True:
+        if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
 
@@ -207,7 +212,7 @@ class DataPreprocessor:
 
     def _prepare_obligatory_unimodal_for_predict(self, data: InputData, source_name: str) -> InputData:
         """ Method process InputData for pipeline predict method """
-        if data.supplementary_data.was_preprocessed is True:
+        if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
 
@@ -381,7 +386,7 @@ class DataPreprocessor:
         :param data: data to transformation
         :param source_name: name of data source node
         """
-        if self.features_encoders.get(source_name) is None:
+        if source_name not in self.features_encoders:
             # No encoding needed for current data
             return data
 
@@ -389,7 +394,7 @@ class DataPreprocessor:
         features_types = data.supplementary_data.column_types['features']
         categorical_ids, non_categorical_ids = find_categorical_columns(data.features,
                                                                         features_types)
-        if len(categorical_ids) > 0:
+        if categorical_ids:
             # Perform encoding for categorical features
             encoder_output = self.features_encoders[source_name].transform(data, True)
             transformed = encoder_output.predict
@@ -402,7 +407,7 @@ class DataPreprocessor:
         categorical_ids, non_categorical_ids = find_categorical_columns(data.target,
                                                                         data.supplementary_data.column_types['target'])
 
-        if len(categorical_ids) > 0:
+        if categorical_ids:
             # Target is categorical
             target_encoder = LabelEncoder()
             target_encoder.fit(data.target)
@@ -414,7 +419,7 @@ class DataPreprocessor:
         For example, target [['red'], ['green'], ['red']] will be converted into
         [[0], [1], [0]]
         """
-        if self.target_encoders.get(source_name) is not None:
+        if source_name in self.target_encoders:
             # Target encoders have already been fitted
             data.supplementary_data.column_types['target'] = [NAME_CLASS_INT]
             encoded_target = self.target_encoders[source_name].transform(data.target)
@@ -501,7 +506,7 @@ class DataPreprocessor:
             if data.target is not None and len(data.target.shape) < 2:
                 data.target = data.target.reshape((-1, 1))
 
-        elif data.data_type == DataTypesEnum.ts:
+        elif data_type_is_ts(data):
             data.features = np.ravel(data.features)
 
         return data
@@ -559,7 +564,7 @@ def merge_preprocessors(api_preprocessor: DataPreprocessor,
 
     # Update optional preprocessing (take it from obtained pipeline)
     new_data_preprocessor.structure_analysis = pipeline_preprocessor.structure_analysis
-    if len(new_data_preprocessor.features_encoders.keys()) == 0:
+    if not new_data_preprocessor.features_encoders:
         # Store features encoder from obtained pipeline because in API there are no encoding
         new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
     return new_data_preprocessor

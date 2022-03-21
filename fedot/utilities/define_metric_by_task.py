@@ -38,15 +38,15 @@ class TunerMetricByTask:
         :return loss_function: function, which will calculate metric
         :return loss_params: parameters for loss function
         """
-        if self.task_type == TaskTypesEnum.regression:
+        if self.task_type is TaskTypesEnum.regression:
             # Default metric for regression
             loss_function = mean_squared_error
             loss_params = {'squared': False}
-        elif self.task_type == TaskTypesEnum.ts_forecasting:
+        elif self.task_type is TaskTypesEnum.ts_forecasting:
             # Default metric for time series forecasting
             loss_function = mean_squared_error
             loss_params = {'squared': False}
-        elif self.task_type == TaskTypesEnum.classification:
+        elif self.task_type is TaskTypesEnum.classification:
             # Default metric for time classification
             amount_of_classes = len(np.unique(np.array(input_data.target)))
             if amount_of_classes == 2:

@@ -1,5 +1,6 @@
 import gc
 import platform
+
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
@@ -108,7 +109,7 @@ class GPComposer(Composer):
 
         self.optimiser.graph_generation_params.advisor.task = data.task
 
-        if data.task.task_type == TaskTypesEnum.ts_forecasting:
+        if data.task.task_type is TaskTypesEnum.ts_forecasting:
             self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
         else:
             self.optimiser.graph_generation_params.rules_for_constraint = common_rules
@@ -241,6 +242,12 @@ class ObjectiveBuilder:
         try:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)
+
+            if not isinstance(metrics, list):
+                metrics = [metrics]
+
+            if self.cache is not None:
+                pipeline.fit_from_cache(self.cache)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
             evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,

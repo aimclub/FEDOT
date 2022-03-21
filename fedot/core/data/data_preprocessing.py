@@ -3,13 +3,12 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
-    if data.data_type == DataTypesEnum.table or data.data_type == DataTypesEnum.ts \
-            or data.data_type == DataTypesEnum.multi_ts:
+    if data_type_is_table(data) or data_type_is_ts(data) or data.data_type is DataTypesEnum.multi_ts:
         return True
     return False
 

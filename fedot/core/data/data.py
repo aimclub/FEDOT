@@ -340,7 +340,7 @@ class InputData(Data):
         """
         Shuffles features and target if possible
         """
-        if self.data_type == DataTypesEnum.table:
+        if self.data_type is DataTypesEnum.table:
             shuffled_ind = np.random.permutation(len(self.features))
             idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
                 shuffled_ind]
@@ -442,11 +442,11 @@ def process_target_and_features(data_frame: pd.DataFrame,
 
 
 def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
-    return data.data_type == DataTypesEnum.table
+    return data.data_type is DataTypesEnum.table
 
 
 def data_type_is_ts(data: InputData) -> bool:
-    return data.data_type == DataTypesEnum.ts
+    return data.data_type is DataTypesEnum.ts
 
 
 def get_indices_from_file(data_frame, file_path):

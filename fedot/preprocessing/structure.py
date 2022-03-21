@@ -69,11 +69,11 @@ class PipelineStructureExplorer:
                         self.path_id += 1
 
         correct_branches = [branch['correctness'] for path_id, branch in self.paths.items()]
-        if all(path_correctness is True for path_correctness in correct_branches):
+        if all(is_correct_path for is_correct_path in correct_branches):
             # All paths are correct
             return True
         else:
-            # At least one branch in th graph cannot process desired type of data
+            # At least one branch in the graph cannot process desired type of data
             return False
 
     def check_path(self, path: list, tag_to_check: str):

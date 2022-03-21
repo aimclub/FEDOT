@@ -54,8 +54,8 @@ class ApiDataProcessor:
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
-                for k in data.keys():
-                    data[k].idx = idx
+                for key in data:
+                    data[key].idx = idx
         except Exception as ex:
             raise ValueError('Please specify a features as path to csv file, as Numpy array, '
                              'Pandas DataFrame, FEDOT InputData or dict for multimodal data')

@@ -1,20 +1,21 @@
 import sys
+
 from abc import ABC, abstractmethod
-from typing import Callable, ClassVar
-from copy import deepcopy, copy
+from copy import copy, deepcopy
 from datetime import timedelta
+from typing import Callable, ClassVar
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.log import Log, default_log
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.validation.tune.time_series import cv_time_series_predictions
-from fedot.core.validation.tune.tabular import cv_tabular_predictions
-from fedot.core.validation.tune.simple import fit_predict_one_fold
 from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.validation.tune.simple import fit_predict_one_fold
+from fedot.core.validation.tune.tabular import cv_tabular_predictions
+from fedot.core.validation.tune.time_series import cv_time_series_predictions
+from scipy.sparse import csr_matrix
+from sklearn.preprocessing import LabelEncoder
 
 MAX_METRIC_VALUE = sys.maxsize
 
@@ -180,7 +181,7 @@ class HyperoptTuner(ABC):
     def _one_fold_validation(data, pipeline):
         """ Perform simple (hold-out) validation """
 
-        if data.task.task_type == TaskTypesEnum.classification:
+        if data.task.task_type is TaskTypesEnum.classification:
             test_target, preds = fit_predict_one_fold(data, pipeline)
         else:
             # For regression and time series forecasting
@@ -194,6 +195,7 @@ class HyperoptTuner(ABC):
     def _cross_validation(self, data, pipeline):
         """ Perform cross validation for metric evaluation """
 
+        preds, test_target = [], []
         if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
                 data.data_type is DataTypesEnum.image:
             preds, test_target = cv_tabular_predictions(pipeline, data,
@@ -259,10 +261,7 @@ def _greater_is_better(loss_function, loss_params) -> bool:
         optimal_metric = loss_function(ground_truth, multiclass_precise_prediction, **loss_params)
         not_optimal_metric = loss_function(ground_truth, multiclass_approximate_prediction, **loss_params)
 
-    if optimal_metric > not_optimal_metric:
-        return True
-    else:
-        return False
+    return optimal_metric > not_optimal_metric
 
 
 def _calculate_loss_function(loss_function, loss_params, target, preds):
