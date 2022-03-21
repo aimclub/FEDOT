@@ -8,7 +8,7 @@ class DataTypesEnum(Enum):
     # One dimensional array - time series
     ts = 'time_series'
 
-    # Table with columns as supporting time-series of the same variable, used for extending train sample
+    # Table with different variant of time-series for the same variable as columns (used for extending train sample)
     multi_ts = 'multiple_time_series'
 
     # Table, where cells contains text
