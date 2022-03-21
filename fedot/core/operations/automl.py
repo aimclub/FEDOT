@@ -1,9 +1,10 @@
 from fedot.core.log import Log
+from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
 
-class AutoML(Operation):
+class AutoML(Model):
     """
     Class with fit/predict methods defining the automl strategy for the task
 
