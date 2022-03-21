@@ -3,7 +3,6 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
@@ -120,13 +119,7 @@ class LaggedImplementation(DataOperationImplementation):
                                                   self.n_components,
                                                   self.use_svd)
             # Transform target
-            #current_target = self._current_target_for_each_ts(current_ts_id, target)
-            if input_data.data_type == DataTypesEnum.multi_ts:
-                while current_ts_id >= target.shape[1]:
-                    current_ts_id = current_ts_id - target.shape[1]
-                current_target = target[:, current_ts_id]
-            else:
-                current_target = target
+            current_target = self._current_target_for_each_ts(current_ts_id, target)
             new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
                                                                    idx=new_idx,
                                                                    features_columns=transformed_cols,
@@ -138,20 +131,23 @@ class LaggedImplementation(DataOperationImplementation):
                 all_transformed_target = new_target
                 all_transformed_idx = np.array(new_idx)
             else:
-                if input_data.data_type == DataTypesEnum.multi_ts:
-                    all_transformed_features = np.vstack((all_transformed_features, transformed_cols))
-                    all_transformed_target = np.vstack((all_transformed_target, new_target))
-                    all_transformed_idx = np.hstack((all_transformed_idx, np.array(new_idx)))
-
-                else:
-                    all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
+                all_transformed_features, all_transformed_target, all_transformed_idx = self.stack_by_type_fit(
+                    input_data, all_transformed_features,
+                    all_transformed_target, all_transformed_idx,
+                    transformed_cols, new_target, new_idx)
 
         input_data.features = all_transformed_features
         self.features_columns = all_transformed_features
         return all_transformed_target, all_transformed_idx
 
-    def _multi_ts_transformation_for_fit(self, input_data):
-        pass
+    def stack_by_type_fit(self, input_data, all_features, all_target, all_idx, features, target, idx):
+        """ Apply stack function for multi_ts and multivariable ts types on fit step"""
+        functions_by_type = {
+            DataTypesEnum.multi_ts: self._stack_multi_ts,
+            DataTypesEnum.ts: self._stack_multi_variable
+        }
+        stack_function = functions_by_type.get(input_data.data_type)
+        return stack_function(all_features, all_target, all_idx, features, target, idx)
 
     def _stack_multi_variable(self, all_features, all_target, all_idx, features, target, idx):
         all_features = np.hstack((all_features, features))
@@ -164,12 +160,15 @@ class LaggedImplementation(DataOperationImplementation):
         return all_features, all_target, all_idx
 
     def _current_target_for_each_ts(self, current_ts_id, target):
-
-        if len(target.shape) > 1 and current_ts_id >= target.shape[1]:
-            while current_ts_id >= target.shape[1]:
-                current_ts_id = current_ts_id - target.shape[1]
+        """ Returns target for each time-series"""
+        if len(target.shape) > 1:
+            # if multi_ts case
+            if current_ts_id >= target.shape[1]:
+                while current_ts_id >= target.shape[1]:
+                    current_ts_id = current_ts_id - target.shape[1]
             return target[:, current_ts_id]
         else:
+            # if multivariable case
             return target
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
@@ -200,15 +199,24 @@ class LaggedImplementation(DataOperationImplementation):
             if current_ts_id == 0:
                 all_transformed_features = last_part_of_ts
             else:
-                if input_data.data_type == DataTypesEnum.multi_ts:
-                    all_transformed_features = np.vstack((all_transformed_features, last_part_of_ts))
-                else:
-                    all_transformed_features = np.hstack((all_transformed_features, last_part_of_ts))
+                all_transformed_features = self.stack_by_type_predict(input_data,
+                                                                      all_transformed_features,
+                                                                      last_part_of_ts)
 
         if input_data.data_type == DataTypesEnum.multi_ts:
             all_transformed_features = np.expand_dims(all_transformed_features[0], axis=0)
         self.features_columns = all_transformed_features
         return all_transformed_features
+
+    def stack_by_type_predict(self, input_data, all_features, part_to_add):
+        """ Apply stack function for multi_ts and multivariable ts types on predict step"""
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            # for mutli_ts
+            all_features = np.vstack((all_features, part_to_add))
+        if input_data.data_type == DataTypesEnum.ts:
+            # for multivariable
+            all_features = np.hstack((all_features, part_to_add))
+        return all_features
 
     def _update_features_for_sparse(self, input_data: InputData):
         """ Make sparse matrix which will be used during forecasting """

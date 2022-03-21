@@ -333,7 +333,7 @@ def tables_mapping(idx_list, object_list, common_idx):
 
     # if indices repeats (for multi_ts data type)
     repeats_num = int(min(obj.shape[0] for obj in object_list)/len(common_idx))
-    common_idx_new = list(common_idx) * repeats_num
+    common_idx_full = list(common_idx) * repeats_num
 
     for number in range(len(idx_list)):
         current_idx = list(idx_list[number])
@@ -344,8 +344,8 @@ def tables_mapping(idx_list, object_list, common_idx):
             current_idx = list(current_idx) * repeats_num
         # Create mask where True - appropriate objects
         current_idx = np.array(current_idx, dtype=int)
-        common_idx_new = np.array(common_idx_new)
-        mask = np.isin(current_idx, common_idx_new)
+        common_idx_full = np.array(common_idx_full)
+        mask = np.isin(current_idx, common_idx_full)
 
         if len(current_object.shape) == 1:
             filtered_predict = current_object[mask]
