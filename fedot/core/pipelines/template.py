@@ -13,6 +13,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -274,7 +275,7 @@ class PipelineTemplate:
                 restored_data_preprocessor = joblib.load(path_to_preprocessor)
                 pipeline.preprocessor = restored_data_preprocessor
         elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
-            tmp_path = 'preprocessing.tmp'
+            tmp_path = os.path.join(default_fedot_data_dir(), 'preprocessing.tmp')
             with open(tmp_path, 'wb') as f:
                 f.write(BytesIO(dict_fitted_operations['preprocessing']).getbuffer())
             pipeline.preprocessor = joblib.load(tmp_path)
