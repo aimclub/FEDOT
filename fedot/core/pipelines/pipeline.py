@@ -191,7 +191,7 @@ class Pipeline(Graph):
         if unfit_preprocessor:
             self.preprocessor = DataPreprocessor(self.log)
 
-    def fit_from_cache(self, cache: OperationsCache, fold_num: int = 0) -> bool:
+    def fit_from_cache(self, cache: OperationsCache, fold_num: Optional[int] = None) -> bool:
         is_cache_used = False
         for node in self.nodes:
             cached_state = cache.get(node, fold_num)
