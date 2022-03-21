@@ -155,8 +155,8 @@ def test_pipeline_builder_merge_one_to_one():
     assert builders_same(
         merge_pipeline_builders(builder_many_to_one, builder_one_to_many),
         PipelineBuilder()
-            .add_branch('operation_b', 'operation_d').join_branches('operation_f')
-            .add_node('operation_c').add_branch('operation_g', 'operation_a')
+        .add_branch('operation_b', 'operation_d').join_branches('operation_f')
+        .add_node('operation_c').add_branch('operation_g', 'operation_a')
     )
 
 
@@ -169,8 +169,8 @@ def test_pipeline_builder_merge_one_to_many():
     assert builders_same(
         merge_pipeline_builders(builder_many_to_one, builder_many_to_many),
         PipelineBuilder()
-            .add_branch('operation_b', 'operation_d').join_branches('operation_f')
-            .add_branch('operation_b', 'operation_d').grow_branches('operation_f', 'operation_h')
+        .add_branch('operation_b', 'operation_d').join_branches('operation_f')
+        .add_branch('operation_b', 'operation_d').grow_branches('operation_f', 'operation_h')
     )
 
 
@@ -182,8 +182,8 @@ def test_pipeline_builder_merge_many_to_one():
     assert builders_same(
         merge_pipeline_builders(builder_one_to_many, builder_one_to_one),
         PipelineBuilder()
-            .add_node('operation_c').add_branch('operation_g', 'operation_a')
-            .join_branches('operation_a').add_node('operation_f')
+        .add_node('operation_c').add_branch('operation_g', 'operation_a')
+        .join_branches('operation_a').add_node('operation_f')
     )
 
 

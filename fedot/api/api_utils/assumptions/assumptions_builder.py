@@ -15,11 +15,12 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
 class AssumptionsBuilder:
 
-    def __init__(self, task: Task, data: Union[InputData, MultiModalData]):
+    def __init__(self, task: Task, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
         self.logger = default_log('FEDOT logger')
         self.data = data
         self.task = task
-        self.assumptions_generator = TaskAssumptions.for_task(task)
+        self.repo = OperationTypesRepository(repository_name)
+        self.assumptions_generator = TaskAssumptions.for_task(task, self.repo)
 
     @staticmethod
     def get(task: Task, data: Union[InputData, MultiModalData]):
@@ -47,13 +48,14 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     UNSUITABLE_AVAILABLE_OPERATIONS_MSG = "Unable to construct an initial assumption from the passed " \
                                           "available operations, default initial assumption will be used"
 
-    def __init__(self, task: Task, data: Union[InputData, MultiModalData], data_type: DataTypesEnum = None):
+    def __init__(self, task: Task, data: Union[InputData, MultiModalData],
+                 data_type: DataTypesEnum = None, repository_name: str = "model"):
         """ Construct builder from task and data.
         :param task: task for the pipeline
         :param data: data that will be passed to the pipeline
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
-        super().__init__(task, data)
+        super().__init__(task, data, repository_name)
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
@@ -61,13 +63,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         self.logger = logger
         return self
 
-    def from_operations(self, available_ops: Optional[List[str]]):
-        if available_ops:
-            operations_to_choose_from = \
-                self._get_operations_for_the_task(task_type=self.task.task_type, data_type=self.data_type,
-                                                  repo='model', available_operations=available_ops)
+    def from_operations(self, available_operations: Optional[List[str]]):
+        if available_operations:
+            operations_for_the_task, _ = self.repo.suitable_operation(self.task.task_type, self.data_type)
+            operations_to_choose_from = set(operations_for_the_task).intersection(available_operations)
             if operations_to_choose_from:
-                self.ops_filter = WhitelistOperationsFilter(available_ops, operations_to_choose_from)
+                self.ops_filter = WhitelistOperationsFilter(available_operations, operations_to_choose_from)
             else:
                 # Don't filter pipelines as we're not able to create
                 # fallback pipelines without operations_to_choose_from.
@@ -76,34 +77,25 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         return self
 
     def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
+        """ Return a list of valid builders satisfying internal
+        OperationsFilter or a single fallback builder. """
         preprocessing = \
             PreprocessingBuilder.builder_for_data(self.task.task_type, self.data, initial_node)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if not self.ops_filter.satisfies(candidate_builder.to_pipeline()):
-                candidate_builder = self.assumptions_generator.fallback_builder(self.ops_filter)
-            valid_builders.append(candidate_builder)
-        return valid_builders
-
-    @staticmethod
-    def _get_operations_for_the_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo: str,
-                                     available_operations: List[str]):
-        """ Returns the intersection of the sets of passed available operations and
-        operations that are suitable for solving the given problem """
-        operations_for_the_task, _ = \
-            OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
-        operations_to_choose_from = list(set(operations_for_the_task).intersection(available_operations))
-        return operations_to_choose_from
+            if self.ops_filter.satisfies(candidate_builder.to_pipeline()):
+                valid_builders.append(candidate_builder)
+        return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 
 
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
-    def __init__(self, task: Task, data: MultiModalData):
-        super().__init__(task, data)
+    def __init__(self, task: Task, data: MultiModalData, repository_name: str = "model"):
+        super().__init__(task, data, repository_name)
         _subbuilders = []
         for data_type, (data_source_name, values) in zip(data.data_type, data.items()):
             # TODO: can have specific Builder for each particular data column, eg construct InputData
-            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(task, data, data_type=data_type)))
+            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(task, data, data_type, repository_name)))
         self._subbuilders = tuple(_subbuilders)
 
     def with_logger(self, logger: Log):
