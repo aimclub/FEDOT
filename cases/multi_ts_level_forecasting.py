@@ -38,6 +38,8 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
     plt.plot(np.ravel(test_data.idx), np.ravel(test_data.target), label='test')
     plt.plot(np.ravel(train_data.idx), history, label='history')
     plt.plot(np.ravel(test_data.idx), forecast, label='prediction_after_tuning')
+    plt.xlabel('Time step')
+    plt.ylabel('Sea level')
     plt.legend()
     plt.show()
 
