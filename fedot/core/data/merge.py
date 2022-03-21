@@ -333,7 +333,10 @@ def tables_mapping(idx_list, object_list, common_idx):
 
     # if indices repeats (for multi_ts data type)
     repeats_num = int(min(obj.shape[0] for obj in object_list)/len(common_idx))
-    common_idx_full = list(common_idx) * repeats_num
+    if repeats_num > 1:
+        common_idx_full = list(common_idx) * repeats_num
+    else:
+        common_idx_full = list(common_idx)
 
     for number in range(len(idx_list)):
         current_idx = list(idx_list[number])
