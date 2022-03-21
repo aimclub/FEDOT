@@ -276,13 +276,13 @@
       ]
     },
     "lgbm": {
-      "meta": "sklearn_class",
+      "meta": "custom_class",
       "tags": [
         "boosting", "tree"
       ]
     },
     "lgbmreg": {
-      "meta": "sklearn_regr",
+      "meta": "custom_regr",
       "presets": ["*tree"],
       "tags": [
         "boosting", "tree", "non_multi"

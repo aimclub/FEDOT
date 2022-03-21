@@ -1,3 +1,7 @@
+from fedot.core.pipelines.pipeline import Pipeline
+
+from fedot.core.pipelines.node import PrimaryNode
+
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
@@ -9,7 +13,7 @@ def run_classification_example(timeout: float = None):
     problem = 'classification'
 
     baseline_model = Fedot(problem=problem, timeout=timeout)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='lgbm')
 
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())

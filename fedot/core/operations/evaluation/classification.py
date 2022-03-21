@@ -2,7 +2,8 @@ import warnings
 from typing import Optional
 
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
+from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy, \
+    collect_info_about_task_model_limitations
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
@@ -14,6 +15,7 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
 from fedot.core.operations.evaluation.operation_implementations.models. \
     keras import FedotCNNImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.lightgbm import FedotLGBMClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
     import IsolationForestClassImplementation
@@ -49,7 +51,8 @@ class FedotClassificationStrategy(EvaluationStrategy):
         'qda': QDAImplementation,
         'svc': FedotSVCImplementation,
         'cnn': FedotCNNImplementation,
-        'knn': FedotKnnClassImplementation
+        'knn': FedotKnnClassImplementation,
+        'lgbm': FedotLGBMClassImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -69,7 +72,12 @@ class FedotClassificationStrategy(EvaluationStrategy):
         else:
             operation_implementation = self.operation_impl()
 
-        operation_implementation.fit(train_data)
+        is_model_not_support_multi, is_multi_target = collect_info_about_task_model_limitations(train_data,
+                                                                                                self.operation_type)
+        if is_model_not_support_multi and is_multi_target:
+            raise NotImplementedError(f'Model {self.operation_type} does not support multi-output classification task!')
+        else:
+            operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,
