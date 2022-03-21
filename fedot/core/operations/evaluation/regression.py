@@ -12,6 +12,8 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
     import IsolationForestRegImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.lightgbm import \
+    FedotLGBMRegImplementation
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -97,7 +99,8 @@ class FedotRegressionStrategy(EvaluationStrategy):
     """
 
     __operations_by_types = {
-        'knnreg': FedotKnnRegImplementation
+        'knnreg': FedotKnnRegImplementation,
+        'lgbmreg': FedotLGBMRegImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

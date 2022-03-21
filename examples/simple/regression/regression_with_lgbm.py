@@ -1,6 +1,8 @@
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 
@@ -13,7 +15,9 @@ def run_regression_example():
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_folder': 'custom_history_folder'}
+    composer_params = {'history_folder': 'custom_history_folder',
+                       'available_operations': ['lgbmreg'],
+                       'initial_assumption': Pipeline(PrimaryNode('lgbmreg'))}
     auto_model = Fedot(problem=problem, seed=42, composer_params=composer_params,
                        preset='auto',
                        timeout=2, verbose_level=1)
