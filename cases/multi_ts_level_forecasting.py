@@ -18,6 +18,7 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
                       'timeout': 10,
                       'pop_size': 10,
                       'max_arity': 3,
+                      'cv_folds': None,
                       'available_operations': ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
                                                'ridge', 'lasso', 'linear', 'cut']
                   })
@@ -30,8 +31,12 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
     target = np.ravel(test_data.target)
 
     # visualize results
+    if multi_ts:
+        history = np.ravel(train_data.target[:, 0])
+    else:
+        history = np.ravel(train_data.target)
     plt.plot(np.ravel(test_data.idx), np.ravel(test_data.target), label='test')
-    plt.plot(np.ravel(train_data.idx), np.ravel(train_data.target[:, 0]), label='history')
+    plt.plot(np.ravel(train_data.idx), history, label='history')
     plt.plot(np.ravel(test_data.idx), forecast, label='prediction_after_tuning')
     plt.legend()
     plt.show()
@@ -41,5 +46,5 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
 
 if __name__ == '__main__':
     forecast_length = 60
-    #run_multi_ts_forecast(forecast_length, multi_ts=True)
+    run_multi_ts_forecast(forecast_length, multi_ts=True)
     run_multi_ts_forecast(forecast_length, multi_ts=False)
