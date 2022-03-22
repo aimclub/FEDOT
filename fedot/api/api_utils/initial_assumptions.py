@@ -101,6 +101,7 @@ class ApiInitialAssumptions:
                                                          available_operations: List[str],
                                                          logger: Log) -> List[Pipeline]:
         """ Creates a pipeline for Uni-data using only available operations """
+
         pipelines = self.create_unidata_pipelines(task, has_categorical_features, has_gaps)
         correct_pipelines = []
         for pipeline in pipelines:
