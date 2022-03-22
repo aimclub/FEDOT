@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Tuple
+from typing import Any, List, Optional, Union, Tuple, Container
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -25,11 +25,13 @@ class GraphOperator:
         self._postproc_nodes()
 
     def delete_subtree(self, node: GraphNode):
-        """Delete node with all the parents it has"""
-        for node_child in self.node_children(node):
-            node_child.nodes_from.remove(node)
-        for subtree_node in node.ordered_subnodes_hierarchy():
-            self._graph.nodes.remove(subtree_node)
+        """Delete node with all the parents it has.
+        and delete all edges from removed nodes to remaining graph nodes."""
+        subtree_nodes = node.ordered_subnodes_hierarchy()
+        remove_items(self._graph.nodes, subtree_nodes)
+        # prune all edges coming from the removed subtree
+        for node in self._graph.nodes:
+            remove_items(node.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
@@ -219,5 +221,12 @@ class GraphOperator:
         for node in self._graph.nodes:
             if node.nodes_from:
                 for parent_node in node.nodes_from:
-                    edges.append([parent_node, node])
+                    edges.append((parent_node, node))
         return edges
+
+
+def remove_items(collection: List, removed_items: Container):
+    """Removes all specified items from the list. Modifies original collection."""
+    if collection:
+        collection[:] = [item for item in collection if item not in removed_items]
+    return collection

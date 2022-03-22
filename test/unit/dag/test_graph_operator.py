@@ -240,7 +240,7 @@ def test_get_all_edges():
     knn = pipeline.nodes[1]
     logit = pipeline.nodes[0]
 
-    res_edges = [[knn, logit], [qda_second, knn], [qda_first, knn], [lda, qda_second]]
+    res_edges = [(knn, logit), (qda_second, knn), (qda_first, knn), (lda, qda_second)]
 
     edges = pipeline.operator.get_all_edges()
     assert res_edges == edges
