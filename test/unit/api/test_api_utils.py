@@ -5,7 +5,7 @@ import numpy as np
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.initial_assumptions import ApiInitialAssumptions
+from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -100,13 +100,13 @@ def test_the_formation_of_initial_assumption():
     logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['dt']
 
-    api_initial_assumption = ApiInitialAssumptions()
-    initial_assumption = \
-        api_initial_assumption.get_initial_assumption(data=train_input, task=Task(TaskTypesEnum.classification),
-                                                      available_operations=available_operations,
-                                                      logger=logger)
+    initial_assumptions = AssumptionsBuilder \
+        .get(Task(TaskTypesEnum.classification), train_input) \
+        .with_logger(logger) \
+        .from_operations(available_operations) \
+        .build()
     res_init_assumption = Pipeline(PrimaryNode('dt'))
-    assert initial_assumption[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
+    assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
 
 
 def test_init_assumption_with_inappropriate_available_operations():
@@ -118,16 +118,16 @@ def test_init_assumption_with_inappropriate_available_operations():
     logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['linear', 'xgboost', 'lagged']
 
-    api_initial_assumption = ApiInitialAssumptions()
-    initial_assumption = \
-        api_initial_assumption.get_initial_assumption(data=train_input, task=Task(TaskTypesEnum.classification),
-                                                      available_operations=available_operations,
-                                                      logger=logger)
+    initial_assumptions = AssumptionsBuilder\
+        .get(Task(TaskTypesEnum.classification), train_input)\
+        .with_logger(logger)\
+        .from_operations(available_operations)\
+        .build()
     primary = PrimaryNode('scaling')
     root = SecondaryNode('rf', nodes_from=[primary])
     res_init_assumption = Pipeline(root)
 
-    assert initial_assumption[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
+    assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
 
 
 def test_api_composer_divide_operations():
