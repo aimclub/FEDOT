@@ -415,15 +415,11 @@ class GaussianFilterImplementation(DataOperationImplementation):
         smoothed_ts = gaussian_filter(source_ts, sigma=self.sigma)
         smoothed_ts = np.array(smoothed_ts)
 
-        if input_data.data_type == DataTypesEnum.multi_ts:
-            output_data = self._convert_to_output(input_data,
-                                                  smoothed_ts,
-                                                  data_type=input_data.data_type)
-        else:
+        if input_data.data_type != DataTypesEnum.multi_ts:
             smoothed_ts = np.ravel(smoothed_ts)
-            output_data = self._convert_to_output(input_data,
-                                                  smoothed_ts,
-                                                  data_type=input_data.data_type)
+        output_data = self._convert_to_output(input_data,
+                                              smoothed_ts,
+                                              data_type=input_data.data_type)
 
         return output_data
 

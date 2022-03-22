@@ -147,12 +147,12 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
     plt.legend()
     plt.show()
 
-    print(f'RMSE: {rmse}')
-    print(f'MAE: {mae}')
-    print(f'RMSE after composing: {rmse_composing}')
-    print(f'MAE after composing: {mae_composing}')
-    print(f'RMSE after tuning: {rmse_tuning}')
-    print(f'MAE after tuning: {mae_tuning}')
+    print(f'RMSE: {round(rmse, 3)}')
+    print(f'MAE: {round(mae, 3)}')
+    print(f'RMSE after composing: {round(rmse_composing, 3)}')
+    print(f'MAE after composing: {round(mae_composing, 3)}')
+    print(f'RMSE after tuning: {round(rmse_tuning, 3)}')
+    print(f'MAE after tuning: {round(mae_tuning, 3)}')
 
 
 if __name__ == '__main__':

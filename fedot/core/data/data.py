@@ -106,7 +106,16 @@ class Data:
                                    is_predict=False,
                                    columns_to_use: Optional[list] = None,
                                    target_column: Optional[str] = ''):
+        """
+        Forms InputData of multi_ts type from columns of different variant of the same variable
 
+        :param task: the task that should be solved with data
+        :param file_path: path to csv file
+        :param delimiter: delimiter for pandas df
+        :param is_predict: is preparing for fit or predict stage
+        :param columns_to_use: list with names of columns of different variant of the same variable
+        :param target_column: string with name of target column, used for predict stage
+        """
         df = pd.read_csv(file_path, sep=delimiter)
 
         idx = get_indices_from_file(df, file_path)

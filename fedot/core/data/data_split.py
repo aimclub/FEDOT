@@ -8,10 +8,10 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
-def _split_time_series(data, task, *args, **kwargs):
+def _split_time_series(data: InputData, task, *args, **kwargs):
     """ Split time series data into train and test parts
 
-    :param data: array with data to split (not InputData)
+    :param data: InputData object to split
     :param task: task to solve
     """
 
@@ -40,10 +40,10 @@ def _split_time_series(data, task, *args, **kwargs):
     return train_data, test_data
 
 
-def _split_multi_time_series(data, task, *args, **kwargs):
-    """ Split time series data into train and test parts
+def _split_multi_time_series(data: InputData, task, *args, **kwargs):
+    """ Split multi_ts time series data into train and test parts
 
-    :param data: array with data to split (not InputData)
+    :param data: InputData object to split
     :param task: task to solve
     """
 
@@ -73,10 +73,10 @@ def _split_multi_time_series(data, task, *args, **kwargs):
     return train_data, test_data
 
 
-def _split_any(data, task, data_type, split_ratio, with_shuffle=False):
+def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False):
     """ Split any data into train and test parts
 
-    :param data: array with data to split (not InputData)
+    :param data: InputData object to split
     :param task: task to solve
     :param split_ratio: threshold for partitioning
     :param data_type type of data to split
@@ -111,10 +111,10 @@ def _split_any(data, task, data_type, split_ratio, with_shuffle=False):
     return train_data, test_data
 
 
-def _split_table(data, task, split_ratio, with_shuffle=False):
+def _split_table(data: InputData, task, split_ratio, with_shuffle=False):
     """ Split table data into train and test parts
 
-    :param data: array with data to split (not InputData)
+    :param data: InputData object to split
     :param task: task to solve
     :param split_ratio: threshold for partitioning
     :param with_shuffle: is data needed to be shuffled or not
@@ -122,10 +122,10 @@ def _split_table(data, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.table, split_ratio, with_shuffle)
 
 
-def _split_image(data, task, split_ratio, with_shuffle=False):
+def _split_image(data: InputData, task, split_ratio, with_shuffle=False):
     """ Split image data into train and test parts
 
-    :param data: array with data to split (not InputData)
+    :param data: InputData object to split
     :param task: task to solve
     :param split_ratio: threshold for partitioning
     :param with_shuffle: is data needed to be shuffled or not
@@ -134,10 +134,10 @@ def _split_image(data, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
 
 
-def _split_text(data, task, split_ratio, with_shuffle=False):
+def _split_text(data: InputData, task, split_ratio, with_shuffle=False):
     """ Split text data into train and test parts
 
-    :param data: array with data to split (not InputData)
+    :param data: InputData object to split
     :param task: task to solve
     :param split_ratio: threshold for partitioning
     :param with_shuffle: is data needed to be shuffled or not

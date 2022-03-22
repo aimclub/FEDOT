@@ -70,7 +70,7 @@
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"custom_time_series_transformation": {
 			"tasks": "[TaskTypesEnum.ts_forecasting]",
-			"input_type": "[DataTypesEnum.ts]",
+			"input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
 			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
