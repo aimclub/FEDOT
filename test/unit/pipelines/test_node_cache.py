@@ -150,9 +150,10 @@ def pipeline_fifth():
     pipeline = pipeline_first()
     new_node = SecondaryNode('knn')
     pipeline.update_node(pipeline.root_node, new_node)
-    new_node = PrimaryNode('knn')
-    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[0], new_node)
-    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[1], new_node)
+    new_node1 = PrimaryNode('knn')
+    new_node2 = PrimaryNode('knn')
+    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[0], new_node1)
+    pipeline.update_node(pipeline.root_node.nodes_from[1].nodes_from[1], new_node2)
 
     return pipeline
 

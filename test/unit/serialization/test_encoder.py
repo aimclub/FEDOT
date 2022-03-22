@@ -61,7 +61,7 @@ ENCODER_CASES = [
         test_input=MOCK_NODE_1,
         test_answer={
             'name': 'node1',
-            'nodes_from': [
+            '_nodes_from': [
                 MOCK_NODE_2.uid,
                 MOCK_NODE_3.uid
             ],

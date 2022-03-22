@@ -14,15 +14,19 @@ class MockNode:
     def __init__(self, name: str, nodes_from: list = None):
         self.name = name
         self.uid = name
-        self.nodes_from = nodes_from if nodes_from else []
+        self._nodes_from = nodes_from or []
         self.content = {
             'name': DataOperation('test_operation')
         }
 
+    @property
+    def nodes_from(self):
+        return self._nodes_from
+
     def __eq__(self, other):
         return (
             self.name == other.name and
-            self.nodes_from == other.nodes_from
+            self._nodes_from == other._nodes_from
         )
 
 
