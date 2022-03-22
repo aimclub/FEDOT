@@ -3,7 +3,7 @@ import os
 import platform
 import random
 import time
-from copy import copy, deepcopy
+from copy import deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
@@ -429,18 +429,6 @@ def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
     is_tuning_finished = True
 
     assert is_tuning_finished
-
-
-def test_pipeline_copy():
-    pipeline = Pipeline(PrimaryNode(operation_type='logit'))
-    pipeline_copy = copy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
-
-
-def test_pipeline_deepcopy():
-    pipeline = Pipeline(PrimaryNode(operation_type='logit'))
-    pipeline_copy = deepcopy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
 
 
 def test_pipeline_structure_print_correct():

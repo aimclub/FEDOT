@@ -1,8 +1,11 @@
 from copy import deepcopy
+from itertools import zip_longest
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 from deap import tools
+from tqdm import tqdm
+
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
@@ -18,7 +21,6 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, MetricsRepository
-from tqdm import tqdm
 
 DEFAULT_MAX_POP_SIZE = 55
 
@@ -124,9 +126,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                     new_population = []
 
-                    for parent_num in range(0, len(selected_individuals), 2):
-                        new_population += self.reproduce(selected_individuals[parent_num],
-                                                         selected_individuals[parent_num + 1])
+                    for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
+                        new_population += self.reproduce(ind_1, ind_2)
 
                     new_population = self._evaluate_individuals(new_population, objective_function,
                                                                 timer=t,
@@ -145,11 +146,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                 if not self.parameters.multi_objective and self.with_elitism:
                     self.population.append(self.prev_best)
-
-                from uuid import uuid4
-                self.population = [deepcopy(ind) for ind in self.population]
-                for ind in self.population:
-                    ind.graph._serialization_id = uuid4().hex
 
                 if self.archive is not None:
                     self.archive.update(self.population)

@@ -1,6 +1,7 @@
 from uuid import UUID
 
 import pytest
+
 from fedot.core.serializers import Serializer
 from fedot.core.serializers.coders import (
     any_from_json,
@@ -14,13 +15,12 @@ from fedot.core.serializers.coders import (
     uuid_from_json,
     uuid_to_json
 )
-
-from ..mocks.serialization_mocks import MockGraph, MockNode, MockOperation
-from ..shared_data import TestClass, TestEnum, TestSerializableClass
+from .mocks.serialization_mocks import MockGraph, MockNode, MockOperation
+from .shared_data import TestClass, TestEnum, TestSerializableClass
 
 
 @pytest.fixture
-def _get_class_fixture(monkeypatch):
+def get_class_fixture(monkeypatch):
     def mock_get_class(obj_type: type):
         return obj_type
 
@@ -31,7 +31,7 @@ def _get_class_fixture(monkeypatch):
 
 
 @pytest.fixture
-def _mock_classes_fixture(monkeypatch):
+def mock_classes_fixture(monkeypatch):
     _to_json = Serializer._to_json
     _from_json = Serializer._from_json
     monkeypatch.setattr(Serializer, 'CODERS_BY_TYPE', {
