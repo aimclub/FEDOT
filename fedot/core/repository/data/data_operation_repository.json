@@ -217,7 +217,8 @@
 				"dimensionality_transforming",
 				"non_lagged",
 				"correct_params"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"sparse_lagged": {
 			"meta": "custom_time_series_transformation",
@@ -227,7 +228,8 @@
 				"dimensionality_transforming",
 				"non_lagged",
 				"correct_params"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
@@ -236,7 +238,8 @@
 				"simple",
 				"smoothing",
 				"non_lagged"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"gaussian_filter": {
 			"meta": "custom_time_series_transformation",
@@ -245,7 +248,8 @@
 				"simple",
 				"smoothing",
 				"non_lagged"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"diff_filter": {
 			"meta": "custom_time_series_transformation",
@@ -254,7 +258,8 @@
 				"differential",
 				"non_lagged",
 				"correct_params"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"cut": {
 			"meta": "custom_time_series_transformation",
@@ -264,7 +269,8 @@
 				"cutting",
 				"correct_params",
 				"non_lagged"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"exog_ts": {
 			"meta": "custom_time_series_transformation",
