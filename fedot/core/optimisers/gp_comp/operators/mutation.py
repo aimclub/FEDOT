@@ -115,7 +115,7 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
              ind: Individual, requirements, log: Log,
-             max_depth: int = None, add_to_history=True) -> Any:
+             max_depth: int = None) -> Any:
     """ Function apply mutation operator to graph """
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
@@ -132,14 +132,12 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
         is_correct_graph = constraint_function(new_graph, params)
         if is_correct_graph:
             new_individual = Individual(new_graph)
-            if add_to_history:
-                new_individual = Individual(new_graph)
-                new_individual.parent_operators = deepcopy(ind.parent_operators)
-                for mutation_name in mutation_names:
-                    new_individual.parent_operators.append(
-                        ParentOperator(operator_type='mutation',
-                                       operator_name=str(mutation_name),
-                                       parent_individuals=[ind]))
+            new_individual.parent_operators = deepcopy(ind.parent_operators)
+            for mutation_name in mutation_names:
+                new_individual.parent_operators.append(
+                    ParentOperator(operator_type='mutation',
+                                   operator_name=str(mutation_name),
+                                   parent_individuals=[ind]))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '

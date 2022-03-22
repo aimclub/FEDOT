@@ -129,10 +129,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.initial_graph = initial_graph
         self.prev_best = None
 
-    def _create_randomized_pop_from_inital_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
+    def _create_randomized_pop(self, individuals: List[Individual]) -> List[Individual]:
         """
         Fill first population with mutated variants of the initial_graphs
-        :param initial_graphs: Initial assumption for first population
+        :param individuals: Initial assumption for first population
         :return: list of individuals
         """
         initial_req = deepcopy(self.requirements)
@@ -140,31 +140,36 @@ class EvoGraphOptimiser(GraphOptimiser):
         randomized_pop = []
         n_iter = self.requirements.pop_size * 10
         while n_iter > 0:
-            initial_graph = np.random.choice(initial_graphs)
+            initial_individual = np.random.choice(individuals)
             n_iter -= 1
             new_ind = mutation(types=self.parameters.mutation_types,
                                params=self.graph_generation_params,
-                               ind=Individual(initial_graph),
+                               ind=initial_individual,
                                requirements=initial_req,
-                               max_depth=self.max_depth, log=self.log,
-                               add_to_history=False)
+                               max_depth=self.max_depth, log=self.log)
             if new_ind not in randomized_pop:
                 # to suppress duplicated
                 randomized_pop.append(new_ind)
 
-            if len(randomized_pop) == self.requirements.pop_size - len(initial_graphs):
+            if len(randomized_pop) == self.requirements.pop_size - len(individuals):
                 break
 
         # add initial graph to population
-        for initial_graph in initial_graphs:
-            randomized_pop.append(Individual(deepcopy(initial_graph)))
+        for initial in individuals:
+            randomized_pop.append(initial)
 
         return randomized_pop
 
-    def _init_population(self):
+    def _init_population(self, objective_function, timer):
         if self.initial_graph:
-            adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
-            self.population = self._create_randomized_pop_from_inital_graph(adapted_graphs)
+            initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
+                                   self.initial_graph]
+            initial_individuals = self._evaluate_individuals(initial_individuals,
+                                                             objective_function=objective_function,
+                                                             timer=timer,
+                                                             n_jobs=self.requirements.n_jobs)
+            self.default_on_next_iteration_callback(initial_individuals, None)
+            self.population = self._create_randomized_pop(initial_individuals)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
         return self.population
@@ -175,11 +180,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        self._init_population()
-
-        num_of_new_individuals = self.offspring_size(offspring_rate)
-
         with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
+            self._init_population(objective_function, t)
+            num_of_new_individuals = self.offspring_size(offspring_rate)
+
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc="Generations", unit='gen', initial=1) if show_progress else None
 
@@ -269,6 +273,9 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
+
+        final_individuals = best if isinstance(best, list) else [best]
+        self.default_on_next_iteration_callback(final_individuals, None)
 
         output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
 

@@ -107,7 +107,8 @@ class GraphOptimiser:
         """
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
-    def default_on_next_iteration_callback(self, individuals: List[Individual], archive: List[Individual]):
+    def default_on_next_iteration_callback(self, individuals: List[Individual],
+                                           archive: Optional[List[Individual]]):
         """
         Default variant of callblack that preservs optimisation history
         :param individuals: list of individuals obtained in iteration
