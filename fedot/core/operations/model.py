@@ -6,6 +6,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum
 import numpy as np
 
+
 class Model(Operation):
     """
     Class with fit/predict methods defining the evaluation strategy for the task
