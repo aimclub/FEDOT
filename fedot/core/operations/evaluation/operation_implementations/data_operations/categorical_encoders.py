@@ -185,23 +185,22 @@ class LabelEncodingImplementation(DataOperationImplementation):
         :param gap_ids: indices of gap elements in array
         """
         column_encoder = self.encoders[categorical_id]
+        encoder_classes = list(column_encoder.classes_)
 
-        try:
-            transformed_column = column_encoder.transform(categorical_column)
-            if len(gap_ids) > 0:
-                # Store np.nan values
-                transformed_column = transformed_column.astype(object)
-                transformed_column[gap_ids] = np.nan
-        except ValueError as ex:
-            # y contains previously unseen labels
-            encoder_classes = list(column_encoder.classes_)
-            message = str(ex)
-            unseen_label = message.split("\'")[1]
+        # If the column contains categories not previously encountered
+        for label in list(set(categorical_column)):
+            if label not in encoder_classes:
+                encoder_classes.append(label)
 
-            # Extent encoder classes
-            encoder_classes.append(unseen_label)
-            column_encoder.classes_ = encoder_classes
-            return self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
+        # Extent encoder classes
+        column_encoder.classes_ = encoder_classes
+
+        transformed_column = column_encoder.transform(categorical_column)
+        if len(gap_ids) > 0:
+            # Store np.nan values
+            transformed_column = transformed_column.astype(object)
+            transformed_column[gap_ids] = np.nan
+
         return transformed_column
 
     def get_params(self):
