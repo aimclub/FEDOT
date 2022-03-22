@@ -122,7 +122,7 @@ class GraphOperator:
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
-        Method removes nodes and edges that do not the result of the pipeline
+        Method removes nodes and edges that do not affect the result of the pipeline
 
         Leftovers - edges and nodes that remain after the removal of the edge / node
         and do not affect the result of the pipeline

@@ -111,23 +111,20 @@ class BinaryCategoricalPreprocessor:
         encoder = self.binary_encoders[column_id]
         encoder_classes = list(encoder.classes_)
 
-        try:
-            converted = encoder.transform(column)
-            if len(gap_ids) > 0:
-                # Column has nans in its structure - after conversion replace it
-                converted = converted.astype(float)
-                converted[gap_ids] = np.nan
-        except ValueError as ex:
-            # y contains previously unseen labels
-            message = str(ex)
-            unseen_label = message.split("\'")[1]
+        # If the column contains categories not previously encountered
+        for label in list(set(column)):
+            if label not in encoder_classes:
+                encoder_classes.append(label)
 
-            # Extent encoder classes
-            encoder_classes.append(unseen_label)
-            encoder.classes_ = encoder_classes
+        # Extent encoder classes
+        encoder.classes_ = encoder_classes
 
-            # Recursive launching
-            return self._apply_encoder(column, column_id, gap_ids)
+        converted = encoder.transform(column)
+        if len(gap_ids) > 0:
+            # Column has nans in its structure - after conversion replace it
+            converted = converted.astype(float)
+            converted[gap_ids] = np.nan
+
         return converted
 
 
