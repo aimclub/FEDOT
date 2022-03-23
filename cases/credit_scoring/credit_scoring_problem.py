@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import fedot_project_root
@@ -29,7 +30,8 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                target='target'):
 
     automl = Fedot(problem='classification', timeout=timeout, verbose_level=4,
-                   preset='best_quality', composer_params={'with_tuning': with_tuning})
+                   preset=BEST_QUALITY_PRESET_NAME,
+                   composer_params={'with_tuning': with_tuning})
     automl.fit(train_file_path, target=target)
     predict = automl.predict(test_file_path)
     metrics = automl.get_metrics()

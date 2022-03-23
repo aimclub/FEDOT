@@ -1,6 +1,7 @@
 import os
 
 from fedot.api.main import Fedot
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
@@ -81,8 +82,8 @@ def test_operators_in_history():
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
     auto_model = Fedot(problem='classification', seed=42,
-                       timeout=0.5,
-                       composer_params={'num_of_generations': 2, 'pop_size': 3},
+                       timeout=0.1,
+                       composer_params={'num_of_generations': 3, 'pop_size': 4},
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 

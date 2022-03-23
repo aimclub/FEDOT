@@ -51,8 +51,8 @@ def test_timeout(case: TimeoutParams):
     }
 
     task_type = 'ts_forecasting'
-    preset = 'fast_train'
-    fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': 4,
+    fedot_input = {'problem': task_type, 'seed': 42, 'preset': 'fast_train',
+                   'verbose_level': 4,
                    'timeout': composer_params['timeout'],
                    'composer_params': composer_params, 'task_params': TsForecastingParams(forecast_length=1)}
 

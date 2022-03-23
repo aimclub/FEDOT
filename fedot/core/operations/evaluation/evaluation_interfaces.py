@@ -162,7 +162,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained Sklearn operation
         """
-
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
             operation_implementation = self.operation_impl(**self.params_for_fit)

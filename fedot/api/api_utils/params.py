@@ -3,7 +3,8 @@ from typing import Optional, Dict, Union
 
 import numpy as np
 
-from fedot.core.constants import DEFAULT_FORECAST_LENGTH, DEFAULT_API_TIMEOUT_MINUTES
+from fedot.core.constants import DEFAULT_FORECAST_LENGTH, \
+    DEFAULT_API_TIMEOUT_MINUTES, AUTO_PRESET_NAME
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -36,6 +37,8 @@ class ApiParams:
         if input_params['composer_params'] is None:
             self.api_params = self.get_default_evo_params(problem=input_params['problem'])
         else:
+            if input_params.get('preset') is not None:
+                input_params['composer_params']['preset'] = input_params['preset']
             self.api_params = {**self.get_default_evo_params(problem=input_params['problem']),
                                **input_params['composer_params']}
 
@@ -80,7 +83,9 @@ class ApiParams:
         else:
             preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
-        del self.api_params['available_operations']
+
+        if self.api_params.get('available_operations') is not None:
+            del self.api_params['available_operations']
         self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,
@@ -121,7 +126,7 @@ class ApiParams:
                   'num_of_generations': 100,
                   'timeout': 2,
                   'with_tuning': True,
-                  'preset': 'best_quality',
+                  'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
                   'stopping_after_n_generation': 10}

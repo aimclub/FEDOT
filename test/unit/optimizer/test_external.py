@@ -46,10 +46,11 @@ def test_external_static_optimizer(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     automl = Fedot(problem='classification', timeout=0.2, verbose_level=4,
-                   preset='fast_train', composer_params={'with_tuning': False,
-                                                         'optimizer': StaticOptimizer,
-                                                         'pop_size': 2,
-                                                         'optimizer_external_params': {'node_name': 'logit'}})
+                   preset='fast_train',
+                   composer_params={'with_tuning': False,
+                                    'optimizer': StaticOptimizer,
+                                    'pop_size': 2,
+                                    'optimizer_external_params': {'node_name': 'logit'}})
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 

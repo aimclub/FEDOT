@@ -44,7 +44,8 @@ def test_compose_fedot_model_with_tuning():
                                                                               cv_folds=None,
                                                                               genetic_scheme=None),
                                                          tuning_params=dict(with_tuning=True,
-                                                                            tuner_metric=None))
+                                                                            tuner_metric=None),
+                                                         preset='fast_train')
     expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
     logs.check_present(expected, order_matters=False)
 

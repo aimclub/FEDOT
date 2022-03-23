@@ -48,7 +48,8 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
             train_data = train_data.iloc[:partition, :]
             start_time = timeit.default_timer()
             auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=_n_jobs,
-                               composer_params={'with_tuning': False}, preset='fast_train', verbose_level=4)
+                               composer_params={'with_tuning': False}, preset='fast_train',
+                               verbose_level=4)
             auto_model.fit(features=train_data_path, target='target')
             auto_model.predict_proba(features=test_data_path)
             c_pipelines = count_pipelines(auto_model.history.save())

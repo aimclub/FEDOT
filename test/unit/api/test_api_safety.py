@@ -90,7 +90,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     Test if safe mode in API cut large data and use LabelEncoder for features with high cardinality
     """
     model = Fedot(problem="classification",
-                  composer_params=composer_params)
+                  composer_params={'preset': 'fast_train'})
     model.data_analyser.max_cat_cardinality = 5
     model.data_analyser.max_size = 18
     data = get_small_cat_data()

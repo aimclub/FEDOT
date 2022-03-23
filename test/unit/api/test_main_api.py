@@ -333,7 +333,7 @@ def test_multivariate_ts():
     assert forecast is not None
 
 
-def test_unshaffled_data():
+def test_unshuffled_data():
     target_column = 'species'
     df_el, y = load_iris(return_X_y=True, as_frame=True)
     df_el[target_column] = LabelEncoder().fit_transform(y)
