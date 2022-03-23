@@ -23,7 +23,9 @@ def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
     numerator = 2 * np.abs(y_true - y_pred)
     denominator = np.abs(y_true) + np.abs(y_pred)
-    return np.mean(100 * (numerator / denominator))
+    result = numerator / denominator
+    result[np.isnan(result)] = 0.0
+    return float(np.mean(100 * result))
 
 
 class Metric:
