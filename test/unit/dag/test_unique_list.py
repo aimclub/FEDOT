@@ -1,4 +1,4 @@
-from fedot.core.dag.unique_list import UniqueList
+from fedot.core.utilities.data_structures import UniqueList
 
 
 def test_init():

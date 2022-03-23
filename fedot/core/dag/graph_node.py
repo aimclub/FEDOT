@@ -2,7 +2,7 @@ from typing import List, Optional, Union, Iterable
 from uuid import uuid4
 
 from fedot.core.dag.node_operator import NodeOperator
-from fedot.core.dag.unique_list import UniqueList
+from fedot.core.utilities.data_structures import UniqueList
 
 
 class GraphNode:
