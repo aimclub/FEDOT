@@ -26,6 +26,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -177,7 +178,15 @@ class ApiComposer:
             api_params['available_operations'].append('lagged')
 
         if not api_params['initial_assumption']:
-            assumptions_builder = AssumptionsBuilder\
+            is_input = isinstance(api_params['train_data'], InputData)
+            if is_input and api_params['train_data'].data_type == DataTypesEnum.multi_ts:
+                # It is needed to use data operations also for multi_ts data
+                repository_name = 'all'
+            else:
+                repository_name = 'model'
+            assumptions_builder = AssumptionsBuilder(task=api_params['task'],
+                                                     data=api_params['train_data'],
+                                                     repository_name=repository_name)\
                 .get(api_params['task'], api_params['train_data'])\
                 .with_logger(api_params['logger'])\
                 .from_operations(composer_params['available_operations'])

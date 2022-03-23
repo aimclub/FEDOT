@@ -322,7 +322,6 @@ class Fedot:
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
-
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
