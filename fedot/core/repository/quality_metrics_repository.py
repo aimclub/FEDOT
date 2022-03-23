@@ -3,7 +3,7 @@ from typing import Callable
 from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
                                          MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
                                          RMSE, ROCAUC, Silhouette, StructuralComplexity)
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
 class MetricsEnum(Enum):

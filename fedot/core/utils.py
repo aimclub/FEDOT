@@ -1,7 +1,6 @@
 import os
 import platform
 import tempfile
-from enum import Enum
 from pathlib import Path
 
 import numpy as np
@@ -79,16 +78,3 @@ def make_pipeline_generator(pipeline):
         if node not in visited_nodes:
             visited_nodes.append(node)
             yield node
-
-
-class ComparableEnum(Enum):
-    """
-    The Enum implementation that allows to avoid the multi-module enum comparison problem
-    (https://stackoverflow.com/questions/26589805/python-enums-across-modules)
-    """
-
-    def __eq__(self, other):
-        return str(self) == str(other)
-
-    def __hash__(self):
-        return hash(str(self))

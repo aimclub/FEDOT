@@ -30,7 +30,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             from fedot.core.optimisers.gp_comp.individual import Individual
             from fedot.core.optimisers.graph import OptGraph, OptNode
             from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
-            from fedot.core.utils import ComparableEnum
+            from fedot.core.utilities.data_structures import ComparableEnum
 
             from .coders import (
                 any_from_json,
