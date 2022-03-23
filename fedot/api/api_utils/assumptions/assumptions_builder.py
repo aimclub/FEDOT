@@ -15,11 +15,11 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
 class AssumptionsBuilder:
 
-    def __init__(self, task: Task, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
+    def __init__(self, task: Task, data: Union[InputData, MultiModalData]):
         self.logger = default_log('FEDOT logger')
         self.data = data
         self.task = task
-        self.repo = OperationTypesRepository(repository_name)
+        self.repo = OperationTypesRepository('all')
         self.assumptions_generator = TaskAssumptions.for_task(task, self.repo)
 
     @staticmethod
@@ -49,13 +49,13 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
                                           "available operations, default initial assumption will be used"
 
     def __init__(self, task: Task, data: Union[InputData, MultiModalData],
-                 data_type: DataTypesEnum = None, repository_name: str = "model"):
+                 data_type: DataTypesEnum = None):
         """ Construct builder from task and data.
         :param task: task for the pipeline
         :param data: data that will be passed to the pipeline
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
-        super().__init__(task, data, repository_name)
+        super().__init__(task, data)
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
@@ -90,12 +90,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
 
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
-    def __init__(self, task: Task, data: MultiModalData, repository_name: str = "model"):
-        super().__init__(task, data, repository_name)
+    def __init__(self, task: Task, data: MultiModalData):
+        super().__init__(task, data)
         _subbuilders = []
         for data_type, (data_source_name, values) in zip(data.data_type, data.items()):
             # TODO: can have specific Builder for each particular data column, eg construct InputData
-            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(task, data, data_type, repository_name)))
+            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(task, data, data_type)))
         self._subbuilders = tuple(_subbuilders)
 
     def with_logger(self, logger: Log):

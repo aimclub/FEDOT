@@ -16,7 +16,7 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 
 # implementation of custom model without fitting
-def domain_model_imitation_predict(fitted_model: any, predict_data: np.array, params: dict):
+def domain_model_imitation_predict(fitted_model: any, idx: np.array, predict_data: np.array, params: dict):
     # TODO real custom model or more realistic imitation
     a = params.get('a')
     b = params.get('b')

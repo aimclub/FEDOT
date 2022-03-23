@@ -100,6 +100,57 @@ class Data:
         return input_data
 
     @staticmethod
+    def from_csv_multi_time_series(task: Task,
+                                   file_path=None,
+                                   delimiter=',',
+                                   is_predict=False,
+                                   columns_to_use: Optional[list] = None,
+                                   target_column: Optional[str] = ''):
+        """
+        Forms InputData of multi_ts type from columns of different variant of the same variable
+
+        :param task: the task that should be solved with data
+        :param file_path: path to csv file
+        :param delimiter: delimiter for pandas df
+        :param is_predict: is preparing for fit or predict stage
+        :param columns_to_use: list with names of columns of different variant of the same variable
+        :param target_column: string with name of target column, used for predict stage
+        """
+        df = pd.read_csv(file_path, sep=delimiter)
+
+        idx = get_indices_from_file(df, file_path)
+        if columns_to_use is not None:
+            actual_df = df[columns_to_use]
+            multi_time_series = actual_df.to_numpy()
+        else:
+            multi_time_series = df.to_numpy()
+
+        if is_predict:
+            # Prepare data for prediction
+            len_forecast = task.task_params.forecast_length
+            if target_column is not None:
+                time_series = np.array(df[target_column])
+            else:
+                time_series = np.array(df[df.columns[-1]])
+            start_forecast = multi_time_series.shape[0]
+            end_forecast = start_forecast + len_forecast
+            input_data = InputData(idx=np.arange(start_forecast, end_forecast),
+                                   features=time_series,
+                                   target=None,
+                                   task=task,
+                                   data_type=DataTypesEnum.multi_ts)
+        else:
+            # Prepare InputData for train the pipeline
+            input_data = InputData(idx=idx,
+                                   features=multi_time_series,
+                                   target=multi_time_series,
+                                   task=task,
+                                   data_type=DataTypesEnum.multi_ts)
+
+        return input_data
+
+
+    @staticmethod
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
                    task: Task = Task(TaskTypesEnum.classification),

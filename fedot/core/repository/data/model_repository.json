@@ -127,7 +127,7 @@
     },
     "ts_model": {
       "description": "Implementations of the time series models",
-      "input_type": "[DataTypesEnum.ts]",
+      "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.time_series",
@@ -170,7 +170,8 @@
         "interpretable",
         "non_lagged",
         "in_sample_refit"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "arima": {
       "meta": "ts_model",
@@ -180,13 +181,15 @@
         "interpretable",
         "non_lagged",
         "in_sample_refit"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "clstm": {
       "meta": "ts_model",
       "tags": [
         "non_lagged"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "bernb": {
       "meta": "sklearn_class",
@@ -356,7 +359,8 @@
         "non_linear",
         "interpretable",
         "correct_params"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "sgdr": {
       "meta": "sklearn_regr",
@@ -373,7 +377,8 @@
         "interpretable",
         "non_lagged",
         "in_sample_refit"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "glm": {
       "meta": "ts_model",
@@ -383,7 +388,8 @@
         "interpretable",
         "non_lagged",
         "correct_params"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "ets": {
       "meta": "ts_model",
@@ -392,7 +398,8 @@
         "simple",
         "interpretable",
         "non_lagged"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "svc": {
       "meta": "custom_class",

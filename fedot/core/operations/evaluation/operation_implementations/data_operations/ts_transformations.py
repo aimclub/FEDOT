@@ -3,7 +3,6 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
@@ -120,20 +119,87 @@ class LaggedImplementation(DataOperationImplementation):
                                                   self.n_components,
                                                   self.use_svd)
             # Transform target
+            current_target = self._current_target_for_each_ts(current_ts_id, target)
             new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
                                                                    idx=new_idx,
                                                                    features_columns=transformed_cols,
-                                                                   target=target,
+                                                                   target=current_target,
                                                                    forecast_length=forecast_length)
             if current_ts_id == 0:
                 # Init full lagged table
                 all_transformed_features = transformed_cols
+                all_transformed_target = new_target
+                all_transformed_idx = np.array(new_idx)
             else:
-                all_transformed_features = np.hstack((all_transformed_features, transformed_cols))
+                all_transformed_features, all_transformed_target, all_transformed_idx = self.stack_by_type_fit(
+                    input_data, all_transformed_features,
+                    all_transformed_target, all_transformed_idx,
+                    transformed_cols, new_target, new_idx)
 
         input_data.features = all_transformed_features
         self.features_columns = all_transformed_features
-        return new_target, new_idx
+        return all_transformed_target, all_transformed_idx
+
+    def stack_by_type_fit(self, input_data, all_features, all_target, all_idx, features, target, idx):
+        """ Apply stack function for multi_ts and multivariable ts types on fit step"""
+        functions_by_type = {
+            DataTypesEnum.multi_ts: self._stack_multi_ts,
+            DataTypesEnum.ts: self._stack_multi_variable
+        }
+        stack_function = functions_by_type.get(input_data.data_type)
+        return stack_function(all_features, all_target, all_idx, features, target, idx)
+
+    def _stack_multi_variable(self, all_features: np.array,
+                              all_target: np.array,
+                              all_idx: np.array,
+                              features: np.array,
+                              target: np.array,
+                              idx: [list, np.array]):
+        """
+        Horizontally stack tables as multiple variables extends features for training
+
+        :param all_features: array with all features for adding new
+        :param all_target:  array with all target (does not change)
+        :param all_idx: array with all indices (does not change)
+        :param features: array with new features for adding
+        :param target: array with new target for adding
+        :param idx: array with new idx for adding
+        """
+        all_features = np.hstack((all_features, features))
+        return all_features, all_target, all_idx
+
+    def _stack_multi_ts(self, all_features: np.array,
+                        all_target: np.array,
+                        all_idx: np.array,
+                        features: np.array,
+                        target: np.array,
+                        idx: [list, np.array]):
+        """
+        Vertically stack tables as multi_ts data extends training set as combination of train and target
+
+        :param all_features: array with all features for adding new
+        :param all_target:  array with all target
+        :param all_idx: array with all indices
+        :param features: array with new features for adding
+        :param target: array with new target for adding
+        :param idx: array with new idx for adding
+        """
+        all_features = np.vstack((all_features, features))
+        all_target = np.vstack((all_target, target))
+        all_idx = np.hstack((all_idx, np.array(idx)))
+        return all_features, all_target, all_idx
+
+    def _current_target_for_each_ts(self, current_ts_id, target):
+        """ Returns target for each time-series"""
+        if len(target.shape) > 1:
+            # if multi_ts case
+            if current_ts_id >= target.shape[1]:
+                while current_ts_id >= target.shape[1]:
+                    current_ts_id = current_ts_id - target.shape[1]
+            return target[:, current_ts_id]
+        else:
+            # if multivariable case
+            return target
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
         """ Apply lagged transformation for every column (time series) in the dataset """
@@ -163,10 +229,24 @@ class LaggedImplementation(DataOperationImplementation):
             if current_ts_id == 0:
                 all_transformed_features = last_part_of_ts
             else:
-                all_transformed_features = np.hstack((all_transformed_features, last_part_of_ts))
+                all_transformed_features = self.stack_by_type_predict(input_data,
+                                                                      all_transformed_features,
+                                                                      last_part_of_ts)
 
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            all_transformed_features = np.expand_dims(all_transformed_features[0], axis=0)
         self.features_columns = all_transformed_features
         return all_transformed_features
+
+    def stack_by_type_predict(self, input_data, all_features, part_to_add):
+        """ Apply stack function for multi_ts and multivariable ts types on predict step"""
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            # for mutli_ts
+            all_features = np.vstack((all_features, part_to_add))
+        if input_data.data_type == DataTypesEnum.ts:
+            # for multivariable
+            all_features = np.hstack((all_features, part_to_add))
+        return all_features
 
     def _update_features_for_sparse(self, input_data: InputData):
         """ Make sparse matrix which will be used during forecasting """
@@ -246,20 +326,32 @@ class TsSmoothingImplementation(DataOperationImplementation):
         :return output_data: output data with smoothed time series
         """
 
-        source_ts = pd.Series(input_data.features)
+        source_ts = input_data.features
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            full_smoothed_ts = []
+            for ts_n in range(source_ts.shape[1]):
+                ts = pd.Series(source_ts[:, ts_n])
+                smoothed_ts = self._apply_smoothing_to_series(ts)
+                full_smoothed_ts.append(smoothed_ts)
+            output_data = self._convert_to_output(input_data,
+                                                  np.array(full_smoothed_ts).T,
+                                                  data_type=input_data.data_type)
+        else:
+            source_ts = pd.Series(input_data.features)
+            smoothed_ts = np.ravel(self._apply_smoothing_to_series(source_ts))
+            output_data = self._convert_to_output(input_data,
+                                                  smoothed_ts,
+                                                  data_type=input_data.data_type)
 
-        # Apply smoothing operation
-        smoothed_ts = source_ts.rolling(window=self.window_size).mean()
+        return output_data
+
+    def _apply_smoothing_to_series(self, ts):
+        smoothed_ts = ts.rolling(window=self.window_size).mean()
         smoothed_ts = np.array(smoothed_ts)
 
         # Filling first nans with source values
-        smoothed_ts[:self.window_size] = source_ts[:self.window_size]
-
-        output_data = self._convert_to_output(input_data,
-                                              np.ravel(smoothed_ts),
-                                              data_type=DataTypesEnum.ts)
-
-        return output_data
+        smoothed_ts[:self.window_size] = ts[:self.window_size]
+        return smoothed_ts
 
     def get_params(self):
         return {'window_size': self.window_size}
@@ -353,9 +445,11 @@ class GaussianFilterImplementation(DataOperationImplementation):
         smoothed_ts = gaussian_filter(source_ts, sigma=self.sigma)
         smoothed_ts = np.array(smoothed_ts)
 
+        if input_data.data_type != DataTypesEnum.multi_ts:
+            smoothed_ts = np.ravel(smoothed_ts)
         output_data = self._convert_to_output(input_data,
-                                              np.ravel(smoothed_ts),
-                                              data_type=DataTypesEnum.ts)
+                                              smoothed_ts,
+                                              data_type=input_data.data_type)
 
         return output_data
 
@@ -401,10 +495,20 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
         source_ts = np.array(input_data.features)
         # Apply differential operation
-        differential_ts = self._differential_filter(source_ts)
-        output_data = self._convert_to_output(input_data,
-                                              np.ravel(differential_ts),
-                                              data_type=DataTypesEnum.ts)
+        if input_data.data_type == DataTypesEnum.multi_ts:
+            full_differential_ts = []
+            for ts_n in range(source_ts.shape[1]):
+                ts = source_ts[:, ts_n]
+                differential_ts = self._differential_filter(ts)
+                full_differential_ts.append(differential_ts)
+            output_data = self._convert_to_output(input_data,
+                                                  np.array(full_differential_ts).T,
+                                                  data_type=input_data.data_type)
+        else:
+            differential_ts = np.ravel(self._differential_filter(source_ts))
+            output_data = self._convert_to_output(input_data,
+                                                  differential_ts,
+                                                  data_type=input_data.data_type)
 
         return output_data
 
@@ -525,7 +629,7 @@ class CutImplementation(DataOperationImplementation):
         input_copy.target = output_values
         output_data = self._convert_to_output(input_copy,
                                               output_values,
-                                              data_type=DataTypesEnum.ts)
+                                              data_type=input_data.data_type)
         return output_data
 
     def get_params(self):

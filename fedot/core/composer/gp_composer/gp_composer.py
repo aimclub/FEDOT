@@ -214,6 +214,7 @@ class GPComposer(Composer):
             gc.collect()
         except Exception as ex:
             self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
+
             evaluated_metrics = None
         return evaluated_metrics
 
