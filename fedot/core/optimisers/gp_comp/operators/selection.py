@@ -5,7 +5,7 @@ from typing import Any, List, TYPE_CHECKING
 from deap import tools
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams

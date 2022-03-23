@@ -1,4 +1,4 @@
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
 class DataTypesEnum(Enum):
