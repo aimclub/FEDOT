@@ -149,11 +149,41 @@ class LaggedImplementation(DataOperationImplementation):
         stack_function = functions_by_type.get(input_data.data_type)
         return stack_function(all_features, all_target, all_idx, features, target, idx)
 
-    def _stack_multi_variable(self, all_features, all_target, all_idx, features, target, idx):
+    def _stack_multi_variable(self, all_features: np.array,
+                              all_target: np.array,
+                              all_idx: np.array,
+                              features: np.array,
+                              target: np.array,
+                              idx: [list, np.array]):
+        """
+        Horizontally stack tables as multiple variables extends features for training
+
+        :param all_features: array with all features for adding new
+        :param all_target:  array with all target (does not change)
+        :param all_idx: array with all indices (does not change)
+        :param features: array with new features for adding
+        :param target: array with new target for adding
+        :param idx: array with new idx for adding
+        """
         all_features = np.hstack((all_features, features))
         return all_features, all_target, all_idx
 
-    def _stack_multi_ts(self, all_features, all_target, all_idx, features, target, idx):
+    def _stack_multi_ts(self, all_features: np.array,
+                        all_target: np.array,
+                        all_idx: np.array,
+                        features: np.array,
+                        target: np.array,
+                        idx: [list, np.array]):
+        """
+        Vertically stack tables as multi_ts data extends training set as combination of train and target
+
+        :param all_features: array with all features for adding new
+        :param all_target:  array with all target
+        :param all_idx: array with all indices
+        :param features: array with new features for adding
+        :param target: array with new target for adding
+        :param idx: array with new idx for adding
+        """
         all_features = np.vstack((all_features, features))
         all_target = np.vstack((all_target, target))
         all_idx = np.hstack((all_idx, np.array(idx)))
