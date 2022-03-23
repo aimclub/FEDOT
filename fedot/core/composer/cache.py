@@ -2,7 +2,6 @@ import glob
 import os
 import shelve
 import uuid
-
 from collections import namedtuple
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -69,10 +68,12 @@ class OperationsCache:
         found_operation = _load_cache_for_node(self.db_path, node, fold_id)
         return found_operation
 
+
 def _get_structural_id(node: Node, fold_id: Optional[int] = None):
     structural_id = node.descriptive_id
     structural_id += f'_{fold_id}' if fold_id is not None else ''
     return structural_id
+
 
 def _save_cache_for_node(cache_shelf: shelve.Shelf, node: Node, fold_id: Optional[int] = None):
     cached_state = CachedState(node.fitted_operation)

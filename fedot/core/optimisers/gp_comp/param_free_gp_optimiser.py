@@ -39,7 +39,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                  suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
-        if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
+        if self.parameters.genetic_scheme_type is not GeneticSchemeTypesEnum.parameter_free:
             self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
             self.parameters.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 

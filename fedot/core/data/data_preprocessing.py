@@ -73,13 +73,11 @@ def find_categorical_columns(table: np.array, column_types: dict = None):
 
     categorical_ids = []
     non_categorical_ids = []
-    column_id = 0
-    for type_name in column_types:
+    for column_id, type_name in enumerate(column_types):
         if 'str' in str(type_name):
             categorical_ids.append(column_id)
         else:
             non_categorical_ids.append(column_id)
-        column_id += 1
 
     return categorical_ids, non_categorical_ids
 

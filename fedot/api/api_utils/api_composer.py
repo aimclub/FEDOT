@@ -1,26 +1,30 @@
 import datetime
 import gc
 import traceback
+
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import numpy as np
-from deap import tools
-from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
+from deap import tools
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import update_builder
 from fedot.api.time import ApiTime
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import (PipelineComposerRequirements)
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECONDS_FOR_TUNING
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
-    GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import (
+    EvoGraphOptimiser,
+    GeneticSchemeTypesEnum,
+    GPGraphOptimiserParameters
+)
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
@@ -28,9 +32,10 @@ from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
+from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 
 class ApiComposer:
@@ -42,6 +47,7 @@ class ApiComposer:
         self.current_model = None
         self.best_models = None
         self.history = None
+        self.cache = OperationsCache()
 
         self.preset_name = None
         self.timer = None
@@ -51,7 +57,7 @@ class ApiComposer:
         if composer_metric is None:
             composer_metric = MetricByTask(task.task_type).metric_cls.get_value
 
-        if isinstance(composer_metric, str) or isinstance(composer_metric, Callable):
+        if isinstance(composer_metric, (str, Callable)):
             composer_metric = [composer_metric]
 
         metric_function = []
@@ -115,10 +121,14 @@ class ApiComposer:
         :param optimizer_external_parameters: eternal parameters for optimizer
         """
 
-        builder = ComposerBuilder(task=task). \
-            with_requirements(composer_requirements). \
-            with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters). \
-            with_metrics(metric_function).with_logger(logger)
+        builder = (
+            ComposerBuilder(task=task)
+                .with_requirements(composer_requirements)
+                .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters)
+                .with_metrics(metric_function)
+                .with_logger(logger)
+                .with_cache(self.cache.db_path, use_existing=True)
+        )
 
         if initial_assumption is None:
             initial_pipelines = AssumptionsBuilder.get(task, data).build()
@@ -131,6 +141,7 @@ class ApiComposer:
             initial_pipelines = initial_assumption
         # Check initial assumption
         fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger,
+                                                              cache=self.cache,
                                                               n_jobs=composer_requirements.n_jobs)
         builder = builder.with_initial_pipelines(initial_pipelines)
 
@@ -145,7 +156,7 @@ class ApiComposer:
                           task):
         """ Function divide operations for primary and secondary """
 
-        if task.task_type == TaskTypesEnum.ts_forecasting:
+        if task.task_type is TaskTypesEnum.ts_forecasting:
             # Get time series operations for primary nodes
             ts_data_operations = get_operations_for_task(task=task,
                                                          mode='data_operation',
@@ -172,9 +183,9 @@ class ApiComposer:
         Also, since it is impossible to form a valid pipeline for the time series problem without 'lagged' operation,
         if it is not in the list of available ones, it is added """
 
-        if api_params['task'] == TaskTypesEnum.ts_forecasting and \
-                'lagged' not in api_params['available_operations']:
-            api_params['available_operations'].append('lagged')
+        if api_params['task'].task_type is TaskTypesEnum.ts_forecasting and \
+                'lagged' not in composer_params['available_operations']:
+            composer_params['available_operations'].append('lagged')
 
         if not api_params['initial_assumption']:
             is_input = isinstance(api_params['train_data'], InputData)
@@ -238,7 +249,7 @@ class ApiComposer:
                      MutationTypesEnum.single_add]
 
         # TODO remove workaround after validation fix
-        if api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
+        if api_params['task'].task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
         optimizer_parameters = GPGraphOptimiserParameters(
@@ -320,10 +331,10 @@ class ApiComposer:
         loss_params_dict = {roc_auc: {'multi_class': 'ovr', 'average': 'macro'},
                             mean_squared_error: {'squared': False}}
 
-        if task.task_type == TaskTypesEnum.regression or task.task_type == TaskTypesEnum.ts_forecasting:
+        if task.task_type is TaskTypesEnum.regression or task.task_type is TaskTypesEnum.ts_forecasting:
             loss_function = mean_squared_error
             loss_params = {'squared': False}
-        elif task.task_type == TaskTypesEnum.classification:
+        elif task.task_type is TaskTypesEnum.classification:
             # Default metric for time classification
             amount_of_classes = len(np.unique(np.array(train_data.target)))
             loss_function = roc_auc
@@ -343,7 +354,7 @@ class ApiComposer:
                             composer_requirements, pipeline_gp_composed,
                             timer: ApiTime, init_pipeline_fit_time):
         """ Launch tuning procedure for obtained pipeline by composer """
-        if tuning_params['with_tuning'] is False:
+        if not tuning_params['with_tuning']:
             # Return source pipeline
             return pipeline_gp_composed
 
@@ -387,7 +398,7 @@ class ApiComposer:
 
 def fit_and_check_correctness(pipeline: Pipeline,
                               data: Union[InputData, MultiModalData],
-                              logger: Log, n_jobs=1):
+                              logger: Log, cache: Optional[OperationsCache] = None, n_jobs=1):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
@@ -396,6 +407,8 @@ def fit_and_check_correctness(pipeline: Pipeline,
         logger.message('Initial pipeline fitting started')
 
         pipeline.fit(data, n_jobs=n_jobs)
+        # if cache is not None:  # TODO: uncomment and check with cache
+        #     cache.save_pipeline(pipeline)
         pipeline.predict(data_test)
 
         fit_time = datetime.datetime.now() - start_init_fit
@@ -429,8 +442,8 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     for i, dct in enumerate(dict_list):
         update_dict = dct.copy()
         update_dict.update(common_dict)
-        for key in common_dict.keys():
-            if key not in dct.keys():
+        for key in common_dict:
+            if key not in dct:
                 update_dict.pop(key)
         dict_list[i] = update_dict
 

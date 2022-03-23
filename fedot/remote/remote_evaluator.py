@@ -114,13 +114,13 @@ def _prepare_batches(pipelines, params):
 
 
 def _get_config(pipeline_json, params: RemoteTaskParams, client_params: dict, conn_params: dict):
-    var_names = [str(name) for name in params.var_names] \
+    var_names = list(map(str, params.var_names)) \
         if params.var_names is not None else []
-    train_data_idx = [str(idx) for idx in params.train_data_idx] \
+    train_data_idx = list(map(str, params.train_data_idx)) \
         if params.train_data_idx is not None else []
 
     data_name = params.dataset_name
-    if conn_params is not None and len(conn_params) > 0:
+    if conn_params is not None and conn_params:
         train_data = f"{client_params['container_input_path']}/data/{conn_params['DATA_ID']}/{data_name}.csv"
     else:
         train_data = f"{client_params['container_input_path']}/{data_name}.csv"

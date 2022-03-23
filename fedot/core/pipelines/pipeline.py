@@ -173,7 +173,7 @@ class Pipeline(Graph):
 
     @property
     def is_fitted(self):
-        return all([(node.fitted_operation is not None) for node in self.nodes])
+        return all(node.fitted_operation is not None for node in self.nodes)
 
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
         """

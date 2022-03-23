@@ -22,10 +22,10 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
     :param vb_number: number of validation blocks for time series
     :param cache: instance of cache class
     """
-    if cache is not None:
-        pipeline.fit_from_cache(cache, fold_id)
-
-    pipeline.fit(train_data, use_fitted=cache is not None)
+    pipeline.fit(
+        train_data,
+        use_fitted=cache is not None and pipeline.fit_from_cache(cache, fold_id)
+    )
 
     for index, metric in enumerate(metrics):
         if callable(metric):

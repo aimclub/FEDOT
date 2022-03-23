@@ -365,7 +365,7 @@ class Fedot:
         remote = RemoteEvaluator()
         if remote.use_remote and remote.remote_task_params is not None:
             task = self.params.api_params['task']
-            if task.task_type == TaskTypesEnum.ts_forecasting:
+            if task.task_type is TaskTypesEnum.ts_forecasting:
                 task_str = \
                     f'Task(TaskTypesEnum.ts_forecasting, ' \
                     f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
@@ -384,7 +384,11 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-        self.current_pipeline.fit(full_train_not_preprocessed, n_jobs=self.params.api_params['n_jobs'])
+        self.current_pipeline.fit(
+            full_train_not_preprocessed,
+            use_fitted=self.current_pipeline.fit_from_cache(self.api_composer.cache),
+            n_jobs=self.params.api_params['n_jobs']
+        )
 
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """
@@ -404,5 +408,6 @@ class Fedot:
         # Perform fitting
         final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
                                                       logger=self.params.api_params['logger'],
+                                                      cache=self.api_composer.cache,
                                                       n_jobs=self.params.api_params['n_jobs'])
         return final_pipeline

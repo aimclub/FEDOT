@@ -1,4 +1,5 @@
 import warnings
+
 from copy import deepcopy
 from random import choice, randint
 from typing import Any, List, Tuple
@@ -123,7 +124,8 @@ def filter_duplicates(archive, population) -> List[Any]:
 
 
 def duplicates_filtration(archive, population):
-    return list(filter(lambda x: not any([x.fitness == pop_ind.fitness for pop_ind in population]), archive.items))
+    population_fitnesses = {pop_ind.fitness for pop_ind in population}
+    return list(filter(lambda x: x.fitness not in population_fitnesses, archive.items))
 
 
 def clean_operators_history(population):

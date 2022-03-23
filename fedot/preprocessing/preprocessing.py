@@ -433,10 +433,10 @@ class DataPreprocessor:
         """ Apply inverse Label Encoding operation for target column """
         main_target_source_name = self._determine_target_converter()
 
-        if self.target_encoders.get(main_target_source_name) is not None:
+        if main_target_source_name in self.target_encoders:
             # Check if column contains string objects
             categorical_ids, non_categorical_ids = find_categorical_columns(column_to_transform)
-            if len(categorical_ids) > 0:
+            if categorical_ids:
                 # There is no need to perform converting (it was performed already)
                 return column_to_transform
             # It is needed to apply fitted encoder to apply inverse transformation
@@ -572,7 +572,7 @@ def merge_preprocessors(api_preprocessor: DataPreprocessor,
 
 def update_indices_for_time_series(test_data: Union[InputData, MultiModalData]):
     """ Replace indices for time series for predict stage """
-    if test_data.task.task_type != TaskTypesEnum.ts_forecasting:
+    if test_data.task.task_type is not TaskTypesEnum.ts_forecasting:
         return test_data
 
     if isinstance(test_data, MultiModalData):

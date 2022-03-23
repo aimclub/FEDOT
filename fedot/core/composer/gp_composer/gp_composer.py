@@ -246,9 +246,6 @@ class ObjectiveBuilder:
             if not isinstance(metrics, list):
                 metrics = [metrics]
 
-            if self.cache is not None:
-                pipeline.fit_from_cache(self.cache)
-
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
             evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
                                                   time_constraint=self.max_pipeline_fit_time,
