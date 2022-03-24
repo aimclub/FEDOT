@@ -349,7 +349,14 @@ class EvoGraphOptimiser(GraphOptimiser):
                 simpler_equivalents[i] = len(individuals[i].graph.nodes)
         return simpler_equivalents
 
-    def reproduce(self, selected_individual_first, selected_individual_second=None) -> Tuple[Any]:
+    def reproduce(self,
+                  selected_individual_first: Individual,
+                  selected_individual_second: Optional[Individual] = None) -> Tuple[Any]:
+
+        selected_individual_first.parent_operators = []
+        if selected_individual_second is not None:
+            selected_individual_second.parent_operators = []
+
         if selected_individual_second:
             new_inds = crossover(self.parameters.crossover_types,
                                  selected_individual_first,
