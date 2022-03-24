@@ -3,65 +3,40 @@ from os import makedirs
 from os.path import join, exists
 
 import numpy as np
+import ptan
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
 from tensorboardX import SummaryWriter
-from torch.distributions import Categorical
 
 from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.rl.pipeline_env import PipelineEnv
 
 
-class PolicyNetwork:
-    def __init__(self, n_state, n_action, n_hidden=64, lr=.001, gamma=0.97):
-        super(PolicyNetwork, self).__init__()
-        self.model = nn.Sequential(
+class PolicyGradientNetwork(nn.Module):
+    def __init__(self, n_state, n_action, n_hidden=128):
+        super(PolicyGradientNetwork, self).__init__()
+        self.net = nn.Sequential(
             nn.Linear(n_state, n_hidden),
             nn.ReLU(),
             nn.Linear(n_hidden, n_action),
-            nn.Softmax(),
         )
-        self.log_probs = None
-        self.rewards = None
-        self.gamma = gamma
-        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
-
-        self.policy_reset()
-
-    def policy_reset(self):
-        self.log_probs = []
-        self.rewards = []
 
     def forward(self, x):
-        return self.model(x)
+        return self.net(x)
 
-    def act(self, state):
-        x = torch.from_numpy(state.astype(np.float32))
-        pdparam = self.forward(x)
-        prob_distribution = Categorical(pdparam)
-        action = prob_distribution.sample()
-        log_prob = prob_distribution.log_prob(action)
-        self.log_probs.append(log_prob)
 
-        return action.item() + 2
+def calc_qvals(rewards, gamma=0.99):
+    res = []
+    sum_r = 0.0
 
-    def update(self):
-        T = len(self.rewards)
-        rets = np.empty(T, dtype=np.float32)
-        future_rets = .0
+    for r in reversed(rewards):
+        sum_r *= gamma
+        sum_r += r
+        res.append(sum_r)
 
-        for t in reversed(range(T)):
-            future_ret = self.rewards[t] + self.gamma * future_rets
-            rets[t] = future_ret
-
-        rets = torch.tensor(rets)
-        log_probs = torch.stack(self.log_probs)
-        loss = -log_probs * rets
-        loss = torch.sum(loss)
-        self.optimizer.step()
-
-        return loss
-
+    return list(reversed(res))
 
 if __name__ == '__main__':
     file_path_train = 'cases/data/scoring/scoring_train.csv'
@@ -71,55 +46,88 @@ if __name__ == '__main__':
     full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
     env = PipelineEnv([full_path_train, full_path_test])
-    # env = PipelineEnv(path=None)
+    # env = gym.make('CartPole-v1')
     in_dim = env.observation_space.shape[0]
     out_dim = env.action_space.n
 
-    pn = PolicyNetwork(in_dim, out_dim)
+    gamma = 0.99
+
+    pnet = PolicyGradientNetwork(in_dim, out_dim)
+    print(pnet)
+
+    agent = ptan.agent.PolicyAgent(pnet, preprocessor=ptan.agent.float32_preprocessor, apply_softmax=True)
+
+    # exp_source = ptan.experience.ExperienceSource(env, agent, steps_count=4, steps_delta=4)
+    exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=gamma)
+
+    optimizer = optim.Adam(pnet.parameters(), lr=0.01)
 
     # Tensorboard
-    path_to_tbX = join(default_fedot_data_dir(), 'fedot', 'rl', 'logs', 'tensorboard')
+    path_to_tbX = join(default_fedot_data_dir(), 'rl', 'tensorboard')
 
     if not exists(path_to_tbX):
         makedirs(path_to_tbX)
 
     tb_writer = SummaryWriter(logdir=path_to_tbX)
-    rewards = []
+
+    total_rewards = []
+    step_idx = 0
+    done_episodes = 0
+
+    batch_episode = 0
+    batch_states, batch_actions, batch_qvals = [], [], []
+    cur_rewards = []
     pipeline_length = []
     correct_pipeline = 0
     reward_window = 25
 
-    for episode in range(25000):
-        state = env.reset()
-        done = False
-        reward = 0
+    for step_idx, exp in enumerate(exp_source):
+        batch_states.append(exp.state)
+        batch_actions.append(int(exp.action))
+        cur_rewards.append(exp.reward)
 
-        for t in range(25):
-            action = pn.act(state)
-            state, reward, done, info = env.step(action)
-            pn.rewards.append(reward)
-            if done:
-                env.render()
+        if exp.last_state is None:
+            batch_qvals.extend(calc_qvals(cur_rewards, gamma))
+            cur_rewards.clear()
+            batch_episode += 1
+
+        new_rewards = exp_source.pop_total_rewards()
+
+        if new_rewards:
+            done_episodes += 1
+            reward = new_rewards[0]
+            total_rewards.append(reward)
+            mean_rewards = float(np.mean(total_rewards[-100:]))
+            env.render()
+            print('%d: reward: %6.2f, mean_100: %6.2f, episodes: %d' % (step_idx, reward, mean_rewards, done_episodes))
+
+            tb_writer.add_scalar('reward', reward, step_idx)
+            tb_writer.add_scalar('reward_100', mean_rewards, step_idx)
+            tb_writer.add_scalar('episodes', done_episodes, step_idx)
+
+            if mean_rewards > 90:
+                print('Solved in %d steps and %d episodes!' % (step_idx, done_episodes))
                 break
 
-        loss = pn.update()
-        total_reward = sum(pn.rewards)
-        pn.policy_reset()
+        if batch_episode < 4:  # EPISODES_TO_TRAIN
+            continue
 
-        rewards.append(reward)
+        optimizer.zero_grad()
+        states_v = torch.FloatTensor(batch_states)
+        batch_actions_t = torch.LongTensor(batch_actions)
+        batch_qvals_v = torch.FloatTensor(batch_qvals)
 
-        # Tensorboard
-        tb_writer.add_scalar('reward per eps', reward, episode)
-        tb_writer.add_scalar('mean reward per eps', np.mean(rewards), episode)
-        tb_writer.add_scalar('time steps per eps', info['time_step'], episode)
-        tb_writer.add_scalar('metric values per eps', info['metric_value'], episode)
+        logits_v = pnet(states_v)
+        log_prob_v = F.log_softmax(logits_v, dim=1)
+        log_prob_actions_v = batch_qvals_v * log_prob_v[range(len(batch_states)), batch_actions_t]
+        loss_v = -log_prob_actions_v.mean()
 
-        if episode >= reward_window:  # TODO: changes
-            tb_writer.add_scalar('mean window reward', np.mean(rewards[-reward_window:]), episode)
+        loss_v.backward()
+        optimizer.step()
 
-        if info['length'] != -1:
-            correct_pipeline += 1
-            tb_writer.add_scalar('pipeline length', info['length'], correct_pipeline)
-            tb_writer.add_scalar('metric value correct pipelines', info['metric_value'], correct_pipeline)
+        batch_episode = 0
+        batch_states.clear()
+        batch_actions.clear()
+        batch_qvals.clear()
 
-        print(f'Episode {episode}, loss: {loss}, total_reward: {total_reward}\n')
+    tb_writer.close()
