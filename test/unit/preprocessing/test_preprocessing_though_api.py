@@ -13,9 +13,9 @@ def data_with_only_categorical_features():
     """ Generate tabular data with only categorical features. All of them are binary. """
     supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_STR] * 3})
     task = Task(TaskTypesEnum.regression)
-    features = np.array([['a', '0', '1'],
-                         ['b', '1', '0'],
-                         ['c', '1', '0']], dtype=object)
+    features = np.array([["'a'", "0", "1"],
+                         ["'b'", "1", "0"],
+                         ["'c'", "1", "0"]], dtype=object)
     input_data = InputData(idx=[0, 1, 2], features=features,
                            target=np.array([0, 1, 2]),
                            task=task,  data_type=DataTypesEnum.table,
