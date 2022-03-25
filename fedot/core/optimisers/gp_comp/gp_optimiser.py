@@ -378,10 +378,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             new_inds = [selected_individual_first]
 
-        new_inds = tuple([mutation(types=self.parameters.mutation_types,
-                                   params=self.graph_generation_params,
-                                   ind=new_ind, requirements=self.requirements,
-                                   max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
+        new_inds = [mutation(types=self.parameters.mutation_types,
+                             params=self.graph_generation_params,
+                             ind=new_ind, requirements=self.requirements,
+                             max_depth=self.max_depth, log=self.log) for new_ind in new_inds]
         for ind in new_inds:
             ind.fitness = None
 

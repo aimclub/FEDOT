@@ -253,8 +253,9 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             next_population_size = len(self.population)
         return next_population_size
 
-    def operators_prob_update(self, std: float, max_std: float) -> Tuple[float, float]:
-        mutation_prob = 1 - (std / max_std) if max_std > 0 and std != max_std else 0.5
+    @staticmethod
+    def operators_prob_update(std: float, max_std: float) -> Tuple[float, float]:
+        mutation_prob = 1 - (std / max_std) if 0 < max_std != std else 0.5
         crossover_prob = 1 - mutation_prob
         return mutation_prob, crossover_prob
 
