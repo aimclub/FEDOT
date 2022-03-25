@@ -139,7 +139,7 @@ class GPComposer(Composer):
 
         self.log.info('GP composition finished')
         self.cache.clear()
-        if is_tune:
+        if is_tune:  # TODO: currently never passes
             self.tune_pipeline(best_pipeline, data, self.composer_requirements.timeout)
         return best_pipeline
 
