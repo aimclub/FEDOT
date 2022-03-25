@@ -192,15 +192,7 @@ class Pipeline(Graph):
             self.preprocessor = DataPreprocessor(self.log)
 
     def fit_from_cache(self, cache: OperationsCache, fold_num: Optional[int] = None) -> bool:
-        is_cache_used = False
-        for node in self.nodes:
-            cached_state = cache.get(node, fold_num)
-            if cached_state:
-                node.fitted_operation = cached_state.operation
-                is_cache_used = True
-            else:
-                node.fitted_operation = None
-        return is_cache_used
+        return cache.try_load_into_pipeline(self, fold_num)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """

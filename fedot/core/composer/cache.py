@@ -2,6 +2,7 @@ import glob
 import os
 import shelve
 import uuid
+
 from collections import namedtuple
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -51,6 +52,37 @@ class OperationsCache:
         """
         self.save_nodes(pipeline.nodes, fold_id)
 
+    def try_load_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
+        """
+        :param nodes: nodes which fitted state should be loaded from cache
+        :param fold_id: optional part of cache item UID
+                            (can be used to specify the number of CV fold)
+        """
+        cache_was_used = False
+        try:
+            with shelve.open(self.db_path) as cache:
+                if not isinstance(nodes, list):
+                    nodes = [nodes]
+                for node in nodes:
+                    cached_state = _load_cache_for_node(cache, node, fold_id)
+                    if cached_state is not None:
+                        node.fitted_operation = cached_state.operation
+                        cache_was_used = True
+                    else:
+                        node.fitted_operation = None
+        except Exception as ex:
+            self.log.info(f'Cache can not be loaded: {ex}. Continue.')
+        finally:
+            return cache_was_used
+
+    def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
+        """
+        :param pipeline: pipeline for loading cache into
+        :param fold_id: optional part of cache item UID
+                            (number of the CV fold)
+        """
+        return self.try_load_nodes(pipeline.nodes, fold_id)
+
     def clear(self, tmp_only=False):
         if not tmp_only:
             for ext in ['bak', 'dir', 'dat']:
@@ -58,15 +90,6 @@ class OperationsCache:
                     os.remove(f'{self.db_path}.{ext}')
         folder_path = f'{str(default_fedot_data_dir())}/tmp_*'
         clear_folder(folder_path)
-
-    def get(self, node, fold_id: Optional[int] = None):
-        """
-        :param node: node which fitted state should be loaded from cache
-        :param fold_id: optional part of cache item UID
-                            (can be used to specify the number of CV fold)
-        """
-        found_operation = _load_cache_for_node(self.db_path, node, fold_id)
-        return found_operation
 
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None):
@@ -82,10 +105,9 @@ def _save_cache_for_node(cache_shelf: shelve.Shelf, node: Node, fold_id: Optiona
         cache_shelf[structural_id] = cached_state
 
 
-def _load_cache_for_node(db_path: str, node: Node, fold_id: Optional[int] = None):
-    with shelve.open(db_path) as cache:
-        structural_id = _get_structural_id(node, fold_id)
-        cached_state = cache.get(structural_id, None)
+def _load_cache_for_node(cache_shelf: shelve.Shelf, node: Node, fold_id: Optional[int] = None):
+    structural_id = _get_structural_id(node, fold_id)
+    cached_state = cache_shelf.get(structural_id, None)
 
     return cached_state
 
