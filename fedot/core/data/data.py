@@ -10,7 +10,6 @@ import pandas as pd
 from PIL import Image
 
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
-from fedot.core.data.merge import DataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -298,17 +297,6 @@ class InputData(Data):
             return len(np.unique(self.target))
         else:
             return None
-
-    @staticmethod
-    def from_predictions(outputs: List['OutputData']):
-        """ Method obtain predictions from previous nodes """
-        # Update not only features but idx, target and task also
-        idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
-
-        # Mark data as preprocessed already
-        updated_info.was_preprocessed = True
-        return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=d_type, supplementary_data=updated_info)
 
     def subset_range(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):

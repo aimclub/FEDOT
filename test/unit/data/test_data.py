@@ -31,23 +31,6 @@ def data_setup() -> InputData:
     return data
 
 
-@pytest.fixture()
-def output_dataset():
-    task = Task(TaskTypesEnum.classification)
-
-    samples = 1000
-    x = 10.0 * np.random.rand(samples, ) - 5.0
-    x = np.expand_dims(x, axis=1)
-    threshold = 0.5
-    y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
-    classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
-    classes = np.expand_dims(classes, axis=1)
-    data = OutputData(idx=np.arange(0, 100), features=x, predict=classes,
-                      task=task, data_type=DataTypesEnum.table)
-
-    return data
-
-
 def test_data_subset_correct(data_setup):
     subset_size = 50
     subset = data_setup.subset_range(0, subset_size - 1)
@@ -114,15 +97,6 @@ def test_with_custom_target():
 
     assert np.array_equal(expected_features, actual_features)
     assert np.array_equal(expected_target, actual_target)
-
-
-def test_data_from_predictions(output_dataset):
-    data_1 = output_dataset
-    data_2 = output_dataset
-    data_3 = output_dataset
-    new_input_data = InputData.from_predictions(outputs=[data_1, data_2, data_3])
-    assert new_input_data.features.all() == np.array(
-        [data_1.predict, data_2.predict, data_3.predict]).all()
 
 
 def test_data_from_image():

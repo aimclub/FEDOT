@@ -2,6 +2,7 @@ from typing import List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data_merger import DataMerger
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
@@ -351,7 +352,8 @@ class SecondaryNode(Node):
         parent_results, target = _combine_parents(parent_nodes, input_data,
                                                   parent_operation)
 
-        secondary_input = InputData.from_predictions(outputs=parent_results)
+        secondary_input = DataMerger.get(parent_results, log=self.log).merge()
+
         # Update info about visited nodes
         parent_operations = [node.operation.operation_type for node in parent_nodes]
         secondary_input.supplementary_data.previous_operations = parent_operations

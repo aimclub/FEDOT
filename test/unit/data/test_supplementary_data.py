@@ -1,4 +1,5 @@
 from fedot.core.data.data import OutputData
+from fedot.core.data.merge import SupplementaryDataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -21,13 +22,12 @@ def test_parent_mask_correct():
     """ Test correctness of function for tables mask generation """
     correct_parent_mask = {'input_ids': [0, 1], 'flow_lens': [1, 0]}
 
-    # Generates outputs with 1 column in prediction
+    # Generate outputs with 1 column in prediction
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
     # Calculate parent mask from outputs
-    data_info = SupplementaryData()
-    data_info.prepare_parent_mask(list_with_outputs)
-    p_mask = data_info.features_mask
+    p_mask = SupplementaryDataMerger(list_with_outputs).prepare_parent_mask()
+
     assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
     assert tuple(p_mask['flow_lens']) == tuple(correct_parent_mask['flow_lens'])
 
@@ -57,6 +57,6 @@ def test_get_compound_mask_correct():
                                 target=[0, 0], data_type=DataTypesEnum.table,
                                 supplementary_data=SupplementaryData(features_mask=synthetic_mask))
 
-    mask = output_example.supplementary_data.get_compound_mask()
+    mask = output_example.supplementary_data.compound_mask
 
     assert ('01', '01', '10', '10') == tuple(mask)

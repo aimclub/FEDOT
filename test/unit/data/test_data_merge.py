@@ -1,8 +1,9 @@
 import numpy as np
+import pytest
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.merge import DataMerger, TaskTargetMerger
+from fedot.core.data.merge import DataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -103,64 +104,54 @@ def test_data_merge_function():
 
     list_with_outputs, idx_1, idx_2 = generate_outputs()
 
-    new_idx, features, target, task, d_type, updated_info = DataMerger(list_with_outputs).merge()
+    merged_data = DataMerger.get(list_with_outputs).merge()
 
-    assert tuple(new_idx) == tuple(idx_2)
-
-
-def test_target_task_two_ignore_merge():
-    """ The test runs an example of how different targets and tasks will be
-    combined. Consider situation when one target should be untouched"""
-
-    # Targets in different outputs
-    labels_col = [[1], [1]]
-    probabilities_col_1 = [[0.8], [0.7]]
-    probabilities_col_2 = [[0.5], [0.5]]
-    targets = np.array([labels_col,
-                        probabilities_col_1,
-                        probabilities_col_2])
-
-    # Flags for targets
-    main_targets = [True, False, False]
-
-    # Tasks
-    class_task = Task(TaskTypesEnum.classification)
-    regr_task = Task(TaskTypesEnum.classification)
-    tasks = [class_task, regr_task, regr_task]
-
-    merger = TaskTargetMerger(None)
-    target, is_main_target, task = merger.ignored_merge(targets, main_targets, tasks)
-
-    assert is_main_target is True
-    assert task.task_type is TaskTypesEnum.classification
+    assert tuple(merged_data.idx) == tuple(idx_2)
 
 
-def test_target_task_two_none_merge():
-    """ The test runs an example of how different targets and tasks will be
-    combined. Consider situation when two targets are main ones (labeled as None)
-    """
+@pytest.fixture()
+def output_dataset():
+    task = Task(TaskTypesEnum.classification)
 
-    # Targets in different outputs
-    labels_col = [[1], [1]]
-    labels_col_copy = [[1], [1]]
-    probabilities_col = [[0.5], [0.5]]
-    targets = np.array([labels_col,
-                        labels_col_copy,
-                        probabilities_col])
+    samples = 1000
+    x = 10.0 * np.random.rand(samples, ) - 5.0
+    x = np.expand_dims(x, axis=1)
+    threshold = 0.5
+    y = 1.0 / (1.0 + np.exp(np.power(x, -1.0)))
+    classes = np.array([0.0 if val <= threshold else 1.0 for val in y])
+    classes = np.expand_dims(classes, axis=1)
+    data = OutputData(idx=np.arange(0, 100), features=x, predict=classes,
+                      task=task, data_type=DataTypesEnum.table)
 
-    # Flags for targets
-    main_targets = [True, True, False]
+    return data
 
-    # Tasks
-    class_task = Task(TaskTypesEnum.classification)
-    regr_task = Task(TaskTypesEnum.regression)
-    tasks = [class_task, class_task, regr_task]
 
-    merger = TaskTargetMerger(None)
-    target, is_main_target, task = merger.ignored_merge(targets, main_targets, tasks)
+def test_data_merge_into_table(output_dataset):
+    data_1 = output_dataset
+    data_2 = output_dataset
+    data_3 = output_dataset
+    new_input_data = DataMerger.get(outputs=[data_1, data_2, data_3]).merge()
+    assert new_input_data.features.all() == np.array(
+        [data_1.predict, data_2.predict, data_3.predict]).all()
 
-    assert is_main_target is True
-    assert task.task_type is TaskTypesEnum.classification
+
+def test_data_merge_tables_of_unequal_lengths_with_nonunique_indices():
+    num_features = 5
+    input_lengths = [30,25,20]
+    task = Task(TaskTypesEnum.regression)
+    data_type = DataTypesEnum.table
+
+    outputs = []
+    for input_len in input_lengths:
+        features = np.random.randint(0, 10, (input_len, num_features))
+        idx = features[:, 0].astype(str)
+        target = features ** 2
+        # input_data = InputData(idx, features, task, data_type, target=target)
+        output_data = OutputData(idx, features, task, data_type, predict=features, target=target)
+        outputs.append(output_data)
+
+    next_input = DataMerger.get(outputs).merge()
+    assert len(next_input.idx) <= min(input_lengths)
 
 
 def test_define_parents_with_equal_lengths():
@@ -177,7 +168,7 @@ def test_define_parents_with_equal_lengths():
                            features_mask={'input_ids': [0, 0, 0, 1, 1, 1],
                                           'flow_lens': [0, 0, 0, 0, 0, 0]},
                            previous_operations=['arima', 'lagged'])
-    features_mask = np.array(sd.get_compound_mask())
+    features_mask = np.array(sd.compound_mask)
     unique_features_masks = np.unique(features_mask)
 
     model_parent, data_parent = sd.define_parents(unique_features_masks, task=TaskTypesEnum.ts_forecasting)
@@ -189,7 +180,9 @@ def test_define_parents_with_equal_lengths():
 def test_define_types_after_merging():
     """ Check if column types for features table perform correctly """
     outputs = generate_outputs_with_different_types()
-    new_idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
+    # new_idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
+    merged_data = DataMerger.get(outputs).merge()
+    updated_info = merged_data.supplementary_data
 
     features_types = updated_info.column_types['features']
     target_types = updated_info.column_types['target']
