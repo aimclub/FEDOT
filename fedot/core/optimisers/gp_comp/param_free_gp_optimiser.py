@@ -167,7 +167,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             self.log_info_about_best()
 
         final_individuals = best if isinstance(best, list) else [best]
-        self.default_on_next_iteration_callback(final_individuals, None)
+        self.default_on_next_iteration_callback(final_individuals)
 
         output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
 

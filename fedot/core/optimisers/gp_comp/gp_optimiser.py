@@ -168,7 +168,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                              objective_function=objective_function,
                                                              timer=timer,
                                                              n_jobs=self.requirements.n_jobs)
-            self.default_on_next_iteration_callback(initial_individuals, None)
+            self.default_on_next_iteration_callback(initial_individuals)
             self.population = self._create_randomized_pop(initial_individuals)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
@@ -275,7 +275,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.log_info_about_best()
 
         final_individuals = best if isinstance(best, list) else [best]
-        self.default_on_next_iteration_callback(final_individuals, None)
+        self.default_on_next_iteration_callback(final_individuals)
 
         output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
 
@@ -354,10 +354,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                   selected_individual_second: Optional[Individual] = None) -> Tuple[Any]:
 
         selected_individual_first.parent_operators = []
-        if selected_individual_second is not None:
-            selected_individual_second.parent_operators = []
 
         if selected_individual_second:
+            selected_individual_second.parent_operators = []
             new_inds = crossover(self.parameters.crossover_types,
                                  selected_individual_first,
                                  selected_individual_second,
