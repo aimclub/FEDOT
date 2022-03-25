@@ -35,6 +35,20 @@ def pipeline_h2o_ts(window_size: int = 20):
     return pipeline
 
 
+def export_h2o(pipeline, pipeline_path, test_data):
+    # Export it
+    pipeline.save(path=pipeline_path)
+
+    # Import pipeline
+    json_path_load = create_correct_path(pipeline_path)
+    new_pipeline = Pipeline()
+    new_pipeline.load(json_path_load)
+
+    results = new_pipeline.predict(input_data=test_data, output_mode="full_probs")
+    prediction_after_export = results.predict[:, 0]
+    print(f'After export {prediction_after_export[:4]}')
+
+
 def h2o_classification_pipeline_evaluation():
     pipeline_path = "h2o_class"
     data = get_iris_data()
@@ -45,24 +59,12 @@ def h2o_classification_pipeline_evaluation():
     results = pipeline.predict(input_data=test_data, output_mode="full_probs")
     prediction_before_export = results.predict[:, 0]
     print(f'Before export {prediction_before_export[:4]}')
-
-    # # Export it
-    # pipeline.save(path=pipeline_path)
-    #
-    # # Import pipeline
-    # json_path_load = create_correct_path(pipeline_path)
-    # new_pipeline = Pipeline()
-    # new_pipeline.load(json_path_load)
-    #
-    # predicted_output_after_export = new_pipeline.predict(test_data)
-    # prediction_after_export = predicted_output_after_export.predict[:, 0]
-
-    print(f'After import {prediction_before_export[:4]}')
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
                               multi_class='ovo',
                               average='macro')
-
+    #  H2o has troubles with serialization for now
+    #  export_h2o(pipeline, pipeline_path, test_data)
     print(f"roc auc: {roc_auc_on_test}")
 
 
