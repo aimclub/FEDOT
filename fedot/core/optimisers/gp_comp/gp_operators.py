@@ -2,7 +2,7 @@ import warnings
 
 from copy import deepcopy
 from random import choice, randint
-from typing import Any, List, Tuple
+from typing import Any, List, Optional, Tuple
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.graph import OptGraph, OptNode
