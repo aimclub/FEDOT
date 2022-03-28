@@ -1,12 +1,15 @@
 import sys
 
 from abc import ABC, abstractmethod
-from copy import copy, deepcopy
+from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, ClassVar
 
 import numpy as np
+from scipy.sparse import csr_matrix
+from sklearn.preprocessing import LabelEncoder
 
+from fedot.core.data.data import data_type_is_ts
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -14,8 +17,6 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from fedot.core.validation.tune.time_series import cv_time_series_predictions
-from scipy.sparse import csr_matrix
-from sklearn.preprocessing import LabelEncoder
 
 MAX_METRIC_VALUE = sys.maxsize
 
@@ -201,7 +202,7 @@ class HyperoptTuner(ABC):
             preds, test_target = cv_tabular_predictions(pipeline, data,
                                                         cv_folds=self.cv_folds)
 
-        elif data.data_type is DataTypesEnum.ts:
+        elif data_type_is_ts(data):
             if self.validation_blocks is None:
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.validation_blocks = 3

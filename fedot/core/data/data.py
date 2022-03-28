@@ -385,7 +385,7 @@ class InputData(Data):
             # note, that string indexes do not have an order and always we think that indexes we want to predict go
             # immediately after the train indexes
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
-            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx)+1))
+            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
     @staticmethod
@@ -447,6 +447,10 @@ def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
 
 def data_type_is_ts(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.ts
+
+
+def data_type_is_multi_ts(data: InputData) -> bool:
+    return data.data_type is DataTypesEnum.multi_ts
 
 
 def get_indices_from_file(data_frame, file_path):

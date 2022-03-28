@@ -4,8 +4,7 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
 from fedot.core.log import Log
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 
 class KNeighborsImplementation(ModelImplementation):
@@ -130,8 +129,8 @@ class FedotKnnRegImplementation(KNeighborsImplementation):
 
 def round_n_neighbors(params):
     """ Convert n_neighbors into integer value. Operation work inplace. """
-    if params.get('n_neighbors') is not None:
-        n_neighbors = round(params.get('n_neighbors'))
+    if 'n_neighbors' in params:
+        n_neighbors = round(params['n_neighbors'])
         if n_neighbors == 0:
             n_neighbors = 1
         params['n_neighbors'] = n_neighbors

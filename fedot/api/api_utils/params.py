@@ -3,13 +3,12 @@ from typing import Optional, Dict, Union, Any, List
 
 import numpy as np
 
-from fedot.core.constants import DEFAULT_FORECAST_LENGTH, \
-    DEFAULT_API_TIMEOUT_MINUTES, AUTO_PRESET_NAME
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
+from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 
 
 class ApiParams:
@@ -65,7 +64,7 @@ class ApiParams:
 
     def change_preset_for_label_encoded_data(self, task: Task):
         """ Change preset on tree like preset, if data had been label encoded """
-        if self.api_params.get('preset') is not None:
+        if 'preset' in self.api_params:
             preset_name = ''.join((self.api_params['preset'], '*tree'))
         else:
             preset_name = '*tree'

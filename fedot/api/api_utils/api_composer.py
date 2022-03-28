@@ -151,9 +151,8 @@ class ApiComposer:
         self.preset_name = new_preset
         return builder, fitted_pipeline, fit_time
 
-    def divide_operations(self,
-                          available_operations,
-                          task):
+    @staticmethod
+    def divide_operations(available_operations, task):
         """ Function divide operations for primary and secondary """
 
         if task.task_type is TaskTypesEnum.ts_forecasting:
@@ -178,7 +177,8 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    def _set_initial_assumption(self, api_params: dict, composer_params: dict):
+    @staticmethod
+    def _set_initial_assumption(api_params: dict, composer_params: dict):
         """ Generates and sets an initial assumption, if not given, from the given available operations
         Also, since it is impossible to form a valid pipeline for the time series problem without 'lagged' operation,
         if it is not in the list of available ones, it is added """
