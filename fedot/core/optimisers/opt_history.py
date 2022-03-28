@@ -69,7 +69,8 @@ class OptHistory:
                 ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.computation_time)
                 row = [
                     idx, gen_num, fitness,
-                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.computation_time
+                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.computation_time,
+                    str(ind.additional_params)
                 ]
                 self._add_history_to_csv(file, row)
                 idx += 1
@@ -80,7 +81,8 @@ class OptHistory:
             metric_str = 'metric'
             if self.is_multi_objective:
                 metric_str += 's'
-            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'computation_time']
+            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'computation_time',
+                   'additional_params']
             writer.writerow(row)
 
     def _add_history_to_csv(self, f: str, row: List[Any]):
