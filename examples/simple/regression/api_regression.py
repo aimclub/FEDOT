@@ -17,7 +17,9 @@ def run_regression_example():
     auto_model = Fedot(problem=problem, seed=42, composer_params=composer_params,
                        preset='auto',
                        timeout=2, verbose_level=1)
+
     auto_model.fit(features=train, target='target')
+    auto_model.history.save('saved_regression_history.json')
     prediction = auto_model.predict(features=test)
     print(auto_model.get_metrics())
     auto_model.plot_prediction()

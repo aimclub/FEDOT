@@ -7,14 +7,14 @@ import numpy as np
 from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
-from fedot.api.api_utils.presets import update_builder
-from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
-from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
+from fedot.api.api_utils.presets import update_builder
+from fedot.api.time import ApiTime
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import (PipelineComposerRequirements)
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
+from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -30,9 +30,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (MetricsRepository)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.api.time import ApiTime
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from fedot.core.constants import MINIMAL_SECONDS_FOR_TUNING, DEFAULT_TUNING_ITERATIONS_NUMBER
 
 
 class ApiComposer:
@@ -132,7 +130,8 @@ class ApiComposer:
                 raise ValueError(f'{prefix}: List[Pipeline] or Pipeline needed, but has {type(initial_assumption)}')
             initial_pipelines = initial_assumption
         # Check initial assumption
-        fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger)
+        fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger,
+                                                              n_jobs=composer_requirements.n_jobs)
         builder = builder.with_initial_pipelines(initial_pipelines)
 
         # Update builder and preset if required
@@ -386,7 +385,7 @@ class ApiComposer:
 
 def fit_and_check_correctness(pipeline: Pipeline,
                               data: Union[InputData, MultiModalData],
-                              logger: Log):
+                              logger: Log, n_jobs=1):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
@@ -394,7 +393,7 @@ def fit_and_check_correctness(pipeline: Pipeline,
 
         logger.message('Initial pipeline fitting started')
 
-        pipeline.fit(data)
+        pipeline.fit(data, n_jobs=n_jobs)
         pipeline.predict(data_test)
 
         fit_time = datetime.datetime.now() - start_init_fit

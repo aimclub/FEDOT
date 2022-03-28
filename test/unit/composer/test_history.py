@@ -81,14 +81,15 @@ def test_operators_in_history():
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
+    num_of_gens = 2
     auto_model = Fedot(problem='classification', seed=42,
-                       timeout=0.1,
-                       composer_params={'num_of_generations': 3, 'pop_size': 4},
+                       timeout=None,
+                       composer_params={'num_of_generations': num_of_gens, 'pop_size': 3},
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
     assert auto_model.history is not None
-    assert 1 <= len(auto_model.history.individuals) <= 3
+    assert len(auto_model.history.individuals) == num_of_gens + 2  # initial assumptions and final model
 
     # test history dumps
     dumped_history = auto_model.history.save()

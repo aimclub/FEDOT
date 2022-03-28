@@ -80,10 +80,7 @@ class Operation:
 
         self._init(data.task, params=params)
 
-        if self.log.verbosity_level < 2:
-            with suppress_stdout():
-                self.fitted_operation = self._eval_strategy.fit(train_data=data)
-        else:
+        with suppress_stdout():
             self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage, params)

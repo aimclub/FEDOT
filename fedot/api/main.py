@@ -8,9 +8,9 @@ from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctn
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
-from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
+from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
@@ -383,7 +383,7 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-        self.current_pipeline.fit(full_train_not_preprocessed)
+        self.current_pipeline.fit(full_train_not_preprocessed, n_jobs=self.params.api_params['n_jobs'])
 
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """
@@ -402,5 +402,6 @@ class Fedot:
         final_pipeline = pipelines[0]
         # Perform fitting
         final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
-                                                      logger=self.params.api_params['logger'])
+                                                      logger=self.params.api_params['logger'],
+                                                      n_jobs=self.params.api_params['n_jobs'])
         return final_pipeline
