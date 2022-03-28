@@ -5,9 +5,9 @@ from typing import Callable, List, Optional, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.data.data import InputData
+from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.data_operation import DataOperation
@@ -133,19 +133,23 @@ class Pipeline(Graph):
                 fitted_operations.append(node.fitted_operation)
 
     def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=False,
-            time_constraint: Optional[timedelta] = None):
+            time_constraint: Optional[timedelta] = None, n_jobs=1) -> OutputData:
         """
         Run training process in all nodes in pipeline starting with root.
 
         :param input_data: data used for operation training
         :param use_fitted: flag defining whether use saved information about previous fits or not
         :param time_constraint: time constraint for operation fitting (seconds)
+        :param n_jobs: number of threads for nodes fitting
+
         """
+
+        _replace_n_jobs_in_nodes(self, n_jobs)
+
         if not use_fitted:
             self.unfit(mode='all', unfit_preprocessor=True)
         else:
             self.unfit(mode='data_operations', unfit_preprocessor=False)
-
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
@@ -364,3 +368,13 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)
+
+
+def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
+    """ Function change number of jobs for nodes"""
+    for node in pipeline.nodes:
+        # TODO refactor
+        if 'n_jobs' in node.content['params']:
+            node.content['params']['n_jobs'] = n_jobs
+        if 'num_threads' in node.content['params']:
+            node.content['params']['num_threads'] = n_jobs
