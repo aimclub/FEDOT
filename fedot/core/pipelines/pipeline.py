@@ -358,8 +358,12 @@ class Pipeline(Graph):
         def edit_distance_node_match(n1, n2):
             pipeline_node1 = n1.get('pipeline_node')
             pipeline_node2 = n2.get('pipeline_node')
-            return str(pipeline_node1) == str(pipeline_node2) \
-                   and pipeline_node1.custom_params == pipeline_node2.custom_params
+
+            operations_match = str(pipeline_node1) == str(pipeline_node2)
+            params_match = pipeline_node1.custom_params == pipeline_node2.custom_params
+
+            node_match = operations_match and params_match
+            return node_match
 
         g1, pipeline_nodes1 = graph_structure_as_nx_graph(self)
         g2, pipeline_nodes2 = graph_structure_as_nx_graph(other)
