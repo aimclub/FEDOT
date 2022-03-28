@@ -65,4 +65,4 @@ def download_mmdb_dataset():
 if __name__ == '__main__':
     download_mmdb_dataset()
 
-    run_multi_modal_case('cases/data/mmimdb', is_visualise=True)
+    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True)
