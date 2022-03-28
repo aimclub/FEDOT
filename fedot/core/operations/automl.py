@@ -1,7 +1,12 @@
+import numpy as np
+
+from fedot.core.data.data import OutputData
 from fedot.core.log import Log
 from fedot.core.operations.model import Model
 from fedot.core.operations.operation import Operation
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class AutoML(Model):
