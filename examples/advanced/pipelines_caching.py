@@ -1,10 +1,10 @@
 def dummy_time_check():
     from statistics import mean
+    from test.unit.api.test_main_api import get_dataset
     from timeit import repeat
 
     from fedot.api.main import Fedot
     from fedot.core.repository.tasks import TsForecastingParams
-    from test.unit.api.test_main_api import get_dataset
 
     composer_params = {
         'with_tuning': False,
@@ -49,34 +49,34 @@ def dummy_time_check():
 
 
 def correct_pipelines_cnt_check():
-    import json
+    import operator
     import timeit
 
-    import pandas as pd
-    from matplotlib import pyplot as plt, cm, colors
-
-    from fedot.core.pipelines.pipeline import Pipeline
-
-    from fedot.api.main import Fedot
-    from fedot.core.utils import fedot_project_root
-
+    from functools import reduce
     from typing import Optional
 
+    import pandas as pd
+
+    from fedot.api.main import Fedot
     from fedot.core.composer.cache import OperationsCache
+    from fedot.core.optimisers.opt_history import OptHistory
+    from fedot.core.pipelines.pipeline import Pipeline
+    from fedot.core.utils import fedot_project_root
+    from matplotlib import cm, colors, pyplot as plt
 
-    def count_pipelines(opt_history):
-        opt_history = json.loads(opt_history)
-        count = 0
-        for i in range(len(opt_history['individuals'])):
-            count += len(opt_history['individuals'][i])
-        return count
+    def count_pipelines(opt_history: OptHistory):
+        return reduce(
+            operator.add,
+            map(len, opt_history.individuals),
+            0
+        )
 
-    def test_caching(timeout: float = 2., partitions_n=2):
+    def test_caching(timeout: float = 1., partitions_n=2):
         """
-        Performs experiment to show how much better to use multiprocessing mode in FEDOT
+        Performs experiment to show how caching pipelines operations helps in fitting FEDOT model
 
-        :param timeout: timeout for optimization
-        :param partitions_n: on how many folds you want. f.e. if dataset contains 20000 rows, partition_n=5 will create
+        :param timeout: timeout for optimization in minutes
+        :param partitions_n: on how many folds you want. f.e. if dataset contains 20000 rows, partitions_n=5 will create
             such folds: [4000 rows, 8000 rows, 12000 rows, 16000 rows, 20000 rows]
         """
         train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
@@ -99,28 +99,30 @@ def correct_pipelines_cnt_check():
             return False
 
         pipeline_fit_from_cache_orig = Pipeline.fit_from_cache.__code__
-        for partition in partitions:
-            for enable_caching in [0, 1]:
-                if not enable_caching:
-                    Pipeline.fit_from_cache.__code__ = fit_from_cache_mock.__code__
-                train_data = train_data.iloc[:partition]
-                test_data = test_data.iloc[:partition]
+        for enable_caching in [0, 1]:
+            if not enable_caching:
+                Pipeline.fit_from_cache.__code__ = fit_from_cache_mock.__code__
+            print(f'Using cache mode: {bool(enable_caching)}')
+            for partition in partitions:
+                train_data_tmp = train_data.iloc[:partition].copy()
+                test_data_tmp = test_data.iloc[:partition].copy()
 
                 start_time = timeit.default_timer()
                 auto_model = Fedot(problem=problem, seed=42, timeout=timeout,
                                    composer_params={'with_tuning': False}, preset='fast_train',
                                    verbose_level=-1)
-                auto_model.fit(features=train_data, target='target')
-                auto_model.predict_proba(features=test_data)
+                auto_model.fit(features=train_data_tmp, target='target')
+                auto_model.predict_proba(features=test_data_tmp)
                 times[enable_caching].append((timeit.default_timer() - start_time) / 60)
-                c_pipelines = count_pipelines(auto_model.history.save())
+                c_pipelines = count_pipelines(auto_model.history)
                 pipelines_count[enable_caching].append(c_pipelines)
 
-                print(
-                    f'''Using cache: {bool(enable_caching)}, '''
-                    f'''number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]}''')
-                if not enable_caching:
-                    Pipeline.fit_from_cache.__code__ = pipeline_fit_from_cache_orig
+                print((
+                    f'''\tDataset length: {partition}, '''
+                    f'''number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]}'''
+                ))
+            if not enable_caching:
+                Pipeline.fit_from_cache.__code__ = pipeline_fit_from_cache_orig
 
         plt.title('Cache performance')
         plt.xlabel('rows in train dataset')
@@ -134,14 +136,13 @@ def correct_pipelines_cnt_check():
         plt.plot(partitions, pipelines_count[0], label=f'without caching', zorder=1)
         plt.scatter(partitions, pipelines_count[0], c=times[0],
                     cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
-        print(times)
         cb = plt.colorbar(cm.ScalarMappable(norm=c_norm, cmap=cm.get_cmap('cool')))
         cb.ax.set_ylabel('time for optimization in minutes', rotation=90)
         plt.legend()
         plt.grid()
         plt.show()
 
-    test_caching(4, 2)
+    test_caching(1, 2)
 
 
 if __name__ == "__main__":
