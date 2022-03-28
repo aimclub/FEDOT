@@ -1,4 +1,14 @@
 {
+  "rf": {
+    "n_jobs": -1
+  },
+  "rfr": {
+    "n_jobs": -1
+  },
+  "xgboost": {
+    "eval_metric": "mlogloss",
+    "nthread": -1
+  },
   "catboost": {
     "allow_writing_files": false,
     "verbose": false
@@ -13,8 +23,9 @@
     "subsample": 0.8,
     "subsample_freq": 10,
     "learning_rate": 0.03,
-    "n_estimators": 3000,
-    "verbose": -1
+    "n_estimators": 100,
+    "verbose": -1,
+    "num_threads": 0
   },
   "lgbmreg": {
     "num_leaves": 32,
@@ -22,8 +33,9 @@
     "subsample": 0.8,
     "subsample_freq": 10,
     "learning_rate": 0.03,
-    "n_estimators": 3000,
-    "verbose": -1
+    "n_estimators": 100,
+    "verbose": -1,
+    "num_threads": 0
   },
   "lagged": {
     "window_size": 10

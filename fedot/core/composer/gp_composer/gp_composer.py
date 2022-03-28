@@ -15,8 +15,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
-from fedot.core.repository.quality_metrics_repository import (MetricsEnum,
-                                                              MetricsRepository)
+from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.compose.time_series import ts_metric_calculation
@@ -47,6 +46,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
+    :attribute n_jobs: num of n_jobs
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -55,6 +55,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
     start_depth: int = None
     validation_blocks: int = None
+    n_jobs: int = 1
 
 
 class GPComposer(Composer):
@@ -75,7 +76,7 @@ class GPComposer(Composer):
         super().__init__(metrics=metrics, composer_requirements=composer_requirements,
                          initial_pipelines=initial_pipelines)
 
-        self.cache = OperationsCache()
+        self.cache = OperationsCache(log=logger)
 
         self.optimiser = optimiser
         self.cache_path = None
@@ -101,7 +102,7 @@ class GPComposer(Composer):
 
         self.optimiser.graph_generation_params.advisor.task = data.task
 
-        if data.task == TaskTypesEnum.ts_forecasting:
+        if data.task.task_type == TaskTypesEnum.ts_forecasting:
             self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
         else:
             self.optimiser.graph_generation_params.rules_for_constraint = common_rules
@@ -131,7 +132,8 @@ class GPComposer(Composer):
             self.cache.clear()
         else:
             self.cache.clear(tmp_only=True)
-            self.cache = OperationsCache(self.cache_path, clear_exiting=not self.use_existing_cache)
+            self.cache = OperationsCache(log=self.log, db_path=self.cache_path,
+                                         clear_exiting=not self.use_existing_cache)
 
         opt_result = self.optimiser.optimise(objective_function_for_pipeline,
                                              on_next_iteration_callback=on_next_iteration_callback)
@@ -159,18 +161,21 @@ class GPComposer(Composer):
             if self.composer_requirements.validation_blocks is None:
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.composer_requirements.validation_blocks = 3
+
             metric_function_for_nodes = partial(ts_metric_calculation, data,
                                                 self.composer_requirements.cv_folds,
                                                 self.composer_requirements.validation_blocks,
                                                 self.metrics,
                                                 log=self.log)
+
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
+
             metric_function_for_nodes = partial(table_metric_calculation, data,
                                                 self.composer_requirements.cv_folds,
                                                 self.metrics,
-                                                log=self.log)
-
+                                                log=self.log,
+                                                cache=self.cache)
         return metric_function_for_nodes
 
     def composer_metric(self, metrics,
@@ -185,17 +190,14 @@ class GPComposer(Composer):
                 metrics = [metrics]
 
             if self.cache is not None:
-                # TODO improve cache
                 pipeline.fit_from_cache(self.cache)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
 
             pipeline.fit(input_data=train_data,
-                         time_constraint=self.composer_requirements.max_pipeline_fit_time)
-            try:
-                self.cache.save_pipeline(pipeline)
-            except Exception as ex:
-                self.log.info(f'Cache can not be saved: {ex}. Continue.')
+                         time_constraint=self.composer_requirements.max_pipeline_fit_time,
+                         use_fitted=self.cache is not None)
+            self.cache.save_pipeline(pipeline)
 
             evaluated_metrics = ()
             for metric in metrics:
@@ -212,6 +214,7 @@ class GPComposer(Composer):
             gc.collect()
         except Exception as ex:
             self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
+
             evaluated_metrics = None
         return evaluated_metrics
 

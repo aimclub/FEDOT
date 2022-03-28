@@ -3,7 +3,7 @@ from functools import partial
 from typing import (Any, List)
 
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, individuals_selection
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
 class GeneticSchemeTypesEnum(Enum):

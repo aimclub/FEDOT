@@ -1,21 +1,25 @@
+import os
+import random
+import numpy as np
 from datetime import timedelta
 
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
-from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ClusteringMetricsEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
+from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset
 from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 
@@ -24,14 +28,14 @@ _ = classification_dataset
 
 def sample_pipeline():
     return Pipeline(SecondaryNode(operation_type='logit',
-                                  nodes_from=[PrimaryNode(operation_type='xgboost'),
+                                  nodes_from=[PrimaryNode(operation_type='rf'),
                                               PrimaryNode(operation_type='scaling')]))
 
 
 def get_data(task):
-    full_path_train, full_path_test = get_scoring_data()
-    dataset_to_compose = InputData.from_csv(full_path_train, task=task)
-    dataset_to_validate = InputData.from_csv(full_path_test, task=task)
+    file_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
+    input_data = InputData.from_csv(file_path, task=task)
+    dataset_to_compose, dataset_to_validate = train_test_data_setup(input_data)
 
     return dataset_to_compose, dataset_to_validate
 
@@ -40,7 +44,8 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
     log = default_log(__name__)
 
-    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset, cv_folds=10,
+    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset,
+                                            cv_folds=3,
                                             metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
                                                      ClassificationMetricsEnum.accuracy,
                                                      ClassificationMetricsEnum.logloss],
@@ -48,23 +53,6 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     all_metrics_correct = all(list(map(lambda x: 0 < abs(x) <= 1, actual_value)))
 
     assert all_metrics_correct
-
-
-def test_cv_ts_and_cluster_raise():
-    task = Task(task_type=TaskTypesEnum.clustering)
-    dataset_to_compose, dataset_to_validate = get_data(task)
-    metric_function = ClusteringMetricsEnum.silhouette
-
-    operations_repo = OperationTypesRepository()
-    available_model_types, _ = operations_repo.suitable_operation(task_type=task.task_type)
-    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
-                                                         secondary=available_model_types,
-                                                         cv_folds=4)
-    builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
-    composer = builder.build()
-
-    with pytest.raises(NotImplementedError):
-        composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)
 
 
 def test_cv_min_kfolds_raise():
@@ -86,8 +74,7 @@ def test_tuner_cv_classification_correct():
                                                 input_data=dataset,
                                                 iterations=1, timeout=1,
                                                 cv_folds=folds)
-    is_tune_succeeded = True
-    assert is_tune_succeeded
+    assert tuned
 
 
 def test_cv_tabular_predictions_correct():
@@ -139,6 +126,7 @@ def test_cv_api_correct():
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'timeout': 0.1,
+                       'pop_size': 4,
                        'preset': 'fast_train',
                        'cv_folds': 2}
     task = Task(task_type=TaskTypesEnum.classification)

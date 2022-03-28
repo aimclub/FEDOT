@@ -17,6 +17,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import TableTypesCorrector, NAME_CLASS_INT
 # The allowed percent of empty samples in features.
@@ -494,7 +495,7 @@ class DataPreprocessor:
         two-dimensional arrays, time series - one-dim array
         """
 
-        if data_type_is_table(data):
+        if data_type_is_table(data) or data.data_type == DataTypesEnum.multi_ts:
             if len(data.features.shape) < 2:
                 data.features = data.features.reshape((-1, 1))
             if data.target is not None and len(data.target.shape) < 2:
@@ -562,3 +563,25 @@ def merge_preprocessors(api_preprocessor: DataPreprocessor,
         # Store features encoder from obtained pipeline because in API there are no encoding
         new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
     return new_data_preprocessor
+
+
+def update_indices_for_time_series(test_data: Union[InputData, MultiModalData]):
+    """ Replace indices for time series for predict stage """
+    if test_data.task.task_type != TaskTypesEnum.ts_forecasting:
+        return test_data
+
+    if isinstance(test_data, MultiModalData):
+        # Process multimodal data - change indices in every data block
+        for data_source_name, input_data in test_data.items():
+            forecast_len = input_data.task.task_params.forecast_length
+            if forecast_len < len(input_data.idx):
+                # Indices incorrect - there is a need to reassign them
+                last_id = len(input_data.idx)
+                input_data.idx = np.arange(last_id, last_id + input_data.task.task_params.forecast_length)
+    else:
+        # Simple input data
+        forecast_len = test_data.task.task_params.forecast_length
+        if forecast_len < len(test_data.idx):
+            last_id = len(test_data.idx)
+            test_data.idx = np.arange(last_id, last_id + test_data.task.task_params.forecast_length)
+    return test_data

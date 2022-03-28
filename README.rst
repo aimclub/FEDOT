@@ -149,14 +149,19 @@ In English:
 - How AutoML helps to create composite AI? - `towardsdatascience.com <https://towardsdatascience.com/how-automl-helps-to-create-composite-ai-f09e05287563>`__
 - AutoML for time series: definitely a good idea - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-definitely-a-good-idea-c51d39b2b3f>`__
 - AutoML for time series: advanced approaches with FEDOT framework - `towardsdatascience.com <https://towardsdatascience.com/automl-for-time-series-advanced-approaches-with-fedot-framework-4f9d8ea3382c>`__
-- Experience of hackathon winning with FEDOT - `itmo.news <https://news.itmo.ru/en/university_live/achievements/news/10409/>`__
-- FEDOT as a factory of human-competitive results - `video <https://www.youtube.com/watch?v=9Rhqcsrolb8&ab_channel=NSS-Lab>`__
+- Winning a flood-forecasting hackathon with hydrology and AutoML - `towardsdatascience.com <https://towardsdatascience.com/winning-a-flood-forecasting-hackathon-with-hydrology-and-automl-156a8a7a4ede>`__
+- FEDOT as a factory of human-competitive results - `youtube.com <https://www.youtube.com/watch?v=9Rhqcsrolb8&ab_channel=NSS-Lab>`__
 
 In Russian:
 
 - General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__
 - Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__
 - Details of FEDOT-based solution for Emergency DataHack - `habr.com <https://habr.com/ru/post/577886/>`__
+
+In Chinese:
+
+- Presentation of FEDOT in Open innovations 2.0 conference - `youtube.com <https://www.youtube.com/watch?v=PEET0EbCSCY>`__
+
 
 Project structure
 =================

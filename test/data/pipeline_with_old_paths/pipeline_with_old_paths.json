@@ -1,0 +1,33 @@
+{
+	"total_pipeline_operations": [
+		"scaling",
+		"ridge"
+	],
+	"depth": 2,
+	"nodes": [
+		{
+			"operation_id": 1,
+			"operation_type": "scaling",
+			"operation_name": "ScalingImplementation",
+			"custom_params": "default_params",
+			"params": "default_params",
+			"nodes_from": [],
+			"fitted_operation_path": "fitted_operations/operation_1.pkl",
+			"rating": null
+		},
+		{
+			"operation_id": 0,
+			"operation_type": "ridge",
+			"operation_name": "Ridge",
+			"custom_params": "default_params",
+			"params": "default_params",
+			"nodes_from": [
+				1
+			],
+			"fitted_operation_path": "fitted_operations/operation_0.pkl",
+			"rating": null
+		}
+	],
+	"preprocessing": "preprocessing/data_preprocessor.pkl",
+	"descriptive_id": "(/n_scaling_default_params;)/n_ridge_default_params"
+}

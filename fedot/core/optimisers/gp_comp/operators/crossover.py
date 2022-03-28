@@ -8,7 +8,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, repla
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -32,6 +32,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
               ind_first: Individual, ind_second: Individual,
               max_depth: int, log: Log,
               crossover_prob: float = 0.8, params: 'GraphGenerationParams' = None) -> Any:
+
     crossover_type = choice(types)
     is_custom_crossover = isinstance(crossover_type, Callable)
     try:
@@ -65,12 +66,15 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                     if are_correct:
                         operator = ParentOperator(operator_type='crossover',
                                                   operator_name=str(crossover_type),
-                                                  parent_objects=[ind_first, ind_second])
+                                                  parent_individuals=[
+                                                      ind_first,
+                                                      ind_second
+                                                  ])
                         for graph in new_graphs:
                             new_ind = Individual(graph)
                             new_ind.parent_operators = []
-                            new_ind.parent_operators.extend(ind_first.parent_operators)
-                            new_ind.parent_operators.extend(ind_second.parent_operators)
+                            new_ind.parent_operators.extend(deepcopy(ind_first.parent_operators))
+                            new_ind.parent_operators.extend(deepcopy(ind_second.parent_operators))
                             new_ind.parent_operators.append(operator)
                             new_inds.append(new_ind)
                         return new_inds
@@ -82,9 +86,9 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
     except Exception as ex:
         log.error(f'Crossover ex: {ex}')
 
-    graph_first_copy = deepcopy(ind_first)
-    graph_second_copy = deepcopy(ind_second)
-    return graph_first_copy, graph_second_copy
+    ind_first_copy = deepcopy(ind_first)
+    ind_second_copy = deepcopy(ind_second)
+    return ind_first_copy, ind_second_copy
 
 
 def subtree_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> Any:

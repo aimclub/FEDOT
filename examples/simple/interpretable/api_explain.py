@@ -16,7 +16,7 @@ def run_api_explain_example(visualize=True, timeout=None):
 
     # Building simple pipeline
     model = Fedot(problem='classification', timeout=timeout)
-    model.fit(features=train_data, target=target_name, predefined_model='xgboost')
+    model.fit(features=train_data, target=target_name, predefined_model='rf')
 
     # Current pipeline explaining
     explainer = model.explain(

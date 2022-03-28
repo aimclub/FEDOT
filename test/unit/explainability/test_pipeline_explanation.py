@@ -26,7 +26,7 @@ def classification_fixture() -> 'InputData, Pipeline':
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
                      task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table)
-    return data, get_simple_pipeline('xgboost')
+    return data, get_simple_pipeline('rf')
 
 
 @pytest.fixture(scope='module', name='regression')
@@ -40,7 +40,7 @@ def regression_fixture() -> 'InputData, Pipeline':
     data = InputData(features=predictors, target=response, idx=np.arange(0, 100),
                      task=Task(TaskTypesEnum.regression),
                      data_type=DataTypesEnum.table)
-    return data, get_simple_pipeline('xgbreg')
+    return data, get_simple_pipeline('rfr')
 
 
 @pytest.fixture(scope='module', name="task_type")

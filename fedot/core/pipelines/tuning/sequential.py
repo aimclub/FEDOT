@@ -29,7 +29,8 @@ class SequentialTuner(HyperoptTuner):
         self.validation_blocks = validation_blocks
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
-                                                 loss_params=loss_params)
+                                                 loss_params=loss_params,
+                                                 data_type=input_data.data_type)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
@@ -43,8 +44,11 @@ class SequentialTuner(HyperoptTuner):
             iterations_per_node = 1
 
         # Calculate amount of seconds we can apply per node
-        seconds_per_node = round(self.max_seconds / nodes_amount)
-        seconds_per_node = int(seconds_per_node)
+        if self.max_seconds is not None:
+            seconds_per_node = round(self.max_seconds / nodes_amount)
+            seconds_per_node = int(seconds_per_node)
+        else:
+            seconds_per_node = None
 
         # Tuning performed sequentially for every node - so get ids of nodes
         nodes_ids = self.get_nodes_order(nodes_number=nodes_amount)
@@ -83,7 +87,8 @@ class SequentialTuner(HyperoptTuner):
         self.validation_blocks = validation_blocks
         is_need_to_maximize = _greater_is_better(target=input_data.target,
                                                  loss_function=loss_function,
-                                                 loss_params=loss_params)
+                                                 loss_params=loss_params,
+                                                 data_type=input_data.data_type)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data

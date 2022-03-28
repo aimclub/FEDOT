@@ -70,7 +70,7 @@
 			"description": "Implementations of the feature selection operations and robust data filtering from scikit-learn framework for classification task"},
 		"custom_time_series_transformation": {
 			"tasks": "[TaskTypesEnum.ts_forecasting]",
-			"input_type": "[DataTypesEnum.ts]",
+			"input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
 			"output_type": "[DataTypesEnum.ts, DataTypesEnum.table]",
 			"accepted_node_types": ["any"],
 			"forbidden_node_types": "[]",
@@ -148,6 +148,17 @@
 				"non_linear",
 				"dimensionality_transforming",
 				"correct_params",
+				"non_applicable_for_ts",
+				"non-default"
+			]
+		},
+		"fast_ica": {
+			"meta": "dimension_transformation",
+			"presets": ["ts", "*tree"],
+			"tags": [
+				"non_linear",
+				"dimensionality_transforming",
+				"correct_params",
 				"non_applicable_for_ts"
 			]
 		},
@@ -184,19 +195,19 @@
 		},
 		"rfe_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["linear", "feature_selection", "non_applicable_for_ts"]
+			"tags": ["linear", "feature_selection", "non_applicable_for_ts", "non-default"]
 		},
 		"rfe_non_lin_reg": {
 			"meta": "regression_preprocessing",
-			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts"]
+			"tags": ["non_linear", "feature_selection", "non_applicable_for_ts", "non-default"]
 		},
 		"rfe_lin_class": {
 			"meta": "classification_preprocessing",
-			"tags": ["linear", "feature_selection"]
+			"tags": ["linear", "feature_selection", "non-default"]
 		},
 		"rfe_non_lin_class": {
 			"meta": "classification_preprocessing",
-			"tags": ["non_linear", "feature_selection"]
+			"tags": ["non_linear", "feature_selection", "non-default"]
 		},
 		"lagged": {
 			"meta": "custom_time_series_transformation",
@@ -206,7 +217,8 @@
 				"dimensionality_transforming",
 				"non_lagged",
 				"correct_params"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"sparse_lagged": {
 			"meta": "custom_time_series_transformation",
@@ -216,7 +228,8 @@
 				"dimensionality_transforming",
 				"non_lagged",
 				"correct_params"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"smoothing": {
 			"meta": "custom_time_series_transformation",
@@ -225,7 +238,8 @@
 				"simple",
 				"smoothing",
 				"non_lagged"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"gaussian_filter": {
 			"meta": "custom_time_series_transformation",
@@ -234,7 +248,8 @@
 				"simple",
 				"smoothing",
 				"non_lagged"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"diff_filter": {
 			"meta": "custom_time_series_transformation",
@@ -243,7 +258,8 @@
 				"differential",
 				"non_lagged",
 				"correct_params"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"cut": {
 			"meta": "custom_time_series_transformation",
@@ -253,7 +269,8 @@
 				"cutting",
 				"correct_params",
 				"non_lagged"
-			]
+			],
+			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
 		"exog_ts": {
 			"meta": "custom_time_series_transformation",

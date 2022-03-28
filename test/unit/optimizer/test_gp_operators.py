@@ -383,20 +383,21 @@ def test_boosting_mutation_for_linear_graph():
                                          [OptNode({'name': 'class_decompose'},
                                                   [model_node, init_node])])]))
 
-    composer_requirements = PipelineComposerRequirements(primary=['scaling'],
-                                                         secondary=['logit'], mutation_prob=1)
+    available_operations = [node.content['name'] for node in boosting_graph.nodes]
+    composer_requirements = PipelineComposerRequirements(primary=available_operations,
+                                                         secondary=available_operations, mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
                                          advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.classification)),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_boosting = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[boosting_mutation],
-                                        params=graph_params,
-                                        ind=Individual(linear_one_node),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_boosting:
+            graph_after_mutation = mutation(types=[boosting_mutation],
+                                            params=graph_params,
+                                            ind=Individual(linear_one_node),
+                                            requirements=composer_requirements,
+                                            log=default_log(__name__), max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -432,8 +433,9 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     # to ensure hyperparameters of custom models
     boosting_graph = adapter.adapt(adapter.restore(boosting_graph))
 
-    composer_requirements = PipelineComposerRequirements(primary=['smoothing'],
-                                                         secondary=['ridge'], mutation_prob=1)
+    available_operations = [node.content['name'] for node in boosting_graph.nodes]
+    composer_requirements = PipelineComposerRequirements(primary=available_operations,
+                                                         secondary=available_operations, mutation_prob=1)
 
     graph_params = GraphGenerationParams(adapter=adapter,
                                          advisor=PipelineChangeAdvisor(
@@ -441,12 +443,12 @@ def test_boosting_mutation_for_non_lagged_ts_model():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_boosting = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[boosting_mutation],
-                                        params=graph_params,
-                                        ind=Individual(linear_two_nodes),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_boosting:
+            graph_after_mutation = mutation(types=[boosting_mutation],
+                                            params=graph_params,
+                                            ind=Individual(linear_two_nodes),
+                                            requirements=composer_requirements,
+                                            log=default_log(__name__), max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:

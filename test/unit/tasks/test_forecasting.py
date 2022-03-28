@@ -197,7 +197,7 @@ def test_regression_multiscale_pipeline_forecast_correct():
     assert rmse_test < rmse_threshold
 
 
-def test_ts_single_pipeline_model_without_multiotput_support():
+def test_ts_single_pipeline_model_without_multioutput_support():
     time_series = generate_synthetic_data(20)
     len_forecast = 2
     train_part = time_series[:-len_forecast]
@@ -223,7 +223,7 @@ def test_ts_single_pipeline_model_without_multiotput_support():
                           task=task,
                           data_type=DataTypesEnum.ts)
 
-    for model_id in ['xgbreg', 'gbr', 'adareg', 'svr', 'sgdr']:
+    for model_id in ['rfr', 'gbr', 'adareg', 'svr', 'sgdr']:
         pipeline = get_simple_ts_pipeline(model_root=model_id, window_size=2)
 
         # making predictions for the missing part in the time series

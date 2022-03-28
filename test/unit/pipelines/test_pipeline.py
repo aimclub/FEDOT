@@ -1,8 +1,9 @@
 import datetime
 import os
 import platform
+import random
 import time
-from copy import copy, deepcopy
+from copy import deepcopy
 from multiprocessing import set_start_method
 from random import seed
 
@@ -170,6 +171,8 @@ def test_pipeline_with_datamodel_fit_correct(data_setup):
 
 
 def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
+    random.seed(1)
+    np.random.seed(1)
     data = data_setup
     # Preprocess data - determine features columns
     data = DataPreprocessor().obligatory_prepare_for_fit(data)
@@ -178,7 +181,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second, third])
 
     pipeline = Pipeline()
@@ -189,7 +192,7 @@ def test_secondary_nodes_is_invariant_to_inputs_order(data_setup):
     second = deepcopy(second)
     third = deepcopy(third)
 
-    final_shuffled = SecondaryNode(operation_type='xgboost',
+    final_shuffled = SecondaryNode(operation_type='logit',
                                    nodes_from=[third, first, second])
 
     pipeline_shuffled = Pipeline()
@@ -264,12 +267,12 @@ def test_pipeline_str():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
-    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [rf, logit, lda, knn]}"
 
     # when
     actual_pipeline_description = str(pipeline)
@@ -282,19 +285,19 @@ def test_pipeline_repr():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[first, second, third])
     pipeline = Pipeline()
     pipeline.add_node(final)
 
-    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [xgboost, logit, lda, knn]}"
+    expected_pipeline_description = "{'depth': 2, 'length': 4, 'nodes': [rf, logit, lda, knn]}"
 
     assert repr(pipeline) == expected_pipeline_description
 
 
 def test_update_node_in_pipeline_correct():
     first = PrimaryNode(operation_type='logit')
-    final = SecondaryNode(operation_type='xgboost', nodes_from=[first])
+    final = SecondaryNode(operation_type='rf', nodes_from=[first])
 
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -312,7 +315,7 @@ def test_delete_node_with_redirection():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = SecondaryNode(operation_type='knn', nodes_from=[first, second])
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[third])
     pipeline = Pipeline()
     pipeline.add_node(final)
@@ -328,7 +331,7 @@ def test_delete_primary_node():
     first = PrimaryNode(operation_type='logit')
     second = PrimaryNode(operation_type='lda')
     third = SecondaryNode(operation_type='knn', nodes_from=[first])
-    final = SecondaryNode(operation_type='xgboost',
+    final = SecondaryNode(operation_type='rf',
                           nodes_from=[second, third])
     pipeline = Pipeline(final)
 
@@ -345,16 +348,16 @@ def test_delete_primary_node():
 def test_update_subtree():
     # given
     pipeline = get_pipeline()
-    subroot_parent = PrimaryNode('xgboost')
-    subroot = SecondaryNode('xgboost', nodes_from=[subroot_parent])
+    subroot_parent = PrimaryNode('rf')
+    subroot = SecondaryNode('rf', nodes_from=[subroot_parent])
     node_to_replace = pipeline.nodes[2]
 
     # when
     pipeline.update_subtree(node_to_replace, subroot)
 
     # then
-    assert pipeline.nodes[2].operation.operation_type == 'xgboost'
-    assert pipeline.nodes[3].operation.operation_type == 'xgboost'
+    assert pipeline.nodes[2].operation.operation_type == 'rf'
+    assert pipeline.nodes[3].operation.operation_type == 'rf'
 
 
 def test_delete_subtree():
@@ -377,7 +380,7 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     test_pipeline_first = pipeline_first()
-    time_constraint = datetime.timedelta(minutes=0.01)
+    time_constraint = datetime.timedelta(seconds=1)
     predicted_first = None
     computation_time_first = None
     process_start_time = time.time()
@@ -388,8 +391,10 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
         computation_time_first = test_pipeline_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
-    time_constraint = datetime.timedelta(minutes=0.05)
+    time_constraint = datetime.timedelta(seconds=2)
+    test_pipeline_first.unfit(unfit_preprocessor=True)
     process_start_time = time.time()
+
     try:
         test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
@@ -424,18 +429,6 @@ def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
     is_tuning_finished = True
 
     assert is_tuning_finished
-
-
-def test_pipeline_copy():
-    pipeline = Pipeline(PrimaryNode(operation_type='logit'))
-    pipeline_copy = copy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
-
-
-def test_pipeline_deepcopy():
-    pipeline = Pipeline(PrimaryNode(operation_type='logit'))
-    pipeline_copy = deepcopy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
 
 
 def test_pipeline_structure_print_correct():

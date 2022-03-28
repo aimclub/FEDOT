@@ -59,7 +59,7 @@
 	},
 	"ts_model": {
 	  "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]",
-	  "input_type": "[DataTypesEnum.ts]",
+	  "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
 	  "output_type": "[DataTypesEnum.table]",
 	  "strategies": ["fedot.core.operations.evaluation.time_series", "FedotTsForecastingStrategy"],
 	  "tags": ["time_series"],
@@ -106,10 +106,6 @@
 	  "meta": "custom_class",
 	  "tags": ["no_prob", "expensive"]
 	},
-	"xgboost": {
-	  "meta": "sklearn_class",
-	  "tags": ["boosting"]
-	},
 	"bernb": {
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian"]
@@ -125,10 +121,6 @@
 	"ridge": {
 	  "meta": "sklearn_regr",
 	  "tags": ["simple", "linear", "interpretable"]
-	},
-	"xgbreg": {
-	  "meta": "sklearn_regr",
-	  "tags": ["boosting", "non_multi"]
 	},
 	"adareg": {
 	  "meta": "sklearn_regr",
@@ -191,6 +183,20 @@
     "custom": {
 		"meta": "custom_model",
 		"tags": ["all_purpose", "non-default"]
-	}
+	},
+	"xgboost": {
+      "meta": "sklearn_class",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non-default"
+      ]
+    },
+    "xgbreg": {
+      "meta": "sklearn_regr",
+      "presets": ["*tree"],
+      "tags": [
+        "boosting", "tree", "non_multi", "non-default"
+      ]
+    }
   }
 }

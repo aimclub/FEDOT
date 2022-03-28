@@ -13,6 +13,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -39,16 +40,15 @@ class PipelineTemplate:
     def __init__(self, pipeline: 'Pipeline' = None, log: Log = None):
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
+        self.unique_pipeline_id = str(uuid4())
         if pipeline is not None:
             self.depth = pipeline.depth
-            self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
             self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
-            self.unique_pipeline_id = str(uuid4())
             self.struct_id = ''
             self.data_preprocessor = None
 
@@ -163,7 +163,7 @@ class PipelineTemplate:
                         node['custom_params'][key] = None
 
         # Store information about preprocessing
-        preprocessing_path = os.path.join('preprocessing', 'data_preprocessor.pkl')
+        preprocessing_path = ['preprocessing', 'data_preprocessor.pkl']
 
         json_object = {
             "total_pipeline_operations": list(self.total_pipeline_operations),
@@ -186,7 +186,11 @@ class PipelineTemplate:
             return None
 
         # Save preprocessing module
-        dict_fitted_operations['preprocessing'] = self.export_preprocessing(path)
+        preprocessing_path = self.export_preprocessing(path)
+        if isinstance(preprocessing_path, str):
+            preprocessing_splitted = os.path.split(preprocessing_path)
+            preprocessing_path = [preprocessing_splitted[-2], preprocessing_splitted[-1]]
+        dict_fitted_operations['preprocessing'] = preprocessing_path
         return dict_fitted_operations
 
     def _prepare_paths(self, path: str, with_time: bool = True):
@@ -271,7 +275,7 @@ class PipelineTemplate:
                 restored_data_preprocessor = joblib.load(path_to_preprocessor)
                 pipeline.preprocessor = restored_data_preprocessor
         elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
-            tmp_path = 'preprocessing.tmp'
+            tmp_path = os.path.join(default_fedot_data_dir(), 'preprocessing.tmp')
             with open(tmp_path, 'wb') as f:
                 f.write(BytesIO(dict_fitted_operations['preprocessing']).getbuffer())
             pipeline.preprocessor = joblib.load(tmp_path)

@@ -23,10 +23,10 @@ def get_three_depth_manual_class_pipeline():
 
 
 def get_three_depth_manual_regr_pipeline():
-    xgb_primary = PrimaryNode('xgbreg')
+    rfr_primary = PrimaryNode('rfr')
     knn_primary = PrimaryNode('knnreg')
 
-    dtreg_secondary = SecondaryNode('dtreg', nodes_from=[xgb_primary])
+    dtreg_secondary = SecondaryNode('dtreg', nodes_from=[rfr_primary])
     rfr_secondary = SecondaryNode('rfr', nodes_from=[knn_primary])
 
     knnreg_root = SecondaryNode('knnreg', nodes_from=[dtreg_secondary, rfr_secondary])

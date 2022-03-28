@@ -3,6 +3,7 @@ from typing import Union
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
+from fedot.core.operations.warnings_processor import suppress_stdout
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.utils import DEFAULT_PARAMS_STUB
@@ -79,7 +80,11 @@ class Operation:
 
         self._init(data.task, params=params)
 
-        self.fitted_operation = self._eval_strategy.fit(train_data=data)
+        if self.log.verbosity_level < 2:
+            with suppress_stdout():
+                self.fitted_operation = self._eval_strategy.fit(train_data=data)
+        else:
+            self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
         predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage, params)
 

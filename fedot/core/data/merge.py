@@ -44,6 +44,7 @@ class DataMerger:
             return idx, features, target, task, data_type, updated_info
 
         merge_function_by_type = {DataTypesEnum.ts: self.combine_datasets_ts,
+                                  DataTypesEnum.multi_ts: self.combine_datasets_table,
                                   DataTypesEnum.table: self.combine_datasets_table,
                                   DataTypesEnum.text: self.combine_datasets_table}
 
@@ -182,8 +183,6 @@ class DataMerger:
             else:
                 common_idx = common_idx & idx
 
-        # Convert to list
-        common_idx = np.array(list(common_idx))
         if len(common_idx) == 0:
             raise ValueError(f'There are no common indices for outputs')
 
@@ -331,12 +330,26 @@ def tables_mapping(idx_list, object_list, common_idx):
     """
 
     common_tables = []
-    for number in range(len(idx_list)):
-        # Create mask where True - appropriate objects
-        current_idx = idx_list[number]
-        mask = np.in1d(np.array(current_idx), common_idx)
 
+    # if indices repeats (for multi_ts data type)
+    repeats_num = int(min(obj.shape[0] for obj in object_list)/len(common_idx))
+    if repeats_num > 1:
+        common_idx_full = list(common_idx) * repeats_num
+    else:
+        common_idx_full = list(common_idx)
+
+    for number in range(len(idx_list)):
+        current_idx = list(idx_list[number])
         current_object = object_list[number]
+
+        if len(current_idx) < current_object.shape[0]:
+            repeats_num = int(current_object.shape[0]/len(current_idx))
+            current_idx = list(current_idx) * repeats_num
+        # Create mask where True - appropriate objects
+        current_idx = np.array(current_idx, dtype=int)
+        common_idx_full = np.array(common_idx_full)
+        mask = np.isin(current_idx, common_idx_full)
+
         if len(current_object.shape) == 1:
             filtered_predict = current_object[mask]
             filtered_predict = filtered_predict.reshape((-1, 1))

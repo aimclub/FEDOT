@@ -8,7 +8,8 @@ from fedot.core.pipelines.validation import (validate)
 from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
     has_primary_nodes, is_pipeline_contains_ts_operations, only_non_lagged_operations_are_primary, \
-    has_correct_data_sources, has_parent_contain_single_resample
+    has_correct_data_sources, has_parent_contain_single_resample, has_no_conflicts_during_multitask, \
+    has_no_conflicts_after_class_decompose
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 PIPELINE_ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -186,10 +187,10 @@ def ts_pipeline_with_incorrect_data_flow():
     return pipeline
 
 
-def pipeline_with_incorrect_parent_amount_for_decompose():
+def pipeline_with_incorrect_parent_number_for_decompose():
     """ Pipeline structure:
            logit
-    scaling                        xgboost
+    scaling                        rf
            class_decompose -> rfr
     For class_decompose connection with "logit" model needed
     """
@@ -198,15 +199,15 @@ def pipeline_with_incorrect_parent_amount_for_decompose():
     node_logit = SecondaryNode('logit', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_scaling])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_logit])
-    pipeline = Pipeline(node_xgboost)
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_logit])
+    pipeline = Pipeline(node_rf)
     return pipeline
 
 
 def pipeline_with_incorrect_parents_position_for_decompose():
     """ Pipeline structure:
          scaling
-    logit                       xgboost
+    logit                       rf
          class_decompose -> rfr
     """
 
@@ -214,8 +215,23 @@ def pipeline_with_incorrect_parents_position_for_decompose():
     node_second = SecondaryNode('scaling', nodes_from=[node_first])
     node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
     node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_rfr, node_second])
-    pipeline = Pipeline(node_xgboost)
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    pipeline = Pipeline(node_rf)
+    return pipeline
+
+
+def correct_decompose_pipeline():
+    """
+            logit
+    scaling                         rf
+            class_decompose -> rfr
+    """
+    node_first = PrimaryNode('scaling')
+    node_second = SecondaryNode('logit', nodes_from=[node_first])
+    node_decompose = SecondaryNode('class_decompose', nodes_from=[node_second, node_first])
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_decompose])
+    node_rf = SecondaryNode('rf', nodes_from=[node_rfr, node_second])
+    pipeline = Pipeline(node_rf)
     return pipeline
 
 
@@ -362,7 +378,7 @@ def test_only_non_lagged_operations_are_primary():
 
 
 def test_has_two_parents_for_decompose_operations():
-    incorrect_pipeline = pipeline_with_incorrect_parent_amount_for_decompose()
+    incorrect_pipeline = pipeline_with_incorrect_parent_number_for_decompose()
 
     with pytest.raises(Exception) as exc:
         assert has_no_conflicts_in_decompose(incorrect_pipeline)
@@ -379,6 +395,42 @@ def test_decompose_parents_has_wright_positions():
     assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} For decompose operation Model as first parent is required'
 
 
+def test_decompose_operation_remove_in_pipeline():
+    """
+    In the process of evolution, edges and nodes may have been removed from the decompose pipeline.
+    Or a decompose node could be replaced with a new one. Such pipelines are incorrect.
+    In this test replacement the class_decompose with logit operation is performed
+    """
+    current_pipeline = correct_decompose_pipeline()
+    for node in current_pipeline.nodes:
+        if node.operation.operation_type == 'class_decompose':
+            # Replace decompose node with simple classification model
+            node.operation.operation_type = 'logit'
+
+    with pytest.raises(ValueError) as exc:
+        has_no_conflicts_during_multitask(current_pipeline)
+
+    assert str(exc.value) == f'{PIPELINE_ERROR_PREFIX} Current pipeline can not solve multitask problem'
+
+
+def test_incorrect_node_after_decompose_operation():
+    """
+    The regression model should be next after class_decompose operation.
+    If it doesn't, then the pipelining is incorrect
+    """
+    current_pipeline = correct_decompose_pipeline()
+    for node in current_pipeline.nodes:
+        if node.operation.operation_type == 'rfr':
+            # Replace regression model with classification one
+            node.operation.operation_type = 'lda'
+
+    with pytest.raises(ValueError) as exc:
+        has_no_conflicts_after_class_decompose(current_pipeline)
+
+    expected_error = f'{PIPELINE_ERROR_PREFIX} After classification decompose it is required to use regression model'
+    assert str(exc.value) == expected_error
+
+
 def test_data_sources_validation():
     incorrect_pipeline = pipeline_with_incorrect_data_sources()
 
@@ -391,7 +443,7 @@ def test_data_sources_validation():
     assert has_correct_data_sources(correct_pipeline)
 
 
-def custom_validation_test():
+def test_custom_validation():
     incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
 
     assert validate(incorrect_pipeline, rules=[has_no_cycle])

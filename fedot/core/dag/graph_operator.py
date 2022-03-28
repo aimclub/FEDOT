@@ -3,6 +3,7 @@ from typing import Any, List, Optional, Union, Tuple
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.utilities.data_structures import remove_items
 
 
 class GraphOperator:
@@ -25,11 +26,13 @@ class GraphOperator:
         self._postproc_nodes()
 
     def delete_subtree(self, node: GraphNode):
-        """Delete node with all the parents it has"""
-        for node_child in self.node_children(node):
-            node_child.nodes_from.remove(node)
-        for subtree_node in node.ordered_subnodes_hierarchy():
-            self._graph.nodes.remove(subtree_node)
+        """Delete node with all the parents it has.
+        and delete all edges from removed nodes to remaining graph nodes."""
+        subtree_nodes = node.ordered_subnodes_hierarchy()
+        self._graph.nodes = remove_items(self._graph.nodes, subtree_nodes)
+        # prune all edges coming from the removed subtree
+        for node in self._graph.nodes:
+            node.nodes_from = remove_items(node.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
@@ -119,7 +122,7 @@ class GraphOperator:
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
-        Method removes nodes and edges that do not the result of the pipeline
+        Method removes nodes and edges that do not affect the result of the pipeline
 
         Leftovers - edges and nodes that remain after the removal of the edge / node
         and do not affect the result of the pipeline
@@ -148,12 +151,13 @@ class GraphOperator:
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
-            self._postproc_nodes(node_child)
         else:
             node_child.nodes_from.remove(node_parent)
 
         if is_clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
+
+        self._postproc_nodes()
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
         if len(self._graph.nodes) == 0:
@@ -218,5 +222,5 @@ class GraphOperator:
         for node in self._graph.nodes:
             if node.nodes_from:
                 for parent_node in node.nodes_from:
-                    edges.append([parent_node, node])
+                    edges.append((parent_node, node))
         return edges

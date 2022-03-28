@@ -18,6 +18,16 @@ def from_maximised_metric(metric_func):
     return wrapper
 
 
+def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """ Symmetric mean absolute percentage error """
+
+    numerator = 2 * np.abs(y_true - y_pred)
+    denominator = np.abs(y_true) + np.abs(y_pred)
+    result = numerator / denominator
+    result[np.isnan(result)] = 0.0
+    return float(np.mean(100 * result))
+
+
 class Metric:
     output_mode = 'default'
     default_value = 0
@@ -164,6 +174,14 @@ class MAPE(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_absolute_percentage_error(y_true=reference.target,
                                               y_pred=predicted.predict)
+
+
+class SMAPE(QualityMetric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return smape(y_true=reference.target, y_pred=predicted.predict)
 
 
 class F1(QualityMetric):

@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
+from fedot.utilities.pattern_wrappers import singleton
 from fedot.remote.infrastructure.clients.client import Client
 
 
@@ -15,17 +16,6 @@ def init_data_for_remote_execution(train_data: InputData):
     setup = RemoteEvaluator()
     if setup.remote_task_params is not None:
         setup.remote_task_params.train_data_idx = train_data.idx
-
-
-def singleton(class_):
-    instances = {}
-
-    def getinstance(*args, **kwargs):
-        if class_ not in instances:
-            instances[class_] = class_(*args, **kwargs)
-        return instances[class_]
-
-    return getinstance
 
 
 @dataclass

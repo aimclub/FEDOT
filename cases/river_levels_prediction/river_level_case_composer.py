@@ -75,7 +75,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
     y_data_test = np.array(predict_input.target)
 
     available_secondary_operations = ['ridge', 'lasso', 'dtreg',
-                                      'xgbreg', 'adareg', 'knnreg',
+                                      'rfr', 'adareg', 'knnreg',
                                       'linear', 'svr', 'poly_features',
                                       'scaling', 'ransac_lin_reg', 'rfe_lin_reg',
                                       'pca', 'ransac_non_lin_reg',

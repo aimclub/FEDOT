@@ -16,13 +16,10 @@ class Serializer(JSONEncoder, JSONDecoder):
     CODERS_BY_TYPE = {}
 
     def __init__(self, *args, **kwargs):
-        encoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONEncoder.__init__).parameters}
-        encoder_kwargs['default'] = self.default
-        JSONEncoder.__init__(self, **encoder_kwargs)
-
-        decoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONDecoder.__init__).parameters}
-        decoder_kwargs['object_hook'] = self.object_hook
-        JSONDecoder.__init__(self, **decoder_kwargs)
+        for base_class, coder_name in [(JSONEncoder, 'default'), (JSONDecoder, 'object_hook')]:
+            base_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(base_class.__init__).parameters}
+            base_kwargs[coder_name] = getattr(self, coder_name)
+            base_class.__init__(self, **base_kwargs)
 
         if not Serializer.CODERS_BY_TYPE:
             from uuid import UUID
@@ -33,7 +30,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             from fedot.core.optimisers.gp_comp.individual import Individual
             from fedot.core.optimisers.graph import OptGraph, OptNode
             from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
-            from fedot.core.utils import ComparableEnum
+            from fedot.core.utilities.data_structures import ComparableEnum
 
             from .coders import (
                 any_from_json,

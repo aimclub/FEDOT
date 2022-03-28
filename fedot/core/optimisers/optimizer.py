@@ -98,7 +98,7 @@ class GraphOptimiser:
         pass
 
     def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10) -> bool:
-        """ Function for the comparison of fitness values between pais of individuals
+        """ Function for the comparison of fitness values between pairs of individuals
         :param first_fitness: fitness for individual A
         :param second_fitness: fitness for individual B
         :param atol: absolute tolerance parameter (see Notes).
@@ -116,7 +116,8 @@ class GraphOptimiser:
         """
         try:
             self.history.add_to_history(individuals)
-            self.history.save_current_results()
+            if self.history.save_folder:
+                self.history.save_current_results()
             archive = deepcopy(archive)
             if archive is not None:
                 self.history.add_to_archive_history(archive.items)
@@ -159,10 +160,10 @@ def correct_if_has_nans(individuals, log):
     individuals = [ind for ind in individuals if ind.fitness is not None]
     len_after = len(individuals)
 
-    if len_after != len_before:
-        log.info(f'None were removed from candidates')
+    if len_after == 0 and len_before != 0:
+        raise ValueError('All evaluations of fitness were unsuccessful.')
 
-    if len(individuals) == 0:
-        raise ValueError('All evaluations of fitness was unsuccessful.')
+    if len_after != len_before:
+        log.info(f'None values were removed from candidates')
 
     return individuals

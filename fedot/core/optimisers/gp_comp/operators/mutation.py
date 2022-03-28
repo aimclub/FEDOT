@@ -4,6 +4,7 @@ from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Any, Callable, List, Union
 
 import numpy as np
+
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -11,8 +12,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import DEFAULT_PARAMS_STUB, ComparableEnum as Enum
+from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -133,12 +134,12 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
             new_individual = Individual(new_graph)
             if add_to_history:
                 new_individual = Individual(new_graph)
-                new_individual.parent_operators = ind.parent_operators
+                new_individual.parent_operators = deepcopy(ind.parent_operators)
                 for mutation_name in mutation_names:
                     new_individual.parent_operators.append(
                         ParentOperator(operator_type='mutation',
                                        operator_name=str(mutation_name),
-                                       parent_objects=[ind]))
+                                       parent_individuals=[ind]))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '
@@ -263,7 +264,7 @@ def single_add_mutation(graph: Any, requirements, params, max_depth, *args, **kw
 
 def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     """
-    Add new node between two sequential existing modes
+    Change node between two sequential existing modes
     """
     node = choice(graph.nodes)
     nodes_from = node.nodes_from
@@ -285,7 +286,7 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
 
 def single_drop_mutation(graph: Any, params, *args, **kwargs):
     """
-    Add new node between two sequential existing modes
+    Drop single node from graph
     """
     node_to_del = choice(graph.nodes)
     node_name = node_to_del.content['name']

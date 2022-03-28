@@ -10,11 +10,12 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
+from test.unit.api.test_main_api import get_dataset
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
-from test.unit.api.test_main_api import get_dataset
-from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_ts_data, get_simple_ts_pipeline
+from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_simple_ts_pipeline, get_ts_data
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -86,7 +87,7 @@ def create_pipeline() -> Pipeline:
     node_lda = PrimaryNode('lda')
     node_lda.custom_params = {'n_components': 1}
 
-    node_xgboost = PrimaryNode('xgboost')
+    node_rf = PrimaryNode('rf')
 
     node_knn = PrimaryNode('knn')
     node_knn.custom_params = {'n_neighbors': 9}
@@ -96,18 +97,18 @@ def create_pipeline() -> Pipeline:
     node_knn_second.nodes_from = [node_lda, node_knn]
 
     node_logit_second = SecondaryNode('logit')
-    node_logit_second.nodes_from = [node_xgboost, node_lda]
+    node_logit_second.nodes_from = [node_rf, node_lda]
 
     node_lda_second = SecondaryNode('lda')
     node_lda_second.custom_params = {'n_components': 1}
     node_lda_second.nodes_from = [node_logit_second, node_knn_second, node_logit]
 
-    node_xgboost_second = SecondaryNode('xgboost')
-    node_xgboost_second.nodes_from = [node_logit, node_logit_second, node_knn]
+    node_rf_second = SecondaryNode('rf')
+    node_rf_second.nodes_from = [node_logit, node_logit_second, node_knn]
 
     node_knn_third = SecondaryNode('knn')
     node_knn_third.custom_params = {'n_neighbors': 8}
-    node_knn_third.nodes_from = [node_lda_second, node_xgboost_second]
+    node_knn_third.nodes_from = [node_lda_second, node_rf_second]
 
     pipeline = Pipeline(node_knn_third)
 
@@ -127,10 +128,10 @@ def create_classification_pipeline_with_preprocessing():
     node_scaling = PrimaryNode('scaling')
     node_rfe = PrimaryNode('rfe_lin_class')
 
-    xgb_node = SecondaryNode('xgboost', nodes_from=[node_scaling])
+    rf_node = SecondaryNode('rf', nodes_from=[node_scaling])
     logit_node = SecondaryNode('logit', nodes_from=[node_rfe])
 
-    knn_root = SecondaryNode('knn', nodes_from=[xgb_node, logit_node])
+    knn_root = SecondaryNode('knn', nodes_from=[rf_node, logit_node])
 
     pipeline = Pipeline(knn_root)
 
@@ -140,14 +141,14 @@ def create_classification_pipeline_with_preprocessing():
 def create_four_depth_pipeline():
     knn_node = PrimaryNode('knn')
     lda_node = PrimaryNode('lda')
-    xgb_node = PrimaryNode('xgboost')
+    rf_node = PrimaryNode('rf')
     logit_node = PrimaryNode('logit')
 
     logit_node_second = SecondaryNode('logit', nodes_from=[knn_node, lda_node])
-    xgb_node_second = SecondaryNode('xgboost', nodes_from=[logit_node])
+    rf_node_second = SecondaryNode('rf', nodes_from=[logit_node])
 
-    qda_node_third = SecondaryNode('qda', nodes_from=[xgb_node_second])
-    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, xgb_node])
+    qda_node_third = SecondaryNode('qda', nodes_from=[rf_node_second])
+    knn_node_third = SecondaryNode('knn', nodes_from=[logit_node_second, rf_node])
 
     knn_root = SecondaryNode('knn', nodes_from=[qda_node_third, knn_node_third])
 
@@ -369,7 +370,7 @@ def test_extract_subtree_root():
     pipeline = create_four_depth_pipeline()
     pipeline_template = PipelineTemplate(pipeline)
 
-    expected_types = ['knn', 'logit', 'knn', 'lda', 'xgboost']
+    expected_types = ['knn', 'logit', 'knn', 'lda', 'rf']
     new_root_node_id = 4
 
     root_node = extract_subtree_root(root_operation_id=new_root_node_id,
@@ -456,3 +457,21 @@ def test_multimodal_pipeline_serialized_correctly():
     after_load_predicted_labels = pipeline_loaded.predict(mm_data, output_mode='labels')
 
     assert np.array_equal(before_save_predicted_labels.predict, after_load_predicted_labels.predict)
+
+
+def test_old_serialized_paths_load_correctly():
+    """
+    In older versions of FEDOT, pipelines were loaded using paths written to a json file.
+    The paths were represented as strings, not as lists. This test checks if the old version
+    pipelines can be loaded successfully using the new logic.
+    """
+    path = os.path.join(fedot_project_root(), 'test', 'data', 'pipeline_with_old_paths', 'pipeline_with_old_paths.json')
+
+    pipeline_loaded = Pipeline()
+    pipeline_loaded.load(path)
+
+    mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
+                                 extended=True)
+    loaded_pipeline_output = pipeline_loaded.predict(mixed_input)
+
+    assert loaded_pipeline_output is not None

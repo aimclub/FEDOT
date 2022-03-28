@@ -59,7 +59,7 @@ def get_classification_dataset(features_options, samples_amount=250,
 
 def convert_to_labels(root_operation, prediction):
     if any(root_operation == acceptable_model for acceptable_model in
-           ['logit', 'lda', 'qda', 'mlp', 'svc', 'xgboost', 'bernb']):
+           ['logit', 'lda', 'qda', 'mlp', 'svc', 'rf', 'bernb']):
         preds = np.array(prediction.predict)
         preds[preds >= 0.5] = 1
         preds[preds < 0.5] = 0

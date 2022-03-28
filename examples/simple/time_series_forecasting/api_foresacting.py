@@ -38,7 +38,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=timeout,
-                  preset='fast_train')
+                  preset='fast_train',
+                  n_jobs=-1)
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)

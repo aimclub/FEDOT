@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import uuid4
 
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
@@ -12,6 +13,7 @@ class Individual:
                  additional_params: dict = None):
         if additional_params is None:
             additional_params = {}
+        self.uid = str(uuid4())
         self.parent_operators = parent_operators if parent_operators is not None else []
         self.fitness = fitness
         self.computation_time = computation_time
@@ -19,4 +21,4 @@ class Individual:
         self.additional_params = additional_params
 
     def __eq__(self, other):
-        return self.graph == other.graph
+        return self.uid == other.uid

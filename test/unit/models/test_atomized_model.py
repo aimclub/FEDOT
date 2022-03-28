@@ -1,8 +1,8 @@
-import os
 import json
-import pytest
+import os
 
 import numpy as np
+import pytest
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.data.data import InputData
@@ -32,11 +32,10 @@ def create_pipeline() -> Pipeline:
     node_lda = PrimaryNode('lda')
     node_lda.custom_params = {'solver': 'lsqr'}
 
-    node_xgboost = SecondaryNode('xgboost')
-    node_xgboost.custom_params = {'n_components': 1}
-    node_xgboost.nodes_from = [node_logit, node_lda]
+    node_rf = SecondaryNode('rf')
+    node_rf.nodes_from = [node_logit, node_lda]
 
-    pipeline.add_node(node_xgboost)
+    pipeline.add_node(node_rf)
 
     return pipeline
 
@@ -155,14 +154,14 @@ def test_fit_predict_atomized_model_correctly():
     train_data, test_data = create_input_data()
 
     pipeline = create_pipeline_with_several_nested_atomized_model()
-    atomized_model = AtomizedModel(pipeline)
+    AtomizedModel(pipeline)
 
     pipeline.fit(train_data)
     predicted_values = pipeline.predict(test_data)
 
     pipeline.unfit()
 
-    fitted_atomized_model = pipeline.fit(train_data)
+    pipeline.fit(train_data)
     predicted_atomized_output = pipeline.predict(test_data)
     predicted_atomized_values = predicted_atomized_output.predict
 

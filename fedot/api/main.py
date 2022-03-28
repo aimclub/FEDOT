@@ -4,20 +4,20 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
+from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.initial_assumptions import preprocessing_builder
+from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
+from fedot.api.api_utils.metrics import ApiMetrics
+from fedot.api.api_utils.params import ApiParams
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.visualisation import plot_biplot, plot_roc_auc, plot_forecast
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
+from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
-from fedot.api.api_utils.params import ApiParams
-from fedot.api.api_utils.api_data import ApiDataProcessor
-from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
@@ -29,7 +29,6 @@ class Fedot:
     """
     Main class for FEDOT API.
     Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
-
     :param problem: the name of modelling problem to solve:
         - classification
         - regression
@@ -41,11 +40,14 @@ class Fedot:
             (data operations) that only reduce the dimensionality of the data, but cannot increase
              it. For example, there are no polynomial features and one-hot encoding operations
         - 'stable' - The most reliable preset in which the most stable operations are included.
+        - 'auto' - Automatically determine which preset should be used.
         - 'gpu' - Models that use GPU resources for computation.
         - 'ts' - A special preset with models for time series forecasting task.
         - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
+        - None or -1 means infinite time
+        - if composer_params param has 'timeout' key - its value will be used instead
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
             'max_depth' - max depth of the pipeline
@@ -53,6 +55,7 @@ class Fedot:
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
             'timeout' - composing time (minutes)
+                - None or -1 means infinite time
             'available_operations' - list of model names to use
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
@@ -69,37 +72,40 @@ class Fedot:
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param initial_assumption: initial assumption for composer
+    :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
     """
 
     def __init__(self,
                  problem: str,
                  preset: str = None,
-                 timeout: Optional[float] = None,
+                 timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
                  safe_mode=True,
-                 initial_assumption: Union[Pipeline, List[Pipeline]] = None
+                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
+                 n_jobs: int = 1
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
-        self.timeout_set_in_init = timeout
 
+        # Define parameters, that were set via init in init
         input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level}
+                        'seed': seed, 'verbose_level': verbose_level,
+                        'initial_assumption': initial_assumption}
         self.params.initialize_params(**input_params)
-        self.params.api_params['current_model'] = None
 
+        # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
+        self.params.api_params['n_jobs'] = n_jobs
 
-        # Update timeout and initial_assumption parameters
-        self.update_params(timeout, initial_assumption)
+        # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
@@ -118,7 +124,6 @@ class Fedot:
             predefined_model: Union[str, Pipeline] = None):
         """
         Fit the graph with a predefined structure or compose and fit the new graph
-
         :param features: the array with features of train data
         :param target: the array with target values of train data
         :param predefined_model: the name of the atomic model or Pipeline instance.
@@ -141,16 +146,22 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
-            if self.timeout_set_in_init is not None:
-                self.params.api_params['timeout'] = self.timeout_set_in_init
             self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
                 **self.params.api_params)
 
-        self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+        # Final fit for obtained pipeline on full dataset
+        if self.history is not None:
+            self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+            self.params.api_params['logger'].message('Final pipeline was fitted')
+        else:
+            self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
+
+        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
+
         return self.current_pipeline
 
     def predict(self,
@@ -158,7 +169,6 @@ class Fedot:
                 save_predictions: bool = False):
         """
         Predict new target using already fitted model
-
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :return: the array with prediction values
@@ -182,7 +192,6 @@ class Fedot:
                       probs_for_all_classes: bool = False):
         """
         Predict the probability of new target using already fitted classification model
-
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :param probs_for_all_classes: return probability for each class even for binary case
@@ -213,7 +222,6 @@ class Fedot:
                  save_predictions: bool = False):
         """
         Forecast the new values of time series
-
         :param pre_history: the array with features for pre-history of the forecast
         :param forecast_length: num of steps to forecast
         :param save_predictions: if True-save predictions as csv-file in working directory.
@@ -245,7 +253,6 @@ class Fedot:
     def load(self, path):
         """
         Load saved graph from disk
-
         :param path to json file with model
         """
         self.current_pipeline.load(path)
@@ -275,7 +282,6 @@ class Fedot:
                     metric_names: Union[str, List[str]] = None) -> dict:
         """
         Get quality metrics for the fitted graph
-
         :param target: the array with target values of test data
         :param metric_names: the names of required metrics
         :return: the values of quality metrics
@@ -316,7 +322,6 @@ class Fedot:
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
-
                 calculated_metrics[metric_name] = metric_value
 
         return calculated_metrics
@@ -331,11 +336,29 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
-    def update_params(self, timeout, initial_assumption):
-        if timeout is not None:
-            self.params.api_params['timeout'] = timeout
+    def update_params(self, timeout, num_of_generations, initial_assumption):
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
+
+    def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
+                method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
+        """Create explanation for 'current_pipeline' according to the selected 'method'.
+        An `Explainer` instance is returned.
+        :param features: samples to be explained. If `None`, `train_data` from last fit is used.
+        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
+        :param visualize: print and plot the explanation simultaneously, defaults to True.
+            The explanation can be retrieved later by executing `explainer.visualize()`.
+        """
+        pipeline = self.current_pipeline
+        if features is None:
+            data = self.train_data
+        else:
+            data = self.data_processor.define_data(features=features,
+                                                   is_predict=False)
+        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
+                                     visualize=visualize, **kwargs)
+
+        return explainer
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()
@@ -355,33 +378,12 @@ class Fedot:
 
     def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
         """ Apply training procedure for obtained pipeline if dataset was clipped """
-        if 'cut' in recommendations:
+        if recommendations:
             # if data was cut we need to refit pipeline on full data
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-            self.current_pipeline.fit(full_train_not_preprocessed)
-
-    def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
-                method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
-        """Create explanation for 'current_pipeline' according to the selected 'method'.
-        An `Explainer` instance is returned.
-
-        :param features: samples to be explained. If `None`, `train_data` from last fit is used.
-        :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
-        :param visualize: print and plot the explanation simultaneously, defaults to True.
-            The explanation can be retrieved later by executing `explainer.visualize()`.
-        """
-        pipeline = self.current_pipeline
-        if features is None:
-            data = self.train_data
-        else:
-            data = self.data_processor.define_data(features=features,
-                                                   is_predict=False)
-        explainer = explain_pipeline(pipeline=pipeline, data=data, method=method,
-                                     visualize=visualize, **kwargs)
-
-        return explainer
+        self.current_pipeline.fit(full_train_not_preprocessed)
 
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """
@@ -390,15 +392,15 @@ class Fedot:
             pipelines = [predefined_model]
         elif predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = self.api_composer.initial_assumptions.get_initial_assumption(self.train_data,
-                                                                                     self.params.api_params['task'])
+            pipelines = AssumptionsBuilder.get(self.params.api_params['task'], self.train_data).build()
         elif isinstance(predefined_model, str):
             model = PrimaryNode(predefined_model)
             pipelines = [Pipeline(model)]
         else:
             raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
 
+        final_pipeline = pipelines[0]
         # Perform fitting
-        fit_and_check_correctness(pipelines, data=self.train_data,
-                                  logger=self.params.api_params['logger'])
-        return pipelines[0]
+        final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
+                                                      logger=self.params.api_params['logger'])
+        return final_pipeline

@@ -44,7 +44,6 @@ class DirectAdapter(BaseOptimizationAdapter):
     def adapt(self, adaptee: Any):
         opt_graph = deepcopy(adaptee)
         opt_graph.__class__ = OptGraph
-        opt_graph.uid = adaptee.unique_pipeline_id
 
         for node in opt_graph.nodes:
             node.__class__ = OptNode
@@ -53,7 +52,6 @@ class DirectAdapter(BaseOptimizationAdapter):
     def restore(self, opt_graph: OptGraph):
         obj = deepcopy(opt_graph)
         obj.__class__ = self.base_graph_class
-        obj.unique_pipeline_id = opt_graph.uid
         for node in obj.nodes:
             node.__class__ = self.base_node_class
         return obj
@@ -79,10 +77,12 @@ class PipelineAdapter(BaseOptimizationAdapter):
                 self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead'
                                'PrimaryNode or SecondaryNode.')
             else:
-                content = {'name': node.operation,
+                content = {'name': str(node.operation),
                            'params': node.custom_params}
 
                 node.__class__ = OptNode
+                node._fitted_operation = None
+                node._node_data = None
                 node.content = content
 
     def _transform_to_pipeline_node(self, node, *args, **params):
@@ -106,7 +106,6 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=OptNode,
                             transform_func=self._transform_to_opt_node)
         graph = OptGraph(source_pipeline.nodes)
-        graph.uid = source_pipeline.uid
         return graph
 
     def restore(self, opt_graph: OptGraph, computation_time=None):
@@ -118,14 +117,12 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
-        pipeline.uid = source_graph.uid
         pipeline.computation_time = computation_time
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph, computation_time=None):
         pipeline = self.restore(opt_graph, computation_time)
         tmp = PipelineTemplate(pipeline)
-        tmp.unique_pipeline_id = opt_graph.uid
         return tmp
 
 

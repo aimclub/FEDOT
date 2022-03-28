@@ -127,7 +127,7 @@
     },
     "ts_model": {
       "description": "Implementations of the time series models",
-      "input_type": "[DataTypesEnum.ts]",
+      "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
       "output_type": "[DataTypesEnum.table]",
       "strategies": [
         "fedot.core.operations.evaluation.time_series",
@@ -170,7 +170,8 @@
         "interpretable",
         "non_lagged",
         "in_sample_refit"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "arima": {
       "meta": "ts_model",
@@ -180,42 +181,41 @@
         "interpretable",
         "non_lagged",
         "in_sample_refit"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "clstm": {
       "meta": "ts_model",
       "tags": [
         "non_lagged"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "bernb": {
       "meta": "sklearn_class",
       "presets": ["fast_train"],
       "tags": [
-        "bayesian",
-        "non_multi"
+        "bayesian", "non_multi"
       ]
     },
     "catboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting"
+        "boosting", "non-default"
       ]
     },
     "catboostreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting",
-        "non_multi"
+        "boosting", "non_multi", "non-default"
       ]
     },
     "cntvect": {
       "meta": "text_classification_sklearn",
       "tags": [
-        "non-default",
-        "text"
+        "non-default", "text"
       ]
     },
     "dt": {
@@ -275,34 +275,27 @@
       "meta": "custom_class",
       "presets": ["fast_train"],
       "tags": [
-        "discriminant",
-        "linear",
-        "correct_params"
+        "discriminant", "linear", "correct_params", "non-default"
       ]
     },
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting",
-        "tree"
+        "boosting", "tree"
       ]
     },
     "lgbmreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting",
-        "tree",
-        "non_multi"
+        "boosting", "tree", "non_multi"
       ]
     },
     "linear": {
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "simple",
-        "linear",
-        "interpretable"
+        "simple", "linear", "interpretable"
       ]
     },
     "logit": {
@@ -366,7 +359,8 @@
         "non_linear",
         "interpretable",
         "correct_params"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "sgdr": {
       "meta": "sklearn_regr",
@@ -383,7 +377,8 @@
         "interpretable",
         "non_lagged",
         "in_sample_refit"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "glm": {
       "meta": "ts_model",
@@ -393,7 +388,8 @@
         "interpretable",
         "non_lagged",
         "correct_params"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "ets": {
       "meta": "ts_model",
@@ -402,7 +398,8 @@
         "simple",
         "interpretable",
         "non_lagged"
-      ]
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
     },
     "svc": {
       "meta": "custom_class",
@@ -434,32 +431,27 @@
     "word2vec": {
       "meta": "text_classification_gensim",
       "tags": [
-        "non-default",
-        "text"
+        "non-default", "text"
       ]
     },
     "xgboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting",
-        "tree"
+        "boosting", "tree", "non-default"
       ]
     },
     "xgbreg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
-        "boosting",
-        "tree",
-        "non_multi"
+        "boosting", "tree", "non_multi", "non-default"
       ]
     },
     "cnn": {
       "meta": "custom_class",
       "tags": [
-        "deep",
-        "non-default"
+        "deep", "non-default"
       ],
       "input_type": "[DataTypesEnum.image]",
       "output_type": "[DataTypesEnum.table]"

@@ -56,7 +56,7 @@ class TunerMetricByTask:
             else:
                 # Metric for multiclass classification
                 loss_function = roc_auc
-                loss_params = {'multi_class': 'ovr'}
+                loss_params = {'multi_class': 'ovr', 'average': 'macro'}
         else:
             raise NotImplementedError(f'Metric for "{self.task_type}" is not supported')
         return loss_function, loss_params

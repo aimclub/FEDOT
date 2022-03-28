@@ -54,7 +54,7 @@ class MultiOperationsHPAnalyze:
         Default: Sobol method with Saltelli sample algorithm
         :return: Main and total Sobol indices for every parameter per node.
         """
-        if not self._pipeline.fitted_on_data:
+        if not self._pipeline.is_fitted:
             self._pipeline.fit(self._train_data)
 
         # create problem

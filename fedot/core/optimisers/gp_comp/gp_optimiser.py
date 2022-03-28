@@ -1,10 +1,11 @@
 import math
 from copy import deepcopy
-from dataclasses import dataclass
 from functools import partial
+from itertools import zip_longest
 from typing import (Any, Callable, List, Optional, Tuple, Union)
 
 import numpy as np
+from deap.tools import ParetoFront
 from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
@@ -105,7 +106,10 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
-        self.archive = self.parameters.archive_type if self.parameters.archive_type else SimpleArchive()
+        if isinstance(self.parameters.archive_type, ParetoFront):
+            self.archive = self.parameters.archive_type
+        else:
+            self.archive = SimpleArchive()
 
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
@@ -123,6 +127,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.population = None
         self.initial_graph = initial_graph
+        self.prev_best = None
 
     def _create_randomized_pop_from_initial_graph(self, initial_graphs: List[OptGraph]) -> List[Individual]:
         """
@@ -139,7 +144,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             n_iter -= 1
             new_ind = mutation(types=self.parameters.mutation_types,
                                params=self.graph_generation_params,
-                               ind=Individual(deepcopy(initial_graph)),
+                               ind=Individual(initial_graph),
                                requirements=initial_req,
                                max_depth=self.max_depth, log=self.log,
                                add_to_history=False)
@@ -178,7 +183,9 @@ class EvoGraphOptimiser(GraphOptimiser):
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc="Generations", unit='gen', initial=1) if show_progress else None
 
-            self.population = self._evaluate_individuals(self.population, objective_function, timer=t)
+            self.population = self._evaluate_individuals(self.population, objective_function,
+                                                         timer=t,
+                                                         n_jobs=self.requirements.n_jobs)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -222,11 +229,12 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = []
 
-                for parent_num in range(0, len(selected_individuals), 2):
-                    new_population += self.reproduce(selected_individuals[parent_num],
-                                                     selected_individuals[parent_num + 1])
+                for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
+                    new_population += self.reproduce(ind_1, ind_2)
 
-                new_population = self._evaluate_individuals(new_population, objective_function, timer=t)
+                new_population = self._evaluate_individuals(new_population, objective_function,
+                                                            timer=t,
+                                                            n_jobs=self.requirements.n_jobs)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -351,6 +359,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                                    max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
         for ind in new_inds:
             ind.fitness = None
+
         return new_inds
 
     def _make_population(self, pop_size: int) -> List[Any]:
@@ -378,16 +387,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
 
-    def default_on_next_iteration_callback(self, individuals, archive):
-        try:
-            self.history.add_to_history(individuals)
-            self.history.save_current_results()
-            archive = deepcopy(archive)
-            if archive is not None:
-                self.history.add_to_archive_history(archive.items)
-        except Exception as ex:
-            self.log.warn(f'Callback was not successful because of {ex}')
-
     def result_individual(self) -> Union[Any, List[Any]]:
         if not self.parameters.multi_objective:
             best = self.best_individual
@@ -395,11 +394,13 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.archive.items
         return best
 
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
+    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=1):
         evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
-                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
+                                                     is_multi_objective=self.parameters.multi_objective,
+                                                     n_jobs=n_jobs,
+                                                     timer=timer)
         individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
         return individuals_set
 

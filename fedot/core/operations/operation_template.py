@@ -11,7 +11,7 @@ from fedot.core.pipelines.node import Node
 class OperationTemplateAbstract(ABC):
     """
     Base class used for create different types of operation ("atomized_operation"
-    or others like ("knn", "xgboost")).
+    or others like ("knn", "rf")).
     Atomized_operation is pipeline which can be used like general operation.
     """
 
@@ -125,6 +125,11 @@ class OperationTemplate(OperationTemplateAbstract):
         self.fitted_operation = node.fitted_operation
 
     def convert_to_dict(self) -> dict:
+        # Convert compound path into separate files and directories
+        if self.fitted_operation_path is not None and os.sep in self.fitted_operation_path:
+            fitted_path = os.path.split(self.fitted_operation_path)
+        else:
+            fitted_path = self.fitted_operation_path
 
         operation_object = {
             "operation_id": self.operation_id,
@@ -133,7 +138,7 @@ class OperationTemplate(OperationTemplateAbstract):
             "custom_params": self.custom_params,
             "params": self.params,
             "nodes_from": self.nodes_from,
-            "fitted_operation_path": self.fitted_operation_path,
+            "fitted_operation_path": fitted_path,
             "rating": self.rating,
         }
 
@@ -179,7 +184,14 @@ class OperationTemplate(OperationTemplateAbstract):
             self.params['dtype'] = np.dtype(self.params['dtype'])
         self.nodes_from = operation_object['nodes_from']
         if 'fitted_operation_path' in operation_object:
-            self.fitted_operation_path = operation_object['fitted_operation_path']
+            fitted_operation_path = operation_object['fitted_operation_path']
+            if isinstance(fitted_operation_path, str):
+                self.fitted_operation_path = fitted_operation_path
+            elif isinstance(fitted_operation_path, list):
+                # Path were set as folders and files in tuple or list
+                self.fitted_operation_path = os.path.join(fitted_operation_path[0],
+                                                          fitted_operation_path[1])
+
         if 'custom_params' in operation_object:
             self.custom_params = operation_object['custom_params']
         if 'operation_name' in operation_object:

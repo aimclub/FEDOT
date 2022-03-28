@@ -1,11 +1,11 @@
 import math
-from random import choice, randint
+from random import choice
 from typing import Any, List, TYPE_CHECKING
 
 from deap import tools
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -48,16 +48,29 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
         chosen = []
         remaining_individuals = individuals
         individuals_pool_size = len(individuals)
-        for _ in range(pop_size):
+        n_iter = 0
+        while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
             individual = selection(types, remaining_individuals, pop_size=1, params=graph_params)[0]
-            chosen.append(individual)
-            if pop_size <= individuals_pool_size:
-                remaining_individuals.remove(individual)
+            if individual.uid not in (c.uid for c in chosen):
+                chosen.append(individual)
+                if pop_size <= individuals_pool_size:
+                    remaining_individuals.remove(individual)
+            n_iter += 1
     return chosen
 
 
 def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
-    return [individuals[randint(0, len(individuals) - 1)] for _ in range(pop_size)]
+    chosen = []
+    n_iter = 0
+    while len(chosen) < pop_size and n_iter < pop_size * 10:
+        if not individuals:
+            return []
+        if len(individuals) <= 1:
+            return [individuals[0]] * pop_size
+        individual = choice(individuals)
+        if individual.uid not in (c.uid for c in chosen):
+            chosen.append(individual)
+    return chosen
 
 
 def tournament_selection(individuals: List[Any], pop_size: int, fraction: float = 0.1) -> List[Any]:
@@ -65,10 +78,15 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
     min_group_size = 2 if len(individuals) > 1 else 1
     group_size = max(group_size, min_group_size)
     chosen = []
-    for _ in range(pop_size):
+    n_iter = 0
+
+    while len(chosen) < pop_size and n_iter < pop_size * 10:
         group = random_selection(individuals, group_size)
         best = min(group, key=lambda ind: ind.fitness)
-        chosen.append(best)
+        if best.uid not in (c.uid for c in chosen):
+            chosen.append(best)
+        n_iter += 1
+
     return chosen
 
 

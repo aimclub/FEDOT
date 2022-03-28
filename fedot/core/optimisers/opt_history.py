@@ -1,12 +1,10 @@
 import csv
-import datetime
 import itertools
 import json
 import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
@@ -26,7 +24,7 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List['Individual']
+    parent_individuals: List['Individual']
     uid: str = None
 
     def __post_init__(self):
@@ -43,14 +41,15 @@ class OptHistory:
         self.metrics = metrics
         self.individuals: List[List['Individual']] = []
         self.archive_history: List[List['Individual']] = []
-        self.save_folder: str = save_folder if save_folder \
-            else f'composing_history_{datetime.datetime.now().timestamp()}'
+        self.save_folder: Optional[str] = save_folder
 
     def add_to_history(self, individuals: List['Individual']):
-        self.individuals.append([deepcopy(ind) for ind in individuals])
+        new_inds = deepcopy(individuals)
+        self.individuals.append(new_inds)
 
     def add_to_archive_history(self, individuals: List['Individual']):
-        self.archive_history.append([ind for ind in individuals])
+        new_inds = deepcopy(individuals)
+        self.archive_history.append(new_inds)
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()
@@ -93,20 +92,21 @@ class OptHistory:
     def save_current_results(self, path: Optional[str] = None):
         if not path:
             path = self._get_save_path()
-        try:
-            last_gen_id = len(self.individuals) - 1
-            last_gen = self.individuals[last_gen_id]
-            for ind_id, individual in enumerate(last_gen):
-                # TODO support multi-objective case
-                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.uid))
-                additional_info = \
-                    {'fitness_name': self.short_metrics_names[0],
-                     'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
-                PipelineAdapter().restore_as_template(
-                    individual.graph, individual.computation_time
-                ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
-        except Exception as ex:
-            print(ex)
+        if path is not None:
+            try:
+                last_gen_id = len(self.individuals) - 1
+                last_gen = self.individuals[last_gen_id]
+                for ind_id, individual in enumerate(last_gen):
+                    # TODO support multi-objective case
+                    ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
+                    additional_info = \
+                        {'fitness_name': self.short_metrics_names[0],
+                         'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
+                    PipelineAdapter().restore_as_template(
+                        individual.graph, individual.computation_time
+                    ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
+            except Exception as ex:
+                print(ex)
 
     def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
         if json_file_path is None:
@@ -123,10 +123,11 @@ class OptHistory:
                 return json.load(json_fp, cls=Serializer)
 
     def clean_results(self, path: Optional[str] = None):
-        if not path:
+        if not path and self.save_folder is not None:
             path = os.path.join(default_fedot_data_dir(), self.save_folder)
-        shutil.rmtree(path, ignore_errors=True)
-        os.mkdir(path)
+        if path is not None:
+            shutil.rmtree(path, ignore_errors=True)
+            os.mkdir(path)
 
     @property
     def short_metrics_names(self):
@@ -193,11 +194,13 @@ class OptHistory:
         return type(self.individuals[0][0].fitness) is MultiObjFitness
 
     def _get_save_path(self):
-        if os.path.sep in self.save_folder:
-            # Defined path is full - there is no need to use default dir
-            # Create folder if it's not exists
-            if os.path.isdir(self.save_folder) is False:
-                os.makedirs(self.save_folder)
-            return self.save_folder
-        else:
-            return os.path.join(default_fedot_data_dir(), self.save_folder)
+        if self.save_folder is not None:
+            if os.path.sep in self.save_folder:
+                # Defined path is full - there is no need to use default dir
+                # Create folder if it's not exists
+                if os.path.isdir(self.save_folder) is False:
+                    os.makedirs(self.save_folder)
+                return self.save_folder
+            else:
+                return os.path.join(default_fedot_data_dir(), self.save_folder)
+        return None

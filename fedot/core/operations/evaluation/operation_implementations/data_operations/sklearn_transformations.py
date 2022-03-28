@@ -1,8 +1,9 @@
+import random
 from typing import Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.decomposition import KernelPCA, PCA
+from sklearn.decomposition import KernelPCA, PCA, FastICA
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler, PolynomialFeatures, StandardScaler
 
@@ -130,6 +131,21 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
         self.params = params
 
 
+class FastICAImplementation(ComponentAnalysisImplementation):
+    """ Class for applying FastICA from sklearn
+
+    :param params: optional, dictionary with the hyperparameters
+    """
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
+        if not params:
+            # Default parameters
+            self.pca = FastICA()
+        else:
+            self.pca = FastICA(**params)
+        self.params = params
+
+
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
     """ Class for application of PolynomialFeatures operation on data,
     where only not encoded features (were not converted from categorical using
@@ -140,6 +156,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
+        self.th_columns = 10
         if not params:
             # Default parameters
             self.operation = PolynomialFeatures(include_bias=False)
@@ -150,6 +167,34 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             self.operation = PolynomialFeatures(include_bias=False,
                                                 **poly_params)
         self.params = params
+        self.columns_to_take = None
+
+    def fit(self, input_data):
+        """ Method for fit Poly features operation """
+        # Check the number of columns in source dataset
+        n_rows, n_cols = input_data.features.shape
+        if n_cols > self.th_columns:
+            # Randomly choose subsample of features columns - 10 features
+            column_indices = np.arange(n_cols)
+            self.columns_to_take = random.sample(list(column_indices), self.th_columns)
+            input_data = input_data.subset_features(self.columns_to_take)
+
+        return super().fit(input_data)
+
+    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+        """ Firstly perform filtration of columns """
+        clipped_input_data = input_data
+        if self.columns_to_take is not None:
+            clipped_input_data = input_data.subset_features(self.columns_to_take)
+        output_data = super().transform(clipped_input_data, is_fit_pipeline_stage)
+
+        if self.columns_to_take is not None:
+            # Get generated features from poly function
+            generated_features = output_data.predict[:, self.th_columns:]
+            # Concat source features with generated one
+            all_features = np.hstack((input_data.features, generated_features))
+            output_data.predict = all_features
+        return output_data
 
     def get_params(self):
         return self.operation.get_params()

@@ -9,7 +9,7 @@ def run_classification_example(timeout: float = None):
     problem = 'classification'
 
     baseline_model = Fedot(problem=problem, timeout=timeout)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='xgboost')
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())

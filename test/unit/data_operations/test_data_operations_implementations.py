@@ -1,4 +1,4 @@
-from itertools import product
+import os
 
 import numpy as np
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
@@ -107,7 +107,7 @@ def get_time_series():
     return train_input, predict_input, test_data
 
 
-def get_multivariate_time_series():
+def get_multivariate_time_series(mutli_ts=False):
     """ Generate several time series in one InputData block """
     ts_1 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).reshape((-1, 1))
     ts_2 = np.array([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]).reshape((-1, 1))
@@ -115,14 +115,20 @@ def get_multivariate_time_series():
 
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=2))
+    if mutli_ts:
+        data_type = DataTypesEnum.multi_ts
+        target = several_ts
+    else:
+        data_type = DataTypesEnum.ts
+        target = np.ravel(ts_1)
     train_input = InputData(idx=np.arange(0, len(several_ts)),
-                            features=several_ts, target=np.ravel(ts_1),
-                            task=task, data_type=DataTypesEnum.ts)
+                            features=several_ts, target=target,
+                            task=task, data_type=data_type)
     return train_input
 
 
 def get_nan_inf_data():
-    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT]*4})
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT] * 4})
     train_input = InputData(idx=[0, 1, 2, 3],
                             features=np.array([[1, 2, 3, 4],
                                                [2, np.nan, 4, 5],
@@ -485,3 +491,62 @@ def test_lagged_with_multivariate_time_series():
     lagged_predict = transformed_for_predict.predict
     assert lagged_predict.shape == correct_predict_output.shape
     assert np.all(np.isclose(lagged_predict, correct_predict_output))
+
+
+def test_lagged_with_multi_ts_type():
+    """
+        Checking the correct processing of time series with multi_ts data type in the lagged operation
+    """
+    correct_fit_output = np.array([[0., 1.],
+                                   [1., 2.],
+                                   [2., 3.],
+                                   [3., 4.],
+                                   [4., 5.],
+                                   [5., 6.],
+                                   [6., 7.],
+                                   [10., 11.],
+                                   [11., 12.],
+                                   [12., 13.],
+                                   [13., 14.],
+                                   [14., 15.],
+                                   [15., 16.],
+                                   [16., 17.]])
+    correct_predict_output = np.array([[8, 9]])
+    input_data = get_multivariate_time_series(mutli_ts=True)
+    lagged = LaggedTransformationImplementation(**{'window_size': 2})
+    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
+    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+
+    # Check correctness on fit stage
+    lagged_features = transformed_for_fit.predict
+    assert lagged_features.shape == correct_fit_output.shape
+    assert np.all(np.isclose(lagged_features, correct_fit_output))
+
+    # Check correctness on predict stage
+    lagged_predict = transformed_for_predict.predict
+    assert lagged_predict.shape == correct_predict_output.shape
+    assert np.all(np.isclose(lagged_predict, correct_predict_output))
+
+
+def test_poly_features_on_big_datasets():
+    """
+    Use a table with a large number of features to run a poly features operation.
+    For a large number of features the operation should not greatly increase the
+    number of columns.
+    """
+    test_file_path = str(os.path.dirname(__file__))
+    file = os.path.join('../../data', 'advanced_classification.csv')
+    train_input = InputData.from_csv(os.path.join(test_file_path, file),
+                                     task=Task(TaskTypesEnum.classification))
+
+    # Take only small number of rows from dataset
+    train_input.features = train_input.features[5: 20, :]
+    train_input.idx = np.arange(len(train_input.features))
+    train_input.target = train_input.target[5: 20].reshape((-1, 1))
+
+    poly_node = Pipeline(PrimaryNode('poly_features'))
+    poly_node.fit(train_input)
+    transformed_features = poly_node.predict(train_input)
+
+    n_rows, n_cols = transformed_features.predict.shape
+    assert n_cols == 85
