@@ -1,12 +1,12 @@
 import datetime
 import gc
 import traceback
-
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import numpy as np
-
 from deap import tools
+from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
+
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import update_builder
@@ -35,7 +35,6 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
-from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 
 class ApiComposer:
@@ -121,14 +120,13 @@ class ApiComposer:
         :param optimizer_external_parameters: eternal parameters for optimizer
         """
 
-        builder = (
-            ComposerBuilder(task=task)
-                .with_requirements(composer_requirements)
-                .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters)
-                .with_metrics(metric_function)
-                .with_logger(logger)
-                .with_cache(self.cache.db_path, use_existing=True)
-        )
+        # TODO: make it cleaner after jetbrains will solve https://youtrack.jetbrains.com/issue/PY-28496 in the future
+        builder = ComposerBuilder(task=task) \
+            .with_requirements(composer_requirements) \
+            .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters) \
+            .with_metrics(metric_function) \
+            .with_logger(logger) \
+            .with_cache(self.cache.db_path, use_existing=True)
 
         if initial_assumption is None:
             initial_pipelines = AssumptionsBuilder.get(task, data).build()
@@ -318,7 +316,7 @@ class ApiComposer:
         gc.collect()
         return pipeline_gp_composed, best_candidates, history
 
-    def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):
+    def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):  # TODO: metric_name unused?
         """ Function allow to obtain metric for tuner by its name
 
         :param metric_name: name of metric

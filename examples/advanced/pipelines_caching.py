@@ -33,7 +33,8 @@ def dummy_time_check():
     }
     for task_type in ['ts_forecasting']:  # , 'regression', 'classification']:
         for params, feature in [(test1,
-                                 'basic')]:  # , (test2, 'with_tuning'), (test3, 'with_cv_folds'), (test4, 'with_tuning_and_cv_folds')]:
+                                 'basic')]:
+            # , (test2, 'with_tuning'), (test3, 'with_cv_folds'), (test4, 'with_tuning_and_cv_folds')]:
             preset = 'best_quality'
             fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': -1,
                            'timeout': params['timeout'],
