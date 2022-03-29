@@ -177,9 +177,11 @@ def test_cache_actuality_after_model_change(data_setup):
     nodes_with_actual_cache = [node for node in pipeline.nodes if node not in nodes_with_non_actual_cache]
 
     # non-affected nodes are actual
-    assert all([cache.get(node) is not None for node in nodes_with_actual_cache])
+    cache.try_load_nodes(nodes_with_actual_cache)
+    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
     # affected nodes and their childs has no any actual cache
-    assert all([cache.get(node) is None for node in nodes_with_non_actual_cache])
+    cache.try_load_nodes(nodes_with_non_actual_cache)
+    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
 
 def test_cache_actuality_after_subtree_change_to_identical(data_setup):
@@ -199,9 +201,11 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     nodes_with_actual_cache = [node for node in pipeline.nodes if node not in [pipeline.root_node]]
 
     # non-affected nodes of initial pipeline and fitted nodes of new subtree are actual
-    assert all([cache.get(node) is not None for node in nodes_with_actual_cache])
+    cache.try_load_nodes(nodes_with_actual_cache)
+    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
     # affected root node has no any actual cache
-    assert cache.get(pipeline.root_node) is None
+    cache.try_load_nodes(pipeline.root_node)
+    assert pipeline.root_node.fitted_operation is None
 
 
 def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
@@ -222,9 +226,11 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     nodes_with_actual_cache = [node for node in pipeline.nodes if node not in nodes_with_non_actual_cache]
 
     # non-affected nodes of initial pipeline and fitted nodes of new subtree are actual
-    assert all([cache.get(node) for node in nodes_with_actual_cache])
+    cache.try_load_nodes(nodes_with_actual_cache)
+    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
     # affected root nodes and their childs has no any actual cache
-    assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
+    cache.try_load_nodes(nodes_with_non_actual_cache)
+    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
 
 def test_cache_historical_state_using_with_cv(data_setup):
@@ -243,19 +249,22 @@ def test_cache_historical_state_using_with_cv(data_setup):
     pipeline.update_node(old_node=old_node,
                          new_node=new_node)
     # cache is not actual
-    assert not cache.get(pipeline.root_node)
+    cache.try_load_nodes(pipeline.root_node)
+    assert pipeline.root_node.fitted_operation is None
     # fit modified pipeline
     pipeline.fit(input_data=train)
     cache.save_pipeline(pipeline, fold_id=cv_fold)
     # cache is actual now
-    assert cache.get(pipeline.root_node, fold_id=cv_fold)
+    cache.try_load_nodes(pipeline.root_node, fold_id=cv_fold)
+    assert pipeline.root_node.fitted_operation is not None
 
     # change node back
     pipeline.update_node(old_node=pipeline.root_node.nodes_from[0],
                          new_node=old_node)
     # cache is actual without new fitting,
     # because the cached model was saved after first fit
-    assert cache.get(pipeline.root_node, fold_id=cv_fold)
+    cache.try_load_nodes(pipeline.root_node, fold_id=cv_fold)
+    assert pipeline.root_node.fitted_operation is not None
 
 
 def test_multi_pipeline_caching_with_cache(data_setup):
@@ -275,9 +284,11 @@ def test_multi_pipeline_caching_with_cache(data_setup):
 
     # check that using of other_pipeline make identical of the main_pipeline fitted,
     # despite the main_pipeline.fit() was not called
-    assert all([cache.get(node) for node in nodes_with_actual_cache])
+    cache.try_load_nodes(nodes_with_actual_cache)
+    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
     # the non-identical parts are still not fitted
-    assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
+    cache.try_load_nodes(nodes_with_non_actual_cache)
+    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
     # check the same case with another pipelines
     cache = OperationsCache()
@@ -295,7 +306,9 @@ def test_multi_pipeline_caching_with_cache(data_setup):
     nodes_with_non_actual_cache = [main_pipeline.root_node, main_pipeline.root_node.nodes_from[1]]
     nodes_with_actual_cache = [child for child in main_pipeline.root_node.nodes_from[0].nodes_from]
 
-    assert not any([cache.get(node) for node in nodes_with_non_actual_cache])
-    assert all([cache.get(node) for node in nodes_with_actual_cache])
+    cache.try_load_nodes(nodes_with_non_actual_cache)
+    assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
+    cache.try_load_nodes(nodes_with_actual_cache)
+    assert all(node.fitted_operation is not None for node in nodes_with_actual_cache)
 
 # TODO Add changed data case for cache
