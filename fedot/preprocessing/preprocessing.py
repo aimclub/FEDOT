@@ -3,6 +3,7 @@ from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts
 from fedot.core.data.data_preprocessing import (
@@ -27,7 +28,6 @@ from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
-from sklearn.preprocessing import LabelEncoder
 
 ALLOWED_NAN_PERCENT = 0.9
 
