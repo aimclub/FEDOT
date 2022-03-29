@@ -51,22 +51,17 @@ def test_compose_fedot_model_with_tuning():
 
 
 def test_output_classification_converting_correct():
-    """ Check the correctness of correct prediction method for binary classification task """
+    """ Check the correctness of prediction for binary classification task """
 
-    task = Task(task_type=TaskTypesEnum.classification)
-    real = InputData(idx=[0, 1, 2], features=np.array([[0], [1], [2]]),
-                     target=np.array([[0], [1], [1]]),
-                     task=task, data_type=DataTypesEnum.table)
-    prediction = OutputData(idx=[0, 1, 2], features=np.array([[0], [1], [2]]),
-                            predict=np.array([[0.5], [0.7], [0.7]]),
-                            target=np.array([[0], [1], [1]]),
-                            task=task, data_type=DataTypesEnum.table)
+    task_type = 'classification'
 
-    data_processor = ApiDataProcessor(task=task)
-    # Perform correction inplace
-    data_processor.correct_predictions(metric_name='f1', real=real, prediction=prediction)
+    train_data, test_data, _ = get_dataset(task_type=task_type)
 
-    assert int(prediction.predict[1]) == 1
+    model = Fedot(problem=task_type, timeout=0.5)
+    model.fit(train_data)
+    model.predict(test_data)
+    metrics = model.get_metrics(metric_names=['roc_auc', 'f1'])
+    assert isinstance(metrics['f1'], float)
 
 
 def test_predefined_initial_assumption():
