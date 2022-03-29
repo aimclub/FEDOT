@@ -17,6 +17,7 @@ from fedot.rl.pipeline_env import PipelineEnv
 class PolicyGradientNetwork(nn.Module):
     def __init__(self, n_state, n_action, n_hidden=128):
         super(PolicyGradientNetwork, self).__init__()
+        self.path_to_save = join(default_fedot_data_dir(), 'rl', 'checkpoint')
         self.net = nn.Sequential(
             nn.Linear(n_state, n_hidden),
             nn.ReLU(),
@@ -38,6 +39,7 @@ def calc_qvals(rewards, gamma=0.99):
 
     return list(reversed(res))
 
+
 if __name__ == '__main__':
     file_path_train = 'cases/data/scoring/scoring_train.csv'
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
@@ -51,46 +53,53 @@ if __name__ == '__main__':
     out_dim = env.action_space.n
 
     gamma = 0.99
+    learning_rate = 0.01
+    entropy_beta = 0.01
+    batch_size = 8
+    reward_steps = 10
 
     pnet = PolicyGradientNetwork(in_dim, out_dim)
     print(pnet)
 
     agent = ptan.agent.PolicyAgent(pnet, preprocessor=ptan.agent.float32_preprocessor, apply_softmax=True)
 
-    # exp_source = ptan.experience.ExperienceSource(env, agent, steps_count=4, steps_delta=4)
-    exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=gamma)
+    exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=gamma, steps_count=reward_steps)
 
-    optimizer = optim.Adam(pnet.parameters(), lr=0.01)
+    optimizer = optim.Adam(pnet.parameters(), lr=learning_rate)
 
     # Tensorboard
     path_to_tbX = join(default_fedot_data_dir(), 'rl', 'tensorboard')
-
     if not exists(path_to_tbX):
         makedirs(path_to_tbX)
+
+    # Save model
+    path_to_checkpoint = join(default_fedot_data_dir(), 'rl', 'checkpoint')
+    if not exists(path_to_checkpoint):
+        makedirs(path_to_checkpoint)
 
     tb_writer = SummaryWriter(logdir=path_to_tbX)
 
     total_rewards = []
     step_idx = 0
     done_episodes = 0
+    reward_sum = 0.0
 
-    batch_episode = 0
-    batch_states, batch_actions, batch_qvals = [], [], []
-    cur_rewards = []
-    pipeline_length = []
-    correct_pipeline = 0
-    reward_window = 25
+    best_mean_rewards = 0
+    # last_reward = 0
+    # same_reward = 0
+
+    batch_states, batch_actions, batch_scales = [], [], []
 
     for step_idx, exp in enumerate(exp_source):
+        reward_sum += exp.reward
+        baseline = reward_sum / (step_idx + 1)
+        tb_writer.add_scalar('baseline', baseline, step_idx)
+
         batch_states.append(exp.state)
         batch_actions.append(int(exp.action))
-        cur_rewards.append(exp.reward)
+        batch_scales.append(exp.reward - baseline)
 
-        if exp.last_state is None:
-            batch_qvals.extend(calc_qvals(cur_rewards, gamma))
-            cur_rewards.clear()
-            batch_episode += 1
-
+        # handle new rewards
         new_rewards = exp_source.pop_total_rewards()
 
         if new_rewards:
@@ -105,29 +114,72 @@ if __name__ == '__main__':
             tb_writer.add_scalar('reward_100', mean_rewards, step_idx)
             tb_writer.add_scalar('episodes', done_episodes, step_idx)
 
+            # if mean_rewards > best_mean_rewards:
+            #     best_mean_rewards = mean_rewards
+            #     torch.save(pnet.state_dict(), path_to_checkpoint)
+
+            # if numpy.isclose(reward, last_reward, rtol=0.001):
+            #     same_reward += 1
+            # else:
+            #     same_reward = 0
+            #
+            # if same_reward == 10:
+            #     print('Early stopped in %d steps and %d episodes.' % (step_idx, done_episodes))
+            #     break
+
             if mean_rewards > 90:
                 print('Solved in %d steps and %d episodes!' % (step_idx, done_episodes))
                 break
 
-        if batch_episode < 4:  # EPISODES_TO_TRAIN
+        if len(batch_states) < batch_size:
             continue
 
-        optimizer.zero_grad()
         states_v = torch.FloatTensor(batch_states)
         batch_actions_t = torch.LongTensor(batch_actions)
-        batch_qvals_v = torch.FloatTensor(batch_qvals)
+        batch_scale_v = torch.FloatTensor(batch_scales)
+
+        optimizer.zero_grad()
 
         logits_v = pnet(states_v)
         log_prob_v = F.log_softmax(logits_v, dim=1)
-        log_prob_actions_v = batch_qvals_v * log_prob_v[range(len(batch_states)), batch_actions_t]
-        loss_v = -log_prob_actions_v.mean()
+        log_prob_actions_v = batch_scale_v * log_prob_v[range(batch_size), batch_actions_t]
+        loss_policy_v = -log_prob_actions_v.mean()
+
+        prob_v = F.softmax(logits_v, dim=1)
+        entropy_v = -(prob_v * log_prob_v).sum(dim=1).mean()
+        entropy_loss_v = -entropy_beta * entropy_v
+        loss_v = loss_policy_v + entropy_loss_v
 
         loss_v.backward()
         optimizer.step()
 
-        batch_episode = 0
+        # calc KL-div
+        new_logits_v = pnet(states_v)
+        new_prob_v = F.softmax(new_logits_v, dim=1)
+        kl_div_v = -((new_prob_v / prob_v).log() * prob_v).sum(dim=1).mean()
+        tb_writer.add_scalar('kl', kl_div_v.item(), step_idx)
+
+        grad_max = 0.0
+        grad_means = 0.0
+        grad_count = 0
+
+        for p in pnet.parameters():
+            grad_max = max(grad_max, p.grad.abs().max().item())
+            grad_means += (p.grad ** 2).mean().sqrt().item()
+            grad_count += 1
+
+        tb_writer.add_scalar("entropy", entropy_v.item(), step_idx)
+        tb_writer.add_scalar("batch_scales", np.mean(batch_scales), step_idx)
+        tb_writer.add_scalar("loss_entropy", entropy_loss_v.item(), step_idx)
+        tb_writer.add_scalar("loss_policy", loss_policy_v.item(), step_idx)
+        tb_writer.add_scalar("loss_total", loss_v.item(), step_idx)
+        tb_writer.add_scalar("grad_l2", grad_means / grad_count, step_idx)
+        tb_writer.add_scalar("grad_max", grad_max, step_idx)
+
         batch_states.clear()
         batch_actions.clear()
-        batch_qvals.clear()
+        batch_scales.clear()
+
+        # last_reward = reward
 
     tb_writer.close()

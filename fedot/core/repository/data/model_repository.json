@@ -199,7 +199,8 @@
       "meta": "sklearn_class",
       "presets": ["*tree"],
       "tags": [
-        "boosting", "non-default"
+        "boosting",
+        "non-default"
       ]
     },
     "catboostreg": {
@@ -279,7 +280,9 @@
     "lgbm": {
       "meta": "sklearn_class",
       "tags": [
-        "boosting", "tree", "non-default"
+        "boosting",
+        "tree",
+        "non-default"
       ]
     },
     "lgbmreg": {
@@ -293,7 +296,9 @@
       "meta": "sklearn_regr",
       "presets": ["fast_train", "ts"],
       "tags": [
-        "simple", "linear", "interpretable", "reinforce"
+        "simple",
+        "linear",
+        "interpretable"
       ]
     },
     "logit": {
