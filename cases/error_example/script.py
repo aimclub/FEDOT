@@ -89,7 +89,7 @@ timeout = 10
 start = time.time()
 fedot = Fedot(problem='ts_forecasting',
               timeout=timeout, seed=144,
-              n_jobs=1,
+              n_jobs=10,
               composer_params=composer_params,
               task_params=TsForecastingParams(forecast_length=forecast_length))
 pipeline = fedot.fit(features=historical_data, target=train_array)
