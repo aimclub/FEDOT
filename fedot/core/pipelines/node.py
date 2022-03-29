@@ -8,6 +8,7 @@ from fedot.core.operations.operation import Operation
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.composer.composer_custom_params import CustomParameters
 
 
 class Node(GraphNode):
@@ -26,6 +27,9 @@ class Node(GraphNode):
                  log: Log = None, **kwargs):
 
         passed_content = kwargs.get('content')
+        global_parameters = CustomParameters()
+        if global_parameters.custom_params is not None:
+            passed_content['params'] = global_parameters.custom_params
         if passed_content:
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)

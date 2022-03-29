@@ -18,6 +18,7 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, ClassificationMetricsEnum, \
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.composer.composer_custom_params import CustomParameters
 
 
 class ComposerBuilder:
@@ -62,6 +63,10 @@ class ComposerBuilder:
         self._composer.cache_path = cache_path
         self._composer.use_existing_cache = use_existing
         return self
+
+    def with_custom_model(self, custom_params):
+        global_parameters = CustomParameters()
+        global_parameters.declare_params(custom_params)
 
     def set_default_composer_params(self):
         """ Method set metrics and composer requirements """
