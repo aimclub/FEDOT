@@ -79,10 +79,9 @@ def get_small_classification_dataset():
     return train_input, predict_input, y_test
 
 
-def get_time_series():
+def get_time_series(len_forecast=5, length=80):
     """ Function returns time series for time series forecasting task """
-    len_forecast = 5
-    synthetic_ts = generate_synthetic_data(length=80)
+    synthetic_ts = generate_synthetic_data(length=length)
 
     train_data = synthetic_ts[:-len_forecast]
     test_data = synthetic_ts[-len_forecast:]

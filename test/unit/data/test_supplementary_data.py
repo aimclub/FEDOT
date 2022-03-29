@@ -1,12 +1,39 @@
+import numpy as np
+import pytest
+
 from fedot.core.data.data import OutputData
-from fedot.core.data.merge import SupplementaryDataMerger
+from fedot.core.data.data_merger import DataMerger
+from fedot.core.data.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.data.test_data_merge import generate_outputs
 from test.unit.tasks.test_regression import get_synthetic_regression_data
+from .test_data_merge import unequal_outputs_table
+
+
+@pytest.fixture()
+def outputs_table_with_different_types():
+    """ Create datasets with different types of columns in predictions """
+    task = Task(TaskTypesEnum.regression)
+    idx = [0, 1, 2]
+    target = [1, 2, 10]
+    data_info_first = SupplementaryData(column_types={'features': ["<class 'str'>", "<class 'float'>"],
+                                                      'target': ["<class 'int'>"]})
+    output_first = OutputData(idx=idx, features=None,
+                              predict=np.array([['a', 1.1], ['b', 2], ['c', 3]], dtype=object),
+                              task=task, target=target, data_type=DataTypesEnum.table,
+                              supplementary_data=data_info_first)
+
+    data_info_second = SupplementaryData(column_types={'features': ["<class 'float'>"],
+                                                       'target': ["<class 'int'>"]})
+    output_second = OutputData(idx=idx, features=None,
+                               predict=np.array([[2.5], [2.1], [9.3]], dtype=float),
+                               task=task, target=target, data_type=DataTypesEnum.table,
+                               supplementary_data=data_info_second)
+
+    return [output_first, output_second]
 
 
 def generate_straight_pipeline():
@@ -18,15 +45,13 @@ def generate_straight_pipeline():
     return pipeline
 
 
-def test_parent_mask_correct():
+def test_parent_mask_correct(unequal_outputs_table):
     """ Test correctness of function for tables mask generation """
     correct_parent_mask = {'input_ids': [0, 1], 'flow_lens': [1, 0]}
 
-    # Generate outputs with 1 column in prediction
-    list_with_outputs, idx_1, idx_2 = generate_outputs()
-
     # Calculate parent mask from outputs
-    p_mask = SupplementaryDataMerger(list_with_outputs).prepare_parent_mask()
+    main_output = DataMerger.find_priority_output(unequal_outputs_table)
+    p_mask = SupplementaryDataMerger(unequal_outputs_table, main_output).prepare_parent_mask()
 
     assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
     assert tuple(p_mask['flow_lens']) == tuple(correct_parent_mask['flow_lens'])
@@ -60,3 +85,43 @@ def test_get_compound_mask_correct():
     mask = output_example.supplementary_data.compound_mask
 
     assert ('01', '01', '10', '10') == tuple(mask)
+
+
+def test_define_parents_with_equal_lengths():
+    """
+    Check the processing of the case when the decompose operation receives
+    data whose flow_lens is not different. In this case, the data that came
+    from the data_operation node is used as the "Data parent".
+
+    Such case is common for time series forecasting pipelines. So we imitate
+    merged output from ARIMA and lagged operations
+    """
+    sd = SupplementaryData(is_main_target=True,
+                           data_flow_length=1,
+                           features_mask={'input_ids': [0, 0, 0, 1, 1, 1],
+                                          'flow_lens': [0, 0, 0, 0, 0, 0]},
+                           previous_operations=['arima', 'lagged'])
+    features_mask = np.array(sd.compound_mask)
+    unique_features_masks = np.unique(features_mask)
+
+    model_parent, data_parent = sd.define_parents(unique_features_masks, task=TaskTypesEnum.ts_forecasting)
+
+    assert model_parent == '00'
+    assert data_parent == '10'
+
+
+def test_define_types_after_merging(outputs_table_with_different_types):
+    """ Check if column types for features table perform correctly """
+    outputs = outputs_table_with_different_types
+    # new_idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
+    merged_data = DataMerger.get(outputs).merge()
+    updated_info = merged_data.supplementary_data
+
+    features_types = updated_info.column_types['features']
+    target_types = updated_info.column_types['target']
+
+    # Target type must stay the same
+    ancestor_target_type = outputs[0].supplementary_data.column_types['target'][0]
+    assert target_types[0] == ancestor_target_type
+    assert len(features_types) == 3
+    assert tuple(features_types) == ("<class 'str'>", "<class 'float'>", "<class 'float'>")
