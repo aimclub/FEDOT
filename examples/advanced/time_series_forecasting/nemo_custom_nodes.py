@@ -3,7 +3,9 @@ import datetime
 import numpy as np
 import os
 import pandas as pd
+from hyperopt import hp
 from matplotlib import pyplot as plt
+from sklearn.metrics import mean_absolute_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
@@ -14,11 +16,14 @@ from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameter
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from examples.advanced.time_series_forecasting.multi_ts_arctic_forecasting import calculate_metrics
+from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 
 def nemo_domain_model(fitted_model: any, idx: np.array, predict_data: np.array, params: dict):
@@ -65,7 +70,7 @@ def get_initial_pipeline():
 
 def get_available_operations():
     """ Function returns available operations for primary and secondary nodes """
-    primary_operations = ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter']
+    primary_operations = ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter', 'custom']
     secondary_operations = ['lagged', 'ridge', 'lasso', 'linear']
     return primary_operations, secondary_operations
 
@@ -76,7 +81,7 @@ def compose_pipeline(pipeline, train_data, task, custom_params):
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations, max_arity=3,
-        max_depth=5, pop_size=10, num_of_generations=20,
+        max_depth=5, pop_size=10, num_of_generations=30,
         crossover_prob=0.8, mutation_prob=0.8,
         timeout=datetime.timedelta(minutes=10))
     mutation_types = [parameter_change_mutation,
@@ -88,11 +93,30 @@ def compose_pipeline(pipeline, train_data, task, custom_params):
     builder = ComposerBuilder(task=task). \
         with_optimiser(parameters=optimiser_parameters). \
         with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_pipelines([pipeline]).with_custom_model(custom_params)
+        with_metrics(metric_function).with_initial_pipelines([pipeline])
     composer = builder.build()
+
+    DefaultOperationParamsRepository.add_model_to_repository({'custom': custom_params})
+
     obtained_pipeline = composer.compose_pipeline(data=train_data)
     obtained_pipeline.show()
     return obtained_pipeline
+
+
+def tune_pipeline(obtained_pipeline, train_data, task):
+    custom_search_space = {'custom': {'norm': (hp.uniform, [-1, 1]),
+                                      'model_predict': (hp.choice, [[nemo_domain_model]])}}
+    pipeline_tuner = PipelineTuner(pipeline=obtained_pipeline,
+                                   task=task,
+                                   iterations=500,
+                                   search_space=SearchSpace(custom_search_space=custom_search_space,
+                                                            replace_default_search_space=True))
+    # Tuning pipeline
+    pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                            loss_function=mean_absolute_error,
+                                            cv_folds=2)
+    pipeline.print_structure()
+    return pipeline
 
 
 def run_hybrid_modeling(forecast_length):
@@ -113,10 +137,17 @@ def run_hybrid_modeling(forecast_length):
     predict_after = np.ravel(np.array(prediction_after.predict))
     rmse_composing, mae_composing = calculate_metrics(np.ravel(predict_input.target), predict_after)
 
+    tuned_pipeline = tune_pipeline(pipeline, train_input, task)
+    tuned_pipeline.fit_from_scratch(train_input)
+    prediction_after_tuning = tuned_pipeline.predict(predict_input)
+    predict_after_tuning = np.ravel(np.array(prediction_after_tuning.predict))
+    rmse_tuning, mae_tuning = calculate_metrics(np.ravel(predict_input.target), predict_after_tuning)
+
     plt.plot(np.ravel(predict_input.idx), np.ravel(predict_input.target), label='test')
     plt.plot(np.ravel(train_input.idx), np.ravel(train_input.target), label='history')
     plt.plot(np.ravel(predict_input.idx), prediction_before, label='prediction')
     plt.plot(np.ravel(predict_input.idx), predict_after, label='prediction_after_composing')
+    plt.plot(np.ravel(predict_input.idx), predict_after_tuning, label='prediction_after_tuning')
     plt.xlabel('Time step')
     plt.ylabel('Sea level')
     plt.legend()
@@ -126,6 +157,8 @@ def run_hybrid_modeling(forecast_length):
     print(f'MAE: {round(mae, 3)}')
     print(f'RMSE after composing: {round(rmse_composing, 3)}')
     print(f'MAE after composing: {round(mae_composing, 3)}')
+    print(f'RMSE after tuning: {round(rmse_tuning, 3)}')
+    print(f'MAE after tuning: {round(mae_tuning, 3)}')
 
 
 if __name__ == '__main__':
