@@ -71,7 +71,7 @@ def correct_pipelines_cnt_check():
             0
         )
 
-    def test_caching(timeout: float = 1., partitions_n=2):
+    def test_caching(timeout: float = 2., partitions_n=2):
         """
         Performs experiment to show how caching pipelines operations helps in fitting FEDOT model
 
@@ -142,7 +142,7 @@ def correct_pipelines_cnt_check():
         plt.grid()
         plt.show()
 
-    test_caching(1, 2)
+    test_caching(2, 2)
 
 
 if __name__ == "__main__":
