@@ -27,8 +27,8 @@ def ts_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData,
     :param log: object for logging
     """
     # TODO add support for multiprocessing
-    if __name__ != '__main__':
-        cache = None
+    # if __name__ != '__main__':  # TODO: should I keep it uncommented or not?
+    #     cache = None
 
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
 
