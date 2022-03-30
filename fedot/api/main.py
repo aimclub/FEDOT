@@ -313,12 +313,15 @@ class Fedot:
                 prediction = deepcopy(self.prediction)
                 if metric_name == "roc_auc":  # for roc-auc we need probabilities
                     prediction.predict = self.predict_proba(self.test_data)
+                else:
+                    prediction.predict = self.predict(self.test_data)
                 real = deepcopy(self.test_data)
 
                 # Work inplace - correct predictions
-                self.data_processor.correct_predictions(metric_name=metric_name,
-                                                        real=real,
+                self.data_processor.correct_predictions(real=real,
                                                         prediction=prediction)
+
+                real.target = np.ravel(real.target)
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))

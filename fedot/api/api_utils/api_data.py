@@ -11,7 +11,6 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import probs_to_labels
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
@@ -87,17 +86,11 @@ class ApiDataProcessor:
 
         return output_prediction
 
-    def correct_predictions(self, metric_name: str,
-                            real: InputData, prediction: OutputData):
+    def correct_predictions(self, real: InputData, prediction: OutputData):
         """ Change shape for models predictions if its necessary. Apply """
         if self.task == TaskTypesEnum.ts_forecasting:
             real.target = real.target[~np.isnan(prediction.predict)]
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
-
-        if metric_name == 'f1':
-            if real.num_classes == 2:
-                prediction.predict = _convert_to_two_classes(prediction.predict)
-            prediction.predict = probs_to_labels(prediction.predict)
 
         if data_type_is_table(prediction):
             # Check dimensions for real and predicted values
@@ -120,12 +113,3 @@ class ApiDataProcessor:
                 rec = recommendations[name]
                 # Apply desired preprocessing function
                 self.recommendations[name](input_data, *rec.values())
-
-
-def _convert_to_two_classes(predict):
-    """ Prepare array with predicted probabilities for correct binarization
-    Example: array [[0.5], [0.7]] will be converted into [[0.5, 0.5], [0.3, 0.7]]
-    """
-    if len(predict.shape) > 1:
-        predict = np.ravel(predict)
-    return np.vstack([1 - predict, predict]).transpose()
