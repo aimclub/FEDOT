@@ -54,19 +54,22 @@ def validate(graph: Graph, rules: List[Callable] = None, task=None):
     :param rules: rules to check
     :param task: task which such a graph is solving
     """
-    if not rules:
-        rules = common_rules
+    tmp_rules = []
+    if rules is None or not rules:
+        tmp_rules.extend(common_rules)
+    else:
+        tmp_rules.extend(rules)
 
     # Add specific rules if needed
     if task:
         if task.task_type is TaskTypesEnum.ts_forecasting:
-            rules.extend(ts_rules)
+            tmp_rules.extend(ts_rules)
         elif task.task_type is TaskTypesEnum.classification:
-            rules.extend(class_rules)
+            tmp_rules.extend(class_rules)
 
     # Check if all rules passes
     try:
-        for rule_func in rules:
+        for rule_func in tmp_rules:
             _rule_check(graph, rule_func)
     except ValueError:
         return False
