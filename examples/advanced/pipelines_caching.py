@@ -46,7 +46,7 @@ def dummy_time_check():
             def check():
                 Fedot(**fedot_input).fit(features=train_data, target='target')
 
-            print(f"{task_type=}, {feature=}, mean_time={mean(repeat(check, repeat=15, number=1))}")
+            print(f"task_type={task_type}, feature={feature}, mean_time={mean(repeat(check, repeat=15, number=1))}")
 
 
 def correct_pipelines_cnt_check():
