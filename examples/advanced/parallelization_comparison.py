@@ -1,14 +1,13 @@
 import operator
 import timeit
-
 from functools import reduce
 
 import pandas as pd
+from matplotlib import cm, colors, pyplot as plt
 
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
-from matplotlib import cm, colors, pyplot as plt
 
 
 def count_pipelines(opt_history: OptHistory):
@@ -46,8 +45,8 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
 
     for _n_jobs in [1, n_jobs]:
+        print(f'n_jobs: {_n_jobs}')
         for partition in partitions:
-            print(f'n_jobs: {_n_jobs}, {partition} rows in dataset')
             train_data_tmp = train_data.iloc[:partition].copy()
             test_data_tmp = test_data.iloc[:partition].copy()
             start_time = timeit.default_timer()
@@ -56,10 +55,10 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
                                verbose_level=-1)
             auto_model.fit(features=train_data_tmp, target='target')
             auto_model.predict_proba(features=test_data_tmp)
+            times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
             c_pipelines = count_pipelines(auto_model.history)
             pipelines_count[_n_jobs].append(c_pipelines)
-            times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
-            print(f'Count of pipelines: {c_pipelines}')
+            print(f'\tDataset length: {partition}, number of pipelines: {c_pipelines}')
 
     plt.title('Comparison parallel mode with a single mode')
     plt.xlabel('rows in train dataset')
