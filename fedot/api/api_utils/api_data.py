@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Union, Dict
+from typing import Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -26,7 +26,7 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task, log: Log = None):
+    def __init__(self, task: Task, log: Optional[Log] = None):
         self.task = task
         self.preprocessor = DataPreprocessor(log)
 

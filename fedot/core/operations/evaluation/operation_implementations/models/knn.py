@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         self.parameters_changed = False
         self.params = params
@@ -69,7 +69,7 @@ class KNeighborsImplementation(ModelImplementation):
 
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         if not params:
             self.model = KNeighborsClassifier()
@@ -106,7 +106,7 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 
 
 class FedotKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         if not params:
             self.model = KNeighborsRegressor()

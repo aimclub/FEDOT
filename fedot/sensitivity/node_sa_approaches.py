@@ -12,9 +12,9 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.validation import validate
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
-from fedot.core.pipelines.validation import validate
 from fedot.sensitivity.sa_requirements import ReplacementAnalysisMetaParams, SensitivityAnalysisRequirements
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -29,7 +29,7 @@ class NodeAnalysis:
 
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
                  approaches_requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Log = None):
+                 path_to_save=None, log: Optional[Log] = None):
 
         self.approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze] if approaches is None else approaches
 
@@ -131,7 +131,7 @@ class NodeAnalyzeApproach(ABC):
 
     def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Log = None):
+                 path_to_save=None, log: Optional[Log] = None):
         self._pipeline = pipeline
         self._train_data = train_data
         self._test_data = test_data

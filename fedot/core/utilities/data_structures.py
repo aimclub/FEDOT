@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Container, Iterable, Sized
+from typing import List, Container, Iterable, Sized, Union
 
 
 class UniqueList(list):
@@ -61,6 +61,9 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
             if len(elem) != first:
                 return False
     return True
+
+def ensure_list(obj: Union[object, List[object]]):
+    return obj if isinstance(obj, list) else [obj]
 
 
 class ComparableEnum(Enum):

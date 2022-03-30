@@ -4,7 +4,7 @@ from copy import deepcopy
 from glob import glob
 from os import remove
 from time import time
-from typing import List, Any, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -15,20 +15,20 @@ from deap import tools
 from imageio import get_writer, imread
 import matplotlib.pyplot as plt
 
-from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
 class PipelineEvolutionVisualiser:
 
-    def __init__(self, log: Log = default_log(__name__)):
+    def __init__(self, log: Optional[Log] = None):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
-        self.log = log
+        self.log = log or default_log(__name__)
         self.pipelines_imgs = []
         self.convergence_imgs = []
         self.best_pipelines_imgs = []

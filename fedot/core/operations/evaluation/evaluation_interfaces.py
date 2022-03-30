@@ -4,11 +4,6 @@ from typing import Optional
 import numpy as np
 
 from catboost import CatBoostClassifier, CatBoostRegressor
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
-from fedot.core.repository.tasks import TaskTypesEnum
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
@@ -32,6 +27,12 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
+from fedot.core.repository.tasks import TaskTypesEnum
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -51,10 +52,7 @@ class EvaluationStrategy:
 
         self.output_mode = False
 
-        if not log:
-            self.log: Log = default_log(__name__)
-        else:
-            self.log: Log = log
+        self.log = log or default_log(__name__)
 
     @property
     def operation_type(self):

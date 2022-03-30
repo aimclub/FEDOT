@@ -2,12 +2,12 @@ import glob
 import os
 import shelve
 import uuid
-
 from collections import namedtuple
 from typing import TYPE_CHECKING, List, Optional, Union
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
+from fedot.core.utilities.data_structures import ensure_list
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -37,9 +37,7 @@ class OperationsCache:
         """
         try:
             with shelve.open(self.db_path) as cache:
-                if not isinstance(nodes, list):
-                    nodes = [nodes]
-                for node in nodes:
+                for node in ensure_list(nodes):
                     _save_cache_for_node(cache, node, fold_id)
         except Exception as ex:
             self.log.info(f'Nodes can not be saved: {ex}. Continue')
@@ -61,9 +59,7 @@ class OperationsCache:
         cache_was_used = False
         try:
             with shelve.open(self.db_path) as cache:
-                if not isinstance(nodes, list):
-                    nodes = [nodes]
-                for node in nodes:
+                for node in ensure_list(nodes):
                     cached_state = _load_cache_for_node(cache, node, fold_id)
                     if cached_state is not None:
                         node.fitted_operation = cached_state.operation

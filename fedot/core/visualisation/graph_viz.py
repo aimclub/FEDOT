@@ -11,10 +11,10 @@ from fedot.core.utils import default_fedot_data_dir
 
 
 class GraphVisualiser:
-    def __init__(self, log: Log = default_log(__name__)):
+    def __init__(self, log: Optional[Log] = None):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
-        self.log = log
+        self.log = log or default_log(__name__)
 
     def visualise(self, pipeline: 'Graph', save_path: Optional[str] = None):
         try:

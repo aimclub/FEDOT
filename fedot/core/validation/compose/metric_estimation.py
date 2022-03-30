@@ -1,5 +1,4 @@
 import gc
-
 from typing import Optional
 
 from fedot.core.composer.cache import OperationsCache

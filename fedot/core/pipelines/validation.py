@@ -2,7 +2,6 @@ from typing import Callable, List
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES, has_no_cycle, has_no_isolated_nodes, \
     has_no_self_cycled_nodes, has_one_root
 from fedot.core.optimisers.adapters import DirectAdapter
@@ -12,6 +11,7 @@ from fedot.core.pipelines.validation_rules import has_correct_data_connections, 
     has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, has_primary_nodes, \
     only_non_lagged_operations_are_primary, is_pipeline_contains_ts_operations, has_no_conflicts_during_multitask, \
     has_no_conflicts_after_class_decompose
+from fedot.core.repository.tasks import TaskTypesEnum
 
 common_rules = [has_one_root,
                 has_no_cycle,
@@ -49,12 +49,13 @@ def validate(graph: Graph, rules: List[Callable] = None, task=None):
 
     # Perform time series specific rules
     if task:
+        rules = []
         if task.task_type is TaskTypesEnum.ts_forecasting:
-            for rule_func in ts_rules:
-                _rule_check(graph, rule_func)
+            rules = ts_rules
         elif task.task_type is TaskTypesEnum.classification:
-            for rule_func in class_rules:
-                _rule_check(graph, rule_func)
+            rules = class_rules
+        for rule_func in rules:
+            _rule_check(graph, rule_func)
     return True
 
 

@@ -5,7 +5,7 @@ from networkx import set_node_attributes, graph_edit_distance
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.core.utilities.data_structures import remove_items
+from fedot.core.utilities.data_structures import ensure_list, remove_items
 
 
 class GraphOperator:
@@ -100,10 +100,10 @@ class GraphOperator:
 
     def sort_nodes(self):
         """layer by layer sorting"""
-        if not isinstance(self._graph.root_node, list):
-            nodes = self._graph.root_node.ordered_subnodes_hierarchy()
-        else:
+        if isinstance(self._graph.root_node, list):
             nodes = self._graph.nodes
+        else:
+            nodes = self._graph.root_node.ordered_subnodes_hierarchy()
         self._graph.nodes = nodes
 
     def node_children(self, node) -> List[Optional[GraphNode]]:
@@ -162,7 +162,7 @@ class GraphOperator:
         self._postproc_nodes()
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
-        if len(self._graph.nodes) == 0:
+        if not self._graph.nodes:
             return []
         roots = [node for node in self._graph.nodes
                  if not any(self._graph.operator.node_children(node))]
@@ -171,16 +171,13 @@ class GraphOperator:
         return roots
 
     def is_graph_equal(self, other_graph: 'Graph') -> bool:
-        if isinstance(self._graph.root_node, list):
-            if isinstance(other_graph.root_node, list):
-                return set([rn.descriptive_id for rn in self._graph.root_node]) == \
-                       set([rn.descriptive_id for rn in other_graph.root_node])
-            else:
-                return False
-        elif isinstance(other_graph.root_node, list):
-            return False
-        else:
+        if all(isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
+            return set(rn.descriptive_id for rn in self._graph.root_node) == \
+                   set(rn.descriptive_id for rn in other_graph.root_node)
+        elif all(not isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
             return self._graph.root_node.descriptive_id == other_graph.root_node.descriptive_id
+        else:
+            return False
 
     def graph_description(self) -> str:
         return str({
@@ -190,22 +187,19 @@ class GraphOperator:
         })
 
     def graph_depth(self) -> int:
-        if len(self._graph.nodes) == 0:
+        if not self._graph.nodes:
             return 0
 
         def _depth_recursive(node: GraphNode):
             if node is None:
                 return 0
-            if node.nodes_from is None or len(node.nodes_from) == 0:
+            if node.nodes_from is None or not node.nodes_from:
                 return 1
             else:
-                return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
+                return 1 + max(_depth_recursive(next_node) for next_node in node.nodes_from)
 
-        root = self.root_node()
-        if isinstance(root, list):
-            return max([_depth_recursive(n) for n in root])
-        else:
-            return _depth_recursive(root)
+        root = ensure_list(self.root_node())
+        return max(_depth_recursive(n) for n in root)
 
     def get_nodes_degrees(self):
         """ Nodes degree as the number of edges the node has:

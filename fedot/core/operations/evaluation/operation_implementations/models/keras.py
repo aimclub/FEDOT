@@ -11,8 +11,7 @@ except ModuleNotFoundError:
 from sklearn import preprocessing
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -151,7 +150,7 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         self.params = {'image_shape': (28, 28, 1),
                        'num_classes': 2,

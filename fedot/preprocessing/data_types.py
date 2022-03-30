@@ -1,4 +1,5 @@
 from copy import copy
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -21,7 +22,7 @@ class TableTypesCorrector:
     Class for checking types in input data. Also perform conversion for columns with types conflicts
     """
 
-    def __init__(self, log: Log = None):
+    def __init__(self, log: Optional[Log] = None):
         # Maximum allowed unique categories in categorical table (if more - transform it into float)
         self.categorical_max_classes_th = MAX_CATEGORIES_TH
         # Threshold to convert numerical into categorical column
@@ -49,10 +50,7 @@ class TableTypesCorrector:
         # Lists with column types for converting calculated on source input data
         self.features_types = None
         self.target_types = None
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
@@ -393,6 +391,7 @@ def define_column_types(table: np.array):
     types, which column contains. If column with mixed type contain str object
     additional field 'str_ids' with indices of string objects is prepared
     """
+
     # TODO: current processing is relatively computationally expensive - probably refactor needed
 
     def type_ignoring_nans(item):

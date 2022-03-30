@@ -32,14 +32,10 @@ class Pipeline(Graph):
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
         self.computation_time = None
         self.template = None
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor(self.log)

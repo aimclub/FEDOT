@@ -1,6 +1,5 @@
 import gc
 import platform
-
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
@@ -23,6 +22,7 @@ from fedot.core.repository.quality_metrics_repository import MetricsEnum, Metric
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
+from fedot.core.utilities.data_structures import ensure_list
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -243,8 +243,7 @@ class ObjectiveBuilder:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)
 
-            if not isinstance(metrics, list):
-                metrics = [metrics]
+            metrics = ensure_list(metrics)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
             evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,

@@ -3,7 +3,7 @@ import sys
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, ClassVar
+from typing import Callable, ClassVar, Optional
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -34,7 +34,7 @@ class HyperoptTuner(ABC):
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None,
+                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = None):
         self.pipeline = pipeline
@@ -50,10 +50,7 @@ class HyperoptTuner(ABC):
         self.search_space = search_space
         self.algo = algo
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,

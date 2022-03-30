@@ -13,6 +13,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.utilities.data_structures import ensure_list
 from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
@@ -37,7 +38,7 @@ class PipelineTemplate:
     :params log: Log object to record messages
     """
 
-    def __init__(self, pipeline: 'Pipeline' = None, log: Log = None):
+    def __init__(self, pipeline: 'Pipeline' = None, log: Optional[Log] = None):
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
         self.unique_pipeline_id = str(uuid4())
@@ -52,20 +53,14 @@ class PipelineTemplate:
             self.depth = 0
             self.data_preprocessor = None
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         self._pipeline_to_template(pipeline)
 
     def _pipeline_to_template(self, pipeline):
         try:
-            if isinstance(pipeline.root_node, list):
-                # TODO improve for graph with several roots
-                self._extract_pipeline_structure(pipeline.root_node[0], 0, [])
-            else:
-                self._extract_pipeline_structure(pipeline.root_node, 0, [])
+            # TODO improve for graph with several roots
+            self._extract_pipeline_structure(ensure_list(pipeline.root_node)[0], 0, [])
         except Exception as ex:
             self.log.info(f'Cannot export to template: {ex}')
         self.link_to_empty_pipeline = pipeline
@@ -119,7 +114,7 @@ class PipelineTemplate:
             if fitted_ops is not None:
                 for operation in pipeline_template_dict['nodes']:
                     saved_key = f'operation_{operation["operation_id"]}'
-                    if saved_key in fitted_ops.keys():
+                    if saved_key in fitted_ops:
                         pipeline_template_dict['fitted_operation_path'] = saved_key
                     else:
                         pipeline_template_dict['fitted_operation_path'] = None
@@ -177,7 +172,7 @@ class PipelineTemplate:
         for operation in self.operation_templates:
             dict_fitted_operations[f'operation_{operation.operation_id}'] = operation.export_operation(path)
 
-        if all([val is None for val in dict_fitted_operations.values()]):
+        if all(val is None for val in dict_fitted_operations.values()):
             return None
 
         # Save preprocessing module

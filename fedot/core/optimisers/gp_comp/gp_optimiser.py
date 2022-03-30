@@ -99,7 +99,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
 
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
