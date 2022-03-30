@@ -62,22 +62,10 @@ def test_output_binary_classification_correct():
     train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
 
     model = Fedot(problem=task_type, timeout=0.1)
-
-    model.train_data = model.data_processor.define_data(features=train_data.features,
-                                                        target=train_data.target,
-                                                        is_predict=False)
-
-    model.test_data = model.data_processor.define_data(features=test_data.features,
-                                                       target=test_data.target,
-                                                       is_predict=True)
-
-    pipeline = Pipeline(PrimaryNode('logit'))
-    pipeline.fit(train_data)
-
-    model.prediction = pipeline.predict(test_data)
-    model.current_pipeline = pipeline
-
+    model.fit(train_data, predefined_model='logit')
+    model.predict(test_data)
     metrics = model.get_metrics(metric_names=['roc_auc', 'f1'])
+
     assert metrics['roc_auc'] >= 0.6
     assert metrics['f1'] >= 0.6
 
