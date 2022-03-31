@@ -34,7 +34,7 @@ def generate_output_texts(length=10, num_columns=1):
     features = all_features[:length]
     classes = all_classes[:length]
     if num_columns > 1:
-         features = np.hstack([np.expand_dims(features, axis=-1)] * num_columns)
+        features = np.hstack([np.expand_dims(features, axis=-1)] * num_columns)
     idx = np.arange(0, length)
 
     return OutputData(idx, features, task, data_type, predict=features, target=None)

@@ -39,7 +39,7 @@ def get_output_timeseries(len_forecast=5, length=100, num_variables=1, for_predi
     features = synthetic_ts
     if num_variables > 1:
         # Multivariate timeseries
-        features = np.hstack([features.reshape(-1,1)] * num_variables)
+        features = np.hstack([features.reshape(-1, 1)] * num_variables)
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=len_forecast))
 

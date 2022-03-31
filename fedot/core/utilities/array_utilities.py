@@ -37,4 +37,3 @@ def atleast_2d(data: np.array) -> np.array:
 
 def atleast_4d(data: np.array) -> np.array:
     return atleast_ndim(data, ndim=4)
-
