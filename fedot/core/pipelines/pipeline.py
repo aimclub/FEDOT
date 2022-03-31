@@ -3,8 +3,6 @@ from datetime import timedelta
 from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
 
-from networkx import set_node_attributes, graph_edit_distance
-
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -15,7 +13,6 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -358,26 +355,6 @@ class Pipeline(Graph):
         for node in self.nodes:
             print(f"{node.operation.operation_type} - {node.custom_params}")
 
-    def distance_to_other(self, other: 'Pipeline'):
-        def edit_distance_node_match(n1, n2):
-            pipeline_node1 = n1.get('pipeline_node')
-            pipeline_node2 = n2.get('pipeline_node')
-
-            operations_match = str(pipeline_node1) == str(pipeline_node2)
-            params_match = pipeline_node1.custom_params == pipeline_node2.custom_params
-
-            node_match = operations_match and params_match
-            return node_match
-
-        g1, pipeline_nodes1 = graph_structure_as_nx_graph(self)
-        g2, pipeline_nodes2 = graph_structure_as_nx_graph(other)
-
-        set_node_attributes(g1, pipeline_nodes1, name='pipeline_node')
-        set_node_attributes(g2, pipeline_nodes2, name='pipeline_node')
-
-        distance = graph_edit_distance(g1, g2, node_match=edit_distance_node_match)
-
-        return distance
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     """ The function return list with nodes with the needed operation
