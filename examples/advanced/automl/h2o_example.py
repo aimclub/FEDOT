@@ -1,11 +1,11 @@
 import numpy as np
 
+from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from examples.simple.pipeline_import_export import create_correct_path
-from examples.advanced.time_series_forecasting.composing_pipelines import display_validation_metric
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.metrics import roc_auc_score as roc_auc, mean_squared_error, mean_absolute_error
 
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from test.unit.tasks.test_classification import get_iris_data
@@ -35,6 +35,20 @@ def pipeline_h2o_ts(window_size: int = 20):
     return pipeline
 
 
+def export_h2o(pipeline, pipeline_path, test_data):
+    # Export it
+    pipeline.save(path=pipeline_path)
+
+    # Import pipeline
+    json_path_load = create_correct_path(pipeline_path)
+    new_pipeline = Pipeline()
+    new_pipeline.load(json_path_load)
+
+    results = new_pipeline.predict(input_data=test_data, output_mode="full_probs")
+    prediction_after_export = results.predict[:, 0]
+    print(f'After export {prediction_after_export[:4]}')
+
+
 def h2o_classification_pipeline_evaluation():
     pipeline_path = "h2o_class"
     data = get_iris_data()
@@ -45,24 +59,12 @@ def h2o_classification_pipeline_evaluation():
     results = pipeline.predict(input_data=test_data, output_mode="full_probs")
     prediction_before_export = results.predict[:, 0]
     print(f'Before export {prediction_before_export[:4]}')
-
-    # Export it
-    pipeline.save(path=pipeline_path)
-
-    # Import pipeline
-    json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
-
-    predicted_output_after_export = new_pipeline.predict(test_data)
-    prediction_after_export = predicted_output_after_export.predict[:, 0]
-
-    print(f'After import {prediction_after_export[:4]}')
     roc_auc_on_test = roc_auc(y_true=test_data.target,
                               y_score=results.predict,
                               multi_class='ovo',
                               average='macro')
-
+    #  H2o has troubles with serialization for now
+    #  export_h2o(pipeline, pipeline_path, test_data)
     print(f"roc auc: {roc_auc_on_test}")
 
 
@@ -88,10 +90,20 @@ def h2o_ts_pipeline_evaluation():
     test_pred = np.ravel(np.array(test_pred.predict))
     test_target = np.ravel(np.array(test_data.target))
 
-    display_validation_metric(predicted=test_pred,
-                              real=test_target,
-                              actual_values=test_data.features,
-                              is_visualise=True)
+    plot_info = [{'idx': train_data.idx,
+                  'series': train_data.features,
+                  'label': 'Actual time series'},
+                 {'idx': test_data.idx,
+                  'series': test_target,
+                  'label': 'Test part'}]
+    metrics_info = {}
+    rmse = mean_squared_error(test_target, test_pred, squared=False)
+    mae = mean_absolute_error(test_target, test_pred)
+
+    metrics_info['Metrics'] = {'RMSE': round(rmse, 3),
+                               'MAE': round(mae, 3)}
+    visualise(plot_info)
+    print(metrics_info)
 
 
 if __name__ == '__main__':

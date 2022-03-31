@@ -72,7 +72,8 @@ class OperationTypesRepository:
 
                 if operations is not None:
                     for operation in operations:
-                        self._repo.append(operation)
+                        if operation not in self._repo:
+                            self._repo.append(operation)
 
         else:
             self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']

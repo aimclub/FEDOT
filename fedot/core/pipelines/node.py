@@ -156,6 +156,7 @@ class Node(GraphNode):
 
         :param input_data: data used for operation training
         """
+
         if self.fitted_operation is None:
             self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
                                                                           data=input_data,

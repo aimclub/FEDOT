@@ -65,14 +65,14 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        self._init_population()
-
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc='Generations', unit='gen', initial=1) if show_progress else None
+
+            self._init_population(objective_function, t)
 
             self.population = self._evaluate_individuals(self.population, objective_function, timer=t,
                                                          n_jobs=self.requirements.n_jobs)
@@ -165,6 +165,9 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
+
+        final_individuals = best if isinstance(best, list) else [best]
+        self.default_on_next_iteration_callback(final_individuals)
 
         output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
 

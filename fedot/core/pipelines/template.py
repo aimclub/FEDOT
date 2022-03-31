@@ -43,13 +43,11 @@ class PipelineTemplate:
         self.unique_pipeline_id = str(uuid4())
         if pipeline is not None:
             self.depth = pipeline.depth
-            self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
-            self.struct_id = ''
             self.data_preprocessor = None
 
         try:

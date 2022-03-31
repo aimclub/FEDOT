@@ -1,16 +1,17 @@
 from copy import deepcopy
-
-import numpy as np
+import random
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from ..api.test_main_api import get_dataset
+from ..tasks.test_classification import get_binary_classification_data
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
@@ -50,23 +51,23 @@ def test_compose_fedot_model_with_tuning():
     logs.check_present(expected, order_matters=False)
 
 
-def test_output_classification_converting_correct():
-    """ Check the correctness of correct prediction method for binary classification task """
+def test_output_binary_classification_correct():
+    """ Check the correctness of prediction for binary classification task """
 
-    task = Task(task_type=TaskTypesEnum.classification)
-    real = InputData(idx=[0, 1, 2], features=np.array([[0], [1], [2]]),
-                     target=np.array([[0], [1], [1]]),
-                     task=task, data_type=DataTypesEnum.table)
-    prediction = OutputData(idx=[0, 1, 2], features=np.array([[0], [1], [2]]),
-                            predict=np.array([[0.5], [0.7], [0.7]]),
-                            target=np.array([[0], [1], [1]]),
-                            task=task, data_type=DataTypesEnum.table)
+    task_type = 'classification'
 
-    data_processor = ApiDataProcessor(task=task)
-    # Perform correction inplace
-    data_processor.correct_predictions(metric_name='f1', real=real, prediction=prediction)
+    data = get_binary_classification_data()
 
-    assert int(prediction.predict[1]) == 1
+    random.seed(1)
+    train_data, test_data = train_test_data_setup(data, shuffle_flag=True)
+
+    model = Fedot(problem=task_type, timeout=0.1)
+    model.fit(train_data, predefined_model='logit')
+    model.predict(test_data)
+    metrics = model.get_metrics(metric_names=['roc_auc', 'f1'])
+
+    assert metrics['roc_auc'] >= 0.6
+    assert metrics['f1'] >= 0.6
 
 
 def test_predefined_initial_assumption():
