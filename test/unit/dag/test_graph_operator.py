@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -93,6 +94,33 @@ def test_node_children():
     # then
     assert len(children) == 1
     assert children[0] is pipeline.nodes[1]
+
+
+# ------------------------------------------------------------------------------
+# Tests for distance_to_other method
+
+def test_distance_to_same_pipeline():
+    # given
+    pipeline = get_pipeline()
+
+    # when
+    distance = pipeline.operator.distance_to_other(pipeline)
+
+    # then
+    assert distance == 0
+
+
+def test_distance_to_same_restored_pipeline():
+    # given
+    adapter = PipelineAdapter()
+    pipeline = get_pipeline()
+    opt_graph = adapter.adapt(pipeline)
+
+    # when
+    distance = pipeline.operator.distance_to_other(adapter.restore(opt_graph))
+
+    # then
+    assert distance == 0
 
 
 # ------------------------------------------------------------------------------
