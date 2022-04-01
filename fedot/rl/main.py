@@ -8,8 +8,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from tensorboardX import SummaryWriter
-
+from torch.utils.tensorboard import SummaryWriter
 from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.rl.pipeline_env import PipelineEnv
 
@@ -53,10 +52,10 @@ if __name__ == '__main__':
     out_dim = env.action_space.n
 
     gamma = 0.99
-    learning_rate = 0.01
-    entropy_beta = 0.01
-    batch_size = 8
-    reward_steps = 10
+    learning_rate = 0.003
+    entropy_beta = 0.3
+    batch_size = 50
+    reward_steps = 5
 
     pnet = PolicyGradientNetwork(in_dim, out_dim)
     print(pnet)
@@ -77,7 +76,7 @@ if __name__ == '__main__':
     if not exists(path_to_checkpoint):
         makedirs(path_to_checkpoint)
 
-    tb_writer = SummaryWriter(logdir=path_to_tbX)
+    tb_writer = SummaryWriter(log_dir=path_to_tbX)
 
     total_rewards = []
     step_idx = 0

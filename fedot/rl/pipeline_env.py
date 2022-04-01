@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from os import makedirs
 from os.path import join, exists
@@ -14,7 +15,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum, Task
-from fedot.core.utils import default_fedot_data_dir
+from fedot.core.utils import default_fedot_data_dir, fedot_project_root
 
 
 class PipelineEnv(gym.Env):
@@ -26,7 +27,7 @@ class PipelineEnv(gym.Env):
         self.testing_data = self.test_data.target
 
         self.task_type = TaskTypesEnum.classification
-        self.pipeline_depth = pipeline_depth
+        self.pipeline_depth = pipeline_depth + 1
 
         self.actions_list = OperationTypesRepository('all') \
             .suitable_operation(task_type=self.task_type, tags=['reinforce'])
@@ -45,9 +46,10 @@ class PipelineEnv(gym.Env):
         self.pipeline = None
         self.pipeline_idx = 0
         self.time_step = 0
-        self.cur_pos = 0
+        self.cur_pos = 1
         self.metric_value = 0
         self.observation = np.full(self.pipeline_depth, self.pop)
+        self.observation[0] = self.cur_pos
         self.last_observation = np.full(self.pipeline_depth, self.pop)
         self.repeated_pl = 0
 
@@ -82,6 +84,8 @@ class PipelineEnv(gym.Env):
             done = True
             reward -= 100
             self.observation[self.cur_pos] = action
+            self.cur_pos += 1
+            self.observation[0] = self.cur_pos
 
             info = {
                 'time_step': self.time_step,
@@ -96,6 +100,8 @@ class PipelineEnv(gym.Env):
             done = True
             reward -= 100
             self.observation[self.cur_pos] = action
+            self.cur_pos += 1
+            self.observation[0] = self.cur_pos
 
             info = {'time_step': self.time_step,
                     'metric_value': self.metric_value,
@@ -144,7 +150,7 @@ class PipelineEnv(gym.Env):
                 reward = 100 * self.metric_value
 
                 # Если первые узлы с предобработкой данных, то агента наказывают
-                for i in [0, 1]:
+                for i in [1, 2]:
                     if self._is_data_operation(self.observation[i]):
                         reward -= 5
 
@@ -152,7 +158,11 @@ class PipelineEnv(gym.Env):
                     self.repeated_pl += 1
 
                     if self.repeated_pl > 10:
-                        reward -= 50
+                        reward = -50
+
+                    if self.repeated_pl > 20:
+                        reward = -100
+
                 else:
                     self.repeated_pl = 0
 
@@ -162,6 +172,8 @@ class PipelineEnv(gym.Env):
                         }
 
                 self.last_observation = deepcopy(self.observation)
+
+                self.observation[0] = self.cur_pos
 
                 return self.observation, reward, done, info
             except ValueError:
@@ -188,6 +200,8 @@ class PipelineEnv(gym.Env):
 
                 self.last_observation = deepcopy(self.observation)
 
+                self.observation[0] = self.cur_pos
+
                 return self.observation, reward, done, info
         else:
             info = {'time_step': self.time_step,
@@ -195,15 +209,18 @@ class PipelineEnv(gym.Env):
                     'length': -1
                     }
 
+            self.observation[0] = self.cur_pos
+
             return self.observation, reward, done, info
 
     def reset(self):
         self.pipeline = None
         self.nodes = []
         self.time_step = 0
-        self.cur_pos = 0
+        self.cur_pos = 1
         self.metric_value = 0
         self.observation = np.full(self.pipeline_depth, self.pop)
+        self.observation[0] = self.cur_pos
 
         return self.observation
 
@@ -213,3 +230,32 @@ class PipelineEnv(gym.Env):
                 return True
         else:
             return False
+
+
+if __name__ == '__main__':
+    file_path_train = 'cases/data/scoring/scoring_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    file_path_test = 'cases/data/scoring/scoring_test.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    env = PipelineEnv([full_path_train, full_path_test])
+
+    print(env.actions_list)
+
+    for episode in range(1):
+        state = env.reset()
+        done = False
+        total_reward = 0
+
+        while not done:
+            print('episode:', episode, 'state', state)
+            action = int(input())
+            state, reward, done, info = env.step(action)
+            print('reward: %6.2f' % reward)
+            total_reward += reward
+
+            if done:
+                print('episode:', episode, 'state', state)
+                print('Done')
+

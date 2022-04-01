@@ -221,7 +221,8 @@
       "presets": ["fast_train", "*tree"],
       "tags": [
         "tree",
-        "interpretable"
+        "interpretable",
+        "reinforce"
       ]
     },
     "dtreg": {
@@ -308,7 +309,8 @@
         "simple",
         "linear",
         "interpretable",
-        "non_multi"
+        "non_multi",
+        "reinforce"
       ]
     },
     "mlp": {
