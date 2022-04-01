@@ -62,4 +62,4 @@ def run_classification_example(timeout: float = None, take_dataset_percent: floa
 
 
 if __name__ == '__main__':
-    run_classification_example(timeout=5, take_dataset_percent=None)
+    run_classification_example(timeout=5, take_dataset_percent=100)

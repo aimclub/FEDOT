@@ -65,7 +65,7 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
-        return deepcopy(data)
+        return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
         """ Prepare predictions """

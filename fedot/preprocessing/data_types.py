@@ -38,6 +38,9 @@ class TableTypesCorrector:
         self.numerical_into_str = []
         self.categorical_into_float = []
 
+        # Indices of columns with filed string into numerical transformation
+        self.string_columns_transformation_failed = {}
+
         # Is target column contains non-numerical cells during conversion
         self.target_converting_has_errors = False
 
@@ -59,9 +62,9 @@ class TableTypesCorrector:
         self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
-        table = self.features_types_converting(features=data.features)
+        data.features = self.features_types_converting(features=data.features)
         # Remain only correct columns
-        data.features = self.remove_incorrect_features(table, self.features_converted_columns)
+        data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
 
         # And in target(s)
         data.target = self.target_types_converting(target=data.target, task=data.task)
@@ -72,6 +75,15 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
+
+        if len(self.string_columns_transformation_failed) > 0:
+            data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
+            # Update information in supplementary info - delete info about deleted columns
+            deleted_elements_number = 0
+            for i in list(self.string_columns_transformation_failed.keys()):
+                index_to_delete = i - deleted_elements_number
+                data.supplementary_data.column_types['features'].pop(index_to_delete)
+                deleted_elements_number += 1
 
         # Save info about features and target types
         self.features_types = data.supplementary_data.column_types['features']
@@ -332,6 +344,8 @@ class TableTypesCorrector:
                     non_nan_all_objects_number = n_rows - nans_number
                     failed_ratio = failed_objects_number / non_nan_all_objects_number
 
+                    # If all objects are truly strings - all objects transform into nan
+                    is_column_contain_numerical_objects = failed_ratio != 1
                     if failed_ratio < 0.5:
                         # The majority of objects can be converted into numerical
                         data.features[:, column_id] = converted_column.values
@@ -340,6 +354,10 @@ class TableTypesCorrector:
                         self.categorical_into_float.append(column_id)
                         features_types = data.supplementary_data.column_types['features']
                         features_types[column_id] = NAME_CLASS_FLOAT
+                    elif failed_ratio >= 0.5 and is_column_contain_numerical_objects:
+                        # Probably numerical column contains '?' or 'x' as nans equivalents
+                        # Add columns to remove list
+                        self.string_columns_transformation_failed.update({column_id: 'removed'})
 
     def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
         """ Apply conversion into float string column for every signed column """
