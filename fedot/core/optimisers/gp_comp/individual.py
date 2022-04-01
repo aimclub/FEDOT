@@ -10,15 +10,15 @@ ERROR_PREFIX = 'Invalid graph configuration:'
 class Individual:
     def __init__(self, graph: 'OptGraph', fitness: List[float] = None,
                  parent_operators: List[ParentOperator] = None, computation_time: Optional[int] = None,
-                 additional_params: dict = None):
-        if additional_params is None:
-            additional_params = {}
+                 metadata: dict = None):
+        if metadata is None:
+            metadata = {}
         self.uid = str(uuid4())
         self.parent_operators = parent_operators if parent_operators is not None else []
         self.fitness = fitness
         self.computation_time = computation_time
         self.graph = graph
-        self.additional_params = additional_params
+        self.metadata = metadata
 
     def __eq__(self, other):
         return self.uid == other.uid
