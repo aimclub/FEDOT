@@ -24,7 +24,6 @@ def load_sample_text(file_path=None, label_col='label'):
     return features, target
 
 
-print(os.getcwd())
 all_features, all_classes = load_sample_text()
 
 
@@ -50,12 +49,17 @@ def output_texts(request):
 
 def test_data_merge_texts(output_texts):
     first_output = output_texts[0]
-    merged_data = DataMerger.get(output_texts).merge()
 
     def get_num_columns(data: np.array):
         return data.shape[1] if data.ndim > 1 else 1
 
-    assert np.equal(merged_data.idx, first_output.idx).all()
-    expected_num_columns = sum(get_num_columns(output.predict) for output in output_texts)
-    assert merged_data.features.shape[0] == len(first_output.predict)
-    assert get_num_columns(merged_data.features) == expected_num_columns
+    if len(output_texts) > 1:
+        with pytest.raises(ValueError, match="not supported"):
+            merged_data = DataMerger.get(output_texts).merge()
+    else:
+        merged_data = DataMerger.get(output_texts).merge()
+
+        assert np.equal(merged_data.idx, first_output.idx).all()
+        expected_num_columns = sum(get_num_columns(output.predict) for output in output_texts)
+        assert merged_data.features.shape[0] == len(first_output.predict)
+        assert get_num_columns(merged_data.features) == expected_num_columns

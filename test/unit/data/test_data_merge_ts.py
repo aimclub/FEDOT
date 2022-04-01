@@ -57,7 +57,7 @@ def get_output_timeseries(len_forecast=5, length=100, num_variables=1, for_predi
     return predict_output
 
 
-def drop_elements(output: OutputData, fraction_dropped = 0.2, with_repetitions=False) -> OutputData:
+def drop_elements(output: OutputData, fraction_dropped=0.2, with_repetitions=False) -> OutputData:
     num_left = int(len(output.idx) * (1 - fraction_dropped))
     idx_short = np.sort(np.random.choice(output.idx, size=num_left, replace=with_repetitions))
     output_short = OutputData(idx=idx_short,

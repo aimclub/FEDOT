@@ -23,7 +23,7 @@ def flatten_extra_dim(data: Optional[np.array]) -> Optional[np.array]:
     return data
 
 
-def atleast_ndim(data: np.array, ndim: int) -> np.array:
+def atleast_n_dimensions(data: np.array, ndim: int) -> np.array:
     """ Return a view with extra dimensions to the array if necessary,
     such that the result has the required number of dimensions."""
     while data.ndim < ndim:
@@ -32,8 +32,8 @@ def atleast_ndim(data: np.array, ndim: int) -> np.array:
 
 
 def atleast_2d(data: np.array) -> np.array:
-    return atleast_ndim(data, ndim=2)
+    return atleast_n_dimensions(data, ndim=2)
 
 
 def atleast_4d(data: np.array) -> np.array:
-    return atleast_ndim(data, ndim=4)
+    return atleast_n_dimensions(data, ndim=4)

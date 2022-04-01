@@ -16,7 +16,7 @@ class PipelineBuilder:
     - Builds always new pipelines (on copies of nodes), preserves its state between builds. State doesn't leak outside.
     """
 
-    OperationT = Union[str, Tuple[str, dict]]
+    OperationType = Union[str, Tuple[str, dict]]
 
     def __init__(self, *initial_nodes: Optional[Node]):
         """ Create builder with prebuilt nodes as origins of the branches. """
@@ -49,7 +49,7 @@ class PipelineBuilder:
             self.heads.append(PrimaryNode(operation_type, content=params))
         return self
 
-    def add_sequence(self, *operation_type: OperationT, branch_idx: int = 0):
+    def add_sequence(self, *operation_type: OperationType, branch_idx: int = 0):
         """ Same as .node() but for many operations at once.
 
         :param operation_type: operations for new nodes, either as an operation name
@@ -60,7 +60,7 @@ class PipelineBuilder:
             self.add_node(operation, branch_idx, params)
         return self
 
-    def grow_branches(self, *operation_type: Optional[OperationT]):
+    def grow_branches(self, *operation_type: Optional[OperationType]):
         """ Add single node to each branch.
 
         Argument position means index of the branch to grow.
@@ -77,7 +77,7 @@ class PipelineBuilder:
             self.add_node(operation, i, params)
         return self
 
-    def add_branch(self, *operation_type: Optional[OperationT], branch_idx: int = 0):
+    def add_branch(self, *operation_type: Optional[OperationType], branch_idx: int = 0):
         """ Create branches at the tip of branch with branch_idx.
 
         None operations are filtered out.
@@ -148,7 +148,7 @@ class PipelineBuilder:
         return Pipeline(self.to_nodes()) if self.heads else None
 
     @staticmethod
-    def _unpack_operation(operation: Optional[OperationT]) -> Tuple[Optional[str], Optional[Dict]]:
+    def _unpack_operation(operation: Optional[OperationType]) -> Tuple[Optional[str], Optional[Dict]]:
         if isinstance(operation, str) or operation is None:
             return operation, None
         else:

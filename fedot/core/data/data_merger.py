@@ -4,8 +4,8 @@ from fedot.core.data.data import OutputData, InputData
 from fedot.core.data.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.array_utilities import *
 from fedot.core.utilities.data_structures import are_same_length
-from fedot.core.utilities.array_utilities import *
 
 
 class DataMerger:
@@ -23,7 +23,7 @@ class DataMerger:
     def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None, log: Log = None):
         self.log = log or default_log(__name__)
         self.outputs = outputs
-        self.data_type = data_type or DataMerger.get_merged_datatype(output.data_type for output in outputs)
+        self.data_type = data_type or DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
 
         # Ensure outputs are of equal length, find common index if it is not
         idx_list = [np.asarray(output.idx) for output in outputs]
@@ -39,7 +39,7 @@ class DataMerger:
         """ Construct appropriate data merger for the outputs. """
 
         # Ensure outputs can be merged
-        data_type = DataMerger.get_merged_datatype(output.data_type for output in outputs)
+        data_type = DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
         if data_type is None:
             raise ValueError("Can't merge different data types")
 
@@ -56,7 +56,7 @@ class DataMerger:
         return cls(outputs, data_type, log=log)
 
     @staticmethod
-    def get_merged_datatype(data_types: Iterable[DataTypesEnum]) -> Optional[DataTypesEnum]:
+    def get_datatype_for_merge(data_types: Iterable[DataTypesEnum]) -> Optional[DataTypesEnum]:
         # Check is all data types can be merged or not
         distinct = set(data_types)
         return distinct.pop() if len(distinct) == 1 else None
@@ -92,9 +92,9 @@ class DataMerger:
         # Such index can't be used for extracting common predictions, and it must be
         # handled separately. This case arises for timeseries after lagged transform,
         # where the datatype becomes 'table', but we still must merge it as timeseries.
-        forecast_indices = map(DataMerger.is_forecast_index, self.outputs)
+        is_forecast_indices = map(DataMerger.is_forecast_index, self.outputs)
 
-        if any(forecast_indices):
+        if any(is_forecast_indices):
             # Cut prediction length to minimum length
             predict_len = min(len(output.predict) for output in self.outputs)
             common_predicts = [output.predict[:predict_len] for output in self.outputs]
@@ -164,6 +164,11 @@ class TSDataMerger(DataMerger):
 
 
 class TextDataMerger(DataMerger):
+
+    def merge_predicts(self, predicts: List[np.array]) -> np.array:
+        if len(predicts) > 1:
+            raise ValueError("Text tables and merge of text data is not supported")
+        return predicts[0]
 
     def postprocess_predicts(self, merged_predicts: np.array) -> np.array:
         # Ensure that 1d-column text remains 1d
