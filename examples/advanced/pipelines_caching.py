@@ -115,7 +115,7 @@ def correct_pipelines_cnt_check():
                 auto_model.fit(features=train_data_tmp, target='target')
                 auto_model.predict_proba(features=test_data_tmp)
                 times[enable_caching].append((timeit.default_timer() - start_time) / 60)
-                c_pipelines = count_pipelines(auto_model.history)
+                c_pipelines = count_pipelines(auto_model.history) if auto_model.history else None
                 pipelines_count[enable_caching].append(c_pipelines)
 
                 print((
@@ -157,4 +157,4 @@ if __name__ == "__main__":
         '[2] correct fitted pipelines number check\n'
     )
     # checks_dct.get(input(choice_msg))()
-    checks_dct.get('2')()
+    checks_dct.get('1')()
