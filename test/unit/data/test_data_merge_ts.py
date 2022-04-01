@@ -1,3 +1,4 @@
+from itertools import product
 from typing import Union
 
 import numpy as np
@@ -52,13 +53,37 @@ def get_output_timeseries(len_forecast=5, length=100, num_variables=1, for_predi
         idx = np.arange(0, length)
         predict = features
 
-    predict_output = OutputData(idx=idx,
-                                features=features,
-                                predict=predict,
-                                target=None,
-                                task=task,
-                                data_type=DataTypesEnum.ts)
+    predict_output = OutputData(idx, features, task, DataTypesEnum.ts, predict=predict)
     return predict_output
+
+
+def drop_elements(output: OutputData, fraction_dropped = 0.2, with_repetitions=False) -> OutputData:
+    num_left = int(len(output.idx) * (1 - fraction_dropped))
+    idx_short = np.sort(np.random.choice(output.idx, size=num_left, replace=with_repetitions))
+    output_short = OutputData(idx=idx_short,
+                              features=output.features[idx_short],
+                              predict=output.predict[idx_short],
+                              target=output.target[idx_short] if output.target else None,
+                              task=output.task, data_type=output.data_type)
+    return output_short
+
+
+def get_output_ts_different_idx(length=100, fraction_dropped=0.2, with_repetitions=False, equal=False):
+    output = get_output_timeseries(length=length, for_predict=False)
+    output_long = drop_elements(output, fraction_dropped, with_repetitions)
+    if not equal:
+        fraction_dropped = fraction_dropped / 2
+    output_short = drop_elements(output, fraction_dropped, with_repetitions)
+    return output_short, output_long
+
+
+@pytest.fixture(params=list(product(range(0, 100, 20), (False,), (True, False))),
+                ids=lambda param: f'dropped %: {param[0]}, with repeats: {param[1]}, equal length: {param[2]}')
+def output_ts_different_idx(request):
+    percent_dropped, with_repetitions, equal = request.param
+    fraction_dropped = percent_dropped / 100
+    length = 100
+    return get_output_ts_different_idx(length, fraction_dropped, with_repetitions, equal)
 
 
 def test_data_merge_ts_pipelines(ts_pipelines):
@@ -99,3 +124,21 @@ def test_data_merge_ts_different_forecast_lengths():
 
     assert np.equal(merged_data.idx, output_short.idx).all()
     assert merged_data.features.shape == (output_short.predict.shape[0], 2)
+
+
+def test_data_merge_ts_different_fit_lengths(output_ts_different_idx):
+    output_short, output_long = output_ts_different_idx
+    shared_idx = np.intersect1d(output_short.idx, output_long.idx)
+
+    merged_data = DataMerger.get([output_short, output_long]).merge()
+
+    # test index validity
+    assert np.isin(merged_data.idx, output_short.idx).all()
+    assert np.isin(merged_data.idx, output_long.idx).all()
+    assert np.isin(shared_idx, merged_data.idx).all()
+    assert len(merged_data.idx) == len(merged_data.features)
+
+    # test features validity
+    assert merged_data.features.shape[1] == 2
+    assert np.isin(merged_data.features[:, 0], output_short.predict).all()
+    assert np.isin(merged_data.features[:, 1], output_long.predict).all()

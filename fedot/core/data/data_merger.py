@@ -23,7 +23,7 @@ class DataMerger:
     def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None, log: Log = None):
         self.log = log or default_log(__name__)
         self.outputs = outputs
-        self.data_type = data_type or DataMerger.merge_datatype(output.data_type for output in outputs)
+        self.data_type = data_type or DataMerger.get_merged_datatype(output.data_type for output in outputs)
 
         # Ensure outputs are of equal length, find common index if it is not
         idx_list = [np.asarray(output.idx) for output in outputs]
@@ -32,31 +32,31 @@ class DataMerger:
             raise ValueError(f'There are no common indices for outputs')
 
         # Find first output with the main target & resulting task
-        self.main_output = DataMerger.find_priority_output(outputs)
+        self.main_output = DataMerger.find_main_output(outputs)
 
     @staticmethod
     def get(outputs: List['OutputData'], log: Log = None) -> 'DataMerger':
         """ Construct appropriate data merger for the outputs. """
 
         # Ensure outputs can be merged
-        data_type = DataMerger.merge_datatype(output.data_type for output in outputs)
+        data_type = DataMerger.get_merged_datatype(output.data_type for output in outputs)
         if data_type is None:
             raise ValueError("Can't merge different data types")
 
-        ts_indices = list(map(DataMerger.is_ts_predict_index, outputs))
-        if data_type == DataTypesEnum.ts or any(ts_indices):
-            cls = TSDataMerger
-        elif data_type == DataTypesEnum.image:
-            cls = ImageDataMerger
-        elif data_type == DataTypesEnum.text:
-            cls = TextDataMerger
-        else:
-            cls = DataMerger
-
+        merger_by_type = {
+            DataTypesEnum.table: DataMerger,
+            DataTypesEnum.ts: TSDataMerger,
+            DataTypesEnum.multi_ts: TSDataMerger,
+            DataTypesEnum.image: ImageDataMerger,
+            DataTypesEnum.text: TextDataMerger,
+        }
+        cls = merger_by_type.get(data_type)
+        if not cls:
+            raise ValueError(f'Unable to merge data type {cls}')
         return cls(outputs, data_type, log=log)
 
     @staticmethod
-    def merge_datatype(data_types: Iterable[DataTypesEnum]) -> Optional[DataTypesEnum]:
+    def get_merged_datatype(data_types: Iterable[DataTypesEnum]) -> Optional[DataTypesEnum]:
         # Check is all data types can be merged or not
         distinct = set(data_types)
         return distinct.pop() if len(distinct) == 1 else None
@@ -87,9 +87,21 @@ class DataMerger:
 
     def find_common_predicts(self) -> List[np.array]:
         """ Selects and returns only those elements of predicts that are common to all outputs. """
-        common_predicts = [self.select_common(output.idx, output.predict) for output in self.outputs]
-        if not are_same_length(common_predicts):
-            raise ValueError('Indices of merged data are not equal and not unique. Check validity of the pipeline.')
+
+        # Forecast index is index with a length different from that of features/predictions.
+        # Such index can't be used for extracting common predictions, and it must be
+        # handled separately. This case arises for timeseries after lagged transform,
+        # where the datatype becomes 'table', but we still must merge it as timeseries.
+        forecast_indices = map(DataMerger.is_forecast_index, self.outputs)
+
+        if any(forecast_indices):
+            # Cut prediction length to minimum length
+            predict_len = min(len(output.predict) for output in self.outputs)
+            common_predicts = [output.predict[:predict_len] for output in self.outputs]
+        else:
+            common_predicts = [self.select_common(output.idx, output.predict) for output in self.outputs]
+            if not are_same_length(common_predicts):
+                raise ValueError('Indices of merged data are not equal and not unique. Check validity of the pipeline.')
         return common_predicts
 
     def preprocess_predicts(self, predicts: List[np.array]) -> List[np.array]:
@@ -113,11 +125,11 @@ class DataMerger:
         return sliced
 
     @staticmethod
-    def is_ts_predict_index(output: 'OutputData'):
+    def is_forecast_index(output: 'OutputData'):
         return len(output.idx) != len(output.predict)
 
     @staticmethod
-    def find_priority_output(outputs: List['OutputData']) -> 'OutputData':
+    def find_main_output(outputs: List['OutputData']) -> 'OutputData':
         """ Returns first output with main target or (if there are
         no main targets) the output with priority secondary target. """
         priority_output = next((output for output in outputs
@@ -127,20 +139,6 @@ class DataMerger:
             i_priority_secondary = np.argmin(flow_lengths)
             priority_output = outputs[i_priority_secondary]
         return priority_output
-
-
-class TSDataMerger(DataMerger):
-
-    def find_common_predicts(self) -> List[np.array]:
-        # Select last elements, minimum number
-        predict_len = min(len(output.predict) for output in self.outputs)
-        # Cut prediction length to minimum length
-        common_predicts = [output.predict[:predict_len] for output in self.outputs]
-        return common_predicts
-
-    def postprocess_predicts(self, merged_predicts: np.array) -> np.array:
-        # Ensure that 1d-column timeseries remains 1d timeseries
-        return flatten_extra_dim(merged_predicts)
 
 
 class ImageDataMerger(DataMerger):
@@ -156,6 +154,13 @@ class ImageDataMerger(DataMerger):
             raise ValueError("Can't merge images of different sizes: " + str(img_wh))
 
         return reshaped_predicts
+
+
+class TSDataMerger(DataMerger):
+
+    def postprocess_predicts(self, merged_predicts: np.array) -> np.array:
+        # Ensure that 1d-column timeseries remains 1d timeseries
+        return flatten_extra_dim(merged_predicts)
 
 
 class TextDataMerger(DataMerger):

@@ -225,7 +225,7 @@ def test_data_merge_tables_with_unequal_nonunique_indices():
 def test_data_merge_datatypes_compatibility():
     available_types = [*DataTypesEnum]
     for type_pair in product(available_types, available_types):
-        merged = DataMerger.merge_datatype(type_pair)
+        merged = DataMerger.get_merged_datatype(type_pair)
         # Able to merge only same data type
         expected = type_pair[0] if operator.eq(*type_pair) else None
         assert merged == expected

@@ -50,7 +50,7 @@ def test_parent_mask_correct(unequal_outputs_table):
     correct_parent_mask = {'input_ids': [0, 1], 'flow_lens': [1, 0]}
 
     # Calculate parent mask from outputs
-    main_output = DataMerger.find_priority_output(unequal_outputs_table)
+    main_output = DataMerger.find_main_output(unequal_outputs_table)
     p_mask = SupplementaryDataMerger(unequal_outputs_table, main_output).prepare_parent_mask()
 
     assert tuple(p_mask['input_ids']) == tuple(correct_parent_mask['input_ids'])
