@@ -8,15 +8,13 @@ ERROR_PREFIX = 'Invalid graph configuration:'
 
 
 class Individual:
-    def __init__(self, graph: 'OptGraph', fitness: List[float] = None,
-                 parent_operators: List[ParentOperator] = None, computation_time: Optional[int] = None,
+    def __init__(self, graph: 'OptGraph', fitness: List[float] = None, parent_operators: List[ParentOperator] = None,
                  metadata: dict = None):
         if metadata is None:
             metadata = {}
         self.uid = str(uuid4())
         self.parent_operators = parent_operators if parent_operators is not None else []
         self.fitness = fitness
-        self.computation_time = computation_time
         self.graph = graph
         self.metadata = metadata
 

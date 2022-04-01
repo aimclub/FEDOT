@@ -65,11 +65,10 @@ class OptHistory:
                     fitness = ind.fitness.values
                 else:
                     fitness = ind.fitness
-                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.computation_time)
+                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
                 row = [
                     idx, gen_num, fitness,
-                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.computation_time,
-                    str(ind.metadata)
+                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, str(ind.metadata)
                 ]
                 self._add_history_to_csv(file, row)
                 idx += 1
@@ -80,8 +79,7 @@ class OptHistory:
             metric_str = 'metric'
             if self.is_multi_objective:
                 metric_str += 's'
-            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'computation_time',
-                   'metadata']
+            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
             writer.writerow(row)
 
     def _add_history_to_csv(self, f: str, row: List[Any]):
@@ -103,7 +101,7 @@ class OptHistory:
                         {'fitness_name': self.short_metrics_names[0],
                          'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
                     PipelineAdapter().restore_as_template(
-                        individual.graph, individual.computation_time
+                        individual.graph, individual.metadata
                     ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
             except Exception as ex:
                 print(ex)
@@ -185,7 +183,7 @@ class OptHistory:
     def historical_pipelines(self):
         adapter = PipelineAdapter()
         return [
-            adapter.restore_as_template(ind.graph, ind.computation_time)
+            adapter.restore_as_template(ind.graph, ind.metadata)
             for ind in list(itertools.chain(*self.individuals))
         ]
 

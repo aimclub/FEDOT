@@ -41,19 +41,16 @@ class PipelineTemplate:
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
         self.unique_pipeline_id = str(uuid4())
+        self.metadata = {}
         if pipeline is not None:
             self.depth = pipeline.depth
+            self.metadata['computation_time'] = pipeline.computation_time
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
             self.data_preprocessor = None
-
-        try:
-            self.computation_time = pipeline.computation_time
-        except AttributeError:
-            self.computation_time = None
 
         if not log:
             self.log = default_log(__name__)
