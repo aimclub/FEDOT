@@ -3,11 +3,11 @@ from copy import deepcopy
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, get_default_params
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-def get_pipeline():
+def get_pipeline() -> 'Pipeline':
     third_level_one = PrimaryNode('lda')
 
     second_level_one = SecondaryNode('qda', nodes_from=[third_level_one])
@@ -99,18 +99,7 @@ def test_node_children():
 # ------------------------------------------------------------------------------
 # Tests for distance_to_other method
 
-def test_distance_to_same_pipeline():
-    # given
-    pipeline = get_pipeline()
-
-    # when
-    distance = pipeline.operator.distance_to_other(pipeline)
-
-    # then
-    assert distance == 0
-
-
-def test_distance_to_same_restored_pipeline():
+def test_distance_to_same_pipeline_restored():
     # given
     adapter = PipelineAdapter()
     pipeline = get_pipeline()
@@ -120,7 +109,35 @@ def test_distance_to_same_restored_pipeline():
     distance = pipeline.operator.distance_to_other(adapter.restore(opt_graph))
 
     # then
-    assert distance == 0
+    assert int(distance) == 0
+
+
+def test_known_distances():
+    # given
+    pipeline1 = get_pipeline()
+    pipeline2 = get_pipeline()
+    pipeline3 = get_pipeline()
+    pipeline4 = get_pipeline()
+
+    pipeline2.add_node(SecondaryNode('dtreg', nodes_from=[pipeline2.root_node]))  # add extra node and edge
+    pipeline3.update_node(pipeline3.nodes[-1], PrimaryNode('scaling'))  # replace one node
+    pipeline4.nodes[-1].custom_params = {'n_jobs': -1}  # change params of one node
+
+    # when
+    distance1 = pipeline1.operator.distance_to_other(pipeline1)
+    distance2 = pipeline1.operator.distance_to_other(pipeline2)
+    distance3 = pipeline1.operator.distance_to_other(pipeline3)
+    distance4 = pipeline1.operator.distance_to_other(pipeline4)
+    distance5 = pipeline2.operator.distance_to_other(pipeline3)
+    distance6 = pipeline3.operator.distance_to_other(pipeline4)
+
+    # then
+    assert int(distance1) == 0  # the same pipeline
+    assert int(distance2) == 2  # changes: 1 node (operation) + 1 edge
+    assert int(distance3) == 1  # changes: 1 node (operation)
+    assert int(distance4) == 1  # changes: 1 node (params)
+    assert int(distance5) == 3  # changes: 2 nodes (operations) + 1 edge
+    assert int(distance6) == 1  # changes: 1 node (operation + params)
 
 
 # ------------------------------------------------------------------------------
