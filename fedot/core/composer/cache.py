@@ -6,7 +6,7 @@ from collections import namedtuple
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from fedot.core.log import default_log
+from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_list
 
@@ -19,7 +19,7 @@ CachedState = namedtuple('CachedState', 'operation')
 
 
 class OperationsCache:
-    def __init__(self, log=None, db_path=None, clear_exiting=True):
+    def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None, clear_exiting=True):
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}')
 
