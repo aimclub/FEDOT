@@ -128,8 +128,6 @@ class CsvStrategy(StrategyDefineData):
         else:
             # Make default features table
             # CSV files as input data
-            if target is None:
-                target = 'target'
             data = InputData.from_csv(features, task=ml_task,
                                       target_columns=target,
                                       data_type=data_type)

@@ -160,12 +160,12 @@ def test_target_data_from_csv_correct():
     # Process one column
     target_column = '1_day'
     one_column_data = InputData.from_csv(path, target_columns=target_column,
-                                         columns_to_drop=['date'], task=task)
+                                         index_col='date', task=task)
 
     # Process multiple target columns
     target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
     seven_columns_data = InputData.from_csv(path, target_columns=target_columns,
-                                            columns_to_drop=['date'], task=task)
+                                            index_col='date', task=task)
 
     assert one_column_data.target.shape == (197, 1)
     assert seven_columns_data.target.shape == (197, 7)

@@ -48,8 +48,7 @@ def multi_target_data_setup():
     target_columns = ['1_day', '2_day', '3_day', '4_day', '5_day', '6_day', '7_day']
     task = Task(TaskTypesEnum.regression)
     data = InputData.from_csv(path, target_columns=target_columns,
-                              columns_to_drop=['date'], task=task)
-    data.idx = np.arange(0, len(data.idx))
+                              index_col=None, columns_to_drop=['date'], task=task)
     train, test = train_test_data_setup(data)
     return train, test
 
