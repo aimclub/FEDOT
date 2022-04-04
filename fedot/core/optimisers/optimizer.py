@@ -2,7 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
-from typing import (Any, Callable, List, Optional, Union)
+from typing import (Any, Callable, List, Optional, Union, Sequence)
 
 import numpy as np
 
@@ -26,7 +26,7 @@ class GraphOptimiserParameters:
         :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
         evolution. Default False.
         :param depth_increase_step: the step of depth increase in automated depth configuration
-        :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
+        :param multi_objective: flag used for of algorithm type definition (multi-objective if true or single-objective
         if false). Value is defined in ComposerBuilder. Default False.
     """
 
@@ -43,13 +43,13 @@ class GraphOptimiserParameters:
 
 class GraphOptimiser:
     """
-    Base class of graph optimiser. It allow to find the optimal solution using specified metric (one or several).
+    Base class of graph optimiser. It allows to find the optimal solution using specified metric (one or several).
     To implement the specific optimisation method,
     the abstract method 'optimize' should be re-defined in the ancestor class
     (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param initial_graph: graph which was initialized outside the optimiser
-    :param requirements: implementation-independent requirements for graph optimizer
+    :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
     :param metrics: metrics for optimisation
     :param parameters: parameters for specific implementation of graph optimiser
@@ -112,7 +112,7 @@ class GraphOptimiser:
         """
         Default variant of callback that preserves optimisation history
         :param individuals: list of individuals obtained in iteration
-        :param archive: optional list of best individuals for previous iterations
+        :param archive: optional list of the best individuals for previous iterations
         :return:
         """
         try:
@@ -148,11 +148,11 @@ class GraphGenerationParams:
     This dataclass is for defining the parameters using in graph generation process
 
     :param adapter: the function for processing of external object that should be optimized
-    :param rules_for_constraint: set of constraints
+    :param rules_for_constraint: collection of constraints
     :param advisor: class of task-specific advices for graph changes
     """
     adapter: BaseOptimizationAdapter = DirectAdapter()
-    rules_for_constraint: Optional[List[Callable]] = None
+    rules_for_constraint: Sequence[Callable] = tuple()
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
 
 

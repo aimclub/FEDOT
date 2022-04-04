@@ -1,47 +1,60 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Type, Optional, Dict
+from typing import Any, Type, Generic, TypeVar, Optional, Dict
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.log import default_log
+from fedot.core.log import default_log, Log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 
 
-class BaseOptimizationAdapter:
-    def __init__(self, base_graph_class: Type, base_node_class: Type, log=None):
-        """
-        Base class for for the optimization adapter
-        """
+AdapteeType = TypeVar('AdapteeType')
+AdapteeNodeType = TypeVar('AdapteeNodeType')
+
+
+class BaseOptimizationAdapter(Generic[AdapteeType, AdapteeNodeType]):
+    def __init__(self,
+                 base_graph_class: Type[AdapteeType],
+                 base_node_class: Type[AdapteeNodeType],
+                 log: Log = None):
         self._log = log if log is not None else default_log('adapter_logger')
         self._base_graph_class = base_graph_class
         self._base_node_class = base_node_class
 
+    def adapt(self, adaptee: AdapteeType) -> OptGraph:
+        if isinstance(adaptee, OptGraph):
+            return adaptee
+        return self._adapt(adaptee)
+
+    def restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> AdapteeType:
+        if isinstance(opt_graph, self._base_graph_class):
+            return opt_graph
+        return self._restore(opt_graph, metadata)
+
     @abstractmethod
-    def adapt(self, adaptee: Any):
+    def _adapt(self, adaptee: AdapteeType) -> OptGraph:
         raise NotImplementedError()
 
     @abstractmethod
-    def restore(self, opt_graph: OptGraph):
+    def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> AdapteeType:
         raise NotImplementedError()
 
-    def restore_as_template(self, opt_graph: OptGraph):
-        return self.restore(opt_graph)
+    def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> AdapteeType:
+        return self.restore(opt_graph, metadata)
 
 
-class DirectAdapter(BaseOptimizationAdapter):
-    def __init__(self, base_graph_class=None, base_node_class=None, log=None):
-        """
-        Optimization adapter for Pipeline class
-        """
-        self.base_node_class = base_node_class if base_node_class else OptNode
-        self.base_graph_class = base_graph_class if base_graph_class else OptGraph
+class DirectAdapter(BaseOptimizationAdapter[AdapteeType, AdapteeNodeType]):
+    """ Naive optimization adapter for arbitrary class that just overwrites __class__. """
 
-        super().__init__(base_graph_class=base_graph_class, base_node_class=base_node_class, log=log)
+    def __init__(self,
+                 base_graph_class: Type[AdapteeType] = None,
+                 base_node_class: Type[AdapteeNodeType] = None,
+                 log: Log = None):
+        super().__init__(base_graph_class or OptGraph, base_node_class or OptNode, log)
 
-    def adapt(self, adaptee: Any):
+    def _adapt(self, adaptee: AdapteeType) -> OptGraph:
         opt_graph = deepcopy(adaptee)
         opt_graph.__class__ = OptGraph
 
@@ -49,22 +62,18 @@ class DirectAdapter(BaseOptimizationAdapter):
             node.__class__ = OptNode
         return opt_graph
 
-    def restore(self, opt_graph: OptGraph):
+    def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> AdapteeType:
         obj = deepcopy(opt_graph)
-        obj.__class__ = self.base_graph_class
+        obj.__class__ = self._base_graph_class
         for node in obj.nodes:
-            node.__class__ = self.base_node_class
+            node.__class__ = self._base_node_class
         return obj
 
-    def restore_as_template(self, opt_graph: OptGraph):
-        return self.restore(opt_graph)
 
+class PipelineAdapter(BaseOptimizationAdapter[Pipeline, Node]):
+    """ Optimization adapter for Pipeline class """
 
-class PipelineAdapter(BaseOptimizationAdapter):
-    def __init__(self, log=None):
-        """
-        Optimization adapter for Pipeline class
-        """
+    def __init__(self, log: Log = None):
         super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
 
     def _transform_to_opt_node(self, node, *args, **params):
@@ -99,7 +108,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
                           operation_type=node.content['name'], content=node.content
                           )
 
-    def adapt(self, adaptee: Pipeline):
+    def _adapt(self, adaptee: Pipeline) -> OptGraph:
         """ Convert Pipeline class into OptGraph class """
         source_pipeline = deepcopy(adaptee)
 
@@ -110,7 +119,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
         graph = OptGraph(source_pipeline.nodes)
         return graph
 
-    def restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> 'Pipeline':
+    def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> Pipeline:
         """ Convert OptGraph class into Pipeline class """
         metadata = metadata or {}
         source_graph = deepcopy(opt_graph)
