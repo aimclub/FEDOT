@@ -14,13 +14,10 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
-    train_num, test_num, train_img, test_img, train_text, test_text = \
-        prepare_multi_modal_data(files_path, task, images_size)
+    data = prepare_multi_modal_data(files_path, task, images_size)
 
-    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
-                                                                                  train_num, test_num,
-                                                                                  train_img, test_img,
-                                                                                  train_text, test_text)
+    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size, data,
+                                                                                  with_split=True)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='model')
@@ -59,7 +56,7 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
         pipeline_evo_composed.show()
 
     prediction = pipeline_evo_composed.predict(predict_data, output_mode='labels')
-    err = calculate_validation_metric(test_text, prediction)
+    err = calculate_validation_metric(predict_data, prediction)
 
     print(f'F1 micro for validation sample is {err}')
     return err

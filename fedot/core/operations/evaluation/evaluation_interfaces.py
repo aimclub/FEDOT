@@ -214,6 +214,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def _sklearn_compatible_prediction(self, trained_operation, features):
         is_multi_output_target = isinstance(trained_operation.classes_, list)
+        # Check if target is multilabel (has 2 or more columns)
         if is_multi_output_target:
             n_classes = len(trained_operation.classes_[0])
         else:

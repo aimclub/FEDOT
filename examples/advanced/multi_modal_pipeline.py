@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 from sklearn.metrics import f1_score as f1
 
@@ -13,7 +14,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 
-def calculate_validation_metric(valid: InputData, pred: OutputData) -> float:
+def calculate_validation_metric(valid: Union[InputData, MultiModalData], pred: OutputData) -> float:
     """
     Calculates F1 score for predicted data
 
@@ -30,15 +31,14 @@ def calculate_validation_metric(valid: InputData, pred: OutputData) -> float:
     return round(err, 2)
 
 
-def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (128, 128), with_split=True) -> tuple:
+def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (128, 128)) -> MultiModalData:
     """
     Imports data from 3 different sources (table, images and text)
 
     :param files_path: path to data
     :param task: task to solve
     :param images_size: the requested size in pixels, as a 2-tuple of (width, height)
-    :param with_split: if True, splits the sample on train/test
-    :return: 6 OutputData objects (2 with table data, 2 with images, 2 with text)
+    :return: MultiModalData object which contains table, text and image data
     """
 
     path = os.path.join(str(fedot_project_root()), files_path)
@@ -49,8 +49,6 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
                                          label='genres', task=task, is_multilabel=True, shuffle=False)
 
     class_labels = data_num.target
-    # train/test ratio
-    ratio = 0.6
 
     img_files_path = f'{files_path}/*.jpeg'
     img_path = os.path.join(str(fedot_project_root()), img_files_path)
@@ -62,44 +60,39 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
                                           label='genres', task=task,
                                           data_type=DataTypesEnum.text, is_multilabel=True, shuffle=False)
 
-    if with_split:
+    data = MultiModalData({
+        'data_source_img': data_img,
+        'data_source_table': data_num,
+        'data_source_text': data_text
+    })
 
-        train_num, test_num = train_test_data_setup(data_num, shuffle_flag=True, split_ratio=ratio)
-        train_img, test_img = train_test_data_setup(data_img, shuffle_flag=True, split_ratio=ratio)
-        train_text, test_text = train_test_data_setup(data_text, shuffle_flag=True, split_ratio=ratio)
-    else:
-
-        train_num, test_num = data_num, data_num
-        train_img, test_img = data_img, data_img
-        train_text, test_text = data_text, data_text
-
-    return train_num, test_num, train_img, test_img, train_text, test_text
+    return data
 
 
 def generate_initial_pipeline_and_data(images_size: tuple,
-                                       train_num: InputData, test_num: InputData,
-                                       train_img: InputData, test_img: InputData,
-                                       train_text: InputData, test_text: InputData) -> tuple:
+                                       data: Union[InputData, MultiModalData],
+                                       with_split=True) -> tuple:
     """
     Generates initial pipeline for data from 3 different sources (table, images and text)
     Each source is the primary node for its subpipeline
 
     :param images_size: the requested size in pixels, as a 2-tuple of (width, height)
-    :param train_num: train sample of table data
-    :param test_num: test sample of table data
-    :param train_img: train sample of image data
-    :param test_img: test sample of image data
-    :param train_text: train sample of text data
-    :param test_text: test sample of text data
+    :param data: multimodal data (from 3 different sources: table, text, image)
+    :param with_split: if True, splits the sample on train/test
     :return: pipeline object, 2 multimodal data objects (fit and predict)
     """
 
+    # Identifying a number of classes for CNN params
+    if data.target.shape[1] > 1:
+        num_classes = data.target.shape[1]
+    else:
+        num_classes = data.num_classes
     # image
-    ds_image = PrimaryNode('data_source_img/1')
+    ds_image = PrimaryNode('data_source_img')
     image_node = SecondaryNode('cnn', nodes_from=[ds_image])
     image_node.custom_params = {'image_shape': (images_size[0], images_size[1], 1),
-                                'architecture': 'simplified',
-                                'num_classes': 5,
+                                'architecture_type': 'simplified',
+                                'num_classes': num_classes,
                                 'epochs': 10,
                                 'batch_size': 16,
                                 'optimizer_parameters': {'loss': "binary_crossentropy",
@@ -108,11 +101,11 @@ def generate_initial_pipeline_and_data(images_size: tuple,
                                 }
 
     # table
-    ds_table = PrimaryNode('data_source_table/2')
+    ds_table = PrimaryNode('data_source_table')
     numeric_node = SecondaryNode('scaling', nodes_from=[ds_table])
 
     # text
-    ds_text = PrimaryNode('data_source_text/3')
+    ds_text = PrimaryNode('data_source_text')
     node_text_clean = SecondaryNode('text_clean', nodes_from=[ds_text])
     text_node = SecondaryNode('tfidf', nodes_from=[node_text_clean])
     text_node.custom_params = {'ngram_range': (1, 3), 'min_df': 0.001, 'max_df': 0.9}
@@ -122,16 +115,12 @@ def generate_initial_pipeline_and_data(images_size: tuple,
     logit_node.custom_params = {'max_iter': 100000, 'random_state': 42}
     pipeline = Pipeline(logit_node)
 
-    fit_data = MultiModalData({
-        'data_source_img/1': train_img,
-        'data_source_table/2': train_num,
-        'data_source_text/3': train_text
-    })
-    predict_data = MultiModalData({
-        'data_source_img/1': test_img,
-        'data_source_table/2': test_num,
-        'data_source_text/3': test_text
-    })
+    # train/test ratio
+    ratio = 0.6
+    if with_split:
+        fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=ratio)
+    else:
+        fit_data, predict_data = data, data
 
     return pipeline, fit_data, predict_data
 
@@ -140,13 +129,10 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=False) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
-    train_num, test_num, train_img, test_img, train_text, test_text = \
-        prepare_multi_modal_data(files_path, task, images_size)
+    data = prepare_multi_modal_data(files_path, task, images_size)
 
-    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size,
-                                                                          train_num, test_num,
-                                                                          train_img, test_img,
-                                                                          train_text, test_text)
+    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size, data,
+                                                                          with_split=True)
 
     pipeline.fit(input_data=fit_data)
 
@@ -155,7 +141,7 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=False) -> float:
 
     prediction = pipeline.predict(predict_data, output_mode='labels')
 
-    err = calculate_validation_metric(test_text, prediction)
+    err = calculate_validation_metric(predict_data, prediction)
 
     print(f'F1 micro for validation sample is {err}')
 

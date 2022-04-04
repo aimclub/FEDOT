@@ -143,7 +143,6 @@ class Data:
 
         return input_data
 
-
     @staticmethod
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
@@ -248,18 +247,19 @@ class Data:
 
         if len(fields_to_use) > 1:
             fields_to_combine = []
-            for f in fields_to_use:
-                fields_to_combine.append(np.array(df_data[f]))
-                if isinstance(df_data[f][0], list):
-                    df_data[f] = [' '.join(v) for v in df_data[f]]
+            for field in fields_to_use:
+                fields_to_combine.append(np.array(df_data[field]))
+                # Unite if the element of text data is divided into strings
+                if isinstance(df_data[field][0], list):
+                    df_data[field] = [' '.join(piece) for piece in df_data[field]]
 
             features = np.column_stack(tuple(fields_to_combine))
         else:
-            val = df_data[fields_to_use[0]]
+            field = df_data[fields_to_use[0]]
             # process field with nested list
-            if isinstance(val[0], list):
-                val = [' '.join(v) for v in val]
-            features = np.array(val)
+            if isinstance(field[0], list):
+                field = [' '.join(piece) for piece in field]
+            features = np.array(field)
 
         if is_multilabel:
             target = df_data[label]

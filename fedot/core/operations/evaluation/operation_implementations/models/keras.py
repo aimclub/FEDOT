@@ -76,7 +76,7 @@ def fit_cnn(train_data: InputData,
         logger = default_log(__name__)
 
     if transform_flag:
-        logger.warn('Train data set was not scaled. The data was divided by 255.')
+        logger.debug('Train data set was not scaled. The data was divided by 255.')
 
     if len(x_train.shape) < 4:
         transformed_x_train = np.expand_dims(x_train, -1)

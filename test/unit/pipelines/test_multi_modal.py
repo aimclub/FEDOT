@@ -69,14 +69,7 @@ def test_multi_modal_pipeline():
     task = Task(TaskTypesEnum.classification)
     images_size = (128, 128)
 
-    train_num, _, train_img, _, train_text, _ = \
-        prepare_multi_modal_data(path, task, images_size, with_split=False)
-
-    fit_data = MultiModalData({
-        'data_source_img': train_img,
-        'data_source_table': train_num,
-        'data_source_text': train_text
-    })
+    fit_data = prepare_multi_modal_data(path, task, images_size)
 
     pipeline.fit(fit_data)
     prediction = pipeline.predict(fit_data)
