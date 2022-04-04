@@ -4,6 +4,7 @@ import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
+from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.validation.compose.metric_estimation import metric_evaluation
 from fedot.core.validation.split import tabular_cv_generator
@@ -12,7 +13,7 @@ from fedot.core.validation.split import tabular_cv_generator
 def table_metric_calculation(reference_data: InputData, cv_folds: int,
                              metrics: [str, Callable], pipeline: Optional[Pipeline],
                              cache: Optional[OperationsCache] = None,
-                             log=None) -> [Tuple[float, ...], None]:
+                             log: Optional[Log] = None) -> [Tuple[float, ...], None]:
     """ Perform cross validation on tabular data for regression and classification tasks
 
     :param reference_data: InputData for validation

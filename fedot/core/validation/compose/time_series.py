@@ -4,6 +4,7 @@ import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
+from fedot.core.log import Log
 from fedot.core.validation.compose.metric_estimation import metric_evaluation
 from fedot.core.validation.split import ts_cv_generator
 
@@ -14,7 +15,7 @@ def ts_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData,
                           metrics: [str, Callable] = None,
                           pipeline=None,
                           cache: Optional[OperationsCache] = None,
-                          log=None) -> [Tuple[float, ...], None]:
+                          log: Optional[Log] = None) -> [Tuple[float, ...], None]:
     """ Determine metric value for time series forecasting pipeline based
     on data for validation
 

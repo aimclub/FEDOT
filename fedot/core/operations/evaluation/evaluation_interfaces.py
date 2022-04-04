@@ -46,7 +46,7 @@ class EvaluationStrategy:
     """
 
     def __init__(self, operation_type: str, params: Optional[dict] = None,
-                 log=None):
+                 log: Optional[Log] = None):
         self.params_for_fit = params
         self.operation_id = operation_type
 
