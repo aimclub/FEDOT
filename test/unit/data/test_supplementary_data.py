@@ -2,15 +2,15 @@ import numpy as np
 import pytest
 
 from fedot.core.data.data import OutputData
-from fedot.core.data.data_merger import DataMerger
-from fedot.core.data.supplementary_data_merger import SupplementaryDataMerger
+from fedot.core.data.merge.data_merger import DataMerger
+from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_regression import get_synthetic_regression_data
-from .test_data_merge import unequal_outputs_table
+from test.unit.data.test_data_merge import unequal_outputs_table
 
 
 @pytest.fixture()

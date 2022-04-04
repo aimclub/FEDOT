@@ -2,11 +2,10 @@ import os
 
 import pandas as pd
 import pytest
-from typing import Tuple, Iterable
 import numpy as np
 
 from fedot.core.data.data import OutputData
-from fedot.core.data.data_merger import DataMerger
+from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root

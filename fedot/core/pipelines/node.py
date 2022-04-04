@@ -2,7 +2,7 @@ from typing import List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_merger import DataMerger
+from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import Log, default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation

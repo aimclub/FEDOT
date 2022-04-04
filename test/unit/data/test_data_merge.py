@@ -1,18 +1,16 @@
 import operator
-from functools import reduce
-from itertools import product, zip_longest, repeat
-from typing import Iterable, List
+from itertools import product, repeat
+from typing import List
 
 import numpy as np
 import pytest
 
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_merger import DataMerger
+from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 

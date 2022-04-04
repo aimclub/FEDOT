@@ -1,7 +1,7 @@
 from typing import List, Iterable, Union
 
 from fedot.core.data.data import OutputData, InputData
-from fedot.core.data.supplementary_data_merger import SupplementaryDataMerger
+from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.array_utilities import *
