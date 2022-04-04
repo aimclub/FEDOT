@@ -77,7 +77,7 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
-                 logger: Log = None):
+                 logger: Optional[Log] = None):
 
         super().__init__(optimiser, composer_requirements, metrics, initial_pipelines, logger)
 

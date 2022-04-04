@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
+from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 
 @dataclass
@@ -60,7 +60,7 @@ class Composer(ABC):
                  composer_requirements: ComposerRequirements,
                  metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
-                 logger: Log = None):
+                 logger: Optional[Log] = None):
         self.metrics = metrics
         self.composer_requirements = composer_requirements
         self.initial_pipelines = initial_pipelines

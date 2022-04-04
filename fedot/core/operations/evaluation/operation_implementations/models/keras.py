@@ -77,7 +77,7 @@ def fit_cnn(train_data: InputData,
             epochs: int = 10,
             batch_size: int = 128,
             optimizer_params: dict = None,
-            logger: Log = None):
+            logger: Optional[Log] = None):
     x_train, y_train = train_data.features, train_data.target
     transformed_x_train, transform_flag = check_input_array(x_train)
 
