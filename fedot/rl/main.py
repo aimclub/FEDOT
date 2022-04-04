@@ -17,9 +17,9 @@ from fedot.rl.pipeline_env import PipelineEnv
 
 GAMMA = 0.99
 
-LEARNING_RATE = 0.003
-ENTROPY_BETA = 0.3
-BATCH_SIZE = 50
+LEARNING_RATE = 0.002
+ENTROPY_BETA = 0.35
+BATCH_SIZE = 128
 NUM_ENVS = 50
 
 REWARD_STEPS = 4
@@ -70,25 +70,25 @@ class RewardTracker:
     def __exit__(self, *args):
         self.writer.close()
 
-    def reward(self, reward, frame, epsilon=None):
+    def reward(self, reward, episode, epsilon=None):
         self.total_rewards.append(reward)
-        speed = (frame - self.ts_frame) / (time.time() - self.ts)
-        self.ts_frame = frame
-        self.ts = time.time()
         mean_reward = np.mean(self.total_rewards[-100:])
         epsilon_str = "" if epsilon is None else ", eps %.2f" % epsilon
-        print("%d: done %d games, mean reward %.3f, speed %.2f f/s%s" % (
-            frame, len(self.total_rewards), mean_reward, speed, epsilon_str
+        print("%d: done %d episode, mean reward %.3f, %s" % (
+            episode, len(self.total_rewards), mean_reward, epsilon_str
         ))
         sys.stdout.flush()
+
         if epsilon is not None:
-            self.writer.add_scalar("epsilon", epsilon, frame)
-        self.writer.add_scalar("speed", speed, frame)
-        self.writer.add_scalar("reward_100", mean_reward, frame)
-        self.writer.add_scalar("reward", reward, frame)
+            self.writer.add_scalar("epsilon", epsilon, episode)
+
+        self.writer.add_scalar("reward_100", mean_reward, episode)
+        self.writer.add_scalar("reward", reward, episode)
+
         if mean_reward > self.stop_reward:
-            print("Solved in %d frames!" % frame)
+            print("Solved in %d frames!" % episode)
             return True
+
         return False
 
 
@@ -104,6 +104,7 @@ def unpack_batch(batch, net, device):
     rewards = []
     not_done_idx = []
     last_states = []
+
     for idx, exp in enumerate(batch):
         states.append(np.array(exp.state, copy=False))
         actions.append(int(exp.action))
@@ -111,8 +112,10 @@ def unpack_batch(batch, net, device):
         if exp.last_state is not None:
             not_done_idx.append(idx)
             last_states.append(np.array(exp.last_state, copy=False))
+
     states_v = torch.FloatTensor(np.array(states, copy=False)).to(device)
     actions_t = torch.LongTensor(actions).to(device)
+
     # handle rewards
     rewards_np = np.array(rewards, dtype=np.float32)
     if not_done_idx:
@@ -129,18 +132,17 @@ if __name__ == '__main__':
     file_path_train = 'cases/data/scoring/scoring_train.csv'
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
-    file_path_test = 'cases/data/scoring/scoring_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+    # make_env = lambda: ptan.common.wrappers.wrap_dqn(
+    #     PipelineEnv(full_path_train))
+    # envs = [make_env() for _ in range(NUM_ENVS)]
+    # in_dim = envs[0].observation_space.shape[0]
+    # out_dim = envs[0].action_space.n
 
-    env = PipelineEnv([full_path_train, full_path_test])
-    # env = gym.make('CartPole-v1')
+    env = PipelineEnv(path_to_data=full_path_train, env_name='train', mode='train')
     in_dim = env.observation_space.shape[0]
     out_dim = env.action_space.n
 
     device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
-
-    # pnet = PolicyGradientNetwork(in_dim, out_dim)
-    # print(pnet)
 
     pnet = A2CRnn(in_dim, out_dim).to(device)
     print(pnet)
@@ -157,9 +159,9 @@ if __name__ == '__main__':
         makedirs(path_to_tbX)
 
     # Save model
-    # path_to_checkpoint = join(default_fedot_data_dir(), 'rl', 'checkpoint')
-    # if not exists(path_to_checkpoint):
-    #     makedirs(path_to_checkpoint)
+    path_to_checkpoint = join(default_fedot_data_dir(), 'rl', 'checkpoint')
+    if not exists(path_to_checkpoint):
+        makedirs(path_to_checkpoint)
 
     tb_writer = SummaryWriter(log_dir=path_to_tbX)
 
@@ -169,12 +171,10 @@ if __name__ == '__main__':
     reward_sum = 0.0
 
     best_mean_rewards = 0
-    # last_reward = 0
-    # same_reward = 0
 
     batch = []
 
-    with RewardTracker(tb_writer, stop_reward=18) as tracker:
+    with RewardTracker(tb_writer, stop_reward=75) as tracker:
         with ptan.common.utils.TBMeanTracker(tb_writer, batch_size=10) as tb_tracker:
             for step_idx, exp in enumerate(exp_source):
                 batch.append(exp)
@@ -229,3 +229,7 @@ if __name__ == '__main__':
                 tb_tracker.track("grad_l2", np.sqrt(np.mean(np.square(grads))), step_idx)
                 tb_tracker.track("grad_max", np.max(np.abs(grads)), step_idx)
                 tb_tracker.track("grad_var", np.var(grads), step_idx)
+
+                if step_idx % 1000:
+                    path_to_checkpoint = join(path_to_checkpoint, f'agent_{step_idx}')
+                    torch.save(pnet.state_dict(), path_to_checkpoint)
