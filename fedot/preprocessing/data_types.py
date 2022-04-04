@@ -1,3 +1,5 @@
+from copy import copy
+
 import numpy as np
 import pandas as pd
 
@@ -44,9 +46,9 @@ class TableTypesCorrector:
         # Is target column contains non-numerical cells during conversion
         self.target_converting_has_errors = False
 
-        # Lists with column types for converting
-        self.features_types = None
-        self.target_types = None
+        # Lists with column types for converting calculated on source input data
+        self.source_features_types = None
+        self.source_target_types = None
         if not log:
             self.log = default_log(__name__)
         else:
@@ -75,19 +77,11 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
-
-        if len(self.string_columns_transformation_failed) > 0:
-            data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
-            # Update information in supplementary info - delete info about deleted columns
-            deleted_elements_number = 0
-            for i in list(self.string_columns_transformation_failed.keys()):
-                index_to_delete = i - deleted_elements_number
-                data.supplementary_data.column_types['features'].pop(index_to_delete)
-                deleted_elements_number += 1
-
         # Save info about features and target types
-        self.features_types = data.supplementary_data.column_types['features']
-        self.target_types = data.supplementary_data.column_types['target']
+        self.source_features_types = copy(data.supplementary_data.column_types['features'])
+        self.source_target_types = copy(data.supplementary_data.column_types['target'])
+
+        self._remove_failed_converting_features(data)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -95,8 +89,8 @@ class TableTypesCorrector:
         # Ordering is important because after removing incorrect features - indices are obsolete
         data.features = data.features.astype(object)
         data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
-        data.features = apply_type_transformation(data.features, self.features_types, self.log)
-        data.target = apply_type_transformation(data.target, self.target_types, self.log)
+        data.features = apply_type_transformation(data.features, self.source_features_types, self.log)
+        data.target = apply_type_transformation(data.target, self.source_target_types, self.log)
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
@@ -104,6 +98,7 @@ class TableTypesCorrector:
         # Convert column types
         self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
+        self._remove_failed_converting_features(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -205,6 +200,17 @@ class TableTypesCorrector:
             target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
+
+    def _remove_failed_converting_features(self, data: 'InputData'):
+        """ Deletes features from the table that failed to convert from one type to another """
+        if len(self.string_columns_transformation_failed) > 0:
+            data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
+            # Update information in supplementary info - delete info about deleted columns
+            deleted_elements_number = 0
+            for i in list(self.string_columns_transformation_failed.keys()):
+                index_to_delete = i - deleted_elements_number
+                data.supplementary_data.column_types['features'].pop(index_to_delete)
+                deleted_elements_number += 1
 
     def _check_columns_vs_types_number(self, table: np.array, column_types: list):
         # Check if columns number correct
@@ -367,7 +373,7 @@ class TableTypesCorrector:
 
         n_rows, n_cols = data.features.shape
         for column_id in range(n_cols):
-            if column_id in self.categorical_into_float:
+            if column_id in self.categorical_into_float and column_id not in self.string_columns_transformation_failed:
                 string_column = pd.Series(data.features[:, column_id])
 
                 # Column must be converted into float from categorical

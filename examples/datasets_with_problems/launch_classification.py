@@ -49,7 +49,7 @@ def run_classification_example(timeout: float = None, take_dataset_percent: floa
 
     starting_time = datetime.datetime.now()
 
-    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, safe_mode=False)
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, safe_mode=True)
     auto_model.fit(input_data, predefined_model='auto')
 
     spend_time = datetime.datetime.now() - starting_time
