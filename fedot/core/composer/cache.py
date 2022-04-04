@@ -1,8 +1,9 @@
-import glob
-import os
 import shelve
+import shutil
 import uuid
+
 from collections import namedtuple
+from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
 from fedot.core.log import default_log
@@ -19,15 +20,23 @@ CachedState = namedtuple('CachedState', 'operation')
 
 class OperationsCache:
     def __init__(self, log=None, db_path=None, clear_exiting=True):
-        self.log = default_log(__name__) if log is None else log
+        self.log = log or default_log(__name__)
+        self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}')
 
-        if not db_path:
-            self.db_path = f'{str(default_fedot_data_dir())}/tmp_{str(uuid.uuid4())}'
-        else:
-            self.db_path = db_path
+        self._utility = dict.fromkeys(['pipelines_loaded', 'nodes_loaded', 'pipelines_passed', 'nodes_passed'], 0)
 
         if clear_exiting:
             self.clear()
+
+    @property
+    def effectiveness(self):
+        pipelines_passed = self._utility['pipelines_passed']
+        nodes_passed = self._utility['nodes_passed']
+
+        return {
+            'pipelines': self._utility['pipelines_loaded'] / pipelines_passed if pipelines_passed else 0.,
+            'nodes': self._utility['nodes_loaded'] / nodes_passed if nodes_passed else 0.
+        }
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
         """
@@ -64,8 +73,10 @@ class OperationsCache:
                     if cached_state is not None:
                         node.fitted_operation = cached_state.operation
                         cache_was_used = True
+                        self._utility['nodes_loaded'] += 1
                     else:
                         node.fitted_operation = None
+                    self._utility['nodes_passed'] += 1
         except Exception as ex:
             self.log.info(f'Cache can not be loaded: {ex}. Continue.')
         finally:
@@ -77,15 +88,23 @@ class OperationsCache:
         :param fold_id: optional part of cache item UID
                             (number of the CV fold)
         """
-        return self.try_load_nodes(pipeline.nodes, fold_id)
+        loaded_before = self._utility['nodes_loaded']
+        did_load_any = self.try_load_nodes(pipeline.nodes, fold_id)
+        loaded_after = self._utility['nodes_loaded']
+
+        if loaded_after - loaded_before == len(pipeline.nodes):
+            self._utility['pipelines_loaded'] += 1
+        self._utility['pipelines_passed'] += 1
+
+        return did_load_any
 
     def clear(self, tmp_only=False):
         if not tmp_only:
             for ext in ['bak', 'dir', 'dat']:
-                if os.path.exists(f'{self.db_path}.{ext}'):
-                    os.remove(f'{self.db_path}.{ext}')
-        folder_path = f'{str(default_fedot_data_dir())}/tmp_*'
-        clear_folder(folder_path)
+                file = Path(f'{self.db_path}.{ext}')
+                if file.exists():
+                    file.unlink()
+        _clear_from_temporaries(default_fedot_data_dir())
 
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None):
@@ -108,8 +127,10 @@ def _load_cache_for_node(cache_shelf: shelve.Shelf, node: Node, fold_id: Optiona
     return cached_state
 
 
-def clear_folder(folder_path: str):
-    """ Delete files from chosen folder """
-    temp_files = glob.glob(folder_path)
-    for file in temp_files:
-        os.remove(file)
+def _clear_from_temporaries(folder_path: str):
+    """ Deletes temporary files from chosen folder """
+    for file in Path(folder_path).glob('tmp_*'):
+        if file.is_dir():
+            shutil.rmtree(file)
+        else:
+            file.unlink()
