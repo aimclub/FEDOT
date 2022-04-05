@@ -1,12 +1,11 @@
 import shelve
 import shutil
 import uuid
-
 from collections import namedtuple
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import Log, SingletonMeta, default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_list
 
@@ -18,10 +17,10 @@ from fedot.core.utils import default_fedot_data_dir
 CachedState = namedtuple('CachedState', 'operation')
 
 
-class OperationsCache:
+class OperationsCache(metaclass=SingletonMeta):
     def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None, clear_exiting=True):
         self.log = log or default_log(__name__)
-        self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}')
+        self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
 
         self._utility = dict.fromkeys(['pipelines_loaded', 'nodes_loaded', 'pipelines_passed', 'nodes_passed'], 0)
 

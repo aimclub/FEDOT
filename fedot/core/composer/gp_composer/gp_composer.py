@@ -82,9 +82,7 @@ class GPComposer(Composer):
         super().__init__(optimiser, composer_requirements, metrics, initial_pipelines, logger)
 
         self.optimiser = optimiser
-        self.cache = OperationsCache(log=logger)
-        self.cache_path = None
-        self.use_existing_cache = False
+        self.cache: Optional[OperationsCache] = None
 
         self.objective_builder = ObjectiveBuilder(metrics,
                                                   self.composer_requirements.max_pipeline_fit_time,
@@ -118,12 +116,29 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for graph composition is not defined')
 
-        if self.cache_path is None:
-            self.cache.clear()
+        # shuffle data if necessary
+        data.shuffle()
+
+        if self.composer_requirements.cv_folds is not None:
+            objective_function_for_pipeline = self._cv_validation_metric_build(data)
         else:
-            self.cache.clear(tmp_only=True)
-            self.cache = OperationsCache(log=self.log, db_path=self.cache_path,
-                                         clear_exiting=not self.use_existing_cache)
+            self.log.info("Hold out validation for graph composing was applied.")
+            split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
+            train_data, test_data = train_test_data_setup(data, split_ratio)
+
+            if RemoteEvaluator().use_remote:
+                init_data_for_remote_execution(train_data)
+
+            objective_function_for_pipeline = partial(self.composer_metric,
+                                                      metrics=self.metrics,
+                                                      train_data=train_data,
+                                                      test_data=test_data)
+
+        if self.cache_path is not None and self.cache_path != self.cache.db_path:
+            self.cache.clear()
+            self.cache.db_path = self.cache_path
+        else:
+            self.cache.clear(tmp_only=self.use_existing_cache)
 
         # shuffle data if necessary
         data.shuffle()
