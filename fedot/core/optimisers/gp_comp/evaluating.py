@@ -13,20 +13,21 @@ def single_evaluating(reversed_individuals):
     evaluated_individuals = []
     num_of_successful_evals = 0
     for ind in reversed_individuals:
-        individual = SimpleNamespace(**ind)
+        individual_context = SimpleNamespace(**ind)
         start_time = timeit.default_timer()
 
-        graph = individual.ind.graph
-        if len(individual.pre_evaluated_objects) > 0:
-            graph = individual.pre_evaluated_objects[individual.ind_num]
-        individual.ind.fitness = calculate_objective(graph, individual.objective_function,
-                                                     individual.is_multi_objective, individual.graph_generation_params)
-        individual.ind.computation_time = timeit.default_timer() - start_time
-        if individual.ind.fitness is not None:
-            evaluated_individuals.append(individual.ind)
+        graph = individual_context.ind.graph
+        if len(individual_context.pre_evaluated_objects) > 0:
+            graph = individual_context.pre_evaluated_objects[individual_context.ind_num]
+        individual_context.ind.fitness = calculate_objective(graph, individual_context.objective_function,
+                                                             individual_context.is_multi_objective,
+                                                             individual_context.graph_generation_params)
+        individual_context.ind.computation_time = timeit.default_timer() - start_time
+        if individual_context.ind.fitness is not None:
+            evaluated_individuals.append(individual_context.ind)
             num_of_successful_evals += 1
-        if individual.timer is not None and num_of_successful_evals > 0:
-            if individual.timer.is_time_limit_reached():
+        if individual_context.timer is not None and num_of_successful_evals > 0:
+            if individual_context.timer.is_time_limit_reached():
                 return evaluated_individuals
     return evaluated_individuals
 
