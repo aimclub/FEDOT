@@ -119,8 +119,9 @@ def correct_pipelines_cnt_check():
                 pipelines_count[enable_caching].append(c_pipelines)
 
                 print((
-                    f'''\tDataset length: {partition}, '''
-                    f'''number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]}'''
+                    f'\tDataset length: {partition}'
+                    f', number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]:.3f}'
+                    f', cache effectiveness: {auto_model.api_composer.cache.effectiveness}'
                 ))
             if not enable_caching:
                 Pipeline.fit_from_cache.__code__ = pipeline_fit_from_cache_orig
@@ -147,14 +148,16 @@ def correct_pipelines_cnt_check():
 
 
 if __name__ == "__main__":
-    checks_dct = {
+    from collections import defaultdict
+
+    checks_dct = defaultdict(lambda: (lambda: print('Wrong option')))
+    checks_dct.update({
         '1': dummy_time_check,
         '2': correct_pipelines_cnt_check
-    }
+    })
     choice_msg = (
         'Type in benchmark option number:\n'
         '[1] dummy fitting time check\n'
         '[2] correct fitted pipelines number check\n'
     )
-    # checks_dct.get(input(choice_msg))()
-    checks_dct.get('1')()
+    checks_dct[input(choice_msg)]()
