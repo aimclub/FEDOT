@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple, Dict
 from uuid import uuid4
 
 import networkx as nx
@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.template import PipelineTemplate
 
 
-def graph_structure_as_nx_graph(structural_graph: 'Graph'):
+def graph_structure_as_nx_graph(structural_graph: Graph) -> Tuple[nx.DiGraph, Dict[uuid4, 'Node']]:
     """ Convert graph into networkx graph object """
     nx_graph = nx.DiGraph()
     node_labels = {}
