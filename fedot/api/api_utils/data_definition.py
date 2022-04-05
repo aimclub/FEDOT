@@ -115,8 +115,6 @@ class CsvStrategy(StrategyDefineData):
                     target: str = None,
                     is_predict: bool = False) -> InputData:
         # CSV files as input data, by default - table data
-        if target is None:
-            target = 'target'
 
         data_type = DataTypesEnum.table
         if ml_task.task_type == TaskTypesEnum.ts_forecasting:

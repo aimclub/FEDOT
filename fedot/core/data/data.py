@@ -428,17 +428,14 @@ def process_target_and_features(data_frame: pd.DataFrame,
         # Take the last column in the table
         target_column = data_frame.columns[-1]
 
-    target = None
-    features_df = data_frame
     if target_column:
-        try:
-            target = atleast_2d(data_frame[target_column].to_numpy())
-            features_df = data_frame.drop(columns=target_column)
-        except KeyError:
-            # TODO: does it make sense to silently allow incorrect target columns names?
-            pass
+        target = atleast_2d(data_frame[target_column].to_numpy())
+        features = data_frame.drop(columns=target_column).to_numpy()
+    else:
+        target = None
+        features = data_frame.to_numpy()
 
-    return features_df.to_numpy(), target
+    return features, target
 
 
 def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
