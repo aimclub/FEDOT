@@ -1,7 +1,6 @@
 import os
 
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES

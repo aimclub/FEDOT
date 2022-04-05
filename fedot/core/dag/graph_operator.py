@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Tuple, Callable, Dict
+from typing import Any, List, Optional, Union, Tuple, Dict
 
 from networkx import set_node_attributes, graph_edit_distance
 

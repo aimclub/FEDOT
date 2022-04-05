@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Union, Optional, Tuple
+from typing import List, Optional
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_operator import GraphOperator
