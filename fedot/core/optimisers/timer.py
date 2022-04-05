@@ -80,3 +80,7 @@ class OptimisationTimer(Timer):
         self.log.info(f'Composition time: {round(self.minutes_from_start, 3)} min')
         if self.process_terminated:
             self.log.info('Algorithm was terminated due to processing time limit')
+
+
+def get_forever_timer() -> Timer:
+    return Timer(timeout=None)

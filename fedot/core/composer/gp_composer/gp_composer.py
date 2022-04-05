@@ -3,7 +3,7 @@ import platform
 from dataclasses import dataclass
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Any, Callable, List, Optional, Tuple, Union, Iterator
+from typing import Any, Callable, List, Optional, Tuple, Union, Iterator, Sequence
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -47,7 +47,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
     :attribute n_jobs: num of n_jobs
-    :attribute collect_intermediate_metric: save intermediate result in nodes
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -57,7 +56,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     start_depth: int = None
     validation_blocks: int = None
     n_jobs: int = 1
-    collect_intermediate_metric: bool = False
 
 
 class GPComposer(Composer):
@@ -69,7 +67,7 @@ class GPComposer(Composer):
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
-    def __init__(self, optimiser=None,
+    def __init__(self, optimiser=None,  # TODO: refactor optimiser late assignment (it's never passed in init)
                  composer_requirements: Optional[PipelineComposerRequirements] = None,
                  metrics: Union[List[MetricsEnum], MetricsEnum] = None,
                  initial_pipelines: Optional[List[Pipeline]] = None,
@@ -89,6 +87,7 @@ class GPComposer(Composer):
         else:
             self.log = logger
 
+    # TODO fix: this method is invalidly overriden: it changes the signature of base method
     def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False,
                          is_tune: bool = False,
                          on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
@@ -96,7 +95,7 @@ class GPComposer(Composer):
         :param data: InputData for pipeline composing
         :param is_visualise: is it needed to visualise
         :param is_tune: is it needed to tune pipeline after composing TODO integrate new tuner
-        :param on_next_iteration_callback: TODO add description
+        :param on_next_iteration_callback: TODO it's never used from calls to composer
         :return best_pipeline: obtained result after composing: one pipeline for single-objective optimization;
             For the multi-objective case, the list of the graph is returned.
             In the list, the pipelines are ordered by the descending of primary metric (the first is the best)
@@ -128,10 +127,7 @@ class GPComposer(Composer):
             if RemoteEvaluator().use_remote:
                 init_data_for_remote_execution(train_data)
 
-            objective_function_for_pipeline = partial(self.composer_metric,
-                                                      metrics=self.metrics,
-                                                      train_data=train_data,
-                                                      test_data=test_data)
+            objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
 
         if self.cache_path is None:
             self.cache.clear()
@@ -164,8 +160,7 @@ class GPComposer(Composer):
         # Only Pipeline parameter is left unfilled in metric function
         metric_function_for_nodes = partial(calc_metrics_for_folds, cv_generator,
                                             validation_blocks=self.composer_requirements.validation_blocks,
-                                            metrics=self.metrics, log=self.log, cache=self.cache,
-                                            num_of_folds=self.composer_requirements.cv_folds)
+                                            metrics=self.metrics, log=self.log, cache=self.cache)
         return metric_function_for_nodes
 
     def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
@@ -177,22 +172,20 @@ class GPComposer(Composer):
                 self.log.info(f'For ts cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
                 self.composer_requirements.validation_blocks = default_validation_blocks
-            cv_generator = partial(ts_cv_generator,
-                                   data=data,
-                                   folds=self.composer_requirements.cv_folds,
-                                   validation_blocks=self.composer_requirements.validation_blocks)
+            cv_generator = partial(ts_cv_generator, data,
+                                   self.composer_requirements.cv_folds,
+                                   self.composer_requirements.validation_blocks,
+                                   self.log)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-            cv_generator = partial(tabular_cv_generator,
-                                   data=data,
-                                   folds=self.composer_requirements.cv_folds)
+            cv_generator = partial(tabular_cv_generator, data,
+                                   self.composer_requirements.cv_folds)
         return cv_generator
 
-    def composer_metric(self,
-                        pipeline: Pipeline,
-                        metrics,
+    def composer_metric(self, metrics: Sequence[Union[Callable, MetricsEnum]],
                         train_data: Union[InputData, MultiModalData],
-                        test_data: Union[InputData, MultiModalData]) -> Optional[Tuple[Any]]:
+                        test_data: Union[InputData, MultiModalData],
+                        pipeline: Pipeline) -> Optional[Sequence[float]]:
         try:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)

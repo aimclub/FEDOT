@@ -9,10 +9,7 @@ import numpy as np
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_operators import (
-    evaluate_individuals,
-    random_graph
-)
+from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
@@ -125,14 +122,6 @@ class GraphOptimiser:
         except Exception as ex:
             self.log.warn(f'Callback was not successful because of {ex}')
 
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
-        evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
-                                                     objective_function=objective_function,
-                                                     graph_generation_params=self.graph_generation_params,
-                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
-        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
-        return individuals_set
-
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
         if is_stopping_needed and self.num_of_gens_without_improvements == self.stopping_after_n_generation:
@@ -154,17 +143,3 @@ class GraphGenerationParams:
     adapter: BaseOptimizationAdapter = DirectAdapter()
     rules_for_constraint: Sequence[Callable] = tuple()
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
-
-
-def correct_if_has_nans(individuals, log):
-    len_before = len(individuals)
-    individuals = [ind for ind in individuals if ind.fitness is not None]
-    len_after = len(individuals)
-
-    if len_after == 0 and len_before != 0:
-        raise ValueError('All evaluations of fitness were unsuccessful.')
-
-    if len_after != len_before:
-        log.info(f'None values were removed from candidates')
-
-    return individuals

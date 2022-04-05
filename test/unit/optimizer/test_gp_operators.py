@@ -14,9 +14,10 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
-from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals, filter_duplicates
+from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations, mutation, \
     reduce_mutation, single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -139,9 +140,8 @@ def test_evaluate_individuals():
     timeout = datetime.timedelta(minutes=0.001)
     params = GraphGenerationParams(adapter=PipelineAdapter(), advisor=PipelineChangeAdvisor())
     with OptimisationTimer(timeout=timeout) as t:
-        evaluated = evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
-                                         graph_generation_params=params,
-                                         is_multi_objective=False, timer=t)
+        evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
+        evaluated = evaluator(population)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
     assert evaluated[0].metadata['computation_time_in_seconds'] is not None
@@ -149,9 +149,8 @@ def test_evaluate_individuals():
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
-        evaluated = evaluate_individuals(individuals_set=population, objective_function=metric_function_for_nodes,
-                                         graph_generation_params=params,
-                                         is_multi_objective=False, timer=t)
+        evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
+        evaluated = evaluator(population)
     assert len(evaluated) == 4
     assert all([ind.fitness is not None for ind in evaluated])
 
