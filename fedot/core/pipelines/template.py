@@ -3,7 +3,7 @@ import os
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union, Dict, Any
 from uuid import uuid4
 
 import joblib
@@ -41,7 +41,7 @@ class PipelineTemplate:
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
         self.unique_pipeline_id = str(uuid4())
-        self.metadata = {}
+        self.metadata: Dict[str, Any] = {}
         if pipeline is not None:
             self.depth = pipeline.depth
             self.metadata['computation_time'] = pipeline.computation_time
