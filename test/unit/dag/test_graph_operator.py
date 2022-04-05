@@ -5,9 +5,10 @@ from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
-def get_pipeline() -> 'Pipeline':
+def get_pipeline() -> Pipeline:
     third_level_one = PrimaryNode('lda')
 
     second_level_one = SecondaryNode('qda', nodes_from=[third_level_one])
@@ -113,31 +114,25 @@ def test_distance_to_same_pipeline_restored():
 
 
 def test_known_distances():
-    # given
-    pipeline1 = get_pipeline()
-    pipeline2 = get_pipeline()
-    pipeline3 = get_pipeline()
-    pipeline4 = get_pipeline()
+    node_scaling = PrimaryNode('scaling')
+    node_xgboost = SecondaryNode('xgboost')
+    node_knn = SecondaryNode('knn', nodes_from=[node_scaling])
+    node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
+    node_knn_alternate_params = SecondaryNode('knn', nodes_from=[node_scaling])
+    node_knn_alternate_params.custom_params = {'mectric': 'euclidean'}
 
-    pipeline2.add_node(SecondaryNode('dtreg', nodes_from=[pipeline2.root_node]))  # add extra node and edge
-    pipeline3.update_node(pipeline3.nodes[-1], PrimaryNode('scaling'))  # replace one node
-    pipeline4.nodes[-1].custom_params = {'n_jobs': -1}  # change params of one node
+    pipeline_scaling = PipelineBuilder(node_scaling).to_pipeline()  # scaling
+    pipeline_xgboost = PipelineBuilder(node_xgboost).to_pipeline()  # xgboost
+    pipeline_knn = PipelineBuilder(node_knn).to_pipeline()  # scaling -> knn
+    pipeline_linear = PipelineBuilder(node_linear).to_pipeline()  # scaling -> linear
+    pipeline_knn_alternate_params = PipelineBuilder(node_knn_alternate_params).to_pipeline() # scaling -> knn_alternate
 
-    # when
-    distance1 = pipeline1.operator.distance_to_other(pipeline1)
-    distance2 = pipeline1.operator.distance_to_other(pipeline2)
-    distance3 = pipeline1.operator.distance_to_other(pipeline3)
-    distance4 = pipeline1.operator.distance_to_other(pipeline4)
-    distance5 = pipeline2.operator.distance_to_other(pipeline3)
-    distance6 = pipeline3.operator.distance_to_other(pipeline4)
-
-    # then
-    assert int(distance1) == 0  # the same pipeline
-    assert int(distance2) == 2  # changes: 1 node (operation) + 1 edge
-    assert int(distance3) == 1  # changes: 1 node (operation)
-    assert int(distance4) == 1  # changes: 1 node (params)
-    assert int(distance5) == 3  # changes: 2 nodes (operations) + 1 edge
-    assert int(distance6) == 1  # changes: 1 node (operation + params)
+    assert int(pipeline_knn.operator.distance_to_other(pipeline_knn)) == 0  # the same pipeline
+    assert int(pipeline_knn.operator.distance_to_other(pipeline_scaling)) == 2  # changes: 1 node (operation) + 1 edge
+    assert int(pipeline_knn.operator.distance_to_other(pipeline_linear)) == 1  # changes: 1 node (operation)
+    assert int(pipeline_knn.operator.distance_to_other(pipeline_knn_alternate_params)) == 1  # changes: 1 node (params)
+    assert int(pipeline_knn.operator.distance_to_other(pipeline_xgboost)) == 3  # changes: 2 nodes (operations) + 1 edge
+    assert int(pipeline_linear.operator.distance_to_other(pipeline_knn_alternate_params)) == 1  # ch: operation + params
 
 
 # ------------------------------------------------------------------------------
