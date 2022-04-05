@@ -110,9 +110,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
 
     def restore(self, opt_graph: OptGraph, metadata: Optional[dict] = None) -> 'Pipeline':
         """ Convert OptGraph class into Pipeline class """
-        if metadata is None:
-            metadata = {}
-
+        metadata = metadata or {}
         source_graph = deepcopy(opt_graph)
 
         # Inverse transformation since root node
@@ -124,8 +122,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[dict] = None):
-        if metadata is None:
-            metadata = {}
+        metadata = metadata or {}
         pipeline = self.restore(opt_graph, metadata)
         tmp = PipelineTemplate(pipeline)
         return tmp
