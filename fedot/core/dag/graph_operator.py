@@ -232,8 +232,6 @@ class GraphOperator:
             node1: GraphNode
             node2: GraphNode
             node1, node2 = (node_data.get('node') for node_data in (node_data1, node_data2))
-            # node1: GraphNode = node_data1.get('node')
-            # node2: GraphNode = node_data2.get('node')
 
             is_operation_match = str(node1) == str(node2)
             is_params_match = node1.content.get('params') == node2.content.get('params')
