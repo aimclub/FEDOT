@@ -33,8 +33,8 @@ class OperationsCache(metaclass=SingletonMeta):
         nodes_passed = self._utility['nodes_passed']
 
         return {
-            'pipelines': self._utility['pipelines_loaded'] / pipelines_passed if pipelines_passed else 0.,
-            'nodes': self._utility['nodes_loaded'] / nodes_passed if nodes_passed else 0.
+            'pipelines': round(self._utility['pipelines_loaded'] / pipelines_passed, 3) if pipelines_passed else 0.,
+            'nodes': round(self._utility['nodes_loaded'] / nodes_passed, 3) if nodes_passed else 0.
         }
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
