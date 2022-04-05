@@ -2,6 +2,7 @@ import shelve
 import shutil
 import uuid
 from collections import namedtuple
+from multiprocessing import RLock
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -18,6 +19,8 @@ CachedState = namedtuple('CachedState', 'operation')
 
 
 class OperationsCache(metaclass=SingletonMeta):
+    _rlock = RLock()
+
     def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None, clear_exiting=True):
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
@@ -43,12 +46,13 @@ class OperationsCache(metaclass=SingletonMeta):
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
-        try:
-            with shelve.open(self.db_path) as cache:
-                for node in ensure_list(nodes):
-                    _save_cache_for_node(cache, node, fold_id)
-        except Exception as ex:
-            self.log.info(f'Nodes can not be saved: {ex}. Continue')
+        with OperationsCache._rlock:
+            try:
+                with shelve.open(self.db_path) as cache:
+                    for node in ensure_list(nodes):
+                        _save_cache_for_node(cache, node, fold_id)
+            except Exception as ex:
+                self.log.info(f'Nodes can not be saved: {ex}. Continue')
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -64,22 +68,23 @@ class OperationsCache(metaclass=SingletonMeta):
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
-        cache_was_used = False
-        try:
-            with shelve.open(self.db_path) as cache:
-                for node in ensure_list(nodes):
-                    cached_state = _load_cache_for_node(cache, node, fold_id)
-                    if cached_state is not None:
-                        node.fitted_operation = cached_state.operation
-                        cache_was_used = True
-                        self._utility['nodes_loaded'] += 1
-                    else:
-                        node.fitted_operation = None
-                    self._utility['nodes_passed'] += 1
-        except Exception as ex:
-            self.log.info(f'Cache can not be loaded: {ex}. Continue.')
-        finally:
-            return cache_was_used
+        with OperationsCache._rlock:
+            cache_was_used = False
+            try:
+                with shelve.open(self.db_path) as cache:
+                    for node in ensure_list(nodes):
+                        cached_state = _load_cache_for_node(cache, node, fold_id)
+                        if cached_state is not None:
+                            node.fitted_operation = cached_state.operation
+                            cache_was_used = True
+                            self._utility['nodes_loaded'] += 1
+                        else:
+                            node.fitted_operation = None
+                        self._utility['nodes_passed'] += 1
+            except Exception as ex:
+                self.log.info(f'Cache can not be loaded: {ex}. Continue.')
+            finally:
+                return cache_was_used
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -87,15 +92,16 @@ class OperationsCache(metaclass=SingletonMeta):
         :param fold_id: optional part of cache item UID
                             (number of the CV fold)
         """
-        loaded_before = self._utility['nodes_loaded']
-        did_load_any = self.try_load_nodes(pipeline.nodes, fold_id)
-        loaded_after = self._utility['nodes_loaded']
+        with OperationsCache._rlock:
+            loaded_before = self._utility['nodes_loaded']
+            did_load_any = self.try_load_nodes(pipeline.nodes, fold_id)
+            loaded_after = self._utility['nodes_loaded']
 
-        if loaded_after - loaded_before == len(pipeline.nodes):
-            self._utility['pipelines_loaded'] += 1
-        self._utility['pipelines_passed'] += 1
+            if loaded_after - loaded_before == len(pipeline.nodes):
+                self._utility['pipelines_loaded'] += 1
+            self._utility['pipelines_passed'] += 1
 
-        return did_load_any
+            return did_load_any
 
     def clear(self, tmp_only=False):
         if not tmp_only:
