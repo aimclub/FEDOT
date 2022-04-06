@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Type, Optional
+from typing import Any, Type, Optional, Dict
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import default_log
@@ -108,7 +108,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
         graph = OptGraph(source_pipeline.nodes)
         return graph
 
-    def restore(self, opt_graph: OptGraph, metadata: Optional[dict] = None) -> 'Pipeline':
+    def restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> 'Pipeline':
         """ Convert OptGraph class into Pipeline class """
         metadata = metadata or {}
         source_graph = deepcopy(opt_graph)
@@ -121,7 +121,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
         pipeline.computation_time = metadata.get('computation_time')
         return pipeline
 
-    def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[dict] = None):
+    def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None):
         metadata = metadata or {}
         pipeline = self.restore(opt_graph, metadata)
         tmp = PipelineTemplate(pipeline)
