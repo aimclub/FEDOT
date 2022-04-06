@@ -1,4 +1,7 @@
 import datetime
+
+from sklearn.metrics import f1_score
+
 from examples.advanced.multi_modal_pipeline import calculate_validation_metric, \
     generate_initial_pipeline_and_data, prepare_multi_modal_data
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -7,6 +10,7 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -49,13 +53,20 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=fit_data,
                                                       is_visualise=True)
+    pipeline_evo_composed.print_structure()
 
-    pipeline_evo_composed.fit(input_data=fit_data)
+    # tuning of the composed pipeline
+    pipeline_tuner = PipelineTuner(pipeline=pipeline_evo_composed, task=task, iterations=15)
+    tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=fit_data,
+                                                  loss_function=f1_score,
+                                                  loss_params={'average': 'micro'})
+    tuned_pipeline.print_structure()
+    tuned_pipeline.fit(input_data=fit_data)
 
     if is_visualise:
-        pipeline_evo_composed.show()
+        tuned_pipeline.show()
 
-    prediction = pipeline_evo_composed.predict(predict_data, output_mode='labels')
+    prediction = tuned_pipeline.predict(predict_data, output_mode='labels')
     err = calculate_validation_metric(predict_data, prediction)
 
     print(f'F1 micro for validation sample is {err}')

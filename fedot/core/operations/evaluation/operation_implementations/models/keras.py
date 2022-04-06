@@ -32,7 +32,7 @@ def create_deep_cnn(input_shape: tuple,
                     num_classes: int):
     model = tf.keras.Sequential(
         [
-            tf.keras.Input(shape=input_shape),
+            tf.keras.layers.InputLayer(input_shape=input_shape),
             tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
             tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
             tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
@@ -51,7 +51,7 @@ def create_simple_cnn(input_shape: tuple,
                       num_classes: int):
     model = tf.keras.Sequential(
         [
-            tf.keras.Input(shape=input_shape),
+            tf.keras.layers.InputLayer(input_shape=input_shape),
             tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
             tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
             tf.keras.layers.Flatten(),
