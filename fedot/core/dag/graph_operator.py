@@ -228,7 +228,7 @@ class GraphOperator:
                     edges.append((parent_node, node))
         return edges
 
-    def distance_to_other(self, other_graph: 'Graph') -> float:
+    def distance_to(self, other_graph: 'Graph') -> int:
         def node_match(node_data1: Dict[str, GraphNode], node_data2: Dict[str, GraphNode]) -> bool:
             node1: GraphNode
             node2: GraphNode
@@ -247,4 +247,4 @@ class GraphOperator:
             set_node_attributes(graph, nodes, name='node')
 
         distance = graph_edit_distance(graph1, graph2, node_match=node_match)
-        return distance
+        return int(distance)
