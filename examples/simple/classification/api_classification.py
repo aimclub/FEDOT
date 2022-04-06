@@ -8,18 +8,18 @@ def run_classification_example(timeout: float = None):
 
     problem = 'classification'
 
-    baseline_model = Fedot(problem=problem, timeout=timeout)
-    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
-
-    baseline_model.predict(features=test_data_path)
-    print(baseline_model.get_metrics())
+    # baseline_model = Fedot(problem=problem, timeout=timeout)
+    # baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
+    #
+    # baseline_model.predict(features=test_data_path)
+    # print(baseline_model.get_metrics())
 
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout)
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
     auto_model.plot_prediction()
-
+    auto_model.history.save('history.json')
     return prediction
 
 
