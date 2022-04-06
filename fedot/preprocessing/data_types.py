@@ -47,8 +47,8 @@ class TableTypesCorrector:
         self.target_converting_has_errors = False
 
         # Lists with column types for converting calculated on source input data
-        self.source_features_types = None
-        self.source_target_types = None
+        self.features_types = None
+        self.target_types = None
         if not log:
             self.log = default_log(__name__)
         else:
@@ -78,8 +78,8 @@ class TableTypesCorrector:
         self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
         # Save info about features and target types
-        self.source_features_types = copy(data.supplementary_data.column_types['features'])
-        self.source_target_types = copy(data.supplementary_data.column_types['target'])
+        self.features_types = copy(data.supplementary_data.column_types['features'])
+        self.target_types = copy(data.supplementary_data.column_types['target'])
 
         self._remove_failed_converting_features(data)
         return data
@@ -89,8 +89,8 @@ class TableTypesCorrector:
         # Ordering is important because after removing incorrect features - indices are obsolete
         data.features = data.features.astype(object)
         data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
-        data.features = apply_type_transformation(data.features, self.source_features_types, self.log)
-        data.target = apply_type_transformation(data.target, self.source_target_types, self.log)
+        data.features = apply_type_transformation(data.features, self.features_types, self.log)
+        data.target = apply_type_transformation(data.target, self.target_types, self.log)
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
