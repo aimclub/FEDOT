@@ -177,7 +177,7 @@ def multiprocessing_check():
             'problem': problem, 'seed': 42, 'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
             'verbose_level': -1
         }
-        timeouts = [1, 2]
+        timeouts = [1, 2, 3, 4, 5]
         for _n_jobs in [1, n_jobs]:
             print(f'Processes used: {_n_jobs}')
             for timeout in timeouts:
@@ -198,10 +198,7 @@ def multiprocessing_check():
                     f', cache effectiveness: {auto_model.api_composer.cache.effectiveness}'
                 ))
                 # manual cache cleanup, TODO: make it more laconic
-                auto_model.api_composer.cache._utility = dict.fromkeys(
-                    auto_model.api_composer.cache._utility.keys(), 0
-                )
-                auto_model.api_composer.cache.clear()
+                auto_model.api_composer.cache.reset()
 
         plt.title('Cache performance')
         plt.xlabel('rows in train dataset')

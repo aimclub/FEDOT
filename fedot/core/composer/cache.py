@@ -2,7 +2,7 @@ import shelve
 import shutil
 import uuid
 from collections import namedtuple
-from multiprocessing import RLock
+from multiprocessing import RLock, Manager
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, Union
 
@@ -25,10 +25,17 @@ class OperationsCache(metaclass=SingletonMeta):
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
 
-        self._utility = dict.fromkeys(['pipelines_loaded', 'nodes_loaded', 'pipelines_passed', 'nodes_passed'], 0)
+        self._utility = Manager().dict(
+            dict.fromkeys(['pipelines_loaded', 'nodes_loaded', 'pipelines_passed', 'nodes_passed'], 0)
+        )
 
         if clear_exiting:
             self.clear()
+
+    def reset(self):
+        for k in self._utility:
+            self._utility[k] = 0
+        self.clear()
 
     @property
     def effectiveness(self):
