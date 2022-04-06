@@ -1,7 +1,6 @@
 from copy import deepcopy
 from typing import Any, List, Optional, Union, Tuple, Dict
 
-import networkx as nx
 from networkx import set_node_attributes, graph_edit_distance
 
 from fedot.core.dag.graph_node import GraphNode
@@ -229,22 +228,20 @@ class GraphOperator:
         return edges
 
     def distance_to(self, other_graph: 'Graph') -> int:
-        def node_match(node_data1: Dict[str, GraphNode], node_data2: Dict[str, GraphNode]) -> bool:
-            node1: GraphNode
-            node2: GraphNode
-            node1, node2 = (node_data.get('node') for node_data in (node_data1, node_data2))
+        def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
+            node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
 
-            is_operation_match = str(node1) == str(node2)
-            is_params_match = node1.content.get('params') == node2.content.get('params')
+            is_operation_match = str(node_1) == str(node_2)
+            is_params_match = node_1.content.get('params') == node_2.content.get('params')
             is_match = is_operation_match and is_params_match
             return is_match
 
-        graph1: nx.DiGraph
-        graph2: nx.DiGraph
-        graph1, nodes1, graph2, nodes2 = (_ for graph in (self._graph, other_graph)
-                                          for _ in graph_structure_as_nx_graph(graph))
-        for graph, nodes in ((graph1, nodes1), (graph2, nodes2)):
-            set_node_attributes(graph, nodes, name='node')
+        graphs = (self._graph, other_graph)
+        nx_graphs = []
+        for graph in graphs:
+            nx_graph, nodes = graph_structure_as_nx_graph(graph)
+            set_node_attributes(nx_graph, nodes, name='node')
+            nx_graphs.append(nx_graph)
 
-        distance = graph_edit_distance(graph1, graph2, node_match=node_match)
+        distance = graph_edit_distance(*nx_graphs, node_match=node_match)
         return int(distance)
