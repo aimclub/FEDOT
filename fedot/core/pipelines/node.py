@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
@@ -10,6 +11,9 @@ from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+
+
+
 
 
 class Node(GraphNode):
@@ -31,7 +35,6 @@ class Node(GraphNode):
         if passed_content:
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
-
             default_params = get_default_params(operation.operation_type)
             if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
                 # Replace 'default_params' with params from json file
@@ -39,18 +42,21 @@ class Node(GraphNode):
             else:
                 # Store passed
                 default_params = passed_content['params']
+
+            self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
             # There is no content for node
             operation = self._process_direct_init(operation_type)
 
             # Define operation with default parameters
             default_params = get_default_params(operation.operation_type)
-
+            self.metadata = NodeMetadata()
         if not default_params:
             default_params = DEFAULT_PARAMS_STUB
 
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
+
 
         # Create Node with default content
         super().__init__(content={'name': operation,
@@ -412,3 +418,8 @@ def _combine_parents(parent_nodes: List[Node],
 def get_default_params(model_name: str):
     with DefaultOperationParamsRepository() as default_params_repo:
         return default_params_repo.get_default_params_for_operation(model_name)
+
+
+@dataclass
+class NodeMetadata:
+    metric: float = None
