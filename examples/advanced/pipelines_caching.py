@@ -208,8 +208,8 @@ def multiprocessing_check():
         plt.scatter(timeouts, pipelines_count[1], c=times[1],
                     cmap=cm.get_cmap('cool'), zorder=2)
 
-        plt.plot(timeouts, pipelines_count[_n_jobs], label=f'without caching', zorder=1)
-        plt.scatter(timeouts, pipelines_count[_n_jobs], c=times[_n_jobs],
+        plt.plot(timeouts, pipelines_count[n_jobs], label=f'without caching', zorder=1)
+        plt.scatter(timeouts, pipelines_count[n_jobs], c=times[n_jobs],
                     cmap=cm.get_cmap('cool'), zorder=2)
         cb = plt.colorbar(cm.ScalarMappable(cmap=cm.get_cmap('cool')))
         cb.ax.set_ylabel('time for optimization in minutes', rotation=90)
