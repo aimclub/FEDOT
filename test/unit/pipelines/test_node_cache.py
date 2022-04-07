@@ -3,6 +3,7 @@ import os
 
 import numpy as np
 import pytest
+from sklearn.datasets import load_breast_cancer
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
@@ -11,7 +12,6 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from sklearn.datasets import load_breast_cancer
 
 
 @pytest.fixture()
@@ -42,6 +42,11 @@ def data_setup():
                           idx=np.arange(0, len(test_data_y)),
                           task=task, data_type=DataTypesEnum.table)
     return train_data, test_data
+
+
+@pytest.fixture
+def cache_cleanup():
+    OperationsCache().reset()
 
 
 def create_func_delete_files(paths):
@@ -158,7 +163,7 @@ def pipeline_fifth():
     return pipeline
 
 
-def test_cache_actuality_after_model_change(data_setup):
+def test_cache_actuality_after_model_change(data_setup, cache_cleanup):
     """The non-affected nodes has actual cache after changing the model"""
 
     cache = OperationsCache()
@@ -184,7 +189,7 @@ def test_cache_actuality_after_model_change(data_setup):
     assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
 
-def test_cache_actuality_after_subtree_change_to_identical(data_setup):
+def test_cache_actuality_after_subtree_change_to_identical(data_setup, cache_cleanup):
     """The non-affected nodes has actual cache after changing the subtree to other pre-fitted subtree"""
     cache = OperationsCache()
     train, _ = data_setup
@@ -208,7 +213,7 @@ def test_cache_actuality_after_subtree_change_to_identical(data_setup):
     assert pipeline.root_node.fitted_operation is None
 
 
-def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
+def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup, cache_cleanup):
     """ The non-affected nodes has actual cache after changing the primary node to pre-fitted subtree"""
     cache = OperationsCache()
     train, _ = data_setup
@@ -233,7 +238,7 @@ def test_cache_actuality_after_primary_node_changed_to_subtree(data_setup):
     assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
 
-def test_cache_historical_state_using_with_cv(data_setup):
+def test_cache_historical_state_using_with_cv(data_setup, cache_cleanup):
     cv_fold = 1
     cache = OperationsCache()
     train, _ = data_setup
@@ -267,7 +272,7 @@ def test_cache_historical_state_using_with_cv(data_setup):
     assert pipeline.root_node.fitted_operation is not None
 
 
-def test_multi_pipeline_caching_with_cache(data_setup):
+def test_multi_pipeline_caching_with_cache(data_setup, cache_cleanup):
     train, _ = data_setup
     cache = OperationsCache()
 
@@ -291,7 +296,7 @@ def test_multi_pipeline_caching_with_cache(data_setup):
     assert all(node.fitted_operation is None for node in nodes_with_non_actual_cache)
 
     # check the same case with another pipelines
-    cache = OperationsCache()
+    cache.reset()
 
     main_pipeline = pipeline_fourth()
 

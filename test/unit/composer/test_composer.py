@@ -10,6 +10,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.constraint import constraint_function
@@ -280,9 +281,10 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache()
+        quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache(OperationsCache())
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose, is_visualise=True)
+
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)
     new_pipeline = pipeline_first()
