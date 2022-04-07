@@ -1,5 +1,7 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Tuple
+from typing import Any, List, Optional, Union, Tuple, Dict
+
+from networkx import set_node_attributes, graph_edit_distance
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -224,3 +226,22 @@ class GraphOperator:
                 for parent_node in node.nodes_from:
                     edges.append((parent_node, node))
         return edges
+
+    def distance_to(self, other_graph: 'Graph') -> int:
+        def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
+            node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
+
+            is_operation_match = str(node_1) == str(node_2)
+            is_params_match = node_1.content.get('params') == node_2.content.get('params')
+            is_match = is_operation_match and is_params_match
+            return is_match
+
+        graphs = (self._graph, other_graph)
+        nx_graphs = []
+        for graph in graphs:
+            nx_graph, nodes = graph_structure_as_nx_graph(graph)
+            set_node_attributes(nx_graph, nodes, name='node')
+            nx_graphs.append(nx_graph)
+
+        distance = graph_edit_distance(*nx_graphs, node_match=node_match)
+        return int(distance)

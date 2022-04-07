@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Type
+from typing import Any, Type, Optional, Dict
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import default_log
@@ -108,8 +108,9 @@ class PipelineAdapter(BaseOptimizationAdapter):
         graph = OptGraph(source_pipeline.nodes)
         return graph
 
-    def restore(self, opt_graph: OptGraph, computation_time=None):
+    def restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> 'Pipeline':
         """ Convert OptGraph class into Pipeline class """
+        metadata = metadata or {}
         source_graph = deepcopy(opt_graph)
 
         # Inverse transformation since root node
@@ -117,11 +118,12 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
-        pipeline.computation_time = computation_time
+        pipeline.computation_time = metadata.get('computation_time')
         return pipeline
 
-    def restore_as_template(self, opt_graph: OptGraph, computation_time=None):
-        pipeline = self.restore(opt_graph, computation_time)
+    def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None):
+        metadata = metadata or {}
+        pipeline = self.restore(opt_graph, metadata)
         tmp = PipelineTemplate(pipeline)
         return tmp
 

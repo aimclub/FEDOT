@@ -22,7 +22,7 @@ def single_evaluating(reversed_individuals):
         individual_context.ind.fitness = calculate_objective(graph, individual_context.objective_function,
                                                              individual_context.is_multi_objective,
                                                              individual_context.graph_generation_params)
-        individual_context.ind.computation_time = timeit.default_timer() - start_time
+        individual_context.metadata = {'computation_time': timeit.default_timer() - start_time}
         if individual_context.ind.fitness is not None:
             evaluated_individuals.append(individual_context.ind)
             num_of_successful_evals += 1
@@ -76,7 +76,7 @@ def individual_evaluation(individual: Dict) -> Union[Individual, None]:
     replace_n_jobs_in_nodes(graph)
     individual_.ind.fitness = calculate_objective(graph, individual_.objective_function,
                                                   individual_.is_multi_objective, individual_.graph_generation_params)
-    individual_.ind.computation_time = timeit.default_timer() - start_time
+    individual_.ind.metadata['computation_time'] = timeit.default_timer() - start_time
     return individual_.ind
 
 

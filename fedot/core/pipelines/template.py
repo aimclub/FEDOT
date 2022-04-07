@@ -3,7 +3,7 @@ import os
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union, Dict, Any
 from uuid import uuid4
 
 import joblib
@@ -41,19 +41,16 @@ class PipelineTemplate:
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
         self.unique_pipeline_id = str(uuid4())
+        self.metadata: Dict[str, Any] = {}
         if pipeline is not None:
             self.depth = pipeline.depth
+            self.metadata['computation_time'] = pipeline.computation_time
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
             self.data_preprocessor = None
-
-        try:
-            self.computation_time = pipeline.computation_time
-        except AttributeError:
-            self.computation_time = None
 
         if not log:
             self.log = default_log(__name__)
