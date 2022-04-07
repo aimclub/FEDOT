@@ -4,7 +4,7 @@ import uuid
 from collections import namedtuple
 from multiprocessing import RLock, Manager
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union, Type
 
 from fedot.core.log import Log, SingletonMeta, default_log
 from fedot.core.pipelines.node import Node
@@ -69,7 +69,7 @@ class OperationsCache(metaclass=SingletonMeta):
         """
         self.save_nodes(pipeline.nodes, fold_id)
 
-    def try_load_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
+    def try_load_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None) -> bool:
         """
         :param nodes: nodes which fitted state should be loaded from cache
         :param fold_id: optional part of cache item UID
@@ -93,7 +93,7 @@ class OperationsCache(metaclass=SingletonMeta):
             finally:
                 return cache_was_used
 
-    def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
+    def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None) -> bool:
         """
         :param pipeline: pipeline for loading cache into
         :param fold_id: optional part of cache item UID
@@ -119,20 +119,21 @@ class OperationsCache(metaclass=SingletonMeta):
         _clear_from_temporaries(default_fedot_data_dir())
 
 
-def _get_structural_id(node: Node, fold_id: Optional[int] = None):
+def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
     structural_id = node.descriptive_id
     structural_id += f'_{fold_id}' if fold_id is not None else ''
     return structural_id
 
 
 def _save_cache_for_node(cache_shelf: shelve.Shelf, node: Node, fold_id: Optional[int] = None):
-    cached_state = CachedState(node.fitted_operation)
-    if cached_state.operation is not None:
+    if node.fitted_operation is not None:
+        cached_state = CachedState(node.fitted_operation)
         structural_id = _get_structural_id(node, fold_id)
         cache_shelf[structural_id] = cached_state
 
 
-def _load_cache_for_node(cache_shelf: shelve.Shelf, node: Node, fold_id: Optional[int] = None):
+def _load_cache_for_node(cache_shelf: shelve.Shelf,
+                         node: Node, fold_id: Optional[int] = None) -> Optional[Type[CachedState]]:
     structural_id = _get_structural_id(node, fold_id)
     cached_state = cache_shelf.get(structural_id, None)
 
