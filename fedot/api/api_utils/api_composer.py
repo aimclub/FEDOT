@@ -1,6 +1,7 @@
 import datetime
 import gc
 import traceback
+from multiprocessing import Manager
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import numpy as np
@@ -46,7 +47,7 @@ class ApiComposer:
         self.current_model = None
         self.best_models = None
         self.history = None
-        self.cache = OperationsCache()
+        self.cache = None
 
         self.preset_name = None
         self.timer = None
@@ -126,7 +127,7 @@ class ApiComposer:
             .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters) \
             .with_metrics(metric_function) \
             .with_logger(logger) \
-            .with_cache(self.cache.db_path, use_existing=True)
+            .with_cache(self.cache)
 
         if initial_assumption is None:
             initial_pipelines = AssumptionsBuilder.get(task, data).build()
@@ -206,6 +207,12 @@ class ApiComposer:
         # Initialize timer for all AutoMl operations
         self.timer = ApiTime(time_for_automl=api_params['timeout'],
                              with_tuning=tuning_params['with_tuning'])
+
+        if api_params['should_use_cache']:  # TODO: maybe should do it somewhere else?
+            if api_params['n_jobs'] != 1:
+                self.cache = OperationsCache(manager=Manager())
+            else:
+                self.cache = OperationsCache()
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
 
@@ -396,7 +403,7 @@ class ApiComposer:
 
 def fit_and_check_correctness(pipeline: Pipeline,
                               data: Union[InputData, MultiModalData],
-                              logger: Log, cache: OperationsCache, n_jobs=1):
+                              logger: Log, cache: Optional[OperationsCache] = None, n_jobs=1):
     """ Test is initial pipeline can be fitted on presented data and give predictions """
     try:
         _, data_test = train_test_data_setup(data)
@@ -405,7 +412,8 @@ def fit_and_check_correctness(pipeline: Pipeline,
         logger.message('Initial pipeline fitting started')
 
         pipeline.fit(data, n_jobs=n_jobs)
-        cache.save_pipeline(pipeline)
+        if cache is not None:
+            cache.save_pipeline(pipeline)
         pipeline.predict(data_test)
 
         fit_time = datetime.datetime.now() - start_init_fit
@@ -425,7 +433,8 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None, n_jobs=1)
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None, n_jobs=1,
+                           should_use_cache=False)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,

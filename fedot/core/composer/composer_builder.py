@@ -3,6 +3,7 @@ from typing import Optional, Union, List, Dict, Sequence
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
@@ -65,9 +66,8 @@ class ComposerBuilder:
         self.log = logger
         return self
 
-    def with_cache(self, cache_path: str = None, use_existing: bool = False):
-        self.cache_path = cache_path
-        self.use_existing_cache = use_existing
+    def with_cache(self, cache: Optional[OperationsCache]):
+        self._composer.cache = cache
         return self
 
     def _default_composer_params(self) -> PipelineComposerRequirements:

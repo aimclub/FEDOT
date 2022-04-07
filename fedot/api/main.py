@@ -73,6 +73,7 @@ class Fedot:
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param initial_assumption: initial assumption for composer
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
+    :param should_use_cache: bool indicating if it is needed to use pipeline structures caching
     """
 
     def __init__(self,
@@ -84,7 +85,8 @@ class Fedot:
                  seed=None, verbose_level: int = 0,
                  safe_mode=True,
                  initial_assumption: Union[Pipeline, List[Pipeline]] = None,
-                 n_jobs: int = 1
+                 n_jobs: int = 1,
+                 should_use_cache=False
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -104,6 +106,7 @@ class Fedot:
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
         self.params.api_params['n_jobs'] = n_jobs
+        self.params.api_params['should_use_cache'] = should_use_cache
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],

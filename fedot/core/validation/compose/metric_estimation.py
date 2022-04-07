@@ -23,7 +23,7 @@ def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
     """
     pipeline.fit(
         train_data,
-        use_fitted=cache is not None and pipeline.fit_from_cache(cache, fold_id)
+        use_fitted=pipeline.fit_from_cache(cache, fold_id)
     )
 
     for index, metric in enumerate(metrics):

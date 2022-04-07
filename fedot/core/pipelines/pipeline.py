@@ -187,8 +187,8 @@ class Pipeline(Graph):
         if unfit_preprocessor:
             self.preprocessor = DataPreprocessor(self.log)
 
-    def fit_from_cache(self, cache: OperationsCache, fold_num: Optional[int] = None) -> bool:
-        return cache.try_load_into_pipeline(self, fold_num)
+    def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
+        return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """

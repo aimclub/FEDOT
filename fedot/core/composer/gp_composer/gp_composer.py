@@ -134,11 +134,8 @@ class GPComposer(Composer):
                                                       train_data=train_data,
                                                       test_data=test_data)
 
-        if self.cache_path is not None and self.cache_path != self.cache.db_path:
+        if self.cache is not None:
             self.cache.clear()
-            self.cache.db_path = self.cache_path
-        else:
-            self.cache.clear(tmp_only=self.use_existing_cache)
 
         # shuffle data if necessary
         data.shuffle()
@@ -151,7 +148,8 @@ class GPComposer(Composer):
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
 
         self.log.info('GP composition finished')
-        self.cache.clear()
+        if self.cache is not None:  # TODO: maybe use some sort of contextmanager to clean up the cache after its usage?
+            self.cache.clear()
         return best_pipeline
 
     def _convert_opt_results_to_pipeline(self, opt_result: Union[OptGraph, List[OptGraph]]) -> Pipeline:
@@ -253,8 +251,6 @@ class ObjectiveBuilder:
         try:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)
-
-            metrics = ensure_list(metrics)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
             evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
