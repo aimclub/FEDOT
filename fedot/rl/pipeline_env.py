@@ -5,7 +5,6 @@ from os.path import join, exists
 import gym
 import numpy as np
 from gym import spaces
-from gym.utils import seeding
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.core.data.data import InputData
@@ -23,9 +22,7 @@ class PipelineEnv(gym.Env):
     reward_range = (-float(100), float(100))
     spec = None
 
-    def __init__(self, path_to_data=None, path_to_valid=None, env_name='default', pipeline_depth=4,
-                 graph_render=True):
-        self.env_name = 'pl_env_' + env_name
+    def __init__(self, path_to_data=None, path_to_valid=None, pipeline_depth=4, graph_render=True):
         self.full_train_data = InputData.from_csv(path_to_data)
         self.train_data, self.test_data = train_test_data_setup(InputData.from_csv(path_to_data), split_ratio=0.7)
         self.testing_data = self.test_data.target
@@ -39,6 +36,9 @@ class PipelineEnv(gym.Env):
 
         self.actions_list = OperationTypesRepository('all') \
             .suitable_operation(task_type=self.task_type, tags=['reinforce'])
+
+        self.model_ops = OperationTypesRepository('model') \
+            .suitable_operation(task_type=self.task_type, tags=['reinforce'])[0]
 
         self.data_ops = OperationTypesRepository('data_operation') \
             .suitable_operation(task_type=self.task_type, tags=['reinforce'])[0]
@@ -61,8 +61,6 @@ class PipelineEnv(gym.Env):
         self.metric_value = 0
         self.observation = np.full(self.pipeline_depth, self.pop)
         self.observation[0] = self.cur_pos
-        self.last_observation = np.full(self.pipeline_depth, self.pop)
-        self.repeated_pl = 0
 
         if graph_render:
             self.graph_render_path = join(default_fedot_data_dir(), 'rl', 'pipelines')
@@ -71,36 +69,35 @@ class PipelineEnv(gym.Env):
 
         self.reset()
 
-    def render(self, mode='text'):
-        if mode == 'text':
-            print('Pipeline', self.observation)
-        elif mode == 'graph':
-            if self.pipeline:
-                result_path = join(self.graph_render_path, f'{self.env_name}_{self.pipeline_idx}')
-                self.pipeline.show(path=result_path)
-                self.pipeline_idx += 1
-
-    def seed(self, seed=None):
-        self.np_random, seed = seeding.np_random(seed)
-        return [seed]
-
     def step(self, action: int, mode='train'):
+        temp_reward = 0
         assert self.action_space.contains(action)
 
-        # Если агент выбирал плейхолдеры, то штрафуем
+        # Штраф для агента за выбор placeholder
         if action == self.pop:
             self._update_observation(action)
             reward, done, info = self._env_response()
 
             return self.observation, reward, done, info
 
-        # Если агент первым действием выбрал заокнчить построение пайплайна,
-        # то штрафуем
+        # Штраф для агента за выбор окончания построения пайплайна в самом начале
         if action == self.eop and self.nodes == []:
             self._update_observation(action)
             reward, done, info = self._env_response()
 
             return self.observation, reward, done, info
+
+        # Поощерение, если агент выбрал модель
+        if action != self.eop and self.actions_list[0][action] in self.model_ops:
+            temp_reward += 4
+
+        # Поощерение, если агент выбрал операцию
+        if action != self.eop and self.actions_list[0][action] in self.data_ops:
+            temp_reward += 1
+
+            # Поощерение, если ее поставил в самое начало
+            if self.cur_pos in [1, 2]:
+                temp_reward += 1
 
         self._construct_pipeline(action)
 
@@ -138,17 +135,18 @@ class PipelineEnv(gym.Env):
                                                 multi_class='ovo',
                                                 average='macro')
 
+                    self.render(mode='graph')
+
                 reward = 100 * self.metric_value
-                self.render(mode='graph')
+
                 _, done, info = self._env_response(length=len(self.nodes))
                 return self.observation, reward, done, info
             except ValueError:
                 reward, done, info = self._env_response(reward=-85)
                 return self.observation, reward, done, info
         else:
-            reward, done, info = self._env_response(reward=0, done=False)
+            reward, done, info = self._env_response(reward=temp_reward, done=False)
             return self.observation, reward, done, info
-
 
     def reset(self):
         self.pipeline = None
@@ -189,6 +187,15 @@ class PipelineEnv(gym.Env):
                 return True
         else:
             return False
+
+    def render(self, mode='text'):
+        if mode == 'text':
+            print('Pipeline', self.observation)
+        elif mode == 'graph':
+            if self.pipeline:
+                result_path = join(self.graph_render_path, f'pl_{self.pipeline_idx}')
+                self.pipeline.show(path=result_path)
+                self.pipeline_idx += 1
 
 
 if __name__ == '__main__':

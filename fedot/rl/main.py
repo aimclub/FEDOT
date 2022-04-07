@@ -143,15 +143,16 @@ if __name__ == '__main__':
     file_path_valid = 'cases/data/scoring/scoring_test.csv'
     full_path_valid = os.path.join(str(fedot_project_root()), file_path_valid)
 
-    # make_env = lambda: ptan.common.wrappers.wrap_dqn(
-    #     PipelineEnv(full_path_train))
-    # envs = [make_env() for _ in range(NUM_ENVS)]
-    # in_dim = envs[0].observation_space.shape[0]
-    # out_dim = envs[0].action_space.n
+    make_env = lambda: PipelineEnv(full_path_train)
+    envs = [make_env() for _ in range(NUM_ENVS)]
+    in_dim = envs[0].observation_space.shape[0]
+    out_dim = envs[0].action_space.n
 
-    env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid, env_name='train')
-    in_dim = env.observation_space.shape[0]
-    out_dim = env.action_space.n
+    test_env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid)
+
+    # env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid)
+    # in_dim = env.observation_space.shape[0]
+    # out_dim = env.action_space.n
 
     device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
 
@@ -159,8 +160,7 @@ if __name__ == '__main__':
     print(pnet)
 
     agent = ptan.agent.PolicyAgent(lambda x: pnet(x)[0], apply_softmax=True, device=device)
-
-    exp_source = ptan.experience.ExperienceSourceFirstLast(env, agent, gamma=GAMMA, steps_count=REWARD_STEPS)
+    exp_source = ptan.experience.ExperienceSourceFirstLast(envs, agent, gamma=GAMMA, steps_count=REWARD_STEPS)
 
     optimizer = optim.Adam(pnet.parameters(), lr=LEARNING_RATE, eps=1e-3)
 
@@ -186,7 +186,7 @@ if __name__ == '__main__':
     batch = []
 
     with RewardTracker(tb_writer, stop_reward=75) as tracker:
-        with ptan.common.utils.TBMeanTracker(tb_writer, batch_size=5) as tb_tracker:
+        with ptan.common.utils.TBMeanTracker(tb_writer, batch_size=10) as tb_tracker:
             for step_idx, exp in enumerate(exp_source):
                 batch.append(exp)
 
@@ -204,7 +204,7 @@ if __name__ == '__main__':
                         total_rewards = []
 
                         for episode in range(25):
-                            state = env.reset()
+                            state = test_env.reset()
                             done = False
 
                             while not done:
@@ -214,7 +214,7 @@ if __name__ == '__main__':
                                 prob_v = F.softmax(logits_v)
                                 prob = prob_v.data.cpu().numpy()
                                 action = np.random.choice(len(prob), p=prob)
-                                state, reward, done, info = env.step(action, mode='test')
+                                state, reward, done, info = test_env.step(action, mode='test')
                                 total_rewards.append(reward)
 
                     tb_writer.add_scalar("valid_reward", np.mean(total_rewards), step_idx)
