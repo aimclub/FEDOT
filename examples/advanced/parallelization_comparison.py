@@ -4,18 +4,17 @@ from functools import reduce
 
 import pandas as pd
 from matplotlib import cm, colors, pyplot as plt
+from typing import Optional
 
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
 
 
-def count_pipelines(opt_history: OptHistory):
-    return reduce(
-        operator.add,
-        map(len, opt_history.individuals),
-        0
-    )
+def _count_pipelines(opt_history: Optional[OptHistory]) -> int:
+    if opt_history is not None:
+        return reduce(operator.add, map(len, opt_history.individuals), 0)
+    return 0
 
 
 def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
@@ -29,18 +28,14 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
 
     """
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
 
     train_data = pd.read_csv(train_data_path)
-    test_data = pd.read_csv(test_data_path)
 
     data_len = len(train_data)
 
-    partitions = []
-    for i in range(1, partitions_n + 1):
-        partitions.append(int(data_len * (i / partitions_n)))
+    partitions = [int(data_len * (i / partitions_n)) for i in range(1, partitions_n + 1)]
 
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
 
@@ -54,7 +49,7 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
                                verbose_level=-1)
             auto_model.fit(features=train_data_tmp, target='target')
             times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
-            c_pipelines = count_pipelines(auto_model.history)
+            c_pipelines = _count_pipelines(auto_model.history)
             pipelines_count[_n_jobs].append(c_pipelines)
             print(f'\tDataset length: {partition}, number of pipelines: {c_pipelines}')
 

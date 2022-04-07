@@ -1,15 +1,14 @@
 import operator
 from functools import reduce
+from typing import Optional
 
 from fedot.core.optimisers.opt_history import OptHistory
 
 
-def _count_pipelines(opt_history: OptHistory):
-    return reduce(
-        operator.add,
-        map(len, opt_history.individuals),
-        0
-    )
+def _count_pipelines(opt_history: Optional[OptHistory]) -> int:
+    if opt_history is not None:
+        return reduce(operator.add, map(len, opt_history.individuals), 0)
+    return 0
 
 
 def dummy_time_check():
@@ -119,7 +118,7 @@ def correct_pipelines_cnt_check():
                 auto_model.fit(features=train_data_tmp, target='target')
                 auto_model.predict_proba(features=test_data_tmp)
                 times[enable_caching].append((timeit.default_timer() - start_time) / 60)
-                c_pipelines = _count_pipelines(auto_model.history) if auto_model.history else None
+                c_pipelines = _count_pipelines(auto_model.history)
                 pipelines_count[enable_caching].append(c_pipelines)
 
                 print((
@@ -189,7 +188,7 @@ def multiprocessing_check():
                 auto_model.fit(features=train_data_tmp, target='target')
                 auto_model.predict_proba(test_data_tmp)
                 times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
-                c_pipelines = _count_pipelines(auto_model.history) if auto_model.history else 0
+                c_pipelines = _count_pipelines(auto_model.history)
                 pipelines_count[_n_jobs].append(c_pipelines)
 
                 print((
