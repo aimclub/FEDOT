@@ -1,12 +1,12 @@
 import shelve
 import shutil
 import uuid
-from collections import namedtuple
-from multiprocessing import RLock
+from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union, Type, Dict
+from typing import TYPE_CHECKING, List, Optional, TypeVar, Union, Type
 
 from fedot.core.log import Log, SingletonMeta, default_log
+from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_list
 
@@ -17,7 +17,12 @@ from fedot.core.utils import default_fedot_data_dir
 from contextlib import nullcontext
 from multiprocessing.managers import SyncManager
 
-CachedState = namedtuple('CachedState', 'operation')
+IOperation = TypeVar('IOperation', bound=Operation)
+
+
+@dataclass
+class CachedState:
+    operation: IOperation
 
 
 class OperationsCache(metaclass=SingletonMeta):
@@ -25,16 +30,14 @@ class OperationsCache(metaclass=SingletonMeta):
     def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
                  db_path: Optional[str] = None,
                  clear_exiting=True):
-        self._rlock: Union[RLock, nullcontext]
-        self._utility: Dict[str, int]
+        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
         if mp_manager is None:
             self._rlock = nullcontext()
-            self._effectiveness = dict.fromkeys(['pipelines_hit', 'nodes_hit', 'pipelines_missed', 'nodes_missed'], 0)
+            self._effectiveness = dict.fromkeys(effectiveness_keys, 0)
         else:
             self._rlock = mp_manager.RLock()
-            self._effectiveness = mp_manager.dict(
-                dict.fromkeys(['pipelines_hit', 'nodes_hit', 'pipelines_missed', 'nodes_missed'], 0)
-            )
+            self._effectiveness = mp_manager.dict(dict.fromkeys(effectiveness_keys, 0))
+
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
 
@@ -48,14 +51,14 @@ class OperationsCache(metaclass=SingletonMeta):
 
     @property
     def effectiveness_ratio(self):
-        pipelines_loaded = self._effectiveness['pipelines_hit']
-        pipelines_passed = self._effectiveness['pipelines_missed']
-        nodes_loaded = self._effectiveness['nodes_hit']
-        nodes_passed = self._effectiveness['nodes_missed']
+        pipelines_hit = self._effectiveness['pipelines_hit']
+        pipelines_total = self._effectiveness['pipelines_total']
+        nodes_hit = self._effectiveness['nodes_hit']
+        nodes_total = self._effectiveness['nodes_total']
 
         return {
-            'pipelines': round(pipelines_loaded / pipelines_passed, 3) if pipelines_passed else 0.,
-            'nodes': round(nodes_loaded / nodes_passed, 3) if nodes_passed else 0.
+            'pipelines': round(pipelines_hit / pipelines_total, 3) if pipelines_total else 0.,
+            'nodes': round(nodes_hit / nodes_total, 3) if nodes_total else 0.
         }
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
@@ -98,7 +101,7 @@ class OperationsCache(metaclass=SingletonMeta):
                             self._effectiveness['nodes_hit'] += 1
                         else:
                             node.fitted_operation = None
-                        self._effectiveness['nodes_missed'] += 1
+                        self._effectiveness['nodes_total'] += 1
             except Exception as ex:
                 self.log.info(f'Cache can not be loaded: {ex}. Continue.')
             finally:
@@ -111,13 +114,13 @@ class OperationsCache(metaclass=SingletonMeta):
                             (number of the CV fold)
         """
         with self._rlock:
-            loaded_before = self._effectiveness['nodes_hit']
+            hits_before = self._effectiveness['nodes_hit']
             did_load_any = self.try_load_nodes(pipeline.nodes, fold_id)
-            loaded_after = self._effectiveness['nodes_hit']
+            hits_after = self._effectiveness['nodes_hit']
 
-            if loaded_after - loaded_before == len(pipeline.nodes):
+            if hits_after - hits_before == len(pipeline.nodes):
                 self._effectiveness['pipelines_hit'] += 1
-            self._effectiveness['pipelines_missed'] += 1
+            self._effectiveness['pipelines_total'] += 1
 
             return did_load_any
 
