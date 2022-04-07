@@ -188,7 +188,7 @@ def test_api_check_data_correct():
     path_to_train, path_to_test = get_split_data_paths()
     train_data, test_data, threshold = get_dataset(task_type)
 
-    string_data_input = ApiDataProcessor(task).define_data(features=path_to_train)
+    string_data_input = ApiDataProcessor(task).define_data(features=path_to_train, target='target')
     array_data_input = ApiDataProcessor(task).define_data(features=x_train, target=x_test)
     fedot_data_input = ApiDataProcessor(task).define_data(features=train_data)
     assert (not type(string_data_input) == InputData

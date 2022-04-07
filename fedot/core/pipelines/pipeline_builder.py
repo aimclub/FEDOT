@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import List, Optional
+from typing import List, Union, Optional, Tuple, Dict
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_operator import GraphOperator
@@ -16,6 +16,8 @@ class PipelineBuilder:
     - Builds always new pipelines (on copies of nodes), preserves its state between builds. State doesn't leak outside.
     """
 
+    OperationType = Union[str, Tuple[str, dict]]
+
     def __init__(self, *initial_nodes: Optional[Node]):
         """ Create builder with prebuilt nodes as origins of the branches. """
         self.heads: List[Node] = list(filter(None, initial_nodes))
@@ -24,7 +26,7 @@ class PipelineBuilder:
     def _iend(self) -> int:
         return len(self.heads)
 
-    def add_node(self, operation_type: Optional[str], branch_idx: int = 0):
+    def add_node(self, operation_type: Optional[str], branch_idx: int = 0, params: Optional[Dict] = None):
         """ Add single node to pipeline branch of specified index.
         If there are no heads => adds single PrimaryNode.
         If there is single head => adds single SecondaryNode using head as input.
@@ -34,24 +36,31 @@ class PipelineBuilder:
 
         :param operation_type: new operation, possibly None
         :param branch_idx: index of the head to use as input for the new node
+        :param params: parameters dictionary for the specific operation
         :return: self
         """
         if not operation_type:
             return self
+        params = self._pack_params(operation_type, params)
         if branch_idx < len(self.heads):
             input_node = self.heads[branch_idx]
-            self.heads[branch_idx] = SecondaryNode(operation_type, nodes_from=[input_node])
+            self.heads[branch_idx] = SecondaryNode(operation_type, nodes_from=[input_node], content=params)
         else:
-            self.heads.append(PrimaryNode(operation_type))
+            self.heads.append(PrimaryNode(operation_type, content=params))
         return self
 
-    def add_sequence(self, *operation_type: str, branch_idx: int = 0):
-        """ Same as .node() but for many operations at once. """
+    def add_sequence(self, *operation_type: OperationType, branch_idx: int = 0):
+        """ Same as .node() but for many operations at once.
+
+        :param operation_type: operations for new nodes, either as an operation name
+            or as a tuple of operation name and operation parameters.
+        """
         for operation in operation_type:
-            self.add_node(operation, branch_idx)
+            operation, params = self._unpack_operation(operation)
+            self.add_node(operation, branch_idx, params)
         return self
 
-    def grow_branches(self, *operation_type: Optional[str]):
+    def grow_branches(self, *operation_type: Optional[OperationType]):
         """ Add single node to each branch.
 
         Argument position means index of the branch to grow.
@@ -59,14 +68,16 @@ class PipelineBuilder:
         If there are no nodes => creates new branches.
         If number of input nodes is bigger than number of branches => extra operations create new branches.
 
-        :param operation_type: operations for adding to each branch, maybe None.
+        :param operation_type: operations for new nodes, either as an operation name
+            or as a tuple of operation name and operation parameters.
         :return: self
         """
         for i, operation in enumerate(operation_type):
-            self.add_node(operation, i)
+            operation, params = self._unpack_operation(operation)
+            self.add_node(operation, i, params)
         return self
 
-    def add_branch(self, *operation_type: Optional[str], branch_idx: int = 0):
+    def add_branch(self, *operation_type: Optional[OperationType], branch_idx: int = 0):
         """ Create branches at the tip of branch with branch_idx.
 
         None operations are filtered out.
@@ -77,7 +88,8 @@ class PipelineBuilder:
         If branch_idx is out of bounds => adds PrimaryNodes as new heads at the end.
         If no not-None operations are provided, nothing is changed.
 
-        :param operation_type: operations for new nodes
+        :param operation_type: operations for new nodes, either as an operation name
+            or as a tuple of operation name and operation parameters.
         :param branch_idx: index of the branch for branching its tip
         :return: self
         """
@@ -87,13 +99,17 @@ class PipelineBuilder:
         if branch_idx < len(self.heads):
             input_node = self.heads.pop(branch_idx)
             for i, operation in enumerate(operations):
-                self.heads.insert(branch_idx + i, SecondaryNode(operation, nodes_from=[input_node]))
+                operation, params = self._unpack_operation(operation)
+                self.heads.insert(branch_idx + i, SecondaryNode(operation,
+                                                                nodes_from=[input_node],
+                                                                content=self._pack_params(operation, params)))
         else:
             for operation in operations:
-                self.add_node(operation, self._iend)
+                operation, params = self._unpack_operation(operation)
+                self.add_node(operation, self._iend, params)
         return self
 
-    def join_branches(self, operation_type: Optional[str]):
+    def join_branches(self, operation_type: Optional[str], params: Optional[Dict] = None):
         """ Joins all current branches with provided operation as ensemble node.
 
         If there are no branches => does nothing.
@@ -101,10 +117,12 @@ class PipelineBuilder:
         If there are several branches => adds single SecondaryNode using all heads as inputs.
 
         :param operation_type: operation to use for joined node
+        :param params: parameters dictionary for the specific operation
         :return: self
         """
         if self.heads and operation_type:
-            new_head = SecondaryNode(operation_type, nodes_from=self.heads)
+            content = self._pack_params(operation_type, params)
+            new_head = SecondaryNode(operation_type, nodes_from=self.heads, content=content)
             self.heads = [new_head]
         return self
 
@@ -112,7 +130,7 @@ class PipelineBuilder:
         """ Reset builder state. """
         self.heads = []
 
-    def merge_with(self, following_builder):
+    def merge_with(self, following_builder) -> Optional['PipelineBuilder']:
         return merge_pipeline_builders(self, following_builder)
 
     def to_nodes(self) -> List[Node]:
@@ -128,6 +146,17 @@ class PipelineBuilder:
         :return: Pipeline if there exist nodes, None if there're no nodes.
         """
         return Pipeline(self.to_nodes()) if self.heads else None
+
+    @staticmethod
+    def _unpack_operation(operation: Optional[OperationType]) -> Tuple[Optional[str], Optional[Dict]]:
+        if isinstance(operation, str) or operation is None:
+            return operation, None
+        else:
+            return operation
+
+    @staticmethod
+    def _pack_params(name: str, params: Optional[dict]) -> Optional[dict]:
+        return {'name': name, 'params': params} if params else None
 
 
 def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilder) -> Optional[PipelineBuilder]:

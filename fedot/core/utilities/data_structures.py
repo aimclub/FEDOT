@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Container
+from typing import List, Container, Iterable, Sized
 
 
 class UniqueList(list):
@@ -49,6 +49,18 @@ def remove_items(collection: List, items_to_remove: Container):
     if collection:
         collection[:] = [item for item in collection if item not in items_to_remove]
     return collection
+
+
+def are_same_length(collections: Iterable[Sized]) -> bool:
+    """Checks if all arguments have the same length."""
+    it = collections.__iter__()
+    first = next(it, None)
+    if first is not None:
+        first = len(first)
+        for elem in it:
+            if len(elem) != first:
+                return False
+    return True
 
 
 class ComparableEnum(Enum):

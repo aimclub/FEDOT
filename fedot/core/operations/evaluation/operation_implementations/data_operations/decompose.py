@@ -45,7 +45,7 @@ class DecomposerImplementation(DataOperationImplementation):
 
         features = np.array(input_data.features)
         # Array with masks
-        features_mask = np.array(input_data.supplementary_data.get_compound_mask())
+        features_mask = np.array(input_data.supplementary_data.compound_mask)
         unique_features_masks = np.unique(features_mask)
 
         if len(unique_features_masks) < 2:
@@ -53,7 +53,7 @@ class DecomposerImplementation(DataOperationImplementation):
             raise ValueError(f'{prefix}, but got {len(unique_features_masks)}')
 
         # Get amount of nodes data already visited
-        flow_lengths = input_data.supplementary_data.get_flow_mask()
+        flow_lengths = input_data.supplementary_data.flow_mask
 
         # Find minimum and maximum of visited nodes and first indices of them
         min_flow_length_i = np.argmin(flow_lengths)
