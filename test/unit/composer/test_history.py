@@ -1,20 +1,31 @@
 import os
+from functools import partial
+
+import numpy as np
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.log import default_log
+from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.gp_comp.evaluating import collect_metric_for_nodes
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.validation.compose.tabular import table_metric_calculation
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
+from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.validation.test_table_cv import get_data
 
 
 def test_parent_operator():
@@ -94,3 +105,65 @@ def test_operators_in_history():
     dumped_history = auto_model.history.save()
 
     assert dumped_history is not None
+
+
+def test_collect_node_metric_for_table():
+    """ Test if intermediate metric collected for nodes """
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset_to_compose, _ = get_data(task)
+    node_first = PrimaryNode('scaling')
+    node_second = SecondaryNode('rf', nodes_from=[node_first])
+    pipeline = Pipeline(node_second)
+    pipeline.fit(dataset_to_compose)
+    collect_metric_for_nodes(pipeline, [dataset_to_compose, 3,
+                                        [MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)]])
+    for node in pipeline.nodes:
+        if type(node.operation) == Model:
+            assert node.metadata.metric is not None
+        else:
+            assert node.metadata.metric is None
+
+
+def test_collect_node_metric_for_ts():
+    """ Test if intermediate metric collected for nodes """
+    dataset_to_compose, _ = get_ts_data()
+    node_first = PrimaryNode('lagged')
+    node_second = SecondaryNode('ridge', nodes_from=[node_first])
+    pipeline = Pipeline(node_second)
+    pipeline.fit(dataset_to_compose)
+    collect_metric_for_nodes(pipeline, [dataset_to_compose, 3, 2,
+                                        [MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)]])
+    for node in pipeline.nodes:
+        if type(node.operation) == Model:
+            assert node.metadata.metric is not None
+        else:
+            assert node.metadata.metric is None
+
+
+def test_tabular_cv_generator_works_stable():
+    """ Test if table cv generator works stable (always return same folds) """
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset_to_compose, _ = get_data(task)
+    idx_first = []
+    idx_second = []
+    for _, test_data in tabular_cv_generator(dataset_to_compose, 3):
+        idx_first.append(test_data.idx)
+    for _, test_data in tabular_cv_generator(dataset_to_compose, 3):
+        idx_second.append(test_data.idx)
+
+    for i in range(len(idx_first)):
+        assert np.all(idx_first[i] == idx_second[i])
+
+
+def test_ts_cv_generator_works_stable():
+    """ Test if ts cv generator works stable (always return same folds) """
+    dataset_to_compose, _ = get_ts_data()
+    idx_first = []
+    idx_second = []
+    for _, test_data, _ in ts_cv_generator(dataset_to_compose, 3, 2):
+        idx_first.append(test_data.idx)
+    for _, test_data, _ in ts_cv_generator(dataset_to_compose, 3, 2):
+        idx_second.append(test_data.idx)
+
+    for i in range(len(idx_first)):
+        assert np.all(idx_first[i] == idx_second[i])
