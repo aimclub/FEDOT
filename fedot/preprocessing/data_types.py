@@ -81,7 +81,7 @@ class TableTypesCorrector:
         self.features_types = copy(data.supplementary_data.column_types['features'])
         self.target_types = copy(data.supplementary_data.column_types['target'])
 
-        self._remove_failed_converting_features(data)
+        self._remain_columns_info_without_types_conflicts(data)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -98,7 +98,7 @@ class TableTypesCorrector:
         # Convert column types
         self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
-        self._remove_failed_converting_features(data)
+        self._remain_columns_info_without_types_conflicts(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -201,16 +201,21 @@ class TableTypesCorrector:
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
 
-    def _remove_failed_converting_features(self, data: 'InputData'):
-        """ Deletes features from the table that failed to convert from one type to another """
+    def _remain_columns_info_without_types_conflicts(self, data: 'InputData'):
+        """ Update information in supplementary info - remain info only about remained columns.
+        Such columns have no conflicts with types converting.
+        """
         if len(self.string_columns_transformation_failed) > 0:
+            self.log.warn(f'Columns with indices {list(self.string_columns_transformation_failed.keys())} were '
+                          f'removed during mixed types column converting due to conflicts.')
+
             data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
-            # Update information in supplementary info - delete info about deleted columns
-            deleted_elements_number = 0
-            for i in list(self.string_columns_transformation_failed.keys()):
-                index_to_delete = i - deleted_elements_number
-                data.supplementary_data.column_types['features'].pop(index_to_delete)
-                deleted_elements_number += 1
+
+            remained_column_types = []
+            for i, col in enumerate(data.supplementary_data.column_types['features']):
+                if i not in self.string_columns_transformation_failed:
+                    remained_column_types.append(col)
+            data.supplementary_data.column_types['features'] = remained_column_types
 
     def _check_columns_vs_types_number(self, table: np.array, column_types: list):
         # Check if columns number correct
