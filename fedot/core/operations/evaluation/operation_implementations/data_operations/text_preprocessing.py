@@ -1,10 +1,12 @@
 import re
 from typing import Optional
 
-import nltk
 import numpy as np
-from nltk.corpus import stopwords
-from nltk.stem import PorterStemmer, WordNetLemmatizer
+
+try:
+    import nltk
+except ModuleNotFoundError:
+    print('NLTK is not installed, continue')
 
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
@@ -15,14 +17,14 @@ class TextCleanImplementation(DataOperationImplementation):
     """ Class for text cleaning (lemmatization and stemming) operation """
 
     def __init__(self, **params: Optional[dict]):
-        self.stemmer = PorterStemmer()
-        self.lemmanizer = WordNetLemmatizer()
-        self._download_nltk_resources()
-
         if not params:
             self.lang = 'english'
         else:
             self.lang = params.get('language')
+
+        self.stemmer = nltk.stem.SnowballStemmer(language=self.lang)
+        self.lemmatizer = nltk.stem.WordNetLemmatizer()
+        self._download_nltk_resources()
         super().__init__()
 
     def fit(self, input_data):
@@ -59,9 +61,14 @@ class TextCleanImplementation(DataOperationImplementation):
 
     @staticmethod
     def _download_nltk_resources():
-        for resource in ['punkt', 'stopwords', 'wordnet', 'omw-1.4']:
+        for resource in ['punkt']:
             try:
                 nltk.data.find(f'tokenizers/{resource}')
+            except LookupError:
+                nltk.download(f'{resource}')
+        for resource in ['stopwords', 'wordnet', 'omw-1.4']:
+            try:
+                nltk.data.find(f'corpora/{resource}')
             except LookupError:
                 nltk.download(f'{resource}')
 
@@ -75,7 +82,7 @@ class TextCleanImplementation(DataOperationImplementation):
         return words
 
     def _remove_stop_words(self, words: set):
-        stop_words = set(stopwords.words(self.lang))
+        stop_words = set(nltk.corpus.stopwords.words(self.lang))
         cleared_words = [word for word in words if word not in stop_words]
 
         return cleared_words
@@ -87,7 +94,7 @@ class TextCleanImplementation(DataOperationImplementation):
 
     def _lemmatization(self, words):
         # TODO pos
-        lemmas = [self.lemmanizer.lemmatize(word) for word in words]
+        lemmas = [self.lemmatizer.lemmatize(word) for word in words]
 
         return lemmas
 

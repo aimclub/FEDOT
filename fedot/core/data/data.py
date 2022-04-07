@@ -143,7 +143,6 @@ class Data:
 
         return input_data
 
-
     @staticmethod
     def from_image(images: Union[str, np.ndarray] = None,
                    labels: Union[str, np.ndarray] = None,
@@ -226,7 +225,7 @@ class Data:
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: DataTypesEnum = DataTypesEnum.table,
-                        export_to_meta=False, is_multilabel=False) -> 'InputData':
+                        export_to_meta=False, is_multilabel=False, shuffle=True) -> 'InputData':
         """
         Generates InputData from the set of JSON files with different fields
         :param files_path: path the folder with jsons
@@ -236,26 +235,31 @@ class Data:
         :param data_type: data type in fields (as well as type for obtained InputData)
         :param export_to_meta: combine extracted field and save to CSV
         :param is_multilabel: if True, creates multilabel target
+        :param shuffle: if True, shuffles data
         :return: combined dataset
         """
 
         if os.path.isfile(files_path):
             raise ValueError("""Path to the directory expected but got file""")
 
-        df_data = JSONBatchLoader(path=files_path, label=label, fields_to_use=fields_to_use).extract(export_to_meta)
+        df_data = JSONBatchLoader(path=files_path, label=label, fields_to_use=fields_to_use,
+                                  shuffle=shuffle).extract(export_to_meta)
 
         if len(fields_to_use) > 1:
             fields_to_combine = []
-            for f in fields_to_use:
-                fields_to_combine.append(np.array(df_data[f]))
+            for field in fields_to_use:
+                fields_to_combine.append(np.array(df_data[field]))
+                # Unite if the element of text data is divided into strings
+                if isinstance(df_data[field][0], list):
+                    df_data[field] = [' '.join(piece) for piece in df_data[field]]
 
             features = np.column_stack(tuple(fields_to_combine))
         else:
-            val = df_data[fields_to_use[0]]
+            field = df_data[fields_to_use[0]]
             # process field with nested list
-            if isinstance(val[0], list):
-                val = [' '.join(v) for v in val]
-            features = np.array(val)
+            if isinstance(field[0], list):
+                field = [' '.join(piece) for piece in field]
+            features = np.array(field)
 
         if is_multilabel:
             target = df_data[label]

@@ -2,8 +2,13 @@ import warnings
 from typing import Optional
 
 import numpy as np
+
+try:
+    from gensim.models import Word2Vec
+except ModuleNotFoundError:
+    print('Gensim is not installed, continue')
+
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
-from gensim.models import Word2Vec
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy

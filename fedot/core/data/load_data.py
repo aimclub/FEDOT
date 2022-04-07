@@ -31,7 +31,7 @@ class BatchLoader(ABC):
                 all_files.extend(files_paths)
         self._load_to_meta_df(all_files)
 
-    def _load_to_meta_df(self, files):
+    def _load_to_meta_df(self, files, shuffle=True):
         data_rows = []
         for file in files:
             dir_name = os.path.basename(os.path.dirname(file))
@@ -41,7 +41,8 @@ class BatchLoader(ABC):
         self.meta_df = pd.DataFrame(data=data_rows,
                                     columns=['file_path', f'{self.target_name}'])
         # shuffle samples
-        self.meta_df = self.meta_df.sample(frac=1).reset_index(drop=True)
+        if shuffle:
+            self.meta_df = self.meta_df.sample(frac=1).reset_index(drop=True)
 
     def export_to_csv(self, path: str = None):
         if not path:
@@ -86,8 +87,9 @@ class TextBatchLoader(BatchLoader):
 class JSONBatchLoader(BatchLoader):
     """ Class for loading json data with batches """
 
-    def __init__(self, path: str, label: str, fields_to_use: list):
+    def __init__(self, path: str, label: str, fields_to_use: list, shuffle=True):
         self.fields_to_use = fields_to_use
+        self.shuffle = shuffle
         if os.path.isfile(path):
             raise ValueError('Expected directory path but got file')
         super().__init__(path, label)
@@ -137,4 +139,4 @@ class JSONBatchLoader(BatchLoader):
 
             if files:
                 all_files.extend(files_paths)
-        self._load_to_meta_df(all_files)
+        self._load_to_meta_df(all_files, self.shuffle)

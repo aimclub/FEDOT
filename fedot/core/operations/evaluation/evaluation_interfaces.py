@@ -1,6 +1,7 @@
 import warnings
 from abc import abstractmethod
 from typing import Optional
+import numpy as np
 
 from catboost import CatBoostClassifier, CatBoostRegressor
 from fedot.core.data.data import InputData, OutputData
@@ -212,7 +213,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return str(self._convert_to_operation(self.operation_type))
 
     def _sklearn_compatible_prediction(self, trained_operation, features):
-        n_classes = len(trained_operation.classes_)
+        is_multi_output_target = isinstance(trained_operation.classes_, list)
+        # Check if target is multilabel (has 2 or more columns)
+        if is_multi_output_target:
+            n_classes = len(trained_operation.classes_[0])
+        else:
+            n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
             prediction = trained_operation.predict(features)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
@@ -220,7 +226,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             if n_classes < 2:
                 raise NotImplementedError()
             elif n_classes == 2 and self.output_mode != 'full_probs':
-                prediction = prediction[:, 1]
+                if is_multi_output_target:
+                    prediction = np.stack([pred[:, 1] for pred in prediction]).T
+                else:
+                    prediction = prediction[:, 1]
         else:
             raise ValueError(f'Output model {self.output_mode} is not supported')
 
