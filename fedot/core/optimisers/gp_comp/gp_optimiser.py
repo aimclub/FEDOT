@@ -413,7 +413,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                      graph_generation_params=self.graph_generation_params,
                                                      is_multi_objective=self.parameters.multi_objective,
                                                      n_jobs=n_jobs,
-                                                     timer=timer)
+                                                     timer=timer,
+                                                     collect_node_metric=self.requirements.collect_node_metric)
         individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
         return individuals_set
 
