@@ -12,10 +12,10 @@ from fedot.core.validation.split import ts_cv_generator
 def ts_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData, InputData]]],
                           cv_folds: int,
                           validation_blocks: int,
-                          metrics: [str, Callable] = None,
+                          metrics: List[Union[str, Callable]] = None,
                           pipeline=None,
                           cache: Optional[OperationsCache] = None,
-                          log: Optional[Log] = None) -> [Tuple[float, ...], None]:
+                          log: Optional[Log] = None) -> Optional[Tuple[float, ...]]:
     """ Determine metric value for time series forecasting pipeline based
     on data for validation
 
@@ -27,10 +27,6 @@ def ts_metric_calculation(reference_data: Union[InputData, List[Tuple[InputData,
     :param cache: cache manager for fitted models
     :param log: object for logging
     """
-    # TODO add support for multiprocessing
-    # if __name__ != '__main__':  # TODO: should I keep it uncommented or not?
-    #     cache = None
-
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
 
     try:

@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple
+from typing import Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -11,9 +11,9 @@ from fedot.core.validation.split import tabular_cv_generator
 
 
 def table_metric_calculation(reference_data: InputData, cv_folds: int,
-                             metrics: [str, Callable], pipeline: Optional[Pipeline],
+                             metrics: List[Union[str, Callable]], pipeline: Optional[Pipeline],
                              cache: Optional[OperationsCache] = None,
-                             log: Optional[Log] = None) -> [Tuple[float, ...], None]:
+                             log: Optional[Log] = None) -> Optional[Tuple[float, ...]]:
     """ Perform cross validation on tabular data for regression and classification tasks
 
     :param reference_data: InputData for validation
@@ -23,9 +23,6 @@ def table_metric_calculation(reference_data: InputData, cv_folds: int,
     :param cache: cache manager for fitted models
     :param log: object for logging
     """
-    # TODO add support for multiprocessing
-    # if __name__ != '__main__':  # TODO: should I keep it uncommented or not?
-    #     cache = None
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
     try:
         evaluated_metrics = [[] for _ in range(len(metrics))]

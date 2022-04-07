@@ -2,9 +2,9 @@ import shelve
 import shutil
 import uuid
 from collections import namedtuple
-from multiprocessing import RLock, Manager
+from multiprocessing import RLock
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Union, Type
+from typing import TYPE_CHECKING, List, Optional, Union, Type, Dict
 
 from fedot.core.log import Log, SingletonMeta, default_log
 from fedot.core.pipelines.node import Node
@@ -14,37 +14,48 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.utils import default_fedot_data_dir
+from contextlib import nullcontext
+from multiprocessing.managers import SyncManager
 
 CachedState = namedtuple('CachedState', 'operation')
 
 
 class OperationsCache(metaclass=SingletonMeta):
-    _rlock = RLock()
 
-    def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None, clear_exiting=True):
+    def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
+                 db_path: Optional[str] = None,
+                 clear_exiting=True):
+        self._rlock: Union[RLock, nullcontext]
+        self._utility: Dict[str, int]
+        if mp_manager is None:
+            self._rlock = nullcontext()
+            self._effectiveness = dict.fromkeys(['pipelines_hit', 'nodes_hit', 'pipelines_missed', 'nodes_missed'], 0)
+        else:
+            self._rlock = mp_manager.RLock()
+            self._effectiveness = mp_manager.dict(
+                dict.fromkeys(['pipelines_hit', 'nodes_hit', 'pipelines_missed', 'nodes_missed'], 0)
+            )
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
-
-        self._utility = Manager().dict(
-            dict.fromkeys(['pipelines_loaded', 'nodes_loaded', 'pipelines_passed', 'nodes_passed'], 0)
-        )
 
         if clear_exiting:
             self.clear()
 
     def reset(self):
-        for k in self._utility:
-            self._utility[k] = 0
+        for k in self._effectiveness:
+            self._effectiveness[k] = 0
         self.clear()
 
     @property
-    def effectiveness(self):
-        pipelines_passed = self._utility['pipelines_passed']
-        nodes_passed = self._utility['nodes_passed']
+    def effectiveness_ratio(self):
+        pipelines_loaded = self._effectiveness['pipelines_hit']
+        pipelines_passed = self._effectiveness['pipelines_missed']
+        nodes_loaded = self._effectiveness['nodes_hit']
+        nodes_passed = self._effectiveness['nodes_missed']
 
         return {
-            'pipelines': round(self._utility['pipelines_loaded'] / pipelines_passed, 3) if pipelines_passed else 0.,
-            'nodes': round(self._utility['nodes_loaded'] / nodes_passed, 3) if nodes_passed else 0.
+            'pipelines': round(pipelines_loaded / pipelines_passed, 3) if pipelines_passed else 0.,
+            'nodes': round(nodes_loaded / nodes_passed, 3) if nodes_passed else 0.
         }
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
@@ -53,7 +64,7 @@ class OperationsCache(metaclass=SingletonMeta):
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
-        with OperationsCache._rlock:
+        with self._rlock:
             try:
                 with shelve.open(self.db_path) as cache:
                     for node in ensure_list(nodes):
@@ -75,7 +86,7 @@ class OperationsCache(metaclass=SingletonMeta):
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
-        with OperationsCache._rlock:
+        with self._rlock:
             cache_was_used = False
             try:
                 with shelve.open(self.db_path) as cache:
@@ -84,10 +95,10 @@ class OperationsCache(metaclass=SingletonMeta):
                         if cached_state is not None:
                             node.fitted_operation = cached_state.operation
                             cache_was_used = True
-                            self._utility['nodes_loaded'] += 1
+                            self._effectiveness['nodes_hit'] += 1
                         else:
                             node.fitted_operation = None
-                        self._utility['nodes_passed'] += 1
+                        self._effectiveness['nodes_missed'] += 1
             except Exception as ex:
                 self.log.info(f'Cache can not be loaded: {ex}. Continue.')
             finally:
@@ -99,14 +110,14 @@ class OperationsCache(metaclass=SingletonMeta):
         :param fold_id: optional part of cache item UID
                             (number of the CV fold)
         """
-        with OperationsCache._rlock:
-            loaded_before = self._utility['nodes_loaded']
+        with self._rlock:
+            loaded_before = self._effectiveness['nodes_hit']
             did_load_any = self.try_load_nodes(pipeline.nodes, fold_id)
-            loaded_after = self._utility['nodes_loaded']
+            loaded_after = self._effectiveness['nodes_hit']
 
             if loaded_after - loaded_before == len(pipeline.nodes):
-                self._utility['pipelines_loaded'] += 1
-            self._utility['pipelines_passed'] += 1
+                self._effectiveness['pipelines_hit'] += 1
+            self._effectiveness['pipelines_missed'] += 1
 
             return did_load_any
 

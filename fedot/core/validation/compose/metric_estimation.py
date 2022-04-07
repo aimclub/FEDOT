@@ -3,12 +3,13 @@ from typing import Optional
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 
 
-def metric_evaluation(pipeline, train_data: InputData, test_data: InputData,
+def metric_evaluation(pipeline: Pipeline, train_data: InputData, test_data: InputData,
                       metrics: list, evaluated_metrics: list,
-                      fold_id: Optional[int] = None, vb_number: Optional[int] = None,
+                      fold_id: int, vb_number: Optional[int] = None,
                       cache: Optional[OperationsCache] = None):
     """ Pipeline training and metrics assessment
 

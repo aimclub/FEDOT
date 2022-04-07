@@ -210,7 +210,7 @@ class ApiComposer:
 
         if api_params['should_use_cache']:  # TODO: maybe should do it somewhere else?
             if api_params['n_jobs'] != 1:
-                self.cache = OperationsCache(manager=Manager())
+                self.cache = OperationsCache(mp_manager=Manager())
             else:
                 self.cache = OperationsCache()
 

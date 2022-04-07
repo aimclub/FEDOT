@@ -123,7 +123,7 @@ def main(example_number=3):
                     print((
                         f'\tDataset length: {partition}'
                         f', number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]:.3f}'
-                        f', cache effectiveness: {auto_model.api_composer.cache.effectiveness}'
+                        f', cache effectiveness: {auto_model.api_composer.cache.effectiveness_ratio}'
                     ))
                 if not enable_caching:
                     Pipeline.fit_from_cache.__code__ = pipeline_fit_from_cache_orig
@@ -193,7 +193,7 @@ def main(example_number=3):
                     print((
                         f'\tTimeout: {timeout}'
                         f', number of pipelines: {c_pipelines}, elapsed time: {times[_n_jobs][-1]:.3f}'
-                        f', cache effectiveness: {auto_model.api_composer.cache.effectiveness}'
+                        f', cache effectiveness: {auto_model.api_composer.cache.effectiveness_ratio}'
                     ))
                     auto_model.api_composer.cache.reset()  # TODO: Is it ok to reset cache effectiveness like that?
 
