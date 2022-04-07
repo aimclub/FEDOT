@@ -12,6 +12,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.operator import ObjectiveFunction
 from fedot.core.optimisers.graph import OptGraph

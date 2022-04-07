@@ -108,6 +108,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
+        self.archive: Union[ParetoFront, SimpleArchive]
         if isinstance(self.parameters.archive_type, ParetoFront):
             self.archive = self.parameters.archive_type
         else:

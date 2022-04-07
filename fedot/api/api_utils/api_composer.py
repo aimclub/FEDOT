@@ -14,7 +14,7 @@ from fedot.api.api_utils.presets import update_builder
 from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECONDS_FOR_TUNING
 from fedot.core.data.data import InputData
@@ -47,7 +47,7 @@ class ApiComposer:
         self.current_model = None
         self.best_models = None
         self.history = None
-        self.cache = None
+        self.cache: Optional[OperationsCache] = None
 
         self.preset_name = None
         self.timer = None
@@ -281,7 +281,7 @@ class ApiComposer:
                                          data=api_params['train_data'],
                                          initial_assumption=api_params['initial_assumption'],
                                          logger=api_params['logger'])
-        gp_composer = None
+        gp_composer: Optional[GPComposer] = None
         timeout_were_set = self.timer.datetime_composing is not None
         if timeout_were_set and init_pipeline_fit_time >= self.timer.datetime_composing / composer_params['pop_size']:
             api_params['logger'].message(f'Timeout is too small for composing '
@@ -446,11 +446,9 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
     for i, dct in enumerate(dict_list):
-        update_dict = dct.copy()
-        update_dict.update(common_dict)
-        for key in common_dict:
-            if key not in dct:
-                update_dict.pop(key)
-        dict_list[i] = update_dict
+        dict_list[i] = {
+            **dct,
+            **{k: v for k, v in common_dict.items() if k in dct}
+        }
 
     return dict_list
