@@ -110,29 +110,23 @@ def test_distance_to_same_pipeline_restored():
     distance = pipeline.operator.distance_to(adapter.restore(opt_graph))
 
     # then
-    assert int(distance) == 0
+    assert distance == 0
 
 
 def test_known_distances():
-    node_scaling = PrimaryNode('scaling')
-    node_xgboost = SecondaryNode('xgboost')
-    node_knn = SecondaryNode('knn', nodes_from=[node_scaling])
-    node_linear = SecondaryNode('linear', nodes_from=[node_scaling])
-    node_knn_alternate_params = SecondaryNode('knn', nodes_from=[node_scaling])
-    node_knn_alternate_params.custom_params = {'mectric': 'euclidean'}
-
-    pipeline_scaling = PipelineBuilder(node_scaling).to_pipeline()  # scaling
-    pipeline_xgboost = PipelineBuilder(node_xgboost).to_pipeline()  # xgboost
-    pipeline_knn = PipelineBuilder(node_knn).to_pipeline()  # scaling -> knn
-    pipeline_linear = PipelineBuilder(node_linear).to_pipeline()  # scaling -> linear
-    pipeline_knn_alternate_params = PipelineBuilder(node_knn_alternate_params).to_pipeline() # scaling -> knn_alternate
+    pipeline_scaling = PipelineBuilder().add_node('scaling').to_pipeline()  # scaling
+    pipeline_xgboost = PipelineBuilder().add_node('xgboost').to_pipeline()  # xgboost
+    pipeline_knn = PipelineBuilder().add_node('scaling').add_node('knn').to_pipeline()  # scaling -> knn
+    pipeline_linear = PipelineBuilder().add_node('scaling').add_node('linear').to_pipeline()  # scaling -> linear
+    pipeline_knn_alternate_params = PipelineBuilder().add_node('scaling').\
+        add_node('knn', params={'mectric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
 
     assert pipeline_knn.operator.distance_to(pipeline_knn) == 0  # the same pipeline
     assert pipeline_knn.operator.distance_to(pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge
     assert pipeline_knn.operator.distance_to(pipeline_linear) == 1  # changes: 1 node (operation)
     assert pipeline_knn.operator.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 node (params)
     assert pipeline_knn.operator.distance_to(pipeline_xgboost) == 3  # changes: 2 nodes (operations) + 1 edge
-    assert pipeline_linear.operator.distance_to(pipeline_knn_alternate_params) == 1  # ch: operation + params
+    assert pipeline_linear.operator.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 operation + params
 
 
 # ------------------------------------------------------------------------------
