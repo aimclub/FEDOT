@@ -174,12 +174,17 @@ class GPComposer(Composer):
                               f'from None to {default_validation_blocks} blocks')
                 self.composer_requirements.validation_blocks = default_validation_blocks
             cv_generator = partial(ts_cv_generator, data,
-                                   self.composer_requirements.cv_folds,
-                                   self.composer_requirements.validation_blocks,
-                                   self.log)
+                                   reference_data=data,
+                                   cv_folds=self.composer_requirements.cv_folds,
+                                   validation_blocks=self.composer_requirements.validation_blocks,
+                                   metrics=self.metrics,
+                                   log=self.log))
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-            cv_generator = partial(tabular_cv_generator, data, self.composer_requirements.cv_folds)
+            cv_generator = partial(reference_data=data,
+                                                cv_folds=self.composer_requirements.cv_folds,
+                                                metrics=self.metrics,
+                                                log=self.log)
         return cv_generator
 
     def composer_metric(self, metrics,

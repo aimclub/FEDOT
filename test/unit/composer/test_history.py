@@ -115,8 +115,8 @@ def test_collect_intermediate_metric_for_table():
     node_second = SecondaryNode('rf', nodes_from=[node_first])
     pipeline = Pipeline(node_second)
     pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes(pipeline, [dataset_to_compose, 3,
-                                                     [MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)]])
+    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose, 3,
+                                          MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
     for node in pipeline.nodes:
         if type(node.operation) == Model:
             assert node.metadata.metric is not None
@@ -131,8 +131,8 @@ def test_collect_intermediate_metric_for_ts():
     node_second = SecondaryNode('ridge', nodes_from=[node_first])
     pipeline = Pipeline(node_second)
     pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes(pipeline, [dataset_to_compose, 3, 2,
-                                                     [MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)]])
+    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose, 3,
+                                          MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE), 2)
     for node in pipeline.nodes:
         if type(node.operation) == Model:
             assert node.metadata.metric is not None

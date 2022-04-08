@@ -3,7 +3,7 @@ import multiprocessing
 import timeit
 from contextlib import closing
 from types import SimpleNamespace
-from typing import Union, Any, Dict
+from typing import Union, Any, Dict, List
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.intermediate_metric import collect_intermediate_metric_for_nodes
@@ -12,8 +12,12 @@ from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.pipeline import Pipeline
 
 
+def single_evaluating(reversed_individuals: List):
+    """
+    Evaluate individuals list in a single process
 
-def single_evaluating(reversed_individuals):
+    :param reversed_individuals: list of individuals_context objects
+    """
     evaluated_individuals = []
     num_of_successful_evals = 0
     for ind in reversed_individuals:
@@ -34,6 +38,11 @@ def single_evaluating(reversed_individuals):
 
 
 def calculate_objective(individual_context: SimpleNamespace) -> Any:
+    """
+    Calculate objective function for a graph
+
+    :param individual_context: context object for individual
+    """
     if isinstance(individual_context.ind.graph, OptGraph):
         converted_object = individual_context.graph_generation_params.adapter.restore(individual_context.ind.graph)
     else:
@@ -52,7 +61,12 @@ def calculate_objective(individual_context: SimpleNamespace) -> Any:
         individual_context.ind.fitness = fitness
 
     if individual_context.collect_intermediate_metric:
-        collect_intermediate_metric_for_nodes(converted_object, individual_context.objective_function.args)
+        collect_intermediate_metric_for_nodes(converted_object,
+                                              individual_context.objective_function.keywords['reference_data'],
+                                              individual_context.objective_function.keywords['cv_folds'],
+                                              individual_context.objective_function.keywords['metrics'][0],
+                                              individual_context.objective_function.keywords.get('validation_blocks',
+                                                                                                 None))
         individual_context.ind.graph = individual_context.graph_generation_params.adapter.adapt(converted_object)
 
     if isinstance(converted_object, Pipeline):
@@ -61,19 +75,36 @@ def calculate_objective(individual_context: SimpleNamespace) -> Any:
     gc.collect()
 
 
-def determine_n_jobs(n_jobs, logger):
+def determine_n_jobs(n_jobs, logger) -> int:
+    """
+    Cut n_jobs parameter if it bigger than the max CPU count
+
+    :param n_jobs: num of process
+    :param logger: log object
+    """
     if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
         n_jobs = multiprocessing.cpu_count()
     logger.info(f"Number of used CPU's: {n_jobs}")
     return n_jobs
 
 
-def multiprocessing_mapping(n_jobs, reversed_set):
+def multiprocessing_mapping(n_jobs, reversed_individuals):
+    """
+    Evaluate individuals list in multiprocessing mode
+
+    :param n_jobs: num of process
+    :param reversed_individuals: list of individuals_context objects
+    """
     with closing(multiprocessing.Pool(n_jobs)) as pool:
-        return list(pool.imap_unordered(individual_evaluation, reversed_set))
+        return list(pool.imap_unordered(individual_evaluation, reversed_individuals))
 
 
 def individual_evaluation(individual_context: Dict) -> Union[Individual, None]:
+    """
+    Calculate objective function for a graph for multiprocessing
+
+    :param individual_context: context object for individual
+    """
     start_time = timeit.default_timer()
     individual_context = SimpleNamespace(**individual_context)
     if individual_context.timer is not None and individual_context.timer.is_time_limit_reached():
@@ -87,7 +118,7 @@ def individual_evaluation(individual_context: Dict) -> Union[Individual, None]:
 
 
 def replace_n_jobs_in_nodes(graph: OptGraph):
-    """ Function to prevent memory overflow due to many processes running in time"""
+    """ Function to prevent memory overflow due to many processes running in time """
     for node in graph.nodes:
         if 'n_jobs' in node.content['params']:
             node.content['params']['n_jobs'] = 1
