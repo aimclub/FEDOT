@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.utils import default_fedot_data_dir
-from contextlib import nullcontext
+from contextlib import nullcontext, contextmanager
 from multiprocessing.managers import SyncManager
 
 IOperation = TypeVar('IOperation', bound=Operation)
@@ -26,6 +26,15 @@ class CachedState:
 
 
 class OperationsCache(metaclass=SingletonMeta):
+    '''
+    Stores/loades nodes `fitted_operation` field to increase performance of calculations.
+
+    :param mp_manager: optional multiprocessing manager in case of main API `n_jobs` != 1,
+        used to synchronize access to class variables
+    :param log: optional Log object to record messages
+    :param db_path: optional str determining a file name for caching pipelines
+    :param clear_exiting: optional bool indicating if it is needed to clean up resources before class can be used
+    '''
 
     def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
                  db_path: Optional[str] = None,
@@ -48,6 +57,14 @@ class OperationsCache(metaclass=SingletonMeta):
         with self._rlock:
             for k in self._effectiveness:
                 self._effectiveness[k] = 0
+            self.clear()
+
+    @contextmanager
+    def using_resources(self):
+        self.clear()
+        try:
+            yield
+        finally:
             self.clear()
 
     @property

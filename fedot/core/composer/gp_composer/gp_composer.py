@@ -1,5 +1,6 @@
 import gc
 import platform
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
@@ -16,7 +17,6 @@ from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.operator import ObjectiveFunction
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
@@ -135,22 +135,11 @@ class GPComposer(Composer):
                                                       train_data=train_data,
                                                       test_data=test_data)
 
-        if self.cache is not None:
-            self.cache.clear()
-
-        # shuffle data if necessary
-        data.shuffle()
-
-        objective_function, intermediate_metrics_function = self.objective_builder.build(data)
-
-        opt_result = self.optimiser.optimise(objective_function,
-                                             on_next_iteration_callback=on_next_iteration_callback,
-                                             intermediate_metrics_function=intermediate_metrics_function)
-        best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
-
-        self.log.info('GP composition finished')
-        if self.cache is not None:  # TODO: maybe use some sort of contextmanager to clean up the cache after its usage?
-            self.cache.clear()
+        with (self.cache.using_resources() if self.cache is not None else nullcontext()):
+            opt_result = self.optimiser.optimise(objective_function_for_pipeline,
+                                                 on_next_iteration_callback=on_next_iteration_callback)
+            best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
+            self.log.info('GP composition finished')
         return best_pipeline
 
     def _convert_opt_results_to_pipeline(self, opt_result: Union[OptGraph, List[OptGraph]]) -> Pipeline:
