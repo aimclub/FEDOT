@@ -128,7 +128,10 @@ class GPComposer(Composer):
             if RemoteEvaluator().use_remote:
                 init_data_for_remote_execution(train_data)
 
-            objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
+            objective_function_for_pipeline = partial(self.composer_metric,
+                                                      metrics=self.metrics,
+                                                      train_data=train_data,
+                                                      test_data=test_data)
 
         if self.cache_path is None:
             self.cache.clear()
@@ -187,10 +190,12 @@ class GPComposer(Composer):
                                                 log=self.log)
         return cv_generator
 
-    def composer_metric(self, metrics,
+    def composer_metric(self,
+                        pipeline: Pipeline,
+                        metrics,
                         train_data: Union[InputData, MultiModalData],
                         test_data: Union[InputData, MultiModalData],
-                        pipeline: Pipeline) -> Optional[Tuple[Any]]:
+                        ) -> Optional[Tuple[Any]]:
         try:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)

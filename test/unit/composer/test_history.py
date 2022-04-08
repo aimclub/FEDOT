@@ -10,8 +10,9 @@ from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.evaluating import collect_intermediate_metric_for_nodes
+from fedot.core.optimisers.gp_comp.evaluating import collect_intermediate_metric_for_nodes_cv
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.intermediate_metric import collect_intermediate_metric_for_nodes
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.opt_history import ParentOperator
@@ -107,7 +108,7 @@ def test_operators_in_history():
     assert dumped_history is not None
 
 
-def test_collect_intermediate_metric_for_table():
+def test_collect_intermediate_metric_for_table_cv():
     """ Test if intermediate metric collected for nodes """
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose, _ = get_data(task)
@@ -115,8 +116,24 @@ def test_collect_intermediate_metric_for_table():
     node_second = SecondaryNode('rf', nodes_from=[node_first])
     pipeline = Pipeline(node_second)
     pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose, 3,
-                                          MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
+    collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
+                                             MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
+    for node in pipeline.nodes:
+        if type(node.operation) == Model:
+            assert node.metadata.metric is not None
+        else:
+            assert node.metadata.metric is None
+
+
+def test_collect_intermediate_metric_for_ts_cv():
+    """ Test if intermediate metric collected for nodes """
+    dataset_to_compose, _ = get_ts_data()
+    node_first = PrimaryNode('lagged')
+    node_second = SecondaryNode('ridge', nodes_from=[node_first])
+    pipeline = Pipeline(node_second)
+    pipeline.fit(dataset_to_compose)
+    collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
+                                             MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE), 2)
     for node in pipeline.nodes:
         if type(node.operation) == Model:
             assert node.metadata.metric is not None
@@ -131,8 +148,25 @@ def test_collect_intermediate_metric_for_ts():
     node_second = SecondaryNode('ridge', nodes_from=[node_first])
     pipeline = Pipeline(node_second)
     pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose, 3,
-                                          MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE), 2)
+    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
+                                          MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))
+    for node in pipeline.nodes:
+        if type(node.operation) == Model:
+            assert node.metadata.metric is not None
+        else:
+            assert node.metadata.metric is None
+
+
+def test_collect_intermediate_metric_for_table():
+    """ Test if intermediate metric collected for nodes """
+    task = Task(task_type=TaskTypesEnum.classification)
+    dataset_to_compose, _ = get_data(task)
+    node_first = PrimaryNode('scaling')
+    node_second = SecondaryNode('rf', nodes_from=[node_first])
+    pipeline = Pipeline(node_second)
+    pipeline.fit(dataset_to_compose)
+    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
+                                          MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
     for node in pipeline.nodes:
         if type(node.operation) == Model:
             assert node.metadata.metric is not None

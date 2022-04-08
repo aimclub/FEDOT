@@ -6,7 +6,8 @@ from types import SimpleNamespace
 from typing import Union, Any, Dict, List
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.intermediate_metric import collect_intermediate_metric_for_nodes
+from fedot.core.optimisers.gp_comp.intermediate_metric import collect_intermediate_metric_for_nodes_cv, \
+    collect_intermediate_metric_for_nodes
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.pipeline import Pipeline
@@ -61,12 +62,18 @@ def calculate_objective(individual_context: SimpleNamespace) -> Any:
         individual_context.ind.fitness = fitness
 
     if individual_context.collect_intermediate_metric:
-        collect_intermediate_metric_for_nodes(converted_object,
-                                              individual_context.objective_function.keywords['reference_data'],
-                                              individual_context.objective_function.keywords['cv_folds'],
-                                              individual_context.objective_function.keywords['metrics'][0],
-                                              individual_context.objective_function.keywords.get('validation_blocks',
-                                                                                                 None))
+        if 'cv_folds' not in individual_context.objective_function.keywords:
+            collect_intermediate_metric_for_nodes(converted_object,
+                                                  individual_context.objective_function.keywords['test_data'],
+                                                  individual_context.objective_function.keywords['metrics'][0])
+        else:
+            collect_intermediate_metric_for_nodes_cv(converted_object,
+                                                     individual_context.objective_function.keywords['reference_data'],
+                                                     individual_context.objective_function.keywords['cv_folds'],
+                                                     individual_context.objective_function.keywords['metrics'][0],
+                                                     individual_context.objective_function.keywords.get(
+                                                         'validation_blocks',
+                                                         None))
         individual_context.ind.graph = individual_context.graph_generation_params.adapter.adapt(converted_object)
 
     if isinstance(converted_object, Pipeline):
