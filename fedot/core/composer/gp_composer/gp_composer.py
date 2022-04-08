@@ -47,7 +47,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
     :attribute n_jobs: num of n_jobs
-    :attribute collect_node_metric: save intermediate result in nodes
+    :attribute collect_intermediate_metric: save intermediate result in nodes
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -57,7 +57,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     start_depth: int = None
     validation_blocks: int = None
     n_jobs: int = 1
-    collect_node_metric: bool = False
+    collect_intermediate_metric: bool = False
 
 
 class GPComposer(Composer):

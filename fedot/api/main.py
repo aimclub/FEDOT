@@ -61,7 +61,7 @@ class Fedot:
             'genetic_scheme' - name of the genetic scheme
             'history_folder' - name of the folder for composing history
             'metric' - metric for quality calculation during composing
-            'collect_node_metric' - save intermediate metric into nodes
+            'collect_intermediate_metric' - save intermediate metric into nodes
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
     :param verbose_level: level of the output detailing

@@ -51,7 +51,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
     # plot forecasting result
-    model.plot_prediction()z
+    model.plot_prediction()
 
     return forecast
 

@@ -224,7 +224,7 @@ class ApiComposer:
                                                              validation_blocks=composer_params['validation_blocks'],
                                                              timeout=self.timer.datetime_composing,
                                                              n_jobs=api_params['n_jobs'],
-                                                             collect_node_metric=composer_params['collect_node_metric'])
+                                                             collect_intermediate_metric=composer_params['collect_intermediate_metric'])
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -420,7 +420,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
                                 stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
-                                collect_node_metric=False)
+                                collect_intermediate_metric=False)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

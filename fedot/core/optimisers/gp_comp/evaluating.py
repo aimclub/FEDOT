@@ -1,12 +1,16 @@
+import gc
 import multiprocessing
 import timeit
 from contextlib import closing
 from types import SimpleNamespace
-from typing import Union, Any, Callable, Dict
+from typing import Union, Any, Dict
 
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.intermediate_metric import collect_intermediate_metric_for_nodes
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.pipelines.pipeline import Pipeline
+
 
 
 def single_evaluating(reversed_individuals):
@@ -16,13 +20,10 @@ def single_evaluating(reversed_individuals):
         individual_context = SimpleNamespace(**ind)
         start_time = timeit.default_timer()
 
-        graph = individual_context.ind.graph
         if len(individual_context.pre_evaluated_objects) > 0:
-            graph = individual_context.pre_evaluated_objects[individual_context.ind_num]
-        individual_context.ind.fitness = calculate_objective(graph, individual_context.objective_function,
-                                                             individual_context.is_multi_objective,
-                                                             individual_context.graph_generation_params)
-        individual_context.ind.metadata['computation_time'] = timeit.default_timer() - start_time
+            individual_context.ind.graph = individual_context.pre_evaluated_objects[individual_context.ind_num]
+        calculate_objective(individual_context)
+        individual_context.metadata = {'computation_time': timeit.default_timer() - start_time}
         if individual_context.ind.fitness is not None:
             evaluated_individuals.append(individual_context.ind)
             num_of_successful_evals += 1
@@ -32,23 +33,32 @@ def single_evaluating(reversed_individuals):
     return evaluated_individuals
 
 
-def calculate_objective(graph: Union[OptGraph, Any], objective_function: Callable,
-                        is_multi_objective: bool,
-                        graph_generation_params) -> Any:
-    if isinstance(graph, OptGraph):
-        converted_object = graph_generation_params.adapter.restore(graph)
+def calculate_objective(individual_context: SimpleNamespace) -> Any:
+    if isinstance(individual_context.ind.graph, OptGraph):
+        converted_object = individual_context.graph_generation_params.adapter.restore(individual_context.ind.graph)
     else:
-        converted_object = graph
-    calculated_fitness = objective_function(converted_object)
+        converted_object = individual_context.ind.graph
+    calculated_fitness = individual_context.objective_function(converted_object)
+
     if calculated_fitness is None:
-        return None
+        individual_context.ind.fitness = None
+        return
     else:
-        if is_multi_objective:
+        if individual_context.is_multi_objective:
             fitness = MultiObjFitness(values=calculated_fitness,
                                       weights=tuple([-1 for _ in range(len(calculated_fitness))]))
         else:
             fitness = calculated_fitness[0]
-    return fitness
+        individual_context.ind.fitness = fitness
+
+    if individual_context.collect_intermediate_metric:
+        collect_intermediate_metric_for_nodes(converted_object, individual_context.objective_function.args)
+        individual_context.ind.graph = individual_context.graph_generation_params.adapter.adapt(converted_object)
+
+    if isinstance(converted_object, Pipeline):
+        # enforce memory cleaning
+        converted_object.unfit()
+    gc.collect()
 
 
 def determine_n_jobs(n_jobs, logger):
@@ -63,21 +73,17 @@ def multiprocessing_mapping(n_jobs, reversed_set):
         return list(pool.imap_unordered(individual_evaluation, reversed_set))
 
 
-def individual_evaluation(individual: Dict) -> Union[Individual, None]:
+def individual_evaluation(individual_context: Dict) -> Union[Individual, None]:
     start_time = timeit.default_timer()
-    individual_ = SimpleNamespace(**individual)
-    graph = individual_.ind.graph
-
-    if individual_.timer is not None and individual_.timer.is_time_limit_reached():
+    individual_context = SimpleNamespace(**individual_context)
+    if individual_context.timer is not None and individual_context.timer.is_time_limit_reached():
         return
-
-    if len(individual_.pre_evaluated_objects) > 0:
-        graph = individual_.pre_evaluated_objects[individual_.ind_num]
-    replace_n_jobs_in_nodes(graph)
-    individual_.ind.fitness = calculate_objective(graph, individual_.objective_function,
-                                                  individual_.is_multi_objective, individual_.graph_generation_params)
-    individual_.ind.metadata['computation_time'] = timeit.default_timer() - start_time
-    return individual_.ind
+    if len(individual_context.pre_evaluated_objects) > 0:
+        individual_context.ind.graph = individual_context.pre_evaluated_objects[individual_context.ind_num]
+    replace_n_jobs_in_nodes(individual_context.ind.graph)
+    calculate_objective(individual_context)
+    individual_context.ind.metadata['computation_time'] = timeit.default_timer() - start_time
+    return individual_context.ind
 
 
 def replace_n_jobs_in_nodes(graph: OptGraph):
