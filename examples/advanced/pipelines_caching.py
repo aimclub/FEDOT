@@ -66,7 +66,7 @@ def main(example_number=3):
 
                 print(f"task_type={task_type}, feature={feature}, mean_time={mean(repeat(check, repeat=15, number=1))}")
 
-    def correct_pipelines_cnt_check(timeout: float = 2., partitions_n: int = 2):
+    def correct_pipelines_count_check(timeout: float = 2., partitions_n: int = 2):
         """
         Performs experiment to show how caching pipelines operations helps in fitting FEDOT model
 
@@ -199,7 +199,7 @@ def main(example_number=3):
     examples_dct = defaultdict(lambda: (lambda: print('Wrong example number option'),))
     examples_dct.update({
         1: (dummy_time_check,),
-        2: (correct_pipelines_cnt_check, 2., 2),
+        2: (correct_pipelines_count_check, 2., 2),
         3: (multiprocessing_check, -1)
     })
     func, *args = examples_dct[example_number]
