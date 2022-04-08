@@ -81,7 +81,7 @@ class TableTypesCorrector:
         self.features_types = copy(data.supplementary_data.column_types['features'])
         self.target_types = copy(data.supplementary_data.column_types['target'])
 
-        self._remain_columns_info_without_types_conflicts(data)
+        self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -98,7 +98,7 @@ class TableTypesCorrector:
         # Convert column types
         self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
-        self._remain_columns_info_without_types_conflicts(data)
+        self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -201,8 +201,8 @@ class TableTypesCorrector:
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
 
-    def _remain_columns_info_without_types_conflicts(self, data: 'InputData'):
-        """ Update information in supplementary info - remain info only about remained columns.
+    def _retain_columns_info_without_types_conflicts(self, data: 'InputData'):
+        """ Update information in supplementary info - retain info only about remained columns.
         Such columns have no conflicts with types converting.
         """
         if len(self.string_columns_transformation_failed) > 0:
