@@ -1,3 +1,5 @@
+from copy import copy
+
 import numpy as np
 import pandas as pd
 
@@ -38,10 +40,13 @@ class TableTypesCorrector:
         self.numerical_into_str = []
         self.categorical_into_float = []
 
+        # Indices of columns with filed string into numerical transformation
+        self.string_columns_transformation_failed = {}
+
         # Is target column contains non-numerical cells during conversion
         self.target_converting_has_errors = False
 
-        # Lists with column types for converting
+        # Lists with column types for converting calculated on source input data
         self.features_types = None
         self.target_types = None
         if not log:
@@ -59,9 +64,9 @@ class TableTypesCorrector:
         self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
-        table = self.features_types_converting(features=data.features)
+        data.features = self.features_types_converting(features=data.features)
         # Remain only correct columns
-        data.features = self.remove_incorrect_features(table, self.features_converted_columns)
+        data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
 
         # And in target(s)
         data.target = self.target_types_converting(target=data.target, task=data.task)
@@ -72,10 +77,11 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
-
         # Save info about features and target types
-        self.features_types = data.supplementary_data.column_types['features']
-        self.target_types = data.supplementary_data.column_types['target']
+        self.features_types = copy(data.supplementary_data.column_types['features'])
+        self.target_types = copy(data.supplementary_data.column_types['target'])
+
+        self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -92,6 +98,7 @@ class TableTypesCorrector:
         # Convert column types
         self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
+        self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -193,6 +200,22 @@ class TableTypesCorrector:
             target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
+
+    def _retain_columns_info_without_types_conflicts(self, data: 'InputData'):
+        """ Update information in supplementary info - retain info only about remained columns.
+        Such columns have no conflicts with types converting.
+        """
+        if len(self.string_columns_transformation_failed) > 0:
+            self.log.warn(f'Columns with indices {list(self.string_columns_transformation_failed.keys())} were '
+                          f'removed during mixed types column converting due to conflicts.')
+
+            data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
+
+            remained_column_types = []
+            for i, col in enumerate(data.supplementary_data.column_types['features']):
+                if i not in self.string_columns_transformation_failed:
+                    remained_column_types.append(col)
+            data.supplementary_data.column_types['features'] = remained_column_types
 
     def _check_columns_vs_types_number(self, table: np.array, column_types: list):
         # Check if columns number correct
@@ -332,6 +355,8 @@ class TableTypesCorrector:
                     non_nan_all_objects_number = n_rows - nans_number
                     failed_ratio = failed_objects_number / non_nan_all_objects_number
 
+                    # If all objects are truly strings - all objects transform into nan
+                    is_column_contain_numerical_objects = failed_ratio != 1
                     if failed_ratio < 0.5:
                         # The majority of objects can be converted into numerical
                         data.features[:, column_id] = converted_column.values
@@ -340,6 +365,10 @@ class TableTypesCorrector:
                         self.categorical_into_float.append(column_id)
                         features_types = data.supplementary_data.column_types['features']
                         features_types[column_id] = NAME_CLASS_FLOAT
+                    elif failed_ratio >= 0.5 and is_column_contain_numerical_objects:
+                        # Probably numerical column contains '?' or 'x' as nans equivalents
+                        # Add columns to remove list
+                        self.string_columns_transformation_failed.update({column_id: 'removed'})
 
     def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
         """ Apply conversion into float string column for every signed column """
@@ -349,7 +378,7 @@ class TableTypesCorrector:
 
         n_rows, n_cols = data.features.shape
         for column_id in range(n_cols):
-            if column_id in self.categorical_into_float:
+            if column_id in self.categorical_into_float and column_id not in self.string_columns_transformation_failed:
                 string_column = pd.Series(data.features[:, column_id])
 
                 # Column must be converted into float from categorical
