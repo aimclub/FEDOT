@@ -51,7 +51,7 @@ def main(example_number=3):
                 # , (test2, 'with_tuning'), (test3, 'with_cv_folds'), (test4, 'with_tuning_and_cv_folds')]:
                 preset = 'best_quality'
                 fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': -1,
-                               'timeout': params['timeout'], 'should_use_cache': True,
+                               'timeout': params['timeout'], 'use_cache': True,
                                'composer_params': params}
                 if task_type == 'ts_forecasting':
                     fedot_input['task_params'] = TsForecastingParams(forecast_length=30)
@@ -113,7 +113,7 @@ def main(example_number=3):
                     start_time = timeit.default_timer()
                     auto_model = Fedot(problem=problem, seed=42, timeout=timeout,
                                        composer_params={'with_tuning': False}, preset='fast_train',
-                                       verbose_level=-1, should_use_cache=True)
+                                       verbose_level=-1, use_cache=True)
                     auto_model.fit(features=train_data_tmp, target='target')
                     auto_model.predict_proba(features=test_data_tmp)
                     times[enable_caching].append((timeit.default_timer() - start_time) / 60)
@@ -173,7 +173,7 @@ def main(example_number=3):
             pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
             base_fedot_params = {
                 'problem': problem, 'seed': 42, 'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
-                'verbose_level': -1, 'should_use_cache': True
+                'verbose_level': -1, 'use_cache': True
             }
             timeouts = [1, 2, 3, 4, 5]
             for _n_jobs in [1, n_jobs]:

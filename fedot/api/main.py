@@ -1,4 +1,5 @@
 from copy import deepcopy
+from inspect import signature
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -73,7 +74,7 @@ class Fedot:
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param initial_assumption: initial assumption for composer
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
-    :param should_use_cache: bool indicating if it is needed to use pipeline structures caching
+    :param use_cache: bool indicating if it is needed to use pipeline structures caching
     """
 
     def __init__(self,
@@ -86,7 +87,7 @@ class Fedot:
                  safe_mode=True,
                  initial_assumption: Union[Pipeline, List[Pipeline]] = None,
                  n_jobs: int = 1,
-                 should_use_cache=False
+                 use_cache: bool = False
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -98,15 +99,16 @@ class Fedot:
         input_params = {'problem': self.metrics.main_problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level,
-                        'initial_assumption': initial_assumption}
+                        'initial_assumption': initial_assumption, 'n_jobs': n_jobs, 'use_cache': use_cache}
         self.params.initialize_params(input_params)
+
+        # Initialize ApiComposer's parameters via ApiParams
+        self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
 
         # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
-        self.params.api_params['n_jobs'] = n_jobs
-        self.params.api_params['should_use_cache'] = should_use_cache
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],

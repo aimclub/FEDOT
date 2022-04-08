@@ -40,7 +40,7 @@ def test_compose_fedot_model_with_tuning():
                                                                          logger=default_log('test_log'),
                                                                          timeout=0.1,
                                                                          n_jobs=1,
-                                                                         should_use_cache=False,
+                                                                         use_cache=False,
                                                                          initial_assumption=None),
                                                          composer_params=dict(max_depth=1,
                                                                               max_arity=1,

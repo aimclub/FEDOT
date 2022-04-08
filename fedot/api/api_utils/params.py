@@ -84,11 +84,9 @@ class ApiParams:
     def _parse_input_params(self, input_params: Dict[str, Any]):
         """ Parses input params into different class fields """
         self.log = default_log('FEDOT logger', verbose_level=input_params['verbose_level'])
-        problem = input_params['problem']
-
-        self.api_params = {
-            'problem': problem
-        }
+        simple_keys = ['problem', 'n_jobs', 'use_cache']
+        self.api_params = {k: input_params[k] for k in simple_keys}
+        problem = self.api_params['problem']
 
         default_evo_params = self.get_default_evo_params(input_params['problem'])
         if input_params['composer_params'] is None:

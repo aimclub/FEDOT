@@ -201,18 +201,19 @@ class ApiComposer:
                 .from_operations(composer_params['available_operations'])
             api_params['initial_assumption'] = assumptions_builder.build()
 
+    def init_cache(self, use_cache: bool, n_jobs: int):
+        if use_cache:
+            input_params = {}
+            if n_jobs != 1:
+                input_params.update(dict(mp_manager=Manager()))
+            self.cache = OperationsCache(**input_params)
+
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
                             preset: str):
         """ Function for composing FEDOT pipeline model """
         # Initialize timer for all AutoMl operations
         self.timer = ApiTime(time_for_automl=api_params['timeout'],
                              with_tuning=tuning_params['with_tuning'])
-
-        if api_params['should_use_cache']:  # TODO: maybe should do it somewhere else?
-            if api_params['n_jobs'] != 1:
-                self.cache = OperationsCache(mp_manager=Manager())
-            else:
-                self.cache = OperationsCache()
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
 
@@ -434,7 +435,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     :param common_dict: dictionary with parameters for all AutoML modules
     """
     api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None, n_jobs=1,
-                           should_use_cache=False)
+                           use_cache=False)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
