@@ -30,3 +30,4 @@ torch>=1.9.0
 gensim>=4.1.2
 tqdm
 requests>=2.*
+func_timeout==4.3.5

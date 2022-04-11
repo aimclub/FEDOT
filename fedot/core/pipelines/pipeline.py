@@ -1,7 +1,9 @@
 from copy import deepcopy
 from datetime import timedelta
-from multiprocessing import Manager, Process
+from multiprocessing import Manager
 from typing import Callable, List, Optional, Tuple, Union
+
+import func_timeout
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
@@ -87,19 +89,16 @@ class Pipeline(Graph):
         :param time: time constraint for operation fitting process (seconds)
         """
         time = int(time.total_seconds())
-        manager = Manager()
-        process_state_dict = manager.dict()
-        fitted_operations = manager.list()
-        p = Process(target=self._fit,
-                    args=(input_data, use_fitted_operations, process_state_dict, fitted_operations),
-                    kwargs={})
-        p.start()
-        p.join(time)
-        if p.is_alive():
-            p.terminate()
+        process_state_dict = {}
+        fitted_operations = []
+        try:
+            func_timeout.func_timeout(
+                time, self._fit,
+                args=(input_data, use_fitted_operations, process_state_dict, fitted_operations)
+            )
+        except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
 
-        self.computation_time = process_state_dict['computation_time']
         for node_num, node in enumerate(self.nodes):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']

@@ -401,7 +401,8 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_second_constraint = (time.time() - process_start_time)
     test_pipeline_second = pipeline_first()
-    predicted_second = test_pipeline_second.fit(input_data=train_data)
+    predicted_second = test_pipeline_second.fit(input_data=train_data,
+                                                time_constraint=datetime.timedelta(seconds=100))
     computation_time_second = test_pipeline_second.computation_time
     assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
     assert computation_time_first is None
