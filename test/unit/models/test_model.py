@@ -100,6 +100,7 @@ def classification_dataset():
 
     return data
 
+
 @pytest.fixture()
 def classification_dataset_with_redundant_features(
         n_samples=1000, n_features=100, n_informative=5) -> InputData:
@@ -137,8 +138,8 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
 
     with OperationTypesRepository() as repo:
         model_names, fitted_operation = repo.suitable_operation(task_type=TaskTypesEnum.classification,
-                                                 data_type=data.data_type,
-                                                 tags=['ml'])
+                                                                data_type=data.data_type,
+                                                                tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
