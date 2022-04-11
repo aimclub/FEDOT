@@ -10,7 +10,6 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.log import default_log
-from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
@@ -23,7 +22,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
@@ -102,7 +100,7 @@ def classification_dataset():
 
     return data
 
-
+@pytest.fixture()
 def classification_dataset_with_redundant_features(
         n_samples=1000, n_features=100, n_informative=5) -> InputData:
     synthetic_data = make_classification(n_samples=n_samples,
