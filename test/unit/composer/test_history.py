@@ -2,6 +2,7 @@ import os
 from functools import partial
 
 import numpy as np
+import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
@@ -23,10 +24,21 @@ from fedot.core.repository.quality_metrics_repository import MetricsRepository, 
     RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from fedot.core.validation.compose.tabular import table_metric_calculation
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.validation.test_table_cv import get_data
+from test.unit.validation.test_table_cv import get_classification_data
+
+
+def rf_scaling_pipeline():
+    node_first = PrimaryNode('scaling')
+    node_second = SecondaryNode('rf', nodes_from=[node_first])
+    return Pipeline(node_second)
+
+
+def lagged_ridge_pipeline():
+    node_first = PrimaryNode('lagged')
+    node_second = SecondaryNode('ridge', nodes_from=[node_first])
+    return Pipeline(node_second)
 
 
 def test_parent_operator():
@@ -108,13 +120,10 @@ def test_operators_in_history():
     assert dumped_history is not None
 
 
-def test_collect_intermediate_metric_for_table_cv():
+@pytest.mark.parametrize("pipeline, dataset_to_compose", [(rf_scaling_pipeline(), get_classification_data()[0])])
+def test_collect_intermediate_metric_for_table_cv(pipeline, dataset_to_compose):
     """ Test if intermediate metric collected for nodes """
-    task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose, _ = get_data(task)
-    node_first = PrimaryNode('scaling')
-    node_second = SecondaryNode('rf', nodes_from=[node_first])
-    pipeline = Pipeline(node_second)
+    dataset_to_compose = dataset_to_compose
     pipeline.fit(dataset_to_compose)
     collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
                                              MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
@@ -125,12 +134,10 @@ def test_collect_intermediate_metric_for_table_cv():
             assert node.metadata.metric is None
 
 
-def test_collect_intermediate_metric_for_ts_cv():
+@pytest.mark.parametrize("pipeline, dataset_to_compose", [(lagged_ridge_pipeline(), get_ts_data()[0])])
+def test_collect_intermediate_metric_for_ts_cv(pipeline, dataset_to_compose):
     """ Test if intermediate metric collected for nodes """
-    dataset_to_compose, _ = get_ts_data()
-    node_first = PrimaryNode('lagged')
-    node_second = SecondaryNode('ridge', nodes_from=[node_first])
-    pipeline = Pipeline(node_second)
+
     pipeline.fit(dataset_to_compose)
     collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
                                              MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE), 2)
@@ -141,12 +148,10 @@ def test_collect_intermediate_metric_for_ts_cv():
             assert node.metadata.metric is None
 
 
-def test_collect_intermediate_metric_for_ts():
+@pytest.mark.parametrize("pipeline, dataset_to_compose", [(lagged_ridge_pipeline(), get_ts_data()[0])])
+def test_collect_intermediate_metric_for_ts(pipeline, dataset_to_compose):
     """ Test if intermediate metric collected for nodes """
-    dataset_to_compose, _ = get_ts_data()
-    node_first = PrimaryNode('lagged')
-    node_second = SecondaryNode('ridge', nodes_from=[node_first])
-    pipeline = Pipeline(node_second)
+
     pipeline.fit(dataset_to_compose)
     collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
                                           MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))
@@ -157,13 +162,10 @@ def test_collect_intermediate_metric_for_ts():
             assert node.metadata.metric is None
 
 
-def test_collect_intermediate_metric_for_table():
+@pytest.mark.parametrize("pipeline, dataset_to_compose", [(rf_scaling_pipeline(), get_classification_data()[0])])
+def test_collect_intermediate_metric_for_table(pipeline, dataset_to_compose):
     """ Test if intermediate metric collected for nodes """
-    task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose, _ = get_data(task)
-    node_first = PrimaryNode('scaling')
-    node_second = SecondaryNode('rf', nodes_from=[node_first])
-    pipeline = Pipeline(node_second)
+
     pipeline.fit(dataset_to_compose)
     collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
                                           MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
@@ -174,10 +176,10 @@ def test_collect_intermediate_metric_for_table():
             assert node.metadata.metric is None
 
 
-def test_tabular_cv_generator_works_stable():
+@pytest.mark.parametrize("dataset_to_compose", [get_classification_data()[0]])
+def test_tabular_cv_generator_works_stable(dataset_to_compose):
     """ Test if table cv generator works stable (always return same folds) """
-    task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose, _ = get_data(task)
+
     idx_first = []
     idx_second = []
     for _, test_data in tabular_cv_generator(dataset_to_compose, 3):
@@ -189,7 +191,8 @@ def test_tabular_cv_generator_works_stable():
         assert np.all(idx_first[i] == idx_second[i])
 
 
-def test_ts_cv_generator_works_stable():
+@pytest.mark.parametrize("dataset_to_compose", [get_classification_data()[0]])
+def test_ts_cv_generator_works_stable(dataset_to_compose):
     """ Test if ts cv generator works stable (always return same folds) """
     dataset_to_compose, _ = get_ts_data()
     idx_first = []
