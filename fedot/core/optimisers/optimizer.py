@@ -102,31 +102,27 @@ class GraphOptimiser:
         """
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
-    def default_on_next_iteration_callback(self, individuals: List[Individual],
-                                           archive: Optional[List[Individual]] = None):
+    def default_on_next_iteration_callback(self, individuals: Sequence[Individual],
+                                           best_individuals: Optional[Sequence[Individual]] = None):
         """
         Default variant of callback that preserves optimisation history
         :param individuals: list of individuals obtained in iteration
-        :param archive: optional list of the best individuals for previous iterations
+        :param best_individuals: optional list of the best individuals from previous iterations
         :return:
         """
         try:
             self.history.add_to_history(individuals)
             if self.history.save_folder:
                 self.history.save_current_results()
-            archive = deepcopy(archive)
-            if archive is not None:
-                self.history.add_to_archive_history(archive.items)
+            if best_individuals is not None:
+                self.history.add_to_archive_history(best_individuals)
         except Exception as ex:
             self.log.warn(f'Callback was not successful because of {ex}')
 
+    # TODO: possibly remove, it's protected & not really used as abstract method
+    @abstractmethod
     def _is_stopping_criteria_triggered(self):
-        is_stopping_needed = self.stopping_after_n_generation is not None
-        if is_stopping_needed and self.num_of_gens_without_improvements == self.stopping_after_n_generation:
-            self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
-            return True
-        else:
-            return False
+        pass
 
 
 @dataclass

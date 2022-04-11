@@ -300,7 +300,8 @@ class ApiComposer:
             for pipeline in pipeline_gp_composed:
                 pipeline.log = api_params['logger']
             pipeline_gp_composed = pipeline_gp_composed[0]
-            best_candidates = gp_composer.optimiser.archive
+            # TODO: why this needed? possibly remove such access to internals
+            best_candidates = gp_composer.optimiser.generations._archive
         else:
             best_candidates = [pipeline_gp_composed]
             pipeline_gp_composed.log = api_params['logger']

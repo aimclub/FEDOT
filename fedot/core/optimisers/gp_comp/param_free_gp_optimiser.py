@@ -15,6 +15,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.optimisers.gp_comp.generation_keeper import best_individual
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
@@ -50,7 +51,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                          start_value=self.requirements.pop_size)
 
         self.requirements.pop_size = self.iterator.next()
-        self.metrics = metrics  # TODO: unused!
 
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
@@ -69,6 +69,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
+        # TODO: leave this eval at the beginning of loop
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
@@ -77,29 +78,24 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                         desc='Generations', unit='gen', initial=1,
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
-            self._init_population(objective_function, t)
-
+            self._init_population()
             self.population = self.evaluator(self.population)
+            self.generations.append(self.population)
 
-            if self.archive is not None:
-                self.archive.update(self.population)
-
-            on_next_iteration_callback(self.population, self.archive)
-
+            on_next_iteration_callback(self.population, self.generations.best_individuals)
             self.log_info_about_best()
 
-            while t.is_time_limit_reached(self.generation_num) is False \
-                    and self.generation_num != self.requirements.num_of_generations - 1:
+            while not t.is_time_limit_reached(self.generations.generation_num) \
+                    and self.generations.generation_num < self.requirements.num_of_generations:
 
                 if self._is_stopping_criteria_triggered():
                     break
 
-                self.log.info(f'Generation num: {self.generation_num}')
+                self.log.info(f'Generation num: {self.generations.generation_num}')
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
 
-                self.num_of_gens_without_improvements = self.update_stagnation_counter()
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
-
-                if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
+                # TODO: subst to mutation params
+                if self.parameters.with_auto_depth_configuration and self.generations.generation_num > 0:
                     self.max_depth_recount()
 
                 self.max_std = self.update_max_std()
@@ -112,8 +108,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                            timer=t)
 
                 if self.parameters.multi_objective:
-                    filtered_archive_items = duplicates_filtration(archive=self.archive,
-                                                                   population=individuals_to_select)
+                    # TODO: feels unneeded, ParetoFront does it anyway
+                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals, individuals_to_select)
                     individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 # TODO: collapse this selection & reprodue for 1 and for many
@@ -135,45 +131,42 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                     new_population = self.evaluator(new_population)
 
+                # TODO: make internally used iterator allow initial run (at loop beginning)
                 self.requirements.pop_size = self.next_population_size(new_population)
+                # TODO: move to loop beginning
                 num_of_new_individuals = self.offspring_size(offspring_rate)
                 self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
-
-                self.prev_best = deepcopy(self.best_individual)
 
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
                                               new_population, self.num_of_inds_in_next_pop,
                                               graph_params=self.graph_generation_params)
 
+                # Add best individuals from the previous generation
                 if not self.parameters.multi_objective and self.with_elitism:
-                    self.population.append(self.prev_best)
+                    self.population.extend(self.generations.best_individuals)
+                # Then update generation
+                self.generations.append(self.population)
 
-                if self.archive is not None:
-                    self.archive.update(self.population)
-
-                on_next_iteration_callback(self.population, self.archive)
+                on_next_iteration_callback(self.population, self.generations.best_individuals)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log_info_about_best()
 
-                self.generation_num += 1
                 clean_operators_history(self.population)
 
                 if pbar:
                     pbar.update(1)
+
             if pbar:
                 pbar.close()
 
-            best = self.result_individual()
+            best = self.generations.best_individuals
             self.log.info('Result:')
             self.log_info_about_best()
 
-        final_individuals = best if isinstance(best, list) else [best]
-        self.default_on_next_iteration_callback(final_individuals)
+        self.default_on_next_iteration_callback(best)
 
-        output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
-
-        return output
+        return self.to_outputs(best)
 
     @property
     def with_elitism(self) -> bool:
@@ -191,7 +184,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         return std
 
     def update_max_std(self):
-        if self.generation_num == 0:
+        if self.generations.generation_num == 0:
             std_max = self.current_std
             if len(self.population) == 1:
                 self.requirements.mutation_prob = 1
@@ -212,11 +205,17 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         offspring_archive = tools.ParetoFront()
         offspring_archive.update(offspring)
         is_archive_improved = not is_equal_archive(self.archive, offspring_archive)
+        # TODO: somehow use following, but remember that offsrping isn't yet new population!
+        #  if self.generations.last_improved:
+        #  ...
+        #  and also somehow need not just 'last_improved', but in particuclar for all metrics?
         if is_archive_improved:
             best_ind_in_prev = min(self.archive.items, key=self.get_main_metric)
             best_ind_in_current = min(offspring_archive.items, key=self.get_main_metric)
             fitness_improved = self.get_main_metric(best_ind_in_current) < self.get_main_metric(best_ind_in_prev)
             for offspring_ind in offspring_archive.items:
+                # TODO: so here is just a LexicographicKey on fitness.values === (main_matric, suppl_metric)
+                #  where main_metric is quality, suppl_metric is complexity
                 if self.get_main_metric(offspring_ind) <= self.get_main_metric(best_ind_in_prev) \
                         and self.get_suppl_metric(offspring_ind) < self.get_suppl_metric(best_ind_in_prev):
                     complexity_decreased = True
@@ -224,10 +223,12 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         return fitness_improved, complexity_decreased
 
     def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
-        best_in_offspring = self.get_best_individual(offspring, equivalents_from_current_pop=False)
-        fitness_improved = best_in_offspring.fitness < self.best_individual.fitness
-        complexity_decreased = self.suppl_metric(best_in_offspring.graph) < self.suppl_metric(
-            self.best_individual.graph) and best_in_offspring.fitness <= self.best_individual.fitness
+        best_in_population = best_individual(self.population)
+        best_in_offspring = best_individual(offspring)
+        fitness_improved = best_in_offspring.fitness < best_in_population.fitness
+        complexity_decreased = \
+            self.suppl_metric(best_in_offspring.graph) < self.suppl_metric(best_in_population.graph) \
+            and best_in_offspring.fitness <= best_in_population.fitness
         return fitness_improved, complexity_decreased
 
     def next_population_size(self, offspring: List[Any]) -> int:

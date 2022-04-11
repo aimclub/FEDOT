@@ -2,7 +2,8 @@ import math
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
+from typing import Any, Callable, Optional, Tuple, Union, \
+    List, Sequence, Iterable, TYPE_CHECKING
 
 import numpy as np
 from deap.tools import ParetoFront
@@ -10,7 +11,6 @@ from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
     duplicates_filtration,
@@ -21,6 +21,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.optimisers.gp_comp.generation_keeper import best_individual, GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
@@ -110,20 +111,11 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
-        self.archive: Union[ParetoFront, SimpleArchive]
-        if isinstance(self.parameters.archive_type, ParetoFront):
-            self.archive = self.parameters.archive_type
-        else:
-            self.archive = SimpleArchive()
 
         self.max_depth = self.requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
             else self.requirements.max_depth
-        self.generation_num = 0
-        self.num_of_gens_without_improvements = 0
-
-        generation_depth = self.max_depth if self.requirements.start_depth is None else self.requirements.start_depth
-
+        generation_depth = self.requirements.start_depth or self.max_depth
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=generation_depth)
 
@@ -132,7 +124,11 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.population = None
         self.initial_graph = initial_graph
-        self.prev_best = None
+
+        self.generations = GenerationKeeper(initial_generation=None,  # TODO: either remove or ensure it can be passed
+                                            is_multi_objective=self.parameters.multi_objective,
+                                            # TODO: ensure if archive_type is instance or cls itself
+                                            archive=self.parameters.archive_type)
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
         objective_function = None  # TODO: pass it
@@ -174,12 +170,10 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         return randomized_pop
 
-    def _init_population(self, objective_function, timer):
+    def _init_population(self):
         if self.initial_graph:
             initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
                                    self.initial_graph]
-            initial_individuals = self.evaluator(initial_individuals)
-            self.default_on_next_iteration_callback(initial_individuals)
             self.population = self._create_randomized_pop(initial_individuals)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
@@ -205,29 +199,24 @@ class EvoGraphOptimiser(GraphOptimiser):
                         desc='Generations', unit='gen', initial=1,
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
-            self._init_population(objective_function, t)
-
+            self._init_population()
             self.population = self.evaluator(self.population)
+            self.generations.append(self.population)
 
-            if self.archive is not None:
-                self.archive.update(self.population)
-
-            on_next_iteration_callback(self.population, self.archive)
-
+            on_next_iteration_callback(self.population, self.generations.best_individuals)
             self.log_info_about_best()
 
-            while t.is_time_limit_reached(self.generation_num) is False \
-                    and self.generation_num != self.requirements.num_of_generations - 1:
+            while not t.is_time_limit_reached(self.generations.generation_num) \
+                    and self.generations.generation_num < self.requirements.num_of_generations:
 
                 if self._is_stopping_criteria_triggered():
                     break
 
-                self.log.info(f'Generation num: {self.generation_num}')
+                self.log.info(f'Generation num: {self.generations.generation_num}')
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
 
-                self.num_of_gens_without_improvements = self.update_stagnation_counter()
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
-
-                if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
+                # TODO: subst to mutation params
+                if self.parameters.with_auto_depth_configuration and self.generations.generation_num > 0:
                     self.max_depth_recount()
 
                 individuals_to_select = \
@@ -238,8 +227,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                                            timer=t)
 
                 if self.parameters.multi_objective:
-                    filtered_archive_items = duplicates_filtration(archive=self.archive,
-                                                                   population=individuals_to_select)
+                    # TODO: feels unneeded, ParetoFront does it anyway
+                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals, individuals_to_select)
                     individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
@@ -256,27 +245,20 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = self.evaluator(new_population)
 
-                self.prev_best = deepcopy(self.best_individual)
-
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
                                               new_population, self.num_of_inds_in_next_pop,
                                               graph_params=self.graph_generation_params)
 
+                # Add best individuals from the previous generation
                 if not self.parameters.multi_objective and self.with_elitism:
-                    self.population.append(self.prev_best)
+                    self.population.extend(self.generations.best_individuals)
+                # Then update generation
+                self.generations.append(self.population)
 
-                if self.archive is not None:
-                    self.archive.update(self.population)
-
-                on_next_iteration_callback(self.population, self.archive)
+                on_next_iteration_callback(self.population, self.generations.best_individuals)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log_info_about_best()
-
-                self.generation_num += 1
-
-                if isinstance(self.archive, SimpleArchive):
-                    self.archive.clear()
 
                 clean_operators_history(self.population)
 
@@ -286,23 +268,22 @@ class EvoGraphOptimiser(GraphOptimiser):
             if pbar:
                 pbar.close()
 
-            best = self.result_individual()
+            best = self.generations.best_individuals
             self.log.info('Result:')
             self.log_info_about_best()
 
-        final_individuals = best if isinstance(best, list) else [best]
-        self.default_on_next_iteration_callback(final_individuals)
+        self.default_on_next_iteration_callback(best)
 
-        output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
+        return self.to_outputs(best)
 
-        return output
-
-    @property
-    def best_individual(self) -> Any:
-        if self.parameters.multi_objective:
-            return self.archive
-        else:
-            return self.get_best_individual(self.population)
+    def to_outputs(self, individuals: Iterable[Individual]) -> Union[OptGraph, List[OptGraph]]:
+        # TODO: switch to uniform interface, always return list
+        #  because if the caller needs single output -- it can just take it
+        graphs = [ind.graph for ind in individuals]
+        # for single objective with single result return it directly
+        if not self.parameters.multi_objective and len(graphs) == 1:
+            return graphs[0]
+        return graphs
 
     @property
     def with_elitism(self) -> bool:
@@ -316,54 +297,18 @@ class EvoGraphOptimiser(GraphOptimiser):
         return self.requirements.pop_size - 1 if self.with_elitism and not self.parameters.multi_objective \
             else self.requirements.pop_size
 
-    def update_stagnation_counter(self) -> int:
-        value = 0
-        if self.generation_num != 0:
-            if self.parameters.multi_objective:
-                equal_best = is_equal_archive(self.prev_best, self.archive)
-            else:
-                equal_best = self.prev_best.fitness == self.best_individual.fitness
-            if equal_best:
-                value = self.num_of_gens_without_improvements + 1
-
-        return value
-
     def log_info_about_best(self):
+        best = self.generations.best_individuals
         if self.parameters.multi_objective:
             self.log.info(f'Pareto Frontier: '
-                          f'{[item.fitness.values for item in self.archive.items if item.fitness is not None]}')
+                          f'{[item.fitness.values for item in best]}')
         else:
-            self.log.info(f'Best metric is {self.best_individual.fitness}')
+            self.log.info(f'Best metric is {best[0].fitness}')
 
     def max_depth_recount(self):
-        if self.num_of_gens_without_improvements == self.parameters.depth_increase_step and \
+        if self.generations.stagnation_length >= self.parameters.depth_increase_step and \
                 self.max_depth + 1 <= self.requirements.max_depth:
             self.max_depth += 1
-
-    def get_best_individual(self, individuals: List[Any], equivalents_from_current_pop=True) -> Any:
-        inds_to_analyze = [ind for ind in individuals if ind.fitness is not None]
-        best_ind = min(inds_to_analyze, key=lambda ind: ind.fitness)
-        if equivalents_from_current_pop:
-            equivalents = self.simpler_equivalents_of_best_ind(best_ind)
-        else:
-            equivalents = self.simpler_equivalents_of_best_ind(best_ind, inds_to_analyze)
-
-        if equivalents:
-            best_candidate_id = min(equivalents, key=equivalents.get)
-            best_ind = inds_to_analyze[best_candidate_id]
-        return best_ind
-
-    def simpler_equivalents_of_best_ind(self, best_ind: Any, inds: List[Any] = None) -> dict:
-        individuals = self.population if inds is None else inds
-
-        sort_inds = np.argsort([ind.fitness for ind in individuals])[1:]
-        simpler_equivalents = {}
-        for i in sort_inds:
-            is_fitness_equals_to_best = best_ind.fitness == individuals[i].fitness
-            has_less_num_of_operations_than_best = individuals[i].graph.length < best_ind.graph.length
-            if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
-                simpler_equivalents[i] = len(individuals[i].graph.nodes)
-        return simpler_equivalents
 
     def reproduce(self,
                   selected_individual_first: Individual,
@@ -416,16 +361,9 @@ class EvoGraphOptimiser(GraphOptimiser):
             num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
 
-    def result_individual(self) -> Union[Any, List[Any]]:
-        if not self.parameters.multi_objective:
-            best = self.best_individual
-        else:
-            best = self.archive.items
-        return best
-
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
-        if is_stopping_needed and self.num_of_gens_without_improvements == self.stopping_after_n_generation:
+        if is_stopping_needed and self.generations.stagnation_length >= self.stopping_after_n_generation:
             self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
             return True
         else:
