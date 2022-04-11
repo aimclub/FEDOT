@@ -324,10 +324,9 @@ class ApiComposer:
         gc.collect()
         return pipeline_gp_composed, best_candidates, history
 
-    def tuner_metric_by_name(self, metric_name, train_data: InputData, task: Task):  # TODO: metric_name unused?
+    def tuner_metric_by_name(self, train_data: InputData, task: Task):
         """ Function allow to obtain metric for tuner by its name
 
-        :param metric_name: name of metric
         :param train_data: InputData for train
         :param task: task to solve
 
@@ -380,8 +379,7 @@ class ApiComposer:
                                              f'{tuner_loss.__name__} was set as default')
             else:
                 # Get metric and parameters by name
-                tuner_loss, loss_params = self.tuner_metric_by_name(metric_name=tuning_params['tuner_metric'],
-                                                                    train_data=api_params['train_data'],
+                tuner_loss, loss_params = self.tuner_metric_by_name(train_data=api_params['train_data'],
                                                                     task=api_params['task'])
 
             # Tune all nodes in the pipeline
