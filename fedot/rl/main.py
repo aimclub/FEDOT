@@ -150,10 +150,6 @@ if __name__ == '__main__':
 
     test_env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid)
 
-    # env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid)
-    # in_dim = env.observation_space.shape[0]
-    # out_dim = env.action_space.n
-
     device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
 
     pnet = A2CRnn(in_dim, out_dim).to(device)

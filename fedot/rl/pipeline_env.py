@@ -32,7 +32,7 @@ class PipelineEnv(gym.Env):
             self.validing_data = self.valid_data.target
 
         self.task_type = TaskTypesEnum.classification
-        self.pipeline_depth = pipeline_depth + 1
+        self.pipeline_depth = pipeline_depth
 
         self.actions_list = OperationTypesRepository('all') \
             .suitable_operation(task_type=self.task_type, tags=['reinforce'])
@@ -49,18 +49,17 @@ class PipelineEnv(gym.Env):
         self.pop = self.actions_list_size  # Placeholder of pipeline
         self.eop = self.actions_list_size + 1  # End of pipeline
 
-        self.action_space = spaces.Discrete(self.actions_size)
-        self.observation_space = spaces.MultiDiscrete(
-            np.full((self.pipeline_depth, self.pipeline_depth), self.pop))
-
         self.nodes = []
         self.pipeline = None
         self.pipeline_idx = 0
         self.time_step = 0
         self.cur_pos = 1
         self.metric_value = 0
-        self.observation = np.full(self.pipeline_depth, self.pop)
+        self.observation = np.full(self.pipeline_depth + 1, self.pop)
         self.observation[0] = self.cur_pos
+
+        self.action_space = spaces.Discrete(self.actions_size)
+        self.observation_space = self.transform_to_one_hot(self.observation)
 
         if graph_render:
             self.graph_render_path = join(default_fedot_data_dir(), 'rl', 'pipelines')
@@ -78,14 +77,14 @@ class PipelineEnv(gym.Env):
             self._update_observation(action)
             reward, done, info = self._env_response()
 
-            return self.observation, reward, done, info
+            return self.transform_to_one_hot(self.observation), reward, done, info
 
         # Штраф для агента за выбор окончания построения пайплайна в самом начале
         if action == self.eop and self.nodes == []:
             self._update_observation(action)
             reward, done, info = self._env_response()
 
-            return self.observation, reward, done, info
+            return self.transform_to_one_hot(self.observation), reward, done, info
 
         # Поощерение, если агент выбрал модель
         if action != self.eop and self.actions_list[0][action] in self.model_ops:
@@ -140,13 +139,13 @@ class PipelineEnv(gym.Env):
                 reward = 100 * self.metric_value
 
                 _, done, info = self._env_response(length=len(self.nodes))
-                return self.observation, reward, done, info
+                return self.transform_to_one_hot(self.observation), reward, done, info
             except ValueError:
                 reward, done, info = self._env_response(reward=-85)
-                return self.observation, reward, done, info
+                return self.transform_to_one_hot(self.observation), reward, done, info
         else:
             reward, done, info = self._env_response(reward=temp_reward, done=False)
-            return self.observation, reward, done, info
+            return self.transform_to_one_hot(self.observation), reward, done, info
 
     def reset(self):
         self.pipeline = None
@@ -154,10 +153,10 @@ class PipelineEnv(gym.Env):
         self.time_step = 0
         self.cur_pos = 1
         self.metric_value = 0
-        self.observation = np.full(self.pipeline_depth, self.pop)
+        self.observation = np.full(self.pipeline_depth + 1, self.pop)
         self.observation[0] = self.cur_pos
 
-        return self.observation
+        return self.transform_to_one_hot(self.observation)
 
     def _env_response(self, reward=-100., done=True, length=-1):
         info = {
@@ -187,6 +186,12 @@ class PipelineEnv(gym.Env):
                 return True
         else:
             return False
+
+    def transform_to_one_hot(self, observation):
+        encoded_position = np.eye(np.max(self.pipeline_depth + 1) + 1)[observation[0]].flatten()
+        encoded_observation = np.eye(np.max(self.action_space.n))[observation[1:]].flatten()
+
+        return np.concatenate((encoded_position, encoded_observation), axis=None)
 
     def render(self, mode='text'):
         if mode == 'text':
