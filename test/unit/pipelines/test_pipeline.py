@@ -391,8 +391,7 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
         computation_time_first = test_pipeline_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
-    time_constraint = datetime.timedelta(seconds=2)
-    test_pipeline_first.unfit(unfit_preprocessor=True)
+    time_constraint = datetime.timedelta(seconds=5)
     process_start_time = time.time()
 
     try:
