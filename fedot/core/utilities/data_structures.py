@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Container, Iterable, List, Sized, TypeVar, Union
 
@@ -81,3 +82,25 @@ class ComparableEnum(Enum):
 
     def __hash__(self):
         return hash(str(self))
+
+
+class Comparable(ABC):
+    @abstractmethod
+    def __eq__(self, other) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __lt__(self, other) -> bool:
+        raise NotImplementedError()
+
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)
+
+    def __le__(self, other) -> bool:
+        return self.__lt__(other) or self.__eq__(other)
+
+    def __gt__(self, other) -> bool:
+        return not self.__le__(other)
+
+    def __ge__(self, other) -> bool:
+        return not self.__lt__(other)
