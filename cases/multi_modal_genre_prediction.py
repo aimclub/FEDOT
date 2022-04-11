@@ -50,8 +50,7 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     composer = builder.build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
-    pipeline_evo_composed = composer.compose_pipeline(data=fit_data,
-                                                      is_visualise=True)
+    pipeline_evo_composed = composer.compose_pipeline(data=fit_data)
     pipeline_evo_composed.print_structure()
 
     # tuning of the composed pipeline

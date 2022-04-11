@@ -262,8 +262,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser(parameters=optimiser_parameters)
     composer = builder.build()
-    composer.compose_pipeline(data=dataset_to_compose,
-                              is_visualise=True)
+    composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
     assert composer.optimiser.max_depth == 5
 
@@ -283,7 +282,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache(OperationsCache())
     composer = builder.build()
-    composer.compose_pipeline(data=dataset_to_compose, is_visualise=True)
+    composer.compose_pipeline(data=dataset_to_compose)
 
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)

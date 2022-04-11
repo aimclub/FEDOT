@@ -59,8 +59,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
     composer = builder.build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
-    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
-                                                      is_visualise=True)
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
 
     return pipeline_evo_composed
 

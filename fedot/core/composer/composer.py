@@ -68,13 +68,11 @@ class Composer(ABC):
         self.log = logger or default_log(__name__)
 
     @abstractmethod
-    def compose_pipeline(self, data: InputData,
-                         is_visualise: bool = False) -> Pipeline:
+    def compose_pipeline(self, data: InputData) -> Pipeline:
         """
         Base method to run the composition process
 
         :param data: data used for problem solving
-        :param is_visualise: flag to enable visualization. Default False.
         :return: Pipeline object
         """
         raise NotImplementedError()

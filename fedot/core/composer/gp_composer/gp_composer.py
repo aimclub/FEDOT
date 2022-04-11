@@ -93,11 +93,10 @@ class GPComposer(Composer):
                                                   self.cache, self.log)
 
     # TODO fix: this method is invalidly overriden: it changes the signature of base method
-    def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False,
+    def compose_pipeline(self, data: Union[InputData, MultiModalData],
                          on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
         """ Function for optimal pipeline structure searching
         :param data: InputData for pipeline composing
-        :param is_visualise: is it needed to visualise # TODO: not used here
         :param on_next_iteration_callback: TODO it's never used from calls to composer
         :return best_pipeline: obtained result after composing: one pipeline for single-objective optimization;
             For the multi-objective case, the list of the graph is returned.
