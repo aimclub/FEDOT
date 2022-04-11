@@ -69,6 +69,9 @@ class OperationsCache(metaclass=SingletonMeta):
 
     @property
     def effectiveness_ratio(self):
+        '''
+        Returns percent of how many pipelines/nodes were loaded instead of computing
+        '''
         pipelines_hit = self._effectiveness['pipelines_hit']
         pipelines_total = self._effectiveness['pipelines_total']
         nodes_hit = self._effectiveness['nodes_hit']
