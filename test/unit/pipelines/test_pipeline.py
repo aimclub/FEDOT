@@ -24,14 +24,10 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.dag.test_graph_operator import get_pipeline
 from test.unit.models.test_model import classification_dataset_with_redundant_features
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
-from test.unit.pipelines.test_pipeline_tuning import classification_dataset
 from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
 np.random.seed(1)
-
-_ = classification_dataset, classification_dataset_with_redundant_features
-
 
 @pytest.fixture()
 def data_setup():
@@ -373,12 +369,11 @@ def test_delete_subtree():
     assert pipeline.length == 3
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset_with_redundant_features'])
-def test_pipeline_fit_time_constraint(data_fixture, request):
+def test_pipeline_fit_time_constraint():
     system = platform.system()
     if system == 'Linux':
         set_start_method("spawn", force=True)
-    data = request.getfixturevalue(data_fixture)
+    data = classification_dataset_with_redundant_features()
     train_data, test_data = train_test_data_setup(data=data)
     test_pipeline_first = pipeline_first()
     time_constraint = datetime.timedelta(seconds=0)

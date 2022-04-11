@@ -101,7 +101,6 @@ def classification_dataset():
     return data
 
 
-@pytest.fixture()
 def classification_dataset_with_redundant_features(
         n_samples=1000, n_features=100, n_informative=5) -> InputData:
     synthetic_data = make_classification(n_samples=n_samples,
