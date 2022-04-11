@@ -28,7 +28,7 @@ def single_evaluating(reversed_individuals: List):
         if len(individual_context.pre_evaluated_objects) > 0:
             individual_context.ind.graph = individual_context.pre_evaluated_objects[individual_context.ind_num]
         calculate_objective(individual_context)
-        individual_context.metadata = {'computation_time': timeit.default_timer() - start_time}
+        individual_context.metadata = {'computation_time_in_seconds': timeit.default_timer() - start_time}
         if individual_context.ind.fitness is not None:
             evaluated_individuals.append(individual_context.ind)
             num_of_successful_evals += 1
@@ -120,7 +120,7 @@ def individual_evaluation(individual_context: Dict) -> Union[Individual, None]:
         individual_context.ind.graph = individual_context.pre_evaluated_objects[individual_context.ind_num]
     replace_n_jobs_in_nodes(individual_context.ind.graph)
     calculate_objective(individual_context)
-    individual_context.ind.metadata['computation_time'] = timeit.default_timer() - start_time
+    individual_context.ind.metadata['computation_time_in_seconds'] = timeit.default_timer() - start_time
     return individual_context.ind
 
 

@@ -119,7 +119,7 @@ def test_collect_intermediate_metric_for_table_cv():
     collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
                                              MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
     for node in pipeline.nodes:
-        if type(node.operation) == Model:
+        if isinstance(node.operation, Model):
             assert node.metadata.metric is not None
         else:
             assert node.metadata.metric is None
@@ -135,7 +135,7 @@ def test_collect_intermediate_metric_for_ts_cv():
     collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
                                              MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE), 2)
     for node in pipeline.nodes:
-        if type(node.operation) == Model:
+        if isinstance(node.operation, Model):
             assert node.metadata.metric is not None
         else:
             assert node.metadata.metric is None
@@ -151,7 +151,7 @@ def test_collect_intermediate_metric_for_ts():
     collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
                                           MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))
     for node in pipeline.nodes:
-        if type(node.operation) == Model:
+        if isinstance(node.operation, Model):
             assert node.metadata.metric is not None
         else:
             assert node.metadata.metric is None
@@ -168,7 +168,7 @@ def test_collect_intermediate_metric_for_table():
     collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
                                           MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
     for node in pipeline.nodes:
-        if type(node.operation) == Model:
+        if isinstance(node.operation, Model):
             assert node.metadata.metric is not None
         else:
             assert node.metadata.metric is None

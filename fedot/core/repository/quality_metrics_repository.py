@@ -17,7 +17,7 @@ class QualityMetricsEnum(MetricsEnum):
 class ComplexityMetricsEnum(MetricsEnum):
     node_num = 'node_number'
     structural = 'structural'
-    computation_time = 'computation_time'
+    computation_time = 'computation_time_in_seconds'
 
 
 class ClusteringMetricsEnum(QualityMetricsEnum):

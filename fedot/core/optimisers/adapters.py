@@ -120,7 +120,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
-        pipeline.computation_time = metadata.get('computation_time')
+        pipeline.computation_time = metadata.get('computation_time_in_seconds')
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None):

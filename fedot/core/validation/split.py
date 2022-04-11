@@ -121,6 +121,8 @@ def ts_cv_generator(data: InputData, folds: int,
     :param validation_blocks: number of validation block per each fold
     :param log: log object
     """
+    if not log:
+        log = default_log(__name__)
     # Forecast horizon for each fold
     horizon = data.task.task_params.forecast_length * validation_blocks
 
