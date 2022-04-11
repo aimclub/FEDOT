@@ -1,4 +1,4 @@
-def main(example_number=3):
+def run_caching_benchmark(benchmark_number=3):
     import operator
     import timeit
     from collections import defaultdict
@@ -202,9 +202,9 @@ def main(example_number=3):
         2: (correct_pipelines_count_check, 2., 2),
         3: (multiprocessing_check, -1)
     })
-    func, *args = examples_dct[example_number]
+    func, *args = examples_dct[benchmark_number]
     func(*args)
 
 
 if __name__ == "__main__":
-    main()
+    run_caching_benchmark()
