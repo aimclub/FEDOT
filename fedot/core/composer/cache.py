@@ -51,21 +51,21 @@ class OperationsCache(metaclass=SingletonMeta):
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
 
         if clear_exiting:
-            self.clear()
+            self._clear()
 
     def reset(self):
         with self._rlock:
             for k in self._effectiveness:
                 self._effectiveness[k] = 0
-            self.clear()
+            self._clear()
 
     @contextmanager
     def using_resources(self):
-        self.clear()
+        self._clear()
         try:
             yield
         finally:
-            self.clear()
+            self._clear()
 
     @property
     def effectiveness_ratio(self):
@@ -145,7 +145,7 @@ class OperationsCache(metaclass=SingletonMeta):
 
             return did_load_any
 
-    def clear(self, tmp_only=False):
+    def _clear(self, tmp_only=False):
         with self._rlock:
             if not tmp_only:
                 for ext in ['bak', 'dir', 'dat']:
