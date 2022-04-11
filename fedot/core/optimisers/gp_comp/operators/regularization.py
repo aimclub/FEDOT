@@ -6,7 +6,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:

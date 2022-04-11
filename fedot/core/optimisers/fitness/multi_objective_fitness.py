@@ -5,6 +5,9 @@ from numbers import Number
 from typing import Sequence, Union
 from operator import mul, truediv
 
+from typing import Sequence
+from operator import mul, truediv
+
 import numpy as np
 
 from fedot.core.optimisers.fitness.fitness import Fitness

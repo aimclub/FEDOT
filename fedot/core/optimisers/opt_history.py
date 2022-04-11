@@ -15,7 +15,7 @@ from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
 
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
