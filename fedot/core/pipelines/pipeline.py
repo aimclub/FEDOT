@@ -1,6 +1,5 @@
 from copy import deepcopy
 from datetime import timedelta
-from multiprocessing import Manager
 from typing import Callable, List, Optional, Tuple, Union
 
 import func_timeout
@@ -79,7 +78,7 @@ class Pipeline(Graph):
         self.fit(input_data, use_fitted=False)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations=False,
-                             time: timedelta = timedelta(minutes=3)) -> Manager:
+                             time: timedelta = timedelta(minutes=3)):
         """
         Run training process with time limit. Create
 
@@ -104,8 +103,8 @@ class Pipeline(Graph):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: Manager = None,
-             fitted_operations: Manager = None):
+    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: dict = None,
+             fitted_operations: list = None):
         """
         Run training process in all nodes in pipeline starting with root.
 
