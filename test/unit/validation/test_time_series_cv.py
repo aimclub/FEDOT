@@ -156,5 +156,4 @@ def test_api_cv_correct():
                   task_params=task_parameters,
                   verbose_level=2)
     fedot_model = model.fit(features=time_series)
-    is_succeeded = True  # TODO: maybe `try...catch` would be appropriate here?
-    assert is_succeeded
+    assert fedot_model is not None
