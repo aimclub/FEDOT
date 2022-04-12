@@ -141,6 +141,7 @@ def test_evaluate_individuals():
                                          is_multi_objective=False, timer=t)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
+    assert evaluated[0].metadata['computation_time'] is not None
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)

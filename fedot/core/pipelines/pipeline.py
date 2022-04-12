@@ -2,8 +2,6 @@ from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, List, Optional, Tuple, Union
 
-import func_timeout
-
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
