@@ -129,6 +129,7 @@ def test_evaluate_individuals():
         evaluated = evaluator(population)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
+    assert evaluated[0].fitness.valid
     assert evaluated[0].metadata['computation_time_in_seconds'] is not None
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
@@ -137,7 +138,7 @@ def test_evaluate_individuals():
         evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 4
-    assert all([ind.fitness is not None for ind in evaluated])
+    assert all([ind.fitness.valid for ind in evaluated])
 
 
 def test_filter_duplicates():

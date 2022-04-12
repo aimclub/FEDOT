@@ -7,6 +7,7 @@ from random import choice
 from typing import Dict, Optional
 
 from fedot.core.log import Log, default_log
+from fedot.core.optimisers.fitness.fitness import Fitness, none_fitness, PrioritisedFitness
 from fedot.core.dag.graph import Graph
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.graph import OptGraph
@@ -79,27 +80,24 @@ class Evaluate(Operator[PopulationT]):
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
         _restrict_n_jobs_in_nodes(graph)
         adapted_graph = self.graph_adapter.restore(graph)
-        ind.fitness = self.calculate_objective(adapted_graph)
+        ind.fitness = self.calculate_fitness(adapted_graph)
         self._collect_intermediate_metrics(adapted_graph)
         self._cleanup_memory(graph)
         ind.graph = self.graph_adapter.adapt(adapted_graph)
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
-        return ind if ind.fitness is not None else None
+        return ind if ind.fitness.valid else None
 
-    def calculate_objective(self, graph: OptGraph) -> Optional[Any]:
-        restored_graph = self.graph_adapter.restore(graph) if isinstance(graph, OptGraph) else graph
-
-        calculated_fitness = self.objective_function(restored_graph)
+    def calculate_fitness(self, graph: Graph) -> Fitness:
+        calculated_fitness = self.objective_function(self.graph_adapter.restore(graph))
         if calculated_fitness is None:
-            return None
-
-        if self.is_multi_objective:
-            fitness = MultiObjFitness(values=calculated_fitness, weights=[-1] * len(calculated_fitness))
+            return none_fitness()
+        elif self.is_multi_objective:
+            return MultiObjFitness(values=calculated_fitness,
+                                   weights=[-1] * len(calculated_fitness))
         else:
-            fitness = calculated_fitness[0]
-        return fitness
+            return PrioritisedFitness(*calculated_fitness)
 
     def _collect_intermediate_metrics(self, graph: Graph):
         if not self._intermediate_metrics_function:

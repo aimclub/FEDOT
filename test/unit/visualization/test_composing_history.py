@@ -1,3 +1,4 @@
+from fedot.core.optimisers.fitness.fitness import single_value_fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory
@@ -11,8 +12,7 @@ def create_individual():
     final = OptNode(content={'name': 'knn', 'params': DEFAULT_PARAMS_STUB},
                     nodes_from=[first, second])
 
-    indiviual = Individual(graph=OptGraph(final))
-    indiviual.fitness = 1
+    indiviual = Individual(graph=OptGraph(final), fitness=single_value_fitness(1))
     return indiviual
 
 

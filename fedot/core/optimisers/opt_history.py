@@ -62,13 +62,9 @@ class OptHistory:
         adapter = PipelineAdapter()
         for gen_num, gen_inds in enumerate(self.individuals):
             for ind_num, ind in enumerate(gen_inds):
-                if self.is_multi_objective:
-                    fitness = ind.fitness.values
-                else:
-                    fitness = ind.fitness
                 ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
                 row = [
-                    idx, gen_num, fitness,
+                    idx, gen_num, ind.fitness.values,
                     len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
                 ]
                 self._add_history_to_csv(file, row)

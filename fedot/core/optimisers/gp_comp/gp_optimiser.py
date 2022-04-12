@@ -27,7 +27,7 @@ from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
+from fedot.core.optimisers.utils.population_utils import is_equal_archive
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 if TYPE_CHECKING:
@@ -322,7 +322,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             if self.parameters.multi_objective:
                 equal_best = is_equal_archive(self.prev_best, self.archive)
             else:
-                equal_best = is_equal_fitness(self.prev_best.fitness, self.best_individual.fitness)
+                equal_best = self.prev_best.fitness == self.best_individual.fitness
             if equal_best:
                 value = self.num_of_gens_without_improvements + 1
 
@@ -359,7 +359,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         sort_inds = np.argsort([ind.fitness for ind in individuals])[1:]
         simpler_equivalents = {}
         for i in sort_inds:
-            is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
+            is_fitness_equals_to_best = best_ind.fitness == individuals[i].fitness
             has_less_num_of_operations_than_best = individuals[i].graph.length < best_ind.graph.length
             if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
                 simpler_equivalents[i] = len(individuals[i].graph.nodes)

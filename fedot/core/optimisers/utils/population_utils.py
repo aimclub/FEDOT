@@ -5,10 +5,6 @@ import numpy as np
 from fedot.core.data.data import InputData
 
 
-def is_equal_fitness(first_fitness, second_fitness, atol=1e-10, rtol=1e-10):
-    return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
-
-
 def is_equal_archive(old_archive: Any, new_archive: Any) -> bool:
     fronts_coincidence = True
     if len(old_archive.items) != len(new_archive.items):

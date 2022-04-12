@@ -1,4 +1,5 @@
 from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
+from fedot.core.optimisers.fitness.fitness import single_value_fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -13,7 +14,7 @@ def generate_history(generations, pop_size, folder=None):
         for idx in range(pop_size):
             pipeline = classification_three_depth_manual_pipeline()
             ind = Individual(converter.adapt(pipeline))
-            ind.fitness = 1 / (gen * idx + 1)
+            ind.fitness = single_value_fitness(1 / (gen * idx + 1))
             new_pop.append(ind)
         history.add_to_history(new_pop)
     return history

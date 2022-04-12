@@ -4,6 +4,7 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.debug.metrics import RandomMetric
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.fitness.fitness import single_value_fitness
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.selection import (
@@ -32,7 +33,7 @@ def rand_population_gener_and_eval(pop_size=4):
 
     # evaluation
     for ind in population:
-        ind.fitness = obj_function()
+        ind.fitness = single_value_fitness(obj_function())
     return population
 
 
