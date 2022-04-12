@@ -41,7 +41,7 @@ def collect_intermediate_metric_for_nodes_cv(pipeline, input_data, cv_folds, met
     :param metric: metric for evaluation
     :param validation_blocks: num of validation blocks (only for time series)
     """
-    if input_data.task.task_type == TaskTypesEnum.ts_forecasting:
+    if input_data.task.task_type is TaskTypesEnum.ts_forecasting:
         collect_intermediate_metric_for_nodes_ts_cv(pipeline, input_data, cv_folds, metric, validation_blocks)
         return
 
