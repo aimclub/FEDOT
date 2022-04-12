@@ -3,7 +3,7 @@ import platform
 from dataclasses import dataclass
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union, Iterator
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -17,8 +17,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.compose.tabular import table_metric_calculation
-from fedot.core.validation.compose.time_series import ts_metric_calculation
+from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
+from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -150,71 +150,51 @@ class GPComposer(Composer):
                 for graph in opt_result] if isinstance(opt_result, list) \
             else self.optimiser.graph_generation_params.adapter.restore(opt_result)
 
-    def _cv_validation_metric_build(self, data):
+    def _cv_validation_metric_build(self, data: Union[InputData, MultiModalData]):
         """ Prepare function for metric evaluation based on task """
         if isinstance(data, MultiModalData):
             raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-        task_type = data.task.task_type
-        if task_type is TaskTypesEnum.ts_forecasting:
+
+        cv_generator = self._cv_generator_by_task(data)
+        # Only Pipeline parameter is left unfilled in metric function
+        metric_function_for_nodes = partial(calc_metrics_for_folds, cv_generator,
+                                            validation_blocks=self.composer_requirements.validation_blocks,
+                                            metrics=self.metrics, log=self.log, cache=self.cache)
+        return metric_function_for_nodes
+
+    def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
+        if data.task.task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
             if self.composer_requirements.validation_blocks is None:
-                self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
-                self.composer_requirements.validation_blocks = 3
-
-            metric_function_for_nodes = partial(ts_metric_calculation, data,
-                                                self.composer_requirements.cv_folds,
-                                                self.composer_requirements.validation_blocks,
-                                                self.metrics,
-                                                log=self.log)
-
+                default_validation_blocks = 3
+                self.log.info(f'For ts cross validation validation_blocks number was changed ' +
+                              f'from None to {default_validation_blocks} blocks')
+                self.composer_requirements.validation_blocks = default_validation_blocks
+            cv_generator = partial(ts_cv_generator, data,
+                                   self.composer_requirements.cv_folds,
+                                   self.composer_requirements.validation_blocks,
+                                   self.log)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-
-            metric_function_for_nodes = partial(table_metric_calculation, data,
-                                                self.composer_requirements.cv_folds,
-                                                self.metrics,
-                                                log=self.log,
-                                                cache=self.cache)
-        return metric_function_for_nodes
+            cv_generator = partial(tabular_cv_generator, data, self.composer_requirements.cv_folds)
+        return cv_generator
 
     def composer_metric(self, metrics,
                         train_data: Union[InputData, MultiModalData],
                         test_data: Union[InputData, MultiModalData],
                         pipeline: Pipeline) -> Optional[Tuple[Any]]:
         try:
-            validate(pipeline, task=train_data.task)
             pipeline.log = self.log
-
-            if type(metrics) is not list:
-                metrics = [metrics]
-
-            if self.cache is not None:
-                pipeline.fit_from_cache(self.cache)
+            validate(pipeline, task=train_data.task)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
-
-            pipeline.fit(input_data=train_data,
-                         time_constraint=self.composer_requirements.max_pipeline_fit_time,
-                         use_fitted=self.cache is not None)
-            self.cache.save_pipeline(pipeline)
-
-            evaluated_metrics = ()
-            for metric in metrics:
-                if callable(metric):
-                    metric_func = metric
-                else:
-                    metric_func = MetricsRepository().metric_by_id(metric)
-                evaluated_metrics = evaluated_metrics + (metric_func(pipeline, reference_data=test_data),)
-
-            self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {list(evaluated_metrics)}')
-
-            # enforce memory cleaning
-            pipeline.unfit()
-            gc.collect()
+            evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
+                                                  time_constraint=self.composer_requirements.max_pipeline_fit_time,
+                                                  cache=self.cache)
+            self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {evaluated_metrics}')
         except Exception as ex:
             self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
-
             evaluated_metrics = None
         return evaluated_metrics
 

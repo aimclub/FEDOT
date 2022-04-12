@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+from functools import partial
 
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -15,7 +16,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.compose.tabular import table_metric_calculation
+from fedot.core.validation.metric_estimation import calc_metrics_for_folds
+from fedot.core.validation.split import tabular_cv_generator
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset
@@ -42,12 +44,11 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
     log = default_log(__name__)
 
-    actual_value = table_metric_calculation(pipeline=pipeline, reference_data=classification_dataset,
-                                            cv_folds=3,
-                                            metrics=[ClassificationMetricsEnum.ROCAUC_penalty,
-                                                     ClassificationMetricsEnum.accuracy,
-                                                     ClassificationMetricsEnum.logloss],
-                                            log=log)
+    cv_folds = partial(tabular_cv_generator, classification_dataset, folds=3)
+    metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
+               ClassificationMetricsEnum.accuracy,
+               ClassificationMetricsEnum.logloss]
+    actual_value = calc_metrics_for_folds(cv_folds, pipeline, metrics=metrics, log=log)
     all_metrics_correct = all(list(map(lambda x: 0 < abs(x) <= 1, actual_value)))
 
     assert all_metrics_correct

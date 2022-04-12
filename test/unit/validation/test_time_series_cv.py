@@ -49,7 +49,7 @@ def test_ts_cv_generator_correct():
     validation_horizon = validation_elements_per_fold * folds
 
     i = 0
-    for train_data, test_data, vb_number in ts_cv_generator(time_series, folds, validation_blocks, log):
+    for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
         train_len = len(train_data.idx)
         assert train_len == ts_len - validation_horizon
         validation_horizon -= validation_elements_per_fold
@@ -68,7 +68,7 @@ def test_cv_folds_too_large_correct():
     log, forecast_len, validation_blocks, time_series = configure_experiment()
 
     i = 0
-    for train_data, test_data, vb_number in ts_cv_generator(time_series, folds, validation_blocks, log):
+    for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
         i += 1
         assert len(train_data.idx) == 95
     assert i == 1
