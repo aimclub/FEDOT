@@ -22,14 +22,14 @@ def test_classification_quality_improvement():
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
+    timeout = 5.
     composer_params = {'max_depth': 3,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 20,
-                       'timeout': 5,
                        'with_tuning': True}
 
-    auto_model = Fedot(problem=problem, composer_params=composer_params, seed=42, verbose_level=4)
+    auto_model = Fedot(problem=problem, timeout=timeout, composer_params=composer_params, seed=42, verbose_level=4)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()

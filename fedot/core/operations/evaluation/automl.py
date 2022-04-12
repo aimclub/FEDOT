@@ -159,7 +159,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.name_operation = operation_type
-        self.params = params
+        self.params = params or {}
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -179,7 +179,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
                                         population_size=self.params.get('population_size'),
                                         verbosity=2,
                                         random_state=42,
-                                        max_time_mins=self.params.get('timeout') // target_len
+                                        max_time_mins=self.params.get('timeout', 0.) // target_len
                                         )
             model.fit(train_data.features.astype(float), target.astype(float)[:, i])
             models.append(model.fitted_pipeline_)
@@ -220,7 +220,7 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
                                     population_size=self.params.get('population_size'),
                                     verbosity=2,
                                     random_state=42,
-                                    max_time_mins=self.params.get('timeout')
+                                    max_time_mins=self.params.get('timeout', 0.)
                                     )
         model.classes_ = np.unique(train_data.target)
 

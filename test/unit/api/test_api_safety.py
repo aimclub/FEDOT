@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_main_api import composer_params
+from test.unit.api.test_main_api import default_params
 
 
 def get_data_analyser_with_specific_params(max_size=18, max_cat_cardinality=5):
@@ -89,7 +89,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     """
     Test if safe mode in API cut large data and use LabelEncoder for features with high cardinality
     """
-    model = Fedot(problem="classification",
+    model = Fedot(problem='classification',
                   composer_params={'preset': 'fast_train'})
     model.data_analyser.max_cat_cardinality = 5
     model.data_analyser.max_size = 18
@@ -107,8 +107,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_onehot_correct():
     """
     Test if safe mode in API use OneHotEncoder with small data with small cardinality
     """
-    model = Fedot(problem="classification",
-                  composer_params=composer_params)
+    model = Fedot(problem="classification", **default_params)
     model.data_analyser.max_size = 1000
     data = get_small_cat_data()
     model.fit(features=data, predefined_model='auto')

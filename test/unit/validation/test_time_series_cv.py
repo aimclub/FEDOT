@@ -142,18 +142,19 @@ def test_api_cv_correct():
     time series through api """
     folds = 2
     _, forecast_len, validation_blocks, time_series = configure_experiment()
+    timeout = 0.05
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
-                       'timeout': 0.05,
                        'preset': 'fast_train',
                        'cv_folds': folds,
                        'validation_blocks': validation_blocks}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 
     model = Fedot(problem='ts_forecasting',
+                  timeout=timeout,
                   composer_params=composer_params,
                   task_params=task_parameters,
                   verbose_level=2)
     fedot_model = model.fit(features=time_series)
-    is_succeeded = True
+    is_succeeded = True  # TODO: maybe `try...catch` would be appropriate here?
     assert is_succeeded

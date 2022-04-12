@@ -121,16 +121,16 @@ def test_composer_with_cv_optimization_correct():
 
 
 def test_cv_api_correct():
+    timeout = None
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
-                       'timeout': None,
                        'pop_size': 3,
                        'num_of_generations': 1,
                        'preset': 'fast_train',
                        'cv_folds': 2}
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose, dataset_to_validate = get_data(task)
-    model = Fedot(problem='classification', composer_params=composer_params, verbose_level=2)
+    model = Fedot(problem='classification', timeout=timeout, composer_params=composer_params, verbose_level=2)
     fedot_model = model.fit(features=dataset_to_compose)
     prediction = model.predict(features=dataset_to_validate)
     metric = model.get_metrics()

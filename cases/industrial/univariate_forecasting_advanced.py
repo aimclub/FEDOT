@@ -30,17 +30,17 @@ if __name__ == '__main__':
                                                                     validation_blocks)
 
     # Prepare parameters for algorithm launch
-    # timeout 2 - means that AutoML algorithm will work for 2 minutes
+    timeout = 2.
     composer_params = {'max_depth': 4,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': 2,
                        'preset': BEST_QUALITY_PRESET_NAME,
                        'metric': 'rmse',
                        'cv_folds': 2,
                        'validation_blocks': 2}
-    forecast, obtained_pipeline = automl_fit_forecast(train_input, validation_input, composer_params,
+    forecast, obtained_pipeline = automl_fit_forecast(train_input, validation_input,
+                                                      timeout, composer_params,
                                                       vis=True, in_sample_forecasting=True,
                                                       horizon=forecast_length * validation_blocks)
 
