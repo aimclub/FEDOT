@@ -1,7 +1,8 @@
 from copy import deepcopy
 from datetime import timedelta
-from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
+
+import func_timeout
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
@@ -77,7 +78,7 @@ class Pipeline(Graph):
         self.fit(input_data, use_fitted=False)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations=False,
-                             time: timedelta = timedelta(minutes=3)) -> Manager:
+                             time: timedelta = timedelta(minutes=3)):
         """
         Run training process with time limit. Create
 
@@ -87,16 +88,14 @@ class Pipeline(Graph):
         :param time: time constraint for operation fitting process (seconds)
         """
         time = int(time.total_seconds())
-        manager = Manager()
-        process_state_dict = manager.dict()
-        fitted_operations = manager.list()
-        p = Process(target=self._fit,
-                    args=(input_data, use_fitted_operations, process_state_dict, fitted_operations),
-                    kwargs={})
-        p.start()
-        p.join(time)
-        if p.is_alive():
-            p.terminate()
+        process_state_dict = {}
+        fitted_operations = []
+        try:
+            func_timeout.func_timeout(
+                time, self._fit,
+                args=(input_data, use_fitted_operations, process_state_dict, fitted_operations)
+            )
+        except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
 
         self.computation_time = process_state_dict['computation_time']
@@ -104,8 +103,8 @@ class Pipeline(Graph):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: Manager = None,
-             fitted_operations: Manager = None):
+    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: dict = None,
+             fitted_operations: list = None):
         """
         Run training process in all nodes in pipeline starting with root.
 

@@ -22,15 +22,12 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.dag.test_graph_operator import get_pipeline
+from test.unit.models.test_model import classification_dataset_with_redundant_features
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
-from test.unit.pipelines.test_pipeline_tuning import classification_dataset
 from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
 np.random.seed(1)
-
-tmp = classification_dataset
-
 
 @pytest.fixture()
 def data_setup():
@@ -372,15 +369,14 @@ def test_delete_subtree():
     assert pipeline.length == 3
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
-def test_pipeline_fit_time_constraint(data_fixture, request):
+def test_pipeline_fit_time_constraint():
     system = platform.system()
     if system == 'Linux':
         set_start_method("spawn", force=True)
-    data = request.getfixturevalue(data_fixture)
+    data = classification_dataset_with_redundant_features()
     train_data, test_data = train_test_data_setup(data=data)
     test_pipeline_first = pipeline_first()
-    time_constraint = datetime.timedelta(seconds=1)
+    time_constraint = datetime.timedelta(seconds=0)
     predicted_first = None
     computation_time_first = None
     process_start_time = time.time()
@@ -391,7 +387,7 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
         computation_time_first = test_pipeline_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
-    time_constraint = datetime.timedelta(seconds=5)
+    time_constraint = datetime.timedelta(seconds=1)
     process_start_time = time.time()
 
     try:
@@ -401,7 +397,8 @@ def test_pipeline_fit_time_constraint(data_fixture, request):
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_second_constraint = (time.time() - process_start_time)
     test_pipeline_second = pipeline_first()
-    predicted_second = test_pipeline_second.fit(input_data=train_data)
+    predicted_second = test_pipeline_second.fit(input_data=train_data,
+                                                time_constraint=datetime.timedelta(seconds=100))
     computation_time_second = test_pipeline_second.computation_time
     assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
     assert computation_time_first is None

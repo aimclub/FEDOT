@@ -10,7 +10,6 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.log import default_log
-from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
@@ -23,7 +22,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
@@ -139,8 +137,8 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
 
     with OperationTypesRepository() as repo:
         model_names, fitted_operation = repo.suitable_operation(task_type=TaskTypesEnum.classification,
-                                                 data_type=data.data_type,
-                                                 tags=['ml'])
+                                                                data_type=data.data_type,
+                                                                tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
