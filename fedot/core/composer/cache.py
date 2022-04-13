@@ -32,12 +32,13 @@ class OperationsCache:
             _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
                                  CachedState(node.fitted_operation))
 
-    def save_pipeline(self, pipeline, partial_id=''):
+    def save_pipeline(self, pipeline, partial_id=None):
         """
         :param pipeline: pipeline for caching
         :param partial_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
+        partial_id = partial_id or ''
         try:
             for node in pipeline.nodes:
                 _save_cache_for_node(self.db_path, f'{node.descriptive_id}_{partial_id}',
