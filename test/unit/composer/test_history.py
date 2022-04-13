@@ -120,23 +120,26 @@ def test_operators_in_history():
     assert dumped_history is not None
 
 
-@pytest.mark.parametrize("pipeline, dataset_to_compose, method, metric",
-                         [(rf_scaling_pipeline(), get_classification_data()[0],
-                           partial(collect_intermediate_metric_for_nodes_cv, cv_folds=3),
+@pytest.mark.parametrize("pipeline, method, metric",
+                         [(rf_scaling_pipeline(),
+                           partial(collect_intermediate_metric_for_nodes_cv,
+                                   cv_generator=partial(tabular_cv_generator, get_classification_data()[0], 3)),
                            MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)),
-                          (lagged_ridge_pipeline(), get_ts_data()[0],
-                           partial(collect_intermediate_metric_for_nodes_cv, cv_folds=3, validation_blocks=2),
+                          (lagged_ridge_pipeline(),
+                           partial(collect_intermediate_metric_for_nodes_cv,
+                                   cv_generator=partial(ts_cv_generator, get_ts_data()[0], 3, 2),
+                                   validation_blocks=2),
                            MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)),
-                          (rf_scaling_pipeline(), get_classification_data()[0],
-                           collect_intermediate_metric_for_nodes,
+                          (rf_scaling_pipeline(),
+                           partial(collect_intermediate_metric_for_nodes, input_data=get_classification_data()[0]),
                            MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)),
-                          (lagged_ridge_pipeline(), get_ts_data()[0],
-                           collect_intermediate_metric_for_nodes,
+                          (lagged_ridge_pipeline(),
+                           partial(collect_intermediate_metric_for_nodes, input_data=get_ts_data()[0]),
                            MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))])
-def test_collect_intermediate_metric(pipeline, dataset_to_compose, method, metric):
+def test_collect_intermediate_metric(pipeline, method, metric):
     """ Test if intermediate metric collected for nodes """
-    pipeline.fit(dataset_to_compose)
-    method(pipeline=pipeline, input_data=dataset_to_compose, metric=metric)
+
+    method(pipeline=pipeline, metric=metric)
 
     for node in pipeline.nodes:
         if isinstance(node.operation, Model):

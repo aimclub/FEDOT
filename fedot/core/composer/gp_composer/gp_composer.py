@@ -164,7 +164,8 @@ class GPComposer(Composer):
         # Only Pipeline parameter is left unfilled in metric function
         metric_function_for_nodes = partial(calc_metrics_for_folds, cv_generator,
                                             validation_blocks=self.composer_requirements.validation_blocks,
-                                            metrics=self.metrics, log=self.log, cache=self.cache)
+                                            metrics=self.metrics, log=self.log, cache=self.cache,
+                                            num_of_folds=self.composer_requirements.cv_folds)
         return metric_function_for_nodes
 
     def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:

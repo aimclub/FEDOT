@@ -1,7 +1,5 @@
 from fedot.core.operations.model import Model
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 
 
 def collect_intermediate_metric_for_nodes(pipeline, input_data, metric, validation_blocks=None):
@@ -14,37 +12,15 @@ def collect_intermediate_metric_for_nodes(pipeline, input_data, metric, validati
             node.metadata.metric = metric_func(pipeline, reference_data=input_data, validation_blocks=validation_blocks)
 
 
-def collect_intermediate_metric_for_nodes_ts_cv(pipeline, input_data, cv_folds, metric, validation_blocks):
-    """
-    Function to calculate intermediate metric for all Model nodes for time series forecasting task.
-     If node operation is not Model, metric is None
-
-    :param pipeline: pipeline object
-    :param input_data: input_data for evaluating
-    :param cv_folds: num of cv_folds
-    :param metric: metric for evaluation
-    :param validation_blocks: num of validation blocks
-    """
-
-    test_data = [test_data for _, test_data in
-                               ts_cv_generator(input_data, cv_folds, validation_blocks)][-1]
-    collect_intermediate_metric_for_nodes(pipeline, test_data, metric, validation_blocks)
-
-
-def collect_intermediate_metric_for_nodes_cv(pipeline, input_data, cv_folds, metric, validation_blocks=None):
+def collect_intermediate_metric_for_nodes_cv(pipeline, cv_generator, metric, validation_blocks=None):
     """
     Function to calculate intermediate metric for all Model nodes. If node operation is not Model, metric is None
 
     :param pipeline: pipeline object
-    :param input_data: input_data for evaluating
-    :param cv_folds: num of cv_folds
+    :param cv_generator: cv generator for folds
     :param metric: metric for evaluation
     :param validation_blocks: num of validation blocks (only for time series)
     """
-    if input_data.task.task_type is TaskTypesEnum.ts_forecasting:
-        collect_intermediate_metric_for_nodes_ts_cv(pipeline, input_data, cv_folds, metric, validation_blocks)
-        return
-
-    test_data = [(_, test_data) for _, test_data in
-                 tabular_cv_generator(input_data, cv_folds)][-1][1]
-    collect_intermediate_metric_for_nodes(pipeline, test_data, metric)
+    test_data = [test_data for _, test_data in
+                 cv_generator()][-1]
+    collect_intermediate_metric_for_nodes(pipeline, test_data, metric, validation_blocks=validation_blocks)
