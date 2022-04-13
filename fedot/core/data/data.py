@@ -1,13 +1,12 @@
 import glob
 import os
+import cv2
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union
 
-import imageio
 import numpy as np
 import pandas as pd
-from PIL import Image
 
 from fedot.core.data.array_utilities import atleast_2d
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
@@ -406,15 +405,15 @@ class OutputData(Data):
     target: Optional[np.array] = None
 
 
-def _resize_image(file_path: str, target_size: tuple):
-    im = Image.open(file_path)
-    im_resized = im.resize(target_size, Image.NEAREST)
-    im_resized.save(file_path, 'jpeg')
+def _resize_image(file_path: str, target_size: Tuple[int, int]):
+    """
+    Function resizes and rewrites the input image
+    """
 
-    img = np.asarray(imageio.imread(file_path, 'jpeg'))
-    if len(img.shape) == 3:
-        # TODO refactor for multi-color
-        img = img[..., 0] + img[..., 1] + img[..., 2]
+    img = cv2.imread(file_path)
+    if img.shape[:2] != target_size:
+        img = cv2.resize(img, (target_size[0], target_size[1]))
+        cv2.imwrite(file_path, img)
     return img
 
 

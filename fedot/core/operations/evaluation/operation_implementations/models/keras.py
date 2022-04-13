@@ -56,10 +56,20 @@ def create_simple_cnn(input_shape: tuple,
             tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
             tf.keras.layers.Flatten(),
             tf.keras.layers.Dropout(0.5),
-            tf.keras.layers.Dense(num_classes, activation="sigmoid"),
+            tf.keras.layers.Dense(num_classes, activation="softmax"),
         ]
     )
 
+    return model
+
+
+def create_vgg16(input_shape: tuple,
+                 num_classes: int):
+    model = tf.keras.applications.vgg16.VGG16(include_top=True,
+                                              weights=None,
+                                              input_shape=input_shape,
+                                              classes=num_classes,
+                                              classifier_activation='sigmoid')
     return model
 
 
@@ -78,7 +88,7 @@ def fit_cnn(train_data: InputData,
     if transform_flag:
         logger.debug('Train data set was not scaled. The data was divided by 255.')
 
-    if len(x_train.shape) < 4:
+    if len(x_train.shape) == 3:
         transformed_x_train = np.expand_dims(x_train, -1)
 
     if len(train_data.target.shape) < 2:
@@ -117,11 +127,14 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
 
     if np.max(transformed_x_test) > 1:
         logger.warn('Test data set was not scaled. The data was divided by 255.')
-    transformed_x_test = np.expand_dims(x_test, -1)
+
+    if len(x_test.shape) == 3:
+        transformed_x_test = np.expand_dims(x_test, -1)
+
     if output_mode == 'labels':
-        prediction = trained_model.predict(transformed_x_test)
+        prediction = np.round(trained_model.predict(transformed_x_test))
     elif output_mode in ['probs', 'full_probs', 'default']:
-        prediction = trained_model.predict_proba(transformed_x_test)
+        prediction = trained_model.predict(transformed_x_test)
         if trained_model.num_classes < 2:
             logger.error('Data set contain only 1 target class. Please reformat your data.')
             raise NotImplementedError()
@@ -133,7 +146,8 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
 
 
 cnn_model_dict = {'deep': create_deep_cnn,
-                  'simplified': create_simple_cnn}
+                  'simplified': create_simple_cnn,
+                  'vgg16': create_vgg16}
 
 
 class FedotCNNImplementation(ModelImplementation):

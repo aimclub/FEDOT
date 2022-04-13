@@ -16,12 +16,11 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedelta(minutes=1)):
     task = Task(TaskTypesEnum.classification)
-    images_size = (128, 128)
+    images_size = (224, 224)
 
     data = prepare_multi_modal_data(files_path, task, images_size)
 
-    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size, data,
-                                                                                  with_split=True)
+    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(data, with_split=True)
 
     # the search of the models provided by the framework that can be used as nodes in a pipeline for the selected task
     available_model_types = get_operations_for_task(task=task, mode='model')

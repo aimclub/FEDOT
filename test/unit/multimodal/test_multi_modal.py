@@ -5,23 +5,16 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.data.multi_modal import MultiModalData
 
 
-def generate_multi_modal_pipeline():
-    images_size = (128, 128)
-
-    # image
-    image_node = PrimaryNode('cnn')
-    image_node.custom_params = {'image_shape': (images_size[0], images_size[1], 1),
-                                'architecture': 'simplified',
-                                'num_classes': 2,
-                                'epochs': 1,
-                                'batch_size': 128}
+def generate_multi_modal_pipeline(data: MultiModalData):
 
     # image
+    images_size = data['data_source_img'].features.shape[1:4]
     ds_image = PrimaryNode('data_source_img')
     image_node = SecondaryNode('cnn', nodes_from=[ds_image])
-    image_node.custom_params = {'image_shape': (images_size[0], images_size[1], 1),
+    image_node.custom_params = {'image_shape': images_size,
                                 'architecture': 'simplified',
                                 'num_classes': 2,
                                 'epochs': 15,
@@ -61,7 +54,6 @@ def generate_multi_task_pipeline():
 
 
 def test_multi_modal_pipeline():
-    pipeline = generate_multi_modal_pipeline()
 
     files_path = os.path.join('test', 'data', 'multi_modal')
     path = os.path.join(str(fedot_project_root()), files_path)
@@ -69,6 +61,7 @@ def test_multi_modal_pipeline():
     images_size = (128, 128)
 
     fit_data = prepare_multi_modal_data(path, task, images_size)
+    pipeline = generate_multi_modal_pipeline(fit_data)
 
     pipeline.fit(fit_data)
     prediction = pipeline.predict(fit_data)
