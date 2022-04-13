@@ -64,12 +64,15 @@ def prepare_unimodal_for_validation(time_series: Union[np.array, pd.Series],
     return train_input, validation_input
 
 
-def automl_fit_forecast(train_input, predict_input, composer_params: dict,
-                        vis=True, in_sample_forecasting=False, horizon: int = None):
+def automl_fit_forecast(train_input, predict_input,
+                        timeout: float, composer_params: dict,
+                        vis=True, in_sample_forecasting=False,
+                        horizon: int = None):
     """ Running AutoML algorithm for identification and configuration of pipeline
 
     :param train_input: InputData for algorithm fitting
     :param predict_input: InputData for forecast
+    :param timeout: time for model design (in minutes) as float
     :param composer_params: dictionary with hyperparameters
     :param vis: is there a need to display structure of obtained pipeline
     :param in_sample_forecasting: is it needed to make in_sample_forecasting
@@ -78,8 +81,9 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
     """
 
     model = Fedot(problem='ts_forecasting',
-                  task_params=train_input.task.task_params,
-                  composer_params=composer_params)
+                  timeout=timeout,
+                  composer_params=composer_params,
+                  task_params=train_input.task.task_params)
 
     # Run AutoML model design in the same way
     obtained_pipeline = model.fit(train_input)
@@ -101,13 +105,14 @@ def automl_fit_forecast(train_input, predict_input, composer_params: dict,
 
 
 def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
-                              composer_params: dict, target: np.array,
-                              forecast_length: int, vis: bool = True,
-                              verbose_level: int = 1):
+                              timeout: float, composer_params: dict,
+                              target: np.array, forecast_length: int,
+                              vis: bool = True, verbose_level: int = 1):
     """ Multi modal forecasting
 
     :param train_input: dictionary with InputData classes for train
     :param predict_input: dictionary with InputData classes for test
+    :param timeout: time for model design (in minutes) as float
     :param composer_params: dictionary with hyperparameters
     :param vis: is there a need to display structure of obtained pipeline
     :param target: numpy array (time series) for forecasting
@@ -116,7 +121,7 @@ def multi_automl_fit_forecast(train_input: dict, predict_input: dict,
     """
     task_params = TsForecastingParams(forecast_length=forecast_length)
     model = Fedot(problem='ts_forecasting',
-                  composer_params=composer_params,
+                  timeout=timeout, composer_params=composer_params,
                   task_params=task_params, verbose_level=verbose_level)
     # Run AutoML model design in the same way
     obtained_pipeline = model.fit(features=train_input, target=target)

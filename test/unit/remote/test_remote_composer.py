@@ -44,13 +44,12 @@ def test_pseudo_remote_composer_classification():
 
     composer_params = {
         'pop_size': 3,
-        'timeout': 0.1,
         'cv_folds': None,
         'with_tuning': False
     }
 
     preset = 'best_quality'
-    automl = Fedot(problem='classification', preset=preset, composer_params=composer_params)
+    automl = Fedot(problem='classification', preset=preset, timeout=0.1, composer_params=composer_params)
 
     path = os.path.join(fedot_project_root(), 'test', 'data', 'advanced_classification.csv')
 
@@ -87,13 +86,12 @@ def test_pseudo_remote_composer_ts_forecasting():
 
     composer_params = {
         'pop_size': 10,
-        'timeout': 0.2,
         'cv_folds': None,
         'with_tuning': False
     }
 
     preset = 'best_quality'
-    automl = Fedot(problem='ts_forecasting', preset=preset, composer_params=composer_params,
+    automl = Fedot(problem='ts_forecasting', preset=preset, timeout=0.2, composer_params=composer_params,
                    task_params=TsForecastingParams(forecast_length=1))
 
     path = os.path.join(fedot_project_root(), 'test', 'data', 'short_time_series.csv')

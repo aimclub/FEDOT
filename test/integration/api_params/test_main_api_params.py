@@ -47,13 +47,13 @@ def test_timeout(case: TimeoutParams):
         'pop_size': 1,
         'with_tuning': False,
         'validation_blocks': 1,
-        **case.test_input
+        'num_of_generations': case.test_input['num_of_generations']
     }
 
     task_type = 'ts_forecasting'
     fedot_input = {'problem': task_type, 'seed': 42, 'preset': 'fast_train',
                    'verbose_level': 4,
-                   'timeout': composer_params['timeout'],
+                   'timeout': case['timeout'],
                    'composer_params': composer_params, 'task_params': TsForecastingParams(forecast_length=1)}
 
     train_data, test_data, _ = get_dataset(task_type)

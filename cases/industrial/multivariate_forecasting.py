@@ -31,17 +31,17 @@ if __name__ == '__main__':
 
     # Prepare parameters for algorithm launch
     # timeout 5 - means that AutoML algorithm will work for 5 minutes
+    timeout = 0.5
     composer_params = {'max_depth': 6,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 20,
-                       'timeout': 0.5,
                        'preset': BEST_QUALITY_PRESET_NAME,
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}
     forecast, obtained_pipeline = multi_automl_fit_forecast(mm_train, mm_test,
-                                                            composer_params,
+                                                            timeout, composer_params,
                                                             ts, forecast_length,
                                                             vis=True)
 

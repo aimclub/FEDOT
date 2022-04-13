@@ -52,8 +52,6 @@ The result of execution is presented below:
   --arity ARITY         Composer parameter: max arity of the pipeline nodes
   --popsize POPSIZE     Composer parameter: population size
   --gen_num GEN_NUM     Composer parameter: number of generations
-  --c_timeout C_TIMEOUT
-                        Composer parameter: composing time (minutes)
   --opers [OPERS [OPERS ...]]
                         Composer parameter: model names to use
   --tuning TUNING       Composer parameter: 1 - with tuning, 0 - without tuning
@@ -72,5 +70,4 @@ problems decision are presented.
 
 The string below helps to run classification problem decision from the console:
 
-``python --problem classification --train ../../test/data/simple_classification.csv --test ../../test/data/simple_classification.csv  --target Y --c_timeout 0.1``
-
+``python --problem classification --train ../../test/data/simple_classification.csv --test ../../test/data/simple_classification.csv  --target Y --timeout 0.1``

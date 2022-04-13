@@ -15,7 +15,6 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
                   composer_params={
                       'max_depth': 4,
                       'num_of_generations': 20,
-                      'timeout': 10,
                       'pop_size': 10,
                       'max_arity': 3,
                       'cv_folds': None,

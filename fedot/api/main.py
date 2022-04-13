@@ -47,15 +47,12 @@ class Fedot:
         - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
         - None or -1 means infinite time
-        - if composer_params param has 'timeout' key - its value will be used instead
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
             'max_depth' - max depth of the pipeline
             'max_arity' - max arity of the pipeline nodes
             'pop_size' - population size for composer
             'num_of_generations' - number of generations for composer
-            'timeout' - composing time (minutes)
-                - None or -1 means infinite time
             'available_operations' - list of model names to use
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
@@ -97,7 +94,7 @@ class Fedot:
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level,
                         'initial_assumption': initial_assumption}
-        self.params.initialize_params(**input_params)
+        self.params.initialize_params(input_params)
 
         # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']

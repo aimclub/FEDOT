@@ -27,10 +27,14 @@ from test.unit.tasks.test_classification import get_iris_data
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
-composer_params = {'max_depth': 1,
-                   'max_arity': 2,
-                   'timeout': 0.1,
-                   'preset': 'fast_train'}
+default_params = {
+    'preset': 'fast_train',
+    'timeout': 0.1,
+    'composer_params': {
+        'max_depth': 1,
+        'max_arity': 2,
+    }
+}
 
 
 def get_split_data_paths():
@@ -127,8 +131,7 @@ def test_api_predict_correct(task_type, predefined_model, metric_name):
     task_type = task_type.value
 
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem=task_type,
-                  composer_params=composer_params)
+    model = Fedot(problem=task_type, **default_params)
     fedot_model = model.fit(features=train_data, predefined_model=predefined_model)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics()
@@ -142,7 +145,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     # The forecast length must be equal to 5
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
-    model = Fedot(problem='ts_forecasting', composer_params=composer_params,
+    model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
@@ -245,10 +248,15 @@ def test_pandas_input_for_api():
 def test_multiobj_for_api():
     train_data, test_data, _ = get_dataset('classification')
 
-    composer_params['composer_metric'] = ['f1', 'node_num']
+    params = {
+        **default_params,
+        'composer_params': {
+            **default_params['composer_params'],
+            'composer_metric': ['f1', 'node_num']
+        }
+    }
 
-    model = Fedot(problem='classification',
-                  composer_params=composer_params)
+    model = Fedot(problem='classification', **params)
     model.fit(features=train_data)
     prediction = model.predict(features=test_data)
     metric = model.get_metrics()
@@ -261,7 +269,7 @@ def test_multiobj_for_api():
 def test_categorical_preprocessing_unidata():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model = Fedot(problem='classification', **default_params)
     auto_model.fit(features=train_data)
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
@@ -272,7 +280,7 @@ def test_categorical_preprocessing_unidata():
 def test_categorical_preprocessing_unidata_predefined():
     train_data, test_data = load_categorical_unimodal()
 
-    auto_model = Fedot(problem='classification', composer_params=composer_params)
+    auto_model = Fedot(problem='classification', **default_params)
     auto_model.fit(features=train_data, predefined_model='rf')
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
@@ -326,7 +334,7 @@ def test_multivariate_ts():
         'ssh': target_history,  # target variable
     }
 
-    fedot = Fedot(problem='ts_forecasting', composer_params=composer_params,
+    fedot = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     fedot.fit(features=historical_data, target=target_history)
     forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
@@ -341,7 +349,15 @@ def test_unshuffled_data():
     features, target = df_el.drop(target_column, axis=1).values, df_el[target_column].values
 
     problem = 'classification'
-    auto_model = Fedot(problem=problem, seed=42, composer_params={**{'metric': 'f1'}, **composer_params})
+    params = {
+        **default_params,
+        'composer_params': {
+            **default_params['composer_params'],
+            'metric': 'f1'
+        }
+    }
+
+    auto_model = Fedot(problem=problem, seed=42, **params)
     pipeline = auto_model.fit(features=features, target=target)
     assert pipeline is not None
 
@@ -351,9 +367,15 @@ def test_custom_history_folder_define_correct():
 
     custom_path = os.path.join(os.path.abspath(os.getcwd()), 'history_folder')
 
-    model = Fedot(problem='ts_forecasting', composer_params={'history_folder': custom_path,
-                                                             'max_depth': 1, 'max_arity': 2,
-                                                             'timeout': 0.1},
+    params = {
+        **default_params,
+        'composer_params': {
+            **default_params['composer_params'],
+            'history_folder': custom_path
+        }
+    }
+
+    model = Fedot(problem='ts_forecasting', **params,
                   task_params=TsForecastingParams(forecast_length=5))
 
     model.fit(features=train_data)

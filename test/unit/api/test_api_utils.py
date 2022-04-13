@@ -77,9 +77,8 @@ def test_predefined_initial_assumption():
     available_operations = ['bernb', 'dt', 'knn', 'lda', 'qda', 'logit', 'rf', 'svc',
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
-    model = Fedot(problem='classification', timeout=1,
-                  verbose_level=4, composer_params={'timeout': 1,
-                                                    'available_operations': available_operations,
+    model = Fedot(problem='classification', timeout=1.,
+                  verbose_level=4, composer_params={'available_operations': available_operations,
                                                     'initial_assumption': initial_pipeline})
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,
