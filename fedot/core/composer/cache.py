@@ -26,7 +26,7 @@ class CachedState:
 
 
 class OperationsCache(metaclass=SingletonMeta):
-    '''
+    """
     Stores/loades nodes `fitted_operation` field to increase performance of calculations.
 
     :param mp_manager: optional multiprocessing manager in case of main API `n_jobs` != 1,
@@ -34,7 +34,7 @@ class OperationsCache(metaclass=SingletonMeta):
     :param log: optional Log object to record messages
     :param db_path: optional str determining a file name for caching pipelines
     :param clear_exiting: optional bool indicating if it is needed to clean up resources before class can be used
-    '''
+    """
 
     def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
                  db_path: Optional[str] = None,
@@ -69,9 +69,9 @@ class OperationsCache(metaclass=SingletonMeta):
 
     @property
     def effectiveness_ratio(self):
-        '''
+        """
         Returns percent of how many pipelines/nodes were loaded instead of computing
-        '''
+        """
         pipelines_hit = self._effectiveness['pipelines_hit']
         pipelines_total = self._effectiveness['pipelines_total']
         nodes_hit = self._effectiveness['nodes_hit']

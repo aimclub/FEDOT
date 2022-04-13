@@ -149,11 +149,11 @@ def prune_index(inner_tree, decisions, index=0):
 
 
 def prune_duplicate_leaves(mdl):
-    '''
+    """
     Function for pruning redundant leaves of a tree by Thomas (https://stackoverflow.com/users/4629950/thomas).
     Source: https://stackoverflow.com/questions/51397109/prune-unnecessary-leaves-in-sklearn-decisiontreeclassifier
     :param mdl: `DecisionTree` or `DecisionTreeRegressor` instance by sklearn.
-    '''
+    """
     # Remove leaves if both
     decisions = mdl.tree_.value.argmax(axis=2).flatten().tolist()  # Decision for each node
     prune_index(mdl.tree_, decisions)
