@@ -4,14 +4,14 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 
 
-def collect_intermediate_metric_for_nodes(pipeline, test_data, metric, validation_blocks=None):
+def collect_intermediate_metric_for_nodes(pipeline, input_data, metric, validation_blocks=None):
     for node in pipeline.nodes:
         if isinstance(node.operation, Model):
             if callable(metric):
                 metric_func = metric
             else:
                 metric_func = MetricsRepository().metric_by_id(metric)
-            node.metadata.metric = metric_func(pipeline, reference_data=test_data, validation_blocks=validation_blocks)
+            node.metadata.metric = metric_func(pipeline, reference_data=input_data, validation_blocks=validation_blocks)
 
 
 def collect_intermediate_metric_for_nodes_ts_cv(pipeline, input_data, cv_folds, metric, validation_blocks):

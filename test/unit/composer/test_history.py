@@ -120,13 +120,24 @@ def test_operators_in_history():
     assert dumped_history is not None
 
 
-@pytest.mark.parametrize("pipeline, dataset_to_compose", [(rf_scaling_pipeline(), get_classification_data()[0])])
-def test_collect_intermediate_metric_for_table_cv(pipeline, dataset_to_compose):
+@pytest.mark.parametrize("pipeline, dataset_to_compose, method, metric",
+                         [(rf_scaling_pipeline(), get_classification_data()[0],
+                           partial(collect_intermediate_metric_for_nodes_cv, cv_folds=3),
+                           MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)),
+                          (lagged_ridge_pipeline(), get_ts_data()[0],
+                           partial(collect_intermediate_metric_for_nodes_cv, cv_folds=3, validation_blocks=2),
+                           MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)),
+                          (rf_scaling_pipeline(), get_classification_data()[0],
+                           collect_intermediate_metric_for_nodes,
+                           MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)),
+                          (lagged_ridge_pipeline(), get_ts_data()[0],
+                           collect_intermediate_metric_for_nodes,
+                           MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))])
+def test_collect_intermediate_metric(pipeline, dataset_to_compose, method, metric):
     """ Test if intermediate metric collected for nodes """
-    dataset_to_compose = dataset_to_compose
     pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
-                                             MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
+    method(pipeline=pipeline, input_data=dataset_to_compose, metric=metric)
+
     for node in pipeline.nodes:
         if isinstance(node.operation, Model):
             assert node.metadata.metric is not None
@@ -134,73 +145,19 @@ def test_collect_intermediate_metric_for_table_cv(pipeline, dataset_to_compose):
             assert node.metadata.metric is None
 
 
-@pytest.mark.parametrize("pipeline, dataset_to_compose", [(lagged_ridge_pipeline(), get_ts_data()[0])])
-def test_collect_intermediate_metric_for_ts_cv(pipeline, dataset_to_compose):
-    """ Test if intermediate metric collected for nodes """
-
-    pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes_cv(pipeline, dataset_to_compose, 3,
-                                             MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE), 2)
-    for node in pipeline.nodes:
-        if isinstance(node.operation, Model):
-            assert node.metadata.metric is not None
-        else:
-            assert node.metadata.metric is None
-
-
-@pytest.mark.parametrize("pipeline, dataset_to_compose", [(lagged_ridge_pipeline(), get_ts_data()[0])])
-def test_collect_intermediate_metric_for_ts(pipeline, dataset_to_compose):
-    """ Test if intermediate metric collected for nodes """
-
-    pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
-                                          MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))
-    for node in pipeline.nodes:
-        if isinstance(node.operation, Model):
-            assert node.metadata.metric is not None
-        else:
-            assert node.metadata.metric is None
-
-
-@pytest.mark.parametrize("pipeline, dataset_to_compose", [(rf_scaling_pipeline(), get_classification_data()[0])])
-def test_collect_intermediate_metric_for_table(pipeline, dataset_to_compose):
-    """ Test if intermediate metric collected for nodes """
-
-    pipeline.fit(dataset_to_compose)
-    collect_intermediate_metric_for_nodes(pipeline, dataset_to_compose,
-                                          MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))
-    for node in pipeline.nodes:
-        if isinstance(node.operation, Model):
-            assert node.metadata.metric is not None
-        else:
-            assert node.metadata.metric is None
-
-
-@pytest.mark.parametrize("dataset_to_compose", [get_classification_data()[0]])
-def test_tabular_cv_generator_works_stable(dataset_to_compose):
-    """ Test if table cv generator works stable (always return same folds) """
-
-    idx_first = []
-    idx_second = []
-    for _, test_data in tabular_cv_generator(dataset_to_compose, 3):
-        idx_first.append(test_data.idx)
-    for _, test_data in tabular_cv_generator(dataset_to_compose, 3):
-        idx_second.append(test_data.idx)
-
-    for i in range(len(idx_first)):
-        assert np.all(idx_first[i] == idx_second[i])
-
-
-@pytest.mark.parametrize("dataset_to_compose", [get_classification_data()[0]])
-def test_ts_cv_generator_works_stable(dataset_to_compose):
+@pytest.mark.parametrize("cv_generator_first, cv_generator_second",
+                         [(tabular_cv_generator(get_classification_data()[0], 3),
+                           tabular_cv_generator(get_classification_data()[0], 3)),
+                          (ts_cv_generator(get_ts_data()[0], 3, 2),
+                           ts_cv_generator(get_ts_data()[0], 3, 2))])
+def test_cv_generator_works_stable(cv_generator_first, cv_generator_second):
     """ Test if ts cv generator works stable (always return same folds) """
-    dataset_to_compose, _ = get_ts_data()
     idx_first = []
     idx_second = []
-    for _, test_data, _ in ts_cv_generator(dataset_to_compose, 3, 2):
-        idx_first.append(test_data.idx)
-    for _, test_data, _ in ts_cv_generator(dataset_to_compose, 3, 2):
-        idx_second.append(test_data.idx)
+    for row in cv_generator_first:
+        idx_first.append(row[1].idx)
+    for row in cv_generator_second:
+        idx_second.append(row[1].idx)
 
     for i in range(len(idx_first)):
         assert np.all(idx_first[i] == idx_second[i])
