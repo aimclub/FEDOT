@@ -26,9 +26,9 @@ def collect_intermediate_metric_for_nodes_ts_cv(pipeline, input_data, cv_folds, 
     :param validation_blocks: num of validation blocks
     """
 
-    test_data, block_number = [(_, test_data, block_number) for _, test_data, block_number in
-                               ts_cv_generator(input_data, cv_folds, validation_blocks)][-1][1::]
-    collect_intermediate_metric_for_nodes(pipeline, test_data, metric, block_number)
+    test_data = [test_data for _, test_data in
+                               ts_cv_generator(input_data, cv_folds, validation_blocks)][-1]
+    collect_intermediate_metric_for_nodes(pipeline, test_data, metric, validation_blocks)
 
 
 def collect_intermediate_metric_for_nodes_cv(pipeline, input_data, cv_folds, metric, validation_blocks=None):

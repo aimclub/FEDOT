@@ -5,7 +5,7 @@ from sklearn.model_selection import KFold, TimeSeriesSplit
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import  Log
+from fedot.core.log import Log, default_log
 
 
 class OneFoldInputDataSplit:
