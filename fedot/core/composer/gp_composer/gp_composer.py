@@ -189,10 +189,10 @@ class GPComposer(Composer):
         return cv_generator
 
     def composer_metric(self,
+                        pipeline: Pipeline,
                         metrics,
                         train_data: Union[InputData, MultiModalData],
                         test_data: Union[InputData, MultiModalData],
-                        pipeline: Pipeline
                         ) -> Optional[Tuple[Any]]:
         try:
             pipeline.log = self.log
