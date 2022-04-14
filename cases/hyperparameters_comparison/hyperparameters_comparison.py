@@ -136,6 +136,7 @@ def fixed_structure_with_params_optimization(train,
 
 def save_comparison_results(key):
     d, m, fo, algo, i, experiment = key
+    print(key)
     filename = d + '_' + m + '_' + fo + '_' + algo + '_' + str(i) + '_' + str(experiment)
     if filename not in os.listdir('comparison_results'):
         if algo == 'default':
