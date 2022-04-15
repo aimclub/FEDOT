@@ -185,9 +185,9 @@ class ApiComposer:
                 repository_name = 'model'
             assumptions_builder = AssumptionsBuilder(task=api_params['task'],
                                                      data=api_params['train_data'],
-                                                     repository_name=repository_name)\
-                .get(api_params['task'], api_params['train_data'])\
-                .with_logger(api_params['logger'])\
+                                                     repository_name=repository_name) \
+                .get(api_params['task'], api_params['train_data']) \
+                .with_logger(api_params['logger']) \
                 .from_operations(composer_params['available_operations'])
             api_params['initial_assumption'] = assumptions_builder.build()
 
@@ -224,7 +224,8 @@ class ApiComposer:
                                                              validation_blocks=composer_params['validation_blocks'],
                                                              timeout=self.timer.datetime_composing,
                                                              n_jobs=api_params['n_jobs'],
-                                                             collect_intermediate_metric=composer_params['collect_intermediate_metric'])
+                                                             collect_intermediate_metric=composer_params[
+                                                                 'collect_intermediate_metric'])
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -372,7 +373,7 @@ class ApiComposer:
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
-                pipeline_gp_composed = pipeline_gp_composed.\
+                pipeline_gp_composed = pipeline_gp_composed. \
                     fine_tune_all_nodes(loss_function=tuner_loss,
                                         loss_params=loss_params,
                                         input_data=api_params['train_data'],
