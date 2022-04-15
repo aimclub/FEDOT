@@ -192,8 +192,7 @@ class GPComposer(Composer):
                         pipeline: Pipeline,
                         metrics,
                         train_data: Union[InputData, MultiModalData],
-                        test_data: Union[InputData, MultiModalData],
-                        ) -> Optional[Tuple[Any]]:
+                        test_data: Union[InputData, MultiModalData]) -> Optional[Tuple[Any]]:
         try:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)

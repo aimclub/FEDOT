@@ -122,7 +122,6 @@ def test_composer_with_cv_optimization_correct():
 
 
 def test_cv_api_correct():
-    timeout = None
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'pop_size': 3,
