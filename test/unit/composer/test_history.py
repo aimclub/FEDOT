@@ -30,16 +30,18 @@ from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
 
 
-def rf_scaling_pipeline():
+def scaling_logit_rf_pipeline():
     node_first = PrimaryNode('scaling')
-    node_second = SecondaryNode('rf', nodes_from=[node_first])
-    return Pipeline(node_second)
+    node_second = SecondaryNode('logit', nodes_from=[node_first])
+    node_third = SecondaryNode('bernb',  nodes_from=[node_second])
+    return Pipeline(node_third)
 
 
-def lagged_ridge_pipeline():
+def lagged_ridge_rfr_pipeline():
     node_first = PrimaryNode('lagged')
     node_second = SecondaryNode('ridge', nodes_from=[node_first])
-    return Pipeline(node_second)
+    node_third = SecondaryNode('rfr', nodes_from=[node_second])
+    return Pipeline(node_third)
 
 
 def test_parent_operator():
@@ -122,25 +124,25 @@ def test_operators_in_history():
 
 
 @pytest.mark.parametrize("pipeline, data, method",
-                         [(rf_scaling_pipeline(),
+                         [(scaling_logit_rf_pipeline(),
                            get_classification_data()[0],
                            partial(collect_intermediate_metric_for_nodes_cv,
                                    cv_generator=partial(tabular_cv_generator, data=get_classification_data()[0],
                                                         folds=3),
                                    metric=MetricsRepository().metric_by_id(
                                        ClassificationMetricsEnum.ROCAUC))),
-                          (lagged_ridge_pipeline(),
+                          (lagged_ridge_rfr_pipeline(),
                            get_ts_data()[0],
                            partial(collect_intermediate_metric_for_nodes_cv,
                                    cv_generator=partial(ts_cv_generator, data=get_ts_data()[0], folds=3,
                                                         validation_blocks=2),
                                    validation_blocks=2,
                                    metric=MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))),
-                          (rf_scaling_pipeline(),
+                          (scaling_logit_rf_pipeline(),
                            get_classification_data()[0],
                            partial(collect_intermediate_metric_for_nodes, input_data=get_classification_data()[1],
                                    metric=MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))),
-                          (lagged_ridge_pipeline(),
+                          (lagged_ridge_rfr_pipeline(),
                            get_ts_data()[0],
                            partial(collect_intermediate_metric_for_nodes, input_data=get_ts_data()[1],
                                    metric=MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)))])
@@ -148,10 +150,12 @@ def test_collect_intermediate_metric(pipeline: Pipeline, data: InputData, method
     """ Test if intermediate metric collected for nodes """
     pipeline.fit(data)
     method(pipeline=pipeline)
-
+    seen_metrics = []
     for node in pipeline.nodes:
         if isinstance(node.operation, Model):
-            assert node.metadata.metric is not None and node.metadata.metric != 0.5 and node.metadata.metric < 10000
+            assert node.metadata.metric is not None
+            assert node.metadata.metric not in seen_metrics
+            seen_metrics.append(node.metadata.metric)
         else:
             assert node.metadata.metric is None
 

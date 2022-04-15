@@ -1,4 +1,7 @@
+from copy import deepcopy
+
 from fedot.core.operations.model import Model
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 
 
@@ -9,7 +12,11 @@ def collect_intermediate_metric_for_nodes(pipeline, input_data, metric, validati
                 metric_func = metric
             else:
                 metric_func = MetricsRepository().metric_by_id(metric)
-            node.metadata.metric = metric_func(pipeline, reference_data=input_data, validation_blocks=validation_blocks)
+            new_pipeline = Pipeline(node)
+            new_pipeline.preprocessor = pipeline.preprocessor
+
+            node.metadata.metric = metric_func(new_pipeline, reference_data=input_data,
+                                               validation_blocks=validation_blocks)
 
 
 def collect_intermediate_metric_for_nodes_cv(pipeline, cv_generator, metric, validation_blocks=None):
