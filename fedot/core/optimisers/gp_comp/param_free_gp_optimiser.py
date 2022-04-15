@@ -85,12 +85,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             on_next_iteration_callback(self.population, self.generations.best_individuals)
             self.log_info_about_best()
 
-            while not t.is_time_limit_reached(self.generations.generation_num) \
-                    and self.generations.generation_num < self.requirements.num_of_generations:
-
-                if self._is_stopping_criteria_triggered():
-                    break
-
+            while not self.stop_optimisation():
                 self.log.info(f'Generation num: {self.generations.generation_num}')
                 self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
 

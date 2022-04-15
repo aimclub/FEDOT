@@ -72,8 +72,6 @@ class GraphOptimiser:
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=self.max_depth)
 
-        self.stopping_after_n_generation = parameters.stopping_after_n_generation
-
         self.initial_graph = initial_graph
         self.history = OptHistory(metrics, parameters.history_folder)
         self.history.clean_results()

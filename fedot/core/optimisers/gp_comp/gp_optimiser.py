@@ -6,7 +6,6 @@ from typing import Any, Callable, Optional, Tuple, Union, \
     List, Sequence, Iterable, TYPE_CHECKING
 
 import numpy as np
-from deap.tools import ParetoFront
 from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
@@ -25,6 +24,7 @@ from fedot.core.optimisers.gp_comp.generation_keeper import best_individual, Gen
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.optimisers.gp_comp.composite_condition import CompositeCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -139,6 +139,21 @@ class EvoGraphOptimiser(GraphOptimiser):
                                   is_multi_objective=self.parameters.multi_objective,
                                   timer=self.timer, log=self.log, n_jobs=n_jobs)
 
+        # stopping_after_n_generation may be None, so use some obvious max number
+        max_stagnation_length = parameters.stopping_after_n_generation or self.requirements.num_of_generations
+        self.stop_optimisation = \
+            CompositeCondition(self.log) \
+            .add_condition(
+                lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
+                'Optimisation stopped: Time limit is reached'
+            ).add_condition(
+                lambda: self.generations.generation_num >= self.requirements.num_of_generations,
+                'Optimisation stopped: Max number of generations reached'
+            ).add_condition(
+                lambda: self.generations.stagnation_length >= max_stagnation_length,
+                'Optimisation finished: Early stopping criteria was satisfied'
+            )
+
     def _create_randomized_pop(self, individuals: List[Individual]) -> List[Individual]:
         """
         Fill first population with mutated variants of the initial_graphs
@@ -206,12 +221,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             on_next_iteration_callback(self.population, self.generations.best_individuals)
             self.log_info_about_best()
 
-            while not t.is_time_limit_reached(self.generations.generation_num) \
-                    and self.generations.generation_num < self.requirements.num_of_generations:
-
-                if self._is_stopping_criteria_triggered():
-                    break
-
+            while not self.stop_optimisation():
                 self.log.info(f'Generation num: {self.generations.generation_num}')
                 self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
 
@@ -360,11 +370,3 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             num_of_new_individuals = self.requirements.pop_size
         return num_of_new_individuals
-
-    def _is_stopping_criteria_triggered(self):
-        is_stopping_needed = self.stopping_after_n_generation is not None
-        if is_stopping_needed and self.generations.stagnation_length >= self.stopping_after_n_generation:
-            self.log.info(f'GP_Optimiser: Early stopping criteria was triggered and composing finished')
-            return True
-        else:
-            return False
