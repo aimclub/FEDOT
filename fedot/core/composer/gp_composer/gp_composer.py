@@ -4,6 +4,7 @@ from datetime import timedelta
 from functools import partial
 from multiprocessing import set_start_method
 from typing import Callable, Iterator, List, Optional, Sequence, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union, Iterator, Sequence
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -84,6 +85,7 @@ class GPComposer(Composer):
         self.cache: Optional[OperationsCache] = cache
 
         self.objective_builder = ObjectiveBuilder(metrics,
+                                                  self.optimiser.graph_generation_params.rules_for_constraint,
                                                   self.composer_requirements.max_pipeline_fit_time,
                                                   self.composer_requirements.cv_folds,
                                                   self.composer_requirements.validation_blocks,
@@ -143,6 +145,7 @@ class GPComposer(Composer):
 class ObjectiveBuilder:
     def __init__(self,
                  metrics: Sequence[MetricType],
+                 rules_for_constraint: Sequence = None,
                  max_pipeline_fit_time: Optional[timedelta] = None,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
@@ -151,6 +154,7 @@ class ObjectiveBuilder:
                  log: Log = None):
 
         self.metrics = metrics
+        self.rules_for_constraint = rules_for_constraint
         self.max_pipeline_fit_time = max_pipeline_fit_time
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
@@ -224,7 +228,7 @@ class ObjectiveBuilder:
                         pipeline: Pipeline) -> Optional[Sequence[float]]:
         try:
             pipeline.log = self.log
-            validate(pipeline, task=train_data.task)
+            validate(pipeline, task=train_data.task, rules=self.rules_for_constraint)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
             evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,

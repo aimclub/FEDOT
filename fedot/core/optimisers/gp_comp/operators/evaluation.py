@@ -3,15 +3,14 @@ import multiprocessing
 import timeit
 from contextlib import closing
 from random import choice
-
 from typing import Dict, Optional
 
-from fedot.core.log import Log, default_log
-from fedot.core.optimisers.fitness import *
 from fedot.core.dag.graph import Graph
+from fedot.core.log import Log, default_log
 from fedot.core.operations.model import Model
-from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.fitness import *
 from fedot.core.optimisers.gp_comp.operators.operator import *
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.remote.remote_evaluator import RemoteEvaluator
@@ -24,6 +23,7 @@ class Evaluate(Operator[PopulationT]):
     - Compute Fitness for each individual in the population
     - Save additional metadata related to evaluation process (e.g. computation time)
     """
+
     def __init__(self,
                  graph_gen_params: GraphGenerationParams,
                  objective_function: ObjectiveFunction,
@@ -96,6 +96,8 @@ class Evaluate(Operator[PopulationT]):
             return MultiObjFitness(values=calculated_fitness,
                                    weights=[-1] * len(calculated_fitness))
         else:
+            calculated_fitness = \
+                [calculated_fitness] if not isinstance(calculated_fitness, list) else calculated_fitness
             return SingleObjFitness(*calculated_fitness)
 
     def _collect_intermediate_metrics(self, graph: Graph):

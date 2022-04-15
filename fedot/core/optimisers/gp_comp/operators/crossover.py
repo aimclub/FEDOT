@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import TYPE_CHECKING, Any, Callable, List, Union
+from typing import Any, Callable, List, TYPE_CHECKING, Union
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -44,17 +44,17 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                         crossover_func = crossover_by_type[crossover_type]
                     new_inds = []
 
-                    is_custom_operator = isinstance(ind_first, OptGraph)
                     input_obj_first = deepcopy(ind_first.graph)
                     input_obj_second = deepcopy(ind_second.graph)
-                    if is_custom_operator:
+                    if is_custom_crossover:
                         input_obj_first = params.adapter.restore(input_obj_first)
                         input_obj_second = params.adapter.restore(input_obj_second)
 
-                    new_graphs = crossover_func(input_obj_first,
-                                                input_obj_second, max_depth)
+                    new_graphs = crossover_func(graph_first=input_obj_first,
+                                                graph_second=input_obj_second, params=params,
+                                                max_depth=max_depth)
 
-                    if is_custom_operator:
+                    if is_custom_crossover:
                         for graph_id, graph in enumerate(new_graphs):
                             new_graphs[graph_id] = params.adapter.adapt(graph)
 
@@ -89,7 +89,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
     return ind_first_copy, ind_second_copy
 
 
-def subtree_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> Any:
+def subtree_crossover(graph_first: OptGraph, graph_second: Any, max_depth: int, params: 'GraphGenerationParams') -> Any:
     """Performed by the replacement of random subtree
     in first selected parent to random subtree from the second parent"""
     random_layer_in_graph_first = choice(range(graph_first.depth))
@@ -105,7 +105,8 @@ def subtree_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> An
     return graph_first, graph_second
 
 
-def one_point_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> Any:
+def one_point_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: int,
+                        params: 'GraphGenerationParams') -> Any:
     """Finds common structural parts between two trees, and after that randomly
     chooses the location of nodes, subtrees of which will be swapped"""
     pairs_of_nodes = equivalent_subtree(graph_first, graph_second)

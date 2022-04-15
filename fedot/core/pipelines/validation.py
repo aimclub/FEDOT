@@ -2,15 +2,6 @@ from typing import Callable, List
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.validation_rules import (
-    DEFAULT_DAG_RULES,
-    has_no_cycle,
-    has_no_isolated_nodes,
-    has_no_self_cycled_nodes,
-    has_one_root
-)
-from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.validation_rules import (
     has_correct_data_connections,
     has_correct_data_sources,
@@ -25,6 +16,10 @@ from fedot.core.pipelines.validation_rules import (
     is_pipeline_contains_ts_operations,
     only_non_lagged_operations_are_primary
 )
+from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES, has_no_cycle, has_no_isolated_nodes, \
+    has_no_self_cycled_nodes, has_one_root
+from fedot.core.optimisers.adapters import DirectAdapter
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.repository.tasks import TaskTypesEnum
 
 common_rules = [has_one_root,
@@ -54,6 +49,7 @@ def validate(graph: Graph, rules: List[Callable] = None, task=None):
     :param rules: rules to check
     :param task: task which such a graph is solving
     """
+
     tmp_rules = []
     if rules is None or not rules:
         tmp_rules.extend(common_rules)

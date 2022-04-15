@@ -1,6 +1,11 @@
 import glob
 import os
-import cv2
+
+try:
+    import cv2
+except ModuleNotFoundError:
+    print('cv2 is not installed, continue')
+
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union

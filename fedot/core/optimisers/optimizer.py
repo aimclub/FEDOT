@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import partial
 from typing import (Any, Callable, List, Optional, Union, Sequence)
 
@@ -137,7 +137,10 @@ class GraphGenerationParams:
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: collection of constraints
     :param advisor: class of task-specific advices for graph changes
+    :param custom: additional custom parameters for the generation of graphs
+
     """
     adapter: BaseOptimizationAdapter = DirectAdapter()
     rules_for_constraint: Sequence[Callable] = tuple()
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
+    custom: dict = field(default_factory=lambda: {})
