@@ -8,8 +8,8 @@ from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import validate
-from fedot.utilities.pattern_wrappers import singleton
 from fedot.remote.infrastructure.clients.client import Client
+from fedot.utilities.pattern_wrappers import singleton
 
 
 def init_data_for_remote_execution(train_data: InputData):

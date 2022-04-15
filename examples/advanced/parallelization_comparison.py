@@ -1,10 +1,10 @@
 import operator
 import timeit
 from functools import reduce
+from typing import Optional
 
 import pandas as pd
 from matplotlib import cm, colors, pyplot as plt
-from typing import Optional
 
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history import OptHistory

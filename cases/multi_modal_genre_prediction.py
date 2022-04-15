@@ -8,9 +8,9 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 

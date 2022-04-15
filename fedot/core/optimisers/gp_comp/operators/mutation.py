@@ -12,8 +12,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams

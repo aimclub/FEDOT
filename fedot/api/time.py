@@ -1,5 +1,4 @@
 import datetime
-
 from contextlib import contextmanager
 
 from fedot.core.constants import COMPOSING_TUNING_PROPORTION

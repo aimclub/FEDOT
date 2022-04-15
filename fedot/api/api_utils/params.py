@@ -4,7 +4,7 @@ from typing import Optional, Dict, Union, Any, List
 import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_API_TIMEOUT_MINUTES, DEFAULT_FORECAST_LENGTH
+from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -96,7 +96,6 @@ class ApiParams:
                 input_params['composer_params']['preset'] = input_params['preset']
             evo_params = {**default_evo_params, **input_params['composer_params']}
         self.api_params.update(evo_params)
-
 
         if input_params['seed'] is not None:
             np.random.seed(input_params['seed'])

@@ -1,6 +1,8 @@
+from typing import Tuple
+
 import networkx as nx
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
@@ -127,7 +129,7 @@ class PipelineStructureExplorer:
                                                  'parent_number', 'child_number'])
         return self.graph, info_df
 
-    def _calculate_binary_paths(self, path: list, tag_to_check: str) -> (list, list):
+    def _calculate_binary_paths(self, path: list, tag_to_check: str) -> Tuple[list, list]:
         """
         Calculate binary masks for considering path in the graph.
         For example, branch

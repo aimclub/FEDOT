@@ -8,16 +8,16 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
-
+from fedot.core.utilities.data_structures import ensure_list
 
 def metric_evaluation(pipeline: Pipeline,
                       train_data: InputData,
                       test_data: InputData,
                       metrics: Sequence[MetricType],
-                      fold_id: int = None,
-                      vb_number: int = None,
+                      fold_id: Optional[int] = None,
+                      vb_number: Optional[int] = None,
                       time_constraint: Optional[timedelta] = None,
-                      cache: OperationsCache = None) -> List[float]:
+                      cache: Optional[OperationsCache] = None) -> List[float]:
     """ Pipeline training and metrics assessment
 
     :param pipeline: pipeline for validation
@@ -29,16 +29,17 @@ def metric_evaluation(pipeline: Pipeline,
     :param time_constraint: optional time constraint for pipeline.fit
     :param cache: instance of cache class
     """
-    if cache is not None:
-        pipeline.fit_from_cache(cache, fold_id)
-
-    pipeline.fit(train_data, use_fitted=cache is not None, time_constraint=time_constraint)
+    pipeline.fit(
+        train_data,
+        use_fitted=pipeline.fit_from_cache(cache, fold_id),
+        time_constraint=time_constraint
+    )
 
     if cache is not None:
         cache.save_pipeline(pipeline, fold_id)
 
     evaluated_metrics = []
-    for metric in metrics:
+    for metric in ensure_list(metrics):
         metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
         metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
         evaluated_metrics.append(metric_value)

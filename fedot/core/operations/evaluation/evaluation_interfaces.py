@@ -1,8 +1,8 @@
 import warnings
 from abc import abstractmethod
 from typing import Optional
-import numpy as np
 
+import numpy as np
 from catboost import CatBoostClassifier, CatBoostRegressor
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans

@@ -1,19 +1,19 @@
 import os
-from typing import Optional
 from copy import deepcopy
-
 from inspect import signature
+from typing import Optional
+
 from matplotlib import pyplot as plt
 from sklearn import tree
 from sklearn.tree._tree import TREE_LEAF
 
-from fedot.core.utils import default_fedot_data_dir
-from fedot.explainability.explainer_template import Explainer
+from fedot.core.composer.metrics import Metric
 from fedot.core.composer.metrics import R2, F1
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.explainability.explainer_template import Explainer
 
 
 class SurrogateExplainer(Explainer):

@@ -1,4 +1,3 @@
-import gc
 import platform
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -23,7 +22,6 @@ from fedot.core.repository.quality_metrics_repository import MetricsEnum, Metric
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
-from fedot.core.utilities.data_structures import ensure_list
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -134,7 +132,7 @@ class GPComposer(Composer):
                                                       train_data=train_data,
                                                       test_data=test_data)
 
-        with (self.cache.using_resources() if self.cache is not None else nullcontext()):
+        with self.cache.using_resources() if self.cache is not None else nullcontext():
             opt_result = self.optimiser.optimise(objective_function_for_pipeline,
                                                  on_next_iteration_callback=on_next_iteration_callback)
             best_pipeline = self._convert_opt_results_to_pipeline(opt_result)

@@ -1,29 +1,20 @@
-from copy import deepcopy
 import random
+from copy import deepcopy
 
 from testfixtures import LogCapture
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
-from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from ..api.test_main_api import get_dataset
 from ..tasks.test_classification import get_binary_classification_data
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.log import default_log
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-
-from testfixtures import LogCapture
 
 
 def test_compose_fedot_model_with_tuning():
