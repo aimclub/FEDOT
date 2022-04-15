@@ -1,8 +1,12 @@
 from copy import deepcopy
 from typing import List, Optional, Tuple, Union
+import json
 
 import numpy as np
 import pandas as pd
+from pandas.core.common import flatten
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
@@ -361,6 +365,48 @@ class Fedot:
                                      visualize=visualize, **kwargs)
 
         return explainer
+
+    def show_fitness(self, path_to_history: str = None, save_path: str = None):
+        """ Visualizes fitness values across generations
+        :param path_to_history: path to the saved history
+        :param save_path: path where to save visualization. If set, then the image will be saved,
+        and if not, it will be displayed """
+        if path_to_history:
+            with open(path_to_history, "r") as file:
+                data = json.load(file)
+            fitness = []
+            generations = []
+            for i in range(len(data['archive_history'])):
+                generation = data['archive_history'][i]
+                for ind in generation:
+                    generations.append(i)
+                    fitness.append(ind['fitness'])
+        else:
+            if self.history is None:
+                return
+            fitness_history = self.history.historical_fitness
+            generations = []
+            for i in range(len(fitness_history)):
+                num_of_ind_in_gen = len(fitness_history[i])
+                generations.append([i] * num_of_ind_in_gen)
+            generations = list(flatten(generations))
+            fitness = self.history.all_historical_fitness
+
+        fig, ax = plt.subplots(figsize=(15, 10))
+        sns.boxplot(x=generations, y=fitness)
+        ax.set_title('Fitness by generations',
+                     fontdict={'fontsize': 22})
+        gen_nums = list(set(generations))
+        gen_nums.sort()
+        ax.set_xticklabels(gen_nums)
+        ax.set_xlabel(xlabel=f'generations', fontsize=20)
+        ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
+
+        if not save_path:
+            plt.show()
+        else:
+            plt.savefig(save_path)
+            plt.close()
 
     def _init_remote_if_necessary(self):
         remote = RemoteEvaluator()

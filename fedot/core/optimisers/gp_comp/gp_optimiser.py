@@ -46,7 +46,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
         evolution. Default False.
         :param depth_increase_step: the step of depth increase in automated depth configuration
-        :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
+        :param multi_objective: flag used for algorithm of type definition (multi-objective if true and single-objective
         if false). Value is defined in ComposerBuilder. Default False.
     """
 
@@ -177,6 +177,7 @@ class EvoGraphOptimiser(GraphOptimiser):
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+        print('priv')
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
