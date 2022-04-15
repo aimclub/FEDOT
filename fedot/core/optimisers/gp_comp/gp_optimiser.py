@@ -408,14 +408,15 @@ class EvoGraphOptimiser(GraphOptimiser):
         return best
 
     def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=1):
+        collect_intermediate_metric = self.requirements.collect_intermediate_metric
         evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
                                                      objective_function=objective_function,
                                                      graph_generation_params=self.graph_generation_params,
                                                      is_multi_objective=self.parameters.multi_objective,
                                                      n_jobs=n_jobs,
                                                      timer=timer,
-                                                     collect_intermediate_metric=
-                                                     self.requirements.collect_intermediate_metric)
+                                                     collect_intermediate_metric=collect_intermediate_metric
+                                                     )
         individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
         return individuals_set
 
