@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Optional, Tuple
 
 import numpy as np
 from sklearn.model_selection import KFold, TimeSeriesSplit

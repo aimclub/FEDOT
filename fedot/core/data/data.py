@@ -418,8 +418,8 @@ def _resize_image(file_path: str, target_size: Tuple[int, int]):
 
 
 def process_target_and_features(data_frame: pd.DataFrame,
-                                target_column: Optional[Union[str, List[str]]]) -> Tuple[
-    np.ndarray, Optional[np.ndarray]]:
+                                target_column: Optional[Union[str, List[str]]]
+                                ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """ Function process pandas dataframe with single column
 
     :param data_frame: loaded pandas DataFrame
