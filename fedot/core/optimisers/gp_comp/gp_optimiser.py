@@ -26,7 +26,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, GraphGenerationParams
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
