@@ -376,22 +376,23 @@ class Fedot:
                 data = json.load(file)
             fitness = []
             generations = []
-            for i in range(len(data['archive_history'])):
-                generation = data['archive_history'][i]
+            for gen_num in range(len(data['archive_history'])):
+                generation = data['archive_history'][gen_num]
                 for ind in generation:
-                    generations.append(i)
+                    generations.append(gen_num)
                     fitness.append(ind['fitness'])
         else:
             if self.history is None:
                 return
             fitness_history = self.history.historical_fitness
             generations = []
-            for i in range(len(fitness_history)):
-                num_of_ind_in_gen = len(fitness_history[i])
-                generations.append([i] * num_of_ind_in_gen)
+            for gen_num in range(len(fitness_history)):
+                num_of_ind_in_gen = len(fitness_history[gen_num])
+                generations.append([gen_num] * num_of_ind_in_gen)
             generations = list(flatten(generations))
             fitness = self.history.all_historical_fitness
 
+        fitness = [f if f >= 0 else -f for f in fitness]
         fig, ax = plt.subplots(figsize=(15, 10))
         sns.boxplot(x=generations, y=fitness)
         ax.set_title('Fitness by generations',
