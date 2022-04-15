@@ -113,7 +113,7 @@ def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
 
 
 def evaluate_individuals(individuals_set, objective_function, graph_generation_params,
-                         is_multi_objective: bool, n_jobs=1, timer=None):
+                         is_multi_objective: bool, n_jobs=1, timer=None, collect_intermediate_metric=False):
     logger = default_log('individuals evaluation logger')
     reversed_individuals = individuals_set[::-1]
     # TODO refactor
@@ -133,7 +133,8 @@ def evaluate_individuals(individuals_set, objective_function, graph_generation_p
                                    'objective_function': objective_function,
                                    'is_multi_objective': is_multi_objective,
                                    'graph_generation_params': graph_generation_params,
-                                   'timer': timer_needed}  # one individual must fit
+                                   'timer': timer_needed,  # one individual must fit
+                                   'collect_intermediate_metric': collect_intermediate_metric}
 
     if n_jobs != 1:
         evaluated_individuals = multiprocessing_mapping(n_jobs, reversed_individuals)

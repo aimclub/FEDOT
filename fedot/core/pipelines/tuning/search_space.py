@@ -251,7 +251,7 @@ class SearchSpace:
             },
             'lgbm': {
                 'class_weight': (hp.choice, [[None, 'balanced']]),
-                'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
+                'num_leaves': (hp.choice, [range(2, 256, 8)]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
@@ -259,7 +259,7 @@ class SearchSpace:
                 'lambda_l2': (hp.uniform, [1e-8, 10.0])
             },
             'lgbmreg': {
-                'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
+                'num_leaves': (hp.choice, [range(2, 256, 8)]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),

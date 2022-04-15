@@ -1,20 +1,45 @@
 import os
+from functools import partial
+
+import numpy as np
+import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
+from fedot.core.data.data import InputData
 from fedot.core.log import default_log
+from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.gp_comp.evaluating import collect_intermediate_metric_for_nodes_cv
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.intermediate_metric import collect_intermediate_metric_for_nodes
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.node import PrimaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, ClassificationMetricsEnum, \
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
+from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.validation.test_table_cv import get_classification_data
+
+
+def rf_scaling_pipeline():
+    node_first = PrimaryNode('scaling')
+    node_second = SecondaryNode('rf', nodes_from=[node_first])
+    return Pipeline(node_second)
+
+
+def lagged_ridge_pipeline():
+    node_first = PrimaryNode('lagged')
+    node_second = SecondaryNode('ridge', nodes_from=[node_first])
+    return Pipeline(node_second)
 
 
 def test_parent_operator():
@@ -94,3 +119,56 @@ def test_operators_in_history():
     dumped_history = auto_model.history.save()
 
     assert dumped_history is not None
+
+
+@pytest.mark.parametrize("pipeline, data, method",
+                         [(rf_scaling_pipeline(),
+                           get_classification_data()[0],
+                           partial(collect_intermediate_metric_for_nodes_cv,
+                                   cv_generator=partial(tabular_cv_generator, data=get_classification_data()[0],
+                                                        folds=3),
+                                   metric=MetricsRepository().metric_by_id(
+                                       ClassificationMetricsEnum.ROCAUC))),
+                          (lagged_ridge_pipeline(),
+                           get_ts_data()[0],
+                           partial(collect_intermediate_metric_for_nodes_cv,
+                                   cv_generator=partial(ts_cv_generator, data=get_ts_data()[0], folds=3,
+                                                        validation_blocks=2),
+                                   validation_blocks=2,
+                                   metric=MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))),
+                          (rf_scaling_pipeline(),
+                           get_classification_data()[0],
+                           partial(collect_intermediate_metric_for_nodes, input_data=get_classification_data()[1],
+                                   metric=MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))),
+                          (lagged_ridge_pipeline(),
+                           get_ts_data()[0],
+                           partial(collect_intermediate_metric_for_nodes, input_data=get_ts_data()[1],
+                                   metric=MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)))])
+def test_collect_intermediate_metric(pipeline: Pipeline, data: InputData, method):
+    """ Test if intermediate metric collected for nodes """
+    pipeline.fit(data)
+    method(pipeline=pipeline)
+
+    for node in pipeline.nodes:
+        if isinstance(node.operation, Model):
+            assert node.metadata.metric is not None and node.metadata.metric != 0.5 and node.metadata.metric < 10000
+        else:
+            assert node.metadata.metric is None
+
+
+@pytest.mark.parametrize("cv_generator, data",
+                         [(partial(tabular_cv_generator, folds=3),
+                           get_classification_data()[0]),
+                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
+                           get_ts_data()[0])])
+def test_cv_generator_works_stable(cv_generator, data):
+    """ Test if ts cv generator works stable (always return same folds) """
+    idx_first = []
+    idx_second = []
+    for row in cv_generator(data=data):
+        idx_first.append(row[1].idx)
+    for row in cv_generator(data=data):
+        idx_second.append(row[1].idx)
+
+    for i in range(len(idx_first)):
+        assert np.all(idx_first[i] == idx_second[i])

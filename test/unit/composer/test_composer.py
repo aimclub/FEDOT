@@ -288,7 +288,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)
     new_pipeline = pipeline_first()
-    composer.composer_metric([quality_metric], dataset_to_compose, test_data, new_pipeline)
+    composer.composer_metric(new_pipeline, [quality_metric], dataset_to_compose, test_data)
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_after = len(cache.dict)
     assert global_cache_len_before < global_cache_len_after

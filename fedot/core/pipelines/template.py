@@ -44,7 +44,7 @@ class PipelineTemplate:
         self.metadata: Dict[str, Any] = {}
         if pipeline is not None:
             self.depth = pipeline.depth
-            self.metadata['computation_time'] = pipeline.computation_time
+            self.metadata['computation_time_in_seconds'] = pipeline.computation_time
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor

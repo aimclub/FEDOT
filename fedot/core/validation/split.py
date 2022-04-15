@@ -1,10 +1,11 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Optional
 
 import numpy as np
 from sklearn.model_selection import KFold, TimeSeriesSplit
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.log import Log, default_log
 
 
 class OneFoldInputDataSplit:
@@ -111,7 +112,7 @@ def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputDat
 
 
 def ts_cv_generator(data: InputData, folds: int,
-                    validation_blocks: int = 1, log=None) -> Iterator[Tuple[InputData, InputData]]:
+                    validation_blocks: int = 1, log: Optional[Log] = None) -> Iterator[Tuple[InputData, InputData]]:
     """ Splitting data for time series cross validation
 
     :param data: source InputData with time series data type
@@ -119,6 +120,8 @@ def ts_cv_generator(data: InputData, folds: int,
     :param validation_blocks: number of validation block per each fold
     :param log: log object
     """
+    if not log:
+        log = default_log(__name__)
     # Forecast horizon for each fold
     horizon = data.task.task_params.forecast_length * validation_blocks
 

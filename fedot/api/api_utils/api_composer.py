@@ -185,9 +185,9 @@ class ApiComposer:
                 repository_name = 'model'
             assumptions_builder = AssumptionsBuilder(task=api_params['task'],
                                                      data=api_params['train_data'],
-                                                     repository_name=repository_name)\
-                .get(api_params['task'], api_params['train_data'])\
-                .with_logger(api_params['logger'])\
+                                                     repository_name=repository_name) \
+                .get(api_params['task'], api_params['train_data']) \
+                .with_logger(api_params['logger']) \
                 .from_operations(composer_params['available_operations'])
             api_params['initial_assumption'] = assumptions_builder.build()
 
@@ -223,7 +223,9 @@ class ApiComposer:
                                                              cv_folds=composer_params['cv_folds'],
                                                              validation_blocks=composer_params['validation_blocks'],
                                                              timeout=self.timer.datetime_composing,
-                                                             n_jobs=api_params['n_jobs'])
+                                                             n_jobs=api_params['n_jobs'],
+                                                             collect_intermediate_metric=composer_params[
+                                                                 'collect_intermediate_metric'])
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -371,7 +373,7 @@ class ApiComposer:
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
-                pipeline_gp_composed = pipeline_gp_composed.\
+                pipeline_gp_composed = pipeline_gp_composed. \
                     fine_tune_all_nodes(loss_function=tuner_loss,
                                         loss_params=loss_params,
                                         input_data=api_params['train_data'],
@@ -418,7 +420,8 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
-                                stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None)
+                                stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
+                                collect_intermediate_metric=False)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

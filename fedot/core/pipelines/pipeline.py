@@ -98,7 +98,7 @@ class Pipeline(Graph):
         except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
 
-        self.computation_time = process_state_dict['computation_time']
+        self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, node in enumerate(self.nodes):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
@@ -127,7 +127,7 @@ class Pipeline(Graph):
             return train_predicted
         else:
             process_state_dict['train_predicted'] = train_predicted
-            process_state_dict['computation_time'] = self.computation_time
+            process_state_dict['computation_time_in_seconds'] = self.computation_time
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 

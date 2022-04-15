@@ -47,6 +47,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
     :attribute n_jobs: num of n_jobs
+    :attribute collect_intermediate_metric: save intermediate result in nodes
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -56,6 +57,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     start_depth: int = None
     validation_blocks: int = None
     n_jobs: int = 1
+    collect_intermediate_metric: bool = False
 
 
 class GPComposer(Composer):
@@ -126,7 +128,10 @@ class GPComposer(Composer):
             if RemoteEvaluator().use_remote:
                 init_data_for_remote_execution(train_data)
 
-            objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
+            objective_function_for_pipeline = partial(self.composer_metric,
+                                                      metrics=self.metrics,
+                                                      train_data=train_data,
+                                                      test_data=test_data)
 
         if self.cache_path is None:
             self.cache.clear()
@@ -159,7 +164,8 @@ class GPComposer(Composer):
         # Only Pipeline parameter is left unfilled in metric function
         metric_function_for_nodes = partial(calc_metrics_for_folds, cv_generator,
                                             validation_blocks=self.composer_requirements.validation_blocks,
-                                            metrics=self.metrics, log=self.log, cache=self.cache)
+                                            metrics=self.metrics, log=self.log, cache=self.cache,
+                                            num_of_folds=self.composer_requirements.cv_folds)
         return metric_function_for_nodes
 
     def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
@@ -171,19 +177,22 @@ class GPComposer(Composer):
                 self.log.info(f'For ts cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
                 self.composer_requirements.validation_blocks = default_validation_blocks
-            cv_generator = partial(ts_cv_generator, data,
-                                   self.composer_requirements.cv_folds,
-                                   self.composer_requirements.validation_blocks,
-                                   self.log)
+            cv_generator = partial(ts_cv_generator,
+                                   data=data,
+                                   folds=self.composer_requirements.cv_folds,
+                                   validation_blocks=self.composer_requirements.validation_blocks)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
-            cv_generator = partial(tabular_cv_generator, data, self.composer_requirements.cv_folds)
+            cv_generator = partial(tabular_cv_generator,
+                                   data=data,
+                                   folds=self.composer_requirements.cv_folds)
         return cv_generator
 
-    def composer_metric(self, metrics,
+    def composer_metric(self,
+                        pipeline: Pipeline,
+                        metrics,
                         train_data: Union[InputData, MultiModalData],
-                        test_data: Union[InputData, MultiModalData],
-                        pipeline: Pipeline) -> Optional[Tuple[Any]]:
+                        test_data: Union[InputData, MultiModalData]) -> Optional[Tuple[Any]]:
         try:
             pipeline.log = self.log
             validate(pipeline, task=train_data.task)

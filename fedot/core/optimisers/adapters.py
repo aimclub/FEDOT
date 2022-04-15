@@ -78,11 +78,13 @@ class PipelineAdapter(BaseOptimizationAdapter):
                                'PrimaryNode or SecondaryNode.')
             else:
                 content = {'name': str(node.operation),
-                           'params': node.custom_params}
+                           'params': node.custom_params,
+                           'metadata': node.metadata}
 
                 node.__class__ = OptNode
                 node._fitted_operation = None
                 node._node_data = None
+                del node.metadata
                 node.content = content
 
     def _transform_to_pipeline_node(self, node, *args, **params):
@@ -118,7 +120,7 @@ class PipelineAdapter(BaseOptimizationAdapter):
             _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
                             transform_func=self._transform_to_pipeline_node)
         pipeline = Pipeline(source_graph.nodes)
-        pipeline.computation_time = metadata.get('computation_time')
+        pipeline.computation_time = metadata.get('computation_time_in_seconds')
         return pipeline
 
     def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None):

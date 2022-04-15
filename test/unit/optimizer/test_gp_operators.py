@@ -130,7 +130,10 @@ def test_evaluate_individuals():
 
     train_data, test_data = train_test_data_setup(dataset_to_compose,
                                                   sample_split_ratio_for_tasks[dataset_to_compose.task.task_type])
-    metric_function_for_nodes = partial(composer.composer_metric, composer.metrics, train_data, test_data)
+    metric_function_for_nodes = partial(composer.composer_metric,
+                                        metrics=composer.metrics,
+                                        train_data=train_data,
+                                        test_data=test_data)
     adapter = PipelineAdapter()
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=0.001)
@@ -141,7 +144,7 @@ def test_evaluate_individuals():
                                          is_multi_objective=False, timer=t)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
-    assert evaluated[0].metadata['computation_time'] is not None
+    assert evaluated[0].metadata['computation_time_in_seconds'] is not None
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)

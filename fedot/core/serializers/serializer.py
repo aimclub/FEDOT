@@ -3,6 +3,8 @@ from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
+from fedot.core.pipelines.node import NodeMetadata
+
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 CLASS_PATH_KEY = '_class_path'
@@ -59,6 +61,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 ParentOperator: {_to_json: parent_operator_to_json, _from_json: any_from_json},
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
+                NodeMetadata: {_to_json: any_to_json, _from_json: any_from_json}
             }
             Serializer.CODERS_BY_TYPE.update({
                 OptNode: Serializer.CODERS_BY_TYPE[GraphNode],
