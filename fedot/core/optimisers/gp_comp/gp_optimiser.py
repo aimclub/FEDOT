@@ -282,8 +282,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.log.info('Result:')
             self.log_info_about_best()
 
-        self.default_on_next_iteration_callback(best)
-
         return self.to_outputs(best)
 
     def to_outputs(self, individuals: Iterable[Individual]) -> Union[OptGraph, List[OptGraph]]:

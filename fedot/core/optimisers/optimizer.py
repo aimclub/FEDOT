@@ -104,8 +104,8 @@ class GraphOptimiser:
                                            best_individuals: Optional[Sequence[Individual]] = None):
         """
         Default variant of callback that preserves optimisation history
-        :param individuals: list of individuals obtained in iteration
-        :param best_individuals: optional list of the best individuals from previous iterations
+        :param individuals: list of individuals obtained in last iteration
+        :param best_individuals: optional list of the best individuals from all iterations
         :return:
         """
         try:

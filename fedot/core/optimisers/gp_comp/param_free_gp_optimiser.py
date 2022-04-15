@@ -159,8 +159,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             self.log.info('Result:')
             self.log_info_about_best()
 
-        self.default_on_next_iteration_callback(best)
-
         return self.to_outputs(best)
 
     @property
