@@ -150,7 +150,6 @@ def test_collect_intermediate_metric(pipeline: Pipeline, data: InputData, method
     method(pipeline=pipeline)
 
     for node in pipeline.nodes:
-        print(node.metadata.metric)
         if isinstance(node.operation, Model):
             assert node.metadata.metric is not None and node.metadata.metric != 0.5 and node.metadata.metric < 10000
         else:
