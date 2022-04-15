@@ -1,4 +1,4 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Tuple, Optional
 
 import numpy as np
 from sklearn.model_selection import KFold, TimeSeriesSplit
@@ -112,7 +112,7 @@ def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputDat
 
 
 def ts_cv_generator(data: InputData, folds: int,
-                    validation_blocks: int = 1, log: Log = None) -> Iterator[Tuple[InputData, InputData]]:
+                    validation_blocks: int = 1, log: Optional[Log]  = None) -> Iterator[Tuple[InputData, InputData]]:
     """ Splitting data for time series cross validation
 
     :param data: source InputData with time series data type

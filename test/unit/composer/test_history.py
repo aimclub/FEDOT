@@ -8,6 +8,7 @@ from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
+from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -120,46 +121,54 @@ def test_operators_in_history():
     assert dumped_history is not None
 
 
-@pytest.mark.parametrize("pipeline, method, metric",
+@pytest.mark.parametrize("pipeline, data, method",
                          [(rf_scaling_pipeline(),
+                           get_classification_data()[0],
                            partial(collect_intermediate_metric_for_nodes_cv,
-                                   cv_generator=partial(tabular_cv_generator, get_classification_data()[0], 3)),
-                           MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)),
+                                   cv_generator=partial(tabular_cv_generator, data=get_classification_data()[0],
+                                                        folds=3),
+                                   metric=MetricsRepository().metric_by_id(
+                                       ClassificationMetricsEnum.ROCAUC))),
                           (lagged_ridge_pipeline(),
+                           get_ts_data()[0],
                            partial(collect_intermediate_metric_for_nodes_cv,
-                                   cv_generator=partial(ts_cv_generator, get_ts_data()[0], 3, 2),
-                                   validation_blocks=2),
-                           MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)),
+                                   cv_generator=partial(ts_cv_generator, data=get_ts_data()[0], folds=3,
+                                                        validation_blocks=2),
+                                   validation_blocks=2,
+                                   metric=MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))),
                           (rf_scaling_pipeline(),
-                           partial(collect_intermediate_metric_for_nodes, input_data=get_classification_data()[0]),
-                           MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)),
+                           get_classification_data()[0],
+                           partial(collect_intermediate_metric_for_nodes, input_data=get_classification_data()[1],
+                                   metric=MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC))),
                           (lagged_ridge_pipeline(),
-                           partial(collect_intermediate_metric_for_nodes, input_data=get_ts_data()[0]),
-                           MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE))])
-def test_collect_intermediate_metric(pipeline, method, metric):
+                           get_ts_data()[0],
+                           partial(collect_intermediate_metric_for_nodes, input_data=get_ts_data()[1],
+                                   metric=MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)))])
+def test_collect_intermediate_metric(pipeline: Pipeline, data: InputData, method):
     """ Test if intermediate metric collected for nodes """
-
-    method(pipeline=pipeline, metric=metric)
+    pipeline.fit(data)
+    method(pipeline=pipeline)
 
     for node in pipeline.nodes:
+        print(node.metadata.metric)
         if isinstance(node.operation, Model):
-            assert node.metadata.metric is not None
+            assert node.metadata.metric is not None and node.metadata.metric != 0.5 and node.metadata.metric < 10000
         else:
             assert node.metadata.metric is None
 
 
-@pytest.mark.parametrize("cv_generator_first, cv_generator_second",
-                         [(tabular_cv_generator(get_classification_data()[0], 3),
-                           tabular_cv_generator(get_classification_data()[0], 3)),
-                          (ts_cv_generator(get_ts_data()[0], 3, 2),
-                           ts_cv_generator(get_ts_data()[0], 3, 2))])
-def test_cv_generator_works_stable(cv_generator_first, cv_generator_second):
+@pytest.mark.parametrize("cv_generator, data",
+                         [(partial(tabular_cv_generator, folds=3),
+                           get_classification_data()[0]),
+                          (partial(ts_cv_generator, folds=3),
+                           get_ts_data()[0])])
+def test_cv_generator_works_stable(cv_generator, data):
     """ Test if ts cv generator works stable (always return same folds) """
     idx_first = []
     idx_second = []
-    for row in cv_generator_first:
+    for row in cv_generator(data=data):
         idx_first.append(row[1].idx)
-    for row in cv_generator_second:
+    for row in cv_generator(data=data):
         idx_second.append(row[1].idx)
 
     for i in range(len(idx_first)):
