@@ -133,6 +133,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
         objective_function = None  # TODO: pass it
+        intermediate_metrics_function = None  # TODO: pass it through init
         n_jobs = self.requirements.n_jobs
         self.evaluator = Evaluate(graph_gen_params=graph_generation_params,
                                   objective_function=objective_function,
@@ -184,9 +185,11 @@ class EvoGraphOptimiser(GraphOptimiser):
     # TODO: fix invalid signature according to base method (`offspring_rate` is a new param)
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None,
+                 intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
         self.evaluator.objective_function = objective_function  # TODO: move into init!
+        self.evaluator._intermediate_metrics_function = intermediate_metrics_function  # TODO: move into init!
 
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback

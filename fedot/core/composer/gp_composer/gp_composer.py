@@ -1,6 +1,7 @@
 import gc
 import platform
 from dataclasses import dataclass
+from datetime import timedelta
 from functools import partial
 from multiprocessing import set_start_method
 from typing import Any, Callable, List, Optional, Tuple, Union, Iterator, Sequence
@@ -12,10 +13,11 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
+from fedot.core.optimisers.gp_comp.operators.operator import ObjectiveFunction
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
-from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository
+from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
@@ -47,6 +49,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
     :attribute n_jobs: num of n_jobs
+    :attribute collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
@@ -56,6 +59,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     start_depth: int = None
     validation_blocks: int = None
     n_jobs: int = 1
+    collect_intermediate_metric: bool = False
 
 
 class GPComposer(Composer):
@@ -114,21 +118,6 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for graph composition is not defined')
 
-        # shuffle data if necessary
-        data.shuffle()
-
-        if self.composer_requirements.cv_folds is not None:
-            objective_function_for_pipeline = self._cv_validation_metric_build(data)
-        else:
-            self.log.info("Hold out validation for graph composing was applied.")
-            split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
-            train_data, test_data = train_test_data_setup(data, split_ratio)
-
-            if RemoteEvaluator().use_remote:
-                init_data_for_remote_execution(train_data)
-
-            objective_function_for_pipeline = partial(self.composer_metric, self.metrics, train_data, test_data)
-
         if self.cache_path is None:
             self.cache.clear()
         else:
@@ -136,8 +125,21 @@ class GPComposer(Composer):
             self.cache = OperationsCache(log=self.log, db_path=self.cache_path,
                                          clear_exiting=not self.use_existing_cache)
 
-        opt_result = self.optimiser.optimise(objective_function_for_pipeline,
-                                             on_next_iteration_callback=on_next_iteration_callback)
+        # shuffle data if necessary
+        data.shuffle()
+
+        objective_builder = ObjectiveBuilder(self.metrics,
+                                             self.composer_requirements.max_pipeline_fit_time,
+                                             self.composer_requirements.cv_folds,
+                                             self.composer_requirements.validation_blocks,
+                                             self.composer_requirements.collect_intermediate_metric,
+                                             self.cache, self.log)
+        objective_function, intermediate_metrics_function = objective_builder.build(data)
+
+
+        opt_result = self.optimiser.optimise(objective_function,
+                                             on_next_iteration_callback=on_next_iteration_callback,
+                                             intermediate_metrics_function=intermediate_metrics_function)
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
 
         self.log.info('GP composition finished')
@@ -151,6 +153,50 @@ class GPComposer(Composer):
                 for graph in opt_result] if isinstance(opt_result, list) \
             else self.optimiser.graph_generation_params.adapter.restore(opt_result)
 
+    @staticmethod
+    def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):
+        raise NotImplementedError()
+
+    @property
+    def history(self):
+        return self.optimiser.history
+
+
+class ObjectiveBuilder:
+    def __init__(self,
+                 metrics: Sequence[MetricType],
+                 max_pipeline_fit_time: Optional[timedelta] = None,
+                 cv_folds: Optional[int] = None,
+                 validation_blocks: Optional[int] = None,
+                 collect_intermediate_metric: bool = False,
+                 cache: Optional[OperationsCache] = None,
+                 log: Log = None):
+
+        self.metrics = metrics
+        self.max_pipeline_fit_time = max_pipeline_fit_time
+        self.cv_folds = cv_folds
+        self.validation_blocks = validation_blocks
+        self.collect_intermediate_metric = collect_intermediate_metric
+        self.cache = cache
+        self.log = log or default_log(self.__class__.__name__)
+
+    def build(self, data: InputData) -> Tuple[ObjectiveFunction, Optional[ObjectiveFunction]]:
+        if self.cv_folds is not None:
+            objective_function, intermediate_metrics_function = self._cv_validation_metric_build(data)
+        else:
+            self.log.info("Hold out validation for graph composing was applied.")
+            split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
+            train_data, test_data = train_test_data_setup(data, split_ratio)
+
+            if RemoteEvaluator().use_remote:
+                init_data_for_remote_execution(train_data)
+
+            objective_function = partial(self.composer_metric, self.metrics, train_data, test_data)
+            intermediate_metrics_function = partial(evaluate_metrics_without_fit, self.metrics, test_data,
+                                                    self.validation_blocks)
+
+        return objective_function, intermediate_metrics_function
+
     def _cv_validation_metric_build(self, data: Union[InputData, MultiModalData]):
         """ Prepare function for metric evaluation based on task """
         if isinstance(data, MultiModalData):
@@ -158,31 +204,43 @@ class GPComposer(Composer):
 
         cv_generator = self._cv_generator_by_task(data)
         # Only Pipeline parameter is left unfilled in metric function
-        metric_function_for_nodes = partial(calc_metrics_for_folds, cv_generator,
-                                            validation_blocks=self.composer_requirements.validation_blocks,
-                                            metrics=self.metrics, log=self.log, cache=self.cache)
-        return metric_function_for_nodes
+        metric_function_for_nodes = partial(calc_metrics_for_folds,
+                                            cv_generator,
+                                            metrics=self.metrics,
+                                            validation_blocks=self.validation_blocks,
+                                            log=self.log, cache=self.cache)
+
+        intermediate_metrics_function = None
+        if self.collect_intermediate_metric:
+            last_fold = None
+            for last_fold in cv_generator():
+                pass  # just get the last fold
+            last_fold_test = last_fold[1]
+            intermediate_metrics_function = partial(evaluate_metrics_without_fit, self.metrics, last_fold_test,
+                                                    self.validation_blocks)
+        return metric_function_for_nodes, intermediate_metrics_function
 
     def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
-            if self.composer_requirements.validation_blocks is None:
+            if self.validation_blocks is None:
                 default_validation_blocks = 3
                 self.log.info(f'For ts cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
-                self.composer_requirements.validation_blocks = default_validation_blocks
+                # NB: this change isn't propagated back into ComposerRequirements!
+                self.validation_blocks = default_validation_blocks
             cv_generator = partial(ts_cv_generator, data,
-                                   self.composer_requirements.cv_folds,
-                                   self.composer_requirements.validation_blocks,
+                                   self.cv_folds,
+                                   self.validation_blocks,
                                    self.log)
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
             cv_generator = partial(tabular_cv_generator, data,
-                                   self.composer_requirements.cv_folds)
+                                   self.cv_folds)
         return cv_generator
 
-    def composer_metric(self, metrics: Sequence[Union[Callable, MetricsEnum]],
+    def composer_metric(self, metrics: Sequence[MetricType],
                         train_data: Union[InputData, MultiModalData],
                         test_data: Union[InputData, MultiModalData],
                         pipeline: Pipeline) -> Optional[Sequence[float]]:
@@ -192,7 +250,7 @@ class GPComposer(Composer):
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
             evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
-                                                  time_constraint=self.composer_requirements.max_pipeline_fit_time,
+                                                  time_constraint=self.max_pipeline_fit_time,
                                                   cache=self.cache)
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {evaluated_metrics}')
         except Exception as ex:
@@ -200,10 +258,13 @@ class GPComposer(Composer):
             evaluated_metrics = None
         return evaluated_metrics
 
-    @staticmethod
-    def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):
-        raise NotImplementedError()
 
-    @property
-    def history(self):
-        return self.optimiser.history
+def evaluate_metrics_without_fit(metrics: Sequence[MetricType],
+                                 test_data: InputData,
+                                 validation_blocks: Optional[int],
+                                 pipeline: Pipeline) -> Sequence[float]:
+    values = []
+    for metric in metrics:
+        metric_function = MetricsRepository().metric_by_id(metric, default_callable=metric)
+        values.append(metric_function(pipeline, reference_data=test_data, validation_blocks=validation_blocks))
+    return values
