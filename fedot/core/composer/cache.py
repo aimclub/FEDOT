@@ -39,13 +39,7 @@ class OperationsCache(metaclass=SingletonMeta):
     def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
                  db_path: Optional[str] = None,
                  clear_exiting=True):
-        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
-        if mp_manager is None:
-            self._rlock = nullcontext()
-            self._effectiveness = dict.fromkeys(effectiveness_keys, 0)
-        else:
-            self._rlock = mp_manager.RLock()
-            self._effectiveness = mp_manager.dict(dict.fromkeys(effectiveness_keys, 0))
+        self._define_mode(mp_manager)
 
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
@@ -53,8 +47,20 @@ class OperationsCache(metaclass=SingletonMeta):
         if clear_exiting:
             self._clear()
 
-    def reset(self):
+    def _define_mode(self, mp_manager: Optional[SyncManager] = None):
+        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
+        effectiveness_dct = dict.fromkeys(effectiveness_keys, 0)
+        if mp_manager is None:
+            #  means one process mode
+            self._rlock = nullcontext()
+            self._effectiveness = effectiveness_dct
+        else:
+            self._rlock = mp_manager.RLock()
+            self._effectiveness = mp_manager.dict(effectiveness_dct)
+
+    def reset(self, mp_manager: Optional[SyncManager] = None):
         with self._rlock:
+            self._define_mode(mp_manager)
             for k in self._effectiveness:
                 self._effectiveness[k] = 0
             self._clear()

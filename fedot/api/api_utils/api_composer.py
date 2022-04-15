@@ -203,10 +203,9 @@ class ApiComposer:
 
     def init_cache(self, use_cache: bool, n_jobs: int):
         if use_cache:
-            input_params = {}
-            if n_jobs != 1:
-                input_params.update(dict(mp_manager=Manager()))
+            input_params = dict(mp_manager=Manager() if n_jobs != 1 else None)
             self.cache = OperationsCache(**input_params)
+            self.cache.reset(input_params['mp_manager'])
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
                             preset: str):
