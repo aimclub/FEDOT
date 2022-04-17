@@ -262,8 +262,8 @@ params = {
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 10]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
-        'feature_fraction': (hp.uniform, [0.05, 1]),
-        'bagging_fraction': (hp.uniform, [0.05, 1]),
+        'colsample_bytree': (hp.uniform, [0.05, 1]),
+        'subsample': (hp.uniform, [0.05, 1]),
         'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     },
@@ -273,8 +273,8 @@ params = {
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 10]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
-        'feature_fraction': (hp.uniform, [0.05, 1]),
-        'bagging_fraction': (hp.uniform, [0.05, 1]),
+        'colsample_bytree': (hp.uniform, [0.05, 1]),
+        'subsample': (hp.uniform, [0.05, 1]),
         'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     }
