@@ -1,9 +1,9 @@
 import os
-import random
 from time import time
+from datetime import timedelta
 import tracemalloc
 
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, roc_auc_score, f1_score, accuracy_score
 from functools import partial
 import numpy as np
 import pandas as pd
@@ -62,7 +62,6 @@ def make_measurement(func,
     tracemalloc.start()
 
     start_time = time()
-    tracemalloc.start()
 
     pipeline = func(train, **params)
 
@@ -171,11 +170,21 @@ def save_comparison_results(key):
         open('comparison_results/' + filename, 'w').write(txt)
 
 
-fitted_operations_for_classification = ['logit', 'lgbm']
-fitted_operations_for_regression = ['ridge', 'lgbmreg']
-metrics_for_binary_classification = {'f1': f1_score, 'auc': roc_auc_score}
-metrics_for_multi_classification = {'f1': f1_score, 'accuracy': accuracy_score}
-metrics_for_regression = {'mse': mean_squared_error, 'mae': mean_absolute_error}
+fitted_operations_for_classification = ['logit', 'dt', 'rf', 'lgbm', 'knn']
+fitted_operations_for_regression = ['ridge', 'dtreg', 'rfr', 'lgbmreg', 'knnreg', 'svr']
+metrics_for_binary_classification = {
+    'f1': f1_score,
+    'auc': roc_auc_score
+}
+metrics_for_multi_classification = {
+    'f1': f1_score,
+    'accuracy': accuracy_score
+}
+metrics_for_regression = {
+    'mse': mean_squared_error,
+    'mae': mean_absolute_error,
+    'r2': r2_score
+}
 
 overview = pd.read_csv('data_for_comparison/overview.csv')
 
