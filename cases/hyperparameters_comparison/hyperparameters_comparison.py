@@ -166,7 +166,7 @@ def save_comparison_results(key):
                     'metrics': datasets[d]['metrics'][m]
                 }
             )
-        txt = ','.join([str(score_train), str(score_test), str(time_spent), str(memory_spent), pipeline])
+        txt = '\t'.join([str(score_train), str(score_test), str(time_spent), str(memory_spent), pipeline])
         open('comparison_results/' + filename, 'w').write(txt)
 
 
