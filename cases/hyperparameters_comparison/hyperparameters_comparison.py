@@ -171,14 +171,16 @@ def save_comparison_results(key):
 
 
 fitted_operations_for_classification = ['logit', 'dt', 'rf', 'lgbm', 'knn']
-fitted_operations_for_regression = ['ridge', 'dtreg', 'rfr', 'lgbmreg', 'knnreg', 'svr']
+fitted_operations_for_regression = ['ridge', 'dtreg', 'rfr', 'lgbmreg', 'knnreg']
 metrics_for_binary_classification = {
     'f1': f1_score,
+    'accuracy': accuracy_score,
     'auc': roc_auc_score
 }
 metrics_for_multi_classification = {
-    'f1': f1_score,
-    'accuracy': accuracy_score
+    'f1': partial(f1_score, average='macro'),
+    'accuracy': accuracy_score,
+    'auc': partial(roc_auc_score, multi_class='ovr')
 }
 metrics_for_regression = {
     'mse': mean_squared_error,
@@ -219,11 +221,6 @@ params = {
         'metric': (hp.choice, [['euclidean', 'manhattan', 'chebyshev', 'cosine']]),
         'weights': (hp.choice, [['uniform', 'distance']])
     },
-    'svr': {
-        'C': (hp.loguniform, [np.log(1e-9), np.log(1e4)]),
-        'kernel': (hp.choice, [['linear', 'poly', 'rbf', 'sigmoid']]),
-        'degree': (hp.randint, [2, 4])
-    },
     'dt': {
         'max_depth': (hp.randint, [2, 10]),
         'min_samples_leaf': (hp.randint, [1, 10000])
@@ -258,23 +255,25 @@ params = {
     },
     'lgbm': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'early_stopping_rounds': (hp.randint, [10, 100]),
+        # 'early_stopping_rounds': (hp.randint, [10, 100]),
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 10]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
         'colsample_bytree': (hp.uniform, [0.05, 1]),
         'subsample': (hp.uniform, [0.05, 1]),
+        'max_bin': (hp.randint, [3, 255]),
         'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     },
     'lgbmreg': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'early_stopping_rounds': (hp.randint, [10, 100]),
+        # 'early_stopping_rounds': (hp.randint, [10, 100]),
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 10]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
         'colsample_bytree': (hp.uniform, [0.05, 1]),
         'subsample': (hp.uniform, [0.05, 1]),
+        'max_bin': (hp.randint, [3, 255]),
         'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     }
@@ -283,7 +282,7 @@ params = {
 ss = SearchSpace(params, True)
 n_threads = 1
 n_experiments = 3
-n_iter = [50, 200]
+n_iter = [50, 200, 500, 1000]
 timeout = timedelta(minutes=30)
 
 keys = []
