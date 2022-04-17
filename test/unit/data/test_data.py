@@ -183,7 +183,7 @@ def test_table_data_shuffle():
     assert not np.array_equal(data.features, shuffled_data.features)
     assert not np.array_equal(data.target, shuffled_data.target)
 
-    assert np.array_equal(data.idx, sorted(shuffled_data.idx))
+    assert np.array_equal(sorted(data.idx), sorted(shuffled_data.idx))
 
 
 def test_data_convert_string_indexes_correct():
