@@ -1,3 +1,4 @@
+import sys
 from abc import ABC, abstractmethod
 from typing import Callable, ClassVar
 from copy import deepcopy, copy
@@ -15,7 +16,7 @@ from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
-MAX_METRIC_VALUE = 10e6
+MAX_METRIC_VALUE = sys.maxsize
 
 
 class HyperoptTuner(ABC):
