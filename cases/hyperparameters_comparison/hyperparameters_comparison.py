@@ -1,3 +1,4 @@
+import sys
 import os
 from time import time
 from datetime import timedelta
@@ -280,7 +281,7 @@ params = {
 }
 
 ss = SearchSpace(params, True)
-n_threads = 1
+n_threads = sys.argv[1] if len(sys.argv) > 1 else 1
 n_experiments = 3
 n_iter = [50, 200, 500, 1000]
 timeout = timedelta(minutes=30)
