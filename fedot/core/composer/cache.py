@@ -27,7 +27,7 @@ class CachedState:
 
 class OperationsCache(metaclass=SingletonMeta):
     """
-    Stores/loades nodes `fitted_operation` field to increase performance of calculations.
+    Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
     :param mp_manager: optional multiprocessing manager in case of main API `n_jobs` != 1,
         used to synchronize access to class variables
