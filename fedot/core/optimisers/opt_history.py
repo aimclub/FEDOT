@@ -132,9 +132,9 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, save_path: str = None):
+    def show(self, save_path_to_file: str = None):
         """ Visualizes fitness values across generations
-        :param save_path: path where to save visualization. If set, then the image will be saved,
+        :param save_path_to_file: path where to save visualization. If set, then the image will be saved,
         and if not, it will be displayed """
 
         if self.all_historical_fitness is None:
@@ -150,16 +150,23 @@ class OptHistory:
         # Visualize
         fitness = [f if f >= 0 else -f for f in self.all_historical_fitness]
         fig, ax = plt.subplots(figsize=(15, 10))
-        sns.boxplot(x=generations, y=fitness, color='green')
+
+        # Get color palette for fitness. The lower the fitness value, the brighter the green color
+        palette = sns.light_palette("seagreen", n_colors=len(self.historical_fitness))
+        min_fitnesses = [min(i) for i in self.historical_fitness]
+        min_fitnesses.sort(reverse=True)
+        colors = [palette[min_fitnesses.index(min(i))] for i in self.historical_fitness]
+
+        sns.boxplot(x=generations, y=fitness, palette=colors)
         ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
         ax.set_xticklabels(range(len(self.historical_fitness)))
         ax.set_xlabel(xlabel=f'generations', fontsize=20)
         ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
 
-        if not save_path:
+        if not save_path_to_file:
             plt.show()
         else:
-            plt.savefig(save_path)
+            plt.savefig(save_path_to_file)
             plt.close()
 
     @property
