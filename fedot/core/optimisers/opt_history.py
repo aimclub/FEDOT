@@ -8,6 +8,10 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pandas.core.common import flatten
+
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
 
@@ -127,6 +131,38 @@ class OptHistory:
         if path is not None:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
+
+    def show(self, save_path: str = None):
+        """ Visualizes fitness values across generations
+        :param save_path: path where to save visualization. If set, then the image will be saved,
+        and if not, it will be displayed """
+
+        if self.all_historical_fitness is None:
+            return
+        fitness_history = self.historical_fitness
+        generations = []
+        for gen_num in range(len(fitness_history)):
+            num_of_ind_in_gen = len(fitness_history[gen_num])
+            generations.append([gen_num] * num_of_ind_in_gen)
+        generations = list(flatten(generations))
+        fitness = self.all_historical_fitness
+
+        fitness = [f if f >= 0 else -f for f in fitness]
+        fig, ax = plt.subplots(figsize=(15, 10))
+        sns.boxplot(x=generations, y=fitness, color='green')
+        ax.set_title('Fitness by generations',
+                     fontdict={'fontsize': 22})
+        gen_nums = list(set(generations))
+        gen_nums.sort()
+        ax.set_xticklabels(gen_nums)
+        ax.set_xlabel(xlabel=f'generations', fontsize=20)
+        ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
+
+        if not save_path:
+            plt.show()
+        else:
+            plt.savefig(save_path)
+            plt.close()
 
     @property
     def short_metrics_names(self):

@@ -177,7 +177,7 @@ class EvoGraphOptimiser(GraphOptimiser):
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
-        print('priv')
+
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
