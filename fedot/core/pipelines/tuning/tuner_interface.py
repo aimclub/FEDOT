@@ -89,10 +89,7 @@ class HyperoptTuner(ABC):
                 preds, test_target = self._cross_validation(data, pipeline)
 
             # Calculate metric
-            if loss_params is None:
-                metric_value = loss_function(test_target, preds)
-            else:
-                metric_value = loss_function(test_target, preds, **loss_params)
+            metric_value = _calculate_loss_function(loss_function, loss_params, test_target, preds)
         except Exception as ex:
             self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
             # Return default metric: too small (for maximization) or too big (for minimization)
@@ -291,3 +288,17 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
         return True
     else:
         return False
+
+
+def _calculate_loss_function(loss_function, loss_params, test_target, preds):
+    if loss_params is None:
+        loss_params = {}
+    try:
+        metric_value = loss_function(test_target, preds, **loss_params)
+    except ValueError:
+        try:
+            metric_value = loss_function(test_target, np.max(preds, axis=1), **loss_params)
+        except ValueError:
+            metric_value = loss_function(test_target, np.argmax(preds, axis=1), **loss_params)
+
+    return metric_value
