@@ -10,6 +10,7 @@ from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
@@ -127,6 +128,14 @@ class OptHistory:
         if path is not None:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
+
+    def show(self, save_path_to_file: str = None):
+        """ Visualizes fitness values across generations """
+
+        if self.all_historical_fitness is None:
+            return
+        viz = PipelineEvolutionVisualiser()
+        viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
 
     @property
     def short_metrics_names(self):
