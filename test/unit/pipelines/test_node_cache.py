@@ -47,6 +47,8 @@ def data_setup():
 @pytest.fixture
 def cache_cleanup():
     OperationsCache().reset()
+    yield
+    OperationsCache().reset()
 
 
 def create_func_delete_files(paths):

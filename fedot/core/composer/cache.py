@@ -27,7 +27,7 @@ class CachedState:
 
 class OperationsCache(metaclass=SingletonMeta):
     """
-    Stores/loads nodes `fitted_operation` field to increase performance of calculations.
+    Stores/loades nodes `fitted_operation` field to increase performance of calculations.
 
     :param mp_manager: optional multiprocessing manager in case of main API `n_jobs` != 1,
         used to synchronize access to class variables
@@ -148,13 +148,14 @@ class OperationsCache(metaclass=SingletonMeta):
 
             return did_load_any
 
-    def _clear(self, tmp_only=False):
-        if not tmp_only:
-            for ext in ['bak', 'dir', 'dat']:
-                file = Path(f'{self.db_path}.{ext}')
-                if file.exists():
+    def _clear(self):
+        db_path = Path(self.db_path)
+        for file in db_path.parent.iterdir():
+            if file.stem == db_path.stem:
+                if file.is_dir():
+                    shutil.rmtree(file)
+                else:
                     file.unlink()
-        _clear_from_temporaries(default_fedot_data_dir())
 
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
@@ -176,12 +177,3 @@ def _load_cache_for_node(cache_shelf: shelve.Shelf,
     cached_state = cache_shelf.get(structural_id, None)
 
     return cached_state
-
-
-def _clear_from_temporaries(folder_path: str):
-    """ Deletes temporary files from chosen folder """
-    for file in Path(folder_path).glob('tmp_*'):
-        if file.is_dir():
-            shutil.rmtree(file)
-        else:
-            file.unlink()
