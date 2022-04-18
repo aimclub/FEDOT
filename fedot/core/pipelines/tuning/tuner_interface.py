@@ -149,7 +149,7 @@ class HyperoptTuner(ABC):
             # Maximization
             init_metric = -1 * (self.init_metric - deviation)
             if self.obtained_metric is None:
-                self.log.info(f'is None. Initial metric is {init_metric:.3f}')
+                self.log.info(f'{prefix_init_phrase} is None. Initial metric is {init_metric:.3f}')
                 return self.init_pipeline
 
             self.obtained_metric *= -1
@@ -165,7 +165,7 @@ class HyperoptTuner(ABC):
             # Minimization
             init_metric = self.init_metric + deviation
             if self.obtained_metric is None:
-                self.log.info(f'is None. Initial metric is {init_metric:.3f}')
+                self.log.info(f'{prefix_init_phrase} is None. Initial metric is {init_metric:.3f}')
                 return self.init_pipeline
             elif self.obtained_metric <= init_metric:
                 self.log.info(f'{prefix_tuned_phrase} {self.obtained_metric:.3f} equal or '
