@@ -41,6 +41,7 @@ class HyperoptTuner(ABC):
         self.max_seconds = int(timeout.seconds) if timeout is not None else None
         self.init_pipeline = None
         self.init_metric = None
+        self.obtained_metric = None
         self.is_need_to_maximize = None
         self.cv_folds = None
         self.validation_blocks = None
@@ -79,7 +80,7 @@ class HyperoptTuner(ABC):
         :param loss_function: function to minimize (or maximize)
         :param loss_params: parameters for loss function
 
-        :return : value of loss function
+        :return: value of loss function
         """
 
         try:
@@ -89,10 +90,7 @@ class HyperoptTuner(ABC):
                 preds, test_target = self._cross_validation(data, pipeline)
 
             # Calculate metric
-            if loss_params is None:
-                metric_value = loss_function(test_target, preds)
-            else:
-                metric_value = loss_function(test_target, preds, **loss_params)
+            metric_value = _calculate_loss_function(loss_function, loss_params, test_target, preds)
         except Exception as ex:
             self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
             # Return default metric: too small (for maximization) or too big (for minimization)
@@ -131,10 +129,13 @@ class HyperoptTuner(ABC):
         :param loss_params: parameters for loss function
         """
 
-        obtained_metric = self.get_metric_value(data=data,
-                                                pipeline=tuned_pipeline,
-                                                loss_function=loss_function,
-                                                loss_params=loss_params)
+        self.obtained_metric = self.get_metric_value(data=data,
+                                                     pipeline=tuned_pipeline,
+                                                     loss_function=loss_function,
+                                                     loss_params=loss_params)
+
+        if self.obtained_metric == self._default_metric_value:
+            self.obtained_metric = None
 
         self.log.info('Hyperparameters optimization finished')
 
@@ -147,24 +148,31 @@ class HyperoptTuner(ABC):
         if self.is_need_to_maximize is True:
             # Maximization
             init_metric = -1 * (self.init_metric - deviation)
-            obtained_metric = -1 * obtained_metric
-            if obtained_metric >= init_metric:
-                self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+            if self.obtained_metric is None:
+                self.log.info(f'{prefix_init_phrase} is None. Initial metric is {init_metric:.3f}')
+                return self.init_pipeline
+
+            self.obtained_metric *= -1
+            if self.obtained_metric >= init_metric:
+                self.log.info(f'{prefix_tuned_phrase} {self.obtained_metric:.3f} equal or '
                               f'bigger than initial (- 5% deviation) {init_metric:.3f}')
                 return tuned_pipeline
             else:
-                self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                self.log.info(f'{prefix_init_phrase} {self.obtained_metric:.3f} '
                               f'smaller than initial (- 5% deviation) {init_metric:.3f}')
                 return self.init_pipeline
         else:
             # Minimization
             init_metric = self.init_metric + deviation
-            if obtained_metric <= init_metric:
-                self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+            if self.obtained_metric is None:
+                self.log.info(f'{prefix_init_phrase} is None. Initial metric is {init_metric:.3f}')
+                return self.init_pipeline
+            elif self.obtained_metric <= init_metric:
+                self.log.info(f'{prefix_tuned_phrase} {self.obtained_metric:.3f} equal or '
                               f'smaller than initial (+ 5% deviation) {init_metric:.3f}')
                 return tuned_pipeline
             else:
-                self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                self.log.info(f'{prefix_init_phrase} {self.obtained_metric:.3f} '
                               f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
                 return self.init_pipeline
 
@@ -216,7 +224,7 @@ def _create_multi_target_prediction(target, optimal=True):
     :param target: target for define what problem is solving (max or min)
     :param optimal: whether return optimal probabilities or not
 
-    :return : 2d-array of classes probabilities
+    :return: 2d-array of classes probabilities
     """
 
     len_target = target.shape[0]
@@ -237,7 +245,7 @@ def _convert_target_dimension(target):
 
     :param target: target for define what problem is solving (max or min)
 
-    :return : 2d-array of classes probabilities
+    :return: 2d-array of classes probabilities
     """
 
     nb_classes = len(np.unique(target))
@@ -260,7 +268,7 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
     :param loss_function: loss function
     :param loss_params: parameters for loss function
 
-    :return : bool value is it good to maximize metric or not
+    :return: bool value is it good to maximize metric or not
     """
 
     if isinstance(target[0], str):
@@ -291,3 +299,30 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
         return True
     else:
         return False
+
+
+def _calculate_loss_function(loss_function, loss_params, target, preds):
+    """ Function processing preds and calculating metric (loss function)
+
+    :param loss_function: loss function
+    :param loss_params: parameters for loss function
+    :param target: target for evaluation
+    :param preds: prediction for evaluation
+
+    :return: calculated loss_function
+    """
+
+    if loss_params is None:
+        loss_params = {}
+    try:
+        # actual for regression and classification metrics that requires all classes probabilities
+        metric_value = loss_function(target, preds, **loss_params)
+    except ValueError:
+        try:
+            # transform class probabilities to 1st class probability, actual for binary auc_roc-like metrics
+            metric_value = loss_function(target, preds[:, 1], **loss_params)
+        except ValueError:
+            # transform class probabilities to assigned class, actual for accuracy-like metrics
+            metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
+
+    return metric_value

@@ -15,7 +15,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
+from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better, _calculate_loss_function
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -150,6 +150,7 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                                           loss_function=mse,
                                                           loss_params={'squared': False})
+            assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -175,6 +176,7 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
                                            algo=tpe.suggest)
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                                           loss_function=roc)
+            assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -202,6 +204,7 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
             tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
                                                             loss_function=mse,
                                                             loss_params={'squared': False})
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -227,6 +230,7 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
                                                algo=tpe.suggest)
             tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
                                                             loss_function=roc)
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -253,6 +257,7 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
             tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
                                                         node_index=0,
                                                         loss_function=mse)
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -279,6 +284,7 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
             tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
                                                         node_index=0,
                                                         loss_function=roc)
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -376,3 +382,37 @@ def test_greater_is_better():
     assert _greater_is_better(target, custom_maximized_metrics, None, data_type)
     assert not _greater_is_better(target, mse, None, data_type)
     assert not _greater_is_better(target, custom_minimized_metrics, None, data_type)
+
+
+def test_calculate_loss_function():
+    """ Tests _calculate_loss_function correctness on quality metrics"""
+    target = np.array([1, 0, 1, 0, 1])
+    multi_target = np.array([2, 0, 1, 0, 1])
+    regr_target = np.array([0.2, 0.1, 1, 0.3, 1.7])
+    pred_clear = np.array([1, 0, 1, 0, 0])
+    pred_prob = np.array([[0.2, 0.8],
+                          [0.7, 0.3],
+                          [0.4, 0.6],
+                          [0.51, 0.49],
+                          [0.51, 0.49]])
+    multi_pred_clear = np.array([2, 0, 1, 0, 2])
+    multi_pred_prob = np.array([[0.2, 0.3, 0.5],
+                                [0.6, 0.3, 0.1],
+                                [0.3, 0.4, 0.3],
+                                [0.5, 0.4, 0.1],
+                                [0.1, 0.4, 0.5]])
+    regr_pred = np.array([0.23, 0.15, 1.2, 0.4, 1.16])
+
+    assert _calculate_loss_function(acc, None, target, pred_prob) == 0.8
+    assert _calculate_loss_function(acc, None, target, pred_clear) == 0.8
+    assert np.allclose(a=_calculate_loss_function(roc, None, target, pred_prob),
+                       b=11 / 12,
+                       rtol=1e-9)
+
+    assert _calculate_loss_function(acc, None, multi_target, multi_pred_prob) == 0.8
+    assert _calculate_loss_function(acc, None, multi_target, multi_pred_clear) == 0.8
+    assert np.allclose(a=_calculate_loss_function(roc, {'multi_class': 'ovo'}, multi_target, multi_pred_prob),
+                       b=11 / 12,
+                       rtol=1e-9)
+
+    assert _calculate_loss_function(mse, None, regr_target, regr_pred) == 0.069
