@@ -134,7 +134,7 @@ class HyperoptTuner(ABC):
                                                      loss_function=loss_function,
                                                      loss_params=loss_params)
 
-        if self.obtained_metric in (-MAX_METRIC_VALUE, MAX_METRIC_VALUE):
+        if self.obtained_metric == self._default_metric_value:
             self.obtained_metric = None
 
         self.log.info('Hyperparameters optimization finished')
