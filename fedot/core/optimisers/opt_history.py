@@ -8,12 +8,9 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pandas.core.common import flatten
-
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
@@ -133,41 +130,12 @@ class OptHistory:
             os.mkdir(path)
 
     def show(self, save_path_to_file: str = None):
-        """ Visualizes fitness values across generations
-        :param save_path_to_file: path where to save visualization. If set, then the image will be saved,
-        and if not, it will be displayed """
+        """ Visualizes fitness values across generations """
 
         if self.all_historical_fitness is None:
             return
-
-        # Get list of generations numbers per fitness result
-        generations = []
-        for gen_num in range(len(self.historical_fitness)):
-            num_of_ind_in_gen = len(self.historical_fitness[gen_num])
-            generations.append([gen_num] * num_of_ind_in_gen)
-        generations = list(flatten(generations))
-
-        # Visualize
-        fitness = [f if f >= 0 else -f for f in self.all_historical_fitness]
-        fig, ax = plt.subplots(figsize=(15, 10))
-
-        # Get color palette for fitness. The lower the fitness value, the brighter the green color
-        palette = sns.light_palette("seagreen", n_colors=len(self.historical_fitness))
-        min_fitnesses = [min(i) for i in self.historical_fitness]
-        min_fitnesses.sort(reverse=True)
-        colors = [palette[min_fitnesses.index(min(i))] for i in self.historical_fitness]
-
-        sns.boxplot(x=generations, y=fitness, palette=colors)
-        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
-        ax.set_xticklabels(range(len(self.historical_fitness)))
-        ax.set_xlabel(xlabel=f'generations', fontsize=20)
-        ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
-
-        if not save_path_to_file:
-            plt.show()
-        else:
-            plt.savefig(save_path_to_file)
-            plt.close()
+        viz = PipelineEvolutionVisualiser()
+        viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
 
     @property
     def short_metrics_names(self):
