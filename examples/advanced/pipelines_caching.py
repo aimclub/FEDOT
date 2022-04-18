@@ -10,9 +10,7 @@ import pandas as pd
 from matplotlib import cm, colors, pyplot as plt
 
 from fedot.api.main import Fedot
-from fedot.core.composer.cache import OperationsCache
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.api.test_main_api import get_dataset
@@ -92,35 +90,31 @@ def correct_pipelines_count_check(timeout: float = 2., partitions_n: int = 2):
 
     pipelines_count, times = [{0: [], 1: []} for _ in range(2)]
 
-    def fit_from_cache_mock(self, cache: OperationsCache, fold_num: Optional[int] = None):
-        return False
-
-    pipeline_fit_from_cache_orig = Pipeline.fit_from_cache.__code__
+    base_fedot_params = {
+        'problem': problem, 'seed': 42, 'timeout': timeout,
+        'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
+        'verbose_level': -1
+    }
     for enable_caching in [0, 1]:
-        if not enable_caching:
-            Pipeline.fit_from_cache.__code__ = fit_from_cache_mock.__code__
         print(f'Using cache mode: {bool(enable_caching)}')
         for partition in partitions:
             train_data_tmp = train_data.iloc[:partition].copy()
             test_data_tmp = test_data.iloc[:partition].copy()
 
             start_time = timeit.default_timer()
-            auto_model = Fedot(problem=problem, seed=42, timeout=timeout,
-                               composer_params={'with_tuning': False}, preset='fast_train',
-                               verbose_level=-1, use_cache=True)
+            auto_model = Fedot(**base_fedot_params, use_cache=bool(enable_caching))
             auto_model.fit(features=train_data_tmp, target='target')
             auto_model.predict_proba(features=test_data_tmp)
             times[enable_caching].append((timeit.default_timer() - start_time) / 60)
             c_pipelines = _count_pipelines(auto_model.history)
             pipelines_count[enable_caching].append(c_pipelines)
 
+            cache_ef = str(auto_model.api_composer.cache.effectiveness_ratio) if auto_model.api_composer.cache else ''
             print((
                 f'\tDataset length: {partition}'
                 f', number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]:.3f}'
-                f', cache effectiveness: {auto_model.api_composer.cache.effectiveness_ratio}'
+                f'{", cache effectiveness: " + cache_ef}'
             ))
-        if not enable_caching:
-            Pipeline.fit_from_cache.__code__ = pipeline_fit_from_cache_orig
 
     plt.title('Cache performance')
     plt.xlabel('rows in train dataset')
@@ -206,6 +200,6 @@ if __name__ == "__main__":
         2: (correct_pipelines_count_check, 2., 2),
         3: (multiprocessing_check, -1)
     })
-    benchmark_number = 1
+    benchmark_number = 3
     func, *args = examples_dct[benchmark_number]
     func(*args)
