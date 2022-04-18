@@ -69,14 +69,12 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     return data
 
 
-def generate_initial_pipeline_and_data(images_size: tuple,
-                                       data: Union[InputData, MultiModalData],
+def generate_initial_pipeline_and_data(data: Union[InputData, MultiModalData],
                                        with_split=True) -> tuple:
     """
     Generates initial pipeline for data from 3 different sources (table, images and text)
     Each source is the primary node for its subpipeline
 
-    :param images_size: the requested size in pixels, as a 2-tuple of (width, height)
     :param data: multimodal data (from 3 different sources: table, text, image)
     :param with_split: if True, splits the sample on train/test
     :return: pipeline object, 2 multimodal data objects (fit and predict)
@@ -88,12 +86,13 @@ def generate_initial_pipeline_and_data(images_size: tuple,
     else:
         num_classes = data.num_classes
     # image
+    images_size = data['data_source_img'].features.shape[1:4]
     ds_image = PrimaryNode('data_source_img')
     image_node = SecondaryNode('cnn', nodes_from=[ds_image])
-    image_node.custom_params = {'image_shape': (images_size[0], images_size[1], 1),
-                                'architecture_type': 'simplified',
+    image_node.custom_params = {'image_shape': images_size,
+                                'architecture_type': 'vgg16',
                                 'num_classes': num_classes,
-                                'epochs': 10,
+                                'epochs': 2,
                                 'batch_size': 16,
                                 'optimizer_parameters': {'loss': "binary_crossentropy",
                                                          'optimizer': "adam",
@@ -127,12 +126,11 @@ def generate_initial_pipeline_and_data(images_size: tuple,
 
 def run_multi_modal_pipeline(files_path: str, is_visualise=False) -> float:
     task = Task(TaskTypesEnum.classification)
-    images_size = (128, 128)
+    images_size = (224, 224)
 
     data = prepare_multi_modal_data(files_path, task, images_size)
 
-    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(images_size, data,
-                                                                          with_split=True)
+    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(data, with_split=True)
 
     pipeline.fit(input_data=fit_data)
 
