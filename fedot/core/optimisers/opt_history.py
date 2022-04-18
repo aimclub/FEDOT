@@ -139,22 +139,20 @@ class OptHistory:
 
         if self.all_historical_fitness is None:
             return
-        fitness_history = self.historical_fitness
+
+        # Get list of generations numbers per fitness result
         generations = []
-        for gen_num in range(len(fitness_history)):
-            num_of_ind_in_gen = len(fitness_history[gen_num])
+        for gen_num in range(len(self.historical_fitness)):
+            num_of_ind_in_gen = len(self.historical_fitness[gen_num])
             generations.append([gen_num] * num_of_ind_in_gen)
         generations = list(flatten(generations))
-        fitness = self.all_historical_fitness
 
-        fitness = [f if f >= 0 else -f for f in fitness]
+        # Visualize
+        fitness = [f if f >= 0 else -f for f in self.all_historical_fitness]
         fig, ax = plt.subplots(figsize=(15, 10))
         sns.boxplot(x=generations, y=fitness, color='green')
-        ax.set_title('Fitness by generations',
-                     fontdict={'fontsize': 22})
-        gen_nums = list(set(generations))
-        gen_nums.sort()
-        ax.set_xticklabels(gen_nums)
+        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
+        ax.set_xticklabels(range(len(self.historical_fitness)))
         ax.set_xlabel(xlabel=f'generations', fontsize=20)
         ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
 
