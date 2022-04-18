@@ -307,7 +307,7 @@ def _calculate_loss_function(loss_function, loss_params, target, preds):
         metric_value = loss_function(target, preds, **loss_params)
     except ValueError:
         try:
-            metric_value = loss_function(target, np.max(preds, axis=1), **loss_params)
+            metric_value = loss_function(target, preds[:, 1], **loss_params)
         except ValueError:
             metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
 
