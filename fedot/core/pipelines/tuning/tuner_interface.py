@@ -41,6 +41,7 @@ class HyperoptTuner(ABC):
         self.max_seconds = int(timeout.seconds) if timeout is not None else None
         self.init_pipeline = None
         self.init_metric = None
+        self.obtained_metric = None
         self.is_need_to_maximize = None
         self.cv_folds = None
         self.validation_blocks = None
@@ -128,10 +129,13 @@ class HyperoptTuner(ABC):
         :param loss_params: parameters for loss function
         """
 
-        obtained_metric = self.get_metric_value(data=data,
-                                                pipeline=tuned_pipeline,
-                                                loss_function=loss_function,
-                                                loss_params=loss_params)
+        self.obtained_metric = self.get_metric_value(data=data,
+                                                     pipeline=tuned_pipeline,
+                                                     loss_function=loss_function,
+                                                     loss_params=loss_params)
+
+        if self.obtained_metric in (-MAX_METRIC_VALUE, MAX_METRIC_VALUE):
+            self.obtained_metric = None
 
         self.log.info('Hyperparameters optimization finished')
 
@@ -144,24 +148,31 @@ class HyperoptTuner(ABC):
         if self.is_need_to_maximize is True:
             # Maximization
             init_metric = -1 * (self.init_metric - deviation)
-            obtained_metric = -1 * obtained_metric
-            if obtained_metric >= init_metric:
-                self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+            if self.obtained_metric is None:
+                self.log.info(f'is None. Initial metric is {init_metric:.3f}')
+                return self.init_pipeline
+
+            self.obtained_metric *= -1
+            if self.obtained_metric >= init_metric:
+                self.log.info(f'{prefix_tuned_phrase} {self.obtained_metric:.3f} equal or '
                               f'bigger than initial (- 5% deviation) {init_metric:.3f}')
                 return tuned_pipeline
             else:
-                self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                self.log.info(f'{prefix_init_phrase} {self.obtained_metric:.3f} '
                               f'smaller than initial (- 5% deviation) {init_metric:.3f}')
                 return self.init_pipeline
         else:
             # Minimization
             init_metric = self.init_metric + deviation
-            if obtained_metric <= init_metric:
-                self.log.info(f'{prefix_tuned_phrase} {obtained_metric:.3f} equal or '
+            if self.obtained_metric is None:
+                self.log.info(f'is None. Initial metric is {init_metric:.3f}')
+                return self.init_pipeline
+            elif self.obtained_metric <= init_metric:
+                self.log.info(f'{prefix_tuned_phrase} {self.obtained_metric:.3f} equal or '
                               f'smaller than initial (+ 5% deviation) {init_metric:.3f}')
                 return tuned_pipeline
             else:
-                self.log.info(f'{prefix_init_phrase} {obtained_metric:.3f} '
+                self.log.info(f'{prefix_init_phrase} {self.obtained_metric:.3f} '
                               f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
                 return self.init_pipeline
 
