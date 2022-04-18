@@ -160,7 +160,7 @@ def multiprocessing_check(n_jobs: int = -1):
         'verbose_level': -1, 'use_cache': True
     }
     timeouts = [1, 2, 3, 4, 5]
-    for _n_jobs in [n_jobs, 1]:
+    for _n_jobs in [1, n_jobs]:
         print(f'Processes used: {_n_jobs}')
         for timeout in timeouts:
             train_data_tmp = train_data.copy()
@@ -179,7 +179,6 @@ def multiprocessing_check(n_jobs: int = -1):
                 f', number of pipelines: {c_pipelines}, elapsed time: {times[_n_jobs][-1]:.3f}'
                 f', cache effectiveness: {auto_model.api_composer.cache.effectiveness_ratio}'
             ))
-            auto_model.api_composer.cache.reset()  # TODO: Is it ok to reset cache effectiveness like that?
 
     plt.title('Cache performance')
     plt.xlabel('timeout in minutes')
@@ -201,12 +200,12 @@ def multiprocessing_check(n_jobs: int = -1):
 
 
 if __name__ == "__main__":
-    benchmark_number = 3
     examples_dct = defaultdict(lambda: (lambda: print('Wrong example number option'),))
     examples_dct.update({
         1: (dummy_time_check,),
         2: (correct_pipelines_count_check, 2., 2),
         3: (multiprocessing_check, -1)
     })
+    benchmark_number = 1
     func, *args = examples_dct[benchmark_number]
     func(*args)

@@ -59,11 +59,8 @@ class OperationsCache(metaclass=SingletonMeta):
             self._effectiveness = mp_manager.dict(effectiveness_dct)
 
     def reset(self, mp_manager: Optional[SyncManager] = None):
-        with self._rlock:
-            self._define_mode(mp_manager)
-            for k in self._effectiveness:
-                self._effectiveness[k] = 0
-            self._clear()
+        self._define_mode(mp_manager)
+        self._clear()
 
     @contextmanager
     def using_resources(self):
@@ -152,13 +149,12 @@ class OperationsCache(metaclass=SingletonMeta):
             return did_load_any
 
     def _clear(self, tmp_only=False):
-        with self._rlock:
-            if not tmp_only:
-                for ext in ['bak', 'dir', 'dat']:
-                    file = Path(f'{self.db_path}.{ext}')
-                    if file.exists():
-                        file.unlink()
-            _clear_from_temporaries(default_fedot_data_dir())
+        if not tmp_only:
+            for ext in ['bak', 'dir', 'dat']:
+                file = Path(f'{self.db_path}.{ext}')
+                if file.exists():
+                    file.unlink()
+        _clear_from_temporaries(default_fedot_data_dir())
 
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:

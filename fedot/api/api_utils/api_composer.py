@@ -205,6 +205,8 @@ class ApiComposer:
         if use_cache:
             input_params = dict(mp_manager=Manager() if n_jobs != 1 else None)
             self.cache = OperationsCache(**input_params)
+
+            #  in case of previously generated singleton cache
             self.cache.reset(input_params['mp_manager'])
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
