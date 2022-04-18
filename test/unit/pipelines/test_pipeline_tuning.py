@@ -150,6 +150,7 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                                           loss_function=mse,
                                                           loss_params={'squared': False})
+            assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -175,6 +176,7 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
                                            algo=tpe.suggest)
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
                                                           loss_function=roc)
+            assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -202,6 +204,7 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
             tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
                                                             loss_function=mse,
                                                             loss_params={'squared': False})
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -227,6 +230,7 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
                                                algo=tpe.suggest)
             tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
                                                             loss_function=roc)
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -253,6 +257,7 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
             tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
                                                         node_index=0,
                                                         loss_function=mse)
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -279,6 +284,7 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
             tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
                                                         node_index=0,
                                                         loss_function=roc)
+            assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
