@@ -9,36 +9,38 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 class MultiModalData(dict):
-
+    """ Dictionary with InputData as values and primary node names as keys """
     def __init__(self, *arg, **kw):
         super(MultiModalData, self).__init__(*arg, **kw)
 
+        # Check if input data contains different targets
+        is_targets_main = [value.supplementary_data.is_main_target for value in self.values()]
+        self.contain_side_inputs = not all(is_targets_main)
+
     @property
     def idx(self):
-        return next(iter(self.values())).idx
+        for value in self.values():
+            if value.supplementary_data.is_main_target:
+                return value.idx
 
     @property
     def task(self):
-        return ([v for v in self.values()
-                 if v.supplementary_data.is_main_target])[0].task
-
-    @task.setter
-    def task(self, value):
-        for data_part in self.values():
-            data_part.task = value
+        for value in self.values():
+            if value.supplementary_data.is_main_target:
+                return value.task
 
     @property
     def target(self):
-        return next(iter(self.values())).target
-
-    @target.setter
-    def target(self, value):
-        for data_part in self.values():
-            data_part.target = value
+        """ Return main target from InputData blocks """
+        for value in self.values():
+            if value.supplementary_data.is_main_target:
+                return value.target
 
     @property
     def data_type(self):
-        return [i.data_type for i in iter(self.values())]
+        for value in self.values():
+            if value.supplementary_data.is_main_target:
+                return value.data_type
 
     @property
     def num_classes(self) -> Optional[int]:
