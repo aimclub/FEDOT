@@ -79,7 +79,7 @@ class HyperoptTuner(ABC):
         :param loss_function: function to minimize (or maximize)
         :param loss_params: parameters for loss function
 
-        :return : value of loss function
+        :return: value of loss function
         """
 
         try:
@@ -213,7 +213,7 @@ def _create_multi_target_prediction(target, optimal=True):
     :param target: target for define what problem is solving (max or min)
     :param optimal: whether return optimal probabilities or not
 
-    :return : 2d-array of classes probabilities
+    :return: 2d-array of classes probabilities
     """
 
     len_target = target.shape[0]
@@ -234,7 +234,7 @@ def _convert_target_dimension(target):
 
     :param target: target for define what problem is solving (max or min)
 
-    :return : 2d-array of classes probabilities
+    :return: 2d-array of classes probabilities
     """
 
     nb_classes = len(np.unique(target))
@@ -257,7 +257,7 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
     :param loss_function: loss function
     :param loss_params: parameters for loss function
 
-    :return : bool value is it good to maximize metric or not
+    :return: bool value is it good to maximize metric or not
     """
 
     if isinstance(target[0], str):
@@ -290,15 +290,25 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
         return False
 
 
-def _calculate_loss_function(loss_function, loss_params, test_target, preds):
+def _calculate_loss_function(loss_function, loss_params, target, preds):
+    """ Function processing preds and calculating metric (loss function)
+
+    :param loss_function: loss function
+    :param loss_params: parameters for loss function
+    :param target: target for evaluation
+    :param preds: prediction for evaluation
+
+    :return: calculated loss_function
+    """
+
     if loss_params is None:
         loss_params = {}
     try:
-        metric_value = loss_function(test_target, preds, **loss_params)
+        metric_value = loss_function(target, preds, **loss_params)
     except ValueError:
         try:
-            metric_value = loss_function(test_target, np.max(preds, axis=1), **loss_params)
+            metric_value = loss_function(target, np.max(preds, axis=1), **loss_params)
         except ValueError:
-            metric_value = loss_function(test_target, np.argmax(preds, axis=1), **loss_params)
+            metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
 
     return metric_value
