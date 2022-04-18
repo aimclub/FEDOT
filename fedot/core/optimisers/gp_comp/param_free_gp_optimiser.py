@@ -75,7 +75,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc='Generations', unit='gen', initial=1,
-                        disable=self.log.verbosity_level < 2) if show_progress else None
+                        disable=self.log.verbosity_level == -1) if show_progress else None
 
             self._init_population(objective_function, t)
 
