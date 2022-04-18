@@ -400,7 +400,7 @@ def test_calculate_loss_function():
     assert _calculate_loss_function(acc, None, target, pred_prob) == 0.8
     assert _calculate_loss_function(acc, None, target, pred_clear) == 0.8
     assert np.allclose(a=_calculate_loss_function(roc, None, target, pred_prob),
-                       b=7 / 12,
+                       b=11 / 12,
                        rtol=1e-9)
 
     assert _calculate_loss_function(acc, None, multi_target, multi_pred_prob) == 0.8
