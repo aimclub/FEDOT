@@ -1,11 +1,12 @@
 import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import (List, Optional, Union)
+from typing import (List, Optional, Union, Sequence)
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
 
@@ -55,20 +56,16 @@ class Composer(ABC):
     :param logger: optional parameter for log oject
     """
 
-    def __init__(self, optimiser=None,
-                 composer_requirements: Optional[ComposerRequirements] = None,
-                 metrics: Union[List[MetricsEnum], MetricsEnum] = None,
-                 initial_pipelines: Optional[List[Pipeline]] = None,
+    def __init__(self, optimiser: GraphOptimiser,
+                 composer_requirements: ComposerRequirements,
+                 metrics: Sequence[MetricsEnum],
+                 initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  logger: Log = None):
         self.metrics = metrics
         self.composer_requirements = composer_requirements
         self.initial_pipelines = initial_pipelines
         self.optimiser = optimiser
-
-        if not logger:
-            self.log = default_log(__name__)
-        else:
-            self.log = logger
+        self.log = logger or default_log(__name__)
 
     @abstractmethod
     def compose_pipeline(self, data: InputData,

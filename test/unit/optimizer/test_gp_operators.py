@@ -1,13 +1,11 @@
 import datetime
 import os
-from functools import partial
 
 import numpy as np
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, sample_split_ratio_for_tasks
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, ObjectiveBuilder
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -115,27 +113,14 @@ def test_evaluate_individuals():
 
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(full_path_train, task=task)
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
-
-    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    composer_requirements = PipelineComposerRequirements(primary=available_model_types,
-                                                         secondary=available_model_types)
-
-    builder = ComposerBuilder(task=task).with_requirements(composer_requirements). \
-        with_metrics(metric_function)
-
-    composer = builder.build()
-
     pipelines_to_evaluate = [pipeline_first(), pipeline_second(),
                              pipeline_third(), pipeline_fourth()]
 
-    train_data, test_data = train_test_data_setup(dataset_to_compose,
-                                                  sample_split_ratio_for_tasks[dataset_to_compose.task.task_type])
-    metric_function_for_nodes = partial(composer.composer_metric,
-                                        metrics=composer.metrics,
-                                        train_data=train_data,
-                                        test_data=test_data)
+    metric_function = ClassificationMetricsEnum.ROCAUC_penalty
+    objective_builder = ObjectiveBuilder([metric_function])
+    metric_function_for_nodes, _ = objective_builder.build(dataset_to_compose)
     adapter = PipelineAdapter()
+
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=0.001)
     params = GraphGenerationParams(adapter=PipelineAdapter(), advisor=PipelineChangeAdvisor())

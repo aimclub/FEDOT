@@ -34,7 +34,8 @@ class StaticOptimizer(GraphOptimiser):
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+                 show_progress: bool = True,
+                 **kwargs):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('logit'))

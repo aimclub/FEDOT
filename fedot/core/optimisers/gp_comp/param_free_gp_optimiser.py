@@ -61,6 +61,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None,
+                 intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
         self.evaluator.objective_function = objective_function  # TODO: move into init!

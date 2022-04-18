@@ -84,7 +84,8 @@ class GraphOptimiser:
     @abstractmethod
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+                 show_progress: bool = True,
+                 **kwargs) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
         :param objective_function: function for calculation of the objective function for optimisation

@@ -36,7 +36,8 @@ class RandomSearchOptimizer(GraphOptimiser):
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+                 show_progress: bool = True,
+                 **kwargs):
 
         self.evaluator.objective_function = objective_function  # TODO: remove this into init
 

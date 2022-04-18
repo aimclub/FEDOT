@@ -15,6 +15,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.operator import ObjectiveFunction
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
@@ -71,25 +72,25 @@ class GPComposer(Composer):
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
-    def __init__(self, optimiser=None,  # TODO: refactor optimiser late assignment (it's never passed in init)
-                 composer_requirements: Optional[PipelineComposerRequirements] = None,
-                 metrics: Union[List[MetricsEnum], MetricsEnum] = None,
-                 initial_pipelines: Optional[List[Pipeline]] = None,
+    def __init__(self, optimiser: GraphOptimiser,
+                 composer_requirements: PipelineComposerRequirements,
+                 metrics: Sequence[MetricsEnum],
+                 initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  logger: Log = None):
 
-        super().__init__(metrics=metrics, composer_requirements=composer_requirements,
-                         initial_pipelines=initial_pipelines)
-
-        self.cache = OperationsCache(log=logger)
+        super().__init__(optimiser, composer_requirements, metrics, initial_pipelines, logger)
 
         self.optimiser = optimiser
+        self.cache = OperationsCache(log=logger)
         self.cache_path = None
         self.use_existing_cache = False
 
-        if not logger:
-            self.log = default_log(__name__)
-        else:
-            self.log = logger
+        self.objective_builder = ObjectiveBuilder(metrics,
+                                                  self.composer_requirements.max_pipeline_fit_time,
+                                                  self.composer_requirements.cv_folds,
+                                                  self.composer_requirements.validation_blocks,
+                                                  self.composer_requirements.collect_intermediate_metric,
+                                                  self.cache, self.log)
 
     # TODO fix: this method is invalidly overriden: it changes the signature of base method
     def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False,
@@ -128,14 +129,7 @@ class GPComposer(Composer):
         # shuffle data if necessary
         data.shuffle()
 
-        objective_builder = ObjectiveBuilder(self.metrics,
-                                             self.composer_requirements.max_pipeline_fit_time,
-                                             self.composer_requirements.cv_folds,
-                                             self.composer_requirements.validation_blocks,
-                                             self.composer_requirements.collect_intermediate_metric,
-                                             self.cache, self.log)
-        objective_function, intermediate_metrics_function = objective_builder.build(data)
-
+        objective_function, intermediate_metrics_function = self.objective_builder.build(data)
 
         opt_result = self.optimiser.optimise(objective_function,
                                              on_next_iteration_callback=on_next_iteration_callback,
