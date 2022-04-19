@@ -42,7 +42,7 @@ def test_gp_composer_builder():
     composer_with_custom_params = builder.build()
 
     assert composer_with_custom_params.optimiser.parameters.genetic_scheme_type == scheme_type
-    assert composer_with_custom_params.metrics == [metric_function]
+    assert composer_with_custom_params.objective_builder.metrics == [metric_function]
     assert composer_with_custom_params.composer_requirements.pop_size == 5
     assert composer_with_custom_params.composer_requirements.mutation_prob == 1
 
@@ -52,6 +52,6 @@ def test_gp_composer_builder():
     default_metric = ClassificationMetricsEnum.ROCAUC.ROCAUC_penalty
 
     assert composer_with_default_params.optimiser.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.generational
-    assert composer_with_default_params.metrics == [default_metric]
+    assert composer_with_default_params.objective_builder.metrics == [default_metric]
     assert composer_with_default_params.composer_requirements.pop_size == 20
     assert composer_with_default_params.composer_requirements.mutation_prob == 0.8
