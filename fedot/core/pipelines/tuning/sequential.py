@@ -27,10 +27,8 @@ class SequentialTuner(HyperoptTuner):
         # Define folds for cross validation
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
-        is_need_to_maximize = _greater_is_better(target=input_data.target,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params,
-                                                 data_type=input_data.data_type)
+        is_need_to_maximize = _greater_is_better(loss_function=loss_function,
+                                                 loss_params=loss_params)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
@@ -85,10 +83,8 @@ class SequentialTuner(HyperoptTuner):
         """ Method for hyperparameters tuning for particular node"""
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
-        is_need_to_maximize = _greater_is_better(target=input_data.target,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params,
-                                                 data_type=input_data.data_type)
+        is_need_to_maximize = _greater_is_better(loss_function=loss_function,
+                                                 loss_params=loss_params)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data

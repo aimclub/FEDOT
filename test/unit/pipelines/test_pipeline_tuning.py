@@ -5,8 +5,7 @@ import numpy as np
 import pytest
 from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
-from sklearn.metrics import mean_squared_error as mse, mean_absolute_error as mae, r2_score as r2
-from sklearn.metrics import roc_auc_score as roc, accuracy_score as acc, f1_score as f1
+from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc, f1_score as f1
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -355,7 +354,7 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['multi_classification_dataset'])
-def test_certain_node_tuning_classification_correct(data_fixture, request):
+def test_certain_node_tuning_multi_classification_correct(data_fixture, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -461,15 +460,12 @@ def test_complex_search_space_tuning_correct():
 
 def test_greater_is_better():
     """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
-    target = np.array([1, 0, 1, 0, 1])
-    multi_target = np.array([2, 0, 1, 0, 1, 2])
-    data_type = DataTypesEnum.table
-    assert _greater_is_better(target, acc, None, data_type)
-    assert _greater_is_better(target, roc, None, data_type)
-    assert _greater_is_better(multi_target, roc, {'multi_class': 'ovo'}, data_type)
-    assert _greater_is_better(target, custom_maximized_metrics, None, data_type)
-    assert not _greater_is_better(target, mse, None, data_type)
-    assert not _greater_is_better(target, custom_minimized_metrics, None, data_type)
+    assert _greater_is_better(acc, None)
+    assert _greater_is_better(roc, None)
+    assert _greater_is_better(roc, {'multi_class': 'ovo'})
+    assert _greater_is_better(custom_maximized_metrics, None)
+    assert not _greater_is_better(mse, None)
+    assert not _greater_is_better(custom_minimized_metrics, None)
 
 
 def test_calculate_loss_function():

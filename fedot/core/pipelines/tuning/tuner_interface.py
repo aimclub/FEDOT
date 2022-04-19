@@ -217,82 +217,48 @@ class HyperoptTuner(ABC):
             return MAX_METRIC_VALUE
 
 
-def _create_multi_target_prediction(target, optimal=True):
+def _create_multi_target_prediction(target):
     """ Function creates an array of shape (target len, num classes)
     with classes probabilities from target values, used in _greater_is_better
 
     :param target: target for define what problem is solving (max or min)
-    :param optimal: whether return optimal probabilities or not
 
     :return: 2d-array of classes probabilities
     """
 
     len_target = target.shape[0]
 
-    if optimal:
-        multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target),
-                                                         target.reshape((len_target,))))).A
-    else:
-        multi_target = np.zeros((len_target, len(np.unique(target))))
-        multi_target[:, 0] = 1
+    multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target),
+                                                     target.reshape((len_target,))))).A
 
     return multi_target
 
 
-def _convert_target_dimension(target):
-    """ Function check number of unique classes and converted target
-    for multiclass metrics
-
-    :param target: target for define what problem is solving (max or min)
-
-    :return: 2d-array of classes probabilities
-    """
-
-    nb_classes = len(np.unique(target))
-
-    if nb_classes > 2:
-        target_converted = target.reshape(-1).tolist()
-        target_converted = [int(x) for x in target_converted]
-        if min(target_converted) == 1:
-            target_converted = [x - 1 for x in target_converted]
-        target = np.eye(nb_classes)[target_converted]
-
-    return target
-
-
-def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
+def _greater_is_better(loss_function, loss_params) -> bool:
     """ Function checks is metric (loss function) need to be minimized or
     maximized
 
-    :param target: target for define what problem is solving (max or min)
     :param loss_function: loss function
     :param loss_params: parameters for loss function
 
     :return: bool value is it good to maximize metric or not
     """
 
-    if data_type == TaskTypesEnum.classification:
-        # Target for classification contain string objects
-        le = LabelEncoder()
-        target = le.fit_transform(target)
+    optimal_target = np.array([[0], [1]])
+    not_optimal_target = np.array([[0], [0]])
+
     if loss_params is None:
         loss_params = {}
 
-    if data_type is not DataTypesEnum.ts or DataTypesEnum.text:
-        try:
-            target = _convert_target_dimension(target)
-        except Exception:
-            target = target
-
     try:
-        optimal_metric = loss_function(target, target, **loss_params)
-        not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
-    except Exception:
-        optimal_multi_target = _create_multi_target_prediction(target, True)
-        not_optimal_multi_target = _create_multi_target_prediction(target, False)
+        optimal_metric = loss_function(optimal_target, optimal_target, **loss_params)
+        not_optimal_metric = loss_function(optimal_target, not_optimal_target, **loss_params)
+    except ValueError:
+        optimal_multi_target = _create_multi_target_prediction(optimal_target)
+        not_optimal_multi_target = _create_multi_target_prediction(not_optimal_target)
 
-        optimal_metric = loss_function(target, optimal_multi_target, **loss_params)
-        not_optimal_metric = loss_function(target, not_optimal_multi_target, **loss_params)
+        optimal_metric = loss_function(optimal_target, optimal_multi_target, **loss_params)
+        not_optimal_metric = loss_function(optimal_target, not_optimal_multi_target, **loss_params)
 
     if optimal_metric > not_optimal_metric:
         return True
