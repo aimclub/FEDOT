@@ -17,7 +17,6 @@ from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better, _calculate_loss_function
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -98,7 +97,7 @@ def get_regr_operation_types():
 
 
 def get_class_operation_types():
-    return ['logit', 'dt', 'rf', 'lgbm', 'knn']
+    return ['logit', 'dt', 'rf', 'lgbm']
 
 
 def get_regr_losses():
