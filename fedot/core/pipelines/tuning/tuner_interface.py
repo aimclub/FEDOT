@@ -94,9 +94,9 @@ class HyperoptTuner(ABC):
         except Exception as ex:
             self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
             # Return default metric: too small (for maximization) or too big (for minimization)
-            metric_value = self._default_metric_value
+            return self._default_metric_value
 
-        if self.is_need_to_maximize is True:
+        if self.is_need_to_maximize:
             return -metric_value
         else:
             return metric_value
@@ -145,7 +145,7 @@ class HyperoptTuner(ABC):
         # 5% deviation is acceptable
         deviation = (self.init_metric / 100.0) * 5
 
-        if self.is_need_to_maximize is True:
+        if self.is_need_to_maximize:
             # Maximization
             init_metric = -1 * (self.init_metric - deviation)
             if self.obtained_metric is None:
@@ -211,7 +211,7 @@ class HyperoptTuner(ABC):
 
     @property
     def _default_metric_value(self):
-        if self.is_need_to_maximize is True:
+        if self.is_need_to_maximize:
             return -MAX_METRIC_VALUE
         else:
             return MAX_METRIC_VALUE
