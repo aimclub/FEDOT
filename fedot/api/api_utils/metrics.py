@@ -1,3 +1,4 @@
+import os
 from typing import Callable, List, Union
 
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error,
@@ -15,7 +16,12 @@ class ApiMetrics:
     """
 
     def __init__(self, problem: str):
-        self.problem = problem
+        if '/' in problem:
+            # Multitask problem ia going to be solved
+            self.main_problem, self.side_problem = problem.split('/')
+        else:
+            self.main_problem = problem
+            self.side_problem = None
 
     def get_problem_metrics(self):
         task_dict = {
@@ -25,7 +31,7 @@ class ApiMetrics:
             'clustering': 'silhouette',
             'ts_forecasting': ['rmse', 'mae']
         }
-        return task_dict[self.problem]
+        return task_dict[self.main_problem]
 
     def get_metrics_for_task(self, metric_name: Union[str, List[str]]):
         """ Return one metric for task by name (str)

@@ -38,9 +38,7 @@ class MultiModalData(dict):
 
     @property
     def data_type(self):
-        for value in self.values():
-            if value.supplementary_data.is_main_target:
-                return value.data_type
+        return [i.data_type for i in iter(self.values())]
 
     @property
     def num_classes(self) -> Optional[int]:
