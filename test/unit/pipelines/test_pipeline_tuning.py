@@ -95,7 +95,7 @@ def get_class_pipelines():
 
 
 def get_regr_operation_types():
-    return ['ridge', 'dtreg', 'rfr', 'lgbmreg', 'knnreg']
+    return ['lgbmreg']
 
 
 def get_class_operation_types():
@@ -104,9 +104,7 @@ def get_class_operation_types():
 
 def get_regr_losses():
     regr_losses = [
-        {'loss_function': mse, 'loss_params': {'squared': False}},
-        {'loss_function': mae},
-        {'loss_function': r2}
+        {'loss_function': mse, 'loss_params': {'squared': False}}
     ]
     return regr_losses
 
