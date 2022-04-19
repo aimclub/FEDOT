@@ -1,11 +1,13 @@
 import os
+import sys
 from random import seed
 
 import numpy as np
 import pytest
 from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
-from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc
+from sklearn.metrics import mean_squared_error as mse, mean_absolute_error as mae, r2_score as r2
+from sklearn.metrics import roc_auc_score as roc, accuracy_score as acc, f1_score as f1
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -39,8 +41,8 @@ def classification_dataset():
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
-def get_simple_regr_pipeline():
-    final = PrimaryNode(operation_type='rfr')
+def get_simple_regr_pipeline(operation_type='rfr'):
+    final = PrimaryNode(operation_type=operation_type)
     pipeline = Pipeline(final)
 
     return pipeline
@@ -56,8 +58,8 @@ def get_complex_regr_pipeline():
     return pipeline
 
 
-def get_simple_class_pipeline():
-    final = PrimaryNode(operation_type='logit')
+def get_simple_class_pipeline(operation_type='logit'):
+    final = PrimaryNode(operation_type=operation_type)
     pipeline = Pipeline(final)
 
     return pipeline
@@ -72,6 +74,32 @@ def get_complex_class_pipeline():
     pipeline = Pipeline(final)
 
     return pipeline
+
+
+def get_regr_operation_types():
+    return ['ridge', 'dtreg', 'rfr', 'lgbmreg', 'knnreg']
+
+
+def get_class_operation_types():
+    return ['logit', 'dt', 'rf', 'lgbm', 'knn']
+
+
+def get_regr_losses():
+    regr_losses = [
+        {'loss_function': mse, 'loss_params': {'squared': False}},
+        {'loss_function': mae},
+        {'loss_function': r2}
+    ]
+    return regr_losses
+
+
+def get_class_losses():
+    class_losses = [
+        {'loss_function': roc, 'loss_params': {'multi_class': 'ovo'}},
+        {'loss_function': acc},
+        {'loss_function': f1}
+    ]
+    return class_losses
 
 
 def get_not_default_search_space():
@@ -135,22 +163,21 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for regression task
-    pipeline_simple = get_simple_regr_pipeline()
+    pipelines_simple = [get_simple_regr_pipeline(ot) for ot in get_regr_operation_types()]
     pipeline_complex = get_complex_regr_pipeline()
 
-    for pipeline in [pipeline_simple, pipeline_complex]:
+    for pipeline in pipelines_simple + [pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            # Pipeline tuning
-            pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                           task=train_data.task,
-                                           iterations=1,
-                                           search_space=search_space,
-                                           algo=tpe.suggest)
-            # Optimization will be performed on RMSE metric, so loss params are defined
-            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                          loss_function=mse,
-                                                          loss_params={'squared': False})
-            assert pipeline_tuner.obtained_metric is not None
+            for loss in get_regr_losses():
+                # Pipeline tuning
+                pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=tpe.suggest)
+                # Optimization will be performed on RMSE metric, so loss params are defined
+                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data, **loss)
+                assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -163,20 +190,20 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for classification task
-    pipeline_simple = get_simple_class_pipeline()
+    pipelines_simple = [get_simple_class_pipeline(ot) for ot in get_class_operation_types()]
     pipeline_complex = get_complex_class_pipeline()
 
-    for pipeline in [pipeline_simple, pipeline_complex]:
+    for pipeline in pipelines_simple + [pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            # Pipeline tuning
-            pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                           task=train_data.task,
-                                           iterations=1,
-                                           search_space=search_space,
-                                           algo=tpe.suggest)
-            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                          loss_function=roc)
-            assert pipeline_tuner.obtained_metric is not None
+            for loss in get_class_losses():
+                # Pipeline tuning
+                pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                               task=train_data.task,
+                                               iterations=1,
+                                               search_space=search_space,
+                                               algo=tpe.suggest)
+                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data, **loss)
+                assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -189,22 +216,21 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for regression task
-    pipeline_simple = get_simple_regr_pipeline()
+    pipelines_simple = [get_simple_regr_pipeline(ot) for ot in get_regr_operation_types()]
     pipeline_complex = get_complex_regr_pipeline()
 
-    for pipeline in [pipeline_simple, pipeline_complex]:
+    for pipeline in pipelines_simple + [pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            # Pipeline tuning
-            sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=tpe.suggest)
-            # Optimization will be performed on RMSE metric, so loss params are defined
-            tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                            loss_function=mse,
-                                                            loss_params={'squared': False})
-            assert sequential_tuner.obtained_metric is not None
+            for loss in get_regr_losses():
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=tpe.suggest)
+                # Optimization will be performed on RMSE metric, so loss params are defined
+                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data, **loss)
+                assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -217,20 +243,20 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for classification task
-    pipeline_simple = get_simple_class_pipeline()
+    pipelines_simple = [get_simple_class_pipeline(ot) for ot in get_class_operation_types()]
     pipeline_complex = get_complex_class_pipeline()
 
-    for pipeline in [pipeline_simple, pipeline_complex]:
+    for pipeline in pipelines_simple + [pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            # Pipeline tuning
-            sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=2,
-                                               search_space=search_space,
-                                               algo=tpe.suggest)
-            tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                            loss_function=roc)
-            assert sequential_tuner.obtained_metric is not None
+            for loss in get_class_losses():
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=2,
+                                                   search_space=search_space,
+                                                   algo=tpe.suggest)
+                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data, **loss)
+                assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -243,21 +269,22 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for regression task
-    pipeline_simple = get_simple_regr_pipeline()
+    pipelines_simple = [get_simple_regr_pipeline(ot) for ot in get_regr_operation_types()]
     pipeline_complex = get_complex_regr_pipeline()
 
-    for pipeline in [pipeline_simple, pipeline_complex]:
+    for pipeline in pipelines_simple + [pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            # Pipeline tuning
-            sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=tpe.suggest)
-            tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                        node_index=0,
-                                                        loss_function=mse)
-            assert sequential_tuner.obtained_metric is not None
+            for loss in get_regr_losses():
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=tpe.suggest)
+                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                            node_index=0,
+                                                            **loss)
+                assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -270,21 +297,22 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     # Pipelines for classification task
-    pipeline_simple = get_simple_class_pipeline()
+    pipelines_simple = [get_simple_class_pipeline(ot) for ot in get_class_operation_types()]
     pipeline_complex = get_complex_class_pipeline()
 
-    for pipeline in [pipeline_simple, pipeline_complex]:
+    for pipeline in pipelines_simple + [pipeline_complex]:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
-            # Pipeline tuning
-            sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=tpe.suggest)
-            tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                        node_index=0,
-                                                        loss_function=roc)
-            assert sequential_tuner.obtained_metric is not None
+            for loss in get_class_losses():
+                # Pipeline tuning
+                sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=tpe.suggest)
+                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                            node_index=0,
+                                                            **loss)
+                assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
