@@ -1,5 +1,4 @@
 import os
-import sys
 from random import seed
 
 import numpy as np
@@ -41,6 +40,13 @@ def classification_dataset():
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
+@pytest.fixture()
+def multi_classification_dataset():
+    test_file_path = str(os.path.dirname(__file__))
+    file = os.path.join('../../data', 'multiclass_classification.csv')
+    return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
+
+
 def get_simple_regr_pipeline(operation_type='rfr'):
     final = PrimaryNode(operation_type=operation_type)
     pipeline = Pipeline(final)
@@ -56,6 +62,12 @@ def get_complex_regr_pipeline():
     pipeline = Pipeline(final)
 
     return pipeline
+
+
+def get_regr_pipelines():
+    simple_pipelines = [get_simple_regr_pipeline(operation_type) for operation_type in get_regr_operation_types()]
+
+    return simple_pipelines + [get_complex_regr_pipeline()]
 
 
 def get_simple_class_pipeline(operation_type='logit'):
@@ -74,6 +86,12 @@ def get_complex_class_pipeline():
     pipeline = Pipeline(final)
 
     return pipeline
+
+
+def get_class_pipelines():
+    simple_pipelines = [get_simple_class_pipeline(operation_type) for operation_type in get_class_operation_types()]
+
+    return simple_pipelines + [get_complex_class_pipeline()]
 
 
 def get_regr_operation_types():
@@ -162,11 +180,7 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Pipelines for regression task
-    pipelines_simple = [get_simple_regr_pipeline(ot) for ot in get_regr_operation_types()]
-    pipeline_complex = get_complex_regr_pipeline()
-
-    for pipeline in pipelines_simple + [pipeline_complex]:
+    for pipeline in get_regr_pipelines():
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in get_regr_losses():
                 # Pipeline tuning
@@ -189,11 +203,7 @@ def test_pipeline_tuner_classification_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Pipelines for classification task
-    pipelines_simple = [get_simple_class_pipeline(ot) for ot in get_class_operation_types()]
-    pipeline_complex = get_complex_class_pipeline()
-
-    for pipeline in pipelines_simple + [pipeline_complex]:
+    for pipeline in get_class_pipelines():
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in get_class_losses():
                 # Pipeline tuning
@@ -215,11 +225,7 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Pipelines for regression task
-    pipelines_simple = [get_simple_regr_pipeline(ot) for ot in get_regr_operation_types()]
-    pipeline_complex = get_complex_regr_pipeline()
-
-    for pipeline in pipelines_simple + [pipeline_complex]:
+    for pipeline in get_regr_pipelines():
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in get_regr_losses():
                 # Pipeline tuning
@@ -242,11 +248,7 @@ def test_sequential_tuner_classification_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Pipelines for classification task
-    pipelines_simple = [get_simple_class_pipeline(ot) for ot in get_class_operation_types()]
-    pipeline_complex = get_complex_class_pipeline()
-
-    for pipeline in pipelines_simple + [pipeline_complex]:
+    for pipeline in get_class_pipelines():
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in get_class_losses():
                 # Pipeline tuning
@@ -268,11 +270,7 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Pipelines for regression task
-    pipelines_simple = [get_simple_regr_pipeline(ot) for ot in get_regr_operation_types()]
-    pipeline_complex = get_complex_regr_pipeline()
-
-    for pipeline in pipelines_simple + [pipeline_complex]:
+    for pipeline in get_regr_pipelines():
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in get_regr_losses():
                 # Pipeline tuning
@@ -296,11 +294,7 @@ def test_certain_node_tuning_classification_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    # Pipelines for classification task
-    pipelines_simple = [get_simple_class_pipeline(ot) for ot in get_class_operation_types()]
-    pipeline_complex = get_complex_class_pipeline()
-
-    for pipeline in pipelines_simple + [pipeline_complex]:
+    for pipeline in get_class_pipelines():
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in get_class_losses():
                 # Pipeline tuning
