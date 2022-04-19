@@ -129,7 +129,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 # TODO: make internally used iterator allow initial run (at loop beginning)
                 self.requirements.pop_size = self.next_population_size(new_population)
                 # TODO: move to loop beginning
-                num_of_new_individuals = self.offspring_size(offspring_rate)
+                num_of_new_individuals = self.offspring_size(offspring_rate)  # leaves iterator unchanged
                 self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
@@ -229,23 +229,21 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         if self.parameters.multi_objective:
             improvements_checker = self._check_mo_improvements
         fitness_improved, complexity_decreased = improvements_checker(offspring)
-        is_max_pop_size_reached = not self.iterator.has_next()
-        progress_in_both_goals = fitness_improved and complexity_decreased and not is_max_pop_size_reached
-        no_progress = not fitness_improved and not complexity_decreased and not is_max_pop_size_reached
-        if (progress_in_both_goals and len(self.population) > 2) or no_progress:
-            if progress_in_both_goals:
-                if self.iterator.has_prev():
-                    next_population_size = self.iterator.prev()
-                else:
-                    next_population_size = len(self.population)
-            else:
+
+        progress_in_both_goals = fitness_improved and complexity_decreased
+        no_progress = not fitness_improved and not complexity_decreased
+
+        next_population_size = len(self.population)
+        if progress_in_both_goals and len(self.population) > 2:
+            if self.iterator.has_prev():
+                next_population_size = self.iterator.prev()
+        elif no_progress:
+            if self.iterator.has_next():
                 next_population_size = self.iterator.next()
+            # TODO: move into dynamic mutation operator
+            self.requirements.mutation_prob, self.requirements.crossover_prob = self.operators_prob_update(
+                std=float(self.current_std), max_std=float(self.max_std))
 
-                self.requirements.mutation_prob, self.requirements.crossover_prob = self.operators_prob_update(
-                    std=float(self.current_std), max_std=float(self.max_std))
-
-        else:
-            next_population_size = len(self.population)
         return next_population_size
 
     @staticmethod
