@@ -91,7 +91,7 @@ class Fedot:
         self.params = ApiParams()
 
         # Define parameters, that were set via init in init
-        input_params = {'problem': problem, 'preset': preset, 'timeout': timeout,
+        input_params = {'problem': self.metrics.main_problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level,
                         'initial_assumption': initial_assumption}
@@ -118,7 +118,7 @@ class Fedot:
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-            target: Union[str, np.ndarray, pd.Series] = 'target',
+            target: Union[str, np.ndarray, pd.Series, dict] = 'target',
             predefined_model: Union[str, Pipeline] = None):
         """
         Fit the graph with a predefined structure or compose and fit the new graph
@@ -128,8 +128,8 @@ class Fedot:
         If argument is 'auto', perform initial assumption generation and then fit the pipeline
         :return: Pipeline object
         """
-
         self.target = target
+
         self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
         # Launch data analyser - it gives recommendations for data preprocessing

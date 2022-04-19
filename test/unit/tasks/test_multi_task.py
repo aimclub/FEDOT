@@ -1,15 +1,10 @@
 import numpy as np
 
-from fedot.core.data.data import InputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
-from test.unit.api.test_api_cli_params import project_root_path
+from fedot.core.repository.tasks import TaskTypesEnum
 
-from examples.multitask_classification_regression import prepare_multitask_data
+from examples.advanced.multitask_classification_regression import prepare_multitask_data
 
 
 def test_multitask_pipeline_predict_correctly():

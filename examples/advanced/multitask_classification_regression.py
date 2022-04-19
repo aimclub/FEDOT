@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_absolute_error
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -49,14 +50,22 @@ def prepare_multitask_data() -> (MultiModalData, MultiModalData):
     return train_multimodal, test_multimodal
 
 
-def launch_multitask_example():
+def launch_multitask_example(with_tuning: bool = False):
     """
     Demonstration of an example with running a multitask pipeline.
     Synthetic data is used. Task: predict the category of the substance (column "class") <- classification,
     and then predict the concentration based on the predicted category (column "concentration") <- regression.
+
+    :param with_tuning: is tuning required or not
     """
     train_input, test_input = prepare_multitask_data()
     multitask_pipeline = get_multitask_pipeline()
+
+    if with_tuning:
+        multitask_pipeline = multitask_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
+                                                                    input_data=train_input,
+                                                                    timeout=2,
+                                                                    iterations=100)
 
     multitask_pipeline.fit(train_input)
     side_pipeline = multitask_pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)
@@ -71,4 +80,4 @@ def launch_multitask_example():
 
 
 if __name__ == '__main__':
-    launch_multitask_example()
+    launch_multitask_example(with_tuning=True)

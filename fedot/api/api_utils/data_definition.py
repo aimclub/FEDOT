@@ -133,8 +133,13 @@ class CsvStrategy(StrategyDefineData):
 
 
 class MulitmodalStrategy(StrategyDefineData):
+    # TODO data source must be defined dy data type, not task - temporary
+    source_name_by_task = {'classification': 'data_source_table',
+                           'regression': 'data_source_table',
+                           'ts_forecasting': 'data_source_ts'}
+
     def define_data(self, features: dict,
-                    ml_task: str,
+                    ml_task: Task,
                     target: str = None,
                     is_predict: bool = False,
                     idx=None) -> MultiModalData:
@@ -145,7 +150,8 @@ class MulitmodalStrategy(StrategyDefineData):
         data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
 
         # create labels for data sources
-        sources = dict((f'data_source_ts/{data_part_key}', data_part_transformation_func(features_array=data_part))
+        data_source_name = self.source_name_by_task.get(ml_task.task_type.name)
+        sources = dict((f'{data_source_name}/{data_part_key}', data_part_transformation_func(features_array=data_part))
                        for (data_part_key, data_part) in features.items())
         data = MultiModalData(sources)
         return data
