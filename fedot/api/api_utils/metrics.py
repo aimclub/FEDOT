@@ -17,7 +17,7 @@ class ApiMetrics:
 
     def __init__(self, problem: str):
         if '/' in problem:
-            # Multitask problem ia going to be solved
+            # Solve multitask problem
             self.main_problem, self.side_problem = problem.split('/')
         else:
             self.main_problem = problem

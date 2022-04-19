@@ -14,37 +14,36 @@ class MultiModalData(dict):
         super(MultiModalData, self).__init__(*arg, **kw)
 
         # Check if input data contains different targets
-        is_targets_main = [value.supplementary_data.is_main_target for value in self.values()]
-        self.contain_side_inputs = not all(is_targets_main)
+        self.contain_side_inputs = not all([value.supplementary_data.is_main_target for value in self.values()])
 
     @property
     def idx(self):
-        for value in self.values():
-            if value.supplementary_data.is_main_target:
-                return value.idx
+        for input_data in self.values():
+            if input_data.supplementary_data.is_main_target:
+                return input_data.idx
 
     @property
     def task(self):
-        for value in self.values():
-            if value.supplementary_data.is_main_target:
-                return value.task
+        for input_data in self.values():
+            if input_data.supplementary_data.is_main_target:
+                return input_data.task
 
     @task.setter
     def task(self, value):
         """ Update task for all input data """
-        for data_part in self.values():
-            data_part.task = value
+        for input_data in self.values():
+            input_data.task = value
 
     @property
     def target(self):
         """ Return main target from InputData blocks """
-        for value in self.values():
-            if value.supplementary_data.is_main_target:
-                return value.target
+        for input_data in self.values():
+            if input_data.supplementary_data.is_main_target:
+                return input_data.target
 
     @property
     def data_type(self):
-        return [i.data_type for i in iter(self.values())]
+        return [input_data.data_type for input_data in iter(self.values())]
 
     @property
     def num_classes(self) -> Optional[int]:

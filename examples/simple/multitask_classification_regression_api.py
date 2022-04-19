@@ -37,7 +37,7 @@ def launch_multitask_api_example():
     # The priority of the task is determined by the order. So, main task is regression
     problem = 'regression/classification'
 
-    # TODO finish this example
+    # TODO finish this example - it is not working now and represents the desired interface for multitask
     model = Fedot(problem=problem, timeout=5)
     model.fit(features=train_features,
               target=train_target)
