@@ -193,30 +193,8 @@ def test_pipeline_tuner_regression_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+@pytest.mark.parametrize('data_fixture', ['classification_dataset', 'multi_classification_dataset'])
 def test_pipeline_tuner_classification_correct(data_fixture, request):
-    """ Test PipelineTuner for pipeline based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    for pipeline in get_class_pipelines():
-        for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for loss in get_class_losses():
-                # Pipeline tuning
-                pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=tpe.suggest)
-                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data, **loss)
-                assert pipeline_tuner.obtained_metric is not None
-    is_tuning_finished = True
-
-    assert is_tuning_finished
-
-
-@pytest.mark.parametrize('data_fixture', ['multi_classification_dataset'])
-def test_pipeline_tuner_multi_classification_correct(data_fixture, request):
     """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -260,30 +238,8 @@ def test_sequential_tuner_regression_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+@pytest.mark.parametrize('data_fixture', ['classification_dataset', 'multi_classification_dataset'])
 def test_sequential_tuner_classification_correct(data_fixture, request):
-    """ Test SequentialTuner for pipeline based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    for pipeline in get_class_pipelines():
-        for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for loss in get_class_losses():
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=2,
-                                                   search_space=search_space,
-                                                   algo=tpe.suggest)
-                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data, **loss)
-                assert sequential_tuner.obtained_metric is not None
-    is_tuning_finished = True
-
-    assert is_tuning_finished
-
-
-@pytest.mark.parametrize('data_fixture', ['multi_classification_dataset'])
-def test_sequential_tuner_multi_classification_correct(data_fixture, request):
     """ Test SequentialTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -328,32 +284,8 @@ def test_certain_node_tuning_regression_correct(data_fixture, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture', ['classification_dataset'])
+@pytest.mark.parametrize('data_fixture', ['classification_dataset', 'multi_classification_dataset'])
 def test_certain_node_tuning_classification_correct(data_fixture, request):
-    """ Test SequentialTuner for particular node based on hyperopt library """
-    data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
-
-    for pipeline in get_class_pipelines():
-        for search_space in [SearchSpace(), get_not_default_search_space()]:
-            for loss in get_class_losses():
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=1,
-                                                   search_space=search_space,
-                                                   algo=tpe.suggest)
-                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                            node_index=0,
-                                                            **loss)
-                assert sequential_tuner.obtained_metric is not None
-    is_tuning_finished = True
-
-    assert is_tuning_finished
-
-
-@pytest.mark.parametrize('data_fixture', ['multi_classification_dataset'])
-def test_certain_node_tuning_multi_classification_correct(data_fixture, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
