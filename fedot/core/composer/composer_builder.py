@@ -32,8 +32,7 @@ class ComposerBuilder:
         self.composer_cls = GPComposer
         self.initial_pipelines = None
         self.log = None
-        self.cache_path = None
-        self.use_existing_cache = False
+        self.cache = None
         self.composer_requirements = self._default_composer_params()
         self.metrics = self._default_metrics()
 
@@ -67,7 +66,7 @@ class ComposerBuilder:
         return self
 
     def with_cache(self, cache: Optional[OperationsCache]):
-        self._composer.cache = cache
+        self.cache = cache
         return self
 
     def _default_composer_params(self) -> PipelineComposerRequirements:
@@ -116,6 +115,7 @@ class ComposerBuilder:
                                      self.composer_requirements,
                                      self.metrics,
                                      self.initial_pipelines,
-                                     self.log)
+                                     self.log,
+                                     self.cache)
 
         return composer

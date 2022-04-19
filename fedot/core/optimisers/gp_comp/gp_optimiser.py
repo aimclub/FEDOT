@@ -2,14 +2,13 @@ import math
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 from deap.tools import ParetoFront
 from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import (
@@ -30,6 +29,9 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+
+if TYPE_CHECKING:
+    from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
@@ -95,7 +97,7 @@ class EvoGraphOptimiser(GraphOptimiser):
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
-                 requirements: PipelineComposerRequirements,
+                 requirements: 'PipelineComposerRequirements',
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,

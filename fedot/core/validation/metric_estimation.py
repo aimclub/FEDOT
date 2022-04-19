@@ -10,6 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.utilities.data_structures import ensure_list
 
+
 def metric_evaluation(pipeline: Pipeline,
                       train_data: InputData,
                       test_data: InputData,
@@ -63,9 +64,6 @@ def calc_metrics_for_folds(cv_folds_generator: Callable[[], Iterable[Tuple[Input
     :param cache: cache manager for fitted models
     :param log: object for logging
     """
-    # TODO add support for multiprocessing
-    if __name__ != '__main__':
-        cache = None
     log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
     try:
         fold_id = 0

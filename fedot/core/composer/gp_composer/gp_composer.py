@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Any, Callable, List, Optional, Tuple, Union, Iterator, Sequence
+from typing import Callable, List, Optional, Tuple, Union, Iterator, Sequence
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -12,10 +12,10 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
-from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.operator import ObjectiveFunction
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
@@ -76,12 +76,13 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
-                 logger: Optional[Log] = None):
+                 logger: Optional[Log] = None,
+                 cache: Optional[OperationsCache] = None):
 
         super().__init__(optimiser, composer_requirements, metrics, initial_pipelines, logger)
 
         self.optimiser = optimiser
-        self.cache: Optional[OperationsCache] = None
+        self.cache: Optional[OperationsCache] = cache
 
         self.objective_builder = ObjectiveBuilder(metrics,
                                                   self.composer_requirements.max_pipeline_fit_time,
@@ -117,24 +118,12 @@ class GPComposer(Composer):
         # shuffle data if necessary
         data.shuffle()
 
-        if self.composer_requirements.cv_folds is not None:
-            objective_function_for_pipeline = self._cv_validation_metric_build(data)
-        else:
-            self.log.info("Hold out validation for graph composing was applied.")
-            split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
-            train_data, test_data = train_test_data_setup(data, split_ratio)
-
-            if RemoteEvaluator().use_remote:
-                init_data_for_remote_execution(train_data)
-
-            objective_function_for_pipeline = partial(self.composer_metric,
-                                                      metrics=self.metrics,
-                                                      train_data=train_data,
-                                                      test_data=test_data)
+        objective_function, intermediate_metrics_function = self.objective_builder.build(data)
 
         with self.cache.using_resources() if self.cache is not None else nullcontext():
-            opt_result = self.optimiser.optimise(objective_function_for_pipeline,
-                                                 on_next_iteration_callback=on_next_iteration_callback)
+            opt_result = self.optimiser.optimise(objective_function,
+                                                 on_next_iteration_callback=on_next_iteration_callback,
+                                                 intermediate_metrics_function=intermediate_metrics_function)
             best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
             self.log.info('GP composition finished')
         return best_pipeline
