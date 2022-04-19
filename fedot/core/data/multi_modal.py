@@ -29,6 +29,12 @@ class MultiModalData(dict):
             if value.supplementary_data.is_main_target:
                 return value.task
 
+    @task.setter
+    def task(self, value):
+        """ Update task for all input data """
+        for data_part in self.values():
+            data_part.task = value
+
     @property
     def target(self):
         """ Return main target from InputData blocks """
