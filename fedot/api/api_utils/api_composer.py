@@ -1,7 +1,6 @@
 import datetime
 import gc
 import traceback
-from multiprocessing import Manager
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import numpy as np
@@ -201,13 +200,11 @@ class ApiComposer:
                 .from_operations(composer_params['available_operations'])
             api_params['initial_assumption'] = assumptions_builder.build()
 
-    def init_cache(self, use_cache: bool, n_jobs: int):
+    def init_cache(self, use_cache: bool):
         if use_cache:
-            input_params = dict(mp_manager=Manager() if n_jobs != 1 else None)
-            self.cache = OperationsCache(**input_params)
-
+            self.cache = OperationsCache()
             #  in case of previously generated singleton cache
-            self.cache.reset(input_params['mp_manager'])
+            self.cache.reset()
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
                             preset: str):

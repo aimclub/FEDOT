@@ -29,38 +29,29 @@ class OperationsCache(metaclass=SingletonMeta):
     """
     Stores/loades nodes `fitted_operation` field to increase performance of calculations.
 
-    :param mp_manager: optional multiprocessing manager in case of main API `n_jobs` != 1,
-        used to synchronize access to class variables
     :param log: optional Log object to record messages
     :param db_path: optional str determining a file name for caching pipelines
     :param clear_exiting: optional bool indicating if it is needed to clean up resources before class can be used
     """
 
-    def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
-                 db_path: Optional[str] = None,
-                 clear_exiting=True):
-        self._define_mode(mp_manager)
-
+    def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None, clear_exiting=True):
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
+
+        self._rlock = nullcontext()
+        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
+        self._effectiveness = dict.fromkeys(effectiveness_keys, 0)
 
         if clear_exiting:
             self._clear()
 
-    def _define_mode(self, mp_manager: Optional[SyncManager] = None):
-        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
-        effectiveness_dct = dict.fromkeys(effectiveness_keys, 0)
-        if mp_manager is None:
-            #  means one process mode
-            self._rlock = nullcontext()
-            self._effectiveness = effectiveness_dct
-        else:
-            self._rlock = mp_manager.RLock()
-            self._effectiveness = mp_manager.dict(effectiveness_dct)
-
-    def reset(self, mp_manager: Optional[SyncManager] = None):
-        self._define_mode(mp_manager)
-        self._clear()
+    @contextmanager
+    def using_multiprocessing(self, mp_manager: SyncManager):
+        self._rlock = mp_manager.RLock()
+        self._effectiveness = mp_manager.dict(self._effectiveness)
+        yield
+        self._rlock = nullcontext()
+        self._effectiveness = dict(self._effectiveness)
 
     @contextmanager
     def using_resources(self):
@@ -84,6 +75,11 @@ class OperationsCache(metaclass=SingletonMeta):
             'pipelines': round(pipelines_hit / pipelines_total, 3) if pipelines_total else 0.,
             'nodes': round(nodes_hit / nodes_total, 3) if nodes_total else 0.
         }
+
+    def reset(self):
+        for k in self._effectiveness:
+            self._effectiveness[k] = 0
+        self._clear()
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
         """
