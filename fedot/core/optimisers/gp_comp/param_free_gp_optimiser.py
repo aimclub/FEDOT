@@ -1,6 +1,6 @@
 from copy import deepcopy
 from itertools import zip_longest
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union, Callable
 
 import numpy as np
 from deap import tools
@@ -50,7 +50,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                          start_value=self.requirements.pop_size)
 
         self.requirements.pop_size = self.iterator.next()
-        self.metrics = metrics
+        self.metrics = metrics  # TODO: unused!
 
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
@@ -60,22 +60,25 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         self.suppl_metric = suppl_metric
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
-                 on_next_iteration_callback=None,
+                 on_next_iteration_callback: Optional[Callable] = None,
+                 intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+
+        self.evaluator.objective_function = objective_function  # TODO: move into init!
+
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
         num_of_new_individuals = self.offspring_size(offspring_rate)
         self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
 
-        with OptimisationTimer(timeout=self.requirements.timeout, log=self.log) as t:
+        with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc='Generations', unit='gen', initial=1) if show_progress else None
 
             self._init_population(objective_function, t)
 
-            self.population = self._evaluate_individuals(self.population, objective_function, timer=t,
-                                                         n_jobs=self.requirements.n_jobs)
+            self.population = self.evaluator(self.population)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -104,18 +107,18 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     regularized_population(reg_type=self.parameters.regularization_type,
                                            population=self.population,
                                            objective_function=objective_function,
-                                           graph_generation_params=self.graph_generation_params, timer=t)
+                                           graph_generation_params=self.graph_generation_params,
+                                           timer=t)
 
                 if self.parameters.multi_objective:
                     filtered_archive_items = duplicates_filtration(archive=self.archive,
                                                                    population=individuals_to_select)
                     individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
+                # TODO: collapse this selection & reprodue for 1 and for many
                 if num_of_new_individuals == 1 and len(self.population) == 1:
                     new_population = list(self.reproduce(self.population[0]))
-                    new_population = self._evaluate_individuals(new_population, objective_function,
-                                                                timer=t,
-                                                                n_jobs=self.requirements.n_jobs)
+                    new_population = self.evaluator(new_population)
                 else:
                     num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
 
@@ -129,9 +132,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
                         new_population += self.reproduce(ind_1, ind_2)
 
-                    new_population = self._evaluate_individuals(new_population, objective_function,
-                                                                timer=t,
-                                                                n_jobs=self.requirements.n_jobs)
+                    new_population = self.evaluator(new_population)
 
                 self.requirements.pop_size = self.next_population_size(new_population)
                 num_of_new_individuals = self.offspring_size(offspring_rate)

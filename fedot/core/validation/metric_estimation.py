@@ -1,21 +1,23 @@
-import gc
 from datetime import timedelta
-from typing import List, Iterable, Tuple, Callable, Optional, Sequence, Union
+from typing import List, Iterable, Tuple, Callable, Optional, Sequence
 
 import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
+from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 
 
 def metric_evaluation(pipeline: Pipeline,
-                      train_data: InputData, test_data: InputData,
-                      metrics: list, fold_id: int = None, vb_number: int = None,
+                      train_data: InputData,
+                      test_data: InputData,
+                      metrics: Sequence[MetricType],
+                      fold_id: int = None,
+                      vb_number: int = None,
                       time_constraint: Optional[timedelta] = None,
-                      cache: OperationsCache = None,
-                      unfit: bool = False) -> List[float]:
+                      cache: OperationsCache = None) -> List[float]:
     """ Pipeline training and metrics assessment
 
     :param pipeline: pipeline for validation
@@ -26,7 +28,6 @@ def metric_evaluation(pipeline: Pipeline,
     :param vb_number: number of validation blocks for time series
     :param time_constraint: optional time constraint for pipeline.fit
     :param cache: instance of cache class
-    :param unfit: should we unfit the pipeline
     """
     if cache is not None:
         pipeline.fit_from_cache(cache, fold_id)
@@ -38,28 +39,19 @@ def metric_evaluation(pipeline: Pipeline,
 
     evaluated_metrics = []
     for metric in metrics:
-        if callable(metric):
-            metric_func = metric
-        else:
-            metric_func = MetricsRepository().metric_by_id(metric)
+        metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
         metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
         evaluated_metrics.append(metric_value)
-
-    if unfit:
-        # enforce memory cleaning
-        pipeline.unfit()
-        gc.collect()
 
     return evaluated_metrics
 
 
 def calc_metrics_for_folds(cv_folds_generator: Callable[[], Iterable[Tuple[InputData, InputData]]],
                            pipeline: Pipeline,
-                           validation_blocks: int = None,
-                           metrics: List[Union[MetricsEnum, Callable]] = None,
+                           metrics: Sequence[MetricType],
+                           validation_blocks: Optional[int] = None,
                            cache: Optional[OperationsCache] = None,
-                           num_of_folds: int = 1,
-                           log=None) -> Optional[Sequence[float]]:
+                           log: Log = None) -> Optional[Sequence[float]]:
     """ Determine metric value for time series forecasting pipeline based
     on data for validation
 
@@ -68,24 +60,19 @@ def calc_metrics_for_folds(cv_folds_generator: Callable[[], Iterable[Tuple[Input
     :param validation_blocks: number of validation blocks, used only for time series validation
     :param metrics: name of metric or callable object
     :param cache: cache manager for fitted models
-    :param num_of_folds: number of folds
     :param log: object for logging
     """
+    # TODO add support for multiprocessing
+    if __name__ != '__main__':
+        cache = None
+    log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
     try:
-        # TODO add support for multiprocessing
-        if __name__ != '__main__':
-            cache = None
-        log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit for cross validation started')
-
         fold_id = 0
         folds_metrics = []
         for train_data, test_data in cv_folds_generator():
-            unfit = False
-            if fold_id != num_of_folds - 1 and fold_id != 0:
-                unfit = True
             evaluated_fold_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
                                                        vb_number=validation_blocks,
-                                                       fold_id=fold_id, cache=cache, unfit=unfit)
+                                                       fold_id=fold_id, cache=cache)
             folds_metrics.append(evaluated_fold_metrics)
             fold_id += 1
         folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
@@ -93,5 +80,4 @@ def calc_metrics_for_folds(cv_folds_generator: Callable[[], Iterable[Tuple[Input
     except Exception as ex:
         log.debug(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
         folds_metrics = None
-
     return folds_metrics

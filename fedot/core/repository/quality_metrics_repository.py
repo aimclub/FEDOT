@@ -1,8 +1,8 @@
-from typing import Callable
+from typing import Callable, Union
 
 from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
                                          MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
-                                         RMSE, ROCAUC, Silhouette, StructuralComplexity)
+                                         RMSE, ROCAUC, Silhouette, StructuralComplexity, MetricCallable)
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -44,6 +44,9 @@ class RegressionMetricsEnum(QualityMetricsEnum):
     RMSE_penalty = 'rmse_pen'
 
 
+MetricType = Union[MetricCallable, MetricsEnum]
+
+
 class MetricsRepository:
     _metrics_implementations = {
         # classification
@@ -73,8 +76,8 @@ class MetricsRepository:
         ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
-    def metric_by_id(self, metric_id: MetricsEnum) -> Callable:
-        return self._metrics_implementations[metric_id]
+    def metric_by_id(self, metric_id: MetricsEnum, default_callable: Callable = None) -> Callable:
+        return self._metrics_implementations.get(metric_id, default_callable)
 
     def metric_class_by_id(self, metric_id: MetricsEnum) -> Metric:
         return self._metrics_implementations[metric_id].__self__()

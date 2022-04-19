@@ -282,13 +282,12 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache()
     composer = builder.build()
-    train_data, test_data = train_test_data_setup(data,
-                                                  sample_split_ratio_for_tasks[data.task.task_type])
     composer.compose_pipeline(data=dataset_to_compose, is_visualise=True)
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_before = len(cache.dict)
     new_pipeline = pipeline_first()
-    composer.composer_metric(new_pipeline, [quality_metric], dataset_to_compose, test_data)
+    objective, _ = composer.objective_builder.build(data)
+    objective(new_pipeline)
     with shelve.open(composer.cache.db_path) as cache:
         global_cache_len_after = len(cache.dict)
     assert global_cache_len_before < global_cache_len_after
@@ -300,7 +299,6 @@ def test_gp_composer_builder_default_params_correct():
     builder = ComposerBuilder(task=task)
 
     # Initialise default parameters
-    builder.set_default_composer_params()
     composer_with_default_params = builder.build()
 
     # Get default available operations for regression task

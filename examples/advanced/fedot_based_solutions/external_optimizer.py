@@ -3,8 +3,8 @@ from typing import Any, Callable, List, Optional, Union
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -29,19 +29,27 @@ class RandomSearchOptimizer(GraphOptimiser):
                              MutationTypesEnum.single_change,
                              MutationTypesEnum.single_drop,
                              MutationTypesEnum.single_add]
+        self.timer = OptimisationTimer(log=self.log, timeout=self.requirements.timeout)
+        objective_function = None  # TODO: pass into init
+        self.evaluator = Evaluate(graph_generation_params, objective_function, is_multi_objective=False,
+                                  timer=self.timer, log=log, n_jobs=1)
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+                 show_progress: bool = True,
+                 **kwargs):
+
+        self.evaluator.objective_function = objective_function  # TODO: remove this into init
+
         num_iter = 0
         best = Individual(self.initial_graph)
-        evaluate_individuals([best], objective_function, self.graph_generation_params, is_multi_objective=False)
+        self.evaluator([best])
 
-        with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
+        with self.timer as t:
             while not t.is_time_limit_reached(num_iter):
                 new = mutation(types=self.change_types, ind=best, params=self.graph_generation_params,
                                requirements=self.requirements, log=self.log)
-                evaluate_individuals([new], objective_function, self.graph_generation_params, is_multi_objective=False)
+                self.evaluator([new])
                 if new.fitness is not None and new.fitness < best.fitness:
                     best = new
                 num_iter += 1

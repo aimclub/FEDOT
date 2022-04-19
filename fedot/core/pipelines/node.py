@@ -13,7 +13,9 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
-
+@dataclass
+class NodeMetadata:
+    metric: float = None
 
 
 class Node(GraphNode):
@@ -418,8 +420,3 @@ def _combine_parents(parent_nodes: List[Node],
 def get_default_params(model_name: str):
     with DefaultOperationParamsRepository() as default_params_repo:
         return default_params_repo.get_default_params_for_operation(model_name)
-
-
-@dataclass
-class NodeMetadata:
-    metric: float = None

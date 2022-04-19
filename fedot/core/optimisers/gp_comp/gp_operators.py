@@ -4,11 +4,8 @@ from random import choice, randint
 from typing import Any, List, Tuple
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.evaluating import multiprocessing_mapping, single_evaluating, determine_n_jobs
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from fedot.remote.remote_evaluator import RemoteEvaluator
 
 MAX_ITERS = 1000
 
@@ -39,7 +36,7 @@ def random_graph(params, requirements, max_depth=None) -> OptGraph:
 
 def modify_requirements(requirements):
     """Function modify requirements if necessary.
-    Example: Graph with only one primary node should consists of only one primary node
+    Example: Graph with only one primary node should consist of only one primary node
     without duplication, because this causes errors. Therefore minimum and maximum arity
     become equal to one.
     """
@@ -110,42 +107,6 @@ def replace_subtrees(graph_first: Any, graph_second: Any, node_from_first: Any, 
 
 def num_of_parents_in_crossover(num_of_final_inds: int) -> int:
     return num_of_final_inds if not num_of_final_inds % 2 else num_of_final_inds + 1
-
-
-def evaluate_individuals(individuals_set, objective_function, graph_generation_params,
-                         is_multi_objective: bool, n_jobs=1, timer=None, collect_intermediate_metric=False):
-    logger = default_log('individuals evaluation logger')
-    reversed_individuals = individuals_set[::-1]
-    # TODO refactor
-    fitter = RemoteEvaluator()
-    pre_evaluated_objects = []
-    if fitter.use_remote:
-        logger.info('Remote fit used')
-        restored_graphs = [graph_generation_params.adapter.restore(ind.graph) for ind in reversed_individuals]
-        pre_evaluated_objects = fitter.compute_pipelines(restored_graphs)
-
-    n_jobs = determine_n_jobs(n_jobs, logger)
-
-    for i in range(len(reversed_individuals)):
-        timer_needed = timer if i != 0 or n_jobs == 1 else None
-        reversed_individuals[i] = {'ind_num': i, 'ind': reversed_individuals[i],
-                                   'pre_evaluated_objects': pre_evaluated_objects,
-                                   'objective_function': objective_function,
-                                   'is_multi_objective': is_multi_objective,
-                                   'graph_generation_params': graph_generation_params,
-                                   'timer': timer_needed,  # one individual must fit
-                                   'collect_intermediate_metric': collect_intermediate_metric}
-
-    if n_jobs != 1:
-        evaluated_individuals = multiprocessing_mapping(n_jobs, reversed_individuals)
-        evaluated_individuals = list(filter(lambda x: x, evaluated_individuals))
-    else:
-        evaluated_individuals = single_evaluating(reversed_individuals)
-
-    if not evaluated_individuals and reversed_individuals:
-        raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
-
-    return evaluated_individuals
 
 
 def filter_duplicates(archive, population) -> List[Any]:

@@ -2,8 +2,8 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.optimisers.gp_comp.gp_operators import evaluate_individuals
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
@@ -53,8 +53,8 @@ def decremental_regularization(population: List[Individual], objective_function:
 
     is_multi_obj = isinstance(population[0].fitness, MultiObjFitness)
     if additional_inds:
-        evaluate_individuals(additional_inds, objective_function, params,
-                             is_multi_obj, timer=timer)
+        evaluate = Evaluate(params, objective_function, is_multi_obj, timer=timer)
+        population = evaluate(population)
 
     if additional_inds and len(additional_inds) > size:
         additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]

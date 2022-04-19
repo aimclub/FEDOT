@@ -35,9 +35,7 @@ def sample_pipeline():
 def get_classification_data():
     file_path = os.path.join(project_root_path, 'test/data/simple_classification.csv')
     input_data = InputData.from_csv(file_path, task=Task(TaskTypesEnum.classification))
-    dataset_to_compose, dataset_to_validate = train_test_data_setup(input_data)
-
-    return dataset_to_compose, dataset_to_validate
+    return input_data
 
 
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
@@ -93,7 +91,7 @@ def test_cv_tabular_predictions_correct():
 
 def test_composer_with_cv_optimization_correct():
     task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose, dataset_to_validate = get_classification_data()
+    dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
 
     models_repo = OperationTypesRepository()
     available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
@@ -129,7 +127,7 @@ def test_cv_api_correct():
                        'preset': 'fast_train',
                        'cv_folds': 2}
     task = Task(task_type=TaskTypesEnum.classification)
-    dataset_to_compose, dataset_to_validate = get_classification_data()
+    dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
     model = Fedot(problem='classification', composer_params=composer_params, verbose_level=2)
     fedot_model = model.fit(features=dataset_to_compose)
     prediction = model.predict(features=dataset_to_validate)

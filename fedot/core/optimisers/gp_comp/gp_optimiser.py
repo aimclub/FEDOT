@@ -9,23 +9,24 @@ from deap.tools import ParetoFront
 from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
     duplicates_filtration,
-    evaluate_individuals,
     num_of_parents_in_crossover,
     random_graph
 )
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, correct_if_has_nans
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -93,8 +94,9 @@ class EvoGraphOptimiser(GraphOptimiser):
     Multi-objective evolutionary graph optimiser named GPComp
     """
 
-    def __init__(self, initial_graph: Union[Any, List[Any]], requirements,
-                 graph_generation_params: 'GraphGenerationParams',
+    def __init__(self, initial_graph: Union[Any, List[Any]],
+                 requirements: PipelineComposerRequirements,
+                 graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  log: Log = None):
@@ -128,6 +130,15 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.population = None
         self.initial_graph = initial_graph
         self.prev_best = None
+
+        self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
+        objective_function = None  # TODO: pass it
+        intermediate_metrics_function = None  # TODO: pass it through init
+        n_jobs = self.requirements.n_jobs
+        self.evaluator = Evaluate(graph_gen_params=graph_generation_params,
+                                  objective_function=objective_function,
+                                  is_multi_objective=self.parameters.multi_objective,
+                                  timer=self.timer, log=self.log, n_jobs=n_jobs)
 
     def _create_randomized_pop(self, individuals: List[Individual]) -> List[Individual]:
         """
@@ -164,33 +175,35 @@ class EvoGraphOptimiser(GraphOptimiser):
         if self.initial_graph:
             initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
                                    self.initial_graph]
-            initial_individuals = self._evaluate_individuals(initial_individuals,
-                                                             objective_function=objective_function,
-                                                             timer=timer,
-                                                             n_jobs=self.requirements.n_jobs)
+            initial_individuals = self.evaluator(initial_individuals)
             self.default_on_next_iteration_callback(initial_individuals)
             self.population = self._create_randomized_pop(initial_individuals)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
         return self.population
 
+    # TODO: fix invalid signature according to base method (`offspring_rate` is a new param)
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None,
+                 intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+
+        self.evaluator.objective_function = objective_function  # TODO: move into init!
+        self.evaluator._intermediate_metrics_function = intermediate_metrics_function  # TODO: move into init!
 
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
-            self._init_population(objective_function, t)
-            num_of_new_individuals = self.offspring_size(offspring_rate)
+        num_of_new_individuals = self.offspring_size(offspring_rate)
+        self.log.info(f'Number of new individuals: {num_of_new_individuals}')
 
+        with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc="Generations", unit='gen', initial=1) if show_progress else None
+                        desc='Generations', unit='gen', initial=1) if show_progress else None
 
-            self.population = self._evaluate_individuals(self.population, objective_function,
-                                                         timer=t,
-                                                         n_jobs=self.requirements.n_jobs)
+            self._init_population(objective_function, t)
+
+            self.population = self.evaluator(self.population)
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -199,8 +212,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
             self.log_info_about_best()
 
-            while (t.is_time_limit_reached(self.generation_num) is False
-                   and self.generation_num != self.requirements.num_of_generations - 1):
+            while t.is_time_limit_reached(self.generation_num) is False \
+                    and self.generation_num != self.requirements.num_of_generations - 1:
 
                 if self._is_stopping_criteria_triggered():
                     break
@@ -237,9 +250,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
                     new_population += self.reproduce(ind_1, ind_2)
 
-                new_population = self._evaluate_individuals(new_population, objective_function,
-                                                            timer=t,
-                                                            n_jobs=self.requirements.n_jobs)
+                new_population = self.evaluator(new_population)
 
                 self.prev_best = deepcopy(self.best_individual)
 
@@ -407,19 +418,6 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             best = self.archive.items
         return best
-
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None, n_jobs=1):
-        collect_intermediate_metric = self.requirements.collect_intermediate_metric
-        evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
-                                                     objective_function=objective_function,
-                                                     graph_generation_params=self.graph_generation_params,
-                                                     is_multi_objective=self.parameters.multi_objective,
-                                                     n_jobs=n_jobs,
-                                                     timer=timer,
-                                                     collect_intermediate_metric=collect_intermediate_metric
-                                                     )
-        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
-        return individuals_set
 
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
