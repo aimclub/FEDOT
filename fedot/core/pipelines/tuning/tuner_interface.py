@@ -271,11 +271,10 @@ def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
     :return: bool value is it good to maximize metric or not
     """
 
-    if isinstance(target[0], str):
+    if data_type == TaskTypesEnum.classification:
         # Target for classification contain string objects
         le = LabelEncoder()
         target = le.fit_transform(target)
-
     if loss_params is None:
         loss_params = {}
 
