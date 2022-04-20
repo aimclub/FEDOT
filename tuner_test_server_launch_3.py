@@ -15,7 +15,7 @@ def tuner_function_20_reg(chain, train_input):
     chain_tuner = SequentialTuner(chain=chain,
                                   task=train_input.task,
                                   iterations=20,
-                                  max_lead_time=timedelta(minutes=10))
+                                  max_lead_time=timedelta(minutes=50))
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                          loss_function=mean_absolute_error)
 
@@ -26,7 +26,7 @@ def tuner_function_100_reg(chain, train_input):
     chain_tuner = SequentialTuner(chain=chain,
                                   task=train_input.task,
                                   iterations=100,
-                                  max_lead_time=timedelta(minutes=10))
+                                  max_lead_time=timedelta(minutes=50))
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                          loss_function=mean_absolute_error)
 
@@ -37,7 +37,7 @@ def tuner_function_20_class(chain, train_input):
     chain_tuner = SequentialTuner(chain=chain,
                                   task=train_input.task,
                                   iterations=20,
-                                  max_lead_time=timedelta(minutes=10))
+                                  max_lead_time=timedelta(minutes=50))
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                          loss_function=roc_auc,
                                          loss_params={'multi_class': 'ovr'})
@@ -49,7 +49,7 @@ def tuner_function_100_class(chain, train_input):
     chain_tuner = SequentialTuner(chain=chain,
                                   task=train_input.task,
                                   iterations=100,
-                                  max_lead_time=timedelta(minutes=10))
+                                  max_lead_time=timedelta(minutes=50))
     tuned_chain = chain_tuner.tune_chain(input_data=train_input,
                                          loss_function=roc_auc,
                                          loss_params={'multi_class': 'ovr'})

@@ -14,7 +14,7 @@ def tuner_function_20(chain, train_input):
     iterations_per_node = int(iterations_per_node)
 
     chain.fine_tune_all_nodes(train_input,
-                              max_lead_time=datetime.timedelta(minutes=10),
+                              max_lead_time=datetime.timedelta(minutes=50),
                               iterations=iterations_per_node)
 
     # Fit it
@@ -30,7 +30,7 @@ def tuner_function_100(chain, train_input):
     iterations_per_node = int(iterations_per_node)
 
     chain.fine_tune_all_nodes(train_input,
-                              max_lead_time=datetime.timedelta(minutes=20),
+                              max_lead_time=datetime.timedelta(minutes=50),
                               iterations=iterations_per_node)
 
     # Fit it
