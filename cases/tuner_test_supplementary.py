@@ -317,9 +317,12 @@ def _regression_run(chain, iterations, tuner_function, data_generator):
     """ Function start regression case check """
 
     # Get structure of the chain
-    obtained_operations = []
-    for node in chain.nodes:
-        obtained_operations.append(str(node))
+    if len(chain.nodes) == 2:
+        chain_type = 'A'
+    elif len(chain.nodes) == 3:
+        chain_type = 'B'
+    else:
+        chain_type = 'C'
 
     train_input, predict_input, y_test = data_generator()
     y_test = np.ravel(y_test)
@@ -356,7 +359,7 @@ def _regression_run(chain, iterations, tuner_function, data_generator):
         smapes_before_tuning.append(smape_before_tuning)
         smapes_after_tuning.append(smape_after_tuning)
         ids.append(i)
-        chain_structures.append(obtained_operations)
+        chain_structures.append(chain_type)
         times.append(launch_time)
 
     result = pd.DataFrame({'Pipeline': chain_structures,
@@ -370,9 +373,12 @@ def _regression_run(chain, iterations, tuner_function, data_generator):
 
 def _classification_run(chain, iterations, tuner_function, data_generator):
     # Get structure of the chain
-    obtained_operations = []
-    for node in chain.nodes:
-        obtained_operations.append(str(node))
+    if len(chain.nodes) == 2:
+        chain_type = 'A'
+    elif len(chain.nodes) == 3:
+        chain_type = 'B'
+    else:
+        chain_type = 'C'
 
     train_input, predict_input, y_test = data_generator()
     y_test = np.ravel(y_test)
@@ -410,7 +416,7 @@ def _classification_run(chain, iterations, tuner_function, data_generator):
         rocs_before_tuning.append(roc_before_tuning)
         rocs_after_tuning.append(roc_after_tuning)
         ids.append(i)
-        chain_structures.append(obtained_operations)
+        chain_structures.append(chain_type)
         times.append(launch_time)
 
     result = pd.DataFrame({'Pipeline': chain_structures,
