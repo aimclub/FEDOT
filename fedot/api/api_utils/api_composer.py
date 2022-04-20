@@ -1,5 +1,6 @@
 import datetime
 import gc
+from multiprocessing import Manager
 import traceback
 from typing import Callable, Dict, List, Optional, Type, Union
 
@@ -200,9 +201,10 @@ class ApiComposer:
                 .from_operations(composer_params['available_operations'])
             api_params['initial_assumption'] = assumptions_builder.build()
 
-    def init_cache(self, use_cache: bool):
+    def init_cache(self, use_cache: bool, n_jobs: int):
         if use_cache:
-            self.cache = OperationsCache()
+            input_params = dict(mp_manager=Manager() if n_jobs != 1 else None)
+            self.cache = OperationsCache(**input_params)
             #  in case of previously generated singleton cache
             self.cache.reset()
 

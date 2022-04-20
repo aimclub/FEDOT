@@ -1,7 +1,6 @@
 import datetime
 import os
 import random
-import shelve
 
 import numpy as np
 import pandas as pd
@@ -14,11 +13,9 @@ from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, \
-    sample_split_ratio_for_tasks
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
@@ -284,13 +281,11 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
 
-    with shelve.open(composer.cache.db_path) as cache:
-        global_cache_len_before = len(cache.dict)
+    global_cache_len_before = len(composer.cache)
     new_pipeline = pipeline_first()
     objective, _ = composer.objective_builder.build(data)
     objective(new_pipeline)
-    with shelve.open(composer.cache.db_path) as cache:
-        global_cache_len_after = len(cache.dict)
+    global_cache_len_after = len(composer.cache)
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None
 
