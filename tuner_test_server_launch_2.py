@@ -59,7 +59,7 @@ def tuner_function_100_class(chain, train_input):
 
 def run_experiment(tuner_iterations, folder_to_save, dataset_number):
     create_folder(os.path.abspath(folder_to_save))
-    all_iterations = 2
+    all_iterations = 5
     if tuner_iterations == 20:
         tuner_iterations_function_reg = tuner_function_20_reg
         tuner_iterations_function_class = tuner_function_20_class

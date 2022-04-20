@@ -72,12 +72,12 @@ def run_experiment(tuner_iterations, folder_to_save, dataset_number):
     #####################
     #  Regression case  #
     #####################
-    name_reg_by_number = {1: 'Pnn_1_regression.csv',
-                          2: 'Pnn_2_regression.csv',
-                          3: 'Pnn_3_regression.csv'}
-    run_reg_by_number = {1: run_pnn_1_regression,
-                         2: run_pnn_2_regression,
-                         3: run_pnn_3_regression}
+    name_reg_by_number = {1: 'reg_cal_housing.csv',
+                          2: 'reg_delta_ailerons.csv',
+                          3: 'reg_pol.csv'}
+    run_reg_by_number = {1: run_reg_cal_housing,
+                         2: run_reg_delta_ailerons,
+                         3: run_reg_pol}
     case_name = name_reg_by_number.get(dataset_number)
     print(f'Processing case for file {case_name}...')
 
@@ -103,12 +103,12 @@ def run_experiment(tuner_iterations, folder_to_save, dataset_number):
     ####################################################
     #            New tuning - SequentialTuner          #
     ####################################################
-    name_class_by_number = {1: 'Pnn_1_classification.csv',
-                            2: 'Pnn_2_classification.csv',
-                            3: 'Pnn_3_classification.csv'}
-    run_class_by_number = {1: run_pnn_1_classification,
-                           2: run_pnn_2_classification,
-                           3: run_pnn_3_classification}
+    name_class_by_number = {1: 'class_Amazon_employee_access.csv',
+                            2: 'class_cnae-9.csv',
+                            3: 'class_volkert_small.csv'}
+    run_class_by_number = {1: run_class_amazon_employee_access,
+                           2: run_class_cnae9,
+                           3: run_class_volkert_small}
 
     case_name = name_class_by_number.get(dataset_number)
     print(f'Processing case for file {case_name}...')

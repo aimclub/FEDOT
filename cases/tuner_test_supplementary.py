@@ -6,6 +6,9 @@ import timeit
 from copy import deepcopy
 
 from pylab import rcParams
+
+from fedot.core.utils import project_root
+
 rcParams['figure.figsize'] = 18, 7
 import warnings
 warnings.filterwarnings('ignore')
@@ -33,15 +36,11 @@ def smape_metric(y_true: np.array, y_pred: np.array) -> float:
 
 def reg_chain_1():
     """ Return chain with the following structure:
-    knnreg \
-            lasso ->
-    ridge  |
+    knnreg -> ridge
     """
     node_knnreg = PrimaryNode('knnreg')
-    node_ridge = PrimaryNode('ridge')
-    node_lasso = SecondaryNode('lasso', nodes_from=[node_knnreg, node_ridge])
-
-    chain = Chain(node_lasso)
+    node_ridge = SecondaryNode('ridge', nodes_from=[node_knnreg])
+    chain = Chain(node_ridge)
 
     return chain
 
@@ -94,14 +93,10 @@ def reg_chain_3():
 
 def class_chain_1():
     """ Return chain with the following structure:
-    knn   \
-            rf ->
-    knn   |
+    knn -> rf
     """
-    node_knn_1 = PrimaryNode('knn')
-    node_knn_2 = PrimaryNode('knn')
-    node_final = SecondaryNode('rf', nodes_from=[node_knn_1, node_knn_2])
-
+    node_knn = PrimaryNode('knn')
+    node_final = SecondaryNode('rf', nodes_from=[node_knn])
     chain = Chain(node_final)
 
     return chain
@@ -153,102 +148,180 @@ def class_chain_3():
     return chain
 
 
-def get_pnn_1_regression_dataset():
+def get_cal_housing():
     """ Function returns InputData for algorithm launch """
-    file_path = '../cases/data/pnn_ml/529_pollen.csv'
+    file_path = os.path.join(project_root(), 'cases', 'data', 'tuning_test', 'reg_cal_housing.csv')
     df = pd.read_csv(file_path)
-    features = np.array(df[['RIDGE', 'NUB', 'CRACK', 'WEIGHT']])
+
+    features_names = list(df.columns[:-1])
+    features = np.array(df[features_names])
     target = np.array(df['target'])
     x_train, x_test, y_train, y_test = train_test_split(features, target,
                                                         test_size=0.2,
                                                         shuffle=True,
                                                         random_state=10)
-
-    # Define regression task
     task = Task(TaskTypesEnum.regression)
+    train_input = InputData(idx=np.arange(0, len(x_train)), features=x_train,
+                            target=y_train, task=task, data_type=DataTypesEnum.table)
 
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train,
-                            target=y_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
-
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.table)
+    predict_input = InputData(idx=np.arange(0, len(x_test)), features=x_test,
+                              target=None, task=task, data_type=DataTypesEnum.table)
 
     return train_input, predict_input, y_test
 
 
-def get_pnn_2_regression_dataset():
-    # TODO to implement
-    pass
-
-
-def get_pnn_3_regression_dataset():
-    # TODO to implement
-    pass
-
-
-def get_pnn_1_classification_dataset():
-    """ Function returns InputData for algorithm launch """
-    file_path = '../cases/data/pnn_ml/wine_quality_red.csv'
+def get_delta_ailerons():
+    file_path = os.path.join(project_root(), 'cases', 'data', 'tuning_test', 'reg_delta_ailerons.csv')
     df = pd.read_csv(file_path)
-    features = np.array(df[['fixed acidity', 'volatile acidity', 'citric acid',
-                            'residual sugar', 'chlorides', 'free sulfur dioxide',
-                            'total sulfur dioxide', 'density', 'pH', 'sulphates', 'alcohol']])
+
+    features_names = list(df.columns[:-1])
+    features = np.array(df[features_names])
     target = np.array(df['target'])
     x_train, x_test, y_train, y_test = train_test_split(features, target,
                                                         test_size=0.2,
                                                         shuffle=True,
                                                         random_state=10)
+    task = Task(TaskTypesEnum.regression)
+    train_input = InputData(idx=np.arange(0, len(x_train)), features=x_train,
+                            target=y_train, task=task, data_type=DataTypesEnum.table)
 
-    # Define regression task
-    task = Task(TaskTypesEnum.classification)
-
-    # Prepare data to train the model
-    train_input = InputData(idx=np.arange(0, len(x_train)),
-                            features=x_train,
-                            target=y_train,
-                            task=task,
-                            data_type=DataTypesEnum.table)
-
-    predict_input = InputData(idx=np.arange(0, len(x_test)),
-                              features=x_test,
-                              target=None,
-                              task=task,
-                              data_type=DataTypesEnum.table)
+    predict_input = InputData(idx=np.arange(0, len(x_test)), features=x_test,
+                              target=None, task=task, data_type=DataTypesEnum.table)
 
     return train_input, predict_input, y_test
 
 
-def get_pnn_2_classification_dataset():
-    # TODO to implement
-    pass
+def get_pol():
+    file_path = os.path.join(project_root(), 'cases', 'data', 'tuning_test', 'reg_pol.csv')
+    df = pd.read_csv(file_path)
+
+    features_names = list(df.columns[:-1])
+    features = np.array(df[features_names])
+    target = np.array(df['target'])
+    x_train, x_test, y_train, y_test = train_test_split(features, target,
+                                                        test_size=0.2,
+                                                        shuffle=True,
+                                                        random_state=10)
+    task = Task(TaskTypesEnum.regression)
+    train_input = InputData(idx=np.arange(0, len(x_train)), features=x_train,
+                            target=y_train, task=task, data_type=DataTypesEnum.table)
+
+    predict_input = InputData(idx=np.arange(0, len(x_test)), features=x_test,
+                              target=None, task=task, data_type=DataTypesEnum.table)
+
+    return train_input, predict_input, y_test
 
 
-def get_pnn_3_classification_dataset():
-    # TODO to implement
-    pass
+def get_amazon_employee_access():
+    """ Function returns InputData for algorithm launch """
+    file_path = os.path.join(project_root(), 'cases', 'data', 'tuning_test', 'class_Amazon_employee_access.csv')
+    df = pd.read_csv(file_path)
+    features_names = list(df.columns[:-1])
+    features = np.array(df[features_names])
+    target = np.array(df['target'])
+
+    x_train, x_test, y_train, y_test = train_test_split(features, target,
+                                                        test_size=0.2,
+                                                        shuffle=True,
+                                                        random_state=10)
+    task = Task(TaskTypesEnum.classification)
+    train_input = InputData(idx=np.arange(0, len(x_train)), features=x_train,
+                            target=y_train, task=task, data_type=DataTypesEnum.table)
+
+    predict_input = InputData(idx=np.arange(0, len(x_test)), features=x_test,
+                              target=None, task=task, data_type=DataTypesEnum.table)
+
+    return train_input, predict_input, y_test
 
 
-def run_pnn_1_regression(chain, iterations, tuner_function):
+def get_cnae9():
+    file_path = os.path.join(project_root(), 'cases', 'data', 'tuning_test', 'class_cnae-9.csv')
+    df = pd.read_csv(file_path)
+    features_names = list(df.columns[:-1])
+    features = np.array(df[features_names])
+    target = np.array(df['target'])
+
+    x_train, x_test, y_train, y_test = train_test_split(features, target,
+                                                        test_size=0.2,
+                                                        shuffle=True,
+                                                        random_state=10)
+    task = Task(TaskTypesEnum.classification)
+    train_input = InputData(idx=np.arange(0, len(x_train)), features=x_train,
+                            target=y_train, task=task, data_type=DataTypesEnum.table)
+
+    predict_input = InputData(idx=np.arange(0, len(x_test)), features=x_test,
+                              target=None, task=task, data_type=DataTypesEnum.table)
+
+    return train_input, predict_input, y_test
+
+
+def get_volkert_small():
+    file_path = os.path.join(project_root(), 'cases', 'data', 'tuning_test', 'class_volkert_small.csv')
+    df = pd.read_csv(file_path)
+    features_names = list(df.columns[:-1])
+    features = np.array(df[features_names])
+    target = np.array(df['target'])
+
+    x_train, x_test, y_train, y_test = train_test_split(features, target,
+                                                        test_size=0.2,
+                                                        shuffle=True,
+                                                        random_state=10)
+    task = Task(TaskTypesEnum.classification)
+    train_input = InputData(idx=np.arange(0, len(x_train)), features=x_train,
+                            target=y_train, task=task, data_type=DataTypesEnum.table)
+
+    predict_input = InputData(idx=np.arange(0, len(x_test)), features=x_test,
+                              target=None, task=task, data_type=DataTypesEnum.table)
+
+    return train_input, predict_input, y_test
+
+
+def run_reg_cal_housing(chain, iterations, tuner_function):
     """ Function start pnn regression case
 
     :param chain: chain to process
     :param iterations: amount of iterations to repeat
     :param tuner_function: function which use chain and give tuned chain after
     """
+    return _regression_run(chain, iterations, tuner_function, get_cal_housing)
+
+
+def run_reg_delta_ailerons(chain, iterations, tuner_function):
+    return _regression_run(chain, iterations, tuner_function, get_delta_ailerons)
+
+
+def run_reg_pol(chain, iterations, tuner_function):
+    return _regression_run(chain, iterations, tuner_function, get_pol)
+
+
+def run_class_amazon_employee_access(chain, iterations, tuner_function):
+    return _classification_run(chain, iterations, tuner_function, get_amazon_employee_access)
+
+
+def run_class_cnae9(chain, iterations, tuner_function):
+    return _classification_run(chain, iterations, tuner_function, get_cnae9)
+
+
+def run_class_volkert_small(chain, iterations, tuner_function):
+    return _classification_run(chain, iterations, tuner_function, get_volkert_small)
+
+
+def create_folder(save_path):
+    """ Create folder for files """
+    save_path = os.path.abspath(save_path)
+    if os.path.isdir(save_path) is False:
+        os.makedirs(save_path)
+
+
+def _regression_run(chain, iterations, tuner_function, data_generator):
+    """ Function start regression case check """
 
     # Get structure of the chain
     obtained_operations = []
     for node in chain.nodes:
         obtained_operations.append(str(node))
 
-    train_input, predict_input, y_test = get_pnn_1_regression_dataset()
+    train_input, predict_input, y_test = data_generator()
     y_test = np.ravel(y_test)
 
     smapes_before_tuning = []
@@ -290,35 +363,18 @@ def run_pnn_1_regression(chain, iterations, tuner_function):
                            'Iteration': ids,
                            'SMAPE before tuning': smapes_before_tuning,
                            'SMAPE after tuning': smapes_after_tuning,
-                           'Time': times})
+                           'Time, sec.': times})
 
     return result
 
 
-def run_pnn_2_regression(chain, iterations, tuner_function):
-    # TODO to implement
-    pass
-
-
-def run_pnn_3_regression(chain, iterations, tuner_function):
-    # TODO to implement
-    pass
-
-
-def run_pnn_1_classification(chain, iterations, tuner_function):
-    """ Function start pnn classification case
-
-    :param chain: chain to process
-    :param iterations: amount of iterations to repeat
-    :param tuner_function: function which use chain and give tuned chain after
-    """
-
+def _classification_run(chain, iterations, tuner_function, data_generator):
     # Get structure of the chain
     obtained_operations = []
     for node in chain.nodes:
         obtained_operations.append(str(node))
 
-    train_input, predict_input, y_test = get_pnn_1_classification_dataset()
+    train_input, predict_input, y_test = data_generator()
     y_test = np.ravel(y_test)
 
     rocs_before_tuning = []
@@ -361,23 +417,6 @@ def run_pnn_1_classification(chain, iterations, tuner_function):
                            'Iteration': ids,
                            'ROC AUC before tuning': rocs_before_tuning,
                            'ROC AUC after tuning': rocs_after_tuning,
-                           'Time': times})
+                           'Time, sec.': times})
 
     return result
-
-
-def run_pnn_2_classification(chain, iterations, tuner_function):
-    # TODO to implement
-    pass
-
-
-def run_pnn_3_classification(chain, iterations, tuner_function):
-    # TODO to implement
-    pass
-
-
-def create_folder(save_path):
-    """ Create folder for files """
-    save_path = os.path.abspath(save_path)
-    if os.path.isdir(save_path) is False:
-        os.makedirs(save_path)

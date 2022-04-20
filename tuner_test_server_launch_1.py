@@ -88,7 +88,7 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
                          2: run_reg_delta_ailerons,
                          3: run_reg_pol}
     # Amount of launches
-    all_iterations = 2
+    all_iterations = 5
 
     #####################
     #  Regression case  #

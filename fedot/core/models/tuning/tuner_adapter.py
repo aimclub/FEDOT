@@ -48,7 +48,12 @@ class HyperoptAdapter(TunerAdapter):
                 metric = mean_absolute_error(y_test, predicted)
             elif self.data.task.task_type == TaskTypesEnum.classification:
                 predicted = self.model_to_adapt.predict_proba(x_test)
-                metric = roc_auc(y_test, predicted, multi_class='ovr')
+                if len(np.unique(y_test)) == 2:
+                    # Binary classification
+                    metric = roc_auc(y_test, predicted[:, 1])
+                else:
+                    # Multiclass classification
+                    metric = roc_auc(y_test, predicted, multi_class='ovr')
         except ValueError:
             if self.greater_is_better():
                 metric = -999999.0
