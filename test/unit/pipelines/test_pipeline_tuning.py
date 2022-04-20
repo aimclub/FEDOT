@@ -182,14 +182,17 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, losses, request):
     for pipeline in pipelines:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in losses:
-                # Pipeline tuning
-                pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                               task=train_data.task,
-                                               iterations=1,
-                                               search_space=search_space,
-                                               algo=tpe.suggest)
-                tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data, **loss)
-                assert pipeline_tuner.obtained_metric is not None
+                for cv in [None, 2]:
+                    # Pipeline tuning
+                    pipeline_tuner = PipelineTuner(pipeline=pipeline,
+                                                   task=train_data.task,
+                                                   iterations=1,
+                                                   search_space=search_space,
+                                                   algo=tpe.suggest)
+                    tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                                                  cv_folds=cv,
+                                                                  **loss)
+                    assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -207,15 +210,18 @@ def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
     for pipeline in pipelines:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in losses:
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=1,
-                                                   search_space=search_space,
-                                                   algo=tpe.suggest)
-                # Optimization will be performed on RMSE metric, so loss params are defined
-                tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data, **loss)
-                assert sequential_tuner.obtained_metric is not None
+                for cv in [None, 2]:
+                    # Pipeline tuning
+                    sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                       task=train_data.task,
+                                                       iterations=1,
+                                                       search_space=search_space,
+                                                       algo=tpe.suggest)
+                    # Optimization will be performed on RMSE metric, so loss params are defined
+                    tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
+                                                                      cv_folds=cv,
+                                                                      **loss)
+                    assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
@@ -233,16 +239,18 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, losses, request):
     for pipeline in pipelines:
         for search_space in [SearchSpace(), get_not_default_search_space()]:
             for loss in losses:
-                # Pipeline tuning
-                sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                                   task=train_data.task,
-                                                   iterations=1,
-                                                   search_space=search_space,
-                                                   algo=tpe.suggest)
-                tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                            node_index=0,
-                                                            **loss)
-                assert sequential_tuner.obtained_metric is not None
+                for cv in [None, 2]:
+                    # Pipeline tuning
+                    sequential_tuner = SequentialTuner(pipeline=pipeline,
+                                                       task=train_data.task,
+                                                       iterations=1,
+                                                       search_space=search_space,
+                                                       algo=tpe.suggest)
+                    tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
+                                                                node_index=0,
+                                                                cv_folds=cv,
+                                                                **loss)
+                    assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
     assert is_tuning_finished
