@@ -41,7 +41,6 @@ class Evaluate(Operator[PopulationT]):
         self.timer = timer or get_forever_timer()
         self.logger = log or default_log('Population evaluation')
         self.graph_adapter = self.graph_gen_params.adapter
-        self.fitter = RemoteEvaluator()
         self._reset_eval_cache()
 
     def __call__(self, population: PopulationT) -> PopulationT:
@@ -125,10 +124,11 @@ class Evaluate(Operator[PopulationT]):
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
-        if self.fitter.use_remote:
+        fitter = RemoteEvaluator()  # singleton
+        if fitter.use_remote:
             self.logger.info('Remote fit used')
             restored_graphs = [self.graph_adapter.restore(ind.graph) for ind in population]
-            computed_pipelines = self.fitter.compute_pipelines(restored_graphs)
+            computed_pipelines = fitter.compute_pipelines(restored_graphs)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
