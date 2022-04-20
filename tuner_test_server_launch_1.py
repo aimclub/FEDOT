@@ -6,6 +6,8 @@ import datetime
 
 from cases.tuner_test_supplementary import *
 
+ALL_ITERATIONS = 30
+
 
 def tuner_function_20(chain, train_input):
     # Calculate amount of iterations we can apply per node
@@ -49,8 +51,6 @@ def run_classification_experiment(tuner_iterations_function,
     run_class_by_number = {1: run_class_amazon_employee_access,
                            2: run_class_cnae9,
                            3: run_class_volkert_small}
-    # Amount of launches
-    all_iterations = 2
 
     #########################
     #  Classification case  #
@@ -64,7 +64,7 @@ def run_classification_experiment(tuner_iterations_function,
     for j, chain_struct in enumerate([first_class_chain, second_class_chain, third_class_chain]):
         launch = run_class_by_number.get(dataset_number)
         result_df = launch(chain=chain_struct,
-                           iterations=all_iterations,
+                           iterations=ALL_ITERATIONS,
                            tuner_function=tuner_iterations_function)
 
         if j == 0:
@@ -87,9 +87,6 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
     run_reg_by_number = {1: run_reg_cal_housing,
                          2: run_reg_delta_ailerons,
                          3: run_reg_pol}
-    # Amount of launches
-    all_iterations = 5
-
     #####################
     #  Regression case  #
     #####################
@@ -102,7 +99,7 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
     for j, chain_struct in enumerate([first_reg_chain, second_reg_chain, third_reg_chain]):
         launch = run_reg_by_number.get(dataset_number)
         result_df = launch(chain=chain_struct,
-                           iterations=all_iterations,
+                           iterations=ALL_ITERATIONS,
                            tuner_function=tuner_iterations_function)
 
         if j == 0:

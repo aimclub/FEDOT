@@ -10,6 +10,8 @@ from fedot.core.models.tuning.hp_tuning.sequential import SequentialTuner
 from sklearn.metrics import mean_absolute_error
 from sklearn.metrics import roc_auc_score as roc_auc
 
+ALL_ITERATIONS = 30
+
 
 def tuner_function_20_reg(chain, train_input):
     chain_tuner = SequentialTuner(chain=chain,
@@ -59,7 +61,6 @@ def tuner_function_100_class(chain, train_input):
 
 def run_experiment(tuner_iterations, folder_to_save, dataset_number):
     create_folder(os.path.abspath(folder_to_save))
-    all_iterations = 5
     if tuner_iterations == 20:
         tuner_iterations_function_reg = tuner_function_20_reg
         tuner_iterations_function_class = tuner_function_20_class
@@ -87,7 +88,7 @@ def run_experiment(tuner_iterations, folder_to_save, dataset_number):
     for j, chain_struct in enumerate([first_reg_chain, second_reg_chain, third_reg_chain]):
         launch = run_reg_by_number.get(dataset_number)
         result_df = launch(chain=chain_struct,
-                           iterations=all_iterations,
+                           iterations=ALL_ITERATIONS,
                            tuner_function=tuner_iterations_function_reg)
 
         if j == 0:
@@ -119,7 +120,7 @@ def run_experiment(tuner_iterations, folder_to_save, dataset_number):
     for j, chain_struct in enumerate([first_class_chain, second_class_chain, third_class_chain]):
         launch = run_class_by_number.get(dataset_number)
         result_df = launch(chain=chain_struct,
-                           iterations=all_iterations,
+                           iterations=ALL_ITERATIONS,
                            tuner_function=tuner_iterations_function_class)
 
         if j == 0:
@@ -140,6 +141,7 @@ if __name__ == '__main__':
 
     # 3 case for every task
     for dataset_number in [1, 2, 3]:
+        print(f'DATASET NUMBER {dataset_number}')
         run_experiment(tuner_iterations=20,
                        folder_to_save='sequential_tuner/20',
                        dataset_number=dataset_number)
