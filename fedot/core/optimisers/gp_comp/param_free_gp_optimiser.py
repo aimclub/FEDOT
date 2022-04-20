@@ -216,7 +216,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         return fitness_improved, complexity_decreased
 
     def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
-        best_in_population = best_individual(self.population)
+        # TODO remove best_individual, these are the only usages
+        best_in_population = self.generations.best_individuals[0]
         best_in_offspring = best_individual(offspring)
         fitness_improved = best_in_offspring.fitness < best_in_population.fitness
         complexity_decreased = \
