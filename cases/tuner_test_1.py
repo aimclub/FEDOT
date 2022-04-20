@@ -14,7 +14,7 @@ def tuner_function_20(chain, train_input):
     iterations_per_node = int(iterations_per_node)
 
     chain.fine_tune_all_nodes(train_input,
-                              max_lead_time=datetime.timedelta(minutes=2),
+                              max_lead_time=datetime.timedelta(minutes=10),
                               iterations=iterations_per_node)
 
     # Fit it
@@ -30,7 +30,7 @@ def tuner_function_100(chain, train_input):
     iterations_per_node = int(iterations_per_node)
 
     chain.fine_tune_all_nodes(train_input,
-                              max_lead_time=datetime.timedelta(minutes=5),
+                              max_lead_time=datetime.timedelta(minutes=20),
                               iterations=iterations_per_node)
 
     # Fit it
@@ -42,6 +42,7 @@ def tuner_function_100(chain, train_input):
 def run_classification_experiment(tuner_iterations_function,
                                   folder_to_save,
                                   dataset_number):
+    create_folder(os.path.abspath(folder_to_save))
     name_class_by_number = {1: 'Pnn_1_classification.csv',
                             2: 'Pnn_2_classification.csv',
                             3: 'Pnn_3_classification.csv'}
@@ -49,7 +50,7 @@ def run_classification_experiment(tuner_iterations_function,
                            2: run_pnn_2_classification,
                            3: run_pnn_3_classification}
     # Amount of launches
-    all_iterations = 100
+    all_iterations = 2
 
     #########################
     #  Classification case  #
@@ -79,6 +80,7 @@ def run_classification_experiment(tuner_iterations_function,
 
 def run_regression_experiment(tuner_iterations_function, folder_to_save,
                               dataset_number):
+    create_folder(os.path.abspath(folder_to_save))
     name_reg_by_number = {1: 'Pnn_1_regression.csv',
                           2: 'Pnn_2_regression.csv',
                           3: 'Pnn_3_regression.csv'}
@@ -86,7 +88,7 @@ def run_regression_experiment(tuner_iterations_function, folder_to_save,
                          2: run_pnn_2_regression,
                          3: run_pnn_3_regression}
     # Amount of launches
-    all_iterations = 100
+    all_iterations = 2
 
     #####################
     #  Regression case  #
@@ -123,20 +125,20 @@ if __name__ == '__main__':
     for dataset_number in [1, 2, 3]:
         # Run old tuner with 20 iterations for regression task
         run_regression_experiment(tuner_iterations_function=tuner_function_20,
-                                  folder_to_save='old_tuner/20',
+                                  folder_to_save='isolated_tuner/20',
                                   dataset_number=dataset_number)
 
         # Run old tuner with 100 iterations for regression task
         run_regression_experiment(tuner_iterations_function=tuner_function_100,
-                                  folder_to_save='old_tuner/100',
+                                  folder_to_save='isolated_tuner/100',
                                   dataset_number=dataset_number)
 
         # Run old tuner with 20 iterations for classification task
         run_classification_experiment(tuner_iterations_function=tuner_function_20,
-                                      folder_to_save='old_tuner/20',
+                                      folder_to_save='isolated_tuner/20',
                                       dataset_number=dataset_number)
 
         # Run old tuner with 100 iterations for classification task
         run_classification_experiment(tuner_iterations_function=tuner_function_100,
-                                      folder_to_save='old_tuner/100',
+                                      folder_to_save='isolated_tuner/100',
                                       dataset_number=dataset_number)

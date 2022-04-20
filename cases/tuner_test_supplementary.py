@@ -1,10 +1,7 @@
 import os
 import pandas as pd
 import numpy as np
-from scipy import interpolate
-from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error
 from sklearn.metrics import roc_auc_score as roc_auc
-from matplotlib import pyplot as plt
 import timeit
 from copy import deepcopy
 
@@ -12,15 +9,7 @@ from pylab import rcParams
 rcParams['figure.figsize'] = 18, 7
 import warnings
 warnings.filterwarnings('ignore')
-import datetime
 
-from fedot.core.composer.gp_composer.gp_composer import \
-    GPComposerBuilder, GPComposerRequirements
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
-
-
-from sklearn.metrics import mean_squared_error as mse
 from sklearn.model_selection import train_test_split
 
 from fedot.core.chains.node import PrimaryNode, SecondaryNode
@@ -28,9 +17,18 @@ from fedot.core.chains.chain import Chain
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.utilities.synthetic.data import regression_dataset, classification_dataset
 
 np.random.seed(1)
+
+
+def smape_metric(y_true: np.array, y_pred: np.array) -> float:
+    """ Symmetric mean absolute percentage error """
+
+    numerator = 2 * np.abs(y_true - y_pred)
+    denominator = np.abs(y_true) + np.abs(y_pred)
+    result = numerator / denominator
+    result[np.isnan(result)] = 0.0
+    return float(np.mean(100 * result))
 
 
 def reg_chain_1():
@@ -51,14 +49,14 @@ def reg_chain_1():
 def reg_chain_2():
     """ Return chain with the following structure:
     svr   \
-           xgbreg ->
+           rfr ->
     ridge |
     """
     node_svr = PrimaryNode('svr')
     node_ridge = PrimaryNode('ridge')
-    node_xgbreg = SecondaryNode('xgbreg', nodes_from=[node_svr, node_ridge])
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_svr, node_ridge])
 
-    chain = Chain(node_xgbreg)
+    chain = Chain(node_rfr)
 
     return chain
 
@@ -67,7 +65,7 @@ def reg_chain_3():
     """ Return chain with the following structure:
     svr    ->  rfr  ->   ridge  -\
                      |            \
-    lasso  ->  rfr  ->    svr   -> xgbreg
+    lasso  ->  rfr  ->    svr   -> rfr
                     |             |
     ridge  -> dtreg ->  ridge   -|
     * dtreg from second line has connection with ridge from third line
@@ -88,8 +86,8 @@ def reg_chain_3():
     node_3_ridge_1 = SecondaryNode('ridge', nodes_from=[node_2_dtreg])
 
     # Root node
-    node_xgbreg = SecondaryNode('xgbreg', nodes_from=[node_3_ridge_0, node_3_svr, node_3_ridge_1])
-    chain = Chain(node_xgbreg)
+    node_rfr = SecondaryNode('rfr', nodes_from=[node_3_ridge_0, node_3_svr, node_3_ridge_1])
+    chain = Chain(node_rfr)
 
     return chain
 
@@ -112,25 +110,25 @@ def class_chain_1():
 def class_chain_2():
     """ Return chain with the following structure:
     dt    \
-            xgboost ->
+            rf ->
     knn   |
     """
     node_dt = PrimaryNode('dt')
     node_knn = PrimaryNode('knn')
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_dt, node_knn])
+    node_rf = SecondaryNode('rf', nodes_from=[node_dt, node_knn])
 
-    chain = Chain(node_xgboost)
+    chain = Chain(node_rf)
 
     return chain
 
 
 def class_chain_3():
     """ Return chain with the following structure:
-    knn   ->    dt    ->   xgboost -\
+    knn   ->    dt    ->   rf -\
                                      \
-    dt    ->    knn   ->    knn     -> xgboost
+    dt    ->    knn   ->    knn     -> rf
                        |             |
-    rf    ->  xgboost ->     dt    -|
+    rf    ->  rf ->     dt    -|
     * xgboost from second line has connection with knn from third line
     """
     # First line
@@ -141,15 +139,15 @@ def class_chain_3():
     # Second line
     node_2_dt = SecondaryNode('dt', nodes_from=[node_1_knn])
     node_2_knn = SecondaryNode('knn', nodes_from=[node_1_dt])
-    node_2_xgboost = SecondaryNode('xgboost', nodes_from=[node_1_rf])
+    node_2_xgboost = SecondaryNode('rf', nodes_from=[node_1_rf])
 
     # Third line
-    node_3_xgboost = SecondaryNode('xgboost', nodes_from=[node_2_dt])
+    node_3_xgboost = SecondaryNode('rf', nodes_from=[node_2_dt])
     node_3_knn = SecondaryNode('knn', nodes_from=[node_2_knn, node_2_xgboost])
     node_3_dt = SecondaryNode('dt', nodes_from=[node_2_xgboost])
 
     # Root node
-    node_xgboost = SecondaryNode('xgboost', nodes_from=[node_3_xgboost, node_3_knn, node_3_dt])
+    node_xgboost = SecondaryNode('rf', nodes_from=[node_3_xgboost, node_3_knn, node_3_dt])
     chain = Chain(node_xgboost)
 
     return chain
@@ -253,8 +251,8 @@ def run_pnn_1_regression(chain, iterations, tuner_function):
     train_input, predict_input, y_test = get_pnn_1_regression_dataset()
     y_test = np.ravel(y_test)
 
-    maes_before_tuning = []
-    maes_after_tuning = []
+    smapes_before_tuning = []
+    smapes_after_tuning = []
     ids = []
     chain_structures = []
     times = []
@@ -266,9 +264,9 @@ def run_pnn_1_regression(chain, iterations, tuner_function):
         predicted_values = chain.predict(predict_input)
         predictions_before_tuning = predicted_values.predict
 
-        mae_before_tuning = mean_absolute_error(y_test,
-                                                predictions_before_tuning)
-        print(f'MAE before tuning - {mae_before_tuning:.3f}')
+        smape_before_tuning = smape_metric(y_test,
+                                           predictions_before_tuning)
+        print(f'SMAPE before tuning - {smape_before_tuning:.3f}')
 
         # Tuning the chain
         start = timeit.default_timer()
@@ -279,19 +277,19 @@ def run_pnn_1_regression(chain, iterations, tuner_function):
         predictions_after_tuning = predicted_values.predict
 
         launch_time = timeit.default_timer() - start
-        mae_after_tuning = mean_absolute_error(y_test, predictions_after_tuning)
-        print(f'MAE after tuning - {mae_after_tuning:.3f}\n')
+        smape_after_tuning = smape_metric(y_test, predictions_after_tuning)
+        print(f'SMAPE after tuning - {smape_after_tuning:.3f}\n')
 
-        maes_before_tuning.append(mae_before_tuning)
-        maes_after_tuning.append(mae_after_tuning)
+        smapes_before_tuning.append(smape_before_tuning)
+        smapes_after_tuning.append(smape_after_tuning)
         ids.append(i)
         chain_structures.append(obtained_operations)
         times.append(launch_time)
 
-    result = pd.DataFrame({'Chain': chain_structures,
+    result = pd.DataFrame({'Pipeline': chain_structures,
                            'Iteration': ids,
-                           'MAE before tuning': maes_before_tuning,
-                           'MAE after tuning': maes_after_tuning,
+                           'SMAPE before tuning': smapes_before_tuning,
+                           'SMAPE after tuning': smapes_after_tuning,
                            'Time': times})
 
     return result
@@ -359,7 +357,7 @@ def run_pnn_1_classification(chain, iterations, tuner_function):
         chain_structures.append(obtained_operations)
         times.append(launch_time)
 
-    result = pd.DataFrame({'Chain': chain_structures,
+    result = pd.DataFrame({'Pipeline': chain_structures,
                            'Iteration': ids,
                            'ROC AUC before tuning': rocs_before_tuning,
                            'ROC AUC after tuning': rocs_after_tuning,
@@ -376,3 +374,10 @@ def run_pnn_2_classification(chain, iterations, tuner_function):
 def run_pnn_3_classification(chain, iterations, tuner_function):
     # TODO to implement
     pass
+
+
+def create_folder(save_path):
+    """ Create folder for files """
+    save_path = os.path.abspath(save_path)
+    if os.path.isdir(save_path) is False:
+        os.makedirs(save_path)

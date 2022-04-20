@@ -58,7 +58,8 @@ def tuner_function_100_class(chain, train_input):
 
 
 def run_experiment(tuner_iterations, folder_to_save, dataset_number):
-    all_iterations = 100
+    create_folder(os.path.abspath(folder_to_save))
+    all_iterations = 2
     if tuner_iterations == 20:
         tuner_iterations_function_reg = tuner_function_20_reg
         tuner_iterations_function_class = tuner_function_20_class
@@ -140,9 +141,9 @@ if __name__ == '__main__':
     # 3 case for every task
     for dataset_number in [1, 2, 3]:
         run_experiment(tuner_iterations=20,
-                       folder_to_save='seq_tuner/20',
+                       folder_to_save='sequential_tuner/20',
                        dataset_number=dataset_number)
 
         run_experiment(tuner_iterations=100,
-                       folder_to_save='seq_tuner/100',
+                       folder_to_save='sequential_tuner/100',
                        dataset_number=dataset_number)
