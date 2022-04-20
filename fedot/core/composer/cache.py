@@ -37,12 +37,7 @@ class OperationsCache(metaclass=SingletonMeta):
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
 
         self._db = PickleShareDB(self.db_path)
-        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
-        effectiveness = dict.fromkeys(effectiveness_keys, 0)
-        if mp_manager is not None:
-            self._effectiveness = mp_manager.dict(effectiveness)
-        else:
-            self._effectiveness = effectiveness
+        self._define_mode(mp_manager)
 
     @contextmanager
     def using_resources(self):
@@ -67,7 +62,8 @@ class OperationsCache(metaclass=SingletonMeta):
             'nodes': round(nodes_hit / nodes_total, 3) if nodes_total else 0.
         }
 
-    def reset(self):
+    def reset(self, mp_manager: Optional[SyncManager] = None):
+        self._define_mode(mp_manager)
         for k in self._effectiveness:
             self._effectiveness[k] = 0
         self._clear()
@@ -129,6 +125,14 @@ class OperationsCache(metaclass=SingletonMeta):
         self._effectiveness['pipelines_total'] += 1
 
         return did_load_any
+
+    def _define_mode(self, mp_manager: Optional[SyncManager] = None):
+        effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
+        effectiveness = dict.fromkeys(effectiveness_keys, 0)
+        if mp_manager is not None:
+            self._effectiveness = mp_manager.dict(effectiveness)
+        else:
+            self._effectiveness = effectiveness
 
     def _clear(self):
         for file in Path(self.db_path).iterdir():
