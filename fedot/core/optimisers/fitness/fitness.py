@@ -88,7 +88,7 @@ class PrioritisedFitness(Fitness):
             self.reset()
         if any(secondary_value is None for secondary_value in new_values[1:]):
             raise ValueError('Secondary values must not be None for prioritized fitness')
-        self._values = new_values
+        self._values = tuple(new_values)
 
     @values.deleter
     def values(self):

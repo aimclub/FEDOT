@@ -3,6 +3,7 @@ from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
+from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.pipelines.node import NodeMetadata
 
 MODULE_X_NAME_DELIMITER = '/'
@@ -43,6 +44,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 graph_node_to_json,
                 graph_to_json,
                 operation_to_json,
+                fitness_from_json,
                 opt_history_from_json,
                 parent_operator_to_json,
                 uuid_from_json,
@@ -54,6 +56,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
             Serializer.CODERS_BY_TYPE = {
                 Individual: basic_serialization,
+                Fitness: {_to_json: any_to_json, _from_json: fitness_from_json},
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},

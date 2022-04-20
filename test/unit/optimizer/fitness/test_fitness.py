@@ -1,3 +1,4 @@
+import json
 from copy import deepcopy
 from itertools import product
 
@@ -5,6 +6,7 @@ import pytest
 
 from fedot.core.optimisers.fitness.fitness import *
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from fedot.core.serializers import Serializer
 
 
 def get_fitness_objects():
@@ -104,3 +106,15 @@ def test_fitness_multiobj_dominates():
 
     assert not MultiObjFitness([1., 1., 1.]).dominates(MultiObjFitness([1., 1., 1.]))
     assert not MultiObjFitness([1., 2., 1.]).dominates(MultiObjFitness([1., 1., 2.]))
+
+
+@pytest.mark.parametrize('fitness', get_fitness_objects())
+def test_fitness_serialization(fitness):
+    dumped = json.dumps(fitness, cls=Serializer)
+    reserialized = json.loads(dumped, cls=Serializer)
+
+    assert fitness.__class__ == reserialized.__class__
+    assert fitness.values == reserialized.values
+    assert fitness.valid == reserialized.valid
+    if fitness.valid:
+        assert fitness == reserialized

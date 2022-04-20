@@ -36,12 +36,15 @@ class MultiObjFitness(Fitness):
        return :data:`True` if *a* is **smaller** than *b*.
     """
 
-    def __init__(self, values: Sequence[Number] = (), weights: Union[Sequence[Number], Number] = None):
-        if weights is None:
-            # Default weights
-            weights = weights or (1,) * len(values)
-        elif isinstance(weights, Number):
-            # Single value provided
+    def __init__(self, values: Sequence[Number] = (),
+                 weights: Union[Sequence[Number], Number] = 1,
+                 *, wvalues: Sequence[Number] = None):
+        if wvalues is not None:
+            # This branch is mainly for deserialization from .wvalues attribute
+            values = tuple(map(truediv, wvalues, weights))
+
+        if isinstance(weights, Number):
+            # Single value provided or default 1.0 weights
             weights = (weights,) * len(values)
         elif isinstance(weights, Sequence):
             self._check_length(values, weights)
@@ -114,5 +117,7 @@ class MultiObjFitness(Fitness):
                 self.allclose(self.wvalues, other.wvalues))
 
     def _check_length(self, values, weights=None):
-        if len(values) != len(weights or self.weights):
+        if weights is None:
+            weights = self.weights
+        if len(values) != len(weights):
             raise TypeError("Attribute weights for all values must be provided.")
