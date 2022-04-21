@@ -27,14 +27,14 @@ np.random.seed(1)
 @pytest.fixture()
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'advanced_regression.csv')
+    file = os.path.join('../../data', 'simple_regression_train.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'advanced_classification.csv')
+    file = os.path.join('../../data', 'simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
@@ -76,7 +76,7 @@ def get_simple_class_pipeline(operation_type='logit'):
 
 
 def get_complex_class_pipeline():
-    first = PrimaryNode(operation_type='xgboost')
+    first = PrimaryNode(operation_type='dt')
     second = PrimaryNode(operation_type='pca')
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
@@ -97,7 +97,7 @@ def get_regr_operation_types():
 
 
 def get_class_operation_types():
-    return ['logit', 'dt', 'rf', 'lgbm']
+    return ['logit', 'rf', 'lgbm']
 
 
 def get_regr_losses():
@@ -189,9 +189,9 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, losses, request):
                                                    iterations=1,
                                                    search_space=search_space,
                                                    algo=tpe.suggest)
-                    tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                                  cv_folds=cv,
-                                                                  **loss)
+                    _ = pipeline_tuner.tune_pipeline(input_data=train_data,
+                                                     cv_folds=cv,
+                                                     **loss)
                     assert pipeline_tuner.obtained_metric is not None
     is_tuning_finished = True
 
@@ -218,9 +218,9 @@ def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
                                                        search_space=search_space,
                                                        algo=tpe.suggest)
                     # Optimization will be performed on RMSE metric, so loss params are defined
-                    tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                                    cv_folds=cv,
-                                                                    **loss)
+                    _ = sequential_tuner.tune_pipeline(input_data=train_data,
+                                                       cv_folds=cv,
+                                                       **loss)
                     assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
@@ -246,10 +246,10 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, losses, request):
                                                        iterations=1,
                                                        search_space=search_space,
                                                        algo=tpe.suggest)
-                    tuned_pipeline = sequential_tuner.tune_node(input_data=train_data,
-                                                                node_index=0,
-                                                                cv_folds=cv,
-                                                                **loss)
+                    _ = sequential_tuner.tune_node(input_data=train_data,
+                                                   node_index=0,
+                                                   cv_folds=cv,
+                                                   **loss)
                     assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
