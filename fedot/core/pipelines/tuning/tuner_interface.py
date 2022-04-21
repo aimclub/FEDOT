@@ -234,8 +234,7 @@ def _create_multi_target_prediction(target):
 
 
 def _greater_is_better(loss_function, loss_params) -> bool:
-    """ Function checks is metric (loss function) need to be minimized or
-    maximized
+    """ Function checks is metric (loss function) need to be minimized or maximized
 
     :param loss_function: loss function
     :param loss_params: parameters for loss function
@@ -243,21 +242,22 @@ def _greater_is_better(loss_function, loss_params) -> bool:
     :return: bool value is it good to maximize metric or not
     """
 
-    optimal_target = np.array([[0], [1]])
-    not_optimal_target = np.array([[0], [0]])
+    ground_truth = np.array([[0], [1]])
+    precise_prediction = np.array([[0], [1]])
+    approximate_prediction = np.array([[0], [0]])
 
     if loss_params is None:
         loss_params = {}
 
     try:
-        optimal_metric = loss_function(optimal_target, optimal_target, **loss_params)
-        not_optimal_metric = loss_function(optimal_target, not_optimal_target, **loss_params)
+        optimal_metric = loss_function(ground_truth, precise_prediction, **loss_params)
+        not_optimal_metric = loss_function(ground_truth, approximate_prediction, **loss_params)
     except ValueError:
-        optimal_multi_target = _create_multi_target_prediction(optimal_target)
-        not_optimal_multi_target = _create_multi_target_prediction(not_optimal_target)
+        multiclass_precise_prediction = _create_multi_target_prediction(precise_prediction)
+        multiclass_approximate_prediction = _create_multi_target_prediction(approximate_prediction)
 
-        optimal_metric = loss_function(optimal_target, optimal_multi_target, **loss_params)
-        not_optimal_metric = loss_function(optimal_target, not_optimal_multi_target, **loss_params)
+        optimal_metric = loss_function(ground_truth, multiclass_precise_prediction, **loss_params)
+        not_optimal_metric = loss_function(ground_truth, multiclass_approximate_prediction, **loss_params)
 
     if optimal_metric > not_optimal_metric:
         return True
@@ -278,7 +278,6 @@ def _calculate_loss_function(loss_function, loss_params, target, preds):
 
     if loss_params is None:
         loss_params = {}
-    print(target, preds, loss_function)
     try:
         # actual for regression and classification metrics that requires all classes probabilities
         metric_value = loss_function(target, preds, **loss_params)
