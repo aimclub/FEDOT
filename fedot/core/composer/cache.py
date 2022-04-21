@@ -1,11 +1,10 @@
-import re
-import string
+import hashlib
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from multiprocessing.managers import SyncManager
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, TypeVar, Union, Type
+from typing import TYPE_CHECKING, List, Optional, TypeVar, Union, Type, Tuple
 
 from pickleshare import PickleShareDB
 
@@ -147,23 +146,29 @@ class OperationsCache(metaclass=SingletonMeta):
         return len(self._db)
 
 
-def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
-    structural_id = re.sub(f'[{string.punctuation}]+', '', node.descriptive_id)
+def _encode_node(node: Node, fold_id: Optional[int] = None) -> Tuple[str, str]:
+    structural_id = node.descriptive_id
     structural_id += f'_{fold_id}' if fold_id is not None else ''
-    return structural_id
+    return structural_id, hashlib.sha256(structural_id.encode()).hexdigest()
 
 
 def _save_cache_for_node(db: PickleShareDB, node: Node, fold_id: Optional[int] = None):
     if node.fitted_operation is not None:
         cached_state = CachedState(node.fitted_operation)
-        structural_id = _get_structural_id(node, fold_id)
-        if structural_id not in db:
-            db[structural_id] = cached_state
+        structural_id, hashed_id = _encode_node(node, fold_id)
+        id_file = Path(db.root, f'{hashed_id}.name')
+        if not id_file.exists():
+            id_file.touch()
+            id_file.write_text(structural_id)
+            db[hashed_id] = cached_state
 
 
 def _load_cache_for_node(db: PickleShareDB,
                          node: Node, fold_id: Optional[int] = None) -> Optional[Type[CachedState]]:
-    structural_id = _get_structural_id(node, fold_id)
-    cached_state = db.get(structural_id)
+    structural_id, hashed_id = _encode_node(node, fold_id)
+    id_file = Path(db.root, f'{hashed_id}.name')
+    if not id_file.exists() or structural_id != id_file.read_text():
+        return None
+    cached_state = db.get(hashed_id)
 
     return cached_state
