@@ -94,9 +94,9 @@ class HyperoptTuner(ABC):
         except Exception as ex:
             self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
             # Return default metric: too small (for maximization) or too big (for minimization)
-            metric_value = self._default_metric_value
+            return self._default_metric_value
 
-        if self.is_need_to_maximize is True:
+        if self.is_need_to_maximize:
             return -metric_value
         else:
             return metric_value
@@ -145,7 +145,7 @@ class HyperoptTuner(ABC):
         # 5% deviation is acceptable
         deviation = (self.init_metric / 100.0) * 5
 
-        if self.is_need_to_maximize is True:
+        if self.is_need_to_maximize:
             # Maximization
             init_metric = -1 * (self.init_metric - deviation)
             if self.obtained_metric is None:
@@ -211,89 +211,53 @@ class HyperoptTuner(ABC):
 
     @property
     def _default_metric_value(self):
-        if self.is_need_to_maximize is True:
+        if self.is_need_to_maximize:
             return -MAX_METRIC_VALUE
         else:
             return MAX_METRIC_VALUE
 
 
-def _create_multi_target_prediction(target, optimal=True):
+def _create_multi_target_prediction(target):
     """ Function creates an array of shape (target len, num classes)
-    with classes probabilities from target values, used in _greater_is_better
+    with classes probabilities from target values
 
     :param target: target for define what problem is solving (max or min)
-    :param optimal: whether return optimal probabilities or not
 
     :return: 2d-array of classes probabilities
     """
 
     len_target = target.shape[0]
 
-    if optimal:
-        multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target),
-                                                         target.reshape((len_target,))))).A
-    else:
-        multi_target = np.zeros((len_target, len(np.unique(target))))
-        multi_target[:, 0] = 1
+    multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target), target.reshape((len_target,))))).A
 
     return multi_target
 
 
-def _convert_target_dimension(target):
-    """ Function check number of unique classes and converted target
-    for multiclass metrics
+def _greater_is_better(loss_function, loss_params) -> bool:
+    """ Function checks is metric (loss function) need to be minimized or maximized
 
-    :param target: target for define what problem is solving (max or min)
-
-    :return: 2d-array of classes probabilities
-    """
-
-    nb_classes = len(np.unique(target))
-
-    if nb_classes > 2:
-        target_converted = target.reshape(-1).tolist()
-        target_converted = [int(x) for x in target_converted]
-        if min(target_converted) == 1:
-            target_converted = [x - 1 for x in target_converted]
-        target = np.eye(nb_classes)[target_converted]
-
-    return target
-
-
-def _greater_is_better(target, loss_function, loss_params, data_type) -> bool:
-    """ Function checks is metric (loss function) need to be minimized or
-    maximized
-
-    :param target: target for define what problem is solving (max or min)
     :param loss_function: loss function
     :param loss_params: parameters for loss function
 
     :return: bool value is it good to maximize metric or not
     """
 
-    if isinstance(target[0], str):
-        # Target for classification contain string objects
-        le = LabelEncoder()
-        target = le.fit_transform(target)
+    ground_truth = np.array([[0], [1]])
+    precise_prediction = np.array([[0], [1]])
+    approximate_prediction = np.array([[0], [0]])
 
     if loss_params is None:
         loss_params = {}
 
-    if data_type is not DataTypesEnum.ts or DataTypesEnum.text:
-        try:
-            target = _convert_target_dimension(target)
-        except Exception:
-            target = target
-
     try:
-        optimal_metric = loss_function(target, target, **loss_params)
-        not_optimal_metric = loss_function(target, np.zeros_like(target), **loss_params)
-    except Exception:
-        optimal_multi_target = _create_multi_target_prediction(target, True)
-        not_optimal_multi_target = _create_multi_target_prediction(target, False)
+        optimal_metric = loss_function(ground_truth, precise_prediction, **loss_params)
+        not_optimal_metric = loss_function(ground_truth, approximate_prediction, **loss_params)
+    except ValueError:
+        multiclass_precise_prediction = _create_multi_target_prediction(precise_prediction)
+        multiclass_approximate_prediction = _create_multi_target_prediction(approximate_prediction)
 
-        optimal_metric = loss_function(target, optimal_multi_target, **loss_params)
-        not_optimal_metric = loss_function(target, not_optimal_multi_target, **loss_params)
+        optimal_metric = loss_function(ground_truth, multiclass_precise_prediction, **loss_params)
+        not_optimal_metric = loss_function(ground_truth, multiclass_approximate_prediction, **loss_params)
 
     if optimal_metric > not_optimal_metric:
         return True
@@ -321,8 +285,12 @@ def _calculate_loss_function(loss_function, loss_params, target, preds):
         try:
             # transform class probabilities to 1st class probability, actual for binary auc_roc-like metrics
             metric_value = loss_function(target, preds[:, 1], **loss_params)
-        except ValueError:
-            # transform class probabilities to assigned class, actual for accuracy-like metrics
-            metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
+        except Exception:
+            try:
+                # transform 1st class probability to assigned class, actual for accuracy-like metrics with binary
+                metric_value = loss_function(target, preds.round(), **loss_params)
+            except Exception:
+                # transform class probabilities to assigned class, actual for accuracy-like metrics with multiclass
+                metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
 
     return metric_value

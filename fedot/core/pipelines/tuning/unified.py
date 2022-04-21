@@ -30,10 +30,8 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict = self._get_parameters_for_tune()
 
-        is_need_to_maximize = _greater_is_better(target=input_data.target,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params,
-                                                 data_type=input_data.data_type)
+        is_need_to_maximize = _greater_is_better(loss_function=loss_function,
+                                                 loss_params=loss_params)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
