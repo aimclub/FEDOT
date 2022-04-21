@@ -35,7 +35,8 @@ def _show_performance_plot(x: list, pipelines_count: dict, times: dict, plot_lab
 
     smp = plt.cm.ScalarMappable(norm=c_norm, cmap=cm)
     smp.set_array([])  # noqa Just to handle 'You must first set_array for mappable' problem
-    plt.colorbar(smp)
+    cb = plt.colorbar(smp)
+    cb.ax.set_ylabel('actual time for optimization in minutes', rotation=90)
 
     plt.legend()
     plt.grid()
