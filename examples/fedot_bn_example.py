@@ -29,6 +29,7 @@ from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
     GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -36,7 +37,8 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from pgmpy.models import BayesianModel
 from pgmpy.estimators import K2Score, BicScore, BDeuScore
-
+from sklearn.metrics import mean_squared_error, accuracy_score
+import matplotlib.pyplot as plt
 
 # кастомный граф
 # TODO find out Graph or OptGraph need to use
@@ -119,35 +121,34 @@ def _no_empty_graph(graph):
     return True
  
 
-def custom_crossover(graph_first, graph_second, max_depth):
-    num_cros = 10
+def custom_crossover_parents(graph_first, graph_second, max_depth):
+
+    num_cros = 1
     try:
         for _ in range(num_cros):
             new_graph_first=deepcopy(graph_first)
+
             dir_of_nodes={new_graph_first.nodes[i].content['name']:i for i in range(len(new_graph_first.nodes))}
-    # print(dir_of_nodes)
             edges = graph_second.operator.get_all_edges()
             flatten_edges = list(itertools.chain(*edges))
             nodes_with_parent_or_child=list(set(flatten_edges))
-            selected_node=random.choice(nodes_with_parent_or_child)
-            parents=selected_node.nodes_from
-    # print(parents)
-    # print(type(parents))
-    # print(selected_node) 
-            node_from_first_graph=new_graph_first.nodes[dir_of_nodes[selected_node.content['name']]]
+            # защита от пустых графов
+            if nodes_with_parent_or_child!=[]:
 
-#    print(new_graph_first.selected_node)
-            if parents==None:
-                new_node = GraphNode(nodes_from=[], content=selected_node.content)
-                new_graph_first.update_node(node_from_first_graph, new_node)
-            else:
-                new_node = GraphNode(nodes_from=[], content=selected_node.content)
-                for i in range(len(parents)):
-                    new_node.nodes_from.append(parents[i])
-                new_graph_first.update_node(node_from_first_graph, new_node)
-            # print('+')
+                selected_node=random.choice(nodes_with_parent_or_child)
+                parents=selected_node.nodes_from
+
+                node_from_first_graph=new_graph_first.nodes[dir_of_nodes[selected_node.content['name']]]
+            
+                node_from_first_graph.nodes_from=[]
+                if parents!=[] and parents!=None:
+                    parents_in_first_graph=[new_graph_first.nodes[dir_of_nodes[i.content['name']]] for i in parents]
+                    for i in range(len(parents_in_first_graph)):
+                        node_from_first_graph.nodes_from.append(parents_in_first_graph[i])
     except Exception as ex:
-            print(':(')
+        graph_first.show()
+        print(ex)
+ 
     return new_graph_first, graph_second
 
 
@@ -183,12 +184,12 @@ def custom_mutation_add(graph: OptGraph, **kwargs):
                                  [n.descriptive_id for n in other_random_node.ordered_subnodes_hierarchy()] and
                                  other_random_node.descriptive_id not in
                                  [n.descriptive_id for n in random_node.ordered_subnodes_hierarchy()])
-            if other_random_node.nodes_from is not None and len(other_random_node.nodes_from) == 0:
-                other_random_node.nodes_from = None
+            # if other_random_node.nodes_from is not None and len(other_random_node.nodes_from) == 0:
+            #     other_random_node.nodes_from = None
             if nodes_not_cycling:
                 graph.operator.connect_nodes(random_node, other_random_node)
-#                print('add')
 #                graph.show()
+
     except Exception as ex:
         graph.log.warn(f'Incorrect connection: {ex}')
     return graph
@@ -201,11 +202,8 @@ def custom_mutation_delete(graph: OptGraph, **kwargs):
             rid = random.choice(range(len(graph.nodes)))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
-
             if random_node.nodes_from is not None and other_random_node in random_node.nodes_from:
                 graph.operator.disconnect_nodes(other_random_node, random_node, False)
-#                print('del')
-#                graph.show()
     except Exception as ex:
         #graph.log.warn(f'Incorrect connection: {ex}')
         print(ex)
@@ -228,11 +226,8 @@ def custom_mutation_reverse(graph: OptGraph, **kwargs):
             rid = random.choice(range(len(graph.nodes)))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
-
             if random_node.nodes_from is not None and other_random_node in random_node.nodes_from:
-                graph.operator.reverse_edge(other_random_node, random_node)
-#                print('rev')
-#                graph.show()
+                graph.operator.reverse_edge(other_random_node, random_node)              
     except Exception as ex:
         #graph.log.warn(f'Incorrect connection: {ex}')
         print(ex)
@@ -243,10 +238,18 @@ def run_example():
  
     # Импорт данных и дискретизация
     data=pd.read_csv(r'examples/data/hack_processed_with_rf.csv')
+    global vertices
     vertices = ['Tectonic regime', 'Period', 'Lithology',
                     'Structural setting', 'Gross', 'Netpay',
                     'Porosity', 'Permeability', 'Depth']
+    dir_of_vertices={vertices[i]:i for i in range(len(vertices))}
+    # vertices1 = ['Depth','Period', 'Lithology',
+    #                 'Structural setting','Tectonic regime', 'Gross', 'Netpay',
+    #                 'Porosity', 'Permeability']
+    # dir_of_vertices={vertices1[i]:i for i in range(len(vertices1))}
     data = data[vertices]
+    data.dropna(inplace=True)
+    data.reset_index(inplace=True, drop=True)
     encoder = preprocessing.LabelEncoder()
     discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
     p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
@@ -257,6 +260,9 @@ def run_example():
     bn = Nets.HybridBN(has_logit=False, use_mixture=False)
     bn.add_nodes(p.info)
     bn.add_edges(discretized_data, scoring_function=('K2', K2Score))
+
+    
+    
  
 
 
@@ -265,7 +271,7 @@ def run_example():
     # правила: нет петель, нет циклов, нет дибликатов узлов
     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates, _has_disc_parents]
     # изициализация графа без связей, только с узлами
-    initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
+    initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=[],
                                                       content={'name': v}) for v in vertices])]
 
     # Fedot example
@@ -287,18 +293,18 @@ def run_example():
             if str(n2) in parents:
                 node.nodes_from.append(n2)
 
-#    initial[0].show()
+    # initial[0].show()
 
     #параметры ГА
     requirements = PipelineComposerRequirements(
-        primary=nodes_types,
-        secondary=nodes_types, max_arity=100,
-        max_depth=100, pop_size=10, num_of_generations=1000,
+        primary=vertices,
+        secondary=vertices, max_arity=100,
+        max_depth=100, pop_size=5, num_of_generations=5,
         crossover_prob=0.8, mutation_prob=0.9)
  
     # Ещё параметры для ГА
     # genetic_scheme_type -> [steady_state, generational, parameter_free]
-    # crossover_types -> [subtree, one_point, none]
+    # crossover_types -> [subtree, one_point, none] CrossoverTypesEnum
     # mutation_types -> [simple, reduce, growth, local_growth] MutationTypesEnum
     # selection_types -> [tournament,nsga2, spea2] SelectionTypesEnum
     optimiser_parameters = GPGraphOptimiserParameters(
@@ -306,9 +312,9 @@ def run_example():
     # добавила селекцию турниром
         selection_types=[SelectionTypesEnum.tournament],
         mutation_types=[custom_mutation_add, custom_mutation_delete, custom_mutation_reverse],
-        crossover_types=[custom_crossover],
+        crossover_types=[custom_crossover_parents],
         regularization_type=RegularizationTypesEnum.none,
-        stopping_after_n_generation=10
+        stopping_after_n_generation=5
     )
  
     # Параметры для генерации графов. Закидываем сюда граф, узлы и правила
@@ -325,21 +331,49 @@ def run_example():
         log=default_log(logger_name='Bayesian', verbose_level=1))
  
     # в partial указываем целевую функцию
-    optimized_graph = optimiser.optimise(partial(custom_metric, data=discretized_data))
+    optimized_graph = optimiser.optimise(partial(custom_metric, data=discretized_data, method = met))
     # Сейчас optimized_graph хранит: {'depth': 9, 'length': 9, 'nodes': [Period, Netpay, ...]}
- 
+    optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
     # Отличается от optimized_graph только добавлением 'Node_' к названиям узлов
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 
+    #optimized_network.show()
+    # print(round(custom_metric(optimized_network, method=met, data=discretized_data)[0],2))
 
     optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(i) + '.png')) 
-
     OF=round(custom_metric(optimized_network, method=met, data=discretized_data)[0],2)
  
+    #return opt_graph_to_bamt(optimized_network)
+    
+    final_bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    final_bn.add_nodes(p.info)
+    structure = opt_graph_to_bamt(optimized_network)
+    print(structure)
+    final_bn.set_structure(edges=structure)
+    final_bn.get_info()
+    final_bn.fit_parameters(data)
 
+    prediction = dict()
+
+    for c in vertices:
+        test = data.drop(columns=[c])
+        pred = final_bn.predict(test, 5)
+        prediction.update(pred)
+    
+    result = dict()
+    for key, value in prediction.items():
+        if node_type[key]=="disc":
+            res=round(accuracy_score(data[key], value),2)
+        elif node_type[key]=="cont":
+            res=round(mean_squared_error(data[key], value, squared=False),2)
+        result[key]=res
+
+    #r_for_pdf=pd.DataFrame.from_dict(result, orient='index', columns=['result'])
+    
     pdf.add_page()
     pdf.set_font("Arial", size = 14)
-    pdf.cell(150, 5, txt = met + "_score = " + str(OF),
+    
+    pdf.cell(150, 5, txt = 'Objective function = ' + str(met)+ ' = ' + str(OF),
             ln = 1, align = 'C')
     pdf.cell(150, 5, txt = "pop_size = " + str(requirements.pop_size),
             ln = 1)
@@ -358,28 +392,48 @@ def run_example():
     pdf.cell(150, 5, txt = "actual_generation_num = " + str(optimiser.generation_num),
             ln = 1)            
     pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(i) + '.png',w=165, h=165)
+    pdf.multi_cell(180, 5, txt = str(structure))
+    # pdf.cell(40, 10, txt =str(r_for_pdf), ln = 1)
 
-    #return opt_graph_to_bamt(optimized_network)
+    
+    for heading, row in result.items():
+        pdf.cell(40, 6, heading, 1)
+        pdf.cell(40, 6, str(row), 1)
+        pdf.ln()
+    pdf.output("Check"+str(i)+".pdf")
+    # print(pred)
+    # print(prediction)
+    # sample = final_bn.sample(400)
+    # sns.histplot(binwidth=0.5, x="Tectonic regime", data=sample, stat="count")
+    # plt.show()
+
+
+
 
 
 if __name__ == '__main__':
-    data = pd.read_csv(r'examples/data/hack_processed_with_rf.csv')
-    nodes_types = ['Tectonic regime', 'Period', 'Lithology',
-                    'Structural setting', 'Gross', 'Netpay',
-                    'Porosity', 'Permeability', 'Depth']
-    data = data[nodes_types]
+    # data = pd.read_csv(r'examples/data/hack_processed_with_rf.csv')
+    # nodes = ['Tectonic regime', 'Period', 'Lithology',
+    #                 'Structural setting', 'Gross', 'Netpay',
+    #                 'Porosity', 'Permeability', 'Depth']
+    # data = data[nodes]
 
     from fpdf import FPDF
-    pdf = FPDF()
 
-    
-    for i, met in zip(range(1,4), ['K2', 'Bic', 'BDeu']):
+
+    for i, met in zip(range(1,3), ['BDeu','K2']):
+        pdf = FPDF()
         structure = run_example()
-    # for i, met in zip(range(1,2), ['BDeu']):
+
+
+    # for i, met in zip(range(1,4), ['K2', 'Bic', 'BDeu']):
     #     structure = run_example()
 
-    pdf.output("GFG.pdf")
+    
    
+
+
+
     # bn = Nets.HybridBN(has_logit=True, use_mixture=True)
     # encoder = preprocessing.LabelEncoder()
     # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
