@@ -76,7 +76,7 @@ def get_simple_class_pipeline(operation_type='logit'):
 
 
 def get_complex_class_pipeline():
-    first = PrimaryNode(operation_type='dt')
+    first = PrimaryNode(operation_type='knn')
     second = PrimaryNode(operation_type='pca')
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
@@ -97,7 +97,7 @@ def get_regr_operation_types():
 
 
 def get_class_operation_types():
-    return ['logit', 'rf', 'lgbm']
+    return ['dt']
 
 
 def get_regr_losses():
