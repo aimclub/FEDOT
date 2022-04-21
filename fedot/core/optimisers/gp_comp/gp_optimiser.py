@@ -1,3 +1,4 @@
+from fpdf import FPDF
 import math
 from copy import deepcopy
 from functools import partial
@@ -162,6 +163,18 @@ class EvoGraphOptimiser(GraphOptimiser):
         if self.initial_graph:
             adapted_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
             self.population = self._create_randomized_pop_from_inital_graph(adapted_graphs)
+            # k=0
+            # pdf = FPDF()
+            # for i in self.population:
+            #     k+=1
+            #     i.graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/T' + str(k) + '.png')) 
+            #     pdf.add_page()
+            #     pdf.set_font("Arial", size = 14)
+            #     pdf.cell(150, 5, txt = 'metric = ' + str(i.fitness),
+            # ln = 1, align = 'C')
+            #     pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/T' + str(k) + '.png', w=165, h=165)
+            # pdf.output("Initial_population.pdf")
+            # print(1)
         if self.population is None:
             self.population = self._make_population(self.requirements.pop_size)
         return self.population
@@ -173,7 +186,11 @@ class EvoGraphOptimiser(GraphOptimiser):
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
         self._init_population()
-
+# моё        
+#        for i in self.population:
+#            i.graph.show()
+       
+        # pdf = FPDF()
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
@@ -234,7 +251,21 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                             timer=t,
                                                             n_jobs=self.requirements.n_jobs)
 
-                self.prev_best = deepcopy(self.best_individual)
+                
+                self.prev_best = deepcopy(self.best_individual) 
+            #     pdf.add_page()
+            #     pdf.set_font("Arial", size = 14)
+            #     pdf.cell(150, 5, txt = 'metric = ' + str(self.prev_best.fitness),
+            # ln = 1, align = 'C')
+            #     self.prev_best.graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png'))
+            #     pdf.cell(150, 5, txt = 'generation_num = ' + str(self.generation_num),
+            # ln = 1, align = 'C')
+            #     pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png', w=165, h=165)
+                
+                # print(self.generation_num)
+                # print(self.prev_best.fitness)
+                # self.prev_best.graph.show()
+                
 
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
@@ -267,9 +298,19 @@ class EvoGraphOptimiser(GraphOptimiser):
             best = self.result_individual()
             self.log.info('Result:')
             self.log_info_about_best()
-
+        
         output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
-
+        
+         
+    #     pdf.add_page()
+    #     pdf.set_font("Arial", size = 14)
+    #     pdf.cell(150, 5, txt = 'metric = ' + str(best.fitness),
+    # ln = 1, align = 'C')
+    #     best.graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png'))
+    #     pdf.cell(150, 5, txt = 'generation_num = ' + str(self.generation_num),
+    # ln = 1, align = 'C')
+    #     pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png', w=165, h=165)
+    #     pdf.output("Experiment_c4"+'asia'+".pdf")
         return output
 
     @property

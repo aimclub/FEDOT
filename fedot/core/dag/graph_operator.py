@@ -34,8 +34,15 @@ class GraphOperator:
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
         if ((new_node.nodes_from is None and old_node.nodes_from is None) or
-                (new_node.nodes_from is not None and old_node.nodes_from is not None)):
+               (new_node.nodes_from is not None and old_node.nodes_from is not None)):
             new_node.nodes_from = old_node.nodes_from
+        self._graph.nodes.remove(old_node)
+        self._graph.nodes.append(new_node)
+        self.sort_nodes()
+        self._postproc_nodes()
+
+    def update_node_for_cross(self, old_node: GraphNode, new_node: GraphNode):
+        self.actualise_old_node_children(old_node, new_node)
         self._graph.nodes.remove(old_node)
         self._graph.nodes.append(new_node)
         self.sort_nodes()
@@ -106,16 +113,40 @@ class GraphOperator:
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
 
+    # def connect_nodes(self, parent: GraphNode, child: GraphNode):
+    #     if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
+    #         if child.nodes_from:
+    #             # if not already connected
+    #             child.nodes_from.append(parent)
+    #         else:
+    #             # add parent to initial node
+    #             new_child = GraphNode(nodes_from=[], content=child.content)
+    #             new_child.nodes_from.append(parent)
+    #             self.update_node(child, new_child)
+
+    # моё
+    
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
         if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
-            if child.nodes_from:
-                # if not already connected
+            try:
+                if child.nodes_from==None:
+                    child.nodes_from=[]
                 child.nodes_from.append(parent)
-            else:
-                # add parent to initial node
-                new_child = GraphNode(nodes_from=[], content=child.content)
-                new_child.nodes_from.append(parent)
-                self.update_node(child, new_child)
+            except Exception as ex:
+                print(ex)
+    
+    
+    def reverse_edge(self, node_parent: GraphNode, node_child: GraphNode):
+        # if not (node_child.nodes_from is None or node_parent not in node_child.nodes_from \
+        #         or node_parent not in self._graph.nodes or node_child not in self._graph.nodes): 
+        #     self.disconnect_nodes(node_parent, node_child, False)
+        #     if node_parent.nodes_from is not None and len(node_parent.nodes_from) == 0:
+        #         node_parent.nodes_from = None
+        #     self.connect_nodes(node_child, node_parent)
+        self.disconnect_nodes(node_parent, node_child, False)
+        self.connect_nodes(node_child, node_parent)
+
+
 
     def _clean_up_leftovers(self, node: GraphNode):
         """

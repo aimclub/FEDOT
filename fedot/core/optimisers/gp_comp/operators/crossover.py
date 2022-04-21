@@ -46,7 +46,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
 
                     is_custom_operator = isinstance(ind_first, OptGraph)
                     input_obj_first = deepcopy(ind_first.graph)
-                    input_obj_second = deepcopy(ind_first.graph)
+                    input_obj_second = deepcopy(ind_second.graph)
                     if is_custom_operator:
                         input_obj_first = params.adapter.restore(input_obj_first)
                         input_obj_second = params.adapter.restore(input_obj_second)
