@@ -1,10 +1,9 @@
 import platform
-from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Callable, List, Optional, Tuple, Union, Iterator, Sequence
+from typing import Callable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -21,7 +20,7 @@ from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
-from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -120,12 +119,11 @@ class GPComposer(Composer):
 
         objective_function, intermediate_metrics_function = self.objective_builder.build(data)
 
-        with self.cache.using_resources() if self.cache is not None else nullcontext():
-            opt_result = self.optimiser.optimise(objective_function,
-                                                 on_next_iteration_callback=on_next_iteration_callback,
-                                                 intermediate_metrics_function=intermediate_metrics_function)
-            best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
-            self.log.info('GP composition finished')
+        opt_result = self.optimiser.optimise(objective_function,
+                                             on_next_iteration_callback=on_next_iteration_callback,
+                                             intermediate_metrics_function=intermediate_metrics_function)
+        best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
+        self.log.info('GP composition finished')
         return best_pipeline
 
     def _convert_opt_results_to_pipeline(self, opt_result: Union[OptGraph, List[OptGraph]]) -> Pipeline:
