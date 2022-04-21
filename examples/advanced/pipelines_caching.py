@@ -27,7 +27,7 @@ def _show_performance_plot(x: list, pipelines_count: dict, times: dict, plot_lab
     plt.xlabel('timeout in minutes')
     plt.ylabel('correctly evaluated pipelines')
 
-    c_norm = colors.Normalize(vmin=min(x) - 0.5, vmax=max(x) + 0.5)
+    c_norm = colors.Normalize(vmin=max(min(x) - 0.5, 0), vmax=max(x) + 0.5)
     for arg in pipelines_count:
         plt.plot(x, pipelines_count[arg], label=plot_labels[arg], zorder=1)
         plt.scatter(x, pipelines_count[arg], c=times[arg],
@@ -118,11 +118,15 @@ def use_cache_check():
             c_pipelines = _count_pipelines(auto_model.history)
             pipelines_count[use_cache].append(c_pipelines)
 
-            cache_ef = str(auto_model.api_composer.cache.effectiveness_ratio) if auto_model.api_composer.cache else ''
+            cache_ef = (
+                f', cache effectiveness: {auto_model.api_composer.cache.effectiveness_ratio}'
+                if auto_model.api_composer.cache is not None
+                else ''
+            )
             print((
                 f'\tTimeout: {timeout}'
                 f', number of pipelines: {c_pipelines}, elapsed time: {times[use_cache][-1]:.3f}'
-                f'{", cache effectiveness: " + cache_ef}'
+                f'{cache_ef}'
             ))
 
     _show_performance_plot(timeouts, pipelines_count, times, plot_labels)
