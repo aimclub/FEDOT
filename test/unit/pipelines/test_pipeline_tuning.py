@@ -438,11 +438,7 @@ def test_calculate_loss_function():
     multi_target = np.array([2, 0, 1, 0, 1])
     regr_target = np.array([0.2, 0.1, 1, 0.3, 1.7])
     pred_clear = np.array([1, 0, 1, 0, 0])
-    pred_prob = np.array([[0.2, 0.8],
-                          [0.7, 0.3],
-                          [0.4, 0.6],
-                          [0.51, 0.49],
-                          [0.51, 0.49]])
+    pred_prob = np.array([0.8, 0.3, 0.6, 0.49, 0.49])
     multi_pred_clear = np.array([2, 0, 1, 0, 2])
     multi_pred_prob = np.array([[0.2, 0.3, 0.5],
                                 [0.6, 0.3, 0.1],
