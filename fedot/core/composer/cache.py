@@ -195,6 +195,14 @@ class OperationsCache(metaclass=SingletonMeta):
                 cur.execute(f'INSERT OR IGNORE INTO {self._op_table} VALUES (?, ?)',
                             [structural_id, sqlite3.Binary(pdata)])
 
+    def __len__(self):
+        with closing(sqlite3.connect(self.db_path)) as conn:
+            with conn:
+                cur = conn.cursor()
+                cur.execute(f'SELECT id FROM {self._op_table}')
+                all_rows = cur.fetchall()
+                return len(all_rows)
+
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
     structural_id = re.sub(f'[{string.punctuation}]+', '', node.descriptive_id)
