@@ -19,6 +19,9 @@ class MultiObjFitness(Fitness):
     otherwise it is empty (or invalid).
 
     :param values: The initial values of the fitness as a tuple, optional.
+    :param weights: Optional weights for fitness values. 1.0 by default.
+    :param wvalues: Allows to provide values by giving already weighted values.
+    If provided, then :param values: is ignored. This is used by deserialization.
 
     Fitnesses may be compared using the ``>``, ``<``, ``>=``, ``<=``, ``==``,
     ``!=``. The comparison of those operators is made lexicographically.
@@ -27,13 +30,6 @@ class MultiObjFitness(Fitness):
     can be made between fitnesses of different size, if the fitnesses are
     equal until the extra elements, the longer fitness will be superior to the
     shorter.
-
-    Different types of fitnesses are created in the :ref:`creating-types`
-    tutorial.
-
-    .. note::
-       When comparing fitness values that are **minimized**, ``a > b`` will
-       return :data:`True` if *a* is **smaller** than *b*.
     """
 
     def __init__(self, values: Sequence[Number] = (),

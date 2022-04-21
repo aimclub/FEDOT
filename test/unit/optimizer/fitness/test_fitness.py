@@ -11,13 +11,11 @@ from fedot.core.serializers import Serializer
 
 def get_fitness_objects():
     return [
-        none_fitness(),
-        single_value_fitness(42.),
-
-        PrioritisedFitness(None),
-        PrioritisedFitness(None, 12.34),
-        PrioritisedFitness(11),
-        PrioritisedFitness(1, 2, 3, 4),
+        null_fitness(),
+        SingleObjFitness(None),
+        SingleObjFitness(None, 12.34),
+        SingleObjFitness(11),
+        SingleObjFitness(1, 2, 3, 4),
 
         MultiObjFitness(),
         MultiObjFitness([1.]),
@@ -78,22 +76,22 @@ def test_fitness_equality(fitness_objects):
             assert fitness != deepcopy(fitness)
 
     # and some special cases
-    assert PrioritisedFitness(1., 2., 3. + 1e-12) == PrioritisedFitness(1., 2., 3.)
-    assert PrioritisedFitness(1) != MultiObjFitness([1])
-    assert PrioritisedFitness(1., 2., 3.) != MultiObjFitness([1., 2., 3.])
+    assert SingleObjFitness(1., 2., 3. + 1e-12) == SingleObjFitness(1., 2., 3.)
+    assert SingleObjFitness(1) != MultiObjFitness([1])
+    assert SingleObjFitness(1., 2., 3.) != MultiObjFitness([1., 2., 3.])
 
 
 def test_fitness_compare_prioritised_invalid():
-    assert PrioritisedFitness(None, 10) < PrioritisedFitness(1, 20)
-    assert PrioritisedFitness(1, 10) > PrioritisedFitness(None, 20)
+    assert SingleObjFitness(None, 10) < SingleObjFitness(1, 20)
+    assert SingleObjFitness(1, 10) > SingleObjFitness(None, 20)
     # right-side operand takes precedence in ambigious case
-    assert PrioritisedFitness(None, 123) < PrioritisedFitness(None)
+    assert SingleObjFitness(None, 123) < SingleObjFitness(None)
 
 
 def test_fitness_compare_prioritised():
-    assert PrioritisedFitness(1, 10) < PrioritisedFitness(1, 20)
-    assert PrioritisedFitness(1, 10, 100) < PrioritisedFitness(1, 10, 101.)
-    assert PrioritisedFitness(0, 20) < PrioritisedFitness(1, 10)
+    assert SingleObjFitness(1, 10) < SingleObjFitness(1, 20)
+    assert SingleObjFitness(1, 10, 100) < SingleObjFitness(1, 10, 101.)
+    assert SingleObjFitness(0, 20) < SingleObjFitness(1, 10)
 
 
 def test_fitness_multiobj_dominates():

@@ -70,13 +70,17 @@ class Fitness(Comparable):
         return np.allclose(values1, values2, rtol=1e-8, atol=1e-10)
 
 
-class PrioritisedFitness(Fitness):
-    """Implements lexicographic comparison on one or multiple fitness values.
-    Primary value is allowed to be None and determines if fitness is valid.
-    Secondary values must be not None and define supplementary metrics."""
+class SingleObjFitness(Fitness):
+    """Single-objective fitness with optional supplementary values
+    for distinguishing cases when primary fitness values are equal.
+    This fitness implements lexicographic comparison on its fitness values.
 
-    def __init__(self, primary_value: Optional[float] = None, *secondary_values: float):
-        self._values: Tuple = (primary_value, *secondary_values)
+    :param primary_value: Primary fitness metric, may be None. It determines if fitness is valid.
+    :param supplementary_values: Define supplementary metrics, must not be None.
+    """
+
+    def __init__(self, primary_value: Optional[float] = None, *supplementary_values: float):
+        self._values: Tuple = (primary_value, *supplementary_values)
 
     @property
     def values(self) -> Sequence[float]:
@@ -102,7 +106,7 @@ class PrioritisedFitness(Fitness):
         # __hash__ required explicit super() call
         return super().__hash__()
 
-    def __lt__(self, other: 'PrioritisedFitness') -> bool:
+    def __lt__(self, other: 'SingleObjFitness') -> bool:
         # NB: in the case of both invalid the other takes precedence
         if not self.valid:
             return True
@@ -118,11 +122,6 @@ class PrioritisedFitness(Fitness):
             return str(self._values)
 
 
-def single_value_fitness(value: Optional[float]) -> PrioritisedFitness:
-    """Alias for creating simple single-value fitness."""
-    return PrioritisedFitness(primary_value=value)
-
-
-def none_fitness() -> PrioritisedFitness:
+def null_fitness() -> SingleObjFitness:
     """Alias for creating default-initialised single-value fitness."""
-    return PrioritisedFitness(primary_value=None)
+    return SingleObjFitness(primary_value=None)

@@ -7,14 +7,13 @@ from random import choice
 from typing import Dict, Optional
 
 from fedot.core.log import Log, default_log
-from fedot.core.optimisers.fitness.fitness import Fitness, none_fitness, PrioritisedFitness
+from fedot.core.optimisers.fitness import *
 from fedot.core.dag.graph import Graph
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.gp_comp.operators.operator import *
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import Timer, get_forever_timer
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 
@@ -92,12 +91,12 @@ class Evaluate(Operator[PopulationT]):
     def calculate_fitness(self, graph: Graph) -> Fitness:
         calculated_fitness = self.objective_function(self.graph_adapter.restore(graph))
         if calculated_fitness is None:
-            return none_fitness()
+            return null_fitness()
         elif self.is_multi_objective:
             return MultiObjFitness(values=calculated_fitness,
                                    weights=[-1] * len(calculated_fitness))
         else:
-            return PrioritisedFitness(*calculated_fitness)
+            return SingleObjFitness(*calculated_fitness)
 
     def _collect_intermediate_metrics(self, graph: Graph):
         if not self._intermediate_metrics_function:
