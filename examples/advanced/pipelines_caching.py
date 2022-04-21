@@ -22,6 +22,24 @@ def _count_pipelines(opt_history: Optional[OptHistory]) -> int:
     return 0
 
 
+def _show_performance_plot(x: list, pipelines_count: dict, times: dict, plot_labels: dict):
+    plt.title('Cache performance')
+    plt.xlabel('timeout in minutes')
+    plt.ylabel('correctly evaluated pipelines')
+
+    c_norm = colors.Normalize(vmin=min(x) - 0.5, vmax=max(x) + 0.5)
+    for arg in pipelines_count:
+        plt.plot(x, pipelines_count[arg], label=plot_labels[arg], zorder=1)
+        plt.scatter(x, pipelines_count[arg], c=times[arg],
+                    cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
+
+    cb = plt.colorbar(cm.ScalarMappable(norm=c_norm, cmap=cm.get_cmap('cool')))
+    cb.ax.set_ylabel('actual time for optimization in minutes', rotation=90)
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+
 def dummy_time_check():
     composer_params = {
         'with_tuning': False,
@@ -66,73 +84,48 @@ def dummy_time_check():
             print(f"task_type={task_type}, feature={feature}, mean_time={mean(repeat(check, repeat=15, number=1))}")
 
 
-def correct_pipelines_count_check(timeout: float = 2., partitions_n: int = 2):
+def use_cache_check():
     """
     Performs experiment to show how caching pipelines operations helps in fitting FEDOT model
-
-    :param timeout: timeout for optimization in minutes
-    :param partitions_n: on how many folds you want. f.e. if dataset contains 20000 rows, partitions_n=5 will create
-        such folds: [4000 rows, 8000 rows, 12000 rows, 16000 rows, 20000 rows]
     """
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
 
-    train_data = pd.read_csv(train_data_path)
-    test_data = pd.read_csv(test_data_path)
+    train_data = pd.read_csv(train_data_path)[:4000]
+    test_data = pd.read_csv(test_data_path)[:4000]
 
-    data_len = len(train_data)
-
-    partitions = []
-    for i in range(1, partitions_n + 1):
-        partitions.append(int(data_len * (i / partitions_n)))
-
-    pipelines_count, times = [{0: [], 1: []} for _ in range(2)]
-
+    pipelines_count, times = [{False: [], True: []} for _ in range(2)]
+    plot_labels = {False: 'without cache', True: 'with cache'}
     base_fedot_params = {
-        'problem': problem, 'seed': 42, 'timeout': timeout,
+        'problem': problem, 'seed': 42,
         'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
         'verbose_level': -1
     }
-    for enable_caching in [0, 1]:
-        print(f'Using cache mode: {bool(enable_caching)}')
-        for partition in partitions:
-            train_data_tmp = train_data.iloc[:partition].copy()
-            test_data_tmp = test_data.iloc[:partition].copy()
+    timeouts = [1, 2, 3, 4, 5]
+    for use_cache in [False, True]:
+        print(f'Using cache mode: {use_cache}')
+        for timeout in timeouts:
+            train_data_tmp = train_data.copy()
+            test_data_tmp = test_data.copy()
 
             start_time = timeit.default_timer()
-            auto_model = Fedot(**base_fedot_params, use_cache=bool(enable_caching))
+            auto_model = Fedot(**base_fedot_params, timeout=timeout, use_cache=use_cache)
             auto_model.fit(features=train_data_tmp, target='target')
             auto_model.predict_proba(features=test_data_tmp)
-            times[enable_caching].append((timeit.default_timer() - start_time) / 60)
+            times[use_cache].append((timeit.default_timer() - start_time) / 60)
             c_pipelines = _count_pipelines(auto_model.history)
-            pipelines_count[enable_caching].append(c_pipelines)
+            pipelines_count[use_cache].append(c_pipelines)
 
             cache_ef = str(auto_model.api_composer.cache.effectiveness_ratio) if auto_model.api_composer.cache else ''
             print((
-                f'\tDataset length: {partition}'
-                f', number of pipelines: {c_pipelines}, elapsed time: {times[enable_caching][-1]:.3f}'
+                f'\tTimeout: {timeout}'
+                f', number of pipelines: {c_pipelines}, elapsed time: {times[use_cache][-1]:.3f}'
                 f'{", cache effectiveness: " + cache_ef}'
             ))
 
-    plt.title('Cache performance')
-    plt.xlabel('rows in train dataset')
-    plt.ylabel('Num of pipelines that were evaluated correctly')
-    c_norm = colors.Normalize(vmin=timeout - timeout / 2, vmax=timeout + timeout / 2)
-
-    plt.plot(partitions, pipelines_count[1], label='with caching', zorder=1)
-    plt.scatter(partitions, pipelines_count[1], c=times[1],
-                cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
-
-    plt.plot(partitions, pipelines_count[0], label=f'without caching', zorder=1)
-    plt.scatter(partitions, pipelines_count[0], c=times[0],
-                cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
-    cb = plt.colorbar(cm.ScalarMappable(norm=c_norm, cmap=cm.get_cmap('cool')))
-    cb.ax.set_ylabel('time for optimization in minutes', rotation=90)
-    plt.legend()
-    plt.grid()
-    plt.show()
+    _show_performance_plot(timeouts, pipelines_count, times, plot_labels)
 
 
 def multiprocessing_check(n_jobs: int = -1):
@@ -145,12 +138,14 @@ def multiprocessing_check(n_jobs: int = -1):
 
     problem = 'classification'
 
-    train_data = pd.read_csv(train_data_path)[:8000]
-    test_data = pd.read_csv(test_data_path)[:8000]
+    train_data = pd.read_csv(train_data_path)[:4000]
+    test_data = pd.read_csv(test_data_path)[:4000]
 
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
+    plot_labels = {1: 'one process', n_jobs: f'{n_jobs} processes'}
     base_fedot_params = {
-        'problem': problem, 'seed': 42, 'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
+        'problem': problem, 'seed': 42,
+        'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
         'verbose_level': -1, 'use_cache': True
     }
     timeouts = [1, 2, 3, 4, 5]
@@ -161,7 +156,7 @@ def multiprocessing_check(n_jobs: int = -1):
             test_data_tmp = test_data.copy()
 
             start_time = timeit.default_timer()
-            auto_model = Fedot(**base_fedot_params, n_jobs=_n_jobs, timeout=timeout)
+            auto_model = Fedot(**base_fedot_params, timeout=timeout, n_jobs=_n_jobs)
             auto_model.fit(features=train_data_tmp, target='target')
             auto_model.predict_proba(test_data_tmp)
             times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
@@ -174,32 +169,16 @@ def multiprocessing_check(n_jobs: int = -1):
                 f', cache effectiveness: {auto_model.api_composer.cache.effectiveness_ratio}'
             ))
 
-    plt.title('Cache performance')
-    plt.xlabel('timeout in minutes')
-    plt.ylabel('Num of pipelines that were evaluated correctly')
-
-    plt.plot(timeouts, pipelines_count[1], label='one process', zorder=1)
-    plt.scatter(timeouts, pipelines_count[1], c=times[1],
-                cmap=cm.get_cmap('cool'), zorder=2)
-
-    plt.plot(timeouts, pipelines_count[n_jobs], label=f'{n_jobs} processes', zorder=1)
-    plt.scatter(timeouts, pipelines_count[n_jobs], c=times[n_jobs],
-                cmap=cm.get_cmap('cool'), zorder=2)
-
-    cb = plt.colorbar(cm.ScalarMappable(cmap=cm.get_cmap('cool')))
-    cb.ax.set_ylabel('actual time for optimization in minutes', rotation=90)
-    plt.legend()
-    plt.grid()
-    plt.show()
+    _show_performance_plot(timeouts, pipelines_count, times, plot_labels)
 
 
 if __name__ == "__main__":
     examples_dct = defaultdict(lambda: (lambda: print('Wrong example number option'),))
     examples_dct.update({
         1: (dummy_time_check,),
-        2: (correct_pipelines_count_check, 2., 2),
+        2: (use_cache_check,),
         3: (multiprocessing_check, -1)
     })
-    benchmark_number = 3
+    benchmark_number = 2
     func, *args = examples_dct[benchmark_number]
     func(*args)
