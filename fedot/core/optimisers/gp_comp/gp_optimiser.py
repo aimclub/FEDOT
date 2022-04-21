@@ -127,7 +127,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.generations = GenerationKeeper(initial_generation=None,  # TODO: either remove or ensure it can be passed
                                             is_multi_objective=self.parameters.multi_objective,
-                                            # TODO: ensure if archive_type is instance or cls itself
+                                            metrics=metrics,
+                                            # TODO: remove this param
                                             archive=self.parameters.archive_type)
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)

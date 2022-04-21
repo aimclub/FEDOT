@@ -1,12 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Protocol, Any, Union, Sequence, Set, Optional
+from typing import Protocol, Any, Union, Sequence, Set, Optional, Type, Iterable, Dict
 
 import numpy as np
 from deap.tools import HallOfFame
 
+from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.utils.pareto import ParetoFront
+from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
 from fedot.core.utilities.data_structures import Comparable
 
 ArchiveType = HallOfFame
@@ -90,21 +92,21 @@ class GenerationKeeper(ImprovementWatcher):
     def __init__(self,
                  initial_generation: PopulationT = None,
                  is_multi_objective: bool = False,
+                 metrics: Sequence[MetricsEnum] = (),
                  archive: ArchiveType = None,
                  keep_n_best: int = 1):
-        self._generation_num = -1
-        self._stagnation_counter = 0
-        if initial_generation is not None:
-            self.append(initial_generation)
+        self._generation_num = 0  # zero means no generations
+        self._stagnation_counter = 1  # Initialized in stagnated state
+        self._metrics_improvement = {metric_id: False for metric_id in metrics}
+
         if archive is None:
-            if is_multi_objective:
-                archive = ParetoFront()
-            else:
-                archive = HallOfFame(maxsize=keep_n_best,
-                                     similar=lambda ind1, ind2: ind1.fitness == ind2.fitness)
+            archive = ParetoFront() if is_multi_objective else HallOfFame(maxsize=keep_n_best)
         elif not isinstance(archive, HallOfFame):
             raise TypeError(f'Invalid archive type. Expected HallOfFame, got {type(archive)}')
         self.archive = archive
+
+        if initial_generation is not None:
+            self.append(initial_generation)
 
     @property
     def best_individuals(self) -> Sequence[Individual]:
@@ -120,15 +122,51 @@ class GenerationKeeper(ImprovementWatcher):
 
     @property
     def last_improved(self) -> bool:
-        return self._stagnation_counter == 0
+        return any(self._metrics_improvement.values())
+
+    def metric_improved(self, metric: MetricsEnum) -> bool:
+        return self._metrics_improvement.get(metric, False)
 
     @property
-    def archive_fitness(self) -> Set[int]:
-        return {ind.fitness for ind in self.archive.items}
+    def quality_improved(self) -> bool:
+        return self._metric_kind_improved(QualityMetricsEnum)
+
+    @property
+    def complexity_improved(self) -> bool:
+        return self._metric_kind_improved(ComplexityMetricsEnum)
+
+    def _metric_kind_improved(self, metric_cls: Type[MetricsEnum]) -> bool:
+        return any(improved for metric, improved in self._metrics_improvement.items()
+                   if isinstance(metric, metric_cls))
+
+    @property
+    def _metric_ids(self) -> Iterable[MetricsEnum]:
+        return self._metrics_improvement.keys()
 
     def append(self, population: PopulationT):
-        previous_archive_fitness = self.archive_fitness
+        previous_archive_fitness = self._archive_fitness()
         self.archive.update(population)
-        improved = previous_archive_fitness != self.archive_fitness
-        self._stagnation_counter = 0 if improved else self._stagnation_counter + 1
-        self._generation_num += 1  # becomes 0 on first population
+        self._update_improvements(previous_archive_fitness)
+
+    def _archive_fitness(self) -> Dict[MetricsEnum, Sequence[float]]:
+        archive_pop_metrics = (ind.fitness.values for ind in self.archive.items)
+        archive_fitness_per_metric = zip(*archive_pop_metrics)  # transpose nested array
+        archive_fitness_per_metric = dict(zip(self._metric_ids, archive_fitness_per_metric))
+        return archive_fitness_per_metric
+
+    def _update_improvements(self, previous_metric_archive):
+        self._reset_metrics_improvement()
+        current_metric_archive = self._archive_fitness()
+        for metric in self._metric_ids:
+            # NB: Assuming we perform maximisation, so worst==minimum
+            previous_worst = np.min(previous_metric_archive.get(metric, -np.inf))
+            current_worst = np.min(current_metric_archive.get(metric, -np.inf))
+            # archive metric has improved if metric of its worst individual has improved
+            if current_worst > previous_worst:
+                self._metrics_improvement[metric] = True
+
+        self._stagnation_counter = 0 if self.last_improved else self._stagnation_counter + 1
+        self._generation_num += 1  # becomes 1 on first population
+
+    def _reset_metrics_improvement(self):
+        self._metrics_improvement = {metric_id: False for metric_id in self._metric_ids}
