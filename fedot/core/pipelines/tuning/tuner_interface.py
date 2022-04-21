@@ -278,6 +278,7 @@ def _calculate_loss_function(loss_function, loss_params, target, preds):
 
     if loss_params is None:
         loss_params = {}
+    print(target, preds, loss_function)
     try:
         # actual for regression and classification metrics that requires all classes probabilities
         metric_value = loss_function(target, preds, **loss_params)
@@ -285,11 +286,12 @@ def _calculate_loss_function(loss_function, loss_params, target, preds):
         try:
             # transform class probabilities to 1st class probability, actual for binary auc_roc-like metrics
             metric_value = loss_function(target, preds[:, 1], **loss_params)
-        except IndexError:
-            # transform 1st class probability to assigned class, actual for accuracy-like metrics with binary
-            metric_value = loss_function(target, preds.round(), **loss_params)
-        except ValueError:
-            # transform class probabilities to assigned class, actual for accuracy-like metrics with multiclass
-            metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
+        except Exception:
+            try:
+                # transform 1st class probability to assigned class, actual for accuracy-like metrics with binary
+                metric_value = loss_function(target, preds.round(), **loss_params)
+            except Exception:
+                # transform class probabilities to assigned class, actual for accuracy-like metrics with multiclass
+                metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
 
     return metric_value
