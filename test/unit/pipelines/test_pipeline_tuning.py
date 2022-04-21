@@ -219,8 +219,8 @@ def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
                                                        algo=tpe.suggest)
                     # Optimization will be performed on RMSE metric, so loss params are defined
                     tuned_pipeline = sequential_tuner.tune_pipeline(input_data=train_data,
-                                                                      cv_folds=cv,
-                                                                      **loss)
+                                                                    cv_folds=cv,
+                                                                    **loss)
                     assert sequential_tuner.obtained_metric is not None
     is_tuning_finished = True
 
