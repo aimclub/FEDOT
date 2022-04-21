@@ -7,7 +7,7 @@ from timeit import repeat
 from typing import Optional
 
 import pandas as pd
-from matplotlib import cm, colors, pyplot as plt
+from matplotlib import colors, pyplot as plt
 
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history import OptHistory
@@ -28,13 +28,15 @@ def _show_performance_plot(x: list, pipelines_count: dict, times: dict, plot_lab
     plt.ylabel('correctly evaluated pipelines')
 
     c_norm = colors.Normalize(vmin=max(min(x) - 0.5, 0), vmax=max(x) + 0.5)
+    cm = plt.cm.get_cmap('cool')
     for arg in pipelines_count:
         plt.plot(x, pipelines_count[arg], label=plot_labels[arg], zorder=1)
-        plt.scatter(x, pipelines_count[arg], c=times[arg],
-                    cmap=cm.get_cmap('cool'), norm=c_norm, zorder=2)
+        plt.scatter(x, pipelines_count[arg], c=times[arg], cmap=cm, norm=c_norm, zorder=2)
 
-    cb = plt.colorbar(cm.ScalarMappable(norm=c_norm, cmap=cm.get_cmap('cool')))
-    cb.ax.set_ylabel('actual time for optimization in minutes', rotation=90)
+    smp = plt.cm.ScalarMappable(norm=c_norm, cmap=cm)
+    smp.set_array([])  # noqa Just to handle 'You must first set_array for mappable' problem
+    plt.colorbar(smp)
+
     plt.legend()
     plt.grid()
     plt.show()
@@ -183,6 +185,6 @@ if __name__ == "__main__":
         2: (use_cache_check,),
         3: (multiprocessing_check, -1)
     })
-    benchmark_number = 2
+    benchmark_number = 3
     func, *args = examples_dct[benchmark_number]
     func(*args)
