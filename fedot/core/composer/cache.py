@@ -1,7 +1,9 @@
-from multiprocessing.managers import SyncManager
+import re
+import string
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
+from multiprocessing.managers import SyncManager
 from pathlib import Path
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Union, Type
 
@@ -28,11 +30,14 @@ class OperationsCache(metaclass=SingletonMeta):
     """
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
+    :mp_manager: optional multiprocessing manager in case of main API `n_jobs` != 1,
+        used to synchronize access to class variables
     :param log: optional Log object to record messages
     :param db_path: optional str determining a file name for caching pipelines
     """
 
-    def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None, db_path: Optional[str] = None):
+    def __init__(self, mp_manager: Optional[SyncManager] = None, log: Optional[Log] = None,
+                 db_path: Optional[str] = None):
         self.log = log or default_log(__name__)
         self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
 
@@ -143,10 +148,7 @@ class OperationsCache(metaclass=SingletonMeta):
 
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
-    forbidden_symbs = ['/', '\\', ':', '<', '>', '*', '?', '«', '»', '|']
-    structural_id = node.descriptive_id
-    for symb in forbidden_symbs:
-        structural_id = structural_id.replace(symb, '')
+    structural_id = re.sub(f'[{string.punctuation}]+', '', node.descriptive_id)
     structural_id += f'_{fold_id}' if fold_id is not None else ''
     return structural_id
 
