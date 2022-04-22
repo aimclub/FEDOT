@@ -53,30 +53,13 @@ def dummy_time_check():
         'timeout': None, 'num_of_generations': 5
     }
 
-    test1 = {
-        **composer_params
-    }
-    test2 = {
-        **composer_params,
-        'with_tuning': True
-    }
-    test3 = {
-        **composer_params,
-        'cv_folds': 4
-    }
-    test4 = {
-        **composer_params,
-        'cv_folds': 4,
-        'with_tuning': True
-    }
-    for task_type in ['ts_forecasting']:  # , 'regression', 'classification']:
-        for params, feature in [(test1,
-                                 'basic')]:
-            # , (test2, 'with_tuning'), (test3, 'with_cv_folds'), (test4, 'with_tuning_and_cv_folds')]:
+    for use_cache in [False, True]:
+        print(f'Using cache mode: {use_cache}')
+        for task_type in ['ts_forecasting', 'regression', 'classification']:
             preset = 'best_quality'
             fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': -1,
-                           'timeout': params['timeout'], 'use_cache': True,
-                           'composer_params': params}
+                           'timeout': composer_params['timeout'], 'use_cache': use_cache,
+                           'composer_params': composer_params}
             if task_type == 'ts_forecasting':
                 fedot_input['task_params'] = TsForecastingParams(forecast_length=30)
             train_data, test_data, _ = get_dataset(task_type)
@@ -84,7 +67,7 @@ def dummy_time_check():
             def check():
                 Fedot(**fedot_input).fit(features=train_data, target='target')
 
-            print(f"task_type={task_type}, feature={feature}, mean_time={mean(repeat(check, repeat=15, number=1))}")
+            print(f"task_type={task_type}, mean_time={mean(repeat(check, repeat=15, number=1))}")
 
 
 def use_cache_check():
