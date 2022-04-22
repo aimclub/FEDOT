@@ -32,4 +32,3 @@ tqdm
 requests>=2.*
 func_timeout==4.3.5
 opencv-python>=4.5.5.64
-pickleshare
