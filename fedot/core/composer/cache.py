@@ -139,8 +139,8 @@ class OperationsCache(metaclass=SingletonMeta):
                 fields = f'{eff_type},'.join(self._effectiveness_keys) + eff_type
                 cur.execute((
                     f'CREATE TABLE IF NOT EXISTS {self._eff_table} ('
-                        'id INTEGER PRIMARY KEY CHECK (id = 1),'
-                        f'{fields}'
+                        'id INTEGER PRIMARY KEY CHECK (id = 1),'    # noqa better viewed like that
+                        f'{fields}'                                 # noqa
                     ');'
                 ))
                 cur.execute(f'INSERT INTO {self._eff_table} DEFAULT VALUES;')
@@ -148,8 +148,8 @@ class OperationsCache(metaclass=SingletonMeta):
                 cur = conn.cursor()
                 cur.execute((
                     f'CREATE TABLE IF NOT EXISTS {self._op_table} ('
-                        'id TEXT PRIMARY KEY,'
-                        'operation BLOB'
+                        'id TEXT PRIMARY KEY,'  # noqa better viewed like that
+                        'operation BLOB'        # noqa
                     ');'
                 ))
 
