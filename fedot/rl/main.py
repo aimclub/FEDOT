@@ -18,12 +18,12 @@ from fedot.rl.pipeline_env import PipelineEnv
 
 GAMMA = 0.99
 
-LEARNING_RATE = 0.001
-ENTROPY_BETA = 0.35
-BATCH_SIZE = 128
+LEARNING_RATE = 0.002
+ENTROPY_BETA = 0.05
+BATCH_SIZE = 25
 NUM_ENVS = 50
 
-REWARD_STEPS = 5
+REWARD_STEPS = 2
 CLIP_GRAD = 0.1
 
 
@@ -34,21 +34,21 @@ class A2CRnn(nn.Module):
         self.net = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, hidden_dim)
+            nn.Linear(hidden_dim, 2 * hidden_dim)
         )
 
         """ Возвращает политику (стратегию) с распределением вероятности по действиям """
         self.policy = nn.Sequential(
-            nn.Linear(hidden_dim, 512),
+            nn.Linear(2 * hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(512, action_dim)
+            nn.Linear(hidden_dim, action_dim)
         )
 
         """ Число, которое приблизительно соответствует ценности состояния """
         self.value = nn.Sequential(
-            nn.Linear(hidden_dim, 512),
+            nn.Linear(2 * hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(512, 1)
+            nn.Linear(hidden_dim, 1)
         )
 
     def forward(self, state):
@@ -137,18 +137,21 @@ def unpack_batch(batch, net, device):
 
 
 if __name__ == '__main__':
+    experiment_name = str(input())
+    path_to_logdir = join(default_fedot_data_dir(), experiment_name)
+
     file_path_train = 'cases/data/scoring/scoring_train.csv'
     full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
     file_path_valid = 'cases/data/scoring/scoring_test.csv'
     full_path_valid = os.path.join(str(fedot_project_root()), file_path_valid)
 
-    make_env = lambda: PipelineEnv(full_path_train)
+    make_env = lambda: PipelineEnv(path_to_data=full_path_train, logdir=path_to_logdir)
     envs = [make_env() for _ in range(NUM_ENVS)]
     in_dim = envs[0].observation_space.shape[0]
     out_dim = envs[0].action_space.n
 
-    test_env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid)
+    test_env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid, logdir=path_to_logdir)
 
     device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
 
@@ -161,23 +164,18 @@ if __name__ == '__main__':
     optimizer = optim.Adam(pnet.parameters(), lr=LEARNING_RATE, eps=1e-3)
 
     # Tensorboard
-    path_to_tbX = join(default_fedot_data_dir(), 'rl', 'tensorboard')
+    path_to_tbX = join(path_to_logdir, 'tensorboard')
     if not exists(path_to_tbX):
         makedirs(path_to_tbX)
 
     # Save model
-    path_to_checkpoint = join(default_fedot_data_dir(), 'rl', 'checkpoint')
+    path_to_checkpoint = join(path_to_logdir, 'checkpoint')
     if not exists(path_to_checkpoint):
         makedirs(path_to_checkpoint)
 
     tb_writer = SummaryWriter(log_dir=path_to_tbX)
 
-    total_rewards = []
-    step_idx = 0
-    done_episodes = 0
-    reward_sum = 0.0
-
-    best_mean_rewards = 0
+    step_vaild = 0
 
     batch = []
 
@@ -192,15 +190,18 @@ if __name__ == '__main__':
                     if tracker.reward(new_rewards[0], step_idx):
                         break
 
-                if (step_idx % 500) == 0 and step_idx != 0:
+                if (step_idx % 250) == 0 and step_idx != 0:
                     path_to_save = join(path_to_checkpoint, f'agent_{step_idx}')
                     torch.save(pnet.state_dict(), path_to_save)
 
                     with torch.no_grad():
                         total_rewards = []
+                        corrcet_pl = 0
+                        total_correct_rewards = []
 
                         for episode in range(25):
                             state = test_env.reset()
+                            reward_sum = 0.0
                             done = False
 
                             while not done:
@@ -211,15 +212,25 @@ if __name__ == '__main__':
                                 prob = prob_v.data.cpu().numpy()
                                 action = np.random.choice(len(prob), p=prob)
                                 state, reward, done, info = test_env.step(action, mode='test')
-                                total_rewards.append(reward)
+                                reward_sum += reward
+
+                            total_rewards.append(reward_sum)
+
+                            if info['is_correct']:
+                                step_vaild += 1
+                                corrcet_pl += 1
+                                total_correct_rewards.append(reward_sum)
+                                tb_writer.add_scalar("corr_pl_metric", info['metric_value'], step_vaild)
+                                tb_writer.add_scalar("corr_pl_length", info['length'], step_vaild)
 
                     tb_writer.add_scalar("valid_reward", np.mean(total_rewards), step_idx)
+                    tb_writer.add_scalar("pos_valid_reward", np.mean(total_correct_rewards), step_idx)
+                    tb_writer.add_scalar("count_corr_pl", corrcet_pl, step_idx)
 
                 if len(batch) < BATCH_SIZE:
                     continue
 
                 # Процесс подсчета loss
-
                 states_v, actions_t, vals_ref_v = unpack_batch(batch, pnet, device=device)
                 batch.clear()
 
@@ -269,3 +280,6 @@ if __name__ == '__main__':
                 tb_tracker.track("grad_l2", np.sqrt(np.mean(np.square(grads))), step_idx)
                 tb_tracker.track("grad_max", np.max(np.abs(grads)), step_idx)
                 tb_tracker.track("grad_var", np.var(grads), step_idx)
+
+                if step_idx == 20000:
+                    break

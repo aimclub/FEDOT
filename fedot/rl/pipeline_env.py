@@ -22,7 +22,7 @@ class PipelineEnv(gym.Env):
     reward_range = (-float(100), float(100))
     spec = None
 
-    def __init__(self, path_to_data=None, path_to_valid=None, pipeline_depth=4, graph_render=True):
+    def __init__(self, path_to_data=None, path_to_valid=None, pipeline_depth=4, graph_render=True, logdir=None):
         self.full_train_data = InputData.from_csv(path_to_data)
         self.train_data, self.test_data = train_test_data_setup(InputData.from_csv(path_to_data), split_ratio=0.7)
         self.testing_data = self.test_data.target
@@ -61,15 +61,15 @@ class PipelineEnv(gym.Env):
         self.action_space = spaces.Discrete(self.actions_size)
         self.observation_space = self.transform_to_one_hot(self.observation)
 
-        if graph_render:
-            self.graph_render_path = join(default_fedot_data_dir(), 'rl', 'pipelines')
+        if graph_render and logdir is not None:
+            self.graph_render_path = join(logdir, 'pipelines')
             if not exists(self.graph_render_path):
                 makedirs(self.graph_render_path)
 
         self.reset()
 
     def step(self, action: int, mode='train'):
-        temp_reward = 0
+        temp_reward = -0.1
         assert self.action_space.contains(action)
 
         # Штраф для агента за выбор placeholder
@@ -82,21 +82,21 @@ class PipelineEnv(gym.Env):
         # Штраф для агента за выбор окончания построения пайплайна в самом начале
         if action == self.eop and self.nodes == []:
             self._update_observation(action)
-            reward, done, info = self._env_response()
+            reward, done, info = self._env_response(reward=-0.75)
 
             return self.transform_to_one_hot(self.observation), reward, done, info
 
-        # Поощерение, если агент выбрал модель
-        if action != self.eop and self.actions_list[0][action] in self.model_ops:
-            temp_reward += 4
-
-        # Поощерение, если агент выбрал операцию
-        if action != self.eop and self.actions_list[0][action] in self.data_ops:
-            temp_reward += 1
-
-            # Поощерение, если ее поставил в самое начало
-            if self.cur_pos in [1, 2]:
-                temp_reward += 1
+        # # Поощерение, если агент выбрал модель
+        # if action != self.eop and self.actions_list[0][action] in self.model_ops:
+        #     temp_reward += 0.02
+        #
+        # # Поощерение, если агент выбрал операцию
+        # if action != self.eop and self.actions_list[0][action] in self.data_ops:
+        #     temp_reward += 0.01
+        #
+        #     # Поощерение, если ее поставил в самое начало
+        #     if self.cur_pos in [1, 2]:
+        #         temp_reward += 0.01
 
         self._construct_pipeline(action)
 
@@ -136,12 +136,12 @@ class PipelineEnv(gym.Env):
 
                     self.render(mode='graph')
 
-                reward = 100 * self.metric_value
+                reward = self.metric_value
 
-                _, done, info = self._env_response(length=len(self.nodes))
+                _, done, info = self._env_response(length=len(self.nodes), correct=True)
                 return self.transform_to_one_hot(self.observation), reward, done, info
             except ValueError:
-                reward, done, info = self._env_response(reward=-85)
+                reward, done, info = self._env_response(reward=-0.75)
                 return self.transform_to_one_hot(self.observation), reward, done, info
         else:
             reward, done, info = self._env_response(reward=temp_reward, done=False)
@@ -158,11 +158,12 @@ class PipelineEnv(gym.Env):
 
         return self.transform_to_one_hot(self.observation)
 
-    def _env_response(self, reward=-100., done=True, length=-1):
+    def _env_response(self, reward=-1., done=True, length=-1, correct=False):
         info = {
             'time_step': self.time_step,
             'metric_value': self.metric_value,
-            'length': length
+            'length': length,
+            'is_correct': correct,
         }
 
         return reward, done, info  # reward, done, info
