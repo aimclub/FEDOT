@@ -36,9 +36,11 @@ class OperationsCache(metaclass=SingletonMeta):
 
     def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None):
         self.log = log or default_log(__name__)
-        self.db_path = db_path or Path(str(default_fedot_data_dir()), f'tmp_{str(uuid.uuid4())}').as_posix()
+        self.db_path = db_path or Path(default_fedot_data_dir(), f'tmp_{str(uuid.uuid4())}')
+        self._db_suffix = '.cache_db'
+        self.db_path = Path(self.db_path).with_suffix(self._db_suffix)
 
-        self._del_temps()
+        self._del_prev_temps()
 
         self._effectiveness_keys = ['pipelines_hit', 'nodes_hit', 'pipelines_total', 'nodes_total']
         self._eff_table = 'effectiveness'
@@ -126,9 +128,8 @@ class OperationsCache(metaclass=SingletonMeta):
 
             return did_load_any
 
-    def _del_temps(self):
-        db_path = Path(self.db_path)
-        for file in db_path.parent.glob('tmp_*'):
+    def _del_prev_temps(self):
+        for file in self.db_path.parent.glob(f'tmp_*{self._db_suffix}'):
             file.unlink()
 
     def _init_db(self):
