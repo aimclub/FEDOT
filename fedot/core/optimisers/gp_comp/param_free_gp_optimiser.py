@@ -168,14 +168,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
     @property
     def current_std(self):
-        if self.parameters.multi_objective:
-            std = np.std([self.get_main_metric(ind) for ind in self.population])
-        else:
-            std = np.std([ind.fitness.values[0] for ind in self.population])
-        return std
+        return np.std([ind.fitness.value for ind in self.population])
 
     def update_max_std(self):
-        if self.generations.generation_num == 0:
+        if self.generations.generation_num <= 1:
             std_max = self.current_std
             if len(self.population) == 1:
                 self.requirements.mutation_prob = 1
