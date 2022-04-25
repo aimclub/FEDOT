@@ -1,4 +1,5 @@
 import itertools
+import math
 import os
 from copy import deepcopy
 from glob import glob
@@ -103,7 +104,7 @@ class PipelineEvolutionVisualiser:
         generations = list(flatten(generations))
 
         # Visualize
-        fitness = [f if f >= 0 else -f for f in history.all_historical_fitness]
+        fitness = [abs(fitness.value) for fitness in history.all_historical_fitness]
         fig, ax = plt.subplots(figsize=(15, 10))
 
         # Get color palette for fitness. The lower the fitness value, the brighter the green color
@@ -241,9 +242,9 @@ class PipelineEvolutionVisualiser:
         pareto_obj_first, pareto_obj_second = [], []
         for i in range(len(archive)):
             fit_first = archive[i].fitness.values[objectives_numbers[0]]
-            pareto_obj_first.append(fit_first if fit_first > 0 else -fit_first)
+            pareto_obj_first.append(abs(fit_first))
             fit_second = archive[i].fitness.values[objectives_numbers[1]]
-            pareto_obj_second.append(fit_second if fit_second > 0 else -fit_second)
+            pareto_obj_second.append(abs(fit_second))
 
         fig, ax = plt.subplots()
 
@@ -251,9 +252,9 @@ class PipelineEvolutionVisualiser:
             obj_first, obj_second = [], []
             for i in range(len(individuals)):
                 fit_first = individuals[i].fitness.values[objectives_numbers[0]]
-                obj_first.append(fit_first if fit_first > 0 else -fit_first)
+                obj_first.append(abs(fit_first))
                 fit_second = individuals[i].fitness.values[objectives_numbers[1]]
-                obj_second.append(fit_second if fit_second > 0 else -fit_second)
+                obj_second.append(abs(fit_second))
             ax.scatter(obj_first, obj_second, c='green')
 
         ax.scatter(pareto_obj_first, pareto_obj_second, c='red')

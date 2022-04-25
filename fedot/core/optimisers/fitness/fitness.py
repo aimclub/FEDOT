@@ -13,6 +13,11 @@ class Fitness(Comparable):
     less than any other fitness. Fitness implementations must ensure this contract."""
 
     @property
+    def value(self) -> Optional[float]:
+        """Return primary fitness value"""
+        return self.values[0]
+
+    @property
     @abstractmethod
     def values(self) -> Sequence[float]:
         raise NotImplementedError()
