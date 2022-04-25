@@ -11,7 +11,7 @@
 				"DataSourceStrategy"
 			],
 			"tags": [
-				"non-default"
+				"non-default", "data_source"
 			],
 			"description": "Implementations of data sources in multi-modal pipelines"
 		},
@@ -124,12 +124,12 @@
 		"scaling": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple"]
+			"tags": ["simple", "scaling"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple"]
+			"tags": ["simple", "scaling"]
 		},
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
@@ -139,7 +139,8 @@
 		"pca": {
 			"meta": "dimension_transformation",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["linear", "dimensionality_transforming", "correct_params", "non_applicable_for_ts"]
+			"tags": ["linear", "dimensionality_transforming", "correct_params", "non_applicable_for_ts",
+				"feature_reduction"]
 		},
 		"kernel_pca": {
 			"meta": "dimension_transformation",
@@ -149,7 +150,8 @@
 				"dimensionality_transforming",
 				"correct_params",
 				"non_applicable_for_ts",
-				"non-default"
+				"non-default",
+				"feature_reduction"
 			]
 		},
 		"fast_ica": {
@@ -159,12 +161,13 @@
 				"non_linear",
 				"dimensionality_transforming",
 				"correct_params",
-				"non_applicable_for_ts"
+				"non_applicable_for_ts",
+				"feature_reduction"
 			]
 		},
 		"poly_features": {
 			"meta": "dimension_transformation",
-			"tags": ["non_linear", "dimensionality_transforming", "non_applicable_for_ts"]
+			"tags": ["non_linear", "dimensionality_transforming", "non_applicable_for_ts", "feature_engineering"]
 		},
 		"one_hot_encoding": {
 			"meta": "sklearn_categorical",
@@ -216,7 +219,8 @@
 				"affects_target",
 				"dimensionality_transforming",
 				"non_lagged",
-				"correct_params"
+				"correct_params",
+				"ts_to_table"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
@@ -227,7 +231,8 @@
 				"affects_target",
 				"dimensionality_transforming",
 				"non_lagged",
-				"correct_params"
+				"correct_params",
+				"ts_to_table"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
@@ -257,7 +262,8 @@
 			"tags": [
 				"differential",
 				"non_lagged",
-				"correct_params"
+				"correct_params",
+				"ts_to_ts"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
@@ -268,7 +274,8 @@
 				"simple",
 				"cutting",
 				"correct_params",
-				"non_lagged"
+				"non_lagged",
+				"ts_to_ts"
 			],
 			"input_type": "[DataTypesEnum.multi_ts, DataTypesEnum.ts]"
 		},
@@ -276,7 +283,8 @@
 			"meta": "custom_time_series_transformation",
 			"tags": [
 				"simple",
-				"non_lagged"
+				"non_lagged",
+				"ts_to_table"
 			]
 		},
 		"text_clean": {
@@ -293,9 +301,9 @@
 		  "presets": ["fast_train", "*tree"],
 		  "tags": ["non-default", "decompose"]
         },
-      "resample": {
-        "meta": "classification_preprocessing",
-        "tags": ["imbalanced"]
+        "resample": {
+          "meta": "classification_preprocessing",
+          "tags": ["imbalanced"]
 		}
 	}
 }
