@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Container, Iterable, Sized, Union, TypeVar
+from typing import Container, Iterable, List, Sized, TypeVar, Union
 
 
 class UniqueList(list):
@@ -63,7 +63,7 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
     return True
 
 
-T = TypeVar('T')
+T = TypeVar('T')  # TODO: make more general, not just for `ensure_list` method
 
 
 def ensure_list(obj: Union[T, List[T]]) -> List[T]:

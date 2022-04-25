@@ -81,7 +81,7 @@ class OperationsCacheDB:
     def _create_temp_for_ordered_select(cur: sqlite3.Cursor, uids: List[str]):
         _, *other = uids
         tmp_name = 'tmp'
-        cur.execute(f'DROP TABLE IF EXISTS {tmp_name};')
+        cur.execute(f'DROP TABLE IF EXISTS {tmp_name};')  # TODO: make truly temp table, not like that
         query = (
             f'CREATE TABLE {tmp_name} AS '
             'SELECT 1 as id1, ? as id2'
