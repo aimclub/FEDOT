@@ -137,6 +137,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 # Then update generation
                 self.generations.append(self.population)
 
+                # TODO: move into dynamic mutation operator
+                if not self.generations.last_improved:
+                    self.operators_prob_update()
+
                 on_next_iteration_callback(self.population, self.generations.best_individuals)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log_info_about_best()
@@ -199,17 +203,18 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         elif no_progress:
             if self.iterator.has_next():
                 next_population_size = self.iterator.next()
-            # TODO: move into dynamic mutation operator
-            self.requirements.mutation_prob, self.requirements.crossover_prob = self.operators_prob_update(
-                std=float(self.current_std), max_std=float(self.max_std))
 
         return next_population_size
 
-    @staticmethod
-    def operators_prob_update(std: float, max_std: float) -> Tuple[float, float]:
-        mutation_prob = 1 - (std / max_std) if 0 < max_std != std else 0.5
+    def operators_prob_update(self):
+        std = float(self.current_std)
+        max_std = float(self.max_std)
+
+        mutation_prob = 1 - (std / max_std) if max_std > 0 and std != max_std else 0.5
         crossover_prob = 1 - mutation_prob
-        return mutation_prob, crossover_prob
+
+        self.requirements.mutation_prob = mutation_prob
+        self.requirements.crossover_prob = crossover_prob
 
     def offspring_size(self, offspring_rate: float = None) -> int:
         if self.iterator.has_prev():
