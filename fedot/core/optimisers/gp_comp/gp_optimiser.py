@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 
 MAX_NUM_OF_GENERATED_INDS = 10000
-MIN_POPULATION_SIZE_WITH_ELITISM = 2
 
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
@@ -108,6 +107,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
+        self._min_population_size_with_elitism = 3
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
@@ -299,7 +299,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         if self.parameters.multi_objective:
             return False
         else:
-            return self.requirements.pop_size > MIN_POPULATION_SIZE_WITH_ELITISM
+            return self.requirements.pop_size >= self._min_population_size_with_elitism
 
     @property
     def num_of_inds_in_next_pop(self):
@@ -362,10 +362,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         return pop
 
-    def offspring_size(self, offspring_rate: float = None):
-        default_offspring_rate = 0.5 if not offspring_rate else offspring_rate
+    def offspring_size(self, offspring_rate: float = 0.5):
         if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
-            num_of_new_individuals = math.ceil(self.requirements.pop_size * default_offspring_rate)
-        else:
-            num_of_new_individuals = self.requirements.pop_size
+            offspring_rate = 1.0
+        num_of_new_individuals = math.ceil(self.requirements.pop_size * offspring_rate)
         return num_of_new_individuals

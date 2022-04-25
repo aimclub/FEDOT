@@ -39,7 +39,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                  sequence_function=fibonacci_sequence, log: Log = None):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
-        if self.parameters.genetic_scheme_type is not GeneticSchemeTypesEnum.parameter_free:
+        self._min_population_size_with_elitism = 7
+        if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
             self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
             self.parameters.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -158,13 +159,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             self.log_info_about_best()
 
         return self.to_outputs(best)
-
-    @property
-    def with_elitism(self) -> bool:
-        if self.parameters.multi_objective:
-            return False
-        else:
-            return self.requirements.pop_size >= 7
 
     @property
     def current_std(self):
