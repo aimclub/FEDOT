@@ -124,15 +124,17 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 self.pop_size = self.next_population_size()
                 # TODO: move to loop beginning
                 num_of_new_individuals = self.offspring_size(offspring_rate)  # leaves iterator unchanged
+                if self.with_elitism:
+                    num_of_new_individuals -= len(self.generations.best_individuals)
                 self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
 
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
-                                              new_population, self.num_of_inds_in_next_pop,
+                                              new_population, num_of_new_individuals,
                                               graph_params=self.graph_generation_params)
 
                 # Add best individuals from the previous generation
-                if not self.parameters.multi_objective and self.with_elitism:
+                if self.with_elitism:
                     self.population.extend(self.generations.best_individuals)
                 # Then update generation
                 self.generations.append(self.population)

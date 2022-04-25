@@ -255,13 +255,17 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = self.evaluator(new_population)
 
+                num_of_new_individuals = self.pop_size
+                if self.with_elitism:
+                    num_of_new_individuals -= len(self.generations.best_individuals)
+
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
-                                              new_population, self.num_of_inds_in_next_pop,
+                                              new_population, num_of_new_individuals,
                                               graph_params=self.graph_generation_params)
 
                 # Add best individuals from the previous generation
-                if not self.parameters.multi_objective and self.with_elitism:
+                if self.with_elitism:
                     self.population.extend(self.generations.best_individuals)
                 # Then update generation
                 self.generations.append(self.population)
@@ -299,13 +303,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             return False
         else:
             return self.pop_size >= self._min_population_size_with_elitism
-
-    @property
-    def num_of_inds_in_next_pop(self):
-        pop_size = self.pop_size
-        if self.with_elitism:
-            pop_size -= 1
-        return pop_size
 
     def log_info_about_best(self):
         best = self.generations.best_individuals
