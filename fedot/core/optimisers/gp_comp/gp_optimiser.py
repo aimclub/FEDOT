@@ -119,8 +119,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=generation_depth)
 
-        if not self.requirements.pop_size:
-            self.requirements.pop_size = 10
+        self.pop_size = self.requirements.pop_size or 10
 
         self.population = None
         self.initial_graph = initial_graph
@@ -164,7 +163,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
         randomized_pop = []
-        n_iter = self.requirements.pop_size * 10
+        n_iter = self.pop_size * 10
         while n_iter > 0:
             initial_individual = np.random.choice(individuals)
             n_iter -= 1
@@ -177,7 +176,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 # to suppress duplicated
                 randomized_pop.append(new_ind)
 
-            if len(randomized_pop) == self.requirements.pop_size - len(individuals):
+            if len(randomized_pop) == self.pop_size - len(individuals):
                 break
 
         # add initial graph to population
@@ -192,7 +191,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                                    self.initial_graph]
             self.population = self._create_randomized_pop(initial_individuals)
         if self.population is None:
-            self.population = self._make_population(self.requirements.pop_size)
+            self.population = self._make_population(self.pop_size)
         return self.population
 
     # TODO: fix invalid signature according to base method (`offspring_rate` is a new param)
@@ -299,12 +298,14 @@ class EvoGraphOptimiser(GraphOptimiser):
         if self.parameters.multi_objective:
             return False
         else:
-            return self.requirements.pop_size >= self._min_population_size_with_elitism
+            return self.pop_size >= self._min_population_size_with_elitism
 
     @property
     def num_of_inds_in_next_pop(self):
-        return self.requirements.pop_size - 1 if self.with_elitism and not self.parameters.multi_objective \
-            else self.requirements.pop_size
+        pop_size = self.pop_size
+        if self.with_elitism:
+            pop_size -= 1
+        return pop_size
 
     def log_info_about_best(self):
         best = self.generations.best_individuals
@@ -365,5 +366,5 @@ class EvoGraphOptimiser(GraphOptimiser):
     def offspring_size(self, offspring_rate: float = 0.5):
         if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
             offspring_rate = 1.0
-        num_of_new_individuals = math.ceil(self.requirements.pop_size * offspring_rate)
+        num_of_new_individuals = math.ceil(self.pop_size * offspring_rate)
         return num_of_new_individuals

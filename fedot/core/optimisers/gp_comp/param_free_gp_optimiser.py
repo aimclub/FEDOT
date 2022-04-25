@@ -49,8 +49,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         self.iterator = SequenceIterator(sequence_func=self.sequence_function, min_sequence_value=1,
                                          max_sequence_value=self.max_pop_size,
                                          start_value=self.requirements.pop_size)
-
-        self.requirements.pop_size = self.iterator.next()
+        self.pop_size = self.iterator.next()
 
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
@@ -66,7 +65,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
         # TODO: leave this eval at the beginning of loop
         num_of_new_individuals = self.offspring_size(offspring_rate)
-        self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
+        self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
@@ -122,10 +121,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     new_population = self.evaluator(new_population)
 
                 # TODO: make internally used iterator allow initial run (at loop beginning)
-                self.requirements.pop_size = self.next_population_size()
+                self.pop_size = self.next_population_size()
                 # TODO: move to loop beginning
                 num_of_new_individuals = self.offspring_size(offspring_rate)  # leaves iterator unchanged
-                self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
+                self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
 
                 self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                               self.population,
