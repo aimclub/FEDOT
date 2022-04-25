@@ -97,7 +97,7 @@ class OptHistory:
                     ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
                     additional_info = \
                         {'fitness_name': self.short_metrics_names[0],
-                         'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
+                         'fitness_value': self.historical_fitness[last_gen_id][ind_id].values[0]}
                     PipelineAdapter().restore_as_template(
                         individual.graph, individual.metadata
                     ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
