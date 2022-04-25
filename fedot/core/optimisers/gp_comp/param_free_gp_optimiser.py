@@ -53,7 +53,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
-    def optimise(self, objective_function, offspring_rate: float = 0.5,
+    def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
                  intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
@@ -64,7 +64,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
         # TODO: leave this eval at the beginning of loop
-        num_of_new_individuals = self.offspring_size(offspring_rate)
+        # TODO: maybe substitute for self.offspring_size? seems more right.
+        num_of_new_individuals = self.pop_size
         self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
 
         with self.timer as t:
@@ -121,9 +122,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     new_population = self.evaluator(new_population)
 
                 # TODO: make internally used iterator allow initial run (at loop beginning)
-                self.pop_size = self.next_population_size()
-                # TODO: move to loop beginning
-                num_of_new_individuals = self.offspring_size(offspring_rate)  # leaves iterator unchanged
+                self.pop_size = self.offspring_size
+                num_of_new_individuals = self.pop_size
                 if self.with_elitism:
                     num_of_new_individuals -= len(self.generations.best_individuals)
                 self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
@@ -181,7 +181,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 std_max = self.max_std
         return std_max
 
-    def next_population_size(self) -> int:
+    @property
+    def offspring_size(self) -> int:
         fitness_improved = self.generations.quality_improved
         complexity_decreased = self.generations.complexity_improved
         progress_in_both_goals = fitness_improved and complexity_decreased
@@ -206,11 +207,3 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
         self.requirements.mutation_prob = mutation_prob
         self.requirements.crossover_prob = crossover_prob
-
-    def offspring_size(self, offspring_rate: float = None) -> int:
-        if self.iterator.has_prev():
-            num_of_new_individuals = self.iterator.prev()
-            self.iterator.next()
-        else:
-            num_of_new_individuals = 1
-        return num_of_new_individuals

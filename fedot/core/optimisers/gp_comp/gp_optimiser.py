@@ -112,14 +112,18 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
 
-        self.max_depth = self.requirements.start_depth \
-            if self.parameters.with_auto_depth_configuration and self.requirements.start_depth \
-            else self.requirements.max_depth
-        generation_depth = self.requirements.start_depth or self.max_depth
+        self.max_depth = requirements.start_depth \
+            if self.parameters.with_auto_depth_configuration and requirements.start_depth \
+            else requirements.max_depth
+        generation_depth = requirements.start_depth or self.max_depth
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=generation_depth)
 
-        self.pop_size = self.requirements.pop_size or 10
+        if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
+            self.offspring_rate = 1.0
+        else:
+            self.offspring_rate = requirements.offspring_rate
+        self.pop_size = requirements.pop_size or 10
 
         self.population = None
         self.initial_graph = initial_graph
@@ -133,21 +137,21 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
         objective_function = None  # TODO: pass it
         intermediate_metrics_function = None  # TODO: pass it through init
-        n_jobs = self.requirements.n_jobs
+        n_jobs = requirements.n_jobs
         self.evaluator = Evaluate(graph_gen_params=graph_generation_params,
                                   objective_function=objective_function,
                                   is_multi_objective=self.parameters.multi_objective,
                                   timer=self.timer, log=self.log, n_jobs=n_jobs)
 
         # stopping_after_n_generation may be None, so use some obvious max number
-        max_stagnation_length = parameters.stopping_after_n_generation or self.requirements.num_of_generations
+        max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimisation = \
             CompositeCondition(self.log) \
             .add_condition(
                 lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
                 'Optimisation stopped: Time limit is reached'
             ).add_condition(
-                lambda: self.generations.generation_num >= self.requirements.num_of_generations,
+                lambda: self.generations.generation_num >= requirements.num_of_generations,
                 'Optimisation stopped: Max number of generations reached'
             ).add_condition(
                 lambda: self.generations.stagnation_length >= max_stagnation_length,
@@ -194,8 +198,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.population = self._make_population(self.pop_size)
         return self.population
 
-    # TODO: fix invalid signature according to base method (`offspring_rate` is a new param)
-    def optimise(self, objective_function, offspring_rate: float = 0.5,
+    def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
                  intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
@@ -206,7 +209,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        num_of_new_individuals = self.offspring_size(offspring_rate)
+        num_of_new_individuals = self.offspring_size
         self.log.info(f'Number of new individuals: {num_of_new_individuals}')
 
         with self.timer as t:
@@ -360,8 +363,6 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         return pop
 
-    def offspring_size(self, offspring_rate: float = 0.5):
-        if self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
-            offspring_rate = 1.0
-        num_of_new_individuals = math.ceil(self.pop_size * offspring_rate)
-        return num_of_new_individuals
+    @property
+    def offspring_size(self) -> int:
+        return math.ceil(self.pop_size * self.offspring_rate)

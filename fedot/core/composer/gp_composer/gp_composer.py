@@ -53,6 +53,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     """
     pop_size: Optional[int] = 20
     num_of_generations: Optional[int] = 20
+    offspring_rate: Optional[float] = 0.5
     crossover_prob: Optional[float] = 0.8
     mutation_prob: Optional[float] = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
