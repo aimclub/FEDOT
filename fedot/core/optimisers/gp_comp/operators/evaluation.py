@@ -89,7 +89,7 @@ class Evaluate(Operator[PopulationT]):
         return ind if ind.fitness.valid else None
 
     def calculate_fitness(self, graph: Graph) -> Fitness:
-        calculated_fitness = self.objective_function(self.graph_adapter.restore(graph))
+        calculated_fitness = self.objective_function(graph)
         if calculated_fitness is None:
             return null_fitness()
         elif self.is_multi_objective:
@@ -109,11 +109,10 @@ class Evaluate(Operator[PopulationT]):
                 metric_values = self._intermediate_metrics_function(intermediate_graph)
                 node.metadata.metric = metric_values[0]  # saving only the most important first metric
 
-    def _cleanup_memory(self, graph):
-        restored_graph = self.graph_adapter.restore(graph)
+    def _cleanup_memory(self, graph: Graph):
         # TODO: leak of Pipeline type, it shouldn't be there
-        if isinstance(restored_graph, Pipeline):
-            restored_graph.unfit()
+        if isinstance(graph, Pipeline):
+            graph.unfit()
         gc.collect()
 
     def _reset_eval_cache(self):
