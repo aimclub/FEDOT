@@ -36,8 +36,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Optional[Log] = None,
-                 suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
+                 sequence_function=fibonacci_sequence, log: Log = None):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
         if self.parameters.genetic_scheme_type is not GeneticSchemeTypesEnum.parameter_free:
@@ -53,11 +52,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         self.requirements.pop_size = self.iterator.next()
 
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
-
-        self.qual_position = 0
-        self.compl_position = 1
-
-        self.suppl_metric = suppl_metric
 
     def optimise(self, objective_function, offspring_rate: float = 0.5,
                  on_next_iteration_callback: Optional[Callable] = None,
@@ -127,7 +121,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     new_population = self.evaluator(new_population)
 
                 # TODO: make internally used iterator allow initial run (at loop beginning)
-                self.requirements.pop_size = self.next_population_size(new_population)
+                self.requirements.pop_size = self.next_population_size()
                 # TODO: move to loop beginning
                 num_of_new_individuals = self.offspring_size(offspring_rate)  # leaves iterator unchanged
                 self.log.info(f'pop size: {self.requirements.pop_size}, num of new inds: {num_of_new_individuals}')
@@ -192,45 +186,9 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 std_max = self.max_std
         return std_max
 
-    def _check_mo_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
-        complexity_decreased = False
-        fitness_improved = False
-        offspring_archive = tools.ParetoFront()
-        offspring_archive.update(offspring)
-        is_archive_improved = not is_equal_archive(self.archive, offspring_archive)
-        # TODO: somehow use following, but remember that offsrping isn't yet new population!
-        #  if self.generations.last_improved:
-        #  ...
-        #  and also somehow need not just 'last_improved', but in particuclar for all metrics?
-        if is_archive_improved:
-            best_ind_in_prev = min(self.archive.items, key=self.get_main_metric)
-            best_ind_in_current = min(offspring_archive.items, key=self.get_main_metric)
-            fitness_improved = self.get_main_metric(best_ind_in_current) < self.get_main_metric(best_ind_in_prev)
-            for offspring_ind in offspring_archive.items:
-                # TODO: so here is just a LexicographicKey on fitness.values === (main_matric, suppl_metric)
-                #  where main_metric is quality, suppl_metric is complexity
-                if self.get_main_metric(offspring_ind) <= self.get_main_metric(best_ind_in_prev) \
-                        and self.get_suppl_metric(offspring_ind) < self.get_suppl_metric(best_ind_in_prev):
-                    complexity_decreased = True
-                    break
-        return fitness_improved, complexity_decreased
-
-    def _check_so_improvements(self, offspring: List[Any]) -> Tuple[bool, bool]:
-        # TODO remove best_individual, these are the only usages
-        best_in_population = self.generations.best_individuals[0]
-        best_in_offspring = best_individual(offspring)
-        fitness_improved = best_in_offspring.fitness < best_in_population.fitness
-        complexity_decreased = \
-            self.suppl_metric(best_in_offspring.graph) < self.suppl_metric(best_in_population.graph) \
-            and best_in_offspring.fitness <= best_in_population.fitness
-        return fitness_improved, complexity_decreased
-
-    def next_population_size(self, offspring: List[Any]) -> int:
-        improvements_checker = self._check_so_improvements
-        if self.parameters.multi_objective:
-            improvements_checker = self._check_mo_improvements
-        fitness_improved, complexity_decreased = improvements_checker(offspring)
-
+    def next_population_size(self) -> int:
+        fitness_improved = self.generations.quality_improved
+        complexity_decreased = self.generations.complexity_improved
         progress_in_both_goals = fitness_improved and complexity_decreased
         no_progress = not fitness_improved and not complexity_decreased
 
@@ -260,9 +218,3 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         else:
             num_of_new_individuals = 1
         return num_of_new_individuals
-
-    def get_main_metric(self, ind: Any) -> float:
-        return ind.fitness.values[self.qual_position]
-
-    def get_suppl_metric(self, ind: Any) -> float:
-        return ind.fitness.values[self.compl_position]
