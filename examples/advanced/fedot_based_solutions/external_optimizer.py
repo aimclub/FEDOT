@@ -22,7 +22,7 @@ class RandomSearchOptimizer(GraphOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
         self.change_types = [boosting_mutation, parameter_change_mutation,
                              MutationTypesEnum.single_edge,

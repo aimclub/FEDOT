@@ -1,33 +1,33 @@
-import json
+import operator
 import timeit
+from functools import reduce
+from typing import Optional
 
 import pandas as pd
-from matplotlib import pyplot as plt, cm, colors
+from matplotlib import cm, colors, pyplot as plt
 
 from fedot.api.main import Fedot
+from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
 
 
-def count_pipelines(opt_history):
-    opt_history = json.loads(opt_history)
-    count = 0
-    for i in range(len(opt_history['individuals'])):
-        count += len(opt_history['individuals'][i])
-    return count
+def _count_pipelines(opt_history: Optional[OptHistory]) -> int:
+    if opt_history is not None:
+        return reduce(operator.add, map(len, opt_history.individuals), 0)
+    return 0
 
 
 def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
     """
     Performs experiment to show how much better to use multiprocessing mode in FEDOT
 
-    :param timeout: timeout for optimization
-    :param partitions_n: on how many folds you want. f.e. if dataset contains 20000 rows, partition_n=5 will create
-    such folds: [4000 rows, 8000 rows, 1200 rows, 16000 rows, 20000 rows]
+    :param timeout: timeout for optimization in minutes
+    :param partitions_n: on how many folds you want. f.e. if dataset contains 20000 rows, partitions_n=5 will create
+        such folds: [4000 rows, 8000 rows, 12000 rows, 16000 rows, 20000 rows]
     :param n_jobs: how many processors you want to use in a multiprocessing mode
 
     """
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     problem = 'classification'
 
@@ -35,27 +35,23 @@ def run_experiments(timeout: float = None, partitions_n=10, n_jobs=-1):
 
     data_len = len(train_data)
 
-    partitions = []
-    for i in range(1, partitions_n + 1):
-        partitions.append(int(data_len * (i / partitions_n)))
+    partitions = [int(data_len * (i / partitions_n)) for i in range(1, partitions_n + 1)]
 
-    pipelines_count = {1: [], n_jobs: []}
-    times = {1: [], n_jobs: []}
+    pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
 
-    for partition in partitions:
-        for _n_jobs in [1, n_jobs]:
-            print(f'n_jobs: {_n_jobs}, {partition} rows in dataset')
-            train_data = train_data.iloc[:partition, :]
+    for _n_jobs in [1, n_jobs]:
+        print(f'n_jobs: {_n_jobs}')
+        for partition in partitions:
+            train_data_tmp = train_data.iloc[:partition].copy()
             start_time = timeit.default_timer()
             auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=_n_jobs,
                                composer_params={'with_tuning': False}, preset='fast_train',
-                               verbose_level=4)
-            auto_model.fit(features=train_data_path, target='target')
-            auto_model.predict_proba(features=test_data_path)
-            c_pipelines = count_pipelines(auto_model.history.save())
-            pipelines_count[_n_jobs].append(c_pipelines)
+                               verbose_level=-1)
+            auto_model.fit(features=train_data_tmp, target='target')
             times[_n_jobs].append((timeit.default_timer() - start_time) / 60)
-            print(f'Count of pipelines: {c_pipelines}')
+            c_pipelines = _count_pipelines(auto_model.history)
+            pipelines_count[_n_jobs].append(c_pipelines)
+            print(f'\tDataset length: {partition}, number of pipelines: {c_pipelines}')
 
     plt.title('Comparison parallel mode with a single mode')
     plt.xlabel('rows in train dataset')

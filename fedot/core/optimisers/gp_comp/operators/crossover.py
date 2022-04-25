@@ -25,19 +25,18 @@ class CrossoverTypesEnum(Enum):
 def will_crossover_be_applied(graph_first, graph_second, crossover_prob, crossover_type) -> bool:
     return not (graph_first is graph_second or
                 random() > crossover_prob or
-                crossover_type == CrossoverTypesEnum.none)
+                crossover_type is CrossoverTypesEnum.none)
 
 
 def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
               ind_first: Individual, ind_second: Individual,
               max_depth: int, log: Log,
               crossover_prob: float = 0.8, params: 'GraphGenerationParams' = None) -> Any:
-
     crossover_type = choice(types)
     is_custom_crossover = isinstance(crossover_type, Callable)
     try:
         if will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_prob, crossover_type):
-            if crossover_type in crossover_by_type.keys() or is_custom_crossover:
+            if crossover_type in crossover_by_type or is_custom_crossover:
                 for _ in range(MAX_NUM_OF_ATTEMPTS):
                     if is_custom_crossover:
                         crossover_func = crossover_type
@@ -59,9 +58,8 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                         for graph_id, graph in enumerate(new_graphs):
                             new_graphs[graph_id] = params.adapter.adapt(graph)
 
-                    are_correct = \
-                        all([constraint_function(new_graph, params)
-                             for new_graph in new_graphs])
+                    are_correct = all(constraint_function(new_graph, params)
+                                      for new_graph in new_graphs)
 
                     if are_correct:
                         operator = ParentOperator(operator_type='crossover',

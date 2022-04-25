@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 
 import numpy as np
+
 from fedot.core.data.data import OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -174,11 +175,8 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, log: Log):
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+    def __init__(self, log: Optional[Log] = None):
+        self.log = log or default_log(__name__)
 
     @abstractmethod
     def fit(self, input_data):

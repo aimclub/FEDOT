@@ -1,6 +1,8 @@
+from typing import Tuple
+
 import networkx as nx
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
@@ -69,11 +71,11 @@ class PipelineStructureExplorer:
                         self.path_id += 1
 
         correct_branches = [branch['correctness'] for path_id, branch in self.paths.items()]
-        if all(path_correctness is True for path_correctness in correct_branches):
+        if all(is_correct_path for is_correct_path in correct_branches):
             # All paths are correct
             return True
         else:
-            # At least one branch in th graph cannot process desired type of data
+            # At least one branch in the graph cannot process desired type of data
             return False
 
     def check_path(self, path: list, tag_to_check: str):
@@ -127,7 +129,7 @@ class PipelineStructureExplorer:
                                                  'parent_number', 'child_number'])
         return self.graph, info_df
 
-    def _calculate_binary_paths(self, path: list, tag_to_check: str) -> (list, list):
+    def _calculate_binary_paths(self, path: list, tag_to_check: str) -> Tuple[list, list]:
         """
         Calculate binary masks for considering path in the graph.
         For example, branch

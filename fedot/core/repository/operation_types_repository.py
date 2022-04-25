@@ -298,7 +298,7 @@ def _is_operation_contains_tag(candidate_tags: List[str],
     :return : is there a match on the tags
     """
 
-    matches = ([(tag in operation_tags) for tag in candidate_tags])
+    matches = (tag in operation_tags for tag in candidate_tags)
     if is_full_match:
         return all(matches)
     else:

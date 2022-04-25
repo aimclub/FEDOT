@@ -1,12 +1,13 @@
 from copy import deepcopy
+from typing import Optional
 
 import numpy as np
 from scipy import interpolate
 
 from fedot.core.data.data import InputData
+from fedot.core.log import Log, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.log import Log, default_log
 
 
 def series_has_gaps_check(gapfilling_method):
@@ -34,12 +35,9 @@ class SimpleGapFiller:
     :param gap_value: value, which identify gap elements in array
     """
 
-    def __init__(self, gap_value: float = -100.0, log: Log = None):
+    def __init__(self, gap_value: float = -100.0, log: Optional[Log] = None):
         self.gap_value = gap_value
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     @series_has_gaps_check
     def linear_interpolation(self, input_data: np.array):
@@ -220,7 +218,7 @@ class ModelGapFiller(SimpleGapFiller):
     :param pipeline: TsForecastingPipeline object for filling in the gaps
     """
 
-    def __init__(self, gap_value, pipeline, log: Log = None):
+    def __init__(self, gap_value, pipeline, log: Optional[Log] = None):
         super().__init__(gap_value, log)
         self.pipeline = pipeline
 

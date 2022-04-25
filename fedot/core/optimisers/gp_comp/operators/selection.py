@@ -33,7 +33,7 @@ def selection(types: List[SelectionTypesEnum], population: List[Individual], pop
     }
 
     selection_type = choice(types)
-    if selection_type in selection_by_type.keys():
+    if selection_type in selection_by_type:
         selected = selection_by_type[selection_type](population, pop_size)
         return selected
     else:

@@ -31,7 +31,7 @@ class PipelineAnalysis:
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[MultiOperationsHPAnalyze]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Log = None):
+                 path_to_save=None, log: Optional[Log] = None):
         self.pipeline = pipeline
         self.train_data = train_data
         self.test_data = test_data

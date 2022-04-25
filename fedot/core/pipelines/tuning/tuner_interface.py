@@ -1,20 +1,21 @@
 import sys
+
 from abc import ABC, abstractmethod
-from typing import Callable, ClassVar
-from copy import deepcopy, copy
+from copy import deepcopy
 from datetime import timedelta
+from typing import Callable, ClassVar, Optional
 
 import numpy as np
-from scipy.sparse import csr_matrix
-from sklearn.preprocessing import LabelEncoder
 
+from fedot.core.data.data import data_type_is_ts
 from fedot.core.log import Log, default_log
-from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.validation.tune.time_series import cv_time_series_predictions
-from fedot.core.validation.tune.tabular import cv_tabular_predictions
-from fedot.core.validation.tune.simple import fit_predict_one_fold
 from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.validation.tune.simple import fit_predict_one_fold
+from fedot.core.validation.tune.tabular import cv_tabular_predictions
+from fedot.core.validation.tune.time_series import cv_time_series_predictions
+from sklearn.preprocessing import LabelEncoder
 
 MAX_METRIC_VALUE = sys.maxsize
 
@@ -32,7 +33,7 @@ class HyperoptTuner(ABC):
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None,
+                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = None):
         self.pipeline = pipeline
@@ -48,10 +49,7 @@ class HyperoptTuner(ABC):
         self.search_space = search_space
         self.algo = algo
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
@@ -180,7 +178,7 @@ class HyperoptTuner(ABC):
     def _one_fold_validation(data, pipeline):
         """ Perform simple (hold-out) validation """
 
-        if data.task.task_type == TaskTypesEnum.classification:
+        if data.task.task_type is TaskTypesEnum.classification:
             test_target, preds = fit_predict_one_fold(data, pipeline)
         else:
             # For regression and time series forecasting
@@ -194,12 +192,13 @@ class HyperoptTuner(ABC):
     def _cross_validation(self, data, pipeline):
         """ Perform cross validation for metric evaluation """
 
+        preds, test_target = [], []
         if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
                 data.data_type is DataTypesEnum.image:
             preds, test_target = cv_tabular_predictions(pipeline, data,
                                                         cv_folds=self.cv_folds)
 
-        elif data.data_type is DataTypesEnum.ts:
+        elif data_type_is_ts(data):
             if self.validation_blocks is None:
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.validation_blocks = 3
@@ -226,9 +225,10 @@ def _create_multi_target_prediction(target):
     :return: 2d-array of classes probabilities
     """
 
-    len_target = target.shape[0]
+    nb_classes = len(np.unique(target))
 
-    multi_target = csr_matrix((np.ones(len_target), (np.arange(len_target), target.reshape((len_target,))))).A
+    assert np.issubdtype(target.dtype, np.integer), 'Impossible to create multi target array from non integers'
+    multi_target = np.eye(nb_classes)[target.ravel()]
 
     return multi_target
 
@@ -250,19 +250,18 @@ def _greater_is_better(loss_function, loss_params) -> bool:
         loss_params = {}
 
     try:
-        optimal_metric = loss_function(ground_truth, precise_prediction, **loss_params)
-        not_optimal_metric = loss_function(ground_truth, approximate_prediction, **loss_params)
-    except ValueError:
-        multiclass_precise_prediction = _create_multi_target_prediction(precise_prediction)
-        multiclass_approximate_prediction = _create_multi_target_prediction(approximate_prediction)
+        optimal_metric, non_optimal_metric = [
+            loss_function(ground_truth, score, **loss_params) for score in [precise_prediction, approximate_prediction]]
+    except Exception:
+        multiclass_precise_pred, multiclass_approximate_pred = [
+            _create_multi_target_prediction(score) for score in [precise_prediction, approximate_prediction]]
 
-        optimal_metric = loss_function(ground_truth, multiclass_precise_prediction, **loss_params)
-        not_optimal_metric = loss_function(ground_truth, multiclass_approximate_prediction, **loss_params)
+        optimal_metric, non_optimal_metric = [
+            loss_function(ground_truth, score, **loss_params)
+            for score in [multiclass_precise_pred, multiclass_approximate_pred]
+        ]
 
-    if optimal_metric > not_optimal_metric:
-        return True
-    else:
-        return False
+    return optimal_metric > non_optimal_metric
 
 
 def _calculate_loss_function(loss_function, loss_params, target, preds):

@@ -1,10 +1,11 @@
 from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar
-from hyperopt import fmin, tpe, space_eval
+from typing import Callable, ClassVar, Optional
+
+from hyperopt import fmin, space_eval, tpe
 
 from fedot.core.log import Log
-from fedot.core.pipelines.tuning.search_space import convert_params, SearchSpace
+from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
 
@@ -15,7 +16,7 @@ class PipelineTuner(HyperoptTuner):
 
     def __init__(self, pipeline, task, iterations=100,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None,
+                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
         super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)

@@ -107,7 +107,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
         with_metrics(metric_function).with_initial_pipelines([pipeline])
     composer = builder.build()
 
-    obtained_pipeline = composer.compose_pipeline(data=train_data, is_visualise=False)
+    obtained_pipeline = composer.compose_pipeline(data=train_data)
 
     obtained_pipeline.fit_from_scratch(train_data)
     prediction_after = obtained_pipeline.predict(test_data)

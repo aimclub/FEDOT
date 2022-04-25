@@ -12,8 +12,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -60,7 +60,7 @@ def get_mutation_prob(mut_id, node):
 
 
 def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
-    return not (random() > mutation_prob or mutation_type == MutationTypesEnum.none)
+    return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
 
 
 def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List[Union[MutationTypesEnum, Callable]],
@@ -108,7 +108,7 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
             new_graph = mutation_func(new_graph, requirements=requirements,
                                       params=params,
                                       max_depth=max_depth)
-        elif mutation_type != MutationTypesEnum.none:
+        elif mutation_type is not MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
     return new_graph
 

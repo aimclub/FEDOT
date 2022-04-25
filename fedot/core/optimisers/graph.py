@@ -1,12 +1,12 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Iterable
+from typing import Any, Iterable, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
-from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.log import Log, default_log
+from fedot.core.utilities.data_structures import UniqueList, ensure_list
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
@@ -39,11 +39,7 @@ class OptNode:
                  ):
         default_dict = {'params': DEFAULT_PARAMS_STUB}
 
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         if isinstance(content, str):
             content = {'name': content}
@@ -93,22 +89,15 @@ class OptGraph:
     """
 
     def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None,
-                 log: Log = None):
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+                 log: Optional[Log] = None):
+        self.log = log or default_log(__name__)
 
         self.nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
-            if isinstance(nodes, list):
-                for node in nodes:
-                    self.add_node(node)
-            else:
-                self.add_node(nodes)
+            for node in ensure_list(nodes):
+                self.add_node(node)
 
     def _empty_postproc(self, nodes=None):
         pass

@@ -21,11 +21,11 @@ class RegularizationTypesEnum(Enum):
 def regularized_population(reg_type: RegularizationTypesEnum, population: List[Any],
                            objective_function: Callable,
                            graph_generation_params: Any, size: Optional[int] = None, timer=None) -> List[Any]:
-    if reg_type == RegularizationTypesEnum.decremental:
+    if reg_type is RegularizationTypesEnum.decremental:
         additional_inds = decremental_regularization(population, objective_function,
                                                      graph_generation_params, size, timer=timer)
         return population + additional_inds
-    elif reg_type == RegularizationTypesEnum.none:
+    elif reg_type is RegularizationTypesEnum.none:
         return population
     else:
         raise ValueError(f'Required regularization type not found: {type}')

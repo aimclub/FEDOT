@@ -1,19 +1,19 @@
 import os
-from typing import Optional
 from copy import deepcopy
-
 from inspect import signature
+from typing import Optional
+
 from matplotlib import pyplot as plt
 from sklearn import tree
 from sklearn.tree._tree import TREE_LEAF
 
-from fedot.core.utils import default_fedot_data_dir
-from fedot.explainability.explainer_template import Explainer
+from fedot.core.composer.metrics import Metric
 from fedot.core.composer.metrics import R2, F1
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.explainability.explainer_template import Explainer
 
 
 class SurrogateExplainer(Explainer):
@@ -149,11 +149,11 @@ def prune_index(inner_tree, decisions, index=0):
 
 
 def prune_duplicate_leaves(mdl):
-    '''
+    """
     Function for pruning redundant leaves of a tree by Thomas (https://stackoverflow.com/users/4629950/thomas).
     Source: https://stackoverflow.com/questions/51397109/prune-unnecessary-leaves-in-sklearn-decisiontreeclassifier
     :param mdl: `DecisionTree` or `DecisionTreeRegressor` instance by sklearn.
-    '''
+    """
     # Remove leaves if both
     decisions = mdl.tree_.value.argmax(axis=2).flatten().tolist()  # Decision for each node
     prune_index(mdl.tree_, decisions)

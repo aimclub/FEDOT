@@ -32,14 +32,10 @@ class Pipeline(Graph):
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
         self.computation_time = None
         self.template = None
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor(self.log)
@@ -173,7 +169,7 @@ class Pipeline(Graph):
 
     @property
     def is_fitted(self):
-        return all([(node.fitted_operation is not None) for node in self.nodes])
+        return all(node.fitted_operation is not None for node in self.nodes)
 
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
         """
@@ -185,22 +181,14 @@ class Pipeline(Graph):
         :param unfit_preprocessor: should we unfit preprocessor
         """
         for node in self.nodes:
-            if mode == 'all' or (mode == 'data_operations' and type(node.content['name']) == DataOperation):
+            if mode == 'all' or (mode == 'data_operations' and isinstance(node.content['name'], DataOperation)):
                 node.unfit()
 
         if unfit_preprocessor:
             self.preprocessor = DataPreprocessor(self.log)
 
-    def fit_from_cache(self, cache: OperationsCache, fold_num: int = 0) -> bool:
-        is_cache_used = False
-        for node in self.nodes:
-            cached_state = cache.get(node, fold_num)
-            if cached_state:
-                node.fitted_operation = cached_state.operation
-                is_cache_used = True
-            else:
-                node.fitted_operation = None
-        return is_cache_used
+    def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
+        return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
@@ -336,10 +324,10 @@ class Pipeline(Graph):
         pipeline.preprocessor = self.preprocessor
         return pipeline
 
-    def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
+    def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):
-            for node in [n for n in self.nodes if isinstance(n, PrimaryNode)]:
-                if node.operation.operation_type in input_data.keys():
+            for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
+                if node.operation.operation_type in input_data:
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
                 else:

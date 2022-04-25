@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Union
+from typing import Optional, Union
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
@@ -18,18 +18,14 @@ class Operation:
     :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Log = None, **kwargs):
+    def __init__(self, operation_type: str, log: Optional[Log] = None, **kwargs):
         self.operation_type = operation_type
-        self.log = log
 
         self._eval_strategy = None
         self.operations_repo = None
         self.fitted_operation = None
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
