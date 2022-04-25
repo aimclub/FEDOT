@@ -258,7 +258,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = self.evaluator(new_population)
 
-                num_of_new_individuals = self.pop_size
+                num_of_new_individuals = self.offspring_size
                 if self.with_elitism:
                     num_of_new_individuals -= len(self.generations.best_individuals)
 
