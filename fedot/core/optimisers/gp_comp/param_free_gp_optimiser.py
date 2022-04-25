@@ -103,9 +103,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 # TODO: collapse this selection & reprodue for 1 and for many
-                if num_of_new_individuals == 1 and len(self.population) == 1:
+                if len(self.population) == 1:
                     new_population = list(self.reproduce(self.population[0]))
-                    new_population = self.evaluator(new_population)
                 else:
                     num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
 
@@ -115,11 +114,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                                      params=self.graph_generation_params)
 
                     new_population = []
-
                     for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
                         new_population += self.reproduce(ind_1, ind_2)
 
-                    new_population = self.evaluator(new_population)
+                new_population = self.evaluator(new_population)
 
                 # TODO: make internally used iterator allow initial run (at loop beginning)
                 self.pop_size = self.offspring_size
