@@ -195,10 +195,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         if self.initial_graph:
             initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
                                    self.initial_graph]
-            self.population = self._create_randomized_pop(initial_individuals, pop_size)
-        if self.population is None:
-            self.population = self._make_population(pop_size)
-        return self.population
+            new_population = self._create_randomized_pop(initial_individuals, pop_size)
+        else:
+            new_population = self._make_population(pop_size)
+        return new_population
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
@@ -217,8 +217,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
             pop_size = self._pop_size.initial
-            self._init_population(pop_size)
-            self.population = self.evaluator(self.population)
+            self.population = self.evaluator(self._init_population(pop_size))
             self.generations.append(self.population)
 
             on_next_iteration_callback(self.population, self.generations.best_individuals)

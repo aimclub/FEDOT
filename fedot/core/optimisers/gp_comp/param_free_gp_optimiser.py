@@ -68,8 +68,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
             pop_size = self._pop_size.initial
-            self._init_population(pop_size)
-            self.population = self.evaluator(self.population)
+            self.population = self.evaluator(self._init_population(pop_size))
             self.generations.append(self.population)
 
             on_next_iteration_callback(self.population, self.generations.best_individuals)
