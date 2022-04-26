@@ -16,6 +16,7 @@ from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGrap
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.generation_keeper import best_individual
+from fedot.core.optimisers.gp_comp.operators.population_size import PopulationSize, AdaptivePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
@@ -36,7 +37,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Log = None):
+                 log: Log = None):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
         self._min_population_size_with_elitism = 7
@@ -44,12 +45,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
             self.parameters.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
-        self.sequence_function = sequence_function
-        self.max_pop_size = max_population_size
-        self.iterator = SequenceIterator(sequence_func=self.sequence_function, min_sequence_value=1,
-                                         max_sequence_value=self.max_pop_size,
-                                         start_value=self.requirements.pop_size)
-        self.pop_size = self.iterator.next()
+        pop_size_progression = SequenceIterator(sequence_func=fibonacci_sequence,
+                                                start_value=requirements.pop_size,
+                                                min_sequence_value=1, max_sequence_value=max_population_size)
+        self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
 
         self.stopping_after_n_generation = parameters.stopping_after_n_generation
 
@@ -63,17 +62,13 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
 
-        # TODO: leave this eval at the beginning of loop
-        # TODO: maybe substitute for self.offspring_size? seems more right.
-        num_of_new_individuals = self.pop_size
-        self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
-
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc='Generations', unit='gen', initial=1,
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
-            self._init_population()
+            pop_size = self._pop_size.initial
+            self._init_population(pop_size)
             self.population = self.evaluator(self.population)
             self.generations.append(self.population)
 
@@ -83,6 +78,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             while not self.stop_optimisation():
                 self.log.info(f'Generation num: {self.generations.generation_num}')
                 self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
+                pop_size = self._pop_size.next(pop_size)
+                self.log.info(f'Next pop size: {pop_size}')
 
                 # TODO: subst to mutation params
                 if self.parameters.with_auto_depth_configuration and self.generations.generation_num > 0:
@@ -106,7 +103,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 if len(self.population) == 1:
                     new_population = list(self.reproduce(self.population[0]))
                 else:
-                    num_of_parents = num_of_parents_in_crossover(num_of_new_individuals)
+                    num_of_parents = num_of_parents_in_crossover(pop_size)
 
                     selected_individuals = selection(types=self.parameters.selection_types,
                                                      population=individuals_to_select,
@@ -119,23 +116,22 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                 new_population = self.evaluator(new_population)
 
-                # TODO: make internally used iterator allow initial run (at loop beginning)
-                self.pop_size = self.offspring_size
-                num_of_new_individuals = self.pop_size
-                if self.with_elitism:
+                with_elitism = self.with_elitism(pop_size)
+                num_of_new_individuals = pop_size
+                if with_elitism:
                     num_of_new_individuals -= len(self.generations.best_individuals)
-                self.log.info(f'pop size: {self.pop_size}, num of new inds: {num_of_new_individuals}')
 
-                self.population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
-                                              self.population,
-                                              new_population, num_of_new_individuals,
-                                              graph_params=self.graph_generation_params)
+                new_population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
+                                             self.population,
+                                             new_population, num_of_new_individuals,
+                                             graph_params=self.graph_generation_params)
 
                 # Add best individuals from the previous generation
-                if self.with_elitism:
-                    self.population.extend(self.generations.best_individuals)
+                if with_elitism:
+                    new_population.extend(self.generations.best_individuals)
                 # Then update generation
-                self.generations.append(self.population)
+                self.generations.append(new_population)
+                self.population = new_population
 
                 # TODO: move into dynamic mutation operator
                 if not self.generations.last_improved:
@@ -178,23 +174,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             else:
                 std_max = self.max_std
         return std_max
-
-    @property
-    def offspring_size(self) -> int:
-        fitness_improved = self.generations.quality_improved
-        complexity_decreased = self.generations.complexity_improved
-        progress_in_both_goals = fitness_improved and complexity_decreased
-        no_progress = not fitness_improved and not complexity_decreased
-
-        next_population_size = len(self.population)
-        if progress_in_both_goals and len(self.population) > 2:
-            if self.iterator.has_prev():
-                next_population_size = self.iterator.prev()
-        elif no_progress:
-            if self.iterator.has_next():
-                next_population_size = self.iterator.next()
-
-        return next_population_size
 
     def operators_prob_update(self):
         std = float(self.current_std)
