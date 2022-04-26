@@ -381,6 +381,7 @@ class PipelineEvolutionVisualiser:
         )
         fig = plot.figure
         fig.set_dpi(110)
+        fig.set_facecolor('w')
 
         if save_path_to_file:
             fig.savefig(save_path_to_file, dpi=300)
