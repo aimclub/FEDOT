@@ -1,7 +1,9 @@
 from typing import Callable
 
+from fedot.core.utilities.data_structures import BidirectionalIterator
 
-class SequenceIterator(object):
+
+class SequenceIterator(BidirectionalIterator[int]):
     """
     The value of this iterator changes according to specified sequence. Iterator is used in parameter-free evolutionary
     scheme for population size control.
@@ -31,7 +33,7 @@ class SequenceIterator(object):
             has = False
         return has
 
-    def has_next(self):
+    def has_next(self) -> bool:
         if self.max_sequence_value:
             has = self.max_sequence_value >= self.sequence_item_calculation(self.index + 1)
         else:
