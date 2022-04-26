@@ -23,7 +23,7 @@ def metric_evaluation(pipeline: Pipeline,
     :param pipeline: pipeline for validation
     :param train_data: InputData for train
     :param test_data: InputData for validation
-    :param metrics: list with metrics for evaluation
+    :param metrics: metrics for evaluation
     :param fold_id: id of fold for cross-validation
     :param vb_number: number of validation blocks for time series
     :param time_constraint: optional time constraint for pipeline.fit
