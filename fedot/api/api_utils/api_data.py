@@ -38,7 +38,8 @@ class ApiDataProcessor:
     def define_data(self,
                     features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
                     target: Union[str, np.ndarray, pd.Series] = None,
-                    is_predict=False):
+                    is_predict=False,
+                    use_preprocessing: bool = False):
         """ Prepare data for FEDOT pipeline composing.
         Obligatory preprocessing steps are applying also. If features is dictionary
         there is a need to process MultiModalData
@@ -60,6 +61,10 @@ class ApiDataProcessor:
             raise ValueError('Please specify the "features" as path to as path to csv file/'
                              'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
                              f'Exception: {ex}')
+
+        if use_preprocessing is False:
+            # There is no need to use obligatory preprocessing - return data as is
+            return data
 
         # Perform obligatory steps of data preprocessing
         if is_predict:

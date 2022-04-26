@@ -1,4 +1,6 @@
 from copy import deepcopy
+import datetime
+import pandas as pd
 from datetime import timedelta
 from typing import Callable, List, Optional, Tuple, Union
 
@@ -41,6 +43,17 @@ class Pipeline(Graph):
         self.preprocessor = DataPreprocessor(self.log)
         super().__init__(nodes)
         self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
+
+        self.fit_preprocessing_time = None
+        self.fit_all_time = None
+        self.predict_preprocessing_time = None
+        self.predict_all_time = None
+
+        self.df = pd.DataFrame({'fit preprocessing': [],
+                                'fit full time': [],
+                                'predict preprocessing': [],
+                                'predict full time': [],
+                                'pipeline structure': []})
 
     def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
         """Method to update nodes types after performing some action on the pipeline
@@ -148,6 +161,8 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
+
+        start_preprocessing_fit = datetime.datetime.now()
         copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
@@ -155,6 +170,8 @@ class Pipeline(Graph):
 
         copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
                                                                       data=copied_input_data)
+        self.fit_preprocessing_time = datetime.datetime.now() - start_preprocessing_fit
+        self.fit_preprocessing_time = self.fit_preprocessing_time.total_seconds()
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
@@ -165,6 +182,24 @@ class Pipeline(Graph):
             train_predicted = self._fit_with_time_limit(input_data=copied_input_data,
                                                         use_fitted_operations=use_fitted,
                                                         time=time_constraint)
+        self.fit_all_time = datetime.datetime.now() - start_preprocessing_fit
+        self.fit_all_time = self.fit_all_time.total_seconds()
+
+        self.df['fit preprocessing'] = [self.fit_preprocessing_time]
+        self.df['fit full time'] = [self.fit_all_time]
+
+        ops = []
+        for node in self.nodes:
+            if node.operation.operation_type == 'simple_imputation' and 'simple_imputation' not in ops:
+                ops.append('simple_imputation')
+            elif node.operation.operation_type == 'one_hot_encoding' and 'one_hot_encoding' not in ops:
+                ops.append('one_hot_encoding')
+            elif node.operation.operation_type == 'label_encoding' and 'label_encoding' not in ops:
+                ops.append('label_encoding')
+
+        if len(ops) == 0:
+            ops = 'no preprocessing operations'
+        self.df['pipeline structure'] = [str(ops)]
         return train_predicted
 
     @property
@@ -210,12 +245,17 @@ class Pipeline(Graph):
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
+
+        start_preprocessing_predict = datetime.datetime.now()
         copied_input_data = self.preprocessor.obligatory_prepare_for_predict(copied_input_data)
         # Make additional preprocessing if it is needed
         copied_input_data = self.preprocessor.optional_prepare_for_predict(pipeline=self,
                                                                            data=copied_input_data)
         copied_input_data = self.preprocessor.convert_indexes_for_predict(pipeline=self,
                                                                           data=copied_input_data)
+        self.predict_preprocessing_time = datetime.datetime.now() - start_preprocessing_predict
+        self.predict_preprocessing_time = self.predict_preprocessing_time.total_seconds()
+
         copied_input_data = update_indices_for_time_series(copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
@@ -226,6 +266,18 @@ class Pipeline(Graph):
         # Prediction should be converted into source labels (if it is needed)
         if output_mode == 'labels':
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
+
+        self.predict_all_time = datetime.datetime.now() - start_preprocessing_predict
+        self.predict_all_time = self.predict_all_time.total_seconds()
+        self.df['predict preprocessing'] = [self.predict_preprocessing_time]
+        self.df['predict full time'] = [self.predict_all_time]
+
+        # Get file name
+        if input_data.supplementary_data.was_preprocessed:
+            file_path = 'D:/ITMO/FEDOT_correct/experiments/preprocessed_results.csv'
+        else:
+            file_path = 'D:/ITMO/FEDOT_correct/experiments/non_preprocessed_results.csv'
+        self.df.to_csv(file_path, mode='a', header=False, index=False)
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
