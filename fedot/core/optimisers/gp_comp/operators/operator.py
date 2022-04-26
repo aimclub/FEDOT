@@ -25,3 +25,19 @@ class Operator(ABC, Generic[T]):
     @abstractmethod
     def __call__(self, operand: T) -> T:
         pass
+
+
+class AdaptiveParameter(ABC, Generic[T]):
+    """Abstract interface for parameters of evolutionary algorithm.
+    Adaptive paramter is defined by `initial` value and subsequent `next` values.
+    Paramater can potenitally change on each call to next().
+    The specific policy of adaptiveness is determined by implementations."""
+
+    @property
+    @abstractmethod
+    def initial(self) -> T:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def next(self, current: T) -> T:
+        raise NotImplementedError()
