@@ -49,13 +49,13 @@ def test_archive_no_improvement():
     assert archive.stagnation_length == 0
     assert archive.last_improved
     assert archive.quality_improved and archive.complexity_improved
-    assert archive.generation_num == 1
+    assert archive.generation_num == 0
 
     archive.append(population1())
     assert archive.stagnation_length == 1
     assert not archive.last_improved
     assert not archive.quality_improved and not archive.complexity_improved
-    assert archive.generation_num == 2
+    assert archive.generation_num == 1
 
 
 def test_archive_multiobj_one_improvement():
@@ -69,7 +69,7 @@ def test_archive_multiobj_one_improvement():
 
     assert archive.stagnation_length == 0
     assert archive.last_improved
-    assert archive.generation_num == 2
+    assert archive.generation_num == 1
     # plus one non-dominated individual
     # minus one strongly dominated individual (substituted by better one)
     assert len(archive.best_individuals) == previous_size + 1

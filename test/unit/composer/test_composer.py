@@ -165,7 +165,7 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_completed_evolution.compose_pipeline(data=data)
 
-    assert len(gp_composer_terminated_evolution.history.individuals) == 2
+    assert len(gp_composer_terminated_evolution.history.individuals) == 1  # only the initial randomized population
     assert len(gp_composer_completed_evolution.history.individuals) == 3
 
 

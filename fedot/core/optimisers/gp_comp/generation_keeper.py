@@ -95,8 +95,8 @@ class GenerationKeeper(ImprovementWatcher):
                  metrics: Sequence[MetricsEnum] = (),
                  archive: ArchiveType = None,
                  keep_n_best: int = 1):
-        self._generation_num = 0  # zero means no generations
-        self._stagnation_counter = 1  # Initialized in stagnated state
+        self._generation_num = -1  # -1 means no generations
+        self._stagnation_counter = 0  # Initialized in non-stagnated state
         self._metrics_improvement = {metric_id: False for metric_id in metrics}
 
         if archive is None:
