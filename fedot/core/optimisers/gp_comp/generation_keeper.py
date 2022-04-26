@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Protocol, Any, Union, Sequence, Set, Optional
 
 import numpy as np
@@ -54,7 +55,28 @@ def best_individual(individuals: Sequence[Individual]) -> Individual:
     return min(individuals, key=ind_compound_key)
 
 
-class GenerationKeeper:
+class ImprovementWatcher(ABC):
+    """Interface that allows to check if optimization progresses or stagnates."""
+
+    @property
+    @abstractmethod
+    def last_improved(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def metric_improved(self, metric: MetricsEnum) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def quality_improved(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def complexity_improved(self) -> bool:
+        raise NotImplementedError()
+
+
+class GenerationKeeper(ImprovementWatcher):
     """Generation keeper that primarily tracks number of generations and stagnation duration.
 
     :param initial_generation: first generation;
