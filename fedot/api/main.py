@@ -96,24 +96,25 @@ class Fedot:
                  initial_assumption: Union[Pipeline, List[Pipeline]] = None,
                  n_jobs: int = 1,
                  use_cache: bool = False,
-                 use_preprocessing: bool = False
+                 use_default_preprocessors: bool = False
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
         self.metrics = ApiMetrics(problem)
         self.api_composer = ApiComposer(problem)
         self.params = ApiParams()
-        self.use_preprocessing = use_preprocessing
+        self.use_default_preprocessors = use_default_preprocessors
+        self.api_composer.use_default_preprocessors = use_default_preprocessors
 
         df = pd.DataFrame({'fit preprocessing': [],
                            'fit full time': [],
                            'predict preprocessing': [],
                            'predict full time': [],
                            'pipeline structure': []})
-        if self.use_preprocessing:
-            self.file_name = 'preprocessed_results.csv'
+        if self.use_default_preprocessors:
+            self.file_name = 'default_preprocessors.csv'
         else:
-            self.file_name = 'non_preprocessed_results.csv'
+            self.file_name = 'no_default_preprocessors.csv'
         df.to_csv(self.file_name, index=False)
 
         # Define parameters, that were set via init in init
@@ -158,8 +159,7 @@ class Fedot:
         """
         self.target = target
 
-        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False,
-                                                          use_preprocessing=self.use_preprocessing)
+        self.train_data = self.data_processor.define_data(features=features, target=target, is_predict=False)
 
         # Launch data analyser - it gives recommendations for data preprocessing
         full_train_not_preprocessed = deepcopy(self.train_data)

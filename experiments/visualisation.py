@@ -18,32 +18,22 @@ def calculate_proportion(preprocessing_time: np.ndarray, full_time: np.ndarray):
 def display_plots(dir: str):
     """ Display some plots after experiments """
     dir = os.path.abspath(dir)
-    preprocessing_df = pd.read_csv(os.path.join(dir, 'preprocessed_results.csv'))
-    preprocessing_df['was preprocessed'] = [True] * len(preprocessing_df)
-    preprocessing_df['Fit preprocessing ratio, sec.'] = (preprocessing_df['fit preprocessing'] / preprocessing_df['fit full time']) * 100
-    preprocessing_df['Predict preprocessing ratio, sec.'] = (preprocessing_df['predict preprocessing'] / preprocessing_df['predict full time']) * 100
+    df_1 = pd.read_csv(os.path.join(dir, 'default_preprocessors.csv'))
+    df_2 = pd.read_csv(os.path.join(dir, 'no_default_preprocessors.csv'))
+    df = pd.concat([df_1, df_2])
+    df['Fit preprocessing ratio, %'] = (df['fit preprocessing'] / df['fit full time']) * 100
+    df['pipeline structure'][df['pipeline structure'] != 'no preprocessing operations'] = 'preprocessing in the pipeline'
 
-    print(f'Preprocessing was set as True')
-    calculate_proportion(preprocessing_df['fit preprocessing'], preprocessing_df['fit full time'])
-    calculate_proportion(preprocessing_df['predict preprocessing'], preprocessing_df['predict full time'])
+    df_1 = df[df['pipeline structure'] == 'no preprocessing operations']
+    mean_preprocessing_default = np.mean(np.array(df_1['Fit preprocessing ratio, %']))
+    print(f'Default preprocessing {mean_preprocessing_default:.2f}')
 
-    non_preprocessing_df = pd.read_csv(os.path.join(dir, 'non_preprocessed_results.csv'))
-    non_preprocessing_df['was preprocessed'] = [False] * len(non_preprocessing_df)
-    non_preprocessing_df['Fit preprocessing ratio, sec.'] = (non_preprocessing_df['fit preprocessing'] / non_preprocessing_df['fit full time']) * 100
-    non_preprocessing_df['Predict preprocessing ratio, sec.'] = (non_preprocessing_df['predict preprocessing'] / non_preprocessing_df['predict full time']) * 100
+    df_2 = df[df['pipeline structure'] == 'preprocessing in the pipeline']
+    mean_preprocessing_in_pipeline = np.mean(np.array(df_2['Fit preprocessing ratio, %']))
+    print(f'Preprocessing in the pipeline {mean_preprocessing_in_pipeline:.2f}')
 
-    print(f'\nPreprocessing was set as False')
-    calculate_proportion(non_preprocessing_df['fit preprocessing'], non_preprocessing_df['fit full time'])
-    calculate_proportion(non_preprocessing_df['predict preprocessing'], non_preprocessing_df['predict full time'])
-
-    common_df = pd.concat([preprocessing_df, non_preprocessing_df])
-
-    sns.boxplot(x="was preprocessed", y="Fit preprocessing ratio, sec.", data=common_df,
+    sns.boxplot(x="pipeline structure", y="Fit preprocessing ratio, %", data=df,
                 palette='Blues')
-    plt.show()
-
-    sns.boxplot(x="was preprocessed", y="Predict preprocessing ratio, sec.", data=common_df,
-                palette='Reds')
     plt.show()
 
 

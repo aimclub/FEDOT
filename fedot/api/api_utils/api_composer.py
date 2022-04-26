@@ -46,6 +46,7 @@ class ApiComposer:
         self.cache: Optional[OperationsCache] = None
         self.preset_name = None
         self.timer = None
+        self.use_default_preprocessors = None
 
     def obtain_metric(self, task: Task, composer_metric: Union[str, Callable]):
         # the choice of the metric for the pipeline quality assessment during composition
@@ -158,8 +159,7 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    @staticmethod
-    def _set_initial_assumption(api_params: dict, composer_params: dict):
+    def _set_initial_assumption(self, api_params: dict, composer_params: dict):
         """ Generates and sets an initial assumption, if not given, from the given available operations
         Also, since it is impossible to form a valid pipeline for the time series problem without 'lagged' operation,
         if it is not in the list of available ones, it is added """
@@ -181,6 +181,7 @@ class ApiComposer:
                 .get(api_params['task'], api_params['train_data']) \
                 .with_logger(api_params['logger']) \
                 .from_operations(composer_params['available_operations'])
+            assumptions_builder.use_default_preprocessors = self.use_default_preprocessors
             api_params['initial_assumption'] = assumptions_builder.build()
 
     def init_cache(self, use_cache: bool):

@@ -1,0 +1,125 @@
+fit preprocessing,fit full time,predict preprocessing,predict full time,pipeline structure
+0.02194,8.109918,0.009117,0.092347,"['one_hot_encoding', 'simple_imputation']"
+0.019945,0.237872,0.009545,0.051401,"['one_hot_encoding', 'simple_imputation']"
+0.024934,6.423805,0.008976,0.109706,"['one_hot_encoding', 'simple_imputation']"
+0.021941,6.421766,0.009974,0.113761,"['one_hot_encoding', 'simple_imputation']"
+0.021942,0.255757,0.009482,0.042417,"['one_hot_encoding', 'simple_imputation']"
+0.017492,6.323167,0.007984,0.10472,"['one_hot_encoding', 'simple_imputation']"
+0.139653,6.52076,0.037927,0.132105,['one_hot_encoding']
+0.031915,6.456268,0.008976,0.109249,"['one_hot_encoding', 'simple_imputation']"
+0.020944,6.372471,0.009972,0.111703,"['one_hot_encoding', 'simple_imputation']"
+0.02842,0.333737,0.012963,0.073772,"['one_hot_encoding', 'simple_imputation']"
+0.091758,0.202027,0.026901,0.043087,"['one_hot_encoding', 'simple_imputation']"
+0.019944,6.368464,0.008977,0.108741,"['one_hot_encoding', 'simple_imputation']"
+0.083808,6.425237,0.023667,0.106477,['simple_imputation']
+0.087782,6.46665,0.022966,0.102783,['simple_imputation']
+0.021909,8.845988,0.008978,0.111528,"['one_hot_encoding', 'simple_imputation']"
+0.020377,0.51806,0.008976,0.046874,"['one_hot_encoding', 'simple_imputation']"
+0.083283,0.156342,0.021941,0.030889,['simple_imputation']
+0.020944,0.23537,0.008976,0.04224,"['one_hot_encoding', 'simple_imputation']"
+0.138691,8.834745,0.038869,0.117657,no preprocessing operations
+0.028517,11.742602,0.012966,0.147637,"['one_hot_encoding', 'simple_imputation']"
+0.019944,0.227772,0.008977,0.040891,"['one_hot_encoding', 'simple_imputation']"
+0.021941,0.229076,0.008977,0.040892,"['one_hot_encoding', 'simple_imputation']"
+0.025929,6.394118,0.008976,0.110735,"['one_hot_encoding', 'simple_imputation']"
+0.019919,0.228274,0.009975,0.042791,"['one_hot_encoding', 'simple_imputation']"
+0.138629,6.476746,0.037466,0.13022,['one_hot_encoding']
+0.080354,6.303706,0.021942,0.099766,['simple_imputation']
+0.1496,8.095937,0.041206,0.124567,"['simple_imputation', 'one_hot_encoding']"
+0.142623,8.825569,0.037878,0.115357,no preprocessing operations
+0.019966,6.303442,0.007979,0.106715,"['one_hot_encoding', 'simple_imputation']"
+0.021453,0.232907,0.009179,0.041888,"['one_hot_encoding', 'simple_imputation']"
+0.084774,6.336622,0.02297,0.103754,['simple_imputation']
+0.080755,6.337872,0.024934,0.112207,['one_hot_encoding']
+0.078789,6.324656,0.020941,0.0983,['simple_imputation']
+0.025931,6.494552,0.010975,0.131895,"['one_hot_encoding', 'simple_imputation']"
+0.086825,11.61929,0.027923,0.132213,['one_hot_encoding']
+0.019944,6.38957,0.008976,0.110704,"['one_hot_encoding', 'simple_imputation']"
+0.020971,0.226587,0.008972,0.041857,"['one_hot_encoding', 'simple_imputation']"
+0.082836,5.485455,0.020654,0.069813,['simple_imputation']
+0.019937,6.362997,0.008976,0.111729,"['one_hot_encoding', 'simple_imputation']"
+0.028429,14.129563,0.012965,0.141684,"['one_hot_encoding', 'simple_imputation']"
+0.024936,6.501877,0.010942,0.131779,"['one_hot_encoding', 'simple_imputation']"
+0.137632,6.501051,0.037899,0.130682,['one_hot_encoding']
+0.017952,6.363799,0.00701,0.111771,"['one_hot_encoding', 'simple_imputation']"
+0.07879,0.280264,0.020294,0.027915,['simple_imputation']
+0.081485,6.270958,0.021943,0.097739,['simple_imputation']
+0.087903,6.294477,0.022942,0.10236,['simple_imputation']
+0.089761,6.519058,0.025932,0.110709,"['one_hot_encoding', 'simple_imputation']"
+0.092263,11.659703,0.027928,0.132648,['one_hot_encoding']
+0.157578,0.794398,0.048842,0.137082,"['one_hot_encoding', 'simple_imputation']"
+0.020945,6.395281,0.009003,0.110732,"['one_hot_encoding', 'simple_imputation']"
+0.0903,11.601625,0.025957,0.111296,['simple_imputation']
+0.0269,11.651611,0.011971,0.141621,"['one_hot_encoding', 'simple_imputation']"
+0.094778,6.330269,0.022937,0.103264,['simple_imputation']
+0.083775,4.118019,0.022941,0.076798,['simple_imputation']
+0.084773,1.22646,0.022942,0.074342,['simple_imputation']
+0.085056,2.980304,0.021939,0.08342,['simple_imputation']
+0.08476,2.823648,0.023907,0.070781,['simple_imputation']
+0.095257,4.189634,0.021941,0.069813,['simple_imputation']
+0.082871,3.804214,0.022939,0.07979,['simple_imputation']
+0.084773,6.533083,0.022342,0.077224,['simple_imputation']
+0.160107,3.133924,0.024934,0.071812,['simple_imputation']
+0.086769,6.68941,0.022816,0.084212,['simple_imputation']
+0.086755,3.944934,0.022966,0.06822,['simple_imputation']
+0.083342,3.230974,0.024446,0.073314,['simple_imputation']
+0.089762,3.678925,0.023193,0.072343,['simple_imputation']
+0.082779,2.418656,0.02291,0.068394,['simple_imputation']
+0.081356,2.834234,0.024284,0.07081,['simple_imputation']
+0.083842,2.655454,0.02297,0.070841,['simple_imputation']
+0.081815,2.102986,0.021942,0.067819,['simple_imputation']
+0.090289,3.257924,0.023252,0.07309,['simple_imputation']
+0.156093,2.829357,0.023937,0.070815,['simple_imputation']
+0.088768,3.268734,0.021941,0.071807,['simple_imputation']
+0.082778,1.853503,0.024447,0.072318,['simple_imputation']
+0.08278,1.87109,0.023936,0.080788,['simple_imputation']
+0.088273,6.576456,0.023937,0.085775,['simple_imputation']
+0.090761,2.833989,0.021969,0.074828,['simple_imputation']
+0.084776,1.951319,0.022943,0.081785,['simple_imputation']
+0.086768,5.920875,0.024518,0.079299,['simple_imputation']
+0.088762,2.76772,0.023941,0.076799,['simple_imputation']
+0.087275,4.786372,0.023447,0.083408,['simple_imputation']
+0.090763,5.225277,0.025931,0.085775,['simple_imputation']
+0.085338,3.581674,0.02394,0.068819,['simple_imputation']
+0.088276,4.043434,0.023937,0.07879,['simple_imputation']
+0.087766,4.633027,0.023936,0.077792,['simple_imputation']
+0.084836,0.907919,0.022939,0.071315,['simple_imputation']
+0.083777,4.180621,0.023937,0.081782,['simple_imputation']
+0.088273,4.026186,0.023937,0.073808,['simple_imputation']
+0.089275,1.117684,0.022939,0.068816,['simple_imputation']
+0.084774,3.897753,0.023936,0.077792,['simple_imputation']
+0.090268,3.572552,0.023936,0.06882,['simple_imputation']
+0.154592,3.658877,0.024934,0.077793,['simple_imputation']
+0.083707,4.711667,0.022911,0.079787,['simple_imputation']
+0.085367,4.681228,0.021909,0.079754,['simple_imputation']
+0.085801,3.492576,0.022939,0.080788,['simple_imputation']
+0.082811,3.91052,0.021946,0.079817,['simple_imputation']
+0.084749,4.327937,0.021937,0.079789,['simple_imputation']
+0.084308,4.315183,0.021941,0.079821,['simple_imputation']
+0.082773,2.593293,0.023962,0.071835,['simple_imputation']
+0.083763,3.267671,0.021944,0.071808,['simple_imputation']
+0.085808,6.14989,0.023933,0.087757,['simple_imputation']
+0.085311,2.838224,0.022938,0.068842,['simple_imputation']
+0.151827,1.603398,0.021941,0.069813,['simple_imputation']
+0.085832,3.37146,0.021942,0.067392,['simple_imputation']
+0.083836,4.1927,0.021942,0.076796,['simple_imputation']
+0.084803,1.011882,0.02291,0.076794,['simple_imputation']
+0.081785,3.311143,0.021941,0.080784,['simple_imputation']
+0.084745,2.971952,0.021942,0.088271,['simple_imputation']
+0.082779,6.613603,0.023937,0.079787,['simple_imputation']
+0.088276,3.104596,0.02294,0.069813,['simple_imputation']
+0.084313,2.893867,0.02297,0.070841,['simple_imputation']
+0.084744,4.117452,0.022942,0.0748,['simple_imputation']
+0.090244,2.841808,0.023938,0.071808,['simple_imputation']
+0.082288,3.603315,0.022969,0.067849,['simple_imputation']
+0.084016,3.355035,0.022937,0.067444,['simple_imputation']
+0.083809,1.311309,0.022,0.077791,['simple_imputation']
+0.084773,1.553306,0.021942,0.071808,['simple_imputation']
+0.082778,2.998554,0.022937,0.089761,['simple_imputation']
+0.083834,3.617282,0.02297,0.072841,['simple_imputation']
+0.083313,4.762628,0.022939,0.081378,['simple_imputation']
+0.097251,5.121476,0.02194,0.079785,['simple_imputation']
+0.083777,4.32984,0.024549,0.08335,['simple_imputation']
+0.148169,3.122976,0.022931,0.068806,['simple_imputation']
+0.083821,3.444245,0.024936,0.071837,['simple_imputation']
+0.08477,3.520335,0.023937,0.071808,['simple_imputation']

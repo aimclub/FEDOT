@@ -189,6 +189,7 @@ class Pipeline(Graph):
         self.df['fit full time'] = [self.fit_all_time]
 
         ops = []
+        print(self.nodes)
         for node in self.nodes:
             if node.operation.operation_type == 'simple_imputation' and 'simple_imputation' not in ops:
                 ops.append('simple_imputation')
@@ -272,11 +273,7 @@ class Pipeline(Graph):
         self.df['predict preprocessing'] = [self.predict_preprocessing_time]
         self.df['predict full time'] = [self.predict_all_time]
 
-        # Get file name
-        if input_data.supplementary_data.was_preprocessed:
-            file_path = 'D:/ITMO/FEDOT_correct/experiments/preprocessed_results.csv'
-        else:
-            file_path = 'D:/ITMO/FEDOT_correct/experiments/non_preprocessed_results.csv'
+        file_path = 'D:/ITMO/FEDOT_correct/experiments/default_preprocessors.csv'
         self.df.to_csv(file_path, mode='a', header=False, index=False)
         return result
 
