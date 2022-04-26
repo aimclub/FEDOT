@@ -17,10 +17,12 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 
 
-class PipelineGenerationEnvironment(gym.Env):
+class PipelineEnv(gym.Env):
     metadata = {'render.modes': ['text', 'graph']}
+    reward_range = (-float(100), float(100))
+    spec = None
 
-    def __init__(self, path_to_data, path_to_valid=None, logdir=None, root_length=4, graph_render=True):
+    def __init__(self, path_to_data=None, path_to_valid=None, pipeline_depth=4, graph_render=True, logdir=None):
         self.full_train_data = InputData.from_csv(path_to_data)
         self.train_data, self.test_data = train_test_data_setup(InputData.from_csv(path_to_data), split_ratio=0.7)
         self.testing_data = self.test_data.target
@@ -30,7 +32,7 @@ class PipelineGenerationEnvironment(gym.Env):
             self.validing_data = self.valid_data.target
 
         self.task_type = TaskTypesEnum.classification
-        self.root_length = root_length
+        self.pipeline_depth = pipeline_depth
 
         self.actions_list = OperationTypesRepository('all') \
             .suitable_operation(task_type=self.task_type, tags=['reinforce'])
@@ -53,7 +55,7 @@ class PipelineGenerationEnvironment(gym.Env):
         self.time_step = 0
         self.cur_pos = 1
         self.metric_value = 0
-        self.observation = np.full(self.root_length + 2, self.pop)
+        self.observation = np.full(self.pipeline_depth + 1, self.pop)
         self.observation[0] = self.cur_pos
 
         self.action_space = spaces.Discrete(self.actions_size)
@@ -97,13 +99,13 @@ class PipelineGenerationEnvironment(gym.Env):
         #         temp_reward += 0.01
 
         self._construct_pipeline(action)
+
         self._update_observation(action)
 
         # Если агент решил закончить построение пайплайна или достиг лимита,
         # то обороачиваем и проверяем
         if action == self.eop or self.cur_pos == len(self.observation):
-            self._final_construct_pipeline()
-            self.pipeline = Pipeline(self.nodes[0])
+            self.pipeline = Pipeline(self.nodes[-1])
             pipeline = self.pipeline
             try:
                 # Проверка пайплайна на ошибки построения
@@ -151,7 +153,7 @@ class PipelineGenerationEnvironment(gym.Env):
         self.time_step = 0
         self.cur_pos = 1
         self.metric_value = 0
-        self.observation = np.full(self.root_length + 2, self.pop)
+        self.observation = np.full(self.pipeline_depth + 1, self.pop)
         self.observation[0] = self.cur_pos
 
         return self.transform_to_one_hot(self.observation)
@@ -174,16 +176,10 @@ class PipelineGenerationEnvironment(gym.Env):
     def _construct_pipeline(self, action):
         if action != self.eop:
             if self.time_step == 0:
-                self.nodes.append(self.actions_list[0][action])
-            else:
                 self.nodes.append(PrimaryNode(self.actions_list[0][action]))
+            else:
+                self.nodes.append(SecondaryNode(self.actions_list[0][action], nodes_from=[self.nodes[-1]]))
             self.time_step += 1
-
-    def _final_construct_pipeline(self):
-        if len(self.nodes) == 1:
-            self.nodes[0] = PrimaryNode(self.nodes[0])
-        else:
-            self.nodes[0] = SecondaryNode(self.nodes[0], nodes_from=self.nodes[1:])
 
     def _is_data_operation(self, placed_action):
         if placed_action != self.eop and placed_action != self.pop:
@@ -193,39 +189,19 @@ class PipelineGenerationEnvironment(gym.Env):
             return False
 
     def transform_to_one_hot(self, observation):
-        encoded_position = np.eye(np.max(self.root_length + 2) + 1)[observation[0]].flatten()
+        encoded_position = np.eye(np.max(self.pipeline_depth + 1) + 1)[observation[0]].flatten()
         encoded_observation = np.eye(np.max(self.action_space.n))[observation[1:]].flatten()
 
         return np.concatenate((encoded_position, encoded_observation), axis=None)
 
-    def render(self, mode='text', plot_in_pycharm=False):
+    def render(self, mode='text'):
         if mode == 'text':
-            output = []
-            for primitive in self.observation[2:]:
-                if primitive != self.pop and primitive != self.eop:
-                    output.append(self.actions_list[0][primitive])
-                elif primitive == self.eop:
-                    break
-                else:
-                    output.append('place_holder')
-
-            if self.observation[1] != self.pop:
-                output.append(self.actions_list[0][self.observation[1]])
-            elif self.observation[1] == self.eop:
-                pass
-            else:
-                output.append('place_holder')
-
-            print('Pipeline', output)
-
+            print('Pipeline', self.observation)
         elif mode == 'graph':
             if self.pipeline:
-                if plot_in_pycharm:
-                    self.pipeline.show()
-                else:
-                    result_path = join(self.graph_render_path, f'pl_{self.pipeline_idx}')
-                    self.pipeline.show(path=result_path)
-                    self.pipeline_idx += 1
+                result_path = join(self.graph_render_path, f'pl_{self.pipeline_idx}')
+                self.pipeline.show(path=result_path)
+                self.pipeline_idx += 1
 
 
 if __name__ == '__main__':
@@ -235,10 +211,7 @@ if __name__ == '__main__':
     # file_path_test = 'cases/data/scoring/scoring_test.csv'
     # full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
 
-    env = PipelineGenerationEnvironment(path_to_data=full_path_train)
-
-    print(env.actions_list[0])
-    print([i for i in range(len(env.actions_list[0]))])
+    env = PipelineEnv(path_to_data=full_path_train)
 
     for episode in range(5):
         state = env.reset()
@@ -246,15 +219,11 @@ if __name__ == '__main__':
         total_reward = 0
 
         while not done:
-            print('episode:', episode)
-            print('state', state)
+            print('episode:', episode, 'state', state)
             action = int(input())
             state, reward, done, info = env.step(action)
             print('reward: %6.2f' % reward)
             total_reward += reward
-
-            env.render(mode='text')
-            env.render(mode='graph', plot_in_pycharm=True)
 
             if done:
                 print('episode:', episode, 'state', state)

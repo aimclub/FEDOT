@@ -1,44 +1,37 @@
-from os import walk, makedirs
+import os
+from os import makedirs
 from os.path import join, exists
 
 import numpy as np
 import ptan
-import torch.cuda
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.optim as optim
 from ptan.agent import default_states_preprocessor
-from tensorboardX import SummaryWriter
-from torch import optim
+from torch.utils.tensorboard import SummaryWriter
 
-from fedot.core.utils import default_fedot_data_dir, fedot_project_root
+from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 from fedot.rl.network import A2CRnn
-from fedot.rl.pipeline_env import PipelineGenerationEnvironment
-from fedot.rl.tracker import RewardTracker
+from fedot.rl.pipeline_env_old import PipelineEnv
 
 GAMMA = 0.99
 
 LEARNING_RATE = 0.002
 ENTROPY_BETA = 0.05
 BATCH_SIZE = 25
-NUM_ENV = 4
+NUM_ENVS = 50
+
 REWARD_STEPS = 2
 CLIP_GRAD = 0.1
 
 
-def declare_environment(path_train_data, path_to_logdir, path_valid_data=None):
-    return PipelineGenerationEnvironment(
-        path_to_data=path_train_data,
-        logdir=path_to_logdir,
-        path_to_valid=path_valid_data
-    )
-
-
 def unpack_batch(batch, net, device):
-    """ Convert batch into training tensors
-
-        :param batch:
-        :param net:
-        :return: states variable, actions tensor, reference values variable
+    """
+    Convert batch into training tensors
+    :param batch:
+    :param net:
+    :return: states variable, actions tensor, reference values variable
     """
     states = []
     actions = []
@@ -76,36 +69,31 @@ def unpack_batch(batch, net, device):
 
 if __name__ == '__main__':
     experiment_name = str(input())
-
     path_to_logdir = join(default_fedot_data_dir(), experiment_name)
-    path_to_train = join(fedot_project_root(), 'fedot/rl/data/train/')
-    path_to_valid = join(fedot_project_root(), 'fedot/rl/data/valid/')
 
-    train_datasets = [filename for (_, _, filename) in walk(path_to_train)][0]
-    valid_datasets = [filename for (_, _, filename) in walk(path_to_train)][0]
+    file_path_train = 'cases/data/scoring/scoring_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
 
-    envs = []
+    file_path_valid = 'cases/data/scoring/scoring_test.csv'
+    full_path_valid = os.path.join(str(fedot_project_root()), file_path_valid)
 
-    for dataset_name in train_datasets:
-        for _ in range(NUM_ENV):
-            envs.append(declare_environment(join(path_to_train, dataset_name), path_to_logdir))
-
-    val_envs = []
-
-    for dataset_name in valid_datasets:
-        val_envs.append(declare_environment(join(path_to_train, dataset_name),
-                                            path_to_logdir, join(path_to_valid, dataset_name)))
+    make_env = lambda: PipelineEnv(path_to_data=full_path_train, logdir=path_to_logdir)
+    envs = [make_env() for _ in range(NUM_ENVS)]
 
     in_dim = envs[0].observation_space.shape[0]
     out_dim = envs[0].action_space.n
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    test_env = PipelineEnv(path_to_data=full_path_train, path_to_valid=full_path_valid, logdir=path_to_logdir)
 
-    net = A2CRnn(in_dim, out_dim).to(device)
-    agent = ptan.agent.PolicyAgent(lambda x: net(x)[0], apply_softmax=True, device=device)
+    device = torch.device('cuda' if torch.cuda.is_available() else "cpu")
+
+    pnet = A2CRnn(in_dim, out_dim).to(device)
+    print(pnet)
+
+    agent = ptan.agent.PolicyAgent(lambda x: pnet(x)[0], apply_softmax=True, device=device)
     exp_source = ptan.experience.ExperienceSourceFirstLast(envs, agent, gamma=GAMMA, steps_count=REWARD_STEPS)
 
-    optimizer = optim.Adam(net.parameters(), lr=LEARNING_RATE, eps=1e-3)
+    optimizer = optim.Adam(pnet.parameters(), lr=LEARNING_RATE, eps=1e-3)
 
     # Tensorboard
     path_to_tbX = join(path_to_logdir, 'tensorboard')
@@ -118,10 +106,13 @@ if __name__ == '__main__':
         makedirs(path_to_checkpoint)
 
     tb_writer = SummaryWriter(log_dir=path_to_tbX)
+
+    step_vaild = 0
+
     batch = []
 
-    with RewardTracker(tb_writer, stop_reward=0.9, episodes_limit=20000) as tracker:
-        with ptan.common.utils.TBMeanTracker(tb_writer, batch_size=1) as tb_tracker:
+    with RewardTracker(tb_writer, stop_reward=75) as tracker:
+        with ptan.common.utils.TBMeanTracker(tb_writer, batch_size=10) as tb_tracker:
             for step_idx, exp in enumerate(exp_source):
                 batch.append(exp)
 
@@ -131,54 +122,53 @@ if __name__ == '__main__':
                     if tracker.reward(new_rewards[0], step_idx):
                         break
 
-                if (step_idx % 500) == 0 and step_idx != 0:
+                if (step_idx % 250) == 0 and step_idx != 0:
                     path_to_save = join(path_to_checkpoint, f'agent_{step_idx}')
-                    torch.save(net.state_dict(), path_to_save)
+                    torch.save(pnet.state_dict(), path_to_save)
 
                     with torch.no_grad():
-                        for val_id, val_env in enumerate(val_envs):
-                            val_name = valid_datasets[val_id][:-3]
-                            val_total_rewards = []
-                            val_correct_rewards = []
-                            val_correct_pipelines = 0
+                        total_rewards = []
+                        corrcet_pl = 0
+                        total_correct_rewards = []
 
-                            for episode in range(25):
-                                state = val_env.reset()
-                                episode_reward = 0.0
-                                done = False
+                        for episode in range(25):
+                            state = test_env.reset()
+                            reward_sum = 0.0
+                            done = False
 
-                                while not done:
-                                    state = default_states_preprocessor(state).to(device)
-                                    logits_v, _ = net(state)
+                            while not done:
+                                state = default_states_preprocessor(state).to(device)
+                                logits_v, _ = pnet(state)
 
-                                    prob_v = F.softmax(logits_v)
-                                    prob = prob_v.data.cpu().numpy()
-                                    action = np.random.choice(len(prob), p=prob)
-                                    state, reward, done, info = val_env.step(action, mode='test')
-                                    episode_reward += reward
+                                prob_v = F.softmax(logits_v)
+                                prob = prob_v.data.cpu().numpy()
+                                action = np.random.choice(len(prob), p=prob)
+                                state, reward, done, info = test_env.step(action, mode='test')
+                                reward_sum += reward
 
-                                val_total_rewards.append(episode_reward)
+                            total_rewards.append(reward_sum)
 
-                                if info['is_correct']:
-                                    val_correct_pipelines += 1
-                                    val_correct_rewards.append(episode_reward)
-                                    tb_writer.add_scalar(val_name + '_metric', info['metric_value'],
-                                                         val_correct_pipelines)
-                                    tb_writer.add_scalar(val_name + '_length', info['length'], val_correct_pipelines)
+                            if info['is_correct']:
+                                step_vaild += 1
+                                corrcet_pl += 1
+                                total_correct_rewards.append(reward_sum)
+                                tb_writer.add_scalar("corr_pl_metric", info['metric_value'], step_vaild)
+                                tb_writer.add_scalar("corr_pl_length", info['length'], step_vaild)
 
-                            tb_writer.add_scalar(val_name + '_reward', np.mean(val_total_rewards), step_idx)
-                            tb_writer.add_scalar(val_name + '_pos_reward', np.mean(val_correct_rewards), step_idx)
-                            tb_writer.add_scalar(val_name + '_correct_pipelines', val_correct_pipelines, step_idx)
+                    tb_writer.add_scalar("valid_reward", np.mean(total_rewards), step_idx)
+                    tb_writer.add_scalar("pos_valid_reward", np.mean(total_correct_rewards), step_idx)
+                    tb_writer.add_scalar("count_corr_pl", corrcet_pl, step_idx)
 
                 if len(batch) < BATCH_SIZE:
                     continue
 
-                states_v, actions_t, vals_ref_v = unpack_batch(batch, net, device=device)
+                # Процесс подсчета loss
+                states_v, actions_t, vals_ref_v = unpack_batch(batch, pnet, device=device)
                 batch.clear()
 
                 optimizer.zero_grad()
 
-                logits_v, value_v = net(states_v)
+                logits_v, value_v = pnet(states_v)
                 # Рассчитываем MSE между значением, возвращенным сетью, и аппроксимацией, выполненной
                 # с помощью уравнения Беллмана, развернутного на REWARD_STEPS вперед
                 loss_value_v = F.mse_loss(value_v.squeeze(-1), vals_ref_v)
@@ -202,12 +192,12 @@ if __name__ == '__main__':
                 # Просчитываем градиенты
                 loss_policy_v.backward(retain_graph=True)
                 grads = np.concatenate([p.grad.data.cpu().numpy().flatten()
-                                        for p in net.parameters()
+                                        for p in pnet.parameters()
                                         if p.grad is not None])
 
                 loss_v = entropy_loss_v + loss_value_v
                 loss_v.backward()
-                nn.utils.clip_grad_norm_(net.parameters(), CLIP_GRAD)
+                nn.utils.clip_grad_norm_(pnet.parameters(), CLIP_GRAD)
                 optimizer.step()
 
                 loss_v += loss_policy_v
@@ -222,3 +212,6 @@ if __name__ == '__main__':
                 tb_tracker.track("grad_l2", np.sqrt(np.mean(np.square(grads))), step_idx)
                 tb_tracker.track("grad_max", np.max(np.abs(grads)), step_idx)
                 tb_tracker.track("grad_var", np.var(grads), step_idx)
+
+                if step_idx == 20000:
+                    break
