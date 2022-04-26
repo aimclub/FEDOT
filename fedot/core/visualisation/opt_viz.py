@@ -5,7 +5,7 @@ from copy import deepcopy
 from glob import glob
 from os import remove
 from time import time
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Sequence
 
 import numpy as np
 import pandas as pd
@@ -232,8 +232,9 @@ class PipelineEvolutionVisualiser:
         plt.clf()
         plt.close('all')
 
-    def visualise_pareto(self, archive: Any, objectives_numbers: Tuple[int, int] = (0, 1),
-                         objectives_names: Tuple[str] = ('ROC-AUC', 'Complexity'),
+    def visualise_pareto(self, archive: Sequence[Any],
+                         objectives_numbers: Tuple[int, int] = (0, 1),
+                         objectives_names: Sequence[str] = ('ROC-AUC', 'Complexity'),
                          file_name: str = 'result_pareto.png', show: bool = False, save: bool = True,
                          folder: str = f'../../tmp/pareto',
                          generation_num: int = None, individuals: List[Any] = None, minmax_x: List[float] = None,

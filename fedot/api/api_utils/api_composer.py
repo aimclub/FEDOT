@@ -4,7 +4,6 @@ import traceback
 from typing import Callable, Dict, List, Optional, Type, Union
 
 import numpy as np
-from deap import tools
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -28,7 +27,6 @@ from fedot.core.optimisers.gp_comp.gp_optimiser import (
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
-from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -85,10 +83,6 @@ class ApiComposer:
             composer_params=composer_params_dict,
             tuning_params=tuner_params_dict,
             preset=preset)
-
-        if isinstance(self.best_models, tools.ParetoFront):
-            self.best_models.__class__ = ParetoFront
-            self.best_models.objective_names = common_dict['composer_metric']
 
         return self.current_model, self.best_models, self.history
 

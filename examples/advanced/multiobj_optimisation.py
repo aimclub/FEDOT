@@ -1,6 +1,7 @@
 import pandas as pd
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 
 def run_classification_multiobj_example(with_plot=True, timeout=None):
@@ -10,15 +11,18 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
     del test_data['class']
     problem = 'classification'
 
+    metric_names = ['f1', 'node_num']
     auto_model = Fedot(problem=problem, timeout=timeout, preset='best_quality',
-                       composer_params={'metric': ['f1', 'node_num'],
+                       composer_params={'metric': metric_names,
                                         'with_tuning': False}, seed=42)
     auto_model.fit(features=train_data, target='class')
     prediction = auto_model.predict_proba(features=test_data)
     print(auto_model.get_metrics(target))
     auto_model.plot_prediction()
     if with_plot:
-        auto_model.best_models.show()
+        PipelineEvolutionVisualiser().visualise_pareto(archive=auto_model.best_models,
+                                                       objectives_names=metric_names,
+                                                       show=True)
 
     return prediction
 

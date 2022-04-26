@@ -2,12 +2,11 @@ from abc import ABC, abstractmethod
 from typing import Protocol, Any, Union, Sequence, Set, Optional, Type, Iterable, Dict
 
 import numpy as np
-from deap.tools import HallOfFame
+from deap.tools import HallOfFame, ParetoFront
 
 from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
 from fedot.core.utilities.data_structures import Comparable
 
