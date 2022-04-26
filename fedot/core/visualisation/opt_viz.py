@@ -4,7 +4,7 @@ from copy import deepcopy
 from glob import glob
 from os import remove
 from time import time
-from typing import List, Any, Tuple
+from typing import List, Any, Tuple, Union, Optional, Dict
 
 import numpy as np
 import pandas as pd
@@ -15,8 +15,11 @@ from deap import tools
 from imageio import get_writer, imread
 import matplotlib.pyplot as plt
 
+from fedot.core.optimisers.graph import OptNode
+# from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.log import Log, default_log
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
@@ -34,6 +37,12 @@ class PipelineEvolutionVisualiser:
         self.best_pipelines_imgs = []
         self.merged_imgs = []
         self.graph_visualizer = GraphVisualiser(log=log)
+        self.default_tags_model = ['linear', 'non_linear']
+        self.default_tags_data = [
+            'data_source', 'scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
+            'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
+            'imbalanced'
+        ]
 
     def _visualise_pipelines(self, pipelines, fitnesses):
         fitnesses = deepcopy(fitnesses)
@@ -308,6 +317,74 @@ class PipelineEvolutionVisualiser:
         self.create_gif_using_images(gif_path=f'{folder}/pareto_history.gif', files=files)
         for file in files:
             remove(file)
+
+    def _get_node_tag(self, node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
+                      tags_data: Optional[List[str]] = None,
+                      repos_tags: Optional[Dict[OperationTypesRepository, List[str]]] = None) -> Optional[str]:
+        # TODO: Docstring
+        if (tags_model or tags_data) and repos_tags:
+            raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
+
+        repos_tags = repos_tags or {
+            OperationTypesRepository('model'): tags_model or self.default_tags_model,
+            OperationTypesRepository('data_operation'): tags_data or self.default_tags_data
+        }
+
+        if isinstance(node, OptNode):
+            node = node.content['name']
+
+        for repo, tags in repos_tags.items():
+            info = repo.operation_info_by_id(node)
+            if info is None:
+                continue
+            for tag in tags:
+                if tag in info.tags:
+                    return tag
+
+        return None
+
+    def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
+        # TODO: Docstring
+        tags_model = tags_model or self.default_tags_model
+        tags_data = tags_data or self.default_tags_data
+
+        tags_all = [*tags_model, *tags_data]
+
+        tag_column_name = 'Operation'
+        generation_column_name = 'Generation'
+
+        df_data = {
+            generation_column_name: [],
+            tag_column_name: [],
+        }
+
+        for gen_num, gen in enumerate(history.individuals):
+            for ind in gen:
+                for node in ind.graph.nodes:
+                    df_data[generation_column_name].append(gen_num)
+                    df_data[tag_column_name].append(
+                        self._get_node_tag(node, tags_model=tags_model, tags_data=tags_data)
+                    )
+
+        df_operations = pd.DataFrame.from_dict(df_data)
+
+        plot = sns.displot(
+            data=df_operations,
+            x=generation_column_name,
+            hue=tag_column_name,
+            hue_order=[t for t in tags_all if t in df_operations[tag_column_name].unique()],
+            kind='kde',
+            clip=(0, max(df_operations[generation_column_name])),
+            multiple='fill',
+            palette='Set2',
+        )
+        fig = plot.figure
+        fig.set_dpi(110)
+
+        if save_path_to_file:
+            fig.savefig(save_path_to_file, dpi=300)
+            plt.close()
 
 
 def figure_to_array(fig):

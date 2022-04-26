@@ -5,7 +5,7 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union, Dict
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -129,13 +129,18 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, save_path_to_file: str = None):
+    def show(self, kind: str = 'fitness_box', save_path_to_file: str = None):
         """ Visualizes fitness values across generations """
-
-        if self.all_historical_fitness is None:
-            return
+        # TODO: Modify docstring
         viz = PipelineEvolutionVisualiser()
-        viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
+        if kind == 'fitness_box':
+            if self.all_historical_fitness is None:
+                return
+            viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
+        elif kind == 'operation_kde':
+            viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file)
+        else:
+            raise ValueError(f'Visualization {kind} is not supported.')
 
     @property
     def short_metrics_names(self):
