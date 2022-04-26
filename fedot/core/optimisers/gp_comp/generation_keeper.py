@@ -1,59 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Protocol, Any, Union, Sequence, Set, Optional, Type, Iterable, Dict
+from typing import Sequence, Type, Iterable, Dict
 
 import numpy as np
 from deap.tools import HallOfFame, ParetoFront
 
-from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
-from fedot.core.utilities.data_structures import Comparable
 
 ArchiveType = HallOfFame
-
-
-class SupportsLessThan(Protocol):
-    def __lt__(self, __other: Any) -> bool: ...
-
-
-class LexicographicKey(Comparable):
-    KeyType = Optional[Union[int, float]]
-
-    def __init__(self, *keys: KeyType):
-        if not keys:
-            raise ValueError('Expected at least one key for lexicographic key')
-        self.keys = keys
-
-    def __eq__(self, other: 'LexicographicKey') -> bool:
-        return all(self._key_eq(k1, k2) for k1, k2 in zip(self.keys, other.keys))
-
-    def __lt__(self, other: 'LexicographicKey') -> bool:
-        for this_key, other_key in zip(self.keys, other.keys):
-            if this_key is None and other_key is not None:
-                return True
-            elif this_key is not None and other_key is None:
-                return False
-            elif self._key_eq(this_key, other_key):
-                continue
-            else:
-                return this_key < other_key
-
-    @staticmethod
-    def _key_eq(this_key: KeyType, other_key: KeyType) -> bool:
-        return (this_key is None and other_key is None
-                or np.isclose(this_key, other_key).all())
-
-
-def ind_compound_key(individual: Individual) -> LexicographicKey:
-    """Return comparison key combining fitness and structural complexity.
-    Makes sense only for single-objective fitness."""
-    return LexicographicKey(*individual.fitness.values, individual.graph.length)
-
-
-def best_individual(individuals: Sequence[Individual]) -> Individual:
-    """Find the best individual given lexicographic key of (fitness, structural_complexity)."""
-    return min(individuals, key=ind_compound_key)
 
 
 class ImprovementWatcher(ABC):
@@ -100,8 +55,8 @@ class GenerationKeeper(ImprovementWatcher):
 
         if archive is None:
             archive = ParetoFront() if is_multi_objective else HallOfFame(maxsize=keep_n_best)
-        elif not isinstance(archive, HallOfFame):
-            raise TypeError(f'Invalid archive type. Expected HallOfFame, got {type(archive)}')
+        elif not isinstance(archive, ArchiveType):
+            raise TypeError(f'Invalid archive type. Expected {ArchiveType}, got {type(archive)}')
         self.archive = archive
 
         if initial_generation is not None:
