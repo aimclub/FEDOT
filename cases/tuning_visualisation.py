@@ -96,6 +96,31 @@ def kde_plot(iterations_number: Union[int, str], dataset_name: str, result_df: p
         plt.show()
 
 
+def display_mean_metrics(dataframe: pd.DataFrame, case: str):
+    """ Calculate and display information about metrics """
+    if case == 'regression':
+        delta_column = 'SMAPE improvement'
+        before_column = 'SMAPE before tuning'
+    else:
+        delta_column = 'ROC AUC improvement'
+        before_column = 'ROC AUC before tuning'
+
+    # Calculate improvements in percentages
+    dataframe['Improvement, %'] = (dataframe[delta_column] / dataframe[before_column]) * 100
+    for pipeline_type in list(dataframe['Pipeline'].unique()):
+        pipeline_type_results = dataframe[dataframe['Pipeline'] == pipeline_type]
+
+        for approach in list(pipeline_type_results['Approach'].unique()):
+            approach_df = pipeline_type_results[pipeline_type_results['Approach'] == approach]
+
+            mean_improvement = np.mean(np.array(approach_df['Improvement, %']))
+            std_improvement = np.std(np.array(approach_df['Improvement, %']))
+
+            print(f'Approach {approach} pipeline type {pipeline_type}: '
+                  f'mean improvement {mean_improvement:.1f} %, ± std {std_improvement:.1f}')
+        print('\n')
+
+
 def perform_visual_analysis(working_dir: str):
     working_dir = os.path.abspath(working_dir)
     folders = os.listdir(working_dir)
@@ -104,6 +129,11 @@ def perform_visual_analysis(working_dir: str):
     print(f'Calculated tuning variations: {tuner_folders}')
 
     result_df_reg, result_df_class = collect_datasets_results(dir=working_dir, approaches=tuner_folders)
+    print('\n--- Regression case ---')
+    display_mean_metrics(result_df_reg, 'regression')
+
+    print('\n--- Classification case ---')
+    display_mean_metrics(result_df_class, 'classification')
 
     kde_plot(iterations_number=20, dataset_name='volkert_small', result_df=result_df_class)
 
