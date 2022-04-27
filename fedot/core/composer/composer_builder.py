@@ -1,6 +1,4 @@
-from typing import Dict, List, Optional, Sequence, Union
-
-from deap import tools
+from typing import Optional, Union, List, Dict, Sequence
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
@@ -99,8 +97,6 @@ class ComposerBuilder:
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         advisor=PipelineChangeAdvisor())
         if len(self.metrics) > 1:
-            # TODO: drop this, it's determined later automatically
-            self.optimiser_parameters.archive_type = tools.ParetoFront()
             # TODO add possibility of using regularization in MO alg
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
             self.optimiser_parameters.multi_objective = True

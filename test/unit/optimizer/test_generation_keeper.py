@@ -25,9 +25,9 @@ def create_population(fitness: Sequence[Fitness]) -> PopulationT:
 
 
 def generation_keeper(init_population=None):
-    return GenerationKeeper(init_population,
+    return GenerationKeeper(metrics=[RegressionMetricsEnum.RMSE, ComplexityMetricsEnum.structural],
                             is_multi_objective=True,
-                            metrics=[RegressionMetricsEnum.RMSE, ComplexityMetricsEnum.structural])
+                            initial_generation=init_population)
 
 
 def population1():

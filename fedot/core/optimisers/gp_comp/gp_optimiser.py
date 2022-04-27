@@ -78,7 +78,6 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
                  mutation_types: List[Union[MutationTypesEnum, Any]] = None,
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
-                 archive_type=None,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -88,7 +87,8 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         self.mutation_types = mutation_types
         self.regularization_type = regularization_type
         self.genetic_scheme_type = genetic_scheme_type
-        self.archive_type = archive_type
+
+        self.set_default_params()  # always initialize in proper state
 
 
 class EvoGraphOptimiser(GraphOptimiser):
@@ -109,8 +109,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.requirements = requirements
         self._min_population_size_with_elitism = 3
 
-        self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
-        self.parameters.set_default_params()
+        self.parameters = parameters or GPGraphOptimiserParameters()
 
         self.max_depth = requirements.start_depth \
             if self.parameters.with_auto_depth_configuration and requirements.start_depth \
@@ -128,11 +127,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.population = None
         self.initial_graph = initial_graph
 
-        self.generations = GenerationKeeper(initial_generation=None,  # TODO: either remove or ensure it can be passed
-                                            is_multi_objective=self.parameters.multi_objective,
-                                            metrics=metrics,
-                                            # TODO: remove this param
-                                            archive=self.parameters.archive_type)
+        self.generations = GenerationKeeper(metrics, self.parameters.multi_objective)
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
         objective_function = None  # TODO: pass it

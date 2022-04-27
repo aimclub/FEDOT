@@ -44,20 +44,14 @@ class GenerationKeeper(ImprovementWatcher):
     """
 
     def __init__(self,
-                 initial_generation: PopulationT = None,
-                 is_multi_objective: bool = False,
                  metrics: Sequence[MetricsEnum] = (),
-                 archive: ArchiveType = None,
-                 keep_n_best: int = 1):
+                 is_multi_objective: bool = False,
+                 keep_n_best: int = 1,
+                 initial_generation: PopulationT = None):
         self._generation_num = -1  # -1 means no generations
         self._stagnation_counter = 0  # Initialized in non-stagnated state
         self._metrics_improvement = {metric_id: False for metric_id in metrics}
-
-        if archive is None:
-            archive = ParetoFront() if is_multi_objective else HallOfFame(maxsize=keep_n_best)
-        elif not isinstance(archive, ArchiveType):
-            raise TypeError(f'Invalid archive type. Expected {ArchiveType}, got {type(archive)}')
-        self.archive = archive
+        self.archive = ParetoFront() if is_multi_objective else HallOfFame(maxsize=keep_n_best)
 
         if initial_generation is not None:
             self.append(initial_generation)
