@@ -52,7 +52,7 @@ def test_export_project_correctly():
 
 
 def test_import_project_correctly():
-    folder_path = os.path.join(fedot_project_root(), 'test', 'data', 'project', 'iris_classification')
+    folder_path = os.path.join(str(fedot_project_root()), 'test', 'data', 'project', 'iris_classification')
     zip_path = Path(folder_path).with_suffix('.zip')
 
     assert os.path.exists(zip_path)
