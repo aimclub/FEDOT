@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deap.tools import HallOfFame
 
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
@@ -119,7 +120,7 @@ class Fedot:
         self.target = None
         self.train_data = None
         self.current_pipeline = None
-        self.best_models = None
+        self.best_models: Optional[HallOfFame] = None
         self.history = None
         self.test_data = None
         self.prediction = None
