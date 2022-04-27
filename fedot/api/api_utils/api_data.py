@@ -57,9 +57,9 @@ class ApiDataProcessor:
                 for key in data:
                     data[key].idx = idx
         except Exception as ex:
-            raise ValueError(f'Please specify a features as path to csv file, as Numpy array, '
-                             'Pandas DataFrame, FEDOT InputData or dict for multimodal data. '
-                             'Exception: {ex}')
+            raise ValueError('Please specify the "features" as path to csv file, as Numpy array, '
+                             'Pandas DataFrame, FEDOT InputData or dict for multimodal data, '
+                             f'Exception: {ex}')
 
         # Perform obligatory steps of data preprocessing
         if is_predict:

@@ -1,16 +1,16 @@
 import os
 import shutil
 import zipfile
+from pathlib import Path
 
 import pytest
 
 from fedot.api.main import Fedot
-from fedot.core.utils import default_fedot_data_dir, fedot_project_root
-from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
+from fedot.core.utils import fedot_project_root
+from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip, DEFAULT_PROJECTS_PATH
 from test.unit.models.test_atomized_model import create_pipeline
 from test.unit.validation.test_table_cv import get_classification_data
 
-DEFAULT_PROJECTS_PATH = os.path.join(default_fedot_data_dir(), 'projects')
 PATHS_TO_DELETE_AFTER_TEST = []
 
 LOG_NAME = 'log.log'
@@ -32,7 +32,7 @@ def delete_files_folders():
 
 def test_export_project_correctly():
     folder_name = 'iris_classification'
-    zip_name = folder_name + '.zip'
+    zip_name = Path(folder_name).with_suffix('.zip')
     path_to_zip = os.path.join(DEFAULT_PROJECTS_PATH, zip_name)
     path_to_folder = os.path.join(DEFAULT_PROJECTS_PATH, folder_name)
 
@@ -53,7 +53,7 @@ def test_export_project_correctly():
 
 def test_import_project_correctly():
     folder_path = os.path.join(fedot_project_root(), 'test', 'data', 'project', 'iris_classification')
-    zip_path = os.path.join(folder_path + '.zip')
+    zip_path = Path(folder_path).with_suffix('.zip')
 
     assert os.path.exists(zip_path)
 
@@ -71,7 +71,7 @@ def test_import_project_correctly():
 
 def test_export_import_api_correctly():
     folder_name = 'api_classification'
-    zip_name = folder_name + '.zip'
+    zip_name = Path(folder_name).with_suffix('.zip')
     path_to_zip = os.path.join(DEFAULT_PROJECTS_PATH, zip_name)
     path_to_folder = os.path.join(DEFAULT_PROJECTS_PATH, folder_name)
 
