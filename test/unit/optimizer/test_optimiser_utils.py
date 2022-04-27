@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from deap import tools
 
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.pareto import ParetoFront as FedotParetoFront
 from fedot.core.optimisers.utils.population_utils import is_equal_archive
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_third

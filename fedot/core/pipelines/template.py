@@ -26,7 +26,7 @@ class NumpyIntEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
-        return super().default(self, obj)
+        return super().default(obj)
 
 
 class PipelineTemplate:
@@ -107,17 +107,17 @@ class PipelineTemplate:
         """
 
         pipeline_template_dict = self.convert_to_dict(root_node)
+        if additional_info is not None:
+            pipeline_template_dict['additional_info'] = additional_info
         fitted_ops = {}
         if path is None:
             fitted_ops = self._create_fitted_operations()
-
             if fitted_ops is not None:
                 for operation in pipeline_template_dict['nodes']:
                     saved_key = f'operation_{operation["operation_id"]}'
-                    if saved_key in fitted_ops:
-                        pipeline_template_dict['fitted_operation_path'] = saved_key
-                    else:
-                        pipeline_template_dict['fitted_operation_path'] = None
+                    if saved_key not in fitted_ops:
+                        saved_key = None
+                    pipeline_template_dict['fitted_operation_path'] = saved_key
 
         json_data = json.dumps(pipeline_template_dict, indent=4, cls=NumpyIntEncoder)
 
@@ -130,11 +130,8 @@ class PipelineTemplate:
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
-        if additional_info is not None:
-            pipeline_template_dict['additional_info'] = additional_info
-
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(pipeline_template_dict, indent='\t', cls=NumpyIntEncoder))
+            f.write(json_data)
             resulted_path = os.path.join(absolute_path, f'{self.unique_pipeline_id}.json')
             self.log.debug(f'The pipeline saved in the path: {resulted_path}.')
 

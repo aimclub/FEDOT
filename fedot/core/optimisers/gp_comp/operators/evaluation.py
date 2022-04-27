@@ -7,13 +7,13 @@ from random import choice
 from typing import Dict, Optional
 
 from fedot.core.log import Log, default_log
+from fedot.core.optimisers.fitness import *
 from fedot.core.dag.graph import Graph
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.gp_comp.operators.operator import *
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import Timer, get_forever_timer
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 
@@ -79,27 +79,24 @@ class Evaluate(Operator[PopulationT]):
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
         _restrict_n_jobs_in_nodes(graph)
         adapted_graph = self.graph_adapter.restore(graph)
-        ind.fitness = self.calculate_objective(adapted_graph)
+        ind.fitness = self.calculate_fitness(adapted_graph)
         self._collect_intermediate_metrics(adapted_graph)
         self._cleanup_memory(graph)
         ind.graph = self.graph_adapter.adapt(adapted_graph)
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
-        return ind if ind.fitness is not None else None
+        return ind if ind.fitness.valid else None
 
-    def calculate_objective(self, graph: OptGraph) -> Optional[Any]:
-        restored_graph = self.graph_adapter.restore(graph) if isinstance(graph, OptGraph) else graph
-
-        calculated_fitness = self.objective_function(restored_graph)
+    def calculate_fitness(self, graph: Graph) -> Fitness:
+        calculated_fitness = self.objective_function(graph)
         if calculated_fitness is None:
-            return None
-
-        if self.is_multi_objective:
-            fitness = MultiObjFitness(values=calculated_fitness, weights=[-1] * len(calculated_fitness))
+            return null_fitness()
+        elif self.is_multi_objective:
+            return MultiObjFitness(values=calculated_fitness,
+                                   weights=[-1] * len(calculated_fitness))
         else:
-            fitness = calculated_fitness[0]
-        return fitness
+            return SingleObjFitness(*calculated_fitness)
 
     def _collect_intermediate_metrics(self, graph: Graph):
         if not self._intermediate_metrics_function:
@@ -112,11 +109,10 @@ class Evaluate(Operator[PopulationT]):
                 metric_values = self._intermediate_metrics_function(intermediate_graph)
                 node.metadata.metric = metric_values[0]  # saving only the most important first metric
 
-    def _cleanup_memory(self, graph):
-        restored_graph = self.graph_adapter.restore(graph)
+    def _cleanup_memory(self, graph: Graph):
         # TODO: leak of Pipeline type, it shouldn't be there
-        if isinstance(restored_graph, Pipeline):
-            restored_graph.unfit()
+        if isinstance(graph, Pipeline):
+            graph.unfit()
         gc.collect()
 
     def _reset_eval_cache(self):

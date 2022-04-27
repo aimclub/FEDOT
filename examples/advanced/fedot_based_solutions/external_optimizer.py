@@ -50,7 +50,7 @@ class RandomSearchOptimizer(GraphOptimiser):
                 new = mutation(types=self.change_types, ind=best, params=self.graph_generation_params,
                                requirements=self.requirements, log=self.log)
                 self.evaluator([new])
-                if new.fitness is not None and new.fitness < best.fitness:
+                if new.fitness < best.fitness:
                     best = new
                 num_iter += 1
 

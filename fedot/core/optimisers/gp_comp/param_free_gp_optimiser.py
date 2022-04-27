@@ -187,7 +187,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         if self.parameters.multi_objective:
             std = np.std([self.get_main_metric(ind) for ind in self.population])
         else:
-            std = np.std([ind.fitness for ind in self.population])
+            std = np.std([ind.fitness.values[0] for ind in self.population])
         return std
 
     def update_max_std(self):
