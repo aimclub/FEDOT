@@ -26,14 +26,12 @@ class Evaluate(Operator[PopulationT]):
     def __init__(self,
                  graph_gen_params: GraphGenerationParams,
                  objective_function: ObjectiveFunction,
-                 is_multi_objective: bool = False,
                  timer: Timer = None,
                  log: Log = None,
                  n_jobs: int = 1,
                  intermediate_metrics_function: Optional[ObjectiveFunction] = None):
         self.graph_gen_params = graph_gen_params
         self.objective_function = objective_function
-        self.is_multi_objective = is_multi_objective
         self.n_jobs = n_jobs
         self._intermediate_metrics_function = intermediate_metrics_function
 

@@ -125,7 +125,7 @@ def test_evaluate_individuals():
     timeout = datetime.timedelta(minutes=0.001)
     params = GraphGenerationParams(adapter=PipelineAdapter(), advisor=PipelineChangeAdvisor())
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
+        evaluator = Evaluate(params, metric_function_for_nodes, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
@@ -135,7 +135,7 @@ def test_evaluate_individuals():
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
+        evaluator = Evaluate(params, metric_function_for_nodes, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 4
     assert all([ind.fitness.valid for ind in evaluated])

@@ -133,7 +133,6 @@ class EvoGraphOptimiser(GraphOptimiser):
         n_jobs = requirements.n_jobs
         self.evaluator = Evaluate(graph_gen_params=graph_generation_params,
                                   objective_function=objective_function,
-                                  is_multi_objective=self.parameters.multi_objective,
                                   timer=self.timer, log=self.log, n_jobs=n_jobs)
 
         # stopping_after_n_generation may be None, so use some obvious max number

@@ -51,9 +51,8 @@ def decremental_regularization(population: List[Individual], objective_function:
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
 
-    is_multi_obj = isinstance(population[0].fitness, MultiObjFitness)
     if additional_inds:
-        evaluate = Evaluate(params, objective_function, is_multi_obj, timer=timer)
+        evaluate = Evaluate(params, objective_function, timer=timer)
         population = evaluate(population)
 
     if additional_inds and len(additional_inds) > size:

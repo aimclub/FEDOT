@@ -31,7 +31,7 @@ class RandomSearchOptimizer(GraphOptimiser):
                              MutationTypesEnum.single_add]
         self.timer = OptimisationTimer(log=self.log, timeout=self.requirements.timeout)
         objective_function = None  # TODO: pass into init
-        self.evaluator = Evaluate(graph_generation_params, objective_function, is_multi_objective=False,
+        self.evaluator = Evaluate(graph_generation_params, objective_function,
                                   timer=self.timer, log=log, n_jobs=1)
 
     def optimise(self, objective_function,
