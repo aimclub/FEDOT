@@ -57,19 +57,25 @@ def kde_plot(iterations_number: Union[int, str], dataset_name: str, result_df: p
     See https://seaborn.pydata.org/examples/kde_ridgeplot.html for more details
     """
     target_column = 'ROC AUC improvement'
+    x_addition = 0.1
     if 'SMAPE improvement' in list(result_df.columns):
         target_column = 'SMAPE improvement'
+        x_addition = 1.0
 
     iterations_number = int(iterations_number)
     dataset_results = result_df[result_df['Dataset'] == dataset_name]
     dataset_results = dataset_results[dataset_results['Iterations number'] == iterations_number]
 
+    x_min = min(dataset_results[target_column])
+    x_max = max(dataset_results[target_column])
     for approach in list(dataset_results['Approach'].unique()):
+        print(approach)
         sns.set_theme(style="white", rc={"axes.facecolor": (0, 0, 0, 0)})
         approach_df = dataset_results[dataset_results['Approach'] == approach]
         # Initialize the FacetGrid object
         pal = sns.cubehelix_palette(10, rot=-.25, light=.7)
-        g = sns.FacetGrid(approach_df, row="Pipeline", hue="Pipeline", aspect=15, height=.5, palette=pal)
+        g = sns.FacetGrid(approach_df, row="Pipeline", hue="Pipeline", aspect=15, height=.5, palette=pal,
+                          xlim=[x_min - x_addition, x_max + x_addition])
 
         # Draw the densities in a few steps
         g.map(sns.kdeplot, target_column, bw_adjust=.5, clip_on=False, fill=True, alpha=1, linewidth=1.5)
@@ -135,7 +141,7 @@ def perform_visual_analysis(working_dir: str):
     print('\n--- Classification case ---')
     display_mean_metrics(result_df_class, 'classification')
 
-    kde_plot(iterations_number=20, dataset_name='volkert_small', result_df=result_df_class)
+    kde_plot(iterations_number=20, dataset_name='Amazon_employee_access', result_df=result_df_class)
 
     with sns.axes_style("darkgrid"):
         sns.catplot(x='Approach', y='SMAPE improvement',
