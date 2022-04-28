@@ -123,8 +123,6 @@ class EvoGraphOptimiser(GraphOptimiser):
         )
 
         self.population = None
-        self.initial_graph = initial_graph
-
         self.generations = GenerationKeeper(metrics, self.parameters.multi_objective)
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
