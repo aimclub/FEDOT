@@ -2,20 +2,17 @@ from copy import copy
 from typing import Optional
 
 import numpy as np
-from statsmodels.genmod.families import Gaussian, Gamma, InverseGaussian, Poisson, Tweedie
-from statsmodels.genmod.families.links import log as lg, identity, sqrt, inverse_power, inverse_squared, Power
+import statsmodels.api as sm
+from statsmodels.genmod.families import Gamma, Gaussian, InverseGaussian, Poisson, Tweedie
+from statsmodels.genmod.families.links import Power, identity, inverse_power, inverse_squared, log as lg, sqrt
 from statsmodels.genmod.generalized_linear_model import GLM
-from statsmodels.tools.sm_exceptions import PerfectSeparationError
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.log import Log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    ts_to_table
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
-import statsmodels.api as sm
 
 
 class GLMImplementation(ModelImplementation):
@@ -59,7 +56,7 @@ class GLMImplementation(ModelImplementation):
         "default": Gaussian(identity())
     }
 
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.model = None
         self.params = params
@@ -158,7 +155,7 @@ class GLMImplementation(ModelImplementation):
 
 class AutoRegImplementation(ModelImplementation):
 
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.params = params
         self.actual_ts_len = None
@@ -228,7 +225,7 @@ class AutoRegImplementation(ModelImplementation):
 class ExpSmoothingImplementation(ModelImplementation):
     """ Exponential smoothing implementation from statsmodels """
 
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.model = None
         self.params = params

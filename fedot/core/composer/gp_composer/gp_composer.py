@@ -1,10 +1,9 @@
-import gc
 import platform
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Any, Callable, List, Optional, Tuple, Union, Iterator, Sequence
+from typing import Callable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -21,7 +20,7 @@ from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
-from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
 sample_split_ratio_for_tasks = {
@@ -76,14 +75,13 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
-                 logger: Log = None):
+                 logger: Optional[Log] = None,
+                 cache: Optional[OperationsCache] = None):
 
         super().__init__(optimiser, composer_requirements, metrics, initial_pipelines, logger)
 
         self.optimiser = optimiser
-        self.cache = OperationsCache(log=logger)
-        self.cache_path = None
-        self.use_existing_cache = False
+        self.cache: Optional[OperationsCache] = cache
 
         self.objective_builder = ObjectiveBuilder(metrics,
                                                   self.composer_requirements.max_pipeline_fit_time,
@@ -93,13 +91,10 @@ class GPComposer(Composer):
                                                   self.cache, self.log)
 
     # TODO fix: this method is invalidly overriden: it changes the signature of base method
-    def compose_pipeline(self, data: Union[InputData, MultiModalData], is_visualise: bool = False,
-                         is_tune: bool = False,
+    def compose_pipeline(self, data: Union[InputData, MultiModalData],
                          on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
         """ Function for optimal pipeline structure searching
         :param data: InputData for pipeline composing
-        :param is_visualise: is it needed to visualise
-        :param is_tune: is it needed to tune pipeline after composing TODO integrate new tuner
         :param on_next_iteration_callback: TODO it's never used from calls to composer
         :return best_pipeline: obtained result after composing: one pipeline for single-objective optimization;
             For the multi-objective case, the list of the graph is returned.
@@ -108,7 +103,7 @@ class GPComposer(Composer):
 
         self.optimiser.graph_generation_params.advisor.task = data.task
 
-        if data.task.task_type == TaskTypesEnum.ts_forecasting:
+        if data.task.task_type is TaskTypesEnum.ts_forecasting:
             self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
         else:
             self.optimiser.graph_generation_params.rules_for_constraint = common_rules
@@ -119,13 +114,6 @@ class GPComposer(Composer):
         if not self.optimiser:
             raise AttributeError(f'Optimiser for graph composition is not defined')
 
-        if self.cache_path is None:
-            self.cache.clear()
-        else:
-            self.cache.clear(tmp_only=True)
-            self.cache = OperationsCache(log=self.log, db_path=self.cache_path,
-                                         clear_exiting=not self.use_existing_cache)
-
         # shuffle data if necessary
         data.shuffle()
 
@@ -135,11 +123,7 @@ class GPComposer(Composer):
                                              on_next_iteration_callback=on_next_iteration_callback,
                                              intermediate_metrics_function=intermediate_metrics_function)
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
-
         self.log.info('GP composition finished')
-        self.cache.clear()
-        if is_tune:
-            self.tune_pipeline(best_pipeline, data, self.composer_requirements.timeout)
         return best_pipeline
 
     def _convert_opt_results_to_pipeline(self, opt_result: Union[OptGraph, List[OptGraph]]) -> Pipeline:

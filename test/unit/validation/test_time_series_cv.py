@@ -133,7 +133,7 @@ def test_composer_cv_correct():
         with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()
 
-    obtained_pipeline = composer.compose_pipeline(data=time_series, is_visualise=False)
+    obtained_pipeline = composer.compose_pipeline(data=time_series)
     assert isinstance(obtained_pipeline, Pipeline)
 
 

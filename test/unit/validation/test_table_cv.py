@@ -108,7 +108,7 @@ def test_composer_with_cv_optimization_correct():
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
 
-    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)[0]
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)[0]
 
     assert isinstance(pipeline_evo_composed, Pipeline)
 

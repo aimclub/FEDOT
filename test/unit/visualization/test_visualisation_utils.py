@@ -1,4 +1,4 @@
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

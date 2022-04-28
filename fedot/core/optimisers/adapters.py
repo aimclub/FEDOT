@@ -18,8 +18,8 @@ class BaseOptimizationAdapter(Generic[AdapteeType, AdapteeNodeType]):
     def __init__(self,
                  base_graph_class: Type[AdapteeType],
                  base_node_class: Type[AdapteeNodeType],
-                 log: Log = None):
-        self._log = log if log is not None else default_log('adapter_logger')
+                 log: Optional[Log] = None):
+        self._log = log or default_log('adapter_logger')
         self._base_graph_class = base_graph_class
         self._base_node_class = base_node_class
 
@@ -73,7 +73,7 @@ class DirectAdapter(BaseOptimizationAdapter[AdapteeType, AdapteeNodeType]):
 class PipelineAdapter(BaseOptimizationAdapter[Pipeline, Node]):
     """ Optimization adapter for Pipeline class """
 
-    def __init__(self, log: Log = None):
+    def __init__(self, log: Optional[Log] = None):
         super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
 
     def _transform_to_opt_node(self, node, *args, **params):

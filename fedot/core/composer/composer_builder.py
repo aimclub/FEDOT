@@ -3,6 +3,7 @@ from typing import Optional, Union, List, Dict, Sequence
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
@@ -31,8 +32,7 @@ class ComposerBuilder:
         self.composer_cls = GPComposer
         self.initial_pipelines = None
         self.log = None
-        self.cache_path = None
-        self.use_existing_cache = False
+        self.cache = None
         self.composer_requirements = self._default_composer_params()
         self.metrics = self._default_metrics()
 
@@ -65,9 +65,8 @@ class ComposerBuilder:
         self.log = logger
         return self
 
-    def with_cache(self, cache_path: str = None, use_existing: bool = False):
-        self.cache_path = cache_path
-        self.use_existing_cache = use_existing
+    def with_cache(self, cache: Optional[OperationsCache]):
+        self.cache = cache
         return self
 
     def _default_composer_params(self) -> PipelineComposerRequirements:
@@ -84,8 +83,8 @@ class ComposerBuilder:
 
     def build(self) -> Composer:
         optimiser_type = self.optimiser_cls
-        if (optimiser_type == EvoGraphOptimiser and
-                self.optimiser_parameters.genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free):
+        if (optimiser_type is EvoGraphOptimiser and
+                self.optimiser_parameters.genetic_scheme_type is GeneticSchemeTypesEnum.parameter_free):
             optimiser_type = EvoGraphParameterFreeOptimiser
 
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
@@ -116,6 +115,7 @@ class ComposerBuilder:
                                      self.composer_requirements,
                                      self.metrics,
                                      self.initial_pipelines,
-                                     self.log)
+                                     self.log,
+                                     self.cache)
 
         return composer

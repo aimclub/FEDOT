@@ -58,12 +58,9 @@ class GraphOptimiser:
                  graph_generation_params: 'GraphGenerationParams',
                  metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements

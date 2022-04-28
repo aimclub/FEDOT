@@ -1,4 +1,5 @@
 from copy import deepcopy
+from inspect import signature
 from typing import List, Optional, Tuple, Union
 
 import numpy as np
@@ -18,6 +19,8 @@ from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_list
+from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
@@ -71,6 +74,7 @@ class Fedot:
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param initial_assumption: initial assumption for composer
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
+    :param use_cache: bool indicating if it is needed to use pipeline structures caching
     """
 
     def __init__(self,
@@ -82,7 +86,8 @@ class Fedot:
                  seed=None, verbose_level: int = 0,
                  safe_mode=True,
                  initial_assumption: Union[Pipeline, List[Pipeline]] = None,
-                 n_jobs: int = 1
+                 n_jobs: int = 1,
+                 use_cache: bool = False
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -94,14 +99,16 @@ class Fedot:
         input_params = {'problem': self.metrics.main_problem, 'preset': preset, 'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level,
-                        'initial_assumption': initial_assumption}
+                        'initial_assumption': initial_assumption, 'n_jobs': n_jobs, 'use_cache': use_cache}
         self.params.initialize_params(input_params)
+
+        # Initialize ApiComposer's parameters via ApiParams
+        self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
 
         # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']
         self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
         self.params.api_params['tuner_metric'] = self.tuner_metrics
-        self.params.api_params['n_jobs'] = n_jobs
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
@@ -298,8 +305,7 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        if not isinstance(metric_names, List):
-            metric_names = [metric_names]
+        metric_names = ensure_list(metric_names)
 
         calculated_metrics = dict()
         for metric_name in metric_names:
@@ -365,7 +371,7 @@ class Fedot:
         remote = RemoteEvaluator()
         if remote.use_remote and remote.remote_task_params is not None:
             task = self.params.api_params['task']
-            if task.task_type == TaskTypesEnum.ts_forecasting:
+            if task.task_type is TaskTypesEnum.ts_forecasting:
                 task_str = \
                     f'Task(TaskTypesEnum.ts_forecasting, ' \
                     f'TsForecastingParams(forecast_length={task.task_params.forecast_length}))'
@@ -384,7 +390,11 @@ class Fedot:
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,
                                                                  {k: v for k, v in recommendations.items()
                                                                   if k != 'cut'})
-        self.current_pipeline.fit(full_train_not_preprocessed, n_jobs=self.params.api_params['n_jobs'])
+        self.current_pipeline.fit(
+            full_train_not_preprocessed,
+            use_fitted=self.current_pipeline.fit_from_cache(self.api_composer.cache),
+            n_jobs=self.params.api_params['n_jobs']
+        )
 
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """
@@ -404,5 +414,6 @@ class Fedot:
         # Perform fitting
         final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
                                                       logger=self.params.api_params['logger'],
+                                                      cache=self.api_composer.cache,
                                                       n_jobs=self.params.api_params['n_jobs'])
         return final_pipeline

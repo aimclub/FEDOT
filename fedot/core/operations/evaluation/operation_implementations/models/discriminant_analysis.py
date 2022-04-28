@@ -2,17 +2,15 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.discriminant_analysis import (LinearDiscriminantAnalysis,
-                                           QuadraticDiscriminantAnalysis)
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 
 from fedot.core.log import Log
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 
 class DiscriminantAnalysisImplementation(ModelImplementation):
 
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         self.params = params
         self.model = None

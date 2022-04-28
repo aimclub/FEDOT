@@ -6,15 +6,16 @@ import pandas as pd
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
-from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation.operation_implementations. \
-    implementation_interfaces import DataOperationImplementation
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
+    DataOperationImplementation
+)
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class LaggedImplementation(DataOperationImplementation):
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__()
 
         self.window_size_minimum = None
@@ -26,10 +27,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.parameters_changed = False
 
         # Define logger object
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -458,7 +456,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
 
 class NumericalDerivativeFilterImplementation(DataOperationImplementation):
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__()
         self.params = params
         self.parameters_changed = False
@@ -468,10 +466,7 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         self.default_poly_degree = 2
         self.default_order = 1
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         self.poly_degree = int(self.params['poly_degree'])
         self.order = int(self.params['order'])
@@ -584,15 +579,12 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
 
 class CutImplementation(DataOperationImplementation):
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__()
         cut_part = params.get('cut_part')
 
         # Define logger object
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         if 0 < cut_part <= 0.9:
             self.cut_part = cut_part

@@ -2,14 +2,13 @@ import math
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import (Any, Callable, List, Optional, Tuple, Union)
+from typing import Any, Callable, List, Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 from deap.tools import ParetoFront
 from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.archive import SimpleArchive
 from fedot.core.optimisers.gp_comp.gp_operators import (
@@ -26,10 +25,13 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, GraphGenerationParams
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
+from fedot.core.optimisers.utils.population_utils import is_equal_archive
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+
+if TYPE_CHECKING:
+    from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
@@ -95,11 +97,11 @@ class EvoGraphOptimiser(GraphOptimiser):
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
-                 requirements: PipelineComposerRequirements,
+                 requirements: 'PipelineComposerRequirements',
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
 
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
@@ -108,6 +110,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.parameters = GPGraphOptimiserParameters() if parameters is None else parameters
         self.parameters.set_default_params()
+        self.archive: Union[ParetoFront, SimpleArchive]
         if isinstance(self.parameters.archive_type, ParetoFront):
             self.archive = self.parameters.archive_type
         else:
@@ -199,7 +202,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc='Generations', unit='gen', initial=1) if show_progress else None
+                        desc='Generations', unit='gen', initial=1,
+                        disable=self.log.verbosity_level == -1) if show_progress else None
 
             self._init_population(objective_function, t)
 
@@ -318,7 +322,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             if self.parameters.multi_objective:
                 equal_best = is_equal_archive(self.prev_best, self.archive)
             else:
-                equal_best = is_equal_fitness(self.prev_best.fitness, self.best_individual.fitness)
+                equal_best = self.prev_best.fitness == self.best_individual.fitness
             if equal_best:
                 value = self.num_of_gens_without_improvements + 1
 
@@ -355,7 +359,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         sort_inds = np.argsort([ind.fitness for ind in individuals])[1:]
         simpler_equivalents = {}
         for i in sort_inds:
-            is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
+            is_fitness_equals_to_best = best_ind.fitness == individuals[i].fitness
             has_less_num_of_operations_than_best = individuals[i].graph.length < best_ind.graph.length
             if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
                 simpler_equivalents[i] = len(individuals[i].graph.nodes)
@@ -378,10 +382,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             new_inds = [selected_individual_first]
 
-        new_inds = tuple([mutation(types=self.parameters.mutation_types,
-                                   params=self.graph_generation_params,
-                                   ind=new_ind, requirements=self.requirements,
-                                   max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
+        new_inds = [mutation(types=self.parameters.mutation_types,
+                             params=self.graph_generation_params,
+                             ind=new_ind, requirements=self.requirements,
+                             max_depth=self.max_depth, log=self.log) for new_ind in new_inds]
         for ind in new_inds:
             ind.fitness = None
 

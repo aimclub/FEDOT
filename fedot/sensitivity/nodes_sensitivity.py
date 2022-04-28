@@ -1,17 +1,17 @@
 import json
 from os.path import join
-from typing import Optional, List, Type
+from typing import List, Optional, Type
 
 import numpy as np
 from matplotlib import pyplot as plt
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import Node
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.node import Node
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
-from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach, NodeAnalysis
+from fedot.sensitivity.node_sa_approaches import NodeAnalysis, NodeAnalyzeApproach
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
@@ -35,7 +35,7 @@ class NodesAnalysis:
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Log = None,
+                 path_to_save=None, log: Optional[Log] = None,
                  nodes_to_analyze: List[Node] = None):
 
         self.pipeline = pipeline

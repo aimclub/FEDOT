@@ -8,9 +8,9 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -50,8 +50,7 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     composer = builder.build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
-    pipeline_evo_composed = composer.compose_pipeline(data=fit_data,
-                                                      is_visualise=True)
+    pipeline_evo_composed = composer.compose_pipeline(data=fit_data)
     pipeline_evo_composed.print_structure()
 
     # tuning of the composed pipeline

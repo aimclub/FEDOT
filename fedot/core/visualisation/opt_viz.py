@@ -1,10 +1,11 @@
 import itertools
+import math
 import os
 from copy import deepcopy
 from glob import glob
 from os import remove
 from time import time
-from typing import List, Any, Tuple, Union, Optional, Dict
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -15,10 +16,8 @@ from deap import tools
 from imageio import get_writer, imread
 import matplotlib.pyplot as plt
 
-from fedot.core.optimisers.graph import OptNode
-# from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
@@ -26,22 +25,19 @@ from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 class PipelineEvolutionVisualiser:
 
-    def __init__(self, log: Log = default_log(__name__)):
+    def __init__(self, log: Optional[Log] = None):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
-        self.log = log
+        self.log = log or default_log(__name__)
         self.pipelines_imgs = []
         self.convergence_imgs = []
         self.best_pipelines_imgs = []
         self.merged_imgs = []
         self.graph_visualizer = GraphVisualiser(log=log)
-        self.default_tags_model = ['linear', 'non_linear']
-        self.default_tags_data = [
-            'data_source', 'scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
-            'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
-            'imbalanced'
+        self.default_tags_model = OperationTypesRepository.__default_repo_tags__['models']
+        self.default_tags_data = OperationTypesRepository.__default_repo_tags__['data_operations']
         ]
 
     def _visualise_pipelines(self, pipelines, fitnesses):
@@ -112,7 +108,7 @@ class PipelineEvolutionVisualiser:
         generations = list(flatten(generations))
 
         # Visualize
-        fitness = [f if f >= 0 else -f for f in history.all_historical_fitness]
+        fitness = [abs(fitness.value) for fitness in history.all_historical_fitness]
         fig, ax = plt.subplots(figsize=(15, 10))
 
         # Get color palette for fitness. The lower the fitness value, the brighter the green color
@@ -250,9 +246,9 @@ class PipelineEvolutionVisualiser:
         pareto_obj_first, pareto_obj_second = [], []
         for i in range(len(archive)):
             fit_first = archive[i].fitness.values[objectives_numbers[0]]
-            pareto_obj_first.append(fit_first if fit_first > 0 else -fit_first)
+            pareto_obj_first.append(abs(fit_first))
             fit_second = archive[i].fitness.values[objectives_numbers[1]]
-            pareto_obj_second.append(fit_second if fit_second > 0 else -fit_second)
+            pareto_obj_second.append(abs(fit_second))
 
         fig, ax = plt.subplots()
 
@@ -260,9 +256,9 @@ class PipelineEvolutionVisualiser:
             obj_first, obj_second = [], []
             for i in range(len(individuals)):
                 fit_first = individuals[i].fitness.values[objectives_numbers[0]]
-                obj_first.append(fit_first if fit_first > 0 else -fit_first)
+                obj_first.append(abs(fit_first))
                 fit_second = individuals[i].fitness.values[objectives_numbers[1]]
-                obj_second.append(fit_second if fit_second > 0 else -fit_second)
+                obj_second.append(abs(fit_second))
             ax.scatter(obj_first, obj_second, c='green')
 
         ax.scatter(pareto_obj_first, pareto_obj_second, c='red')
@@ -318,31 +314,6 @@ class PipelineEvolutionVisualiser:
         for file in files:
             remove(file)
 
-    def _get_node_tag(self, node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
-                      tags_data: Optional[List[str]] = None,
-                      repos_tags: Optional[Dict[OperationTypesRepository, List[str]]] = None) -> Optional[str]:
-        # TODO: Docstring
-        if (tags_model or tags_data) and repos_tags:
-            raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
-
-        repos_tags = repos_tags or {
-            OperationTypesRepository('model'): tags_model or self.default_tags_model,
-            OperationTypesRepository('data_operation'): tags_data or self.default_tags_data
-        }
-
-        if isinstance(node, OptNode):
-            node = node.content['name']
-
-        for repo, tags in repos_tags.items():
-            info = repo.operation_info_by_id(node)
-            if info is None:
-                continue
-            for tag in tags:
-                if tag in info.tags:
-                    return tag
-
-        return None
-
     def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         # TODO: Docstring
@@ -364,7 +335,7 @@ class PipelineEvolutionVisualiser:
                 for node in ind.graph.nodes:
                     df_data[generation_column_name].append(gen_num)
                     df_data[tag_column_name].append(
-                        self._get_node_tag(node, tags_model=tags_model, tags_data=tags_data)
+                        OperationTypesRepository.get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data)
                     )
 
         df_operations = pd.DataFrame.from_dict(df_data)

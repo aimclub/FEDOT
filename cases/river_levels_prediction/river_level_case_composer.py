@@ -103,7 +103,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
             with_metrics(metric_function).with_initial_pipelines([init_pipeline])
         composer = builder.build()
 
-        obtained_pipeline = composer.compose_pipeline(data=train_input, is_visualise=False)
+        obtained_pipeline = composer.compose_pipeline(data=train_input)
 
         # Display info about obtained pipeline
         obtained_models, depth = get_pipeline_info(pipeline=obtained_pipeline)

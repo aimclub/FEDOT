@@ -36,7 +36,7 @@ class MultiTimesAnalyze:
                  test_data: InputData, valid_data: InputData,
                  case_name: str, path_to_save: str = None,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
         self.pipeline = pipeline
         self.original_pipeline_len = self.pipeline.length
         self.train_data = train_data

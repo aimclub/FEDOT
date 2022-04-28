@@ -3,22 +3,20 @@ from typing import Optional
 
 import numpy as np
 from scipy import stats
-from scipy.special import inv_boxcox, boxcox
+from scipy.special import boxcox, inv_boxcox
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.arima.model import ARIMA
 
 from fedot.core.log import Log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    ts_to_table
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 
 class ARIMAImplementation(ModelImplementation):
 
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.params = params
         self.arima = None
@@ -171,7 +169,7 @@ class ARIMAImplementation(ModelImplementation):
 
 
 class STLForecastARIMAImplementation(ModelImplementation):
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         self.params = params
         self.model = None

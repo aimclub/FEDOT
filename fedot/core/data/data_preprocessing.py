@@ -3,13 +3,12 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import InputData, data_type_is_table
+from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
-    if data.data_type == DataTypesEnum.table or data.data_type == DataTypesEnum.ts \
-            or data.data_type == DataTypesEnum.multi_ts:
+    if data_type_is_table(data) or data_type_is_ts(data) or data_type_is_multi_ts(data):
         return True
     return False
 
@@ -74,13 +73,11 @@ def find_categorical_columns(table: np.array, column_types: dict = None):
 
     categorical_ids = []
     non_categorical_ids = []
-    column_id = 0
-    for type_name in column_types:
+    for column_id, type_name in enumerate(column_types):
         if 'str' in str(type_name):
             categorical_ids.append(column_id)
         else:
             non_categorical_ids.append(column_id)
-        column_id += 1
 
     return categorical_ids, non_categorical_ids
 

@@ -35,11 +35,11 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
-                 sequence_function=fibonacci_sequence, log: Log = None,
+                 sequence_function=fibonacci_sequence, log: Optional[Log] = None,
                  suppl_metric=MetricsRepository().metric_by_id(ComplexityMetricsEnum.node_num)):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
 
-        if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
+        if self.parameters.genetic_scheme_type is not GeneticSchemeTypesEnum.parameter_free:
             self.log.warn(f'Invalid genetic scheme type was changed to parameter-free. Continue.')
             self.parameters.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
 
@@ -74,7 +74,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc='Generations', unit='gen', initial=1) if show_progress else None
+                        desc='Generations', unit='gen', initial=1,
+                        disable=self.log.verbosity_level == -1) if show_progress else None
 
             self._init_population(objective_function, t)
 
@@ -186,7 +187,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         if self.parameters.multi_objective:
             std = np.std([self.get_main_metric(ind) for ind in self.population])
         else:
-            std = np.std([ind.fitness for ind in self.population])
+            std = np.std([ind.fitness.values[0] for ind in self.population])
         return std
 
     def update_max_std(self):
@@ -253,8 +254,9 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             next_population_size = len(self.population)
         return next_population_size
 
-    def operators_prob_update(self, std: float, max_std: float) -> Tuple[float, float]:
-        mutation_prob = 1 - (std / max_std) if max_std > 0 and std != max_std else 0.5
+    @staticmethod
+    def operators_prob_update(std: float, max_std: float) -> Tuple[float, float]:
+        mutation_prob = 1 - (std / max_std) if 0 < max_std != std else 0.5
         crossover_prob = 1 - mutation_prob
         return mutation_prob, crossover_prob
 

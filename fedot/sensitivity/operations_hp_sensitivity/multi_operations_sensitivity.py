@@ -32,7 +32,7 @@ class MultiOperationsHPAnalyze:
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Log = None):
+                 path_to_save=None, log: Optional[Log] = None):
         self._pipeline = pipeline
         self._train_data = train_data
         self._test_data = test_data

@@ -31,7 +31,7 @@ class Node(GraphNode):
 
     def __init__(self, nodes_from: Optional[List['Node']],
                  operation_type: Optional[Union[str, 'Operation']] = None,
-                 log: Log = None, **kwargs):
+                 log: Optional[Log] = None, **kwargs):
 
         passed_content = kwargs.get('content')
         if passed_content:
@@ -64,10 +64,7 @@ class Node(GraphNode):
         super().__init__(content={'name': operation,
                                   'params': default_params}, nodes_from=nodes_from)
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
         self._fitted_operation = None
         self.rating = None
 

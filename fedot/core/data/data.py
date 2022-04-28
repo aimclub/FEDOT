@@ -340,7 +340,7 @@ class InputData(Data):
         """
         Shuffles features and target if possible
         """
-        if self.data_type == DataTypesEnum.table:
+        if self.data_type is DataTypesEnum.table:
             shuffled_ind = np.random.permutation(len(self.features))
             idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
                 shuffled_ind]
@@ -385,7 +385,7 @@ class InputData(Data):
             # note, that string indexes do not have an order and always we think that indexes we want to predict go
             # immediately after the train indexes
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
-            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx)+1))
+            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
     @staticmethod
@@ -418,7 +418,8 @@ def _resize_image(file_path: str, target_size: Tuple[int, int]):
 
 
 def process_target_and_features(data_frame: pd.DataFrame,
-                                target_column: Optional[Union[str, List[str]]]) -> Tuple[np.ndarray, Optional[np.ndarray]]:
+                                target_column: Optional[Union[str, List[str]]]
+                                ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """ Function process pandas dataframe with single column
 
     :param data_frame: loaded pandas DataFrame
@@ -442,11 +443,15 @@ def process_target_and_features(data_frame: pd.DataFrame,
 
 
 def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
-    return data.data_type == DataTypesEnum.table
+    return data.data_type is DataTypesEnum.table
 
 
 def data_type_is_ts(data: InputData) -> bool:
-    return data.data_type == DataTypesEnum.ts
+    return data.data_type is DataTypesEnum.ts
+
+
+def data_type_is_multi_ts(data: InputData) -> bool:
+    return data.data_type is DataTypesEnum.multi_ts
 
 
 def get_indices_from_file(data_frame, file_path):

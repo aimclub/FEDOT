@@ -320,7 +320,7 @@ class SearchSpace:
         if operation_parameters is not None:
             # If there are not parameter_name - return list with all parameters
             if parameter_name is None:
-                return list(operation_parameters.keys())
+                return list(operation_parameters)
             else:
                 hyperopt_tuple = operation_parameters.get(parameter_name)
                 return hyperopt_tuple[0](label, *hyperopt_tuple[1])

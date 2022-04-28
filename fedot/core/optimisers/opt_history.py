@@ -15,7 +15,7 @@ from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
 
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
@@ -62,13 +62,9 @@ class OptHistory:
         adapter = PipelineAdapter()
         for gen_num, gen_inds in enumerate(self.individuals):
             for ind_num, ind in enumerate(gen_inds):
-                if self.is_multi_objective:
-                    fitness = ind.fitness.values
-                else:
-                    fitness = ind.fitness
                 ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
                 row = [
-                    idx, gen_num, fitness,
+                    idx, gen_num, ind.fitness.values,
                     len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
                 ]
                 self._add_history_to_csv(file, row)
@@ -101,7 +97,7 @@ class OptHistory:
                     ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
                     additional_info = \
                         {'fitness_name': self.short_metrics_names[0],
-                         'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
+                         'fitness_value': self.historical_fitness[last_gen_id][ind_id].values[0]}
                     PipelineAdapter().restore_as_template(
                         individual.graph, individual.metadata
                     ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)

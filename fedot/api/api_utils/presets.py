@@ -1,7 +1,6 @@
 import datetime
-
 from copy import copy
-from typing import Union
+from typing import Tuple, Union
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import \
@@ -94,7 +93,7 @@ class OperationsPreset:
 def update_builder(builder: ComposerBuilder,
                    composer_requirements: PipelineComposerRequirements,
                    fit_time: datetime.timedelta,
-                   full_minutes_timeout: Union[int, None], preset: str) -> [ComposerBuilder, str]:
+                   full_minutes_timeout: Union[int, None], preset: str) -> Tuple[ComposerBuilder, str]:
     """ Updates the builder if a preset needs to be set automatically """
     if preset != 'auto':
         return builder, preset

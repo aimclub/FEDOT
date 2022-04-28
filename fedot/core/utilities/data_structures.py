@@ -1,5 +1,6 @@
+from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Container, Iterable, Sized
+from typing import Container, Iterable, List, Sized, TypeVar, Union
 
 
 class UniqueList(list):
@@ -63,6 +64,13 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
     return True
 
 
+T = TypeVar('T')  # TODO: make more general, not just for `ensure_list` method
+
+
+def ensure_list(obj: Union[T, List[T]]) -> List[T]:
+    return obj if isinstance(obj, list) else [obj]
+
+
 class ComparableEnum(Enum):
     """
     The Enum implementation that allows to avoid the multi-module enum comparison problem
@@ -74,3 +82,25 @@ class ComparableEnum(Enum):
 
     def __hash__(self):
         return hash(str(self))
+
+
+class Comparable(ABC):
+    @abstractmethod
+    def __eq__(self, other) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def __lt__(self, other) -> bool:
+        raise NotImplementedError()
+
+    def __ne__(self, other) -> bool:
+        return not self.__eq__(other)
+
+    def __le__(self, other) -> bool:
+        return self.__lt__(other) or self.__eq__(other)
+
+    def __gt__(self, other) -> bool:
+        return not self.__le__(other)
+
+    def __ge__(self, other) -> bool:
+        return not self.__lt__(other)

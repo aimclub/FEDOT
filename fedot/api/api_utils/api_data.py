@@ -1,5 +1,4 @@
-from copy import deepcopy
-from typing import Union, Dict
+from typing import Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -26,7 +25,7 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task, log: Log = None):
+    def __init__(self, task: Task, log: Optional[Log] = None):
         self.task = task
         self.preprocessor = DataPreprocessor(log)
 
@@ -54,8 +53,8 @@ class ApiDataProcessor:
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
-                for k in data.keys():
-                    data[k].idx = idx
+                for key in data:
+                    data[key].idx = idx
         except Exception as ex:
             raise ValueError('Please specify a features as path to csv file, as Numpy array, '
                              'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
