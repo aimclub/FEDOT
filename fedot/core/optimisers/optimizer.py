@@ -93,16 +93,6 @@ class GraphOptimiser:
         """
         pass
 
-    def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10) -> bool:
-        """ Function for the comparison of fitness values between pairs of individuals
-        :param first_fitness: fitness for individual A
-        :param second_fitness: fitness for individual B
-        :param atol: absolute tolerance parameter (see Notes).
-        :param rtol: relative tolerance parameter (see Notes).
-        :return: equality flag
-        """
-        return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
-
     def default_on_next_iteration_callback(self, individuals: Sequence[Individual],
                                            best_individuals: Optional[Sequence[Individual]] = None):
         """
@@ -119,11 +109,6 @@ class GraphOptimiser:
                 self.history.add_to_archive_history(best_individuals)
         except Exception as ex:
             self.log.warn(f'Callback was not successful because of {ex}')
-
-    # TODO: possibly remove, it's protected & not really used as abstract method
-    @abstractmethod
-    def _is_stopping_criteria_triggered(self):
-        pass
 
 
 @dataclass
