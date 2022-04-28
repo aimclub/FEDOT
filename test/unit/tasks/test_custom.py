@@ -15,6 +15,8 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.validation.objective import Objective
+from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 random.seed(1)
 np.random.seed(1)
@@ -33,7 +35,7 @@ class CustomNode(GraphNode):
 def custom_metric(custom_model: CustomModel):
     _, labels = graph_structure_as_nx_graph(custom_model)
 
-    return [-len(labels) + custom_model.evaluate()]
+    return -len(labels) + custom_model.evaluate()
 
 
 def test_custom_graph_opt():
@@ -68,7 +70,8 @@ def test_custom_graph_opt():
         parameters=optimiser_parameters,
         requirements=requirements, initial_graph=None)
 
-    optimized_graph = optimiser.optimise(custom_metric)
+    objective_eval = ObjectiveEvaluate(Objective(custom_metric))
+    optimized_graph = optimiser.optimise(objective_eval)
 
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 

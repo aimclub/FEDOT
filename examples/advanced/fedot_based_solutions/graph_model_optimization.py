@@ -1,7 +1,6 @@
 import datetime
 import os
 import random
-from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -18,6 +17,8 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import fedot_project_root
+from fedot.core.validation.objective import Objective
+from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 random.seed(1)
 np.random.seed(1)
@@ -39,7 +40,7 @@ def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
     graph.show()
     existing_variables_num = -graph.depth - graph.evaluate(data)
 
-    return [existing_variables_num]
+    return existing_variables_num
 
 
 def _has_no_duplicates(graph):
@@ -104,7 +105,8 @@ def run_custom_example(timeout: datetime.timedelta = None):
         requirements=requirements, initial_graph=initial,
         log=default_log(logger_name='Bayesian', verbose_level=1))
 
-    optimized_graph = optimiser.optimise(partial(custom_metric, data=data))
+    objective_eval = ObjectiveEvaluate(Objective(custom_metric), data=data)
+    optimized_graph = optimiser.optimise(objective_eval)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 
     optimized_network.show()
