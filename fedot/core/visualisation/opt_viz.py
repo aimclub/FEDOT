@@ -38,7 +38,6 @@ class PipelineEvolutionVisualiser:
         self.graph_visualizer = GraphVisualiser(log=log)
         self.default_tags_model = OperationTypesRepository.__default_repo_tags__['models']
         self.default_tags_data = OperationTypesRepository.__default_repo_tags__['data_operations']
-        ]
 
     def _visualise_pipelines(self, pipelines, fitnesses):
         fitnesses = deepcopy(fitnesses)
@@ -315,7 +314,8 @@ class PipelineEvolutionVisualiser:
             remove(file)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
-                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
+                                 n_best: Optional[int] = None):
         # TODO: Docstring
         tags_model = tags_model or self.default_tags_model
         tags_data = tags_data or self.default_tags_data
