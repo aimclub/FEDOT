@@ -23,18 +23,18 @@ def creation_model_files_before_after_tests(request):
 
 def delete_files_folders():
     for path_to_del in PATHS_TO_DELETE_AFTER_TEST:
-        absolute_path = os.path.join(DEFAULT_PROJECTS_PATH, path_to_del)
-        if os.path.isfile(absolute_path):
+        absolute_path = DEFAULT_PROJECTS_PATH.joinpath(path_to_del)
+        if absolute_path.is_file():
             os.remove(absolute_path)
-        if os.path.isdir(absolute_path):
+        elif absolute_path.is_dir():
             shutil.rmtree(absolute_path)
 
 
 def test_export_project_correctly():
     folder_name = 'iris_classification'
     zip_name = Path(folder_name).with_suffix('.zip')
-    path_to_zip = os.path.join(DEFAULT_PROJECTS_PATH, zip_name)
-    path_to_folder = os.path.join(DEFAULT_PROJECTS_PATH, folder_name)
+    path_to_zip = DEFAULT_PROJECTS_PATH.joinpath(zip_name)
+    path_to_folder = DEFAULT_PROJECTS_PATH.joinpath(folder_name)
 
     PATHS_TO_DELETE_AFTER_TEST.append(zip_name)
     PATHS_TO_DELETE_AFTER_TEST.append(path_to_folder)
@@ -72,8 +72,8 @@ def test_import_project_correctly():
 def test_export_import_api_correctly():
     folder_name = 'api_classification'
     zip_name = Path(folder_name).with_suffix('.zip')
-    path_to_zip = os.path.join(DEFAULT_PROJECTS_PATH, zip_name)
-    path_to_folder = os.path.join(DEFAULT_PROJECTS_PATH, folder_name)
+    path_to_zip = DEFAULT_PROJECTS_PATH.joinpath(zip_name)
+    path_to_folder = DEFAULT_PROJECTS_PATH.joinpath(folder_name)
 
     PATHS_TO_DELETE_AFTER_TEST.append(zip_name)
     PATHS_TO_DELETE_AFTER_TEST.append(path_to_folder)

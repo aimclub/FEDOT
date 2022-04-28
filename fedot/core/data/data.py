@@ -487,17 +487,3 @@ def autodetect_data_type(task: Task) -> DataTypesEnum:
         return DataTypesEnum.ts
     else:
         return DataTypesEnum.table
-
-
-def _validate_column_name(columns: Optional[List[str]], valid_number_columns: int):
-    if columns is None:
-        return
-    if _array_contains_only_one_type(columns, str):
-        if len(columns) != valid_number_columns:
-            raise IndexError(f'Length of input columns must be: "{valid_number_columns}".')
-    else:
-        raise ValueError(f'Columns type must be str.')
-
-
-def _array_contains_only_one_type(array: np.ndarray, t: type):
-    return all([column for column in array if isinstance(column, t)])
