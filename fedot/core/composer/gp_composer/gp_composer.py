@@ -19,7 +19,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.metric_estimation import calc_metrics_for_folds, fit_and_eval_metrics, eval_metrics
+from fedot.core.validation.objective import Objective
+from fedot.core.validation.objective_eval import DataObjectiveEvaluate, ObjectiveEvaluate
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
@@ -85,6 +86,7 @@ class GPComposer(Composer):
         self.cache: Optional[OperationsCache] = cache
 
         self.objective_builder = ObjectiveBuilder(metrics,
+                                                  self.optimiser.parameters.multi_objective,
                                                   self.composer_requirements.max_pipeline_fit_time,
                                                   self.composer_requirements.cv_folds,
                                                   self.composer_requirements.validation_blocks,
@@ -144,6 +146,7 @@ class GPComposer(Composer):
 class ObjectiveBuilder:
     def __init__(self,
                  metrics: Sequence[MetricType],
+                 is_multi_objective: bool = False,
                  max_pipeline_fit_time: Optional[timedelta] = None,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
@@ -152,6 +155,7 @@ class ObjectiveBuilder:
                  log: Log = None):
 
         self.metrics = metrics
+        self.is_multi_objective = is_multi_objective
         self.max_pipeline_fit_time = max_pipeline_fit_time
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
@@ -161,43 +165,29 @@ class ObjectiveBuilder:
 
     def build(self, data: InputData) -> Tuple[ObjectiveFunction, Optional[ObjectiveFunction]]:
         if self.cv_folds is not None:
-            objective_function, intermediate_metrics_function = self._cv_validation_metric_build(data)
+            if isinstance(data, MultiModalData):
+                raise NotImplementedError('Cross-validation is not supported for multi-modal data')
+            data_producer = self._cv_generator_by_task(data)
         else:
             self.log.info("Hold out validation for graph composing was applied.")
             split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
             train_data, test_data = train_test_data_setup(data, split_ratio)
 
+            # trivial data producer for hold-out validation that always returns same data
+            def data_producer(): yield train_data, test_data
+
             if RemoteEvaluator().use_remote:
                 init_data_for_remote_execution(train_data)
 
-            objective_function = partial(self.composer_metric, self.metrics, train_data, test_data)
-            intermediate_metrics_function = partial(eval_metrics, self.metrics, test_data,
-                                                    self.validation_blocks)
-
+        objective = Objective(self.metrics, self.is_multi_objective)
+        objective_evaluate = DataObjectiveEvaluate(objective=objective,
+                                                   data_producer=data_producer,
+                                                   time_constraint=self.max_pipeline_fit_time,
+                                                   validation_blocks=self.validation_blocks,
+                                                   cache=self.cache, log=self.log)
+        objective_function = objective_evaluate.evaluate
+        intermediate_metrics_function = objective_evaluate.evaluate_intermediate_metrics
         return objective_function, intermediate_metrics_function
-
-    def _cv_validation_metric_build(self, data: Union[InputData, MultiModalData]):
-        """ Prepare function for metric evaluation based on task """
-        if isinstance(data, MultiModalData):
-            raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-
-        cv_generator = self._cv_generator_by_task(data)
-        # Only Pipeline parameter is left unfilled in metric function
-        metric_function_for_nodes = partial(calc_metrics_for_folds,
-                                            cv_generator,
-                                            metrics=self.metrics,
-                                            validation_blocks=self.validation_blocks,
-                                            log=self.log, cache=self.cache)
-
-        intermediate_metrics_function = None
-        if self.collect_intermediate_metric:
-            last_fold = None
-            for last_fold in cv_generator():
-                pass  # just get the last fold
-            last_fold_test = last_fold[1]
-            intermediate_metrics_function = partial(eval_metrics, self.metrics, last_fold_test,
-                                                    self.validation_blocks)
-        return metric_function_for_nodes, intermediate_metrics_function
 
     def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
@@ -218,21 +208,3 @@ class ObjectiveBuilder:
             cv_generator = partial(tabular_cv_generator, data,
                                    self.cv_folds)
         return cv_generator
-
-    def composer_metric(self, metrics: Sequence[MetricType],
-                        train_data: Union[InputData, MultiModalData],
-                        test_data: Union[InputData, MultiModalData],
-                        pipeline: Pipeline) -> Optional[Sequence[float]]:
-        try:
-            pipeline.log = self.log
-            validate(pipeline, task=train_data.task)
-
-            self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
-            evaluated_metrics = fit_and_eval_metrics(pipeline, train_data, test_data, metrics,
-                                                     time_constraint=self.max_pipeline_fit_time,
-                                                     cache=self.cache)
-            self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {evaluated_metrics}')
-        except Exception as ex:
-            self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
-            evaluated_metrics = None
-        return evaluated_metrics

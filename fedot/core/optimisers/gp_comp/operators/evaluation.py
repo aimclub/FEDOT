@@ -7,7 +7,6 @@ from random import choice
 from typing import Dict, Optional
 
 from fedot.core.log import Log, default_log
-from fedot.core.optimisers.fitness import *
 from fedot.core.dag.graph import Graph
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.graph import OptGraph
@@ -79,7 +78,7 @@ class Evaluate(Operator[PopulationT]):
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
         _restrict_n_jobs_in_nodes(graph)
         adapted_graph = self.graph_adapter.restore(graph)
-        ind.fitness = self.calculate_fitness(adapted_graph)
+        ind.fitness = self.objective_function(adapted_graph)
         self._collect_intermediate_metrics(adapted_graph)
         self._cleanup_memory(graph)
         ind.graph = self.graph_adapter.adapt(adapted_graph)
@@ -87,16 +86,6 @@ class Evaluate(Operator[PopulationT]):
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         return ind if ind.fitness.valid else None
-
-    def calculate_fitness(self, graph: Graph) -> Fitness:
-        calculated_fitness = self.objective_function(graph)
-        if calculated_fitness is None:
-            return null_fitness()
-        elif self.is_multi_objective:
-            return MultiObjFitness(values=calculated_fitness,
-                                   weights=[-1] * len(calculated_fitness))
-        else:
-            return SingleObjFitness(*calculated_fitness)
 
     def _collect_intermediate_metrics(self, graph: Graph):
         if not self._intermediate_metrics_function:
@@ -106,8 +95,8 @@ class Evaluate(Operator[PopulationT]):
                 # TODO: leak of Pipeline type, it shouldn't be there
                 intermediate_graph = Pipeline(node)
                 intermediate_graph.preprocessor = graph.preprocessor
-                metric_values = self._intermediate_metrics_function(intermediate_graph)
-                node.metadata.metric = metric_values[0]  # saving only the most important first metric
+                intermediate_fitness = self._intermediate_metrics_function(intermediate_graph)
+                node.metadata.metric = intermediate_fitness.values[0]  # saving only the most important first metric
 
     def _cleanup_memory(self, graph: Graph):
         # TODO: leak of Pipeline type, it shouldn't be there

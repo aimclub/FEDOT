@@ -64,6 +64,7 @@ class GraphOptimiser:
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
+        self.parameters = parameters
 
         self.max_depth = self.requirements.start_depth \
             if self.requirements.start_depth \
