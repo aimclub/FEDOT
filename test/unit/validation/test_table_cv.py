@@ -16,7 +16,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.metric_estimation import calc_metrics_for_folds
+from fedot.core.validation.objective import Objective
+from fedot.core.validation.objective_eval import DataObjectiveEvaluate
 from fedot.core.validation.split import tabular_cv_generator
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from test.unit.api.test_api_cli_params import project_root_path
@@ -46,8 +47,9 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
-    actual_value = calc_metrics_for_folds(cv_folds, pipeline, metrics=metrics, log=log)
-    all_metrics_correct = all(list(map(lambda x: 0 < abs(x) <= 1, actual_value)))
+    objective_eval = DataObjectiveEvaluate(Objective(metrics), cv_folds, log=log)
+    actual_values = objective_eval(pipeline).values
+    all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 
     assert all_metrics_correct
 
