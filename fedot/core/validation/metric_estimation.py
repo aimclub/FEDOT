@@ -10,14 +10,17 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 
 
-def metric_evaluation(pipeline: Pipeline,
-                      train_data: InputData,
-                      test_data: InputData,
-                      metrics: Sequence[MetricType],
-                      fold_id: Optional[int] = None,
-                      vb_number: Optional[int] = None,
-                      time_constraint: Optional[timedelta] = None,
-                      cache: Optional[OperationsCache] = None) -> List[float]:
+DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
+
+
+def fit_and_eval_metrics(pipeline: Pipeline,
+                         train_data: InputData,
+                         test_data: InputData,
+                         metrics: Sequence[MetricType],
+                         fold_id: Optional[int] = None,
+                         vb_number: Optional[int] = None,
+                         time_constraint: Optional[timedelta] = None,
+                         cache: Optional[OperationsCache] = None) -> Sequence[float]:
     """ Pipeline training and metrics assessment
 
     :param pipeline: pipeline for validation
@@ -38,16 +41,22 @@ def metric_evaluation(pipeline: Pipeline,
     if cache is not None:
         cache.save_pipeline(pipeline, fold_id)
 
+    return eval_metrics(metrics, test_data, vb_number, pipeline)
+
+
+def eval_metrics(metrics: Sequence[MetricType],
+                 reference_data: InputData,
+                 validation_blocks: Optional[int],
+                 pipeline: Pipeline) -> Sequence[float]:
     evaluated_metrics = []
     for metric in metrics:
         metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
-        metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
+        metric_value = metric_func(pipeline, reference_data=reference_data, validation_blocks=validation_blocks)
         evaluated_metrics.append(metric_value)
-
     return evaluated_metrics
 
 
-def calc_metrics_for_folds(cv_folds_generator: Callable[[], Iterable[Tuple[InputData, InputData]]],
+def calc_metrics_for_folds(cv_folds_generator: DataSource,
                            pipeline: Pipeline,
                            metrics: Sequence[MetricType],
                            validation_blocks: Optional[int] = None,
@@ -68,9 +77,9 @@ def calc_metrics_for_folds(cv_folds_generator: Callable[[], Iterable[Tuple[Input
         fold_id = 0
         folds_metrics = []
         for train_data, test_data in cv_folds_generator():
-            evaluated_fold_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
-                                                       vb_number=validation_blocks,
-                                                       fold_id=fold_id, cache=cache)
+            evaluated_fold_metrics = fit_and_eval_metrics(pipeline, train_data, test_data, metrics,
+                                                          vb_number=validation_blocks,
+                                                          fold_id=fold_id, cache=cache)
             folds_metrics.append(evaluated_fold_metrics)
             fold_id += 1
         folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds

@@ -19,7 +19,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.metric_estimation import calc_metrics_for_folds, metric_evaluation
+from fedot.core.validation.metric_estimation import calc_metrics_for_folds, fit_and_eval_metrics, eval_metrics
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
@@ -171,7 +171,7 @@ class ObjectiveBuilder:
                 init_data_for_remote_execution(train_data)
 
             objective_function = partial(self.composer_metric, self.metrics, train_data, test_data)
-            intermediate_metrics_function = partial(evaluate_metrics_without_fit, self.metrics, test_data,
+            intermediate_metrics_function = partial(eval_metrics, self.metrics, test_data,
                                                     self.validation_blocks)
 
         return objective_function, intermediate_metrics_function
@@ -195,7 +195,7 @@ class ObjectiveBuilder:
             for last_fold in cv_generator():
                 pass  # just get the last fold
             last_fold_test = last_fold[1]
-            intermediate_metrics_function = partial(evaluate_metrics_without_fit, self.metrics, last_fold_test,
+            intermediate_metrics_function = partial(eval_metrics, self.metrics, last_fold_test,
                                                     self.validation_blocks)
         return metric_function_for_nodes, intermediate_metrics_function
 
@@ -228,22 +228,11 @@ class ObjectiveBuilder:
             validate(pipeline, task=train_data.task)
 
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} fit started')
-            evaluated_metrics = metric_evaluation(pipeline, train_data, test_data, metrics,
-                                                  time_constraint=self.max_pipeline_fit_time,
-                                                  cache=self.cache)
+            evaluated_metrics = fit_and_eval_metrics(pipeline, train_data, test_data, metrics,
+                                                     time_constraint=self.max_pipeline_fit_time,
+                                                     cache=self.cache)
             self.log.debug(f'Pipeline {pipeline.root_node.descriptive_id} with metrics: {evaluated_metrics}')
         except Exception as ex:
             self.log.info(f'Pipeline assessment warning: {ex}. Continue.')
             evaluated_metrics = None
         return evaluated_metrics
-
-
-def evaluate_metrics_without_fit(metrics: Sequence[MetricType],
-                                 test_data: InputData,
-                                 validation_blocks: Optional[int],
-                                 pipeline: Pipeline) -> Sequence[float]:
-    values = []
-    for metric in metrics:
-        metric_function = MetricsRepository().metric_by_id(metric, default_callable=metric)
-        values.append(metric_function(pipeline, reference_data=test_data, validation_blocks=validation_blocks))
-    return values
