@@ -123,8 +123,20 @@ def display_mean_metrics(dataframe: pd.DataFrame, case: str):
             std_improvement = np.std(np.array(approach_df['Improvement, %']))
 
             print(f'Approach {approach} pipeline type {pipeline_type}: '
-                  f'mean improvement {mean_improvement:.1f} %, ± std {std_improvement:.1f}')
+                  f'mean improvement {mean_improvement:.1f} % ± std {std_improvement:.1f}')
         print('\n')
+
+
+def generate_sum_column(dataframe):
+    case_column = []
+    for i in range(len(dataframe)):
+        row = dataframe.iloc[i]
+        new_value = ''.join(('Pipeline: ', str(row['Pipeline']),
+                             '; dataset: ', str(row['Dataset'])))
+        case_column.append(new_value)
+    dataframe['Case'] = case_column
+
+    return dataframe
 
 
 def perform_visual_analysis(working_dir: str):
@@ -136,7 +148,8 @@ def perform_visual_analysis(working_dir: str):
 
     result_df_reg, result_df_class = collect_datasets_results(dir=working_dir, approaches=tuner_folders)
     print('\n--- Regression case ---')
-    display_mean_metrics(result_df_reg, 'regression')
+    filtered_df = result_df_reg[result_df_reg['Dataset'] != 'pol'].copy()
+    display_mean_metrics(filtered_df, 'regression')
 
     print('\n--- Classification case ---')
     display_mean_metrics(result_df_class, 'classification')
@@ -162,13 +175,19 @@ def perform_visual_analysis(working_dir: str):
                     height=4, aspect=.7)
         plt.show()
 
+        df_for_vis = generate_sum_column(result_df_reg)
+        # Filter dataframe - remain only representative cases
+        df_for_vis = df_for_vis[df_for_vis['Pipeline'] != 'C']
+        df_for_vis = df_for_vis[df_for_vis['Dataset'] != 'pol']
+
         sns.catplot(x='Approach', y='Time, sec.',
-                    hue='Pipeline', col='Iterations number',
-                    row='Dataset',
-                    palette='Blues',
-                    data=result_df_class,
-                    kind="strip", dodge=True,
-                    height=4, aspect=.7)
+                    hue='Iterations number',
+                    col='Case',
+                    palette='rainbow',
+                    data=df_for_vis,
+                    kind="violin", dodge=True,
+                    split=False,
+                    height=4, aspect=.9)
         plt.show()
 
 
