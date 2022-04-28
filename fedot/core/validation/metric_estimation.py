@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Callable, Iterable, List, Optional, Sequence, Tuple
+from typing import Optional, Sequence
 
 import numpy as np
 
@@ -8,9 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
-
-
-DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
+from fedot.core.validation.objective_eval import DataSource
 
 
 def fit_and_eval_metrics(pipeline: Pipeline,
