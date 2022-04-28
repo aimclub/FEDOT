@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Callable, Sequence, Any
 
+from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.pipeline import Pipeline
 
 T = TypeVar('T')
+G = TypeVar('G', bound=Graph)
 
 PopulationT = Sequence[Individual]  # TODO: provisional
-ObjectiveFunction = Callable[[Pipeline], Fitness]
+ObjectiveFunction = Callable[[G], Fitness]
 
 
 class Operator(ABC, Generic[T]):
