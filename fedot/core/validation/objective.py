@@ -1,12 +1,15 @@
 from abc import abstractmethod
 from collections.abc import Sequence, Mapping
-from typing import TypeVar, Generic, Any, Optional, Union, Iterable
+from typing import TypeVar, Generic, Any, Optional, Union, Iterable, Callable
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.fitness import *
+from fedot.core.optimisers.fitness import Fitness
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
 
 G = TypeVar('G', bound=Graph, covariant=True)
+
+ObjectiveFunction = Callable[[G], Fitness]
 
 
 class Objective(Generic[G]):
