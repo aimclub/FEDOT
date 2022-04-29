@@ -5,7 +5,7 @@ from networkx import set_node_attributes, graph_edit_distance
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.core.utilities.data_structures import ensure_list, remove_items
+from fedot.core.utilities.data_structures import ensure_sequence, remove_items
 
 
 class GraphOperator:
@@ -198,7 +198,7 @@ class GraphOperator:
             else:
                 return 1 + max(_depth_recursive(next_node) for next_node in node.nodes_from)
 
-        root = ensure_list(self.root_node())
+        root = ensure_sequence(self.root_node())
         return max(_depth_recursive(n) for n in root)
 
     def get_nodes_degrees(self):

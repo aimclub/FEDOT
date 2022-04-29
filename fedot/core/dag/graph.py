@@ -6,7 +6,7 @@ from fedot.core.visualisation.graph_viz import GraphVisualiser
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
 
-from fedot.core.utilities.data_structures import ensure_list
+from fedot.core.utilities.data_structures import ensure_sequence
 
 
 class Graph:
@@ -21,7 +21,7 @@ class Graph:
         self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
-            for node in ensure_list(nodes):
+            for node in ensure_sequence(nodes):
                 self.add_node(node)
 
     def _empty_postproc(self, nodes=None):

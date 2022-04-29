@@ -13,7 +13,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.utilities.data_structures import ensure_list
+from fedot.core.utilities.data_structures import ensure_sequence
 from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
@@ -60,7 +60,7 @@ class PipelineTemplate:
     def _pipeline_to_template(self, pipeline):
         try:
             # TODO improve for graph with several roots
-            self._extract_pipeline_structure(ensure_list(pipeline.root_node)[0], 0, [])
+            self._extract_pipeline_structure(ensure_sequence(pipeline.root_node)[0], 0, [])
         except Exception as ex:
             self.log.info(f'Cannot export to template: {ex}')
         self.link_to_empty_pipeline = pipeline

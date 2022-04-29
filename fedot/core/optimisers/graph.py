@@ -6,7 +6,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import Log, default_log
-from fedot.core.utilities.data_structures import UniqueList, ensure_list
+from fedot.core.utilities.data_structures import UniqueList, ensure_sequence
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
@@ -96,7 +96,7 @@ class OptGraph:
         self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
-            for node in ensure_list(nodes):
+            for node in ensure_sequence(nodes):
                 self.add_node(node)
 
     def _empty_postproc(self, nodes=None):
