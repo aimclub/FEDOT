@@ -129,6 +129,9 @@ def data_with_categorical_target(with_nan: bool = False):
 
     return train_input
 
+# TODO test data with text features
+# TODO test data with image features
+
 
 def test_correct_api_dataset_preprocessing():
     """ Check if dataset preprocessing was performed correctly when API launch using. """

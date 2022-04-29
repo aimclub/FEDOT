@@ -1,6 +1,8 @@
 from typing import Optional, Union
 
 from fedot.core.data.data import InputData
+from fedot.core.data.data_preprocessing import data_has_missing_values, data_has_categorical_features, \
+    data_has_text_features, data_has_image_features
 from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import Node
@@ -21,10 +23,16 @@ class PreprocessingBuilder:
                          data: Union[InputData, MultiModalData],
                          *initial_nodes: Optional[Node]) -> PipelineBuilder:
         preprocessing_builder = cls(task_type, *initial_nodes)
+        if isinstance(data, MultiModalData):
+            data = data[str(initial_nodes[0])]
         if data_has_missing_values(data):
             preprocessing_builder = preprocessing_builder.with_gaps()
         if data_has_categorical_features(data):
             preprocessing_builder = preprocessing_builder.with_categorical()
+        if data_has_text_features(data):
+            preprocessing_builder = preprocessing_builder.with_text()
+        if data_has_image_features(data):
+            preprocessing_builder = preprocessing_builder.with_image()
         return preprocessing_builder.to_builder()
 
     def with_gaps(self):
@@ -39,6 +47,16 @@ class PreprocessingBuilder:
     def with_scaling(self):
         if self.task_type != TaskTypesEnum.ts_forecasting:
             self._builder.add_node('scaling')
+        return self
+
+    def with_text(self):
+        if self.task_type != TaskTypesEnum.ts_forecasting:
+            self._builder.add_node('tfidf')
+        return self
+
+    def with_image(self):
+        if self.task_type != TaskTypesEnum.ts_forecasting:
+            self._builder.add_node('cnn')
         return self
 
     def to_builder(self) -> PipelineBuilder:

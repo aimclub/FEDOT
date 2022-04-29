@@ -5,6 +5,7 @@ import pandas as pd
 
 from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.data.multi_modal import MultiModalData
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
@@ -127,6 +128,7 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
     Check data for categorical columns.
     Return bool, whether data has categorical columns or not
     """
+    # TODO this method doesn't work when data is MultiModalData
     if data.data_type is not DataTypesEnum.table:
         return False
     data_has_categorical_columns = False
@@ -144,3 +146,27 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
         data_has_categorical_columns = len(cat_ids) > 0
 
     return data_has_categorical_columns
+
+# TODO make these checks more accurate and complex
+
+
+def data_has_text_features(data: InputData) -> bool:
+    """
+    Check data for text fields.
+    Return bool, whether data has text fields or not
+    """
+    if data.data_type is DataTypesEnum.text:
+        return True
+    else:
+        return False
+
+
+def data_has_image_features(data: InputData) -> bool:
+    """
+    Check data for text fields.
+    Return bool, whether data has text fields or not
+    """
+    if data.data_type is DataTypesEnum.image:
+        return True
+    else:
+        return False

@@ -1,6 +1,8 @@
 import os
 from typing import Union
 
+from fedot.api.main import Fedot
+
 from sklearn.metrics import f1_score as f1
 
 from cases.dataset_preparation import unpack_archived_data
@@ -61,7 +63,7 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
                                           data_type=DataTypesEnum.text, is_multilabel=True, shuffle=False)
 
     data = MultiModalData({
-        'data_source_img': data_img,
+        # 'data_source_img': data_img,
         'data_source_table': data_num,
         'data_source_text': data_text
     })
@@ -86,18 +88,18 @@ def generate_initial_pipeline_and_data(data: Union[InputData, MultiModalData],
     else:
         num_classes = data.num_classes
     # image
-    images_size = data['data_source_img'].features.shape[1:4]
-    ds_image = PrimaryNode('data_source_img')
-    image_node = SecondaryNode('cnn', nodes_from=[ds_image])
-    image_node.custom_params = {'image_shape': images_size,
-                                'architecture_type': 'vgg16',
-                                'num_classes': num_classes,
-                                'epochs': 2,
-                                'batch_size': 16,
-                                'optimizer_parameters': {'loss': "binary_crossentropy",
-                                                         'optimizer': "adam",
-                                                         'metrics': 'categorical_crossentropy'}
-                                }
+    # images_size = data['data_source_img'].features.shape[1:4]
+    # ds_image = PrimaryNode('data_source_img')
+    # image_node = SecondaryNode('cnn', nodes_from=[ds_image])
+    # image_node.custom_params = {'image_shape': images_size,
+    #                            'architecture_type': 'simplified',
+    #                            'num_classes': num_classes,
+    #                            'epochs': 2,
+    #                            'batch_size': 16,
+    #                            'optimizer_parameters': {'loss': "binary_crossentropy",
+    #                                                     'optimizer': "adam",
+    #                                                     'metrics': 'categorical_crossentropy'}
+    #                            }
 
     # table
     ds_table = PrimaryNode('data_source_table')
@@ -110,7 +112,7 @@ def generate_initial_pipeline_and_data(data: Union[InputData, MultiModalData],
     text_node.custom_params = {'ngram_range': (1, 3), 'min_df': 0.001, 'max_df': 0.9}
 
     # combining all sources together
-    logit_node = SecondaryNode('logit', nodes_from=[image_node, numeric_node, text_node])
+    logit_node = SecondaryNode('logit', nodes_from=[numeric_node, text_node])
     logit_node.custom_params = {'max_iter': 100000, 'random_state': 42}
     pipeline = Pipeline(logit_node)
 
@@ -124,15 +126,20 @@ def generate_initial_pipeline_and_data(data: Union[InputData, MultiModalData],
     return pipeline, fit_data, predict_data
 
 
-def run_multi_modal_pipeline(files_path: str, is_visualise=False) -> float:
+def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (224, 224)
 
     data = prepare_multi_modal_data(files_path, task, images_size)
 
-    pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(data, with_split=True)
+    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(data, with_split=True)
 
-    pipeline.fit(input_data=fit_data)
+    automl_model = Fedot(problem='classification', timeout=0.1)
+    pipeline = automl_model.fit(features=fit_data,
+                                target=fit_data.target,
+                                predefined_model='auto')
+
+    # pipeline.fit(input_data=fit_data)
 
     if is_visualise:
         pipeline.show()
