@@ -31,7 +31,7 @@ class RandomSearchOptimizer(GraphOptimiser):
                              MutationTypesEnum.single_add]
         self.timer = OptimisationTimer(log=self.log, timeout=self.requirements.timeout)
         objective_function = None  # TODO: pass into init
-        self.evaluator = Evaluate(graph_generation_params, objective_function,
+        self.evaluator = Evaluate(objective_function, graph_generation_params.adapter,
                                   timer=self.timer, log=log, n_jobs=1)
 
     def optimise(self, objective_function,
@@ -61,12 +61,11 @@ def run_with_random_search_composer():
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
-    composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt']}
+    composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt'],
+                       'optimizer': RandomSearchOptimizer}
 
     automl = Fedot(problem='classification', timeout=1, verbose_level=4,
                    preset='fast_train', composer_params=composer_params)
-
-    automl.api_composer.optimiser = RandomSearchOptimizer
 
     automl.fit(train_data_path)
     automl.predict(test_data_path)
