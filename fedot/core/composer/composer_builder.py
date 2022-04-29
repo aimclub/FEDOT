@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Sequence
+from typing import Dict, List, Optional, Sequence, Union
 
 from deap import tools
 
@@ -13,12 +13,16 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import EvoGraphParameterFreeOptimiser
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, GraphGenerationParams
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsEnum, ClassificationMetricsEnum, \
+from fedot.core.repository.quality_metrics_repository import (
+    ClassificationMetricsEnum,
+    MetricsEnum,
     RegressionMetricsEnum
+)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_sequence
 
 
 class ComposerBuilder:
@@ -51,10 +55,8 @@ class ComposerBuilder:
         self.composer_requirements = requirements
         return self
 
-    def with_metrics(self, metrics: Union[List[MetricsEnum], MetricsEnum]):
-        if type(metrics) is not list:
-            metrics = [metrics]
-        self.metrics = metrics
+    def with_metrics(self, metrics: Union[MetricsEnum, List[MetricsEnum]]):
+        self.metrics = ensure_sequence(metrics)
         return self
 
     def with_initial_pipelines(self, initial_pipelines: Optional[Pipeline]):

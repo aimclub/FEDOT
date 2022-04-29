@@ -69,7 +69,7 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
 T = TypeVar('T')  # TODO: make more general, not just for `ensure_sequence` method
 
 
-def ensure_sequence(obj: Union[T, Iterable[T], Sequence[T]], sequence_type: Type[List[T]] = list) -> Sequence[T]:
+def ensure_sequence(obj: Union[T, Iterable[T], Sequence[T]], sequence_type: Type[Sequence[T]] = list) -> Sequence[T]:
     if isinstance(obj, collections.abc.Sequence):
         if isinstance(obj, str):
             return sequence_type([obj])
