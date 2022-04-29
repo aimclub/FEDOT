@@ -2,7 +2,7 @@ import collections.abc
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Container, Iterable, List, Sequence, Sized, Type, TypeVar, Union
+from typing import Any, Callable, Container, Iterable, List, Sequence, Sized, Union
 
 
 class UniqueList(list):
@@ -66,10 +66,8 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
     return True
 
 
-T = TypeVar('T')  # TODO: make more general, not just for `ensure_sequence` method
-
-
-def ensure_sequence(obj: Union[T, Iterable[T], Sequence[T]], sequence_type: Type[Sequence[T]] = list) -> Sequence[T]:
+def ensure_sequence(obj: Union[Any, Iterable[Any], Sequence[Any]],
+                    sequence_type: Callable[[Any], Sequence[Any]] = list) -> Sequence[Any]:
     if isinstance(obj, collections.abc.Sequence):
         if isinstance(obj, str):
             return sequence_type([obj])
