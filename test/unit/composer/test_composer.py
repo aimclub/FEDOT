@@ -285,7 +285,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
 
     global_cache_len_before = len(composer.cache)
     new_pipeline = pipeline_first()
-    objective, _ = composer.objective_builder.build(data)
+    objective = composer.objective_builder.build(data)
     objective(new_pipeline)
     global_cache_len_after = len(composer.cache)
     assert global_cache_len_before < global_cache_len_after

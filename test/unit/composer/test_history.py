@@ -15,7 +15,7 @@ from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
+from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -146,11 +146,11 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     adapter = PipelineAdapter()
     graph_gen_params = GraphGenerationParams(adapter)
     metrics = [metric]
-    objective_builder = ObjectiveBuilder(metrics, collect_intermediate_metric=True)
-    objective_f, intermediate_metric_f = objective_builder.build(input_data)
-    evaluate = Evaluate(graph_gen_params,
-                        objective_function=objective_f,
-                        intermediate_metrics_function=intermediate_metric_f)
+    objective_builder = ObjectiveBuilder(metrics)
+    objective_eval = objective_builder.build(input_data)
+    evaluate = EvaluationDispatcher(objective_eval,
+                                    graph_gen_params.adapter,
+                                    collect_intermediate_metrics=True)
     population = [Individual(adapter.adapt(pipeline))]
     evaluated_pipeline = evaluate(population)[0].graph
     restored_pipeline = adapter.restore(evaluated_pipeline)

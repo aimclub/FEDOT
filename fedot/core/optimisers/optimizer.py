@@ -14,6 +14,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 
 class GraphOptimiserParameters:
@@ -80,13 +81,12 @@ class GraphOptimiser:
         self.history.clean_results()
 
     @abstractmethod
-    def optimise(self, objective_function,
+    def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True,
-                 **kwargs) -> Union[OptGraph, List[OptGraph]]:
+                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
-        :param objective_function: function for calculation of the objective function for optimisation
+        :param objective_evaluator: Defines specific Objective and graph evaluation policy.
         :param on_next_iteration_callback: callback function that runs in each iteration of optimization
         :param show_progress: print output the describes the progress during iterations
         :return: best graph (or list of graph for multi-objective case)

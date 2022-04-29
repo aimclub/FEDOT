@@ -10,6 +10,7 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective_eval import ObjectiveEvaluate
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
@@ -31,10 +32,9 @@ class StaticOptimizer(GraphOptimiser):
         self.change_types = []
         self.node_name = kwargs.get('node_name')
 
-    def optimise(self, objective_function,
+    def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True,
-                 **kwargs):
+                 show_progress: bool = True):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('logit'))

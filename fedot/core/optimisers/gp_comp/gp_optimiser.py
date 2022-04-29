@@ -16,7 +16,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
 )
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
+from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -28,6 +28,7 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 if TYPE_CHECKING:
     from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
@@ -126,12 +127,6 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.generations = GenerationKeeper(metrics, self.parameters.multi_objective)
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
-        objective_function = None  # TODO: pass it
-        intermediate_metrics_function = None  # TODO: pass it through init
-        n_jobs = requirements.n_jobs
-        self.evaluator = Evaluate(graph_gen_params=graph_generation_params,
-                                  objective_function=objective_function,
-                                  timer=self.timer, log=self.log, n_jobs=n_jobs)
 
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
@@ -189,13 +184,19 @@ class EvoGraphOptimiser(GraphOptimiser):
             new_population = self._make_population(pop_size)
         return new_population
 
-    def optimise(self, objective_function,
+    def _get_evaluator(self, objective_evaluator: ObjectiveEvaluate) -> EvaluationDispatcher:
+        return EvaluationDispatcher(objective_evaluator,
+                                    graph_adapter=self.graph_generation_params.adapter,
+                                    timer=self.timer,
+                                    n_jobs=self.requirements.n_jobs,
+                                    collect_intermediate_metrics=self.requirements.collect_intermediate_metric,
+                                    log=self.log)
+
+    def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
-        self.evaluator.objective_function = objective_function  # TODO: move into init!
-        self.evaluator._intermediate_metrics_function = intermediate_metrics_function  # TODO: move into init!
+        evaluator = self._get_evaluator(objective_evaluator)
 
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
@@ -206,7 +207,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
             pop_size = self._pop_size.initial
-            self.population = self.evaluator(self._init_population(pop_size))
+            self.population = evaluator(self._init_population(pop_size))
             self.generations.append(self.population)
 
             on_next_iteration_callback(self.population, self.generations.best_individuals)
@@ -223,11 +224,10 @@ class EvoGraphOptimiser(GraphOptimiser):
                     self.max_depth_recount()
 
                 individuals_to_select = \
-                    regularized_population(reg_type=self.parameters.regularization_type,
-                                           population=self.population,
-                                           objective_function=objective_function,
-                                           graph_generation_params=self.graph_generation_params,
-                                           timer=t)
+                    regularized_population(self.parameters.regularization_type,
+                                           self.population,
+                                           evaluator,
+                                           self.graph_generation_params)
 
                 num_of_parents = num_of_parents_in_crossover(pop_size)
 
@@ -241,7 +241,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
                     new_population += self.reproduce(ind_1, ind_2)
 
-                new_population = self.evaluator(new_population)
+                new_population = evaluator(new_population)
 
                 with_elitism = self.with_elitism(pop_size)
                 num_of_new_individuals = pop_size

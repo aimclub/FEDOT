@@ -12,7 +12,6 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
-from fedot.core.optimisers.gp_comp.operators.operator import ObjectiveFunction
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
@@ -90,7 +89,6 @@ class GPComposer(Composer):
                                                   self.composer_requirements.max_pipeline_fit_time,
                                                   self.composer_requirements.cv_folds,
                                                   self.composer_requirements.validation_blocks,
-                                                  self.composer_requirements.collect_intermediate_metric,
                                                   self.cache, self.log)
 
     # TODO fix: this method is invalidly overriden: it changes the signature of base method
@@ -106,6 +104,7 @@ class GPComposer(Composer):
 
         self.optimiser.graph_generation_params.advisor.task = data.task
 
+        # TODO: move this late-init logic to the point before optimiser is constructed
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
         else:
@@ -114,17 +113,11 @@ class GPComposer(Composer):
         if self.composer_requirements.max_pipeline_fit_time:
             set_multiprocess_start_method()
 
-        if not self.optimiser:
-            raise AttributeError(f'Optimiser for graph composition is not defined')
-
         # shuffle data if necessary
         data.shuffle()
 
-        objective_function, intermediate_metrics_function = self.objective_builder.build(data)
-
-        opt_result = self.optimiser.optimise(objective_function,
-                                             on_next_iteration_callback=on_next_iteration_callback,
-                                             intermediate_metrics_function=intermediate_metrics_function)
+        objective_evaluator = self.objective_builder.build(data)
+        opt_result = self.optimiser.optimise(objective_evaluator, on_next_iteration_callback)
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
         return best_pipeline
@@ -150,7 +143,6 @@ class ObjectiveBuilder:
                  max_pipeline_fit_time: Optional[timedelta] = None,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
-                 collect_intermediate_metric: bool = False,
                  cache: Optional[OperationsCache] = None,
                  log: Log = None):
 
@@ -159,11 +151,10 @@ class ObjectiveBuilder:
         self.max_pipeline_fit_time = max_pipeline_fit_time
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
-        self.collect_intermediate_metric = collect_intermediate_metric
         self.cache = cache
         self.log = log or default_log(self.__class__.__name__)
 
-    def build(self, data: InputData) -> Tuple[ObjectiveFunction, Optional[ObjectiveFunction]]:
+    def build(self, data: InputData) -> ObjectiveEvaluate:
         if self.cv_folds is not None:
             if isinstance(data, MultiModalData):
                 raise NotImplementedError('Cross-validation is not supported for multi-modal data')
@@ -185,9 +176,7 @@ class ObjectiveBuilder:
                                                    time_constraint=self.max_pipeline_fit_time,
                                                    validation_blocks=self.validation_blocks,
                                                    cache=self.cache, log=self.log)
-        objective_function = objective_evaluate.evaluate
-        intermediate_metrics_function = objective_evaluate.evaluate_intermediate_metrics
-        return objective_function, intermediate_metrics_function
+        return objective_evaluate
 
     def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
         if data.task.task_type is TaskTypesEnum.ts_forecasting:

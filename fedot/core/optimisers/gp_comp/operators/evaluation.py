@@ -6,9 +6,9 @@ from random import choice
 
 from typing import Dict, Optional
 
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import Log, default_log
-from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.gp_comp.operators.operator import *
@@ -21,11 +21,11 @@ G = TypeVar('G', bound=Graph)
 GN = TypeVar('GN', bound=GraphNode)
 
 
-class Evaluate(Generic[G, GN], Operator[PopulationT]):
-    """Maps individuals to evaluated individuals.
+class EvaluationDispatcher(Generic[G, GN], Operator[PopulationT]):
+    """Defines objective-independent details of how evaluation of individuals must be handled.
     Responsibilities:
-    - Handle evaluation policy (e.g. sequential, parallel, async)
-    - Compute Fitness for each individual in the population
+    - Handle evaluation policy (e.g. sequential, parallel, async) and dispatch evaluation.
+    - Delegate Fitness computation to ObjectiveEvaluate for each individual in the population.
     - Save additional metadata related to evaluation process (e.g. computation time)
     """
     def __init__(self,

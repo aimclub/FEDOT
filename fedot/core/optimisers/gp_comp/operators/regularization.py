@@ -3,14 +3,11 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
+from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
-
-if TYPE_CHECKING:
-    from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
 class RegularizationTypesEnum(Enum):
@@ -19,11 +16,11 @@ class RegularizationTypesEnum(Enum):
 
 
 def regularized_population(reg_type: RegularizationTypesEnum, population: List[Any],
-                           objective_function: Callable,
-                           graph_generation_params: Any, size: Optional[int] = None, timer=None) -> List[Any]:
+                           evaluator: EvaluationDispatcher,
+                           params: GraphGenerationParams,
+                           size: Optional[int] = None) -> List[Any]:
     if reg_type is RegularizationTypesEnum.decremental:
-        additional_inds = decremental_regularization(population, objective_function,
-                                                     graph_generation_params, size, timer=timer)
+        additional_inds = decremental_regularization(population, evaluator, params, size)
         return population + additional_inds
     elif reg_type is RegularizationTypesEnum.none:
         return population
@@ -31,9 +28,10 @@ def regularized_population(reg_type: RegularizationTypesEnum, population: List[A
         raise ValueError(f'Required regularization type not found: {type}')
 
 
-def decremental_regularization(population: List[Individual], objective_function: Callable,
-                               params: 'GraphGenerationParams',
-                               size: Optional[int] = None, timer=None) -> List[Any]:
+def decremental_regularization(population: List[Individual],
+                               evaluator: EvaluationDispatcher,
+                               params: GraphGenerationParams,
+                               size: Optional[int] = None) -> List[Any]:
     size = size if size else len(population)
     additional_inds = []
     prev_nodes_ids = []
@@ -52,9 +50,7 @@ def decremental_regularization(population: List[Individual], objective_function:
     additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
 
     if additional_inds:
-        evaluate = Evaluate(params, objective_function, timer=timer)
-        population = evaluate(population)
-
+        population = evaluator(population)
     if additional_inds and len(additional_inds) > size:
         additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]
 
