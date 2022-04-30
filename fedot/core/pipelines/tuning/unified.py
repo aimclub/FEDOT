@@ -14,12 +14,18 @@ class PipelineTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes simultaneously
     """
 
-    def __init__(self, pipeline, task, iterations=100,
+    def __init__(self, pipeline, task,
+                 iterations=100, early_stop_fn=None,
                  timeout: timedelta = timedelta(minutes=5),
                  log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
-        super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)
+        super().__init__(pipeline=pipeline, task=task,
+                         iterations=iterations, early_stop_fn=early_stop_fn,
+                         timeout=timeout,
+                         log=log,
+                         search_space=search_space,
+                         algo=algo)
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
                       cv_folds: int = None, validation_blocks: int = None):
@@ -46,6 +52,7 @@ class PipelineTuner(HyperoptTuner):
                     parameters_dict,
                     algo=self.algo,
                     max_evals=self.iterations,
+                    early_stop_fn=self.early_stop_fn,
                     timeout=self.max_seconds)
 
         best = space_eval(space=parameters_dict, hp_assignment=best)
