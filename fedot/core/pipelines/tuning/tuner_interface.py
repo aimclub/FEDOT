@@ -1,4 +1,5 @@
 import sys
+from hyperopt.early_stop import no_progress_loss
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -32,7 +33,7 @@ class HyperoptTuner(ABC):
     """
 
     def __init__(self, pipeline, task,
-                 iterations=100, early_stop_fn=None,
+                 iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
@@ -40,7 +41,10 @@ class HyperoptTuner(ABC):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
-        self.early_stop_fn = early_stop_fn
+        if early_stopping_rounds is None:
+            self.early_stop_fn = None
+        else:
+            self.early_stop_fn = no_progress_loss(iteration_stop_count=early_stopping_rounds)
         self.max_seconds = int(timeout.seconds) if timeout is not None else None
         self.init_pipeline = None
         self.init_metric = None
