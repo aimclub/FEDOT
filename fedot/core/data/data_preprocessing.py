@@ -147,20 +147,22 @@ def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> b
 
     return data_has_categorical_columns
 
-# TODO make these checks more accurate and complex
-
 
 def data_has_text_features(data: InputData) -> bool:
     """
     Check data for text fields.
     Return bool, whether data has text fields or not
     """
-    if data.data_type is DataTypesEnum.text:
-        return True
-    else:
+    if data.data_type is not DataTypesEnum.text:
         return False
 
+    data_has_text_features = False
+    if isinstance(data.features[0], str) and len(data.features.shape) == 1:
+        data_has_text_features = True
+    return data_has_text_features
 
+
+# TODO should it be there or outside preprocessing
 def data_has_image_features(data: InputData) -> bool:
     """
     Check data for text fields.
