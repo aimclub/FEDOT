@@ -382,7 +382,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     _ = run_pipeline_tuner(train_data=train_data,
                            pipeline=get_class_pipelines()[0],
                            loss={'loss_function': roc},
-                           iterations=200,
+                           iterations=1000,
                            early_stopping_rounds=1)
     assert time() - start_pipeline_tuner < 1
 
@@ -390,7 +390,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     _ = run_sequential_tuner(train_data=train_data,
                              pipeline=get_class_pipelines()[0],
                              loss={'loss_function': roc},
-                             iterations=200,
+                             iterations=1000,
                              early_stopping_rounds=1)
     assert time() - start_sequential_tuner < 1
 
@@ -398,7 +398,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     _ = run_node_tuner(train_data=train_data,
                        pipeline=get_class_pipelines()[0],
                        loss={'loss_function': roc},
-                       iterations=200,
+                       iterations=1000,
                        early_stopping_rounds=1)
     assert time() - start_node_tuner < 1
 
