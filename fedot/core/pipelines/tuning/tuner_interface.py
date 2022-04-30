@@ -42,7 +42,7 @@ class HyperoptTuner(ABC):
         self.task = task
         self.iterations = iterations
         if early_stopping_rounds is None:
-            self.early_stop_fn = None
+            self.early_stop_fn = no_progress_loss(iteration_stop_count=max(100, int(np.sqrt(iterations) * 10)))
         else:
             self.early_stop_fn = no_progress_loss(iteration_stop_count=early_stopping_rounds)
         self.max_seconds = int(timeout.seconds) if timeout is not None else None
