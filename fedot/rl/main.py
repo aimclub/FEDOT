@@ -12,7 +12,7 @@ from torch import optim
 
 from fedot.core.utils import default_fedot_data_dir, fedot_project_root
 from fedot.rl.network import A2CRnn
-from fedot.rl.pipeline_env import PipelineGenerationEnvironment
+from fedot.rl.pipeline_env import PipelineGenerationEnvironment, EnvironmentDataLoader
 from fedot.rl.tracker import RewardTracker
 
 GAMMA = 0.99
@@ -80,10 +80,9 @@ if __name__ == '__main__':
     path_to_logdir = join(default_fedot_data_dir(), experiment_name)
     path_to_train = join(fedot_project_root(), 'fedot/rl/data/train/')
     path_to_valid = join(fedot_project_root(), 'fedot/rl/data/valid/')
+    files = [file_name for (_, _, file_name) in walk(path_to_train)][0]
 
-    train_datasets = [filename for (_, _, filename) in walk(path_to_train)][0]
-    valid_datasets = [filename for (_, _, filename) in walk(path_to_train)][0]
-
+    env_dl = EnvironmentDataLoader(path_to_train, path_to_valid)
     envs = []
 
     for dataset_name in train_datasets:

@@ -1,5 +1,4 @@
-import os
-from os import makedirs
+from os import makedirs, walk
 from os.path import join, exists
 
 import gym
@@ -17,17 +16,35 @@ from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
 
 
+class EnvironmentDataLoader:
+    def __init__(self, path_to_train, path_to_valid, split_ratio=0.7):
+        self.split_ratio = split_ratio
+        train_datasets = [file_name for (_, _, file_name) in walk(path_to_train)][0]
+        valid_datasets = [file_name for (_, _, file_name) in walk(path_to_valid)][0]
+        self.train_data, self.val_data = {}, {}
+
+        for dataset in train_datasets:
+            path_to_dataset = join(path_to_train, dataset)
+            self.train_data[dataset] = InputData.from_csv(path_to_dataset)
+
+        for dataset in valid_datasets:
+            path_to_dataset = join(path_to_valid, dataset)
+            self.val_data[dataset] = InputData.from_csv(path_to_dataset)
+
+    def get_dataset(self, dataset, mode='train'):
+        if mode == 'train':
+            return train_test_data_setup(self.train_data[dataset], split_ratio=self.split_ratio)
+
+        elif mode == 'valid':
+            return self.train_data[dataset], self.val_data[dataset]
+
+
 class PipelineGenerationEnvironment(gym.Env):
     metadata = {'render.modes': ['text', 'graph']}
 
-    def __init__(self, path_to_data, path_to_valid=None, logdir=None, root_length=4, graph_render=True):
-        self.full_train_data = InputData.from_csv(path_to_data)
-        self.train_data, self.test_data = train_test_data_setup(InputData.from_csv(path_to_data), split_ratio=0.7)
-        self.testing_data = self.test_data.target
-
-        if path_to_valid:
-            self.valid_data = InputData.from_csv(path_to_valid)
-            self.validing_data = self.valid_data.target
+    def __init__(self, dataset_name, dataset_loader, logdir=None, root_length=4, graph_render=True):
+        self.dataset_name = dataset_name
+        self.dataset_loader = dataset_loader
 
         self.task_type = TaskTypesEnum.classification
         self.root_length = root_length
@@ -111,23 +128,26 @@ class PipelineGenerationEnvironment(gym.Env):
 
                 # Если прошел, то обучаем
                 if mode == 'train':
-                    self.pipeline.fit(self.train_data)
+                    train_data, test_data = self.dataset_loader.get_dataset(dataset=self.dataset_name, mode=mode)
+
+                    self.pipeline.fit(train_data)
 
                     # Проверка полученого пайплайна на тестовых данных
-                    results = self.pipeline.predict(self.test_data)
+                    results = self.pipeline.predict(test_data)
 
                     # Подсчитываем метрику
-                    self.metric_value = roc_auc(y_true=self.testing_data,
+                    self.metric_value = roc_auc(y_true=train_data.target,
                                                 y_score=results.predict,
                                                 multi_class='ovo',
                                                 average='macro')
 
-                elif mode == 'test':
-                    self.pipeline.fit(self.full_train_data)
+                elif mode == 'valid':
+                    train_data, valid_data = self.dataset_loader.get_dataset(dataset=self.dataset_name, mode=mode)
+                    self.pipeline.fit(train_data)
 
-                    results = self.pipeline.predict(self.valid_data)
+                    results = self.pipeline.predict(valid_data)
 
-                    self.metric_value = roc_auc(y_true=self.validing_data,
+                    self.metric_value = roc_auc(y_true=valid_data.target,
                                                 y_score=results.predict,
                                                 multi_class='ovo',
                                                 average='macro')
@@ -229,13 +249,11 @@ class PipelineGenerationEnvironment(gym.Env):
 
 
 if __name__ == '__main__':
-    file_path_train = 'cases/data/scoring/scoring_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    path_to_train = join(fedot_project_root(), 'fedot/rl/data/train/')
+    path_to_valid = join(fedot_project_root(), 'fedot/rl/data/valid/')
 
-    # file_path_test = 'cases/data/scoring/scoring_test.csv'
-    # full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    env = PipelineGenerationEnvironment(path_to_data=full_path_train)
+    edl = EnvironmentDataLoader(path_to_train, path_to_valid)
+    env = PipelineGenerationEnvironment(dataset_name='adult.csv', dataset_loader=edl)
 
     print(env.actions_list[0])
     print([i for i in range(len(env.actions_list[0]))])
