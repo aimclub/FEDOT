@@ -180,7 +180,7 @@ metrics_for_binary_classification = {
     'auc': roc_auc_score
 }
 metrics_for_multi_classification = {
-    'f1': partial(f1_score, average='macro'),
+    'f1': partial(f1_score, average='micro'),
     'accuracy': accuracy_score,
     'auc': partial(roc_auc_score, multi_class='ovr')
 }
