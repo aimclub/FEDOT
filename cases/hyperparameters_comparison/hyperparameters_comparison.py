@@ -112,7 +112,8 @@ def fixed_structure_with_default_params(train,
 
 def fixed_structure_with_params_optimization(train,
                                              fitted_operation='xgbreg',
-                                             iterations=100,
+                                             iterations=1500,
+                                             early_stopping_rounds=50,
                                              timeout=timedelta(minutes=5),
                                              algo=rand.suggest,
                                              search_space=SearchSpace(),
@@ -124,6 +125,7 @@ def fixed_structure_with_params_optimization(train,
 
     pipeline_tuner = PipelineTuner(pipeline_,
                                    iterations=iterations,
+                                   early_stopping_rounds=early_stopping_rounds,
                                    timeout=timeout,
                                    task=train.task.task_type,
                                    search_space=search_space,
@@ -137,9 +139,9 @@ def fixed_structure_with_params_optimization(train,
 
 
 def save_comparison_results(key):
-    d, m, fo, algo, i, experiment = key
+    d, m, fo, algo, experiment = key
     print(key)
-    filename = d + '_' + m + '_' + fo + '_' + algo + '_' + str(i) + '_' + str(experiment)
+    filename = d + '_' + m + '_' + fo + '_' + algo + '_' + str(experiment)
     if filename not in os.listdir('comparison_results'):
         if algo == 'default':
             score_train, score_test, time_spent, memory_spent, pipeline = make_measurement(
@@ -162,7 +164,6 @@ def save_comparison_results(key):
                 params={
                     'fitted_operation': fo,
                     'algo': rand.suggest if algo == 'random' else tpe.suggest,
-                    'iterations': i,
                     'timeout': timeout,
                     'search_space': ss,
                     'metrics': datasets[d]['metrics'][m]
@@ -284,7 +285,6 @@ params = {
 ss = SearchSpace(params, True)
 n_threads = int(sys.argv[1]) if len(sys.argv) > 1 else 1
 n_experiments = 3
-n_iter = [50, 200, 500, 1000]
 timeout = timedelta(minutes=30)
 
 keys = []
@@ -293,10 +293,9 @@ for experiment in range(n_experiments):
     for d in datasets:
         for m in datasets[d]['metrics']:
             for fo in datasets[d]['fitted_operations']:
-                keys += [(d, m, fo, 'default', 0, experiment)]
-                for i in n_iter:
-                    keys += [(d, m, fo, 'random', i, experiment)]
-                    keys += [(d, m, fo, 'tpe', i, experiment)]
+                keys += [(d, m, fo, 'default', experiment)]
+                keys += [(d, m, fo, 'random', experiment)]
+                keys += [(d, m, fo, 'tpe', experiment)]
 
 if __name__ == '__main__':
     freeze_support()
