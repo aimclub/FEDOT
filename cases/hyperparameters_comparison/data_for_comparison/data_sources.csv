@@ -32,7 +32,7 @@ nursery,classification,https://www.openml.org/d/959
 pokerhand,classification,https://www.openml.org/d/155
 pol,regression,https://www.openml.org/d/201
 road-safety,classification,https://www.openml.org/d/43069
-sarcos,regression,https://www.openml.org/d/43172
+sarcos,regression,https://www.openml.org/d/43873
 sulfur,regression,https://www.openml.org/d/23515
 superconduct,regression,https://www.openml.org/d/43174
 workers-compensation,regression,https://www.openml.org/d/42876
