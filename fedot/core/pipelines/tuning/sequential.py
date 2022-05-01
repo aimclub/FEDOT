@@ -14,12 +14,18 @@ class SequentialTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes sequentially
     """
 
-    def __init__(self, pipeline, task, iterations=100,
+    def __init__(self, pipeline, task,
+                 iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  inverse_node_order=False, log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
-        super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)
+        super().__init__(pipeline=pipeline, task=task,
+                         iterations=iterations, early_stopping_rounds=early_stopping_rounds,
+                         timeout=timeout,
+                         log=log,
+                         search_space=search_space,
+                         algo=algo)
         self.inverse_node_order = inverse_node_order
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
@@ -152,6 +158,7 @@ class SequentialTuner(HyperoptTuner):
                                node_params,
                                algo=self.algo,
                                max_evals=iterations_per_node,
+                               early_stop_fn=self.early_stop_fn,
                                timeout=seconds_per_node)
 
         best_parameters = space_eval(space=node_params,
