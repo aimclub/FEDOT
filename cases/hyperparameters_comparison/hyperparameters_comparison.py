@@ -2,7 +2,6 @@ import sys
 import os
 from time import time
 from datetime import timedelta
-import tracemalloc
 
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, roc_auc_score, f1_score, accuracy_score
 from functools import partial
@@ -58,18 +57,9 @@ def make_measurement(func,
     else:
         test = train
 
-    tracemalloc.start()
-    tracemalloc.stop()
-    tracemalloc.start()
-
     start_time = time()
-    tracemalloc.start()
-
     pipeline = func(train, **params)
-
-    memory_spent = tracemalloc.get_traced_memory()[1] / (1024 ** 2)
     time_spent = time() - start_time
-    tracemalloc.stop()
 
     output_train = pipeline.predict(train)
     output_test = pipeline.predict(test)
@@ -85,7 +75,7 @@ def make_measurement(func,
             score_train = metrics(output_train.target, output_train.predict.argmax(axis=1))
             score_test = metrics(output_test.target, output_test.predict.argmax(axis=1))
 
-    return score_train, score_test, time_spent, memory_spent, pipeline.root_node.descriptive_id + ''
+    return score_train, score_test, time_spent, pipeline.root_node.descriptive_id + ''
 
 
 def get_fixed_pipeline(fitted_operation='xgbreg'):
@@ -144,7 +134,7 @@ def save_comparison_results(key):
     filename = d + '_' + m + '_' + fo + '_' + algo + '_' + str(experiment)
     if filename not in os.listdir('comparison_results'):
         if algo == 'default':
-            score_train, score_test, time_spent, memory_spent, pipeline = make_measurement(
+            score_train, score_test, time_spent, pipeline = make_measurement(
                 func=fixed_structure_with_default_params,
                 train_file_path=datasets[d]['train_file'],
                 test_file_path=datasets[d]['test_file'],
@@ -155,7 +145,7 @@ def save_comparison_results(key):
                 }
             )
         else:
-            score_train, score_test, time_spent, memory_spent, pipeline = make_measurement(
+            score_train, score_test, time_spent, pipeline = make_measurement(
                 func=fixed_structure_with_params_optimization,
                 train_file_path=datasets[d]['train_file'],
                 test_file_path=datasets[d]['test_file'],
@@ -169,7 +159,7 @@ def save_comparison_results(key):
                     'metrics': datasets[d]['metrics'][m]
                 }
             )
-        txt = '#'.join([str(score_train), str(score_test), str(time_spent), str(memory_spent), pipeline])
+        txt = '#'.join([str(score_train), str(score_test), str(time_spent), pipeline])
         open('comparison_results/' + filename, 'w').write(txt)
 
 
