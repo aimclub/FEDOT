@@ -49,7 +49,7 @@ def tiny_classification_dataset():
 @pytest.fixture()
 def multi_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'glass.csv')
+    file = os.path.join('../../data', 'multiclass_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
@@ -257,23 +257,18 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, losses, request):
 
     for pipeline in pipelines:
         for loss in losses:
-            pipeline_tuner = run_pipeline_tuner(train_data=train_data,
-                                                pipeline=pipeline,
-                                                loss=loss)
-            assert pipeline_tuner.obtained_metric is not None
+            for cv in cvs:
+                pipeline_tuner = run_pipeline_tuner(train_data=train_data,
+                                                    pipeline=pipeline,
+                                                    loss=loss,
+                                                    cv=cv)
+                assert pipeline_tuner.obtained_metric is not None
 
     for search_space in search_spaces:
         pipeline_tuner = run_pipeline_tuner(train_data=train_data,
                                             pipeline=pipelines[0],
                                             loss=losses[0],
                                             search_space=search_space)
-        assert pipeline_tuner.obtained_metric is not None
-
-    for cv in cvs:
-        pipeline_tuner = run_pipeline_tuner(train_data=train_data,
-                                            pipeline=pipelines[0],
-                                            loss=losses[0],
-                                            cv=cv)
         assert pipeline_tuner.obtained_metric is not None
 
     is_tuning_finished = True
@@ -294,23 +289,18 @@ def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
 
     for pipeline in pipelines:
         for loss in losses:
-            sequential_tuner = run_sequential_tuner(train_data=train_data,
-                                                    pipeline=pipeline,
-                                                    loss=loss)
-            assert sequential_tuner.obtained_metric is not None
+            for cv in cvs:
+                sequential_tuner = run_sequential_tuner(train_data=train_data,
+                                                        pipeline=pipeline,
+                                                        loss=loss,
+                                                        cv=cv)
+                assert sequential_tuner.obtained_metric is not None
 
     for search_space in search_spaces:
         sequential_tuner = run_sequential_tuner(train_data=train_data,
                                                 pipeline=pipelines[0],
                                                 loss=losses[0],
                                                 search_space=search_space)
-        assert sequential_tuner.obtained_metric is not None
-
-    for cv in cvs:
-        sequential_tuner = run_sequential_tuner(train_data=train_data,
-                                                pipeline=pipelines[0],
-                                                loss=losses[0],
-                                                cv=cv)
         assert sequential_tuner.obtained_metric is not None
 
     is_tuning_finished = True
@@ -331,23 +321,18 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, losses, request):
 
     for pipeline in pipelines:
         for loss in losses:
-            node_tuner = run_node_tuner(train_data=train_data,
-                                        pipeline=pipeline,
-                                        loss=loss)
-            assert node_tuner.obtained_metric is not None
+            for cv in cvs:
+                node_tuner = run_node_tuner(train_data=train_data,
+                                            pipeline=pipeline,
+                                            loss=loss,
+                                            cv=cv)
+                assert node_tuner.obtained_metric is not None
 
     for search_space in search_spaces:
         node_tuner = run_node_tuner(train_data=train_data,
                                     pipeline=pipelines[0],
                                     loss=losses[0],
                                     search_space=search_space)
-        assert node_tuner.obtained_metric is not None
-
-    for cv in cvs:
-        node_tuner = run_node_tuner(train_data=train_data,
-                                    pipeline=pipelines[0],
-                                    loss=losses[0],
-                                    cv=cv)
         assert node_tuner.obtained_metric is not None
 
     is_tuning_finished = True
