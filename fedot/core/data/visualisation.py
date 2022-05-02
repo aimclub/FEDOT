@@ -15,7 +15,7 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, tar
     :param prediction: the OutputData with predictions
     :param target: name of target variable for MultiModalData
     """
-    if type(data) == MultiModalData:
+    if isinstance(data, MultiModalData):
         if not target:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
         data = data[[key for key, val in data.items() if target == key.split('/')[-1]][0]]
