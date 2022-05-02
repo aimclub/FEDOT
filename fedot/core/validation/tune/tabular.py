@@ -20,7 +20,7 @@ def cv_tabular_predictions(pipeline, reference_data: InputData, cv_folds: int):
     if train_data.num_classes is not None:
         if train_data.num_classes <= 2:
             predictions, targets = np.ravel(np.array(predictions)), np.ravel(np.array(targets))
-        else:
-            predictions, targets = np.array(predictions), np.array(targets)
+        # else:
+        #     predictions, targets = np.array(predictions), np.array(targets)
 
     return predictions, targets

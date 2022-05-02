@@ -49,7 +49,7 @@ def tiny_classification_dataset():
 @pytest.fixture()
 def multi_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'multiclass_classification.csv')
+    file = os.path.join('../../data', 'glass.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
@@ -117,9 +117,9 @@ def get_regr_losses():
 
 def get_class_losses():
     class_losses = [
+        {'loss_function': f1, 'loss_params': {'average': 'micro'}},
         {'loss_function': roc, 'loss_params': {'multi_class': 'ovr'}},
-        {'loss_function': acc},
-        {'loss_function': f1, 'loss_params': {'average': 'micro'}}
+        {'loss_function': acc}
     ]
     return class_losses
 
