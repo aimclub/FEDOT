@@ -117,7 +117,6 @@ def get_regr_losses():
 
 def get_class_losses():
     class_losses = [
-        {'loss_function': f1, 'loss_params': {'average': 'micro'}},
         {'loss_function': roc, 'loss_params': {'multi_class': 'ovr'}},
         {'loss_function': acc}
     ]
