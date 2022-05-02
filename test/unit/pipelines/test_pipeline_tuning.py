@@ -272,7 +272,7 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, losses, request):
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, losses, request):
-    """ Test PipelineTuner for pipeline based on hyperopt library """
+    """ Test PipelineTuner with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     search_spaces = [SearchSpace(), get_not_default_search_space()]
@@ -318,7 +318,7 @@ def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, losses, request):
-    """ Test SequentialTuner for pipeline based on hyperopt library """
+    """ Test SequentialTuner with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     search_spaces = [SearchSpace(), get_not_default_search_space()]
@@ -364,7 +364,7 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, losses, request):
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
 def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, losses, request):
-    """ Test SequentialTuner for particular node based on hyperopt library """
+    """ Test SequentialTuner for particular node with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     search_spaces = [SearchSpace(), get_not_default_search_space()]
