@@ -263,14 +263,14 @@ class Fedot:
         """
         self.current_pipeline.load(path)
 
-    def plot_prediction(self):
+    def plot_prediction(self, target: [Optional] = None):
         """
         Plot the prediction obtained from graph
         """
 
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
-                plot_forecast(self.test_data, self.prediction)
+                plot_forecast(self.test_data, self.prediction, target)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.classification:

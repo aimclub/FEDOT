@@ -41,6 +41,12 @@ class MultiModalData(dict):
             if input_data.supplementary_data.is_main_target:
                 return input_data.target
 
+    @target.setter
+    def target(self, value):
+        """ Update target for all input data """
+        for input_data in self.values():
+            input_data.target = value
+
     @property
     def data_type(self):
         return [input_data.data_type for input_data in iter(self.values())]

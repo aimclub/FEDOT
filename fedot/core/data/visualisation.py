@@ -3,16 +3,22 @@ import numpy as np
 
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 
 
-def plot_forecast(data: InputData, prediction: OutputData):
+def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, target: None):
     """
     Function for drawing plot with time series forecast. If data.target is None function plot prediction
     as future values. If not - we use last data features as validation.
 
-    :param data: the InputData with actual time series as features
+    :param data: the InputData or MultiModalData with actual time series as features
     :param prediction: the OutputData with predictions
+    :param target: name of target variable for MultiModalData
     """
+    if type(data) == MultiModalData:
+        if not target:
+            raise AttributeError("Can't visualize. Target of MultiModalData not set.")
+        data = data[[key for key, val in data.items() if target == key.split('/')[-1]][0]]
     actual_time_series = np.concatenate([data.features, data.target], axis=0)
     target = data.target
     predict = prediction.predict
