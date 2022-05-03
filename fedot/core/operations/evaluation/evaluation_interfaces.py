@@ -276,14 +276,16 @@ def preprocess_params(params, data):
         'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
         'num_threads', 'num_thread', 'nthread', 'nthreads', 'n_jobs'
     }
-    share_params = {
+    data_relative_to_absolute_params = {
         'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf'
     }
 
     for param in params:
-        if param in share_params and 0 <= params[param] < 1:
+        if param in data_relative_to_absolute_params and 0 <= params[param] < 1:
+            # Adding option of using share of total samples in data besides an absolute number of samples
             params[param] = np.ceil(params[param] * data.target.shape[0])
         if param in integer_params:
+            # Round parameter values to avoid errors
             params[param] = int(params[param])
 
     return params
