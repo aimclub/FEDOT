@@ -134,13 +134,13 @@ def get_not_default_search_space():
         'lgbmreg': {
             'min_data_in_leaf': (hp.uniform, [1e-3, 0.5]),
             'n_estimators': (hp.choice, [[100]]),
-            'max_depth': (hp.choice, [range(1, 7)]),
+            'max_depth': (hp.choice, [[2.5, 3.5, 4.5]]),
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.choice, [np.arange(0.15, 1.01, 0.05)])
         },
         'lgbm': {
             'min_data_in_leaf': (hp.uniform, [1e-3, 0.5]),
-            'max_depth': (hp.choice, [range(1, 5)]),
+            'max_depth': (hp.choice, [[2.5, 3.5, 4.5]]),
             'subsample': (hp.uniform, [0.1, 0.9]),
             'min_child_weight': (hp.choice, [range(1, 15)])
         },
