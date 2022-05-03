@@ -162,6 +162,9 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :return: trained Sklearn operation
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+        self.params_for_fit = preprocess_params(self.params_for_fit, train_data)
+
         if self.params_for_fit:
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
@@ -261,3 +264,27 @@ def is_multi_output_task(train_data):
     target_shape = train_data.target.shape
     is_multi_target = len(target_shape) > 1 and target_shape[1] > 1
     return is_multi_target
+
+
+def preprocess_params(params, data):
+    integer_params = {
+        'n_clusters', 'n_neighbors',
+        'n_estimators', 'num_iterations', 'num_iteration', 'n_iter', 'max_iter',
+        'num_tree', 'num_trees', 'num_round', 'num_rounds', 'nrounds', 'num_boost_round',
+        'num_leaves', 'num_leaf', 'max_leaves', 'max_leaf', 'max_leaf_nodes',
+        'max_depth',
+        'max_bin', 'max_bins',
+        'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
+        'num_threads', 'num_thread', 'nthread', 'nthreads', 'n_jobs'
+    }
+    share_params = {
+        'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf'
+    }
+
+    for param in params:
+        if param in share_params and 0 <= params[param] < 1:
+            params[param] = np.ceil(params[param] * data.target.shape[0])
+        if param in integer_params:
+            params[param] = int(params[param])
+
+    return params
