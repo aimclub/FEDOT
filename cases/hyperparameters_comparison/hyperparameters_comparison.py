@@ -224,47 +224,37 @@ params = {
     },
     'rf': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'max_features': (hp.uniform, [0.05, 1]),
+        'max_features': (hp.uniform, [0.2, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
         'max_depth': (hp.randint, [2, 15]),
         'min_samples_leaf': (hp.randint, [1, 10000])
     },
     'rfr': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'max_features': (hp.uniform, [0.05, 1]),
+        'max_features': (hp.uniform, [0.2, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
         'max_depth': (hp.randint, [2, 15]),
         'min_samples_leaf': (hp.randint, [1, 10000])
     },
-    'xgbreg': {
-        'n_estimators': (hp.randint, [10, 1000]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 15]),
-        'min_child_weight': (hp.randint, [1, 10000]),
-        'cosample_bytree': (hp.uniform, [0.05, 1]),
-        'subsample': (hp.uniform, [0.05, 1]),
-        'alpha': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
-        'lambda': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
-    },
     'lgbm': {
         'n_estimators': (hp.randint, [10, 1000]),
         # 'early_stopping_rounds': (hp.randint, [10, 100]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
+        'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 15]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
-        'colsample_bytree': (hp.uniform, [0.05, 1]),
-        'subsample': (hp.uniform, [0.05, 1]),
+        'colsample_bytree': (hp.uniform, [0.2, 1]),
+        'subsample': (hp.uniform, [0.2, 1]),
         'max_bin': (hp.randint, [3, 255]),
         'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
     },
     'lgbmreg': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
+        'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 15]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
-        'colsample_bytree': (hp.uniform, [0.05, 1]),
-        'subsample': (hp.uniform, [0.05, 1]),
+        'colsample_bytree': (hp.uniform, [0.2, 1]),
+        'subsample': (hp.uniform, [0.2, 1]),
         'max_bin': (hp.randint, [3, 255]),
         'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
