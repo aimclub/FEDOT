@@ -215,31 +215,31 @@ params = {
         'weights': (hp.choice, [['uniform', 'distance']])
     },
     'dt': {
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_samples_leaf': (hp.randint, [1, 10000])
     },
     'dtreg': {
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_samples_leaf': (hp.randint, [1, 10000])
     },
     'rf': {
         'n_estimators': (hp.randint, [10, 1000]),
         'max_features': (hp.uniform, [0.05, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_samples_leaf': (hp.randint, [1, 10000])
     },
     'rfr': {
         'n_estimators': (hp.randint, [10, 1000]),
         'max_features': (hp.uniform, [0.05, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_samples_leaf': (hp.randint, [1, 10000])
     },
     'xgbreg': {
         'n_estimators': (hp.randint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_child_weight': (hp.randint, [1, 10000]),
         'cosample_bytree': (hp.uniform, [0.05, 1]),
         'subsample': (hp.uniform, [0.05, 1]),
@@ -250,7 +250,7 @@ params = {
         'n_estimators': (hp.randint, [10, 1000]),
         # 'early_stopping_rounds': (hp.randint, [10, 100]),
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
         'colsample_bytree': (hp.uniform, [0.05, 1]),
         'subsample': (hp.uniform, [0.05, 1]),
@@ -260,9 +260,8 @@ params = {
     },
     'lgbmreg': {
         'n_estimators': (hp.randint, [10, 1000]),
-        # 'early_stopping_rounds': (hp.randint, [10, 100]),
         'learning_rate': (hp.loguniform, [np.log(1e-6), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 10]),
+        'max_depth': (hp.randint, [2, 15]),
         'min_data_in_leaf': (hp.randint, [1, 10000]),
         'colsample_bytree': (hp.uniform, [0.05, 1]),
         'subsample': (hp.uniform, [0.05, 1]),
