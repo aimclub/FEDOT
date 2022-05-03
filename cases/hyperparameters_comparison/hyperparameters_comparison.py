@@ -216,31 +216,31 @@ params = {
     },
     'dt': {
         'max_depth': (hp.randint, [2, 20]),
-        'min_samples_leaf': (hp.randint, [1, 1000])
+        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
     },
     'dtreg': {
         'max_depth': (hp.randint, [2, 20]),
-        'min_samples_leaf': (hp.randint, [1, 1000])
+        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
     },
     'rf': {
         'n_estimators': (hp.randint, [10, 1000]),
         'max_features': (hp.uniform, [0.2, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
         'max_depth': (hp.randint, [2, 20]),
-        'min_samples_leaf': (hp.randint, [1, 1000])
+        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
     },
     'rfr': {
         'n_estimators': (hp.randint, [10, 1000]),
         'max_features': (hp.uniform, [0.2, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
         'max_depth': (hp.randint, [2, 20]),
-        'min_samples_leaf': (hp.randint, [1, 1000])
+        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
     },
     'lgbm': {
         'n_estimators': (hp.randint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 20]),
-        'min_data_in_leaf': (hp.randint, [1, 1000]),
+        'min_data_in_leaf': (hp.uniform, [1e-4, 0.5]),
         'colsample_bytree': (hp.uniform, [0.2, 1]),
         'subsample': (hp.uniform, [0.2, 1]),
         'max_bin': (hp.randint, [3, 255]),
@@ -251,7 +251,7 @@ params = {
         'n_estimators': (hp.randint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 20]),
-        'min_data_in_leaf': (hp.randint, [1, 1000]),
+        'min_data_in_leaf': (hp.uniform, [1e-4, 0.5]),
         'colsample_bytree': (hp.uniform, [0.2, 1]),
         'subsample': (hp.uniform, [0.2, 1]),
         'max_bin': (hp.randint, [3, 255]),
@@ -268,9 +268,9 @@ timeout = timedelta(minutes=30)
 keys = []
 
 for experiment in range(n_experiments):
-    for d in datasets:
+    for d in ['glass']:
         for m in datasets[d]['metrics']:
-            for fo in datasets[d]['fitted_operations']:
+            for fo in ['lgbm']:# datasets[d]['fitted_operations']:
                 keys += [(d, m, fo, 'default', experiment)]
                 keys += [(d, m, fo, 'random', experiment)]
                 keys += [(d, m, fo, 'tpe', experiment)]
