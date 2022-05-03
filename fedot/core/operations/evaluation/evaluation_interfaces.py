@@ -274,7 +274,6 @@ def preprocess_params(params, data):
         'max_depth',
         'max_bin', 'max_bins',
         'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
-        'num_threads', 'num_thread', 'nthread', 'nthreads', 'n_jobs'
     }
     data_relative_to_absolute_params = {
         'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf'
