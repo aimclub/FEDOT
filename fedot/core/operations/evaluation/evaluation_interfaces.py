@@ -273,7 +273,6 @@ def preprocess_params(params, data):
         'num_leaves', 'num_leaf', 'max_leaves', 'max_leaf', 'max_leaf_nodes',
         'max_depth',
         'max_bin', 'max_bins',
-
         'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
         'num_threads', 'num_thread', 'nthread', 'nthreads', 'n_jobs'
     }
