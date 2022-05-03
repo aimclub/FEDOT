@@ -132,5 +132,4 @@ class PipelineTuner(HyperoptTuner):
                                              pipeline=pipeline,
                                              loss_function=loss_function,
                                              loss_params=loss_params)
-        print(parameters_dict, metric_value)
         return metric_value
