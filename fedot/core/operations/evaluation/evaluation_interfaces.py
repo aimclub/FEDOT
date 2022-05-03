@@ -163,9 +163,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        self.params_for_fit = preprocess_params(self.params_for_fit, train_data)
-
         if self.params_for_fit:
+            self.params_for_fit = preprocess_params(self.params_for_fit, train_data)
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
