@@ -139,8 +139,6 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
                                 target=fit_data.target,
                                 predefined_model='auto')
 
-    # pipeline.fit(input_data=fit_data)
-
     if is_visualise:
         pipeline.show()
 

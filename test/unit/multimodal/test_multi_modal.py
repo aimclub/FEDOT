@@ -1,6 +1,6 @@
 import os
 
-from examples.advanced.multi_modal_pipeline import (prepare_multi_modal_data)
+from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum

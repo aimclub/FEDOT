@@ -111,6 +111,7 @@ def force_categorical_determination(table):
     return categorical_ids, non_categorical_ids
 
 
+# TODO can be reduced to unimodal
 def data_has_missing_values(data: Union[InputData, 'MultiModalData']) -> bool:
     """ Check data for missing values."""
 
@@ -123,27 +124,17 @@ def data_has_missing_values(data: Union[InputData, 'MultiModalData']) -> bool:
     return False
 
 
-def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> bool:
+def data_has_categorical_features(data: InputData) -> bool:
     """
     Check data for categorical columns.
     Return bool, whether data has categorical columns or not
     """
-    # TODO this method doesn't work when data is MultiModalData
     if data.data_type is not DataTypesEnum.table:
         return False
-    data_has_categorical_columns = False
 
-    if not isinstance(data, InputData):
-        for data_source_name, values in data.items():
-            if data_source_name.startswith('data_source_table'):
-                features_types = values.supplementary_data.column_types.get('features')
-                cat_ids, non_cat_ids = find_categorical_columns(values.features, features_types)
-                data_has_categorical_columns = len(cat_ids) > 0
-
-    else:
-        features_types = data.supplementary_data.column_types.get('features')
-        cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
-        data_has_categorical_columns = len(cat_ids) > 0
+    features_types = data.supplementary_data.column_types.get('features')
+    cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
+    data_has_categorical_columns = len(cat_ids) > 0
 
     return data_has_categorical_columns
 

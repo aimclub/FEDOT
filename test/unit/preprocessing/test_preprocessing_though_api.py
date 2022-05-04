@@ -129,7 +129,22 @@ def data_with_categorical_target(with_nan: bool = False):
 
     return train_input
 
-# TODO test data with text features
+
+def data_with_text_features():
+    """ Generate tabular data with text features """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array(['My mistress eyes are nothing like the sun.',
+                         'Coral is far more red than her lips red.',
+                         'If snow be white, why then her breasts are dun?',
+                         'If hairs be wires, black wires grow on her head.'],
+                        dtype=object)
+
+    target = np.array([[0], [1], [0], [1]])
+    train_input = InputData(idx=[0, 1, 2, 3], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.text,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
 # TODO test data with image features
 
 
@@ -161,3 +176,16 @@ def test_categorical_target_processed_correctly():
 
     # Predicted label must be close to 'di' label (so, right prediction is 'ba')
     assert predicted[0] == 'ba'
+
+
+def test_text_features_processed_correctly():
+    """ Check if dataset with text features preprocessing was performed correctly when API launch using. """
+    classification_data = data_with_text_features()
+    train_data, test_data = train_test_data_setup(classification_data)
+
+    fedot_model = Fedot(problem='classification')
+    fedot_model.fit(train_data, predefined_model='auto')
+    predicted = fedot_model.predict(test_data)
+
+    assert fedot_model.current_pipeline is not None
+    assert predicted[0] == 0

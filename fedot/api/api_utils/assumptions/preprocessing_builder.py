@@ -50,13 +50,11 @@ class PreprocessingBuilder:
         return self
 
     def with_text_vectorizer(self):
-        if self.task_type != TaskTypesEnum.ts_forecasting:
-            self._builder.add_node('tfidf')
+        self._builder.add_node('tfidf')
         return self
 
     def with_image(self):
-        if self.task_type != TaskTypesEnum.ts_forecasting:
-            self._builder.add_node('cnn')
+        self._builder.add_node('cnn')
         return self
 
     def to_builder(self) -> PipelineBuilder:
