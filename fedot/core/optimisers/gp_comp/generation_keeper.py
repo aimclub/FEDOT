@@ -7,6 +7,7 @@ from deap.tools import HallOfFame, ParetoFront
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
+from fedot.core.validation.objective import Objective
 
 
 class ImprovementWatcher(ABC):
@@ -39,23 +40,21 @@ class ImprovementWatcher(ABC):
 class GenerationKeeper(ImprovementWatcher):
     """Generation keeper that primarily tracks number of generations and stagnation duration.
 
-    :param initial_generation: first generation;
-     NB: if None then keeper is created in inconsistent state!
-    :param is_multi_objective:
-    :param archive:
+    :param objective: Objective that specifies metrics and if it's multi objective optimization.
     :param keep_n_best: How many best individuals to keep from all generations.
-    NB: relevant only for single-objective optimization!
+     NB: relevant only for single-objective optimization.
+    :param initial_generation: Optional first generation;
+     NB: if None then keeper is created in inconsistent state and requires an initial .append().
     """
 
     def __init__(self,
-                 metrics: Sequence[MetricsEnum] = (),
-                 is_multi_objective: bool = False,
+                 objective: Objective,
                  keep_n_best: int = 1,
                  initial_generation: PopulationT = None):
         self._generation_num = -1  # -1 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
-        self._metrics_improvement = {metric_id: False for metric_id in metrics}
-        self.archive = ParetoFront() if is_multi_objective else HallOfFame(maxsize=keep_n_best)
+        self._metrics_improvement = {metric_id: False for metric_id in objective.metrics}
+        self.archive = ParetoFront() if objective.is_multi_objective else HallOfFame(maxsize=keep_n_best)
 
         if initial_generation is not None:
             self.append(initial_generation)

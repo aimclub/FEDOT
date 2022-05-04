@@ -10,6 +10,7 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ComplexityMetricsEnum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.validation.objective import Objective
 
 
 def create_individual(fitness: Fitness = None) -> Individual:
@@ -24,10 +25,10 @@ def create_population(fitness: Sequence[Fitness]) -> PopulationT:
     return tuple(map(create_individual, fitness))
 
 
-def generation_keeper(init_population=None):
-    return GenerationKeeper(metrics=[RegressionMetricsEnum.RMSE, ComplexityMetricsEnum.structural],
-                            is_multi_objective=True,
-                            initial_generation=init_population)
+def generation_keeper(init_population=None, multi_objective=True):
+    metrics = (RegressionMetricsEnum.RMSE, ComplexityMetricsEnum.structural)
+    objective = Objective(metrics, multi_objective)
+    return GenerationKeeper(objective, initial_generation=init_population)
 
 
 def population1():
