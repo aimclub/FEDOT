@@ -1,9 +1,8 @@
-import math
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
 from typing import Any, Callable, Optional, Tuple, Union, \
-    List, Sequence, Iterable, TYPE_CHECKING
+    List, Iterable, TYPE_CHECKING
 
 import numpy as np
 from tqdm import tqdm
@@ -25,7 +24,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.operators.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
-from fedot.core.optimisers.gp_comp.composite_condition import CompositeCondition
+from fedot.core.utilities.aggregate_condition import AggregateCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -141,7 +140,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimisation = \
-            CompositeCondition(self.log) \
+            AggregateCondition(self.log) \
             .add_condition(
                 lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
                 'Optimisation stopped: Time limit is reached'

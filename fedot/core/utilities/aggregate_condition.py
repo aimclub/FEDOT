@@ -6,7 +6,7 @@ ConditionType = Callable[[], bool]
 ConditionEntryType = Tuple[ConditionType, Optional[str]]
 
 
-class CompositeCondition:
+class AggregateCondition:
     """Represents sequence of ordinary conditions with logging.
     All composed conditions are combined with reduce function on booleans.
 
@@ -19,7 +19,7 @@ class CompositeCondition:
         self._conditions: List[ConditionEntryType] = []
         self._log = log or default_log(__name__)
 
-    def add_condition(self, condition: ConditionType, log_msg: Optional[str] = None) -> 'CompositeCondition':
+    def add_condition(self, condition: ConditionType, log_msg: Optional[str] = None) -> 'AggregateCondition':
         """Builder-like method for adding conditions."""
         self._conditions.append((condition, log_msg))
         return self
