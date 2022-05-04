@@ -125,7 +125,7 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, kind: str = 'fitness_box', save_path_to_file: str = None):
+    def show(self, kind: str = 'fitness_box', save_path_to_file: str = None, n_best: Optional[float] = None):
         """ Visualizes fitness values across generations """
         # TODO: Modify docstring
         viz = PipelineEvolutionVisualiser()
@@ -134,7 +134,7 @@ class OptHistory:
                 return
             viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
         elif kind == 'operation_kde':
-            viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file)
+            viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file, n_best=n_best)
         else:
             raise ValueError(f'Visualization {kind} is not supported.')
 

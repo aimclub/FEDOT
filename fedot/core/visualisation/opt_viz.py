@@ -311,21 +311,32 @@ class PipelineEvolutionVisualiser:
         for file in files:
             remove(file)
 
-    def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
-                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
+    @staticmethod
+    def visualize_operations_kde(history: 'OptHistory', save_path_to_file: Optional[str] = None,
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
+                                 n_best: Optional[float] = None):
         # TODO: Docstring
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
 
         tags_all = [*tags_model, *tags_data]
 
+        # Necessary
         tag_column_name = 'Operation'
         generation_column_name = 'Generation'
+        # Optional
+        individual_column_name = 'Individual'
+        fitness_column_name = 'Fitness'
 
         history_data = {
             generation_column_name: [],
             tag_column_name: [],
         }
+        if n_best is not None:
+            history_data.update({
+                individual_column_name: [],
+                fitness_column_name: []
+            })
 
         for gen_num, gen in enumerate(history.individuals):
             for ind in gen:
@@ -334,8 +345,27 @@ class PipelineEvolutionVisualiser:
                     history_data[tag_column_name].append(
                         get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data)
                     )
+                    if individual_column_name in history_data:
+                        history_data[individual_column_name].append(ind.uid)
+                    if fitness_column_name in history_data:
+                        history_data[fitness_column_name].append(abs(ind.fitness))
 
         df_history = pd.DataFrame.from_dict(history_data)
+
+        if n_best is not None:
+            generation_sizes = df_history.groupby(generation_column_name)[individual_column_name].nunique()
+            df_individuals = df_history[[generation_column_name, individual_column_name, fitness_column_name]] \
+                .drop_duplicates(ignore_index=True)
+
+            df_individuals['rank_per_generation'] = df_individuals.sort_values(fitness_column_name, ascending=False). \
+                groupby(generation_column_name).cumcount()
+
+            best_individuals = list(df_individuals[df_individuals.apply(
+                lambda row: row['rank_per_generation'] < generation_sizes[row[generation_column_name]] * n_best,
+                axis=1)][individual_column_name])
+
+            df_history = df_history[df_history[individual_column_name].isin(best_individuals)]
+
         tags_found = df_history[tag_column_name].unique()
 
         plot = sns.displot(
