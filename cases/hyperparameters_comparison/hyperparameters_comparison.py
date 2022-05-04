@@ -268,9 +268,9 @@ timeout = timedelta(minutes=30)
 keys = []
 
 for experiment in range(n_experiments):
-    for d in ['glass']:
+    for d in datasets:
         for m in datasets[d]['metrics']:
-            for fo in ['lgbm']:# datasets[d]['fitted_operations']:
+            for fo in datasets[d]['fitted_operations']:
                 keys += [(d, m, fo, 'default', experiment)]
                 keys += [(d, m, fo, 'random', experiment)]
                 keys += [(d, m, fo, 'tpe', experiment)]
