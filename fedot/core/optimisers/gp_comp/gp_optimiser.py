@@ -236,7 +236,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 if self.parameters.multi_objective:
                     # TODO: feels unneeded, ParetoFront does it anyway
-                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals, individuals_to_select)
+                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals,
+                                                                   individuals_to_select)
                     individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 num_of_parents = num_of_parents_in_crossover(pop_size)

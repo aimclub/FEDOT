@@ -91,7 +91,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                 if self.parameters.multi_objective:
                     # TODO: feels unneeded, ParetoFront does it anyway
-                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals, individuals_to_select)
+                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals,
+                                                                   individuals_to_select)
                     individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 # TODO: collapse this selection & reprodue for 1 and for many
