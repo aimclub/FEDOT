@@ -21,6 +21,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
@@ -263,6 +264,12 @@ class Fedot:
         :param path to json file with model
         """
         self.current_pipeline.load(path)
+
+    def plot_pareto(self):
+        metric_names = self.params.metric_to_compose
+        PipelineEvolutionVisualiser().visualise_pareto(archive=self.best_models,
+                                                       objectives_names=metric_names,
+                                                       show=True)
 
     def plot_prediction(self, target: [Optional] = None):
         """

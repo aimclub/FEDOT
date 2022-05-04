@@ -1,7 +1,6 @@
 import pandas as pd
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 
 def run_classification_multiobj_example(with_plot=True, timeout=None):
@@ -20,9 +19,7 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
     print(auto_model.get_metrics(target))
     auto_model.plot_prediction()
     if with_plot:
-        PipelineEvolutionVisualiser().visualise_pareto(archive=auto_model.best_models,
-                                                       objectives_names=metric_names,
-                                                       show=True)
+        auto_model.plot_pareto()
 
     return prediction
 
