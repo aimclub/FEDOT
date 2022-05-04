@@ -79,7 +79,7 @@ class OperationTypesRepository:
             for op_type in OperationTypesRepository.__repository_dict__.keys():
                 self.repository_name.append(OperationTypesRepository.__repository_dict__[op_type]['file'])
                 operations = OperationTypesRepository.__repository_dict__[op_type]['initialized_repo']
-                self.default_tags.append(*OperationTypesRepository.__repository_dict__[op_type]['default_tags'])
+                self.default_tags += OperationTypesRepository.__repository_dict__[op_type]['default_tags']
 
                 if operations is not None:
                     for operation in operations:
