@@ -1,4 +1,5 @@
 import sys
+from hyperopt.early_stop import no_progress_loss
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -31,7 +32,8 @@ class HyperoptTuner(ABC):
     :attribute algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
-    def __init__(self, pipeline, task, iterations=100,
+    def __init__(self, pipeline, task,
+                 iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
@@ -39,6 +41,8 @@ class HyperoptTuner(ABC):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
+        iteration_stop_count = early_stopping_rounds or max(100, int(np.sqrt(iterations) * 10))
+        self.early_stop_fn = no_progress_loss(iteration_stop_count=iteration_stop_count)
         self.max_seconds = int(timeout.seconds) if timeout is not None else None
         self.init_pipeline = None
         self.init_metric = None

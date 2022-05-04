@@ -68,14 +68,10 @@ def validate(graph: Graph, rules: List[Callable] = None, task=None):
             tmp_rules.extend(class_rules)
 
     # Check if all rules passes
-    try:
-        for rule_func in tmp_rules:
-            _rule_check(graph, rule_func)
-    except ValueError:
-        return False
-    else:
-        return True
 
+    for rule_func in tmp_rules:
+        _rule_check(graph, rule_func)
+    return True
 
 def _rule_check(graph, rule_func):
     """ Perform graph check by rule """
