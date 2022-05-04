@@ -138,7 +138,7 @@ class HyperparametersPreprocessor():
 
     def _correct(self, param_value, preprocess_type):
         """
-        Method adds option of using share of total samples in data besides an absolute number of samples
+        Method calls preprocessing methods basing on preprocess type
         : param param_value : initial value of the parameter
         : param preprocess_type : type of the preprocessing transformation
         : return : param_value after preprocessing
