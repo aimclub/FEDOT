@@ -265,7 +265,15 @@ def is_multi_output_task(train_data):
     return is_multi_target
 
 
-def preprocess_params(params, data):
+def preprocess_params(params: dict, train_data: InputData) -> dict:
+    """
+    The function handles incorrect parameters values and returns corresponding correct parameters
+
+    :param params: dictionary of model parameters
+    :param train_data: data used for model training
+
+    :return : processed parameters dictionary
+    """
     integer_params = {
         'n_clusters', 'n_neighbors',
         'n_estimators', 'num_iterations', 'num_iteration', 'n_iter', 'max_iter',
@@ -282,7 +290,7 @@ def preprocess_params(params, data):
     for param in params:
         if param in data_relative_to_absolute_params and 0 <= params[param] < 1:
             # Adding option of using share of total samples in data besides an absolute number of samples
-            params[param] = np.ceil(params[param] * data.target.shape[0])
+            params[param] = np.ceil(params[param] * train_data.target.shape[0])
         if param in integer_params:
             # Round parameter values to avoid errors
             params[param] = int(params[param])
