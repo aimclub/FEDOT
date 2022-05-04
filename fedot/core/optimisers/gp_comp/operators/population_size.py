@@ -33,8 +33,8 @@ class AdaptivePopulationSize(PopulationSize):
         return self._initial
 
     def next(self, current: int) -> int:
-        fitness_improved = self._improvements.quality_improved
-        complexity_decreased = self._improvements.complexity_improved
+        fitness_improved = self._improvements.is_quality_improved
+        complexity_decreased = self._improvements.is_complexity_improved
         progress_in_both_goals = fitness_improved and complexity_decreased
         no_progress = not fitness_improved and not complexity_decreased
 

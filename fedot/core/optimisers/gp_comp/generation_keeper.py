@@ -16,19 +16,21 @@ class ImprovementWatcher(ABC):
 
     @property
     @abstractmethod
-    def last_improved(self) -> bool:
+    def is_any_improved(self) -> bool:
         raise NotImplementedError()
 
     @abstractmethod
-    def metric_improved(self, metric: MetricsEnum) -> bool:
+    def is_metric_improved(self, metric: MetricsEnum) -> bool:
         raise NotImplementedError()
 
+    @property
     @abstractmethod
-    def quality_improved(self) -> bool:
+    def is_quality_improved(self) -> bool:
         raise NotImplementedError()
 
+    @property
     @abstractmethod
-    def complexity_improved(self) -> bool:
+    def is_complexity_improved(self) -> bool:
         raise NotImplementedError()
 
 
@@ -65,25 +67,25 @@ class GenerationKeeper(ImprovementWatcher):
         return self._generation_num
 
     @property
-    def stagnation_length(self) -> int:
+    def stagnation_duration(self) -> int:
         return self._stagnation_counter
 
     @property
-    def last_improved(self) -> bool:
+    def is_any_improved(self) -> bool:
         return any(self._metrics_improvement.values())
 
-    def metric_improved(self, metric: MetricsEnum) -> bool:
+    def is_metric_improved(self, metric: MetricsEnum) -> bool:
         return self._metrics_improvement.get(metric, False)
 
     @property
-    def quality_improved(self) -> bool:
-        return self._metric_kind_improved(QualityMetricsEnum)
+    def is_quality_improved(self) -> bool:
+        return self._is_metric_kind_improved(QualityMetricsEnum)
 
     @property
-    def complexity_improved(self) -> bool:
-        return self._metric_kind_improved(ComplexityMetricsEnum)
+    def is_complexity_improved(self) -> bool:
+        return self._is_metric_kind_improved(ComplexityMetricsEnum)
 
-    def _metric_kind_improved(self, metric_cls: Type[MetricsEnum]) -> bool:
+    def _is_metric_kind_improved(self, metric_cls: Type[MetricsEnum]) -> bool:
         return any(improved for metric, improved in self._metrics_improvement.items()
                    if isinstance(metric, metric_cls))
 
@@ -113,7 +115,7 @@ class GenerationKeeper(ImprovementWatcher):
             if current_worst > previous_worst:
                 self._metrics_improvement[metric] = True
 
-        self._stagnation_counter = 0 if self.last_improved else self._stagnation_counter + 1
+        self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1
         self._generation_num += 1  # becomes 1 on first population
 
     def _reset_metrics_improvement(self):

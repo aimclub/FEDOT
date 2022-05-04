@@ -148,7 +148,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 lambda: self.generations.generation_num >= requirements.num_of_generations,
                 'Optimisation stopped: Max number of generations reached'
             ).add_condition(
-                lambda: self.generations.stagnation_length >= max_stagnation_length,
+                lambda: self.generations.stagnation_duration >= max_stagnation_length,
                 'Optimisation finished: Early stopping criteria was satisfied'
             )
 
@@ -218,7 +218,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
             while not self.stop_optimisation():
                 self.log.info(f'Generation num: {self.generations.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
                 pop_size = self._pop_size.next(pop_size)
                 self.log.info(f'Next pop size: {pop_size}')
 
@@ -312,7 +312,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.log.info(f'Best metric is {best[0].fitness}')
 
     def max_depth_recount(self):
-        if self.generations.stagnation_length >= self.parameters.depth_increase_step and \
+        if self.generations.stagnation_duration >= self.parameters.depth_increase_step and \
                 self.max_depth + 1 <= self.requirements.max_depth:
             self.max_depth += 1
 

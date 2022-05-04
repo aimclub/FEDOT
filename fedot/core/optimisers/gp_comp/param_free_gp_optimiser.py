@@ -72,7 +72,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
             while not self.stop_optimisation():
                 self.log.info(f'Generation num: {self.generations.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_length}')
+                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
                 pop_size = self._pop_size.next(pop_size)
                 self.log.info(f'Next pop size: {pop_size}')
 
@@ -130,7 +130,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 self.population = new_population
 
                 # TODO: move into dynamic mutation operator
-                if not self.generations.last_improved:
+                if not self.generations.is_any_improved:
                     self.operators_prob_update()
 
                 on_next_iteration_callback(self.population, self.generations.best_individuals)
