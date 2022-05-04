@@ -21,7 +21,7 @@ from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.optimisers.gp_comp.operators.population_size import PopulationSize, ConstRatePopulationSize
+from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.utilities.aggregate_condition import AggregateCondition

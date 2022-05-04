@@ -1,8 +1,8 @@
 import math
 
-from fedot.core.optimisers.gp_comp.generation_keeper import ImprovementWatcher
-from fedot.core.optimisers.gp_comp.operators.operator import AdaptiveParameter
+from .parameter import AdaptiveParameter
 from fedot.core.utilities.data_structures import BidirectionalIterator
+from fedot.core.optimisers.gp_comp.generation_keeper import ImprovementWatcher
 
 PopulationSize = AdaptiveParameter[int]
 

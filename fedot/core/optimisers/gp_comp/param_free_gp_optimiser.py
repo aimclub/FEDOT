@@ -1,6 +1,6 @@
 from copy import deepcopy
 from itertools import zip_longest
-from typing import Any, List, Optional, Tuple, Union, Callable
+from typing import List, Optional, Union, Callable
 
 import numpy as np
 from tqdm import tqdm
@@ -14,7 +14,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.optimisers.gp_comp.operators.population_size import PopulationSize, AdaptivePopulationSize
+from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, AdaptivePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
