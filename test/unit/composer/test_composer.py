@@ -73,11 +73,9 @@ def test_random_composer(data_fixture, request):
 
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
-    random_composer = RandomSearchComposer(iter_num=1)
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
-    pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose,
-                                                                composer_requirements=req,
-                                                                metrics=metric_function)
+    random_composer = RandomSearchComposer(composer_requirements=req, iter_num=1, metrics=metric_function)
+    pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)
     pipeline_random_composed.fit_from_scratch(input_data=dataset_to_compose)
 
     predicted_random_composed = pipeline_random_composed.predict(dataset_to_validate)
