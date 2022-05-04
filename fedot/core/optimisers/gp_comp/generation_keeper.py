@@ -8,8 +8,6 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
 
-ArchiveType = HallOfFame
-
 
 class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
