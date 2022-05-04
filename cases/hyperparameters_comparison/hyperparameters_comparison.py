@@ -224,14 +224,14 @@ params = {
     },
     'rf': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'max_features': (hp.uniform, [0.2, 1]),
+        'max_features': (hp.uniform, [0.01, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
         'max_depth': (hp.randint, [2, 20]),
         'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
     },
     'rfr': {
         'n_estimators': (hp.randint, [10, 1000]),
-        'max_features': (hp.uniform, [0.2, 1]),
+        'max_features': (hp.uniform, [0.01, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
         'max_depth': (hp.randint, [2, 20]),
         'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
@@ -240,23 +240,23 @@ params = {
         'n_estimators': (hp.randint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 20]),
-        'min_data_in_leaf': (hp.uniform, [1e-4, 0.5]),
-        'colsample_bytree': (hp.uniform, [0.2, 1]),
-        'subsample': (hp.uniform, [0.2, 1]),
-        'max_bin': (hp.randint, [3, 255]),
-        'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
-        'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
+        'min_samples_leaf': (hp.uniform, [1e-4, 0.5]),
+        'colsample_bytree': (hp.uniform, [0.01, 1]),
+        'subsample': (hp.uniform, [0.01, 1]),
+        'max_bin': (hp.randint, [3, 511]),
+        'lambda_l1': (hp.loguniform, [np.log(1e-9), np.log(1e4)]),
+        'lambda_l2': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     },
     'lgbmreg': {
         'n_estimators': (hp.randint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
         'max_depth': (hp.randint, [2, 20]),
-        'min_data_in_leaf': (hp.uniform, [1e-4, 0.5]),
-        'colsample_bytree': (hp.uniform, [0.2, 1]),
-        'subsample': (hp.uniform, [0.2, 1]),
-        'max_bin': (hp.randint, [3, 255]),
-        'lambda_l1': (hp.loguniform, [np.log(1e-5), np.log(1e2)]),
-        'lambda_l2': (hp.loguniform, [np.log(1e-5), np.log(1e2)])
+        'min_samples_leaf': (hp.uniform, [1e-4, 0.5]),
+        'colsample_bytree': (hp.uniform, [0.01, 1]),
+        'subsample': (hp.uniform, [0.01, 1]),
+        'max_bin': (hp.randint, [3, 511]),
+        'lambda_l1': (hp.loguniform, [np.log(1e-9), np.log(1e4)]),
+        'lambda_l2': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     }
 }
 
