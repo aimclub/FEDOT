@@ -16,10 +16,9 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules, validate
-from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricsRepository, MetricType
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.objective import Objective
-from fedot.core.validation.objective_eval import DataObjectiveEvaluate, ObjectiveEvaluate
+from fedot.core.validation.objective_eval import DataObjectiveEvaluate, ObjectiveEvaluate, DataSource
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 
@@ -67,7 +66,6 @@ class GPComposer(Composer):
     """
     Genetic programming based composer
     :param optimiser: optimiser generated in ComposerBuilder.
-    :param metrics: metrics used to define the quality of found solution.
     :param composer_requirements: requirements for composition process.
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     :param logger: optional Log object for logging.
@@ -76,7 +74,6 @@ class GPComposer(Composer):
 
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: PipelineComposerRequirements,
-                 metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  logger: Optional[Log] = None,
                  cache: Optional[OperationsCache] = None):
@@ -86,12 +83,11 @@ class GPComposer(Composer):
         self.optimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
 
-        self.objective_builder = ObjectiveBuilder(metrics,
-                                                  self.optimiser.parameters.multi_objective,
-                                                  self.composer_requirements.max_pipeline_fit_time,
-                                                  self.composer_requirements.cv_folds,
-                                                  self.composer_requirements.validation_blocks,
-                                                  self.cache, self.log)
+        self.objective_builder = DataObjectiveBuilder(self.optimiser.objective,
+                                                      self.composer_requirements.max_pipeline_fit_time,
+                                                      self.composer_requirements.cv_folds,
+                                                      self.composer_requirements.validation_blocks,
+                                                      self.cache, self.log)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
         self.optimiser.graph_generation_params.advisor.task = data.task
@@ -128,18 +124,17 @@ class GPComposer(Composer):
         return self.optimiser.history
 
 
-class ObjectiveBuilder:
+class DataObjectiveBuilder:
+
     def __init__(self,
-                 metrics: Sequence[MetricType],
-                 is_multi_objective: bool = False,
+                 objective: Objective,
                  max_pipeline_fit_time: Optional[timedelta] = None,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
                  cache: Optional[OperationsCache] = None,
                  log: Log = None):
 
-        self.metrics = metrics
-        self.is_multi_objective = is_multi_objective
+        self.objective = objective
         self.max_pipeline_fit_time = max_pipeline_fit_time
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
@@ -148,29 +143,35 @@ class ObjectiveBuilder:
 
     def build(self, data: InputData) -> ObjectiveEvaluate:
         if self.cv_folds is not None:
-            if isinstance(data, MultiModalData):
-                raise NotImplementedError('Cross-validation is not supported for multi-modal data')
-            data_producer = self._cv_generator_by_task(data)
+            data_producer = self._build_kfolds_producer(data)
         else:
-            self.log.info("Hold out validation for graph composing was applied.")
-            split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
-            train_data, test_data = train_test_data_setup(data, split_ratio)
+            data_producer = self._build_holdout_producer(data)
 
-            # trivial data producer for hold-out validation that always returns same data
-            def data_producer(): yield train_data, test_data
-
-            if RemoteEvaluator().use_remote:
-                init_data_for_remote_execution(train_data)
-
-        objective = Objective(self.metrics, self.is_multi_objective)
-        objective_evaluate = DataObjectiveEvaluate(objective=objective,
+        objective_evaluate = DataObjectiveEvaluate(objective=self.objective,
                                                    data_producer=data_producer,
                                                    time_constraint=self.max_pipeline_fit_time,
                                                    validation_blocks=self.validation_blocks,
                                                    cache=self.cache, log=self.log)
         return objective_evaluate
 
-    def _cv_generator_by_task(self, data: InputData) -> Callable[[], Iterator[Tuple[InputData, InputData]]]:
+    def _build_holdout_producer(self, data: InputData) -> DataSource:
+        """Build trivial data producer for hold-out validation
+        that always returns same data split. Equivalent to 1-fold validation."""
+
+        self.log.info("Hold out validation for graph composing was applied.")
+        split_ratio = sample_split_ratio_for_tasks[data.task.task_type]
+        train_data, test_data = train_test_data_setup(data, split_ratio)
+
+        def data_producer(): yield train_data, test_data
+
+        if RemoteEvaluator().use_remote:
+            init_data_for_remote_execution(train_data)
+
+        return data_producer
+
+    def _build_kfolds_producer(self, data: InputData) -> DataSource:
+        if isinstance(data, MultiModalData):
+            raise NotImplementedError('Cross-validation is not supported for multi-modal data')
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")

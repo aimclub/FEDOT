@@ -1,10 +1,11 @@
 from copy import deepcopy
 from itertools import zip_longest
-from typing import List, Optional, Union, Callable
+from typing import List, Optional, Union, Callable, Any
 
 import numpy as np
 from tqdm import tqdm
 
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
@@ -17,7 +18,9 @@ from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationS
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective import Objective
 from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 DEFAULT_MAX_POP_SIZE = 55
@@ -30,11 +33,14 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     For details, see https://ieeexplore.ieee.org/document/9504773
     """
 
-    def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
+    def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
+                 requirements: PipelineComposerRequirements,
+                 graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
                  log: Log = None):
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
+        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
 
         self._min_population_size_with_elitism = 7
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:

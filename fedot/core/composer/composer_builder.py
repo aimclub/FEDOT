@@ -22,6 +22,7 @@ from fedot.core.repository.quality_metrics_repository import (
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.validation.objective import Objective
 
 
 class ComposerBuilder:
@@ -96,6 +97,14 @@ class ComposerBuilder:
 
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         advisor=PipelineChangeAdvisor())
+
+        if self.optimiser_parameters.mutation_types is None:
+            self.optimiser_parameters.mutation_types = [boosting_mutation, parameter_change_mutation,
+                                                        MutationTypesEnum.single_edge,
+                                                        MutationTypesEnum.single_change,
+                                                        MutationTypesEnum.single_drop,
+                                                        MutationTypesEnum.single_add]
+
         if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
@@ -105,24 +114,18 @@ class ComposerBuilder:
             self.metrics = self.metrics + self._get_default_complexity_metrics()
             self.optimiser_parameters.multi_objective = False
 
-        if self.optimiser_parameters.mutation_types is None:
-            self.optimiser_parameters.mutation_types = [boosting_mutation, parameter_change_mutation,
-                                                        MutationTypesEnum.single_edge,
-                                                        MutationTypesEnum.single_change,
-                                                        MutationTypesEnum.single_drop,
-                                                        MutationTypesEnum.single_add]
+        objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
 
         optimiser = optimiser_type(initial_graph=self.initial_pipelines,
+                                   objective=objective,
                                    requirements=self.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters,
                                    log=self.log,
-                                   metrics=self.metrics,
                                    **self.optimizer_external_parameters)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     self.metrics,
                                      self.initial_pipelines,
                                      self.log,
                                      self.cache)

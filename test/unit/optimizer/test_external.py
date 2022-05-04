@@ -9,7 +9,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective import Objective
 from fedot.core.validation.objective_eval import ObjectiveEvaluate
 from test.unit.models.test_model import classification_dataset
 
@@ -22,13 +22,13 @@ class StaticOptimizer(GraphOptimiser):
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
                  requirements: Any,
                  graph_generation_params: GraphGenerationParams,
-                 metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
                  log: Optional[Log] = None,
                  **kwargs):
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
+        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
         self.change_types = []
         self.node_name = kwargs.get('node_name')
 

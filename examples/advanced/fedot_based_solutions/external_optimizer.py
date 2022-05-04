@@ -8,8 +8,8 @@ from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatc
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
 from fedot.core.utils import fedot_project_root
+from fedot.core.validation.objective import Objective
 from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 
@@ -19,12 +19,12 @@ class RandomSearchOptimizer(GraphOptimiser):
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
                  requirements: Any,
                  graph_generation_params: GraphGenerationParams,
-                 metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
                  log: Optional[Log] = None):
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
+        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
         self.change_types = [boosting_mutation, parameter_change_mutation,
                              MutationTypesEnum.single_edge,
                              MutationTypesEnum.single_change,

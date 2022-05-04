@@ -5,7 +5,7 @@ import numpy as np
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, ObjectiveBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, DataObjectiveBuilder
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -28,6 +28,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.validation.objective import Objective
 from test.unit.composer.test_composer import to_numerical
 from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
     pipeline_third
@@ -117,7 +118,7 @@ def test_evaluate_individuals():
                              pipeline_third(), pipeline_fourth()]
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    objective_builder = ObjectiveBuilder([metric_function])
+    objective_builder = DataObjectiveBuilder(Objective([metric_function]))
     objective_eval = objective_builder.build(dataset_to_compose)
     adapter = PipelineAdapter()
 

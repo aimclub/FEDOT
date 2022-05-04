@@ -6,7 +6,7 @@ import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, ObjectiveBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, DataObjectiveBuilder
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -25,6 +25,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.validation.objective import Objective
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
@@ -146,7 +147,7 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     adapter = PipelineAdapter()
     graph_gen_params = GraphGenerationParams(adapter)
     metrics = [metric]
-    objective_builder = ObjectiveBuilder(metrics)
+    objective_builder = DataObjectiveBuilder(Objective(metrics))
     objective_eval = objective_builder.build(input_data)
     evaluate = EvaluationDispatcher(objective_eval,
                                     graph_gen_params.adapter,

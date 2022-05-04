@@ -27,7 +27,7 @@ from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective import Objective
 from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 if TYPE_CHECKING:
@@ -96,13 +96,12 @@ class EvoGraphOptimiser(GraphOptimiser):
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  log: Optional[Log] = None):
-
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
+        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
@@ -124,7 +123,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         )
 
         self.population = None
-        self.generations = GenerationKeeper(metrics, self.parameters.multi_objective)
+        self.generations = GenerationKeeper(self.objective)
 
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
 

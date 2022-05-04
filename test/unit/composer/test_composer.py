@@ -228,7 +228,7 @@ def test_multi_objective_composer(data_fixture, request):
     pipelines_roc_auc = []
 
     assert type(pipelines_evo_composed) is list
-    assert len(composer.objective_builder.metrics) > 1
+    assert len(composer.optimiser.objective.metrics) > 1
     assert composer.optimiser.parameters.multi_objective
 
     for pipeline_evo_composed in pipelines_evo_composed:

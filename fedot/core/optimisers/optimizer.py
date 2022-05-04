@@ -1,10 +1,7 @@
 from abc import abstractmethod
-from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Union, Sequence)
-
-import numpy as np
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.log import Log, default_log
@@ -13,7 +10,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.validation.objective import Objective
 from fedot.core.validation.objective_eval import ObjectiveEvaluate
 
 
@@ -47,22 +44,23 @@ class GraphOptimiser:
     (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param initial_graph: graph which was initialized outside the optimiser
+    :param objective: objective for optimisation
     :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
-    :param metrics: metrics for optimisation
     :param parameters: parameters for specific implementation of graph optimiser
     :param log: optional parameter for log object
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
                  requirements: Any,
                  graph_generation_params: 'GraphGenerationParams',
-                 metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
                  log: Optional[Log] = None):
 
         self.log = log or default_log(__name__)
 
+        self._objective = objective
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
         self.parameters = parameters
@@ -77,8 +75,12 @@ class GraphOptimiser:
         if initial_graph and not isinstance(initial_graph, Sequence):
             initial_graph = [initial_graph]
         self.initial_graph = initial_graph
-        self.history = OptHistory(metrics, parameters.history_folder)
+        self.history = OptHistory(objective, parameters.history_folder)
         self.history.clean_results()
+
+    @property
+    def objective(self) -> Objective:
+        return self._objective
 
     @abstractmethod
     def optimise(self, objective_evaluator: ObjectiveEvaluate,

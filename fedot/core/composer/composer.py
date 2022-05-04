@@ -51,7 +51,6 @@ class Composer(ABC):
     """
     Base class used for receiving composite operations via optimization
     :param optimiser: optimiser generated in ComposerBuilder
-    :param metrics: metrics used to define the quality of found solution.
     :param composer_requirements: requirements for composition process
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     :param logger: optional parameter for log oject
