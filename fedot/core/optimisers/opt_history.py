@@ -26,7 +26,7 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_individuals: List['Individual']
+    parent_individuals: List[Individual]
     uid: str = None
 
     def __post_init__(self):
@@ -41,15 +41,15 @@ class OptHistory:
 
     def __init__(self, metrics: List[Callable[..., float]] = None, save_folder=None):
         self.metrics = metrics
-        self.individuals: List[List['Individual']] = []
-        self.archive_history: List[List['Individual']] = []
+        self.individuals: List[List[Individual]] = []
+        self.archive_history: List[List[Individual]] = []
         self.save_folder: Optional[str] = save_folder
 
-    def add_to_history(self, individuals: List['Individual']):
+    def add_to_history(self, individuals: List[Individual]):
         new_inds = deepcopy(individuals)
         self.individuals.append(new_inds)
 
-    def add_to_archive_history(self, individuals: List['Individual']):
+    def add_to_archive_history(self, individuals: List[Individual]):
         new_inds = deepcopy(individuals)
         self.archive_history.append(new_inds)
 

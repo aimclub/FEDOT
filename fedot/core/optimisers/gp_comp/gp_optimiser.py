@@ -96,7 +96,7 @@ class EvoGraphOptimiser(GraphOptimiser):
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
-                 requirements: 'PipelineComposerRequirements',
+                 requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: Optional[GPGraphOptimiserParameters] = None,
