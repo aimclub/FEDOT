@@ -49,9 +49,9 @@ def decremental_regularization(population: List[Individual],
 
     additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
 
-    if additional_inds:
+    if len(additional_inds) > 0:
         population = evaluator(population)
-    if additional_inds and len(additional_inds) > size:
+    if len(additional_inds) > size:
         additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]
 
     return additional_inds
