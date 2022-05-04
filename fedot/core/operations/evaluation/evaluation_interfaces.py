@@ -164,7 +164,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
         if self.params_for_fit:
-            self.params_for_fit = preprocess_params(self.params_for_fit, train_data)
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
@@ -263,36 +262,3 @@ def is_multi_output_task(train_data):
     target_shape = train_data.target.shape
     is_multi_target = len(target_shape) > 1 and target_shape[1] > 1
     return is_multi_target
-
-
-def preprocess_params(params: dict, train_data: InputData) -> dict:
-    """
-    The function handles incorrect parameters values and returns corresponding correct parameters
-
-    :param params: dictionary of model parameters
-    :param train_data: data used for model training
-
-    :return : processed parameters dictionary
-    """
-    integer_params = {
-        'n_clusters', 'n_neighbors',
-        'n_estimators', 'num_iterations', 'num_iteration', 'n_iter', 'max_iter',
-        'num_tree', 'num_trees', 'num_round', 'num_rounds', 'nrounds', 'num_boost_round',
-        'num_leaves', 'num_leaf', 'max_leaves', 'max_leaf', 'max_leaf_nodes',
-        'max_depth',
-        'max_bin', 'max_bins',
-        'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
-    }
-    data_relative_to_absolute_params = {
-        'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf'
-    }
-
-    for param in params:
-        if param in data_relative_to_absolute_params and 0 <= params[param] < 1:
-            # Adding option of using share of total samples in data besides an absolute number of samples
-            params[param] = np.ceil(params[param] * train_data.target.shape[0])
-        if param in integer_params:
-            # Round parameter values to avoid errors
-            params[param] = int(params[param])
-
-    return params
