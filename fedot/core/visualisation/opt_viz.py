@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
@@ -36,8 +36,6 @@ class PipelineEvolutionVisualiser:
         self.best_pipelines_imgs = []
         self.merged_imgs = []
         self.graph_visualizer = GraphVisualiser(log=log)
-        self.default_tags_model = OperationTypesRepository.__default_repo_tags__['models']
-        self.default_tags_data = OperationTypesRepository.__default_repo_tags__['data_operations']
 
     def _visualise_pipelines(self, pipelines, fitnesses):
         fitnesses = deepcopy(fitnesses)
@@ -314,18 +312,17 @@ class PipelineEvolutionVisualiser:
             remove(file)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
-                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
-                                 n_best: Optional[int] = None):
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         # TODO: Docstring
-        tags_model = tags_model or self.default_tags_model
-        tags_data = tags_data or self.default_tags_data
+        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
+        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
 
         tags_all = [*tags_model, *tags_data]
 
         tag_column_name = 'Operation'
         generation_column_name = 'Generation'
 
-        df_data = {
+        history_data = {
             generation_column_name: [],
             tag_column_name: [],
         }
@@ -333,20 +330,21 @@ class PipelineEvolutionVisualiser:
         for gen_num, gen in enumerate(history.individuals):
             for ind in gen:
                 for node in ind.graph.nodes:
-                    df_data[generation_column_name].append(gen_num)
-                    df_data[tag_column_name].append(
-                        OperationTypesRepository.get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data)
+                    history_data[generation_column_name].append(gen_num)
+                    history_data[tag_column_name].append(
+                        get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data)
                     )
 
-        df_operations = pd.DataFrame.from_dict(df_data)
+        df_history = pd.DataFrame.from_dict(history_data)
+        tags_found = df_history[tag_column_name].unique()
 
         plot = sns.displot(
-            data=df_operations,
+            data=history_data,
             x=generation_column_name,
             hue=tag_column_name,
-            hue_order=[t for t in tags_all if t in df_operations[tag_column_name].unique()],
+            hue_order=[t for t in tags_all if t in tags_found],
             kind='kde',
-            clip=(0, max(df_operations[generation_column_name])),
+            clip=(0, max(df_history[generation_column_name])),
             multiple='fill',
             palette='Set2',
         )
