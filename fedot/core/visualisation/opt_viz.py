@@ -331,12 +331,9 @@ class PipelineEvolutionVisualiser:
         history_data = {
             generation_column_name: [],
             tag_column_name: [],
+            individual_column_name: [],
+            fitness_column_name: []
         }
-        if n_best is not None:
-            history_data.update({
-                individual_column_name: [],
-                fitness_column_name: []
-            })
 
         for gen_num, gen in enumerate(history.individuals):
             for ind in gen:
@@ -345,24 +342,23 @@ class PipelineEvolutionVisualiser:
                     history_data[tag_column_name].append(
                         get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data)
                     )
-                    if individual_column_name in history_data:
-                        history_data[individual_column_name].append(ind.uid)
-                    if fitness_column_name in history_data:
-                        history_data[fitness_column_name].append(abs(ind.fitness))
+                    history_data[individual_column_name].append(ind.uid)
+                    history_data[fitness_column_name].append(abs(ind.fitness))
 
         df_history = pd.DataFrame.from_dict(history_data)
 
         if n_best is not None:
             generation_sizes = df_history.groupby(generation_column_name)[individual_column_name].nunique()
+
             df_individuals = df_history[[generation_column_name, individual_column_name, fitness_column_name]] \
                 .drop_duplicates(ignore_index=True)
 
             df_individuals['rank_per_generation'] = df_individuals.sort_values(fitness_column_name, ascending=False). \
                 groupby(generation_column_name).cumcount()
 
-            best_individuals = list(df_individuals[df_individuals.apply(
+            best_individuals = df_individuals[df_individuals.apply(
                 lambda row: row['rank_per_generation'] < generation_sizes[row[generation_column_name]] * n_best,
-                axis=1)][individual_column_name])
+                axis=1)][individual_column_name]
 
             df_history = df_history[df_history[individual_column_name].isin(best_individuals)]
 
