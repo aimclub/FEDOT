@@ -59,7 +59,6 @@ class Composer(ABC):
 
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: ComposerRequirements,
-                 metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  logger: Log = None):
         self.composer_requirements = composer_requirements

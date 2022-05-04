@@ -81,7 +81,7 @@ class GPComposer(Composer):
                  logger: Optional[Log] = None,
                  cache: Optional[OperationsCache] = None):
 
-        super().__init__(optimiser, composer_requirements, metrics, initial_pipelines, logger)
+        super().__init__(optimiser, composer_requirements, initial_pipelines, logger)
 
         self.optimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
