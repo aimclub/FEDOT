@@ -7,64 +7,167 @@ class HyperparametersPreprocessor():
     def __init__(self,
                  operation_type: Optional[str],
                  train_data: Optional[InputData]):
-        self.operation_type = operation_type
-        print(operation_type)
+        self.preprocessing_rules = self._get_preprocessing_rules(operation_type)
         self.train_data = train_data
+
+    def _get_preprocessing_rules(self, operation_type):
+        all_preprocessing_rules = {
+            'knnreg': {
+                'n_neighbors': ['integer']
+            },
+            'dtreg': {
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'treg': {
+                'n_estimators': ['integer'],
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'rfr': {
+                'n_estimators': ['integer'],
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'adareg': {
+                'n_estimators': ['integer'],
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'gbr': {
+                'n_estimators': ['integer'],
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'xgbreg': {
+                'nthread': ['integer'],
+                'n_estimators': ['integer'],
+                'max_depth': ['integer'],
+                'max_leaves': ['integer'],
+                'max_bin': ['integer']
+            },
+            'lgbmreg': {
+                'num_iterations': ['integer'], 'num_iteration': ['integer'], 'n_iter': ['integer'],
+                'num_tree': ['integer'], 'num_trees': ['integer'],
+                'num_round': ['integer'], 'num_rounds': ['integer'], 'nrounds': ['integer'],
+                'num_boost_round': ['integer'], 'n_estimators': ['integer'], 'max_iter': ['integer'],
+                'num_leaves': ['integer'], 'num_leaf': ['integer'],
+                'max_leaves': ['integer'], 'max_leaf': ['integer'], 'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer'],
+                'min_data_in_leaf': ['absolute', 'integer'], 'min_data_per_leaf': ['absolute', 'integer'],
+                'min_data': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+                'min_samples_leaf': ['absolute', 'integer'],
+                'bagging_freq': ['integer'], 'subsample_freq': ['integer'],
+                'max_bin': ['integer'], 'max_bins': ['integer'],
+            },
+            'catboostreg': {
+                'iterations': ['integer'], 'num_boost_round': ['integer'],
+                'n_estimators': ['integer'], 'num_trees': ['integer'],
+                'depth': ['integer'], 'max_depth': ['integer'],
+                'min_data_in_leaf': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+                'max_leaves': ['integer'], 'num_leaves': ['integer'],
+            },
+
+            'knn': {
+                'n_neighbors': ['integer']
+            },
+            'dt': {
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'rf': {
+                'n_estimators': ['integer'],
+                'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer']
+            },
+            'xgboost': {
+                'nthread': ['integer'],
+                'n_estimators': ['integer'],
+                'max_depth': ['integer'],
+                'max_leaves': ['integer'],
+                'max_bin': ['integer']
+            },
+            'lgbm': {
+                'num_iterations': ['integer'], 'num_iteration': ['integer'], 'n_iter': ['integer'],
+                'num_tree': ['integer'], 'num_trees': ['integer'],
+                'num_round': ['integer'], 'num_rounds': ['integer'], 'nrounds': ['integer'],
+                'num_boost_round': ['integer'], 'n_estimators': ['integer'], 'max_iter': ['integer'],
+                'num_leaves': ['integer'], 'num_leaf': ['integer'],
+                'max_leaves': ['integer'], 'max_leaf': ['integer'], 'max_leaf_nodes': ['integer'],
+                'max_depth': ['integer'],
+                'min_data_in_leaf': ['absolute', 'integer'], 'min_data_per_leaf': ['absolute', 'integer'],
+                'min_data': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+                'min_samples_leaf': ['absolute', 'integer'],
+                'bagging_freq': ['integer'], 'subsample_freq': ['integer'],
+                'max_bin': ['integer'], 'max_bins': ['integer'],
+            },
+            'catboost': {
+                'iterations': ['integer'], 'num_boost_round': ['integer'],
+                'n_estimators': ['integer'], 'num_trees': ['integer'],
+                'depth': ['integer'], 'max_depth': ['integer'],
+                'min_data_in_leaf': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+                'max_leaves': ['integer'], 'num_leaves': ['integer'],
+            },
+
+            'kmeans': {
+                'n_clusters': ['integer']
+            },
+
+            'kernel_pca': {
+                'n_components': ['integer']
+            },
+            'fast_ica': {
+                'n_components': ['integer']
+            },
+        }
+
+        return all_preprocessing_rules.get(operation_type, {})
 
     def correct(self,
                 params: Optional[dict]):
-        integer_params = {
-            'n_clusters', 'n_neighbors',
-            'n_estimators', 'num_iterations', 'num_iteration', 'n_iter', 'max_iter',
-            'num_tree', 'num_trees', 'num_round', 'num_rounds', 'nrounds', 'num_boost_round',
-            'num_leaves', 'num_leaf', 'max_leaves', 'max_leaf', 'max_leaf_nodes',
-            'max_depth',
-            'max_bin', 'max_bins',
-            'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
-        }
-        data_relative_to_absolute_params = {
-            'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf'
-        }
+        if params is None:
+            return params
 
         for param in params:
-            if param in data_relative_to_absolute_params and 0 <= params[param] < 1:
-                # Adding option of using share of total samples in data besides an absolute number of samples
-                params[param] = np.ceil(params[param] * self.train_data.target.shape[0])
-            if param in integer_params:
-                # Round parameter values to avoid errors
-                params[param] = int(params[param])
+            if param in self.preprocessing_rules:
+                for preprocess in self.preprocessing_rules[param]:
+                    params[param] = self._correct(param_value=params[param],
+                                                  preprocess_type=preprocess)
 
         return params
 
+    def _correct(self, param_value, preprocess_type):
+        """
+        Method adds option of using share of total samples in data besides an absolute number of samples
+        : param param_value : initial value of the parameter
+        : param preprocess_type : type of the preprocessing transformation
+        : return : param_value after preprocessing
+        """
 
-def preprocess_params(params: dict, train_data: InputData) -> dict:
-    """
-    The function handles incorrect parameters values and returns corresponding correct parameters
+        if preprocess_type == 'integer':
+            param_value = self._correct_integer(param_value=param_value)
+        elif preprocess_type == 'absolute':
+            param_value = self._correct_absolute(param_value=param_value)
+        return param_value
 
-    :param params: dictionary of model parameters
-    :param train_data: data used for model training
+    def _correct_absolute(self,
+                          param_value):
+        """
+        Method adds option of using share of total samples in data besides an absolute number of samples
+        : param param_value : initial value of the parameter
+        : return : param_value after transformation
+        """
 
-    :return : processed parameters dictionary
-    """
-    integer_params = {
-        'n_clusters', 'n_neighbors',
-        'n_estimators', 'num_iterations', 'num_iteration', 'n_iter', 'max_iter',
-        'num_tree', 'num_trees', 'num_round', 'num_rounds', 'nrounds', 'num_boost_round',
-        'num_leaves', 'num_leaf', 'max_leaves', 'max_leaf', 'max_leaf_nodes',
-        'max_depth',
-        'max_bin', 'max_bins',
-        'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf',
-    }
-    data_relative_to_absolute_params = {
-        'min_data_in_leaf', 'min_data_per_leaf', 'min_data', 'min_child_samples', 'min_samples_leaf'
-    }
+        if 0 <= param_value < 1:
+            return np.ceil(param_value * self.train_data.target.shape[0])
+        return param_value
 
-    for param in params:
-        if param in data_relative_to_absolute_params and 0 <= params[param] < 1:
-            # Adding option of using share of total samples in data besides an absolute number of samples
-            params[param] = np.ceil(params[param] * train_data.target.shape[0])
-        if param in integer_params:
-            # Round parameter values to avoid errors
-            params[param] = int(params[param])
+    def _correct_integer(self,
+                         param_value):
+        """
+        Method rounds parameter value to avoid errors
+        : param param_value : initial value of the parameter
+        : return : param_value after rounding
+        """
 
-    return params
+        return round(param_value)
