@@ -22,7 +22,7 @@ from fedot.core.repository.quality_metrics_repository import (
     RegressionMetricsEnum
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utilities.data_structures import ensure_sequence
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 
 class ComposerBuilder:
@@ -56,7 +56,7 @@ class ComposerBuilder:
         return self
 
     def with_metrics(self, metrics: Union[MetricsEnum, List[MetricsEnum]]):
-        self.metrics = ensure_sequence(metrics)
+        self.metrics = ensure_wrapped_in_sequence(metrics)
         return self
 
     def with_initial_pipelines(self, initial_pipelines: Optional[Pipeline]):

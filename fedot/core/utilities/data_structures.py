@@ -2,7 +2,7 @@ import collections.abc
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Callable, Container, Iterable, List, Sequence, Sized, Union
+from typing import Callable, Container, Iterable, List, Sequence, Sized, TypeVar, Union
 
 
 class UniqueList(list):
@@ -66,15 +66,18 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
     return True
 
 
-def ensure_sequence(obj: Union[Any, Iterable[Any], Sequence[Any]],
-                    sequence_type: Callable[[Any], Sequence[Any]] = list) -> Sequence[Any]:
-    if isinstance(obj, collections.abc.Sequence):
-        if isinstance(obj, str):
-            return sequence_type([obj])
-        return obj
+T = TypeVar('T')
+
+
+def ensure_wrapped_in_sequence(
+        obj: Union[T, Iterable[T], Sequence[T]],
+        sequence_factory: Callable[[Union[Sequence[T], Iterable[T]]], Sequence[T]] = list
+) -> Sequence[T]:
+    if isinstance(obj, str) or not isinstance(obj, collections.abc.Iterable):
+        return sequence_factory([obj])
     elif isinstance(obj, collections.abc.Iterable):
-        return sequence_type(obj)
-    return sequence_type([obj])
+        return sequence_factory(obj)
+    return obj
 
 
 class ComparableEnum(Enum):
