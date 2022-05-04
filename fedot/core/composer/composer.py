@@ -5,6 +5,7 @@ from typing import (List, Optional, Union, Sequence)
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.data.data import InputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
@@ -67,11 +68,13 @@ class Composer(ABC):
         self.log = logger or default_log(__name__)
 
     @abstractmethod
-    def compose_pipeline(self, data: InputData) -> Pipeline:
+    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
+        """ Run composition process for optimal pipeline structure search.
+        :param data: Data used for problem solving.
+        :return: Best composed pipeline or pipelines.
+         For single-objective optimization -- the best pipeline.
+         For multi-objective optimization -- the list of the graph is returned.
+         Returned pipelines are ordered by the descending primary metric (the first is the best).
         """
-        Base method to run the composition process
 
-        :param data: data used for problem solving
-        :return: Pipeline object
-        """
         raise NotImplementedError()

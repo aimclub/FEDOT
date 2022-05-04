@@ -66,10 +66,12 @@ class PipelineComposerRequirements(ComposerRequirements):
 class GPComposer(Composer):
     """
     Genetic programming based composer
-    :param optimiser: optimiser generated in ComposerBuilder
+    :param optimiser: optimiser generated in ComposerBuilder.
     :param metrics: metrics used to define the quality of found solution.
-    :param composer_requirements: requirements for composition process
+    :param composer_requirements: requirements for composition process.
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
+    :param logger: optional Log object for logging.
+    :param cache: optional cache for Operations.
     """
 
     def __init__(self, optimiser: GraphOptimiser,
@@ -91,17 +93,7 @@ class GPComposer(Composer):
                                                   self.composer_requirements.validation_blocks,
                                                   self.cache, self.log)
 
-    # TODO fix: this method is invalidly overriden: it changes the signature of base method
-    def compose_pipeline(self, data: Union[InputData, MultiModalData],
-                         on_next_iteration_callback: Optional[Callable] = None) -> Union[Pipeline, List[Pipeline]]:
-        """ Function for optimal pipeline structure searching
-        :param data: InputData for pipeline composing
-        :param on_next_iteration_callback: TODO it's never used from calls to composer
-        :return best_pipeline: obtained result after composing: one pipeline for single-objective optimization;
-            For the multi-objective case, the list of the graph is returned.
-            In the list, the pipelines are ordered by the descending of primary metric (the first is the best)
-        """
-
+    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
         self.optimiser.graph_generation_params.advisor.task = data.task
 
         # TODO: move this late-init logic to the point before optimiser is constructed
@@ -117,7 +109,7 @@ class GPComposer(Composer):
         data.shuffle()
 
         objective_evaluator = self.objective_builder.build(data)
-        opt_result = self.optimiser.optimise(objective_evaluator, on_next_iteration_callback)
+        opt_result = self.optimiser.optimise(objective_evaluator)
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
         return best_pipeline
