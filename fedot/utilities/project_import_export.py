@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
@@ -9,8 +9,8 @@ from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 
-DEFAULT_PATH = default_fedot_data_dir()
-DEFAULT_PROJECTS_PATH = Path(DEFAULT_PATH, 'projects')
+DEFAULT_PATH = Path(default_fedot_data_dir())
+DEFAULT_PROJECTS_PATH = DEFAULT_PATH.joinpath('projects')
 
 
 def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -66,7 +66,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
 
     if folder_path.exists():
         # ensure temporary folder is clear
-        os.rmdir(folder_path)
+        folder_path.rmdir()
     shutil.unpack_archive(zip_path, folder_path)
 
     message = f'The project "{zip_name}" was unpacked to the "{folder_path}".'
@@ -92,7 +92,7 @@ def _check_zip_path(zip_path: str, log: Log) -> Path:
 
     zip_path = Path(zip_path).with_suffix('.zip')
 
-    if not os.path.exists(zip_path):
+    if not zip_path.exists():
         message = f'File with the path "{zip_path}" could not be found.'
         log.error(message)
         raise FileNotFoundError(message)
@@ -105,11 +105,14 @@ def _copy_log_file(log_file_name: Optional[str], absolute_folder_path: Path):
     if log_file_name is None:
         return
 
-    if not os.path.isabs(log_file_name):
-        log_file_name = os.path.abspath(os.path.join(DEFAULT_PATH, log_file_name))
+    log_file_name = Path(log_file_name)
+
+    if not log_file_name.is_absolute():
+        log_file_name = DEFAULT_PATH.joinpath(log_file_name).resolve()
 
     if os.path.exists(log_file_name):
-        shutil.copy2(log_file_name, os.path.join(absolute_folder_path, os.path.split(log_file_name)[-1]))
+        shutil.copy2(log_file_name,
+                     absolute_folder_path.joinpath(log_file_name.stem).with_suffix(log_file_name.suffix))
 
 
 def _prepare_paths(zip_path: Union[str, Path]) -> Tuple[Path, Path, Path, Path]:
@@ -139,4 +142,4 @@ def _check_for_existing_project(absolute_folder_path: Path):
         message = f'Project with the name "{absolute_folder_path}" exists.'
         raise FileExistsError(message)
     else:
-        os.makedirs(absolute_folder_path)
+        absolute_folder_path.mkdir(parents=True)

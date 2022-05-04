@@ -44,7 +44,7 @@ def test_export_project_correctly():
     export_project_to_zip(zip_name=path_to_zip, opt_history=None,
                           pipeline=pipeline, train_data=train_data, test_data=test_data, log_file_name=LOG_NAME)
 
-    assert os.path.exists(path_to_zip)
+    assert path_to_zip.exists()
 
     with zipfile.ZipFile(path_to_zip) as zip_object:
         assert {file.filename for file in zip_object.infolist()} == \
@@ -52,10 +52,10 @@ def test_export_project_correctly():
 
 
 def test_import_project_correctly():
-    folder_path = os.path.join(str(fedot_project_root()), 'test', 'data', 'project', 'iris_classification')
+    folder_path = Path(fedot_project_root(), 'test', 'data', 'project', 'iris_classification')
     zip_path = Path(folder_path).with_suffix('.zip')
 
-    assert os.path.exists(zip_path)
+    assert zip_path.exists()
 
     pipeline, train_data, test_data, opt_history = import_project_from_zip(zip_path)
 
