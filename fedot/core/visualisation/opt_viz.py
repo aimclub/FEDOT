@@ -312,22 +312,10 @@ class PipelineEvolutionVisualiser:
             remove(file)
 
     @staticmethod
-    def visualize_operations_kde(history: 'OptHistory', save_path_to_file: Optional[str] = None,
-                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
-                                 n_best: Optional[float] = None):
-        # TODO: Docstring
-        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
-        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
-
-        tags_all = [*tags_model, *tags_data]
-
-        # Necessary
-        tag_column_name = 'Operation'
-        generation_column_name = 'Generation'
-        # Optional
-        individual_column_name = 'Individual'
-        fitness_column_name = 'Fitness'
-
+    def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
+                                tags_data: Optional[List[str]] = None, tag_column_name: str = 'Operation',
+                                generation_column_name: str = 'Generation', individual_column_name: str = 'Individual',
+                                fitness_column_name: str = 'Fitness', n_best: Optional[float] = None):
         history_data = {
             generation_column_name: [],
             tag_column_name: [],
@@ -362,10 +350,30 @@ class PipelineEvolutionVisualiser:
 
             df_history = df_history[df_history[individual_column_name].isin(best_individuals)]
 
+        return df_history
+
+    def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
+                                 n_best: Optional[float] = None):
+        # TODO: Docstring
+        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
+        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
+
+        tags_all = [*tags_model, *tags_data]
+
+        tag_column_name = 'Operation'
+        generation_column_name = 'Generation'
+        individual_column_name = 'Individual'
+        fitness_column_name = 'Fitness'
+
+        df_history = self.__get_history_dataframe(
+            history, tags_model, tags_data, tag_column_name, generation_column_name, individual_column_name,
+            fitness_column_name, n_best
+        )
         tags_found = df_history[tag_column_name].unique()
 
         plot = sns.displot(
-            data=history_data,
+            data=df_history,
             x=generation_column_name,
             hue=tag_column_name,
             hue_order=[t for t in tags_all if t in tags_found],
