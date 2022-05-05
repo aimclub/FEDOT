@@ -159,8 +159,8 @@ class HyperparametersPreprocessor():
                           param_value):
         """
         Method adds option of using share of total samples in data besides an absolute number of samples
-        :param param_value : initial value of the parameter
-        :return : param_value after transformation
+        :param param_value: initial value of the parameter
+        :return: param_value after transformation
         """
 
         if 0 <= param_value < 1:
@@ -171,8 +171,8 @@ class HyperparametersPreprocessor():
                          param_value):
         """
         Method rounds parameter value to avoid errors
-        :param param_value : initial value of the parameter
-        :return : param_value after rounding
+        :param param_value: initial value of the parameter
+        :return: param_value after rounding
         """
 
         return round(param_value)
