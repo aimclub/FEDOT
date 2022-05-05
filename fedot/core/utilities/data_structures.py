@@ -75,7 +75,7 @@ def ensure_wrapped_in_sequence(
 ) -> Sequence[T]:
     if isinstance(obj, str) or not isinstance(obj, collections.abc.Iterable):
         return sequence_factory([obj])
-    elif isinstance(obj, collections.abc.Iterable):
+    elif not isinstance(obj, collections.abc.Sequence) or not isinstance(obj, sequence_factory):
         return sequence_factory(obj)
     return obj
 
