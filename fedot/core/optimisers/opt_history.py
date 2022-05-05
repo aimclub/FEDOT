@@ -17,7 +17,6 @@ from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTy
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
 
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
@@ -94,12 +93,12 @@ class OptHistory:
             try:
                 last_gen_id = len(self.individuals) - 1
                 last_gen = self.individuals[last_gen_id]
-                for ind_id, individual in enumerate(last_gen):
-                    # TODO support multi-objective case
+                last_gen_history = self.historical_fitness[last_gen_id]
+                for individual, ind_fitness in zip(last_gen, last_gen_history):
                     ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
                     additional_info = \
-                        {'fitness_name': self.short_metrics_names[0],
-                         'fitness_value': self.historical_fitness[last_gen_id][ind_id][0]}
+                        {'fitness_name': self._objective.metric_names,
+                         'fitness_value': ind_fitness}
                     PipelineAdapter().restore_as_template(
                         individual.graph, individual.metadata
                     ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
@@ -193,29 +192,15 @@ class OptHistory:
             raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 
     @property
-    def short_metrics_names(self):
-        # TODO refactor
-        possible_short_names = ['RMSE', 'MSE', 'ROCAUC', 'MAE']
-        short_names = []
-        for full_name in self._objective.metrics:
-            is_found = False
-            for candidate_short_name in possible_short_names:
-                if candidate_short_name in str(full_name):
-                    short_names.append(candidate_short_name)
-                    is_found = True
-                    break
-            if not is_found:
-                short_names.append(str(full_name))
-
-        return short_names
-
-    @property
-    def historical_fitness(self) -> Sequence[Sequence[float]]:
+    def historical_fitness(self) -> Sequence[Sequence[Union[float, Sequence[float]]]]:
+        """Return sequence of histories of generations per each metric"""
         if self._objective.is_multi_objective:
             historical_fitness = []
-            for objective_num in range(len(self.individuals[0][0].fitness.values)):
-                objective_history = [[pipeline.fitness.values[objective_num] for pipeline in pop] for pop in
-                                     self.individuals]
+            num_metrics = len(self._objective.metrics)
+            for objective_num in range(num_metrics):
+                # history of specific objective for each generation
+                objective_history = [[ind.fitness.values[objective_num] for ind in generation]
+                                     for generation in self.individuals]
                 historical_fitness.append(objective_history)
         else:
             historical_fitness = [[pipeline.fitness.value for pipeline in pop] for pop in self.individuals]
@@ -248,10 +233,6 @@ class OptHistory:
             adapter.restore_as_template(ind.graph, ind.metadata)
             for ind in list(itertools.chain(*self.individuals))
         ]
-
-    @property
-    def is_multi_objective(self):
-        return type(self.individuals[0][0].fitness) is MultiObjFitness
 
     def _get_save_path(self):
         if self.save_folder is not None:

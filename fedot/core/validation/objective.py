@@ -32,6 +32,10 @@ class Objective:
             evaluated_metrics.append(metric_value)
         return to_fitness(evaluated_metrics, self._is_multi_objective)
 
+    @property
+    def metric_names(self) -> Sequence[str]:
+        return [str(metric) for metric in self.metrics]
+
 
 def to_fitness(metric_values: Optional[Sequence[float]], multi_objective: bool = False) -> Fitness:
     if metric_values is None:
