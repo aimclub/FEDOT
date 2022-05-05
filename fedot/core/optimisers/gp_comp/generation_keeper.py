@@ -15,20 +15,24 @@ class ImprovementWatcher(ABC):
     @property
     @abstractmethod
     def is_any_improved(self) -> bool:
+        """Check if any of the metrics has improved."""
         raise NotImplementedError()
 
     @abstractmethod
     def is_metric_improved(self, metric: MetricsEnum) -> bool:
+        """Check if specified metric has improved."""
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def is_quality_improved(self) -> bool:
+        """Check if any of the quality metrics has improved."""
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def is_complexity_improved(self) -> bool:
+        """Check if any of the complexity metrics has improved."""
         raise NotImplementedError()
 
 
@@ -48,7 +52,7 @@ class GenerationKeeper(ImprovementWatcher):
                  is_multi_objective: bool = False,
                  keep_n_best: int = 1,
                  initial_generation: PopulationT = None):
-        self._generation_num = -1  # -1 means no generations
+        self._generation_num = -1  # -1 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
         self._metrics_improvement = {metric_id: False for metric_id in metrics}
         self.archive = ParetoFront() if is_multi_objective else HallOfFame(maxsize=keep_n_best)
@@ -84,6 +88,7 @@ class GenerationKeeper(ImprovementWatcher):
         return self._is_metric_kind_improved(ComplexityMetricsEnum)
 
     def _is_metric_kind_improved(self, metric_cls: Type[MetricsEnum]) -> bool:
+        """Check that any metric of the specified subtype of MetricsEnum has improved."""
         return any(improved for metric, improved in self._metrics_improvement.items()
                    if isinstance(metric, metric_cls))
 
