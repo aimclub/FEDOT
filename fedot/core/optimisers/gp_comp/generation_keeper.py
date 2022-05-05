@@ -123,3 +123,7 @@ class GenerationKeeper(ImprovementWatcher):
 
     def _reset_metrics_improvement(self):
         self._metrics_improvement = {metric_id: False for metric_id in self._metric_ids}
+
+    def __str__(self) -> str:
+        return (f'{self.archive.__class__.__name__} archive fitness: '
+                f'{[item.fitness.values for item in self.best_individuals]}')

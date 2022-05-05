@@ -297,12 +297,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             return pop_size >= self._min_population_size_with_elitism
 
     def log_info_about_best(self):
-        best = self.generations.best_individuals
-        if self.parameters.multi_objective:
-            self.log.info(f'Pareto Frontier: '
-                          f'{[item.fitness.values for item in best]}')
-        else:
-            self.log.info(f'Best metric is {best[0].fitness}')
+        self.log.info(str(self.generations))
 
     def max_depth_recount(self):
         if self.generations.stagnation_duration >= self.parameters.depth_increase_step and \
