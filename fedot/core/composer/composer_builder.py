@@ -114,7 +114,7 @@ class ComposerBuilder:
             self.metrics = self.metrics + self._get_default_complexity_metrics()
             self.optimiser_parameters.multi_objective = False
 
-        objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
+        objective = Objective(self.metrics, self.optimiser_parameters.multi_objective, log=self.log)
 
         optimiser = optimiser_type(initial_graph=self.initial_pipelines,
                                    objective=objective,

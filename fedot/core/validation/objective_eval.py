@@ -94,24 +94,31 @@ class DataObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         return self._objective
 
     def evaluate(self, graph: Pipeline) -> Fitness:
-        self._log.debug(f'Pipeline {graph.root_node.descriptive_id} fit started')
         graph.log = self._log  # TODO: remove. why it's needed? members shouldn't be assigned in this way.
-        try:
-            folds_metrics = []
-            for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
-                evaluated_fitness = self._objective(prepared_pipeline,
-                                                    reference_data=test_data,
-                                                    validation_blocks=self._validation_blocks)
-                if evaluated_fitness.valid:
-                    folds_metrics.append(evaluated_fitness.values)
-                else:
-                    self._log.warn(f'Could not evaluate pipeline {graph.root_node.descriptive_id} on data')
-            folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
+        graph_id = graph.root_node.descriptive_id
+        self._log.debug(f'Pipeline {graph_id} fit started')
 
-            self._log.debug(f'Pipeline {graph.root_node.descriptive_id} with metrics: {folds_metrics}')
-        except Exception as ex:
-            self._log.warn(f'{__name__}. Pipeline assessment warning: {ex}. Continue.')
+        folds_metrics = []
+        for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
+            try:
+                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
+            except Exception as ex:
+                self._log.warn(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
+                continue
+
+            evaluated_fitness = self._objective(prepared_pipeline,
+                                                reference_data=test_data,
+                                                validation_blocks=self._validation_blocks)
+            if evaluated_fitness.valid:
+                folds_metrics.append(evaluated_fitness.values)
+            else:
+                self._log.warn(f'Continuing after objective evaluation error for graph: {graph_id}')
+                continue
+
+        if folds_metrics:
+            folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
+            self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
+        else:
             folds_metrics = None
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 

@@ -3,6 +3,7 @@ from collections.abc import Sequence
 from typing import Any, Optional, Union, Iterable, Callable
 
 from fedot.core.dag.graph import Graph
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.fitness import *
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
 
@@ -13,9 +14,12 @@ class Objective:
     """Represents objective function for computing metric values
     on Graphs and keeps information about metrics used."""
 
-    def __init__(self, metrics: Union[MetricType, Iterable[MetricType]], is_multi_objective: bool = False):
+    def __init__(self, metrics: Union[MetricType, Iterable[MetricType]],
+                 is_multi_objective: bool = False,
+                 log: Optional[Log] = None):
         self._metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
         self._is_multi_objective = is_multi_objective
+        self._log = log or default_log(str(self.__class__))
 
     @property
     def metrics(self) -> Sequence[MetricType]:
@@ -30,8 +34,12 @@ class Objective:
         evaluated_metrics = []
         for metric in self._metrics:
             metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
-            metric_value = metric_func(graph, **kwargs)
-            evaluated_metrics.append(metric_value)
+            try:
+                metric_value = metric_func(graph, **kwargs)
+                evaluated_metrics.append(metric_value)
+            except Exception as ex:
+                self._log.error(f'Objective evaluation error for graph {graph} on metric {metric}: {ex}')
+                return null_fitness()  # fail right away
         return to_fitness(evaluated_metrics, self._is_multi_objective)
 
     @property
