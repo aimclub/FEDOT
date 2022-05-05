@@ -9,9 +9,8 @@ from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 

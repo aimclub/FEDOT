@@ -5,33 +5,17 @@ import os
 import shutil
 import warnings
 from copy import deepcopy
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union, Sequence
-from uuid import uuid4
+from typing import Any, List, Optional, Union, Sequence
 
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.serializers import Serializer
 from fedot.core.validation.objective import Objective
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
 
-if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.individual import Individual
-
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
-
-
-@dataclass
-class ParentOperator:
-    operator_name: str
-    operator_type: str
-    parent_individuals: List[Individual]
-    uid: str = None
-
-    def __post_init__(self):
-        if not self.uid:
-            self.uid = str(uuid4())
 
 
 class OptHistory:

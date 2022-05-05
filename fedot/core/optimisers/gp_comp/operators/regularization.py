@@ -2,11 +2,10 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Callable, List, Optional
 
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
