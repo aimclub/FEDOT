@@ -23,8 +23,8 @@ class OptHistory:
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, objective: Objective, save_folder: Optional[str] = None):
-        self._objective = objective
+    def __init__(self, objective: Objective = None, save_folder: Optional[str] = None):
+        self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
         self.save_folder: Optional[str] = save_folder
