@@ -271,19 +271,13 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 if pbar:
                     pbar.update(1)
-
             if pbar:
                 pbar.close()
 
-            best = self.generations.best_individuals
-            self.log.info('Result:')
-            self.log_info_about_best()
-
+        best = self.generations.best_individuals
         return self.to_outputs(best)
 
     def to_outputs(self, individuals: Iterable[Individual]) -> Union[OptGraph, List[OptGraph]]:
-        # TODO: switch to uniform interface, always return list
-        #  because if the caller needs single output -- it can just take it
         graphs = [ind.graph for ind in individuals]
         # for single objective with single result return it directly
         if not self.parameters.multi_objective and len(graphs) == 1:

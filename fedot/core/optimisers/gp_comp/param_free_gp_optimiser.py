@@ -134,14 +134,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
 
                 if pbar:
                     pbar.update(1)
-
             if pbar:
                 pbar.close()
 
-            best = self.generations.best_individuals
-            self.log.info('Result:')
-            self.log_info_about_best()
-
+        best = self.generations.best_individuals
         return self.to_outputs(best)
 
     @property
