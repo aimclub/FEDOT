@@ -41,9 +41,11 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
     _copy_log_file(log_file_name, absolute_folder_path)
 
     shutil.make_archive(base_name=absolute_zip_path.with_suffix(''), format='zip', root_dir=absolute_folder_path)
-    shutil.rmtree(absolute_folder_path)
+    folder_to_delete = DEFAULT_PROJECTS_PATH.joinpath(
+        absolute_folder_path.relative_to(DEFAULT_PROJECTS_PATH).parts[0])
+    shutil.rmtree(folder_to_delete)
 
-    log.info(f'The exported project was saved on the path: {absolute_folder_path}')
+    log.info(f'The exported project was saved on the path: {absolute_zip_path}')
 
 
 def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputData, OptHistory]:
@@ -66,7 +68,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
 
     if folder_path.exists():
         # ensure temporary folder is clear
-        folder_path.rmdir()
+        shutil.rmtree(folder_path)
     shutil.unpack_archive(zip_path, folder_path)
 
     message = f'The project "{zip_name}" was unpacked to the "{folder_path}".'
@@ -84,6 +86,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
             elif file == 'opt_history.json':
                 opt_history = OptHistory.load(os.path.join(root, file))
 
+    shutil.rmtree(folder_path)
     return pipeline, train_data, test_data, opt_history
 
 
@@ -120,10 +123,10 @@ def _prepare_paths(zip_path: Union[str, Path]) -> Tuple[Path, Path, Path, Path]:
 
     zip_path = Path(zip_path)
     if Path(zip_path).suffix:
-        folder_name = zip_path.with_suffix('')
+        folder_name = zip_path.with_suffix('').name
     else:
         folder_name = zip_path
-        zip_path = Path(folder_name).with_suffix('.zip')
+        zip_path = Path(folder_name).with_suffix('.zip').name
 
     absolute_folder_path = DEFAULT_PROJECTS_PATH.joinpath(folder_name)
     if not zip_path.is_absolute():
