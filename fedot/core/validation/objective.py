@@ -14,10 +14,12 @@ class Objective:
     on Graphs and keeps information about metrics used."""
 
     def __init__(self, metrics: Union[MetricType, Iterable[MetricType]], is_multi_objective: bool = False):
-        # TODO: what about ustom metri fun-s? custom id-s?
-        # self._metric_functions: Mapping[MetricsEnum, ObjectiveFunction] = None
-        self.metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
+        self._metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
         self._is_multi_objective = is_multi_objective
+
+    @property
+    def metrics(self) -> Sequence[MetricType]:
+        return self._metrics
 
     @property
     def is_multi_objective(self) -> bool:
@@ -26,7 +28,7 @@ class Objective:
     @abstractmethod
     def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []
-        for metric in self.metrics:
+        for metric in self._metrics:
             metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
             metric_value = metric_func(graph, **kwargs)
             evaluated_metrics.append(metric_value)
@@ -34,7 +36,7 @@ class Objective:
 
     @property
     def metric_names(self) -> Sequence[str]:
-        return [str(metric) for metric in self.metrics]
+        return [str(metric) for metric in self._metrics]
 
 
 def to_fitness(metric_values: Optional[Sequence[float]], multi_objective: bool = False) -> Fitness:
