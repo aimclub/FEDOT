@@ -1,14 +1,19 @@
 import numpy as np
 from typing import Optional
-from fedot.core.data.data import InputData
 
 
 class HyperparametersPreprocessor():
+    """
+    Class for hyperparameters preprocessing before operation fitting
+    :param operation_type: name of the operation
+    :param n_samples_data: number of rows in data
+    """
+
     def __init__(self,
                  operation_type: Optional[str],
-                 train_data: Optional[InputData]):
+                 n_samples_data: Optional[int]):
         self.preprocessing_rules = self._get_preprocessing_rules(operation_type)
-        self.train_data = train_data
+        self.n_samples_data = n_samples_data
 
     def _get_preprocessing_rules(self, operation_type):
         all_preprocessing_rules = {
@@ -139,9 +144,9 @@ class HyperparametersPreprocessor():
     def _correct(self, param_value, preprocess_type):
         """
         Method calls preprocessing methods basing on preprocess type
-        : param param_value : initial value of the parameter
-        : param preprocess_type : type of the preprocessing transformation
-        : return : param_value after preprocessing
+        :param param_value : initial value of the parameter
+        :param preprocess_type : type of the preprocessing transformation
+        :return : param_value after preprocessing
         """
 
         if preprocess_type == 'integer':
@@ -154,20 +159,20 @@ class HyperparametersPreprocessor():
                           param_value):
         """
         Method adds option of using share of total samples in data besides an absolute number of samples
-        : param param_value : initial value of the parameter
-        : return : param_value after transformation
+        :param param_value : initial value of the parameter
+        :return : param_value after transformation
         """
 
         if 0 <= param_value < 1:
-            return np.ceil(param_value * self.train_data.target.shape[0])
+            return np.ceil(param_value * self.n_samples_data)
         return param_value
 
     def _correct_integer(self,
                          param_value):
         """
         Method rounds parameter value to avoid errors
-        : param param_value : initial value of the parameter
-        : return : param_value after rounding
+        :param param_value : initial value of the parameter
+        :return : param_value after rounding
         """
 
         return round(param_value)

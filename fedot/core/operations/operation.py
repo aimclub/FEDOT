@@ -33,7 +33,7 @@ class Operation:
         params_for_fit = None
         if params != DEFAULT_PARAMS_STUB:
             params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
-                                                         train_data=kwargs.get('train_data')).correct(params)
+                                                         n_samples_data=kwargs.get('n_samples_data')).correct(params)
 
         try:
             self._eval_strategy = \
@@ -76,7 +76,7 @@ class Operation:
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
 
-        self._init(data.task, params=params, train_data=data)
+        self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
         with suppress_stdout():
             self.fitted_operation = self._eval_strategy.fit(train_data=data)
