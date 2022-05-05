@@ -126,7 +126,7 @@ def _prepare_paths(zip_path: Union[str, Path]) -> Tuple[Path, Path, Path, Path]:
         folder_name = Path(zip_path.with_suffix('').name)
     else:
         folder_name = Path(zip_path.name)
-        zip_path = folder_name.with_suffix('.zip')
+        zip_path = zip_path.with_suffix('.zip')
 
     absolute_folder_path = DEFAULT_PROJECTS_PATH.joinpath(folder_name)
     if not zip_path.is_absolute():
