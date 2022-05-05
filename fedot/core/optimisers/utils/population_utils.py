@@ -4,12 +4,9 @@ from fedot.core.data.data import InputData
 
 
 def get_metric_position(metrics, metric_type):
-    metric_position = None
     for num, metric in enumerate(metrics):
         if isinstance(metric, metric_type):
-            metric_position = num
-            break
-    return metric_position
+            return num
 
 
 def nested_list_transform_to_tuple(data_field):

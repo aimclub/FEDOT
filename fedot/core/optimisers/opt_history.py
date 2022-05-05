@@ -6,11 +6,12 @@ import shutil
 import warnings
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union, Sequence
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
+from fedot.core.validation.objective import Objective
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
 
 if TYPE_CHECKING:
@@ -39,8 +40,8 @@ class OptHistory:
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, metrics: List[Callable[..., float]] = None, save_folder=None):
-        self.metrics = metrics
+    def __init__(self, objective: Objective, save_folder: Optional[str] = None):
+        self._objective = objective
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
         self.save_folder: Optional[str] = save_folder
@@ -75,7 +76,7 @@ class OptHistory:
         with open(f, 'w', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             metric_str = 'metric'
-            if self.is_multi_objective:
+            if self._objective.is_multi_objective:
                 metric_str += 's'
             row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
             writer.writerow(row)
@@ -98,7 +99,7 @@ class OptHistory:
                     ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
                     additional_info = \
                         {'fitness_name': self.short_metrics_names[0],
-                         'fitness_value': self.historical_fitness[last_gen_id][ind_id].values[0]}
+                         'fitness_value': self.historical_fitness[last_gen_id][ind_id][0]}
                     PipelineAdapter().restore_as_template(
                         individual.graph, individual.metadata
                     ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
@@ -196,7 +197,7 @@ class OptHistory:
         # TODO refactor
         possible_short_names = ['RMSE', 'MSE', 'ROCAUC', 'MAE']
         short_names = []
-        for full_name in self.metrics:
+        for full_name in self._objective.metrics:
             is_found = False
             for candidate_short_name in possible_short_names:
                 if candidate_short_name in str(full_name):
@@ -209,21 +210,21 @@ class OptHistory:
         return short_names
 
     @property
-    def historical_fitness(self):
-        if self.is_multi_objective:
+    def historical_fitness(self) -> Sequence[Sequence[float]]:
+        if self._objective.is_multi_objective:
             historical_fitness = []
             for objective_num in range(len(self.individuals[0][0].fitness.values)):
                 objective_history = [[pipeline.fitness.values[objective_num] for pipeline in pop] for pop in
                                      self.individuals]
                 historical_fitness.append(objective_history)
         else:
-            historical_fitness = [[pipeline.fitness for pipeline in pop] for pop in self.individuals]
+            historical_fitness = [[pipeline.fitness.value for pipeline in pop] for pop in self.individuals]
         return historical_fitness
 
     @property
     def all_historical_fitness(self):
         historical_fitness = self.historical_fitness
-        if self.is_multi_objective:
+        if self._objective.is_multi_objective:
             all_historical_fitness = []
             for obj_num in range(len(historical_fitness)):
                 all_historical_fitness.append(list(itertools.chain(*historical_fitness[obj_num])))
@@ -233,11 +234,8 @@ class OptHistory:
 
     @property
     def all_historical_quality(self):
-        if self.is_multi_objective:
-            if self.metrics:
-                metric_position = get_metric_position(self.metrics, QualityMetricsEnum)
-            else:
-                metric_position = 0
+        if self._objective.is_multi_objective:
+            metric_position = get_metric_position(self._objective.metrics, QualityMetricsEnum)
             all_historical_quality = self.all_historical_fitness[metric_position]
         else:
             all_historical_quality = self.all_historical_fitness
