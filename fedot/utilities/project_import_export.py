@@ -29,7 +29,7 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
 
     log = default_log('fedot.utilities.project_import_export')
     absolute_folder_path, absolute_zip_path, folder_name, zip_name = _prepare_paths(zip_name)
-    _check_for_existing_project(absolute_folder_path)
+    _check_for_existing_project(absolute_folder_path, absolute_zip_path)
 
     # Converts python objects to files for compression
     pipeline.save(str(absolute_folder_path.joinpath('pipeline.json')), datetime_in_path=False)
@@ -40,7 +40,7 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
 
     _copy_log_file(log_file_name, absolute_folder_path)
 
-    shutil.make_archive(absolute_folder_path, 'zip', absolute_folder_path)
+    shutil.make_archive(base_name=absolute_zip_path.with_suffix(''), format='zip', root_dir=absolute_folder_path)
     shutil.rmtree(absolute_folder_path)
 
     log.info(f'The exported project was saved on the path: {absolute_folder_path}')
@@ -60,9 +60,9 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     """
     log = default_log('fedot.utilities.project_import_export')
 
-    zip_path = _check_zip_path(zip_path, log)
-    zip_name = zip_path.stem
-    folder_path = DEFAULT_PROJECTS_PATH.joinpath(zip_name)
+    folder_path, absolute_zip_path, _, zip_name = _prepare_paths(zip_path)
+
+    zip_path = _check_zip_path(absolute_zip_path, log)
 
     if folder_path.exists():
         # ensure temporary folder is clear
@@ -87,10 +87,10 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     return pipeline, train_data, test_data, opt_history
 
 
-def _check_zip_path(zip_path: str, log: Log) -> Path:
+def _check_zip_path(zip_path: Path, log: Log) -> Path:
     """Check 'zip_path' for correctness."""
 
-    zip_path = Path(zip_path).with_suffix('.zip')
+    zip_path = zip_path.with_suffix('.zip')
 
     if not zip_path.exists():
         message = f'File with the path "{zip_path}" could not be found.'
@@ -110,7 +110,7 @@ def _copy_log_file(log_file_name: Optional[str], absolute_folder_path: Path):
     if not log_file_name.is_absolute():
         log_file_name = DEFAULT_PATH.joinpath(log_file_name).resolve()
 
-    if os.path.exists(log_file_name):
+    if log_file_name.exists():
         shutil.copy2(log_file_name,
                      absolute_folder_path.joinpath(log_file_name.stem).with_suffix(log_file_name.suffix))
 
@@ -126,14 +126,16 @@ def _prepare_paths(zip_path: Union[str, Path]) -> Tuple[Path, Path, Path, Path]:
         zip_path = Path(folder_name).with_suffix('.zip')
 
     absolute_folder_path = DEFAULT_PROJECTS_PATH.joinpath(folder_name)
-    absolute_zip_path = absolute_folder_path.joinpath(zip_path)
-
+    if not zip_path.is_absolute():
+        absolute_zip_path = Path(os.getcwd(), zip_path)
+    else:
+        absolute_zip_path = zip_path
+        zip_path = zip_path.name
     return absolute_folder_path, absolute_zip_path, folder_name, zip_path
 
 
-def _check_for_existing_project(absolute_folder_path: Path):
+def _check_for_existing_project(absolute_folder_path: Path, zip_path: Path):
     """Check for existing folder and zipfile of project. Create it, if it is no exists."""
-    zip_path = absolute_folder_path.with_suffix('.zip')
     if zip_path.exists():
         message = f'Zipfile with the name "{zip_path}" exists.'
         raise FileExistsError(message)
