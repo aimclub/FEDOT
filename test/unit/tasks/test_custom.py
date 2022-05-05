@@ -64,13 +64,14 @@ def test_custom_graph_opt():
         adapter=DirectAdapter(CustomModel, CustomNode),
         rules_for_constraint=rules)
 
+    objective = Objective(custom_metric)
     optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
-        metrics=[],
+        objective=objective,
         parameters=optimiser_parameters,
         requirements=requirements, initial_graph=None)
 
-    objective_eval = ObjectiveEvaluate(Objective(custom_metric))
+    objective_eval = ObjectiveEvaluate(objective)
     optimized_graph = optimiser.optimise(objective_eval)
 
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)

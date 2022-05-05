@@ -98,14 +98,15 @@ def run_custom_example(timeout: datetime.timedelta = None):
         adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
         rules_for_constraint=rules)
 
+    objective = Objective([custom_metric])
     optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
-        metrics=[],
+        objective=objective,
         parameters=optimiser_parameters,
         requirements=requirements, initial_graph=initial,
         log=default_log(logger_name='Bayesian', verbose_level=1))
 
-    objective_eval = ObjectiveEvaluate(Objective(custom_metric), data=data)
+    objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graph = optimiser.optimise(objective_eval)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
 
