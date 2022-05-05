@@ -1,13 +1,13 @@
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Callable, Optional, Tuple, Union, \
-    List, Iterable, TYPE_CHECKING
+from typing import Any, Callable, Optional, Tuple, Union, List, Iterable
 
 import numpy as np
 from tqdm import tqdm
 
 from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
@@ -29,9 +29,6 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.validation.objective import Objective
 from fedot.core.validation.objective_eval import ObjectiveEvaluate
-
-if TYPE_CHECKING:
-    from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 
