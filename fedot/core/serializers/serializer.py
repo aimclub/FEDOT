@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.pipelines.node import NodeMetadata
+from fedot.core.validation.objective import Objective
 
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
@@ -57,6 +58,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
             Serializer.CODERS_BY_TYPE = {
                 Individual: basic_serialization,
+                Objective: basic_serialization,
                 Fitness: {_to_json: any_to_json, _from_json: fitness_from_json},
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
