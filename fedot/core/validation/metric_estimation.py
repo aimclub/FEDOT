@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List, Iterable, Tuple, Callable, Optional, Sequence
+from typing import Callable, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 
@@ -8,7 +8,6 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
-from fedot.core.utilities.data_structures import ensure_list
 
 
 def metric_evaluation(pipeline: Pipeline,
@@ -40,7 +39,7 @@ def metric_evaluation(pipeline: Pipeline,
         cache.save_pipeline(pipeline, fold_id)
 
     evaluated_metrics = []
-    for metric in ensure_list(metrics):
+    for metric in metrics:
         metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
         metric_value = metric_func(pipeline, reference_data=test_data, validation_blocks=vb_number)
         evaluated_metrics.append(metric_value)

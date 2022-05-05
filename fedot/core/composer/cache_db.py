@@ -3,15 +3,12 @@ import sqlite3
 import uuid
 from contextlib import closing
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
-from fedot.core.operations.operation import Operation
 from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     from .cache import CachedState
-
-IOperation = TypeVar('IOperation', bound=Operation)
 
 
 class OperationsCacheDB:

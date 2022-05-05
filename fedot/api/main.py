@@ -19,7 +19,7 @@ from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
-from fedot.core.utilities.data_structures import ensure_list
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
@@ -305,7 +305,7 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        metric_names = ensure_list(metric_names)
+        metric_names = ensure_wrapped_in_sequence(metric_names)
 
         calculated_metrics = dict()
         for metric_name in metric_names:
