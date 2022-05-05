@@ -1,18 +1,15 @@
 from abc import abstractmethod
-from collections.abc import Sequence, Mapping
-from typing import TypeVar, Generic, Any, Optional, Union, Iterable, Callable
+from collections.abc import Sequence
+from typing import Any, Optional, Union, Iterable, Callable
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.fitness import *
-from fedot.core.optimisers.fitness import Fitness
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
 
-G = TypeVar('G', bound=Graph, covariant=True)
-
-ObjectiveFunction = Callable[[G], Fitness]
+ObjectiveFunction = Callable[[Graph], Fitness]
 
 
-class Objective(Generic[G]):
+class Objective:
     """Represents objective function for computing metric values
     on Graphs and keeps information about metrics used."""
 
@@ -27,7 +24,7 @@ class Objective(Generic[G]):
         return self._is_multi_objective
 
     @abstractmethod
-    def __call__(self, graph: G, **kwargs: Any) -> Fitness:
+    def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []
         for metric in self.metrics:
             metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
