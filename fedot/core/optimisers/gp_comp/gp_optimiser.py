@@ -11,7 +11,6 @@ from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
-    duplicates_filtration,
     num_of_parents_in_crossover,
     random_graph
 )
@@ -232,12 +231,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                                            objective_function=objective_function,
                                            graph_generation_params=self.graph_generation_params,
                                            timer=t)
-
-                if self.parameters.multi_objective:
-                    # TODO: feels unneeded, ParetoFront does it anyway
-                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals,
-                                                                   individuals_to_select)
-                    individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 num_of_parents = num_of_parents_in_crossover(pop_size)
 

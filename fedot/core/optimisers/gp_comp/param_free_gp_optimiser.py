@@ -8,7 +8,6 @@ from tqdm import tqdm
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
-    duplicates_filtration,
     num_of_parents_in_crossover
 )
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
@@ -88,12 +87,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                            objective_function=objective_function,
                                            graph_generation_params=self.graph_generation_params,
                                            timer=t)
-
-                if self.parameters.multi_objective:
-                    # TODO: feels unneeded, ParetoFront does it anyway
-                    filtered_archive_items = duplicates_filtration(self.generations.best_individuals,
-                                                                   individuals_to_select)
-                    individuals_to_select = deepcopy(individuals_to_select) + filtered_archive_items
 
                 # TODO: collapse this selection & reprodue for 1 and for many
                 if len(self.population) == 1:

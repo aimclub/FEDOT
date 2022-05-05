@@ -122,11 +122,6 @@ def filter_duplicates(archive, population) -> List[Any]:
     return filtered_archive
 
 
-def duplicates_filtration(filtered_inds, population):
-    population_fitnesses = {pop_ind.fitness for pop_ind in population}
-    return list(filter(lambda x: x.fitness not in population_fitnesses, filtered_inds))
-
-
 def clean_operators_history(population):
     for ind in population:
         ind.parent_operators = []
