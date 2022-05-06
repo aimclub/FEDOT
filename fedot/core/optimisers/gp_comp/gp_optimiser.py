@@ -208,10 +208,9 @@ class EvoGraphOptimiser(GraphOptimiser):
         self._on_next_pop = on_next_iteration_callback
         evaluator = self._get_evaluator(objective_evaluator)
 
-        with self.timer:
-            pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc='Generations', unit='gen', initial=1,
-                        disable=self.log.verbosity_level == -1) if show_progress else None
+        with self.timer, tqdm(total=self.requirements.num_of_generations,
+                              desc='Generations', unit='gen', initial=1,
+                              disable=not show_progress or self.log.verbosity_level == -1):
 
             pop_size = self._pop_size.initial
             self._next_population(evaluator(self._init_population(pop_size)))
@@ -260,11 +259,6 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 # Then update generation
                 self._next_population(new_population)
-
-                if pbar:
-                    pbar.update(1)
-            if pbar:
-                pbar.close()
 
         best = self.generations.best_individuals
         return self.to_outputs(best)
