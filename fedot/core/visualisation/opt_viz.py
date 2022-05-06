@@ -93,8 +93,8 @@ class PipelineEvolutionVisualiser:
             plt.clf()
         plt.close('all')
 
-    # @staticmethod
-    def visualise_fitness_by_generations(self, history: 'OptHistory', save_path_to_file: Optional[str] = None):
+    @staticmethod
+    def visualise_fitness_by_generations(history: 'OptHistory', save_path_to_file: Optional[str] = None):
         """ Visualizes fitness values across generations
         :param history: OptHistory
         :param save_path_to_file: path to save the visualization. If set, then the image will be saved,
