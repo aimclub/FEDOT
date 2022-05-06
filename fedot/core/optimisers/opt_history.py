@@ -125,20 +125,28 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
+    def __check_all_historical_fitness_before_plot(self, plot_kind):
+        if self.all_historical_fitness is None:
+            raise ValueError(f'The history {self} has no fitness data. Visualization {plot_kind} is not possible.')
+
     def show(self, kind: str = 'fitness_box', save_path_to_file: str = None, n_best: Optional[float] = None):
         """ Visualizes fitness values across generations """
         # TODO: Modify docstring
-        if n_best is not None and (n_best <= 0 or n_best > 1):
-            raise ValueError('Please, specify `n_best` parameter on interval (0, 1].')
+        if n_best is not None:
+            if n_best <= 0 or n_best > 1:
+                raise ValueError('Please, specify `n_best` parameter on interval (0, 1].')
+            if self.all_historical_fitness is None:
+                print(f'The history {self} has no fitness data. `n_best` parameter is omitted.')
+                n_best = None
 
         viz = PipelineEvolutionVisualiser()
         if kind == 'fitness_box':
-            if self.all_historical_fitness is None:
-                return
+            self.__check_all_historical_fitness_before_plot(kind)
             viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
         elif kind == 'operation_kde':
             viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file, n_best=n_best)
         elif kind == 'operation_animated_barplot':
+            self.__check_all_historical_fitness_before_plot(kind)
             viz.visualize_operations_animated_barplot(self, save_path_to_file=save_path_to_file, n_best=n_best)
         else:
             raise ValueError(f'Visualization "{kind}" is not supported.')
