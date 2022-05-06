@@ -18,7 +18,7 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, tar
     if isinstance(data, MultiModalData):
         if not target:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
-        data = get_target_for_multi_modal_data(data, target)
+        data = data.extract_target_data(target)
     actual_time_series = np.concatenate([data.features, data.target], axis=0)
     target = data.target
     predict = prediction.predict
@@ -46,18 +46,6 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, tar
     plt.legend(fontsize=15)
     plt.grid()
     plt.show()
-
-
-def get_target_for_multi_modal_data(data: MultiModalData, target_name: str):
-    """
-    Function for extraction target data from MultiModalData
-
-    :param data: MultiModalData to find target data
-    :param target_name: string with user-specified name of target
-    """
-    full_target_name = [key for key, _ in data.items() if target_name == key.split('/')[-1]][0]
-    target_data = data[full_target_name]
-    return target_data
 
 
 def plot_biplot(prediction: OutputData):

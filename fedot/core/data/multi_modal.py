@@ -62,6 +62,16 @@ class MultiModalData(dict):
         # TODO implement multi-modal shuffle
         pass
 
+    def extract_target_data(self, target_name):
+        """
+            Function for extraction target data from MultiModalData
+            :param target_name: string with user-specified name of target
+            :return target_data: target InputData
+        """
+        full_target_name = [key for key, _ in self.items() if target_name == key.split('/')[-1]][0]
+        target_data = self[full_target_name]
+        return target_data
+
     def subset_range(self, start: int, end: int):
         for key in self.keys():
             self[key] = self[key].subset_range(start, end)
