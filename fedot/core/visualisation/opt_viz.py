@@ -93,11 +93,11 @@ class PipelineEvolutionVisualiser:
             plt.clf()
         plt.close('all')
 
-    @staticmethod
-    def visualise_fitness_by_generations(history, save_path_to_file: str):
+    # @staticmethod
+    def visualise_fitness_by_generations(self, history: 'OptHistory', save_path_to_file: Optional[str] = None):
         """ Visualizes fitness values across generations
         :param history: OptHistory
-        :param save_path_to_file: path where to save visualization. If set, then the image will be saved,
+        :param save_path_to_file: path to save the visualization. If set, then the image will be saved,
         and if not, it will be displayed """
         # Get list of generations numbers per fitness result
         generations = []
@@ -417,7 +417,6 @@ class PipelineEvolutionVisualiser:
             return final_frames
 
         def animate(frame_num):
-            # global bars
             frame_count = bar_data[frame_num]
             frame_color = bar_color[frame_num]
             frame_title = bar_title[frame_num]
@@ -469,10 +468,11 @@ class PipelineEvolutionVisualiser:
             bar_color.append([colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
 
         smoothness = 18
+        power = 4
         interval = 40
 
-        bar_data = smoothen_frames_data(bar_data, smoothness)
-        bar_color = smoothen_frames_data(bar_color, smoothness)
+        bar_data = smoothen_frames_data(bar_data, smoothness, power)
+        bar_color = smoothen_frames_data(bar_color, smoothness, power)
         bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * smoothness]
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')

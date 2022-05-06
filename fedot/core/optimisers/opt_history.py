@@ -129,7 +129,7 @@ class OptHistory:
         if self.all_historical_fitness is None:
             raise ValueError(f'The history {self} has no fitness data. Visualization {plot_kind} is not possible.')
 
-    def show(self, kind: str = 'fitness_box', save_path_to_file: str = None, n_best: Optional[float] = None):
+    def show(self, kind: str = 'fitness_box', save_path_to_file: Optional[str] = None, n_best: Optional[float] = None):
         """ Visualizes fitness values across generations """
         # TODO: Modify docstring
         if n_best is not None:
