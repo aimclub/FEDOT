@@ -299,7 +299,7 @@ class ApiComposer:
         api_params['logger'].message('Model generation finished')
 
         if gp_composer is not None:
-            history = gp_composer.optimiser.history
+            history = gp_composer.history
         else:
             history = None
 

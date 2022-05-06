@@ -7,11 +7,15 @@ from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
+
+
+OptimisationCallback = Callable
+
+
+def do_nothing_cb(*args, **kwargs):
+    pass
 
 
 class GraphOptimiserParameters:
@@ -75,8 +79,6 @@ class GraphOptimiser:
         if initial_graph and not isinstance(initial_graph, Sequence):
             initial_graph = [initial_graph]
         self.initial_graph = initial_graph
-        self.history = OptHistory(objective, parameters.history_folder)
-        self.history.clean_results()
 
     @property
     def objective(self) -> Objective:
@@ -84,7 +86,7 @@ class GraphOptimiser:
 
     @abstractmethod
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: Optional[Callable] = None,
+                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
@@ -94,23 +96,6 @@ class GraphOptimiser:
         :return: best graph (or list of graph for multi-objective case)
         """
         pass
-
-    def default_on_next_iteration_callback(self, individuals: Sequence[Individual],
-                                           best_individuals: Optional[Sequence[Individual]] = None):
-        """
-        Default variant of callback that preserves optimisation history
-        :param individuals: list of individuals obtained in last iteration
-        :param best_individuals: optional list of the best individuals from all iterations
-        :return:
-        """
-        try:
-            self.history.add_to_history(individuals)
-            if self.history.save_folder:
-                self.history.save_current_results()
-            if best_individuals is not None:
-                self.history.add_to_archive_history(best_individuals)
-        except Exception as ex:
-            self.log.warn(f'Callback was not successful because of {ex}')
 
 
 @dataclass

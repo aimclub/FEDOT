@@ -17,7 +17,7 @@ from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationS
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.optimisers.optimizer import GraphGenerationParams, OptimisationCallback, do_nothing_cb
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
@@ -51,13 +51,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: Optional[Callable] = None,
+                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
         evaluator = self._get_evaluator(objective_evaluator)
-
-        if on_next_iteration_callback is None:
-            on_next_iteration_callback = self.default_on_next_iteration_callback
 
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,

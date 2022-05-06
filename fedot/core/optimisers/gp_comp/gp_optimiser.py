@@ -25,7 +25,8 @@ from fedot.core.optimisers.gp_comp.operators.regularization import Regularizatio
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters, \
+    do_nothing_cb, OptimisationCallback
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
@@ -189,13 +190,10 @@ class EvoGraphOptimiser(GraphOptimiser):
                                     log=self.log)
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: Optional[Callable] = None,
+                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
         evaluator = self._get_evaluator(objective_evaluator)
-
-        if on_next_iteration_callback is None:
-            on_next_iteration_callback = self.default_on_next_iteration_callback
 
         with self.timer as t:
             pbar = tqdm(total=self.requirements.num_of_generations,

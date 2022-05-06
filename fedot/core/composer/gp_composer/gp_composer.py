@@ -1,5 +1,6 @@
 import platform
 from dataclasses import dataclass
+from functools import partial
 from multiprocessing import set_start_method
 from typing import List, Optional, Sequence, Union
 
@@ -11,6 +12,7 @@ from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
+from fedot.core.optimisers.opt_history import OptHistory, log_to_history
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.validation import common_rules, ts_rules
@@ -71,6 +73,7 @@ class GPComposer(Composer):
         self.optimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
 
+        self._history = OptHistory(self.optimiser.objective, self.optimiser.parameters.history_folder)
         self.objective_builder = DataObjectiveBuilder(self.optimiser.objective,
                                                       self.composer_requirements.max_pipeline_fit_time,
                                                       self.composer_requirements.cv_folds,
@@ -92,8 +95,11 @@ class GPComposer(Composer):
         # shuffle data if necessary
         data.shuffle()
 
+        self._history.clean_results()
+        history_cb = partial(log_to_history, self._history)
         objective_evaluator = self.objective_builder.build(data)
-        opt_result = self.optimiser.optimise(objective_evaluator)
+        opt_result = self.optimiser.optimise(objective_evaluator, on_next_iteration_callback=history_cb)
+
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
         return best_pipeline
@@ -109,4 +115,4 @@ class GPComposer(Composer):
 
     @property
     def history(self):
-        return self.optimiser.history
+        return self._history

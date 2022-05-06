@@ -229,3 +229,19 @@ class OptHistory:
             else:
                 return os.path.join(default_fedot_data_dir(), self.save_folder)
         return None
+
+
+def log_to_history(history: OptHistory, individuals: Sequence[Individual],
+                   best_individuals: Optional[Sequence[Individual]] = None):
+    """
+    Default variant of callback that preserves optimisation history
+    :param history: OptHistory for logging
+    :param individuals: list of individuals obtained in last iteration
+    :param best_individuals: optional list of the best individuals from all iterations
+    :return:
+    """
+    history.add_to_history(individuals)
+    if history.save_folder:
+        history.save_current_results()
+    if best_individuals is not None:
+        history.add_to_archive_history(best_individuals)
