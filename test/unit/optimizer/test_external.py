@@ -33,9 +33,7 @@ class StaticOptimizer(GraphOptimiser):
         self.change_types = []
         self.node_name = kwargs.get('node_name')
 
-    def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
-                 show_progress: bool = True):
+    def optimise(self, objective_evaluator: ObjectiveEvaluate, show_progress: bool = True):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('logit'))

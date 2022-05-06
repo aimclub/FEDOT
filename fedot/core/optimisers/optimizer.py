@@ -82,18 +82,19 @@ class GraphOptimiser:
             initial_graph = [initial_graph]
         self.initial_graph = initial_graph
 
+        # optimisation: callback function that runs on each iteration for new population
+        self.optimisation_callback: OptimisationCallback = do_nothing_cb
+
     @property
     def objective(self) -> Objective:
         return self._objective
 
     @abstractmethod
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
         :param objective_evaluator: Defines specific Objective and graph evaluation policy.
-        :param on_next_iteration_callback: callback function that runs in each iteration of optimization
         :param show_progress: print output the describes the progress during iterations
         :return: best graph (or list of graph for multi-objective case)
         """

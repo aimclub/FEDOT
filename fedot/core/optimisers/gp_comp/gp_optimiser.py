@@ -192,7 +192,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _next_population(self, next_population: PopulationT):
         self.generations.append(next_population)
-        self._on_next_pop(next_population, self.generations)
+        self.optimisation_callback(next_population, self.generations)
         clean_operators_history(next_population)
         self.population = next_population
 
@@ -202,10 +202,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
-        self._on_next_pop = on_next_iteration_callback
         evaluator = self._get_evaluator(objective_evaluator)
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,

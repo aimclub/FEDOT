@@ -51,10 +51,8 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
-        self._on_next_pop = on_next_iteration_callback
         evaluator = self._get_evaluator(objective_evaluator)
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,

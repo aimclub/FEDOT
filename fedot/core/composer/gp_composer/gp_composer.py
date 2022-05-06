@@ -97,8 +97,10 @@ class GPComposer(Composer):
 
         self._history.clean_results()
         history_cb = partial(log_to_history, self._history)
+        self.optimiser.optimisation_callback = history_cb
+
         objective_evaluator = self.objective_builder.build(data)
-        opt_result = self.optimiser.optimise(objective_evaluator, on_next_iteration_callback=history_cb)
+        opt_result = self.optimiser.optimise(objective_evaluator)
 
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
