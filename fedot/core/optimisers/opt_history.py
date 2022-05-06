@@ -138,8 +138,6 @@ class OptHistory:
             if all_historical_fitness is None:
                 print(f'The history has no fitness data. `n_best` parameter is ignored.')
                 n_best = None
-            if kind == 'fitness_box':
-                print(f'`n_best` parameter is not supported for "{kind}". It is ignored.')
 
         if hide_fitness and kind != 'operation_animated_barplot':  # check supported cases for `hide_fitness`
             print(f'`hide_fitness` parameter is not supported for "{kind}". It is ignored.')
@@ -148,7 +146,7 @@ class OptHistory:
         if kind == 'fitness_box':
             if all_historical_fitness is None:
                 raise ValueError(f'The history has no fitness data. Visualization "{kind}" is not supported.')
-            viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
+            viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file, n_best=n_best)
         elif kind == 'operation_kde':
             viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file, n_best=n_best)
         elif kind == 'operation_animated_barplot':

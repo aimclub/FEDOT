@@ -93,34 +93,30 @@ class PipelineEvolutionVisualiser:
             plt.clf()
         plt.close('all')
 
-    @staticmethod
-    def visualise_fitness_by_generations(history: 'OptHistory', save_path_to_file: Optional[str] = None):
+    def visualise_fitness_by_generations(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
+                                         n_best: Optional[float] = None):
         """ Visualizes fitness values across generations
         :param history: OptHistory
         :param save_path_to_file: path to save the visualization. If set, then the image will be saved,
-        and if not, it will be displayed """
-        # Get list of generations numbers per fitness result
-        generations = []
-        for gen_num in range(len(history.historical_fitness)):
-            num_of_ind_in_gen = len(history.historical_fitness[gen_num])
-            generations.append([gen_num] * num_of_ind_in_gen)
-        generations = list(flatten(generations))
+        and if not, it will be displayed
+        :param n_best: fraction of the best individuals of each generation that included in the visualization.
+        Must be in the interval (0, 1].
+        """
+        df_history = self.__get_history_dataframe(history, get_tags=False, n_best=n_best)
+        df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
+        # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
+        palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
+            sort_values('fitness', ignore_index=True)['generation'].sort_values().index
+        palette = sns.light_palette("seagreen", n_colors=len(palette_ranks))
+        palette.reverse()
 
-        # Visualize
-        fitness = [abs(fitness.value) for fitness in history.all_historical_fitness]
         fig, ax = plt.subplots(figsize=(15, 10))
+        sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
 
-        # Get color palette for fitness. The lower the fitness value, the brighter the green color
-        palette = sns.light_palette("seagreen", n_colors=len(history.historical_fitness))
-        min_fitnesses = [min(i) for i in history.historical_fitness]
-        min_fitnesses.sort(reverse=True)
-        colors = [palette[min_fitnesses.index(min(i))] for i in history.historical_fitness]
-
-        sns.boxplot(x=generations, y=fitness, palette=colors)
         ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
         ax.set_xticklabels(range(len(history.historical_fitness)))
-        ax.set_xlabel(xlabel=f'generations', fontsize=20)
-        ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
+        ax.set_xlabel(xlabel=f'Generation', fontsize=20)
+        ax.set_ylabel(ylabel=f'Fitness score', fontsize=20)
 
         if not save_path_to_file:
             plt.show()
@@ -319,14 +315,16 @@ class PipelineEvolutionVisualiser:
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
-                                tags_data: Optional[List[str]] = None, n_best: Optional[float] = None):
+                                tags_data: Optional[List[str]] = None, n_best: Optional[float] = None,
+                                get_tags: bool = True):
         history_data = {
             'generation': [],
             'individual': [],
             'fitness': [],
             'node': [],
-            'tag': [],
         }
+        if get_tags:
+            history_data['tag'] = []
 
         for gen_num, gen in enumerate(history.individuals):
             for ind in gen:
@@ -335,6 +333,8 @@ class PipelineEvolutionVisualiser:
                     history_data['individual'].append(ind.uid)
                     history_data['fitness'].append(abs(ind.fitness.value))
                     history_data['node'].append(node.content['name'])
+                    if not get_tags:
+                        continue
                     history_data['tag'].append(get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data))
 
         df_history = pd.DataFrame.from_dict(history_data)
