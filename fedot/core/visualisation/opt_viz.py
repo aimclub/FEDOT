@@ -339,15 +339,16 @@ class PipelineEvolutionVisualiser:
         palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
             sort_values('fitness', ignore_index=True)['generation'].sort_values().index
         palette = sns.light_palette("seagreen", n_colors=len(palette_ranks))
-        palette.reverse()
 
-        fig, ax = plt.subplots(figsize=(15, 10))
-        sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
-
-        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
+        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
+        fig = plot.figure
+        fig.set_dpi(110)
+        fig.set_facecolor('w')
+        ax = plt.gca()
+        ax.set_title('Fitness by generations')
         ax.set_xticklabels(range(len(history.historical_fitness)))
-        ax.set_xlabel(xlabel=f'Generation', fontsize=20)
-        ax.set_ylabel(ylabel=f'Fitness score', fontsize=20)
+        ax.set_xlabel(xlabel=f'Generation')
+        ax.set_ylabel(ylabel=f'Fitness score')
 
         if not save_path:
             plt.show()
@@ -355,7 +356,7 @@ class PipelineEvolutionVisualiser:
             save_path = Path(save_path)
             if not save_path.is_absolute():
                 save_path = Path(os.getcwd(), save_path)
-            plt.savefig(save_path)
+            fig.savefig(save_path, dpi=300)
             print(f'The figure was saved to "{save_path}".')
             plt.close()
 
@@ -404,19 +405,12 @@ class PipelineEvolutionVisualiser:
                                               n_best: Optional[float] = None, hide_fitness_color: bool = False):
         # TODO: Docstring
 
-        if save_path is None:
-            raise ValueError('`save_path` should be set to save the animation.')
-
-        save_path = Path(save_path)
-        if save_path.suffix not in ['.gif', '.mp4']:
-            raise ValueError('A correct file extension (".mp4" or ".gif") should be set to save the animation.')
-
-        def interpolate_points(point_1, point_2, smoothness=50, power=4) -> List[np.array]:
+        def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
             t_interp = np.linspace(0, 1, smoothness)
             point_1, point_2 = np.array(point_1), np.array(point_2)
             return [point_1 * (1 - t ** power) + point_2 * t ** power for t in t_interp]
 
-        def smoothen_frames_data(data: Sequence[Sequence['ArrayLike']], smoothness=50, power=4) -> List[np.array]:
+        def smoothen_frames_data(data: Sequence[Sequence['ArrayLike']], smoothness=18, power=4) -> List[np.array]:
             final_frames = []
             for initial_frame in range(len(data) - 1):
                 final_frames += interpolate_points(data[initial_frame], data[initial_frame + 1], smoothness, power)
@@ -436,6 +430,20 @@ class PipelineEvolutionVisualiser:
                 if hide_fitness_color:
                     continue
                 bars[i].set_facecolor(frame_color[i])
+
+        if save_path is None:
+            raise ValueError('`save_path` should be set to save the animation.')
+
+        save_path = Path(save_path)
+        if save_path.suffix not in ['.gif', '.mp4']:
+            raise ValueError('A correct file extension (".mp4" or ".gif") should be set to save the animation.')
+
+        animation_frames_per_step = 18
+        animation_interval_between_frames_ms = 40
+        animation_interpolation_power = 4
+        animation_dpi = 200
+        fitness_colormap = cm.get_cmap('YlOrRd')
+        no_fitness_palette = sns.color_palette('Set2')
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
@@ -472,7 +480,6 @@ class PipelineEvolutionVisualiser:
 
         generations = df_history.index.get_level_values(0).unique()
         # Getting data through all generations and filling with zeroes
-        fitness_colormap = cm.get_cmap('YlOrRd')
         bar_data = []
         bar_color = []
         for gen_num in generations:
@@ -483,14 +490,10 @@ class PipelineEvolutionVisualiser:
             # Transfer fitness to color
             bar_color.append([fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
 
-        smoothness = 18
-        power = 4
-        interval = 40
-
-        bar_data = smoothen_frames_data(bar_data, smoothness, power)
-        bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * smoothness]
+        bar_data = smoothen_frames_data(bar_data, animation_frames_per_step, animation_interpolation_power)
+        bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * animation_frames_per_step]
         if not hide_fitness_color:
-            bar_color = smoothen_frames_data(bar_color, smoothness, power)
+            bar_color = smoothen_frames_data(bar_color, animation_frames_per_step, animation_interpolation_power)
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
         if not hide_fitness_color:
@@ -498,8 +501,6 @@ class PipelineEvolutionVisualiser:
                 cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap),
                 label=fitness_column_name
             )
-
-        no_fitness_palette = sns.color_palette('Set2')
 
         count = bar_data[0]
         color = bar_color[0] if not hide_fitness_color else [no_fitness_palette[i] for i in range(len(tags_found))]
@@ -522,10 +523,10 @@ class PipelineEvolutionVisualiser:
             animate,
             # frames=enumerate(gens_tags),
             frames=len(bar_data),
-            interval=interval,
+            interval=animation_interval_between_frames_ms,
             repeat=False
         )
-        ani.save(str(save_path), dpi=200)
+        ani.save(str(save_path), dpi=animation_dpi)
         print(f'The animation was saved to "{save_path}".')
         plt.close(fig=fig)
 
