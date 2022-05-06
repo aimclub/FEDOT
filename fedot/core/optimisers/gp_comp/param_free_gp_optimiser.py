@@ -65,7 +65,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
             self.population = evaluator(self._init_population(pop_size))
             self.generations.append(self.population)
 
-            on_next_iteration_callback(self.population, self.generations.best_individuals)
+            on_next_iteration_callback(self.population, self.generations)
             self.log_info_about_best()
 
             while not self.stop_optimisation():
@@ -124,7 +124,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 if not self.generations.is_any_improved:
                     self.operators_prob_update()
 
-                on_next_iteration_callback(self.population, self.generations.best_individuals)
+                on_next_iteration_callback(self.population, self.generations)
                 self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
                 self.log_info_about_best()
 

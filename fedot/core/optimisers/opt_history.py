@@ -8,7 +8,9 @@ from copy import deepcopy
 from typing import Any, List, Optional, Union, Sequence
 
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.serializers import Serializer
 from fedot.core.optimisers.objective import Objective
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
@@ -231,17 +233,15 @@ class OptHistory:
         return None
 
 
-def log_to_history(history: OptHistory, individuals: Sequence[Individual],
-                   best_individuals: Optional[Sequence[Individual]] = None):
+def log_to_history(history: OptHistory, population: PopulationT, generations: GenerationKeeper):
     """
     Default variant of callback that preserves optimisation history
     :param history: OptHistory for logging
-    :param individuals: list of individuals obtained in last iteration
-    :param best_individuals: optional list of the best individuals from all iterations
+    :param population: list of individuals obtained in last iteration
+    :param generations: keeper of the best individuals from all iterations
     :return:
     """
-    history.add_to_history(individuals)
+    history.add_to_history(population)
+    history.add_to_archive_history(generations.best_individuals)
     if history.save_folder:
         history.save_current_results()
-    if best_individuals is not None:
-        history.add_to_archive_history(best_individuals)
