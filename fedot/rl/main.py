@@ -10,7 +10,7 @@ from ptan.agent import default_states_preprocessor
 from tensorboardX import SummaryWriter
 from torch import optim
 
-from fedot.core.utils import default_fedot_data_dir, fedot_project_root
+from fedot.core.utils import fedot_project_root
 from fedot.rl.network import A2CRnn
 from fedot.rl.pipeline_env import PipelineGenerationEnvironment, EnvironmentDataLoader
 from fedot.rl.tracker import RewardTracker
@@ -25,11 +25,11 @@ REWARD_STEPS = 2
 CLIP_GRAD = 0.1
 
 
-def declare_environment(path_train_data, path_to_logdir, path_valid_data=None):
+def declare_environment(name, loader, logdir):
     return PipelineGenerationEnvironment(
-        path_to_data=path_train_data,
-        logdir=path_to_logdir,
-        path_to_valid=path_valid_data
+        dataset_name=name,
+        dataset_loader=loader,
+        logdir=logdir,
     )
 
 
@@ -77,23 +77,18 @@ def unpack_batch(batch, net, device):
 if __name__ == '__main__':
     experiment_name = str(input())
 
-    path_to_logdir = join(default_fedot_data_dir(), experiment_name)
+    path_to_logdir = join(fedot_project_root(), 'fedot/rl/history/' + experiment_name)
     path_to_train = join(fedot_project_root(), 'fedot/rl/data/train/')
     path_to_valid = join(fedot_project_root(), 'fedot/rl/data/valid/')
-    files = [file_name for (_, _, file_name) in walk(path_to_train)][0]
+
+    datasets = [file_name for (_, _, file_name) in walk(path_to_train)][0]
 
     env_dl = EnvironmentDataLoader(path_to_train, path_to_valid)
     envs = []
 
-    for dataset_name in train_datasets:
+    for dataset_name in datasets:
         for _ in range(NUM_ENV):
-            envs.append(declare_environment(join(path_to_train, dataset_name), path_to_logdir))
-
-    val_envs = []
-
-    for dataset_name in valid_datasets:
-        val_envs.append(declare_environment(join(path_to_train, dataset_name),
-                                            path_to_logdir, join(path_to_valid, dataset_name)))
+            envs.append(declare_environment(dataset_name, env_dl, path_to_logdir))
 
     in_dim = envs[0].observation_space.shape[0]
     out_dim = envs[0].action_space.n
@@ -135,14 +130,13 @@ if __name__ == '__main__':
                     torch.save(net.state_dict(), path_to_save)
 
                     with torch.no_grad():
-                        for val_id, val_env in enumerate(val_envs):
-                            val_name = valid_datasets[val_id][:-3]
+                        for val_id, val_name in enumerate(datasets):
                             val_total_rewards = []
                             val_correct_rewards = []
                             val_correct_pipelines = 0
 
                             for episode in range(25):
-                                state = val_env.reset()
+                                state = envs[val_id * NUM_ENV].reset()
                                 episode_reward = 0.0
                                 done = False
 
@@ -153,7 +147,7 @@ if __name__ == '__main__':
                                     prob_v = F.softmax(logits_v)
                                     prob = prob_v.data.cpu().numpy()
                                     action = np.random.choice(len(prob), p=prob)
-                                    state, reward, done, info = val_env.step(action, mode='test')
+                                    state, reward, done, info = envs[val_id * NUM_ENV].step(action, mode='valid')
                                     episode_reward += reward
 
                                 val_total_rewards.append(episode_reward)

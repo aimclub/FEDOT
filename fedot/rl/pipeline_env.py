@@ -61,27 +61,25 @@ class PipelineGenerationEnvironment(gym.Env):
         self.actions_list_size = len(self.actions_list[0])
         self.actions_size = self.actions_list_size + 2  # actions list + pop + eop
 
-        self.pop = self.actions_list_size  # Placeholder of pipeline
-        self.eop = self.actions_list_size + 1  # End of pipeline
+        self.pop = self.actions_list_size  # pipeline's placeholder
+        self.eop = self.actions_list_size + 1  # pipeline's ending
 
-        self.nodes = []
-        self.pipeline = None
         self.pipeline_idx = 0
-        self.time_step = 0
-        self.cur_pos = 1
-        self.metric_value = 0
-        self.observation = np.full(self.root_length + 2, self.pop)
-        self.observation[0] = self.cur_pos
+
+        self.nodes = None
+        self.pipeline = None
+        self.time_step = None
+        self.cur_pos = None
+        self.metric_value = None
+        self.observation = None
 
         self.action_space = spaces.Discrete(self.actions_size)
-        self.observation_space = self.transform_to_one_hot(self.observation)
+        self.observation_space = self.reset()
 
         if graph_render and logdir is not None:
             self.graph_render_path = join(logdir, 'pipelines')
             if not exists(self.graph_render_path):
                 makedirs(self.graph_render_path)
-
-        self.reset()
 
     def step(self, action: int, mode='train'):
         temp_reward = -0.1
@@ -136,7 +134,7 @@ class PipelineGenerationEnvironment(gym.Env):
                     results = self.pipeline.predict(test_data)
 
                     # Подсчитываем метрику
-                    self.metric_value = roc_auc(y_true=train_data.target,
+                    self.metric_value = roc_auc(y_true=test_data.target,
                                                 y_score=results.predict,
                                                 multi_class='ovo',
                                                 average='macro')
@@ -213,10 +211,15 @@ class PipelineGenerationEnvironment(gym.Env):
             return False
 
     def transform_to_one_hot(self, observation):
-        encoded_position = np.eye(np.max(self.root_length + 2) + 1)[observation[0]].flatten()
-        encoded_observation = np.eye(np.max(self.action_space.n))[observation[1:]].flatten()
+        encoded_position = np.eye(self.root_length + 2)[observation[0] - 1]
+        encoded_observation = np.array([])
 
-        return np.concatenate((encoded_position, encoded_observation), axis=None)
+        for obs in observation[1:]:
+            encoded_observation = np.append(encoded_observation, np.eye(self.actions_size)[obs])
+
+        output = np.concatenate((encoded_position, encoded_observation.flatten()), axis=None)
+
+        return output
 
     def render(self, mode='text', plot_in_pycharm=False):
         if mode == 'text':
@@ -229,7 +232,7 @@ class PipelineGenerationEnvironment(gym.Env):
                 else:
                     output.append('place_holder')
 
-            if self.observation[1] != self.pop:
+            if self.observation[1] != self.pop and self.observation[1] != self.eop:
                 output.append(self.actions_list[0][self.observation[1]])
             elif self.observation[1] == self.eop:
                 pass
@@ -243,7 +246,7 @@ class PipelineGenerationEnvironment(gym.Env):
                 if plot_in_pycharm:
                     self.pipeline.show()
                 else:
-                    result_path = join(self.graph_render_path, f'pl_{self.pipeline_idx}')
+                    result_path = join(self.graph_render_path, f'pl_{self.dataset_name[:-4]}_{self.pipeline_idx}')
                     self.pipeline.show(path=result_path)
                     self.pipeline_idx += 1
 
@@ -259,12 +262,14 @@ if __name__ == '__main__':
     print([i for i in range(len(env.actions_list[0]))])
 
     for episode in range(5):
+        iter = 0
         state = env.reset()
         done = False
         total_reward = 0
 
         while not done:
             print('episode:', episode)
+            print('iteration:', iter)
             print('state', state)
             action = int(input())
             state, reward, done, info = env.step(action)
@@ -277,3 +282,5 @@ if __name__ == '__main__':
             if done:
                 print('episode:', episode, 'state', state)
                 print('Done')
+
+            iter += 1
