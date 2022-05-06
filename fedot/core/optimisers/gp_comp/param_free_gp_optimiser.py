@@ -50,8 +50,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                                 min_sequence_value=1, max_sequence_value=max_population_size)
         self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
 
-        self.stopping_after_n_generation = parameters.stopping_after_n_generation
-
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
