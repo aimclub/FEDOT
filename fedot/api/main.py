@@ -266,8 +266,8 @@ class Fedot:
     def plot_prediction(self, target: [Optional] = None):
         """
         Plot the prediction obtained from graph
+        :param target: user-specified name of target variable for MultiModalData
         """
-
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
                 plot_forecast(self.test_data, self.prediction, target)
