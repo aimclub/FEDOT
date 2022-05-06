@@ -125,7 +125,11 @@ class PipelineEvolutionVisualiser:
         if not save_path_to_file:
             plt.show()
         else:
+            save_path_to_file = Path(save_path_to_file)
+            if not save_path_to_file.is_absolute():
+                save_path_to_file = Path(os.getcwd(), save_path_to_file)
             plt.savefig(save_path_to_file)
+            print(f'The figure was saved to "{save_path_to_file}".')
             plt.close()
 
     def visualise_history(self, history):
@@ -386,7 +390,12 @@ class PipelineEvolutionVisualiser:
         fig.set_facecolor('w')
 
         if save_path_to_file:
+            save_path_to_file = Path(save_path_to_file)
+            if not save_path_to_file.is_absolute():
+                save_path_to_file = Path(os.getcwd(), save_path_to_file)
+
             fig.savefig(save_path_to_file, dpi=300)
+            print(f'The figure was saved to "{save_path_to_file}".')
             plt.close()
 
     def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
@@ -458,9 +467,8 @@ class PipelineEvolutionVisualiser:
             lambda row: row['node_count'] / nodes_per_generation[row[generation_column_name]], axis=1)
         df_history = df_history.set_index([generation_column_name, tag_column_name])
 
-        if not hide_fitness_color:
-            min_fitness = df_history[fitness_column_name].min()
-            max_fitness = df_history[fitness_column_name].max()
+        min_fitness = df_history[fitness_column_name].min() if not hide_fitness_color else None
+        max_fitness = df_history[fitness_column_name].max() if not hide_fitness_color else None
 
         generations = df_history.index.get_level_values(0).unique()
         # Getting data through all generations and filling with zeroes
@@ -480,9 +488,9 @@ class PipelineEvolutionVisualiser:
         interval = 40
 
         bar_data = smoothen_frames_data(bar_data, smoothness, power)
+        bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * smoothness]
         if not hide_fitness_color:
             bar_color = smoothen_frames_data(bar_color, smoothness, power)
-        bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * smoothness]
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
         if not hide_fitness_color:
@@ -506,6 +514,9 @@ class PipelineEvolutionVisualiser:
         ax.invert_yaxis()
         plt.tight_layout()
 
+        if not save_path_to_file.is_absolute():
+            save_path_to_file = Path(os.getcwd(), save_path_to_file)
+
         ani = animation.FuncAnimation(
             fig,
             animate,
@@ -516,6 +527,8 @@ class PipelineEvolutionVisualiser:
         )
         ani.save(str(save_path_to_file), dpi=200)
         plt.close(fig=fig)
+
+        print(f'The animation was saved to "{save_path_to_file}".')
 
 
 def figure_to_array(fig):
