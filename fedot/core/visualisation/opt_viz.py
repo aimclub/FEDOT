@@ -1,20 +1,19 @@
 import itertools
-import math
 import os
 from copy import deepcopy
 from glob import glob
 from os import remove
 from time import time
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pandas.core.common import flatten
 import seaborn as sns
 from PIL import Image
 from deap import tools
 from imageio import get_writer, imread
-import matplotlib.pyplot as plt
+from pandas.core.common import flatten
 
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
