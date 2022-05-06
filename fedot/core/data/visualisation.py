@@ -18,7 +18,7 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, tar
     if isinstance(data, MultiModalData):
         if not target:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
-        data = data.extract_target_data(target)
+        data = data.extract_data_source(target)
     actual_time_series = np.concatenate([data.features, data.target], axis=0)
     target = data.target
     predict = prediction.predict

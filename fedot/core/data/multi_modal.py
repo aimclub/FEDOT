@@ -62,15 +62,15 @@ class MultiModalData(dict):
         # TODO implement multi-modal shuffle
         pass
 
-    def extract_target_data(self, target_name):
+    def extract_data_source(self, source_name):
         """
-            Function for extraction target data from MultiModalData
-            :param target_name: string with user-specified name of target
-            :return target_data: target InputData
+            Function for extraction data_source from MultiModalData
+            :param source_name: string with user-specified name of source
+            :return target_data: selected source InputData
         """
-        full_target_name = [key for key, _ in self.items() if target_name == key.split('/')[-1]][0]
-        target_data = self[full_target_name]
-        return target_data
+        full_target_name = [key for key, _ in self.items() if source_name == key.split('/')[-1]][0]
+        source_data = self[full_target_name]
+        return source_data
 
     def subset_range(self, start: int, end: int):
         for key in self.keys():
