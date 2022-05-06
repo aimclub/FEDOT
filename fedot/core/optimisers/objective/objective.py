@@ -17,22 +17,14 @@ class Objective:
     def __init__(self, metrics: Union[MetricType, Iterable[MetricType]],
                  is_multi_objective: bool = False,
                  log: Optional[Log] = None):
-        self._metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
-        self._is_multi_objective = is_multi_objective
+        self.metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
+        self.is_multi_objective = is_multi_objective
         self._log = log or default_log(str(self.__class__))
-
-    @property
-    def metrics(self) -> Sequence[MetricType]:
-        return self._metrics
-
-    @property
-    def is_multi_objective(self) -> bool:
-        return self._is_multi_objective
 
     @abstractmethod
     def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []
-        for metric in self._metrics:
+        for metric in self.metrics:
             metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)
             try:
                 metric_value = metric_func(graph, **kwargs)
@@ -40,11 +32,11 @@ class Objective:
             except Exception as ex:
                 self._log.error(f'Objective evaluation error for graph {graph} on metric {metric}: {ex}')
                 return null_fitness()  # fail right away
-        return to_fitness(evaluated_metrics, self._is_multi_objective)
+        return to_fitness(evaluated_metrics, self.is_multi_objective)
 
     @property
     def metric_names(self) -> Sequence[str]:
-        return [str(metric) for metric in self._metrics]
+        return [str(metric) for metric in self.metrics]
 
 
 def to_fitness(metric_values: Optional[Sequence[float]], multi_objective: bool = False) -> Fitness:
