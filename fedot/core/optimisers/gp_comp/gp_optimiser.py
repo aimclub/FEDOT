@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Callable, Optional, Tuple, Union, List, Iterable
+from typing import Any, Optional, Tuple, Union, List, Iterable
 
 import numpy as np
 from tqdm import tqdm
@@ -18,7 +18,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.optimisers.gp_comp.generation_keeper import GenerationKeeper
+from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population

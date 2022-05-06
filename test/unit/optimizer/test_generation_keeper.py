@@ -1,6 +1,6 @@
 from typing import Sequence
 
-from fedot.core.optimisers.gp_comp.generation_keeper import GenerationKeeper
+from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
 
 from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
