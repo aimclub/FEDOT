@@ -465,8 +465,6 @@ class PipelineEvolutionVisualiser:
             'fitness': fitness_column_name,
             'tag': tag_column_name,
         }, axis='columns')
-        # if hide_fitness_color:
-        #     df_history.drop(fitness_column_name, axis='columns')
         tags_found = df_history[tag_column_name].unique()
         tags_found = [tag for tag in tags_all if tag in tags_found]
 
@@ -526,7 +524,6 @@ class PipelineEvolutionVisualiser:
         ani = animation.FuncAnimation(
             fig,
             animate,
-            # frames=enumerate(gens_tags),
             frames=len(bar_data),
             interval=animation_interval_between_frames_ms,
             repeat=False
