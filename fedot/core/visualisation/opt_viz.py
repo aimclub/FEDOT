@@ -329,7 +329,7 @@ class PipelineEvolutionVisualiser:
                 for node in ind.graph.nodes:
                     history_data['generation'].append(gen_num)
                     history_data['individual'].append(ind.uid)
-                    history_data['fitness'].append(abs(ind.fitness))
+                    history_data['fitness'].append(abs(ind.fitness.value))
                     history_data['node'].append(node.content['name'])
                     history_data['tag'].append(get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data))
 
