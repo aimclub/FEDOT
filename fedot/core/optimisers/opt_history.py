@@ -5,7 +5,7 @@ import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union, Dict
+from typing import TYPE_CHECKING, Any, Callable, List, Literal, Optional, Union
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -125,29 +125,39 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def __check_all_historical_fitness_before_plot(self, plot_kind):
-        if self.all_historical_fitness is None:
-            raise ValueError(f'The history {self} has no fitness data. Visualization {plot_kind} is not possible.')
-
-    def show(self, kind: str = 'fitness_box', save_path_to_file: Optional[str] = None, n_best: Optional[float] = None):
+    def show(self, kind: Literal['fitness_box', 'operation_kde', 'operation_animated_barplot'] = 'fitness_box',
+             save_path_to_file: Optional[str] = None, n_best: Optional[float] = None,
+             hide_fitness: Optional[bool] = False):
         """ Visualizes fitness values across generations """
         # TODO: Modify docstring
-        if n_best is not None:
+        all_historical_fitness = self.all_historical_fitness
+
+        if n_best is not None:  # check supported cases for `n_best`
             if n_best <= 0 or n_best > 1:
-                raise ValueError('Please, specify `n_best` parameter on interval (0, 1].')
-            if self.all_historical_fitness is None:
-                print(f'The history {self} has no fitness data. `n_best` parameter is omitted.')
+                raise ValueError('`n_best` parameter should be in the interval (0, 1].')
+            if all_historical_fitness is None:
+                print(f'The history has no fitness data. `n_best` parameter is ignored.')
                 n_best = None
+            if kind == 'fitness_box':
+                print(f'`n_best` parameter is not supported for "{kind}". It is ignored.')
+
+        if hide_fitness and kind != 'operation_animated_barplot':  # check supported cases for `hide_fitness`
+            print(f'`hide_fitness` parameter is not supported for "{kind}". It is ignored.')
 
         viz = PipelineEvolutionVisualiser()
         if kind == 'fitness_box':
-            self.__check_all_historical_fitness_before_plot(kind)
+            if all_historical_fitness is None:
+                raise ValueError(f'The history has no fitness data. Visualization "{kind}" is not supported.')
             viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
         elif kind == 'operation_kde':
             viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file, n_best=n_best)
         elif kind == 'operation_animated_barplot':
-            self.__check_all_historical_fitness_before_plot(kind)
-            viz.visualize_operations_animated_barplot(self, save_path_to_file=save_path_to_file, n_best=n_best)
+            if all_historical_fitness is None:
+                print(f'The history has no fitness data. Fitness is not displayed.')
+                hide_fitness = True
+            viz.visualize_operations_animated_barplot(
+                self, save_path_to_file=save_path_to_file, n_best=n_best, hide_fitness_color=hide_fitness
+            )
         else:
             raise ValueError(f'Visualization "{kind}" is not supported.')
 

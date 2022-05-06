@@ -392,15 +392,15 @@ class PipelineEvolutionVisualiser:
     def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
                                               tags_model: Optional[List[str]] = None,
                                               tags_data: Optional[List[str]] = None,
-                                              n_best: Optional[float] = None):
+                                              n_best: Optional[float] = None, hide_fitness_color: bool = False):
         # TODO: Docstring
 
         if save_path_to_file is None:
-            raise ValueError('Please, specify `save_path_to_file` to save the animation.')
+            raise ValueError('`save_path_to_file` should be set to save the animation.')
 
         save_path_to_file = Path(save_path_to_file)
         if save_path_to_file.suffix not in ['.gif', '.mp4']:
-            raise ValueError('Please, specify correct file extension (".mp4" or ".gif") to save the animation.')
+            raise ValueError('A correct file extension (".mp4" or ".gif") should be set to save the animation.')
 
         def interpolate_points(point_1, point_2, smoothness=50, power=4) -> List[np.array]:
             t_interp = np.linspace(0, 1, smoothness)
@@ -418,12 +418,14 @@ class PipelineEvolutionVisualiser:
 
         def animate(frame_num):
             frame_count = bar_data[frame_num]
-            frame_color = bar_color[frame_num]
+            frame_color = bar_color[frame_num] if not hide_fitness_color else None
             frame_title = bar_title[frame_num]
 
             plt.title(frame_title)
             for i in range(len(bars)):
                 bars[i].set_width(frame_count[i])
+                if hide_fitness_color:
+                    continue
                 bars[i].set_facecolor(frame_color[i])
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
@@ -441,48 +443,58 @@ class PipelineEvolutionVisualiser:
             'fitness': fitness_column_name,
             'tag': tag_column_name,
         }, axis='columns')
+        # if hide_fitness_color:
+        #     df_history.drop(fitness_column_name, axis='columns')
         tags_found = df_history[tag_column_name].unique()
         tags_found = [tag for tag in tags_all if tag in tags_found]
 
         nodes_per_generation = df_history[generation_column_name].value_counts()
 
-        df_history = df_history.groupby([generation_column_name, tag_column_name], as_index=False).agg(
-            {fitness_column_name: 'mean', 'node': 'count'})
-        df_history.columns = [generation_column_name, tag_column_name, fitness_column_name, 'node_count']
+        aggregation = {'node': 'count'} if hide_fitness_color else {fitness_column_name: 'mean', 'node': 'count'}
+
+        df_history = df_history.groupby([generation_column_name, tag_column_name], as_index=False).agg(aggregation)
+        df_history = df_history.rename({'node': 'node_count'}, axis='columns')
         df_history['node_count'] = df_history.apply(
             lambda row: row['node_count'] / nodes_per_generation[row[generation_column_name]], axis=1)
         df_history = df_history.set_index([generation_column_name, tag_column_name])
 
-        min_fitness = df_history[fitness_column_name].min()
-        max_fitness = df_history[fitness_column_name].max()
+        if not hide_fitness_color:
+            min_fitness = df_history[fitness_column_name].min()
+            max_fitness = df_history[fitness_column_name].max()
 
         generations = df_history.index.get_level_values(0).unique()
         # Getting data through all generations and filling with zeroes
-        colormap = cm.get_cmap('YlOrRd')
+        fitness_colormap = cm.get_cmap('YlOrRd')
         bar_data = []
         bar_color = []
         for gen_num in generations:
             bar_data.append([df_history.loc[gen_num]['node_count'].get(tag, 0) for tag in tags_found])
+            if hide_fitness_color:
+                continue
             fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
             # Transfer fitness to color
-            bar_color.append([colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
+            bar_color.append([fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
 
         smoothness = 18
         power = 4
         interval = 40
 
         bar_data = smoothen_frames_data(bar_data, smoothness, power)
-        bar_color = smoothen_frames_data(bar_color, smoothness, power)
+        if not hide_fitness_color:
+            bar_color = smoothen_frames_data(bar_color, smoothness, power)
         bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * smoothness]
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
-        fig.colorbar(
-            cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=colormap),
-            label=fitness_column_name
-        )
+        if not hide_fitness_color:
+            fig.colorbar(
+                cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap),
+                label=fitness_column_name
+            )
+
+        no_fitness_palette = sns.color_palette('Set2')
 
         count = bar_data[0]
-        color = bar_color[0]
+        color = bar_color[0] if not hide_fitness_color else [no_fitness_palette[i] for i in range(len(tags_found))]
         title = bar_title[0]
 
         bars = ax.barh(tags_found, count, color=color)
@@ -502,7 +514,8 @@ class PipelineEvolutionVisualiser:
             interval=interval,
             repeat=False
         )
-        ani.save(save_path_to_file, dpi=200)
+        ani.save(str(save_path_to_file), dpi=200)
+        plt.close(fig=fig)
 
 
 def figure_to_array(fig):
