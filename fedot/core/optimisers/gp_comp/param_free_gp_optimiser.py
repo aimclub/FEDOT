@@ -54,23 +54,18 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                  on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
+        self._on_next_pop = on_next_iteration_callback
         evaluator = self._get_evaluator(objective_evaluator)
 
-        with self.timer as t:
+        with self.timer:
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc='Generations', unit='gen', initial=1,
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
             pop_size = self._pop_size.initial
-            self.population = evaluator(self._init_population(pop_size))
-            self.generations.append(self.population)
-
-            on_next_iteration_callback(self.population, self.generations)
-            self.log_info_about_best()
+            self._next_population(evaluator(self._init_population(pop_size)))
 
             while not self.stop_optimisation():
-                self.log.info(f'Generation num: {self.generations.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
                 pop_size = self._pop_size.next(pop_size)
                 self.log.info(f'Next pop size: {pop_size}')
 
@@ -116,19 +111,13 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 # Add best individuals from the previous generation
                 if with_elitism:
                     new_population.extend(self.generations.best_individuals)
+
                 # Then update generation
-                self.generations.append(new_population)
-                self.population = new_population
+                self._next_population(new_population)
 
                 # TODO: move into dynamic mutation operator
                 if not self.generations.is_any_improved:
                     self.operators_prob_update()
-
-                on_next_iteration_callback(self.population, self.generations)
-                self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
-                self.log_info_about_best()
-
-                clean_operators_history(self.population)
 
                 if pbar:
                     pbar.update(1)

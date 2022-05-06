@@ -20,6 +20,7 @@ from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatc
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
@@ -189,27 +190,33 @@ class EvoGraphOptimiser(GraphOptimiser):
                                     collect_intermediate_metrics=self.requirements.collect_intermediate_metric,
                                     log=self.log)
 
+    def _next_population(self, next_population: PopulationT):
+        self.generations.append(next_population)
+        self._on_next_pop(next_population, self.generations)
+        clean_operators_history(next_population)
+        self.population = next_population
+
+        self.log.info(f'Generation num: {self.generations.generation_num}')
+        self.log.info(f'Best individuals: {str(self.generations)}')
+        self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
+        self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
+
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: OptimisationCallback = do_nothing_cb,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
+        self._on_next_pop = on_next_iteration_callback
         evaluator = self._get_evaluator(objective_evaluator)
 
-        with self.timer as t:
+        with self.timer:
             pbar = tqdm(total=self.requirements.num_of_generations,
                         desc='Generations', unit='gen', initial=1,
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
             pop_size = self._pop_size.initial
-            self.population = evaluator(self._init_population(pop_size))
-            self.generations.append(self.population)
-
-            on_next_iteration_callback(self.population, self.generations)
-            self.log_info_about_best()
+            self._next_population(evaluator(self._init_population(pop_size)))
 
             while not self.stop_optimisation():
-                self.log.info(f'Generation num: {self.generations.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
                 pop_size = self._pop_size.next(pop_size)
                 self.log.info(f'Next pop size: {pop_size}')
 
@@ -250,15 +257,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                 # Add best individuals from the previous generation
                 if with_elitism:
                     new_population.extend(self.generations.best_individuals)
+
                 # Then update generation
-                self.generations.append(new_population)
-                self.population = new_population
-
-                on_next_iteration_callback(self.population, self.generations)
-                self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
-                self.log_info_about_best()
-
-                clean_operators_history(self.population)
+                self._next_population(new_population)
 
                 if pbar:
                     pbar.update(1)
@@ -280,9 +281,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             return False
         else:
             return pop_size >= self._min_population_size_with_elitism
-
-    def log_info_about_best(self):
-        self.log.info(str(self.generations))
 
     def max_depth_recount(self):
         if self.generations.stagnation_duration >= self.parameters.depth_increase_step and \
