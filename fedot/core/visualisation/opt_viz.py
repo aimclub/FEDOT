@@ -313,42 +313,43 @@ class PipelineEvolutionVisualiser:
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
-                                tags_data: Optional[List[str]] = None, tag_column_name: str = 'Operation',
-                                generation_column_name: str = 'Generation', individual_column_name: str = 'Individual',
-                                fitness_column_name: str = 'Fitness', n_best: Optional[float] = None):
+                                tags_data: Optional[List[str]] = None, n_best: Optional[float] = None):
         history_data = {
-            generation_column_name: [],
-            tag_column_name: [],
-            individual_column_name: [],
-            fitness_column_name: []
+            'generation': [],
+            'individual': [],
+            'fitness': [],
+            'node': [],
+            'tag': [],
         }
 
         for gen_num, gen in enumerate(history.individuals):
             for ind in gen:
                 for node in ind.graph.nodes:
-                    history_data[generation_column_name].append(gen_num)
-                    history_data[tag_column_name].append(
-                        get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data)
-                    )
-                    history_data[individual_column_name].append(ind.uid)
-                    history_data[fitness_column_name].append(abs(ind.fitness))
+                    history_data['generation'].append(gen_num)
+                    history_data['individual'].append(ind.uid)
+                    history_data['fitness'].append(abs(ind.fitness))
+                    history_data['node'].append(node.content['name'])
+                    history_data['tag'].append(get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data))
 
         df_history = pd.DataFrame.from_dict(history_data)
 
         if n_best is not None:
-            generation_sizes = df_history.groupby(generation_column_name)[individual_column_name].nunique()
+            generation_sizes = df_history.groupby('generation')['individual'].nunique()
 
-            df_individuals = df_history[[generation_column_name, individual_column_name, fitness_column_name]] \
+            df_individuals = df_history[['generation', 'individual', 'fitness']] \
                 .drop_duplicates(ignore_index=True)
 
-            df_individuals['rank_per_generation'] = df_individuals.sort_values(fitness_column_name, ascending=False). \
-                groupby(generation_column_name).cumcount()
+            df_individuals['rank_per_generation'] = df_individuals.sort_values('fitness', ascending=False). \
+                groupby('generation').cumcount()
 
-            best_individuals = df_individuals[df_individuals.apply(
-                lambda row: row['rank_per_generation'] < generation_sizes[row[generation_column_name]] * n_best,
-                axis=1)][individual_column_name]
+            best_individuals = df_individuals[
+                df_individuals.apply(
+                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * n_best,
+                    axis='columns'
+                )
+            ]['individual']
 
-            df_history = df_history[df_history[individual_column_name].isin(best_individuals)]
+            df_history = df_history[df_history['individual'].isin(best_individuals)]
 
         return df_history
 
@@ -361,15 +362,11 @@ class PipelineEvolutionVisualiser:
 
         tags_all = [*tags_model, *tags_data]
 
-        tag_column_name = 'Operation'
         generation_column_name = 'Generation'
-        individual_column_name = 'Individual'
-        fitness_column_name = 'Fitness'
+        tag_column_name = 'Operation'
 
-        df_history = self.__get_history_dataframe(
-            history, tags_model, tags_data, tag_column_name, generation_column_name, individual_column_name,
-            fitness_column_name, n_best
-        )
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, n_best)
+        df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
         tags_found = df_history[tag_column_name].unique()
 
         plot = sns.displot(
