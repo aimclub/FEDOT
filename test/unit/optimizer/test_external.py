@@ -9,8 +9,8 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.validation.objective import Objective
-from fedot.core.validation.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import

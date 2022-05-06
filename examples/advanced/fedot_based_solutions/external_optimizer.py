@@ -9,8 +9,8 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.utils import fedot_project_root
-from fedot.core.validation.objective import Objective
-from fedot.core.validation.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 
 class RandomSearchOptimizer(GraphOptimiser):

@@ -10,8 +10,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.validation.objective import Objective
-from fedot.core.validation.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 
 class GraphOptimiserParameters:

@@ -1,4 +1,3 @@
-from copy import deepcopy
 from itertools import zip_longest
 from typing import List, Optional, Union, Callable, Any
 
@@ -19,9 +18,8 @@ from fedot.core.optimisers.gp_comp.operators.regularization import regularized_p
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
-from fedot.core.validation.objective import Objective
-from fedot.core.validation.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 DEFAULT_MAX_POP_SIZE = 55
 

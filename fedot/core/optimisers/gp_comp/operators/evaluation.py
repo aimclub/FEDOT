@@ -13,7 +13,7 @@ from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.gp_comp.operators.operator import *
 from fedot.core.optimisers.timer import Timer, get_forever_timer
-from fedot.core.validation.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective import ObjectiveEvaluate
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 

@@ -5,7 +5,7 @@ from typing import Any, Callable, Dict, Type, TypeVar, Union
 
 from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.pipelines.node import NodeMetadata
-from fedot.core.validation.objective import Objective
+from fedot.core.optimisers.objective.objective import Objective
 
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)

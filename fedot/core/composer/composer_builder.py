@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Sequence
+from typing import Optional, Union, List, Dict
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
@@ -22,7 +22,7 @@ from fedot.core.repository.quality_metrics_repository import (
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.validation.objective import Objective
+from fedot.core.optimisers.objective.objective import Objective
 
 
 class ComposerBuilder:

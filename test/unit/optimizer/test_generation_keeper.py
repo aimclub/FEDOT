@@ -1,16 +1,14 @@
 from typing import Sequence
 
-import pytest
-
 from fedot.core.optimisers.gp_comp.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
 
-from fedot.core.optimisers.fitness import Fitness, SingleObjFitness, MultiObjFitness, null_fitness
+from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ComplexityMetricsEnum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from fedot.core.validation.objective import Objective
+from fedot.core.optimisers.objective.objective import Objective
 
 
 def create_individual(fitness: Fitness = None) -> Individual:

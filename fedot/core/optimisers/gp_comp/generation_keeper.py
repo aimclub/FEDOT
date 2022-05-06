@@ -7,7 +7,7 @@ from deap.tools import HallOfFame, ParetoFront
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
-from fedot.core.validation.objective import Objective
+from fedot.core.optimisers.objective.objective import Objective
 
 
 class ImprovementWatcher(ABC):
