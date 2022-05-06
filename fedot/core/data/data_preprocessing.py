@@ -1,11 +1,8 @@
-from typing import Union
-
 import numpy as np
 import pandas as pd
 
 from fedot.core.data.data import InputData, data_type_is_table, data_type_is_ts, data_type_is_multi_ts
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.data.multi_modal import MultiModalData
 
 
 def data_type_is_suitable_preprocessing(data: InputData) -> bool:
@@ -111,15 +108,10 @@ def force_categorical_determination(table):
     return categorical_ids, non_categorical_ids
 
 
-# TODO can be reduced to unimodal
-def data_has_missing_values(data: Union[InputData, 'MultiModalData']) -> bool:
+def data_has_missing_values(data: InputData) -> bool:
     """ Check data for missing values."""
-
-    if not isinstance(data, InputData):
-        for data_source_name, values in data.items():
-            if data_type_is_table(values):
-                return pd.DataFrame(values.features).isna().sum().sum() > 0
-    elif data_type_is_suitable_preprocessing(data):
+    # TODO add check for missing text data and write test
+    if data_type_is_suitable_preprocessing(data):
         return pd.DataFrame(data.features).isna().sum().sum() > 0
     return False
 
@@ -144,13 +136,8 @@ def data_has_text_features(data: InputData) -> bool:
     Check data for text fields.
     Return bool, whether data has text fields or not
     """
-    if data.data_type is not DataTypesEnum.text:
-        return False
 
-    data_has_text_features = False
-    if isinstance(data.features[0], str) and len(data.features.shape) == 1:
-        data_has_text_features = True
-    return data_has_text_features
+    return isinstance(data.features[0], str) and len(data.features.shape) == 1
 
 
 # TODO should it be there or outside preprocessing

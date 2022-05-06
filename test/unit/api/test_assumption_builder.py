@@ -102,13 +102,14 @@ def test_preprocessing_builder_with_data():
 def test_assumptions_builder_for_multimodal_data():
     mm_data, _ = get_single_task_multimodal_tabular_data()
 
+    mm_data = DataPreprocessor().obligatory_prepare_for_fit(data=mm_data)
     mm_builder = MultiModalAssumptionsBuilder(mm_data)
     mm_pipeline: Pipeline = mm_builder.build()[0]
 
     assert pipeline_contains_all(mm_pipeline, *mm_data)
     assert len(list(filter(lambda node: isinstance(node, PrimaryNode), mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
-    assert mm_pipeline.length == mm_pipeline.depth * mm_data.num_classes - 1  # minus final ensemble node
+    assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 2  # minus final ensemble & simple imputation nodes
 
 
 def test_assumptions_builder_unsuitable_available_operations():
