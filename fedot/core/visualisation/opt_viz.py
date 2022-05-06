@@ -345,10 +345,12 @@ class PipelineEvolutionVisualiser:
         fig.set_dpi(110)
         fig.set_facecolor('w')
         ax = plt.gca()
+
         ax.set_title('Fitness by generations')
         ax.set_xticklabels(range(len(history.historical_fitness)))
-        ax.set_xlabel(xlabel=f'Generation')
-        ax.set_ylabel(ylabel=f'Fitness score')
+        ax.set_xlabel('Generation')
+        str_fraction_of_pipelines = "all" if n_best is None else f"top {n_best * 100}% of"
+        ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
 
         if not save_path:
             plt.show()
@@ -389,6 +391,9 @@ class PipelineEvolutionVisualiser:
         fig = plot.figure
         fig.set_dpi(110)
         fig.set_facecolor('w')
+        ax = plt.gca()
+        str_fraction_of_pipelines = "all" if n_best is None else f"top {n_best * 100}% of"
+        ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
         if save_path:
             save_path = Path(save_path)
@@ -509,7 +514,7 @@ class PipelineEvolutionVisualiser:
         bars = ax.barh(tags_found, count, color=color)
         ax.set_title(title)
         ax.set_xlim(0, 1)
-        str_fraction_of_pipelines = "all" if n_best is None else f"best {n_best * 100}% of"
+        str_fraction_of_pipelines = "all" if n_best is None else f"top {n_best * 100}% of"
         ax.set_xlabel(f'Fraction of operation in {str_fraction_of_pipelines} generation pipelines')
         ax.set_ylabel('Operation', loc='top')
         ax.invert_yaxis()
