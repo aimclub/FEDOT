@@ -126,7 +126,7 @@ class OptHistory:
             os.mkdir(path)
 
     def show(self, kind: Literal['fitness_box', 'operation_kde', 'operation_animated_barplot'] = 'fitness_box',
-             save_path_to_file: Optional[str] = None, n_best: Optional[float] = None,
+             save_path: Optional[str] = None, n_best: Optional[float] = None,
              hide_fitness: Optional[bool] = False):
         """ Visualizes fitness values across generations """
         # TODO: Modify docstring
@@ -146,15 +146,15 @@ class OptHistory:
         if kind == 'fitness_box':
             if all_historical_fitness is None:
                 raise ValueError(f'The history has no fitness data. Visualization "{kind}" is not supported.')
-            viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file, n_best=n_best)
+            viz.visualise_fitness_box(self, save_path=save_path, n_best=n_best)
         elif kind == 'operation_kde':
-            viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file, n_best=n_best)
+            viz.visualize_operations_kde(self, save_path=save_path, n_best=n_best)
         elif kind == 'operation_animated_barplot':
             if all_historical_fitness is None:
                 print(f'The history has no fitness data. Fitness is not displayed.')
                 hide_fitness = True
             viz.visualize_operations_animated_barplot(
-                self, save_path_to_file=save_path_to_file, n_best=n_best, hide_fitness_color=hide_fitness
+                self, save_path=save_path, n_best=n_best, hide_fitness_color=hide_fitness
             )
         else:
             raise ValueError(f'Visualization "{kind}" is not supported.')

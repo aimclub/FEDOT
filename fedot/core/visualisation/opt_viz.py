@@ -93,41 +93,6 @@ class PipelineEvolutionVisualiser:
             plt.clf()
         plt.close('all')
 
-    def visualise_fitness_by_generations(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
-                                         n_best: Optional[float] = None):
-        """ Visualizes fitness values across generations
-        :param history: OptHistory
-        :param save_path_to_file: path to save the visualization. If set, then the image will be saved,
-        and if not, it will be displayed
-        :param n_best: fraction of the best individuals of each generation that included in the visualization.
-        Must be in the interval (0, 1].
-        """
-        df_history = self.__get_history_dataframe(history, get_tags=False, n_best=n_best)
-        df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
-        # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
-        palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
-            sort_values('fitness', ignore_index=True)['generation'].sort_values().index
-        palette = sns.light_palette("seagreen", n_colors=len(palette_ranks))
-        palette.reverse()
-
-        fig, ax = plt.subplots(figsize=(15, 10))
-        sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
-
-        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
-        ax.set_xticklabels(range(len(history.historical_fitness)))
-        ax.set_xlabel(xlabel=f'Generation', fontsize=20)
-        ax.set_ylabel(ylabel=f'Fitness score', fontsize=20)
-
-        if not save_path_to_file:
-            plt.show()
-        else:
-            save_path_to_file = Path(save_path_to_file)
-            if not save_path_to_file.is_absolute():
-                save_path_to_file = Path(os.getcwd(), save_path_to_file)
-            plt.savefig(save_path_to_file)
-            print(f'The figure was saved to "{save_path_to_file}".')
-            plt.close()
-
     def visualise_history(self, history):
         try:
             self._clean(with_gif=True)
@@ -359,7 +324,42 @@ class PipelineEvolutionVisualiser:
 
         return df_history
 
-    def visualize_operations_kde(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
+    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
+                              n_best: Optional[float] = None):
+        """ Visualizes fitness values across generations
+        :param history: OptHistory
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+        and if not, it will be displayed
+        :param n_best: fraction of the best individuals of each generation that included in the visualization.
+        Must be in the interval (0, 1].
+        """
+        df_history = self.__get_history_dataframe(history, get_tags=False, n_best=n_best)
+        df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
+        # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
+        palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
+            sort_values('fitness', ignore_index=True)['generation'].sort_values().index
+        palette = sns.light_palette("seagreen", n_colors=len(palette_ranks))
+        palette.reverse()
+
+        fig, ax = plt.subplots(figsize=(15, 10))
+        sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
+
+        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
+        ax.set_xticklabels(range(len(history.historical_fitness)))
+        ax.set_xlabel(xlabel=f'Generation', fontsize=20)
+        ax.set_ylabel(ylabel=f'Fitness score', fontsize=20)
+
+        if not save_path:
+            plt.show()
+        else:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
+            plt.savefig(save_path)
+            print(f'The figure was saved to "{save_path}".')
+            plt.close()
+
+    def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[str] = None,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
                                  n_best: Optional[float] = None):
         # TODO: Docstring
@@ -389,26 +389,26 @@ class PipelineEvolutionVisualiser:
         fig.set_dpi(110)
         fig.set_facecolor('w')
 
-        if save_path_to_file:
-            save_path_to_file = Path(save_path_to_file)
-            if not save_path_to_file.is_absolute():
-                save_path_to_file = Path(os.getcwd(), save_path_to_file)
+        if save_path:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
 
-            fig.savefig(save_path_to_file, dpi=300)
-            print(f'The figure was saved to "{save_path_to_file}".')
+            fig.savefig(save_path, dpi=300)
+            print(f'The figure was saved to "{save_path}".')
             plt.close()
 
-    def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
+    def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path: Optional[str] = None,
                                               tags_model: Optional[List[str]] = None,
                                               tags_data: Optional[List[str]] = None,
                                               n_best: Optional[float] = None, hide_fitness_color: bool = False):
         # TODO: Docstring
 
-        if save_path_to_file is None:
-            raise ValueError('`save_path_to_file` should be set to save the animation.')
+        if save_path is None:
+            raise ValueError('`save_path` should be set to save the animation.')
 
-        save_path_to_file = Path(save_path_to_file)
-        if save_path_to_file.suffix not in ['.gif', '.mp4']:
+        save_path = Path(save_path)
+        if save_path.suffix not in ['.gif', '.mp4']:
             raise ValueError('A correct file extension (".mp4" or ".gif") should be set to save the animation.')
 
         def interpolate_points(point_1, point_2, smoothness=50, power=4) -> List[np.array]:
@@ -514,8 +514,8 @@ class PipelineEvolutionVisualiser:
         ax.invert_yaxis()
         plt.tight_layout()
 
-        if not save_path_to_file.is_absolute():
-            save_path_to_file = Path(os.getcwd(), save_path_to_file)
+        if not save_path.is_absolute():
+            save_path = Path(os.getcwd(), save_path)
 
         ani = animation.FuncAnimation(
             fig,
@@ -525,10 +525,9 @@ class PipelineEvolutionVisualiser:
             interval=interval,
             repeat=False
         )
-        ani.save(str(save_path_to_file), dpi=200)
+        ani.save(str(save_path), dpi=200)
+        print(f'The animation was saved to "{save_path}".')
         plt.close(fig=fig)
-
-        print(f'The animation was saved to "{save_path_to_file}".')
 
 
 def figure_to_array(fig):
