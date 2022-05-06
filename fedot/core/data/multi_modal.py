@@ -41,6 +41,12 @@ class MultiModalData(dict):
             if input_data.supplementary_data.is_main_target:
                 return input_data.target
 
+    @target.setter
+    def target(self, value):
+        """ Update target for all input data """
+        for input_data in self.values():
+            input_data.target = value
+
     @property
     def data_type(self):
         return [input_data.data_type for input_data in iter(self.values())]
@@ -55,6 +61,16 @@ class MultiModalData(dict):
     def shuffle(self):
         # TODO implement multi-modal shuffle
         pass
+
+    def extract_data_source(self, source_name):
+        """
+            Function for extraction data_source from MultiModalData
+            :param source_name: string with user-specified name of source
+            :return target_data: selected source InputData
+        """
+        full_target_name = [key for key, _ in self.items() if source_name == key.split('/')[-1]][0]
+        source_data = self[full_target_name]
+        return source_data
 
     def subset_range(self, start: int, end: int):
         for key in self.keys():

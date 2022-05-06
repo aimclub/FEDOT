@@ -147,6 +147,11 @@ def test_multi_modal_data():
     assert multi_modal.num_classes == 2
     assert np.array_equal(multi_modal.target, target)
 
+    # check setter
+    new_target = np.asarray([1, 1, 1, 1, 1])
+    multi_modal.target = new_target
+    assert np.array_equal(multi_modal.target, new_target)
+
 
 def test_target_data_from_csv_correct():
     """ Function tests two ways of processing target columns in "from_csv"
