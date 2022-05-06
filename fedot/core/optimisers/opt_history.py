@@ -138,8 +138,10 @@ class OptHistory:
             viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
         elif kind == 'operation_kde':
             viz.visualize_operations_kde(self, save_path_to_file=save_path_to_file, n_best=n_best)
+        elif kind == 'operation_animated_barplot':
+            viz.visualize_operations_animated_barplot(self, save_path_to_file=save_path_to_file, n_best=n_best)
         else:
-            raise ValueError(f'Visualization {kind} is not supported.')
+            raise ValueError(f'Visualization "{kind}" is not supported.')
 
     @property
     def short_metrics_names(self):

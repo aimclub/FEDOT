@@ -3,8 +3,9 @@ import os
 from copy import deepcopy
 from glob import glob
 from os import remove
+from pathlib import Path
 from time import time
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,6 +14,8 @@ import seaborn as sns
 from PIL import Image
 from deap import tools
 from imageio import get_writer, imread
+from matplotlib import cm, animation
+from matplotlib.colors import Normalize
 from pandas.core.common import flatten
 
 from fedot.core.log import Log, default_log
@@ -385,6 +388,121 @@ class PipelineEvolutionVisualiser:
         if save_path_to_file:
             fig.savefig(save_path_to_file, dpi=300)
             plt.close()
+
+    def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path_to_file: Optional[str] = None,
+                                              tags_model: Optional[List[str]] = None,
+                                              tags_data: Optional[List[str]] = None,
+                                              n_best: Optional[float] = None):
+        # TODO: Docstring
+
+        if save_path_to_file is None:
+            raise ValueError('Please, specify `save_path_to_file` to save the animation.')
+
+        save_path_to_file = Path(save_path_to_file)
+        if save_path_to_file.suffix not in ['.gif', '.mp4']:
+            raise ValueError('Please, specify correct file extension (".mp4" or ".gif") to save the animation.')
+
+        def interpolate_points(point_1, point_2, smoothness=50, power=4) -> List[np.array]:
+            t_interp = np.linspace(0, 1, smoothness)
+            point_1, point_2 = np.array(point_1), np.array(point_2)
+            return [point_1 * (1 - t ** power) + point_2 * t ** power for t in t_interp]
+
+        def smoothen_frames_data(data: Sequence[Sequence['ArrayLike']], smoothness=50, power=4) -> List[np.array]:
+            final_frames = []
+            for initial_frame in range(len(data) - 1):
+                final_frames += interpolate_points(data[initial_frame], data[initial_frame + 1], smoothness, power)
+            # final frame interpolates into itself
+            final_frames += interpolate_points(data[-1], data[-1], smoothness, power)
+
+            return final_frames
+
+        def animate(frame_num):
+            # global bars
+            frame_count = bar_data[frame_num]
+            frame_color = bar_color[frame_num]
+            frame_title = bar_title[frame_num]
+
+            plt.title(frame_title)
+            for i in range(len(bars)):
+                bars[i].set_width(frame_count[i])
+                bars[i].set_facecolor(frame_color[i])
+
+        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
+        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
+
+        tags_all = [*tags_model, *tags_data]
+
+        generation_column_name = 'Generation'
+        fitness_column_name = 'Fitness'
+        tag_column_name = 'Operation'
+
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, n_best)
+        df_history = df_history.rename({
+            'generation': generation_column_name,
+            'fitness': fitness_column_name,
+            'tag': tag_column_name,
+        }, axis='columns')
+        tags_found = df_history[tag_column_name].unique()
+        tags_found = [tag for tag in tags_all if tag in tags_found]
+
+        nodes_per_generation = df_history[generation_column_name].value_counts()
+
+        df_history = df_history.groupby([generation_column_name, tag_column_name], as_index=False).agg(
+            {fitness_column_name: 'mean', 'node': 'count'})
+        df_history.columns = [generation_column_name, tag_column_name, fitness_column_name, 'node_count']
+        df_history['node_count'] = df_history.apply(
+            lambda row: row['node_count'] / nodes_per_generation[row[generation_column_name]], axis=1)
+        df_history = df_history.set_index([generation_column_name, tag_column_name])
+
+        min_fitness = df_history[fitness_column_name].min()
+        max_fitness = df_history[fitness_column_name].max()
+
+        generations = df_history.index.get_level_values(0).unique()
+        # Getting data through all generations and filling with zeroes
+        colormap = cm.get_cmap('YlOrRd')
+        bar_data = []
+        bar_color = []
+        for gen_num in generations:
+            bar_data.append([df_history.loc[gen_num]['node_count'].get(tag, 0) for tag in tags_found])
+            fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
+            # Transfer fitness to color
+            bar_color.append([colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
+
+        smoothness = 18
+        interval = 40
+
+        bar_data = smoothen_frames_data(bar_data, smoothness)
+        bar_color = smoothen_frames_data(bar_color, smoothness)
+        bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * smoothness]
+
+        fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
+        fig.colorbar(
+            cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=colormap),
+            label=fitness_column_name
+        )
+
+        count = bar_data[0]
+        color = bar_color[0]
+        title = bar_title[0]
+
+        bars = ax.barh(tags_found, count, color=color)
+        ax.set_title(title)
+        ax.set_xlim(0, 1)
+        str_fraction_of_pipelines = "all" if n_best is None else f"best {n_best * 100}% of"
+        ax.set_xlabel(f'Fraction of operation in {str_fraction_of_pipelines} generation pipelines')
+        ax.set_ylabel('Operation', loc='top')
+        ax.invert_yaxis()
+        plt.tight_layout()
+
+        ani = animation.FuncAnimation(
+            fig,
+            animate,
+            # frames=enumerate(gens_tags),
+            frames=len(bar_data),
+            interval=interval,
+            repeat=False
+        )
+        ani.save(save_path_to_file, dpi=200)
 
 
 def figure_to_array(fig):
