@@ -132,17 +132,15 @@ def get_not_default_search_space():
             'alpha': (hp.uniform, [0.01, 5.0])
         },
         'lgbmreg': {
-            'min_data_in_leaf': (hp.uniform, [1e-3, 0.5]),
+            'min_samples_leaf': (hp.uniform, [1e-3, 0.5]),
             'n_estimators': (hp.choice, [[100]]),
             'max_depth': (hp.choice, [[2.5, 3.5, 4.5]]),
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.uniform, [0.15, 1])
         },
-        'lgbm': {
-            'min_data_in_leaf': (hp.uniform, [1e-3, 0.5]),
-            'max_depth': (hp.choice, [[2.5, 3.5, 4.5]]),
-            'subsample': (hp.uniform, [0.1, 0.9]),
-            'min_child_weight': (hp.uniformint, [1, 15])
+        'dt': {
+            'min_samples_leaf': (hp.uniform, [1e-3, 0.5]),
+            'max_depth': (hp.choice, [[-1]])
         },
         'ar': {
             'lag_1': (hp.uniform, [2, 100]),
