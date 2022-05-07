@@ -15,8 +15,13 @@ class HyperparametersPreprocessor():
         self.preprocessing_rules = self._get_preprocessing_rules(operation_type)
         self.n_samples_data = n_samples_data
 
-    def _get_preprocessing_rules(self, operation_type):
-        all_preprocessing_rules = {
+        self.preprocessing_types_dict = {
+            'integer': self._correct_integer,
+            'absolute': self._correct_absolute,
+            'le0_to_none': self._correct_le0_to_none
+        }
+
+        self.all_preprocessing_rules = {
             'knnreg': {
                 'n_neighbors': ['integer']
             },
@@ -126,7 +131,8 @@ class HyperparametersPreprocessor():
             },
         }
 
-        return all_preprocessing_rules.get(operation_type, {})
+    def _get_preprocessing_rules(self, operation_type):
+        return self.all_preprocessing_rules.get(operation_type, {})
 
     def correct(self,
                 params: Optional[dict]):
@@ -155,16 +161,7 @@ class HyperparametersPreprocessor():
         if param_value is None:
             return None, True
 
-        is_final_transformation = False
-
-        if preprocess_type == 'le0_to_none':
-            param_value, is_final_transformation = self._correct_le0_to_none(param_value=param_value)
-        elif preprocess_type == 'absolute':
-            param_value, is_final_transformation = self._correct_absolute(param_value=param_value)
-        elif preprocess_type == 'integer':
-            param_value, is_final_transformation = self._correct_integer(param_value=param_value)
-
-        return param_value, is_final_transformation
+        return self.preprocessing_types_dict[preprocess_type](param_value=param_value)
 
     def _correct_le0_to_none(self,
                              param_value):
