@@ -138,11 +138,9 @@ def get_not_default_search_space():
             'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1]]),
             'subsample': (hp.uniform, [0.15, 1])
         },
-        'lgbm': {
+        'dt': {
             'min_data_in_leaf': (hp.uniform, [1e-3, 0.5]),
-            'max_depth': (hp.choice, [[2.5, 3.5, 4.5]]),
-            'subsample': (hp.uniform, [0.1, 0.9]),
-            'min_child_weight': (hp.uniformint, [1, 15])
+            'max_depth': (hp.choice, [[-1]])
         },
         'ar': {
             'lag_1': (hp.uniform, [2, 100]),
