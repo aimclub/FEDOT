@@ -175,6 +175,7 @@ class HyperparametersPreprocessor():
         """
 
         if param_value <= 0:
+            # None value do need to be transformed anymore
             return None, True
         return param_value, False
 
@@ -187,6 +188,7 @@ class HyperparametersPreprocessor():
         """
 
         if 0 <= param_value < 1:
+            # Transformed to absolute value share do not need to be transformed anymore
             return int(np.ceil(param_value * self.n_samples_data)), True
         return param_value, False
 
