@@ -21,7 +21,8 @@ class HyperparametersPreprocessor():
             'le0_to_none': self._correct_le0_to_none
         }
 
-        self.all_preprocessing_rules = {
+    def _get_preprocessing_rules(self, operation_type):
+        all_preprocessing_rules = {
             'knnreg': {
                 'n_neighbors': ['integer']
             },
@@ -131,8 +132,7 @@ class HyperparametersPreprocessor():
             },
         }
 
-    def _get_preprocessing_rules(self, operation_type):
-        return self.all_preprocessing_rules.get(operation_type, {})
+        return all_preprocessing_rules.get(operation_type, {})
 
     def correct(self,
                 params: Optional[dict]):
