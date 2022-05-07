@@ -21,28 +21,28 @@ class HyperparametersPreprocessor():
                 'n_neighbors': ['integer']
             },
             'dtreg': {
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'treg': {
                 'n_estimators': ['integer'],
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'rfr': {
                 'n_estimators': ['integer'],
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'adareg': {
                 'n_estimators': ['integer'],
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'gbr': {
                 'n_estimators': ['integer'],
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'xgbreg': {
                 'nthread': ['integer'],
@@ -77,13 +77,13 @@ class HyperparametersPreprocessor():
                 'n_neighbors': ['integer']
             },
             'dt': {
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'rf': {
                 'n_estimators': ['integer'],
-                'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer']
+                'max_leaf_nodes': ['le0_to_none', 'integer'],
+                'max_depth': ['le0_to_none', 'integer']
             },
             'xgboost': {
                 'nthread': ['integer'],
@@ -119,10 +119,10 @@ class HyperparametersPreprocessor():
             },
 
             'kernel_pca': {
-                'n_components': ['integer']
+                'n_components': ['le0_to_none', 'integer']
             },
             'fast_ica': {
-                'n_components': ['integer']
+                'n_components': ['le0_to_none', 'integer']
             },
         }
 
@@ -136,8 +136,11 @@ class HyperparametersPreprocessor():
         for param in params:
             if param in self.preprocessing_rules:
                 for preprocess in self.preprocessing_rules[param]:
-                    params[param] = self._correct(param_value=params[param],
-                                                  preprocess_type=preprocess)
+                    params[param], is_final_transformation = self._correct(param_value=params[param],
+                                                                           preprocess_type=preprocess)
+
+                    if is_final_transformation:
+                        break
 
         return params
 
@@ -149,11 +152,31 @@ class HyperparametersPreprocessor():
         :return : param_value after preprocessing
         """
 
-        if preprocess_type == 'integer':
-            param_value = self._correct_integer(param_value=param_value)
+        if param_value is None:
+            return None, True
+
+        is_final_transformation = False
+
+        if preprocess_type == 'le0_to_none':
+            param_value, is_final_transformation = self._correct_le0_to_none(param_value=param_value)
         elif preprocess_type == 'absolute':
-            param_value = self._correct_absolute(param_value=param_value)
-        return param_value
+            param_value, is_final_transformation = self._correct_absolute(param_value=param_value)
+        elif preprocess_type == 'integer':
+            param_value, is_final_transformation = self._correct_integer(param_value=param_value)
+
+        return param_value, is_final_transformation
+
+    def _correct_le0_to_none(self,
+                             param_value):
+        """
+        Method converts all parameter values less or equal than 0 to None
+        :param param_value: initial value of the parameter
+        :return: (param_value after transformation, True if no more transformations needed)
+        """
+
+        if param_value <= 0:
+            return None, True
+        return param_value, False
 
     def _correct_absolute(self,
                           param_value):
@@ -164,8 +187,8 @@ class HyperparametersPreprocessor():
         """
 
         if 0 <= param_value < 1:
-            return np.ceil(param_value * self.n_samples_data)
-        return param_value
+            return np.ceil(param_value * self.n_samples_data), True
+        return param_value, False
 
     def _correct_integer(self,
                          param_value):
@@ -175,4 +198,4 @@ class HyperparametersPreprocessor():
         :return: param_value after rounding
         """
 
-        return round(param_value)
+        return round(param_value), False
