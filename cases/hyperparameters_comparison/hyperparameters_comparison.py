@@ -205,56 +205,56 @@ params = {
         'C': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     },
     'knn': {
-        'n_neighbors': (hp.randint, [1, 100]),
+        'n_neighbors': (hp.uniformint, [1, 100]),
         'metric': (hp.choice, [['euclidean', 'manhattan', 'chebyshev', 'cosine']]),
         'weights': (hp.choice, [['uniform', 'distance']])
     },
     'knnreg': {
-        'n_neighbors': (hp.randint, [1, 100]),
+        'n_neighbors': (hp.uniformint, [1, 100]),
         'metric': (hp.choice, [['euclidean', 'manhattan', 'chebyshev', 'cosine']]),
         'weights': (hp.choice, [['uniform', 'distance']])
     },
     'dt': {
-        'max_depth': (hp.randint, [2, 15]),
-        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
+        'max_depth': (hp.uniformint, [0, 15]),
+        'min_samples_leaf': (hp.loguniform, [np.log(1e-6), np.log(0.5)])
     },
     'dtreg': {
-        'max_depth': (hp.randint, [2, 15]),
-        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
+        'max_depth': (hp.uniformint, [0, 15]),
+        'min_samples_leaf': (hp.loguniform, [np.log(1e-6), np.log(0.5)])
     },
     'rf': {
-        'n_estimators': (hp.randint, [10, 1000]),
+        'n_estimators': (hp.uniformint, [10, 1000]),
         'max_features': (hp.uniform, [0.01, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
-        'max_depth': (hp.randint, [2, 15]),
-        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
+        'max_depth': (hp.uniformint, [0, 15]),
+        'min_samples_leaf': (hp.loguniform, [np.log(1e-6), np.log(0.5)])
     },
     'rfr': {
-        'n_estimators': (hp.randint, [10, 1000]),
+        'n_estimators': (hp.uniformint, [10, 1000]),
         'max_features': (hp.uniform, [0.01, 1]),
         'bootstrap': (hp.choice, [[True, False]]),
-        'max_depth': (hp.randint, [2, 15]),
-        'min_samples_leaf': (hp.uniform, [1e-4, 0.5])
+        'max_depth': (hp.uniformint, [0, 15]),
+        'min_samples_leaf': (hp.loguniform, [np.log(1e-6), np.log(0.5)])
     },
     'lgbm': {
-        'n_estimators': (hp.randint, [10, 1000]),
+        'n_estimators': (hp.uniformint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 15]),
-        'min_samples_leaf': (hp.uniform, [1e-4, 0.5]),
+        'max_depth': (hp.uniformint, [0, 15]),
+        'min_samples_leaf': (hp.loguniform, [np.log(1e-6), np.log(0.5)]),
         'colsample_bytree': (hp.uniform, [0.01, 1]),
         'subsample': (hp.uniform, [0.01, 1]),
-        'max_bin': (hp.randint, [3, 511]),
+        'max_bin': (hp.uniformint, [3, 511]),
         'lambda_l1': (hp.loguniform, [np.log(1e-9), np.log(1e4)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     },
     'lgbmreg': {
-        'n_estimators': (hp.randint, [10, 1000]),
+        'n_estimators': (hp.uniformint, [10, 1000]),
         'learning_rate': (hp.loguniform, [np.log(1e-4), np.log(1e1)]),
-        'max_depth': (hp.randint, [2, 15]),
-        'min_samples_leaf': (hp.uniform, [1e-4, 0.5]),
+        'max_depth': (hp.uniformint, [0, 15]),
+        'min_samples_leaf': (hp.loguniform, [np.log(1e-6), np.log(0.5)]),
         'colsample_bytree': (hp.uniform, [0.01, 1]),
         'subsample': (hp.uniform, [0.01, 1]),
-        'max_bin': (hp.randint, [3, 511]),
+        'max_bin': (hp.uniformint, [3, 511]),
         'lambda_l1': (hp.loguniform, [np.log(1e-9), np.log(1e4)]),
         'lambda_l2': (hp.loguniform, [np.log(1e-9), np.log(1e4)])
     }
@@ -268,12 +268,12 @@ timeout = timedelta(minutes=30)
 keys = []
 
 for experiment in range(n_experiments):
-    for d in datasets:
-        for m in datasets[d]['metrics']:
-            for fo in datasets[d]['fitted_operations']:
+    for d in ['brazilian-houses']:#datasets:
+        for m in ['mae']:#datasets[d]['metrics']:
+            for fo in ['lgbmreg']:#datasets[d]['fitted_operations']:
                 keys += [(d, m, fo, 'default', experiment)]
-                keys += [(d, m, fo, 'random', experiment)]
                 keys += [(d, m, fo, 'tpe', experiment)]
+                keys += [(d, m, fo, 'random', experiment)]
 
 if __name__ == '__main__':
     freeze_support()
