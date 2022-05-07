@@ -183,6 +183,7 @@ class HyperparametersPreprocessor():
         :param param_value: initial value of the parameter
         :return: param_value after transformation
         """
+
         if 0 <= param_value < 1:
             # Transformed to absolute value share do not need to be transformed anymore
             return int(np.ceil(param_value * self.n_samples_data)), True
