@@ -491,7 +491,8 @@ class PipelineEvolutionVisualiser:
                 continue
             fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
             # Transfer fitness to color
-            bar_color.append([fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
+            bar_color.append([
+                fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
 
         bar_data = smoothen_frames_data(bar_data, animation_frames_per_step, animation_interpolation_power)
         bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * animation_frames_per_step]
