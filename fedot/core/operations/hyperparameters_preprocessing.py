@@ -187,7 +187,7 @@ class HyperparametersPreprocessor():
         """
 
         if 0 <= param_value < 1:
-            return np.ceil(param_value * self.n_samples_data), True
+            return int(np.ceil(param_value * self.n_samples_data)), True
         return param_value, False
 
     def _correct_integer(self,
