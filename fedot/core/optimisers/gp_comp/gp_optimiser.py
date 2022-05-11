@@ -214,7 +214,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             self._next_population(evaluator(self._init_population(pop_size)))
 
             while not self.stop_optimisation():
-                pop_size = self._pop_size.next(pop_size)
+                pop_size = self._pop_size.next(self.population)
                 self.log.info(f'Next pop size: {pop_size}')
 
                 # TODO: subst to mutation params

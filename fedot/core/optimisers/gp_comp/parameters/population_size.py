@@ -3,6 +3,7 @@ import math
 from .parameter import AdaptiveParameter
 from fedot.core.utilities.data_structures import BidirectionalIterator
 from fedot.core.optimisers.generation_keeper import ImprovementWatcher
+from ..operators.operator import PopulationT
 
 PopulationSize = AdaptiveParameter[int]
 
@@ -16,8 +17,8 @@ class ConstRatePopulationSize(PopulationSize):
     def initial(self) -> int:
         return self._initial
 
-    def next(self, current: int) -> int:
-        return math.ceil(current * self._offspring_rate)
+    def next(self, population: PopulationT) -> int:
+        return math.ceil(len(population) * self._offspring_rate)
 
 
 class AdaptivePopulationSize(PopulationSize):
@@ -32,17 +33,18 @@ class AdaptivePopulationSize(PopulationSize):
     def initial(self) -> int:
         return self._initial
 
-    def next(self, current: int) -> int:
+    def next(self, population: PopulationT) -> int:
         fitness_improved = self._improvements.is_quality_improved
         complexity_decreased = self._improvements.is_complexity_improved
         progress_in_both_goals = fitness_improved and complexity_decreased
         no_progress = not fitness_improved and not complexity_decreased
 
-        if progress_in_both_goals and current > 2:
+        pop_size = len(population)
+        if progress_in_both_goals and pop_size > 2:
             if self._iterator.has_prev():
-                current = self._iterator.prev()
+                pop_size = self._iterator.prev()
         elif no_progress:
             if self._iterator.has_next():
-                current = self._iterator.next()
+                pop_size = self._iterator.next()
 
-        return current
+        return pop_size

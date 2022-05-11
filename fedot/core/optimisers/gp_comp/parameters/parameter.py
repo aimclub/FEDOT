@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar
 
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+
 T = TypeVar('T')
 
 
@@ -16,5 +18,19 @@ class AdaptiveParameter(ABC, Generic[T]):
         raise NotImplementedError()
 
     @abstractmethod
-    def next(self, current: T) -> T:
+    def next(self, population: PopulationT) -> T:
         raise NotImplementedError()
+
+
+class ConstParameter(AdaptiveParameter[T]):
+    """Stub implementation of AdaptiveParameter for constant parameters."""
+
+    def __init__(self, value: T):
+        self._value = value
+
+    @property
+    def initial(self) -> T:
+        return self._value
+
+    def next(self, population: PopulationT) -> T:
+        return self._value
