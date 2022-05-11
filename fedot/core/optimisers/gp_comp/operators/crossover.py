@@ -33,6 +33,10 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
               crossover_prob: float = 0.8, params: 'GraphGenerationParams' = None) -> Any:
     crossover_type = choice(types)
     is_custom_crossover = isinstance(crossover_type, Callable)
+
+    ind_first = deepcopy(ind_first)
+    ind_second = deepcopy(ind_second)
+
     try:
         if will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_prob, crossover_type):
             if crossover_type in crossover_by_type or is_custom_crossover:
@@ -44,8 +48,8 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                     new_inds = []
 
                     is_custom_operator = isinstance(ind_first, OptGraph)
-                    input_obj_first = deepcopy(ind_first.graph)
-                    input_obj_second = deepcopy(ind_second.graph)
+                    input_obj_first = ind_first.graph
+                    input_obj_second = ind_second.graph
                     if is_custom_operator:
                         input_obj_first = params.adapter.restore(input_obj_first)
                         input_obj_second = params.adapter.restore(input_obj_second)
@@ -83,9 +87,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
     except Exception as ex:
         log.error(f'Crossover ex: {ex}')
 
-    ind_first_copy = deepcopy(ind_first)
-    ind_second_copy = deepcopy(ind_second)
-    return ind_first_copy, ind_second_copy
+    return ind_first, ind_second
 
 
 def subtree_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> Any:
