@@ -1,23 +1,22 @@
 from itertools import zip_longest
-from typing import List, Optional, Union, Callable, Any
+from typing import List, Optional, Union, Any
 
-import numpy as np
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
-    clean_operators_history,
     num_of_parents_in_crossover
 )
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.optimisers.gp_comp.parameters.mutation_prob import AdaptiveMutationProb
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, AdaptivePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphGenerationParams, OptimisationCallback, do_nothing_cb
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
@@ -49,6 +48,14 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                                 start_value=requirements.pop_size,
                                                 min_sequence_value=1, max_sequence_value=max_population_size)
         self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
+        self._mutation_rate = AdaptiveMutationProb()
+
+    def _operators_prob_update(self):
+        if not self.generations.is_any_improved:
+            mutation_prob = self._mutation_rate.next(self.population)
+            crossover_prob = 1. - mutation_prob
+            self.requirements.mutation_prob = mutation_prob
+            self.requirements.crossover_prob = crossover_prob
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
@@ -69,8 +76,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 # TODO: subst to mutation params
                 if self.parameters.with_auto_depth_configuration and self.generations.generation_num > 0:
                     self.max_depth_recount()
-
-                self.max_std = self.update_max_std()
 
                 individuals_to_select = \
                     regularized_population(self.parameters.regularization_type,
@@ -112,39 +117,5 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 # Then update generation
                 self._next_population(new_population)
 
-                # TODO: move into dynamic mutation operator
-                if not self.generations.is_any_improved:
-                    self.operators_prob_update()
-
         best = self.generations.best_individuals
         return self.to_outputs(best)
-
-    @property
-    def current_std(self):
-        return np.std([ind.fitness.value for ind in self.population])
-
-    def update_max_std(self):
-        if self.generations.generation_num <= 1:
-            std_max = self.current_std
-            if len(self.population) == 1:
-                self.requirements.mutation_prob = 1
-                self.requirements.crossover_prob = 0
-            else:
-                self.requirements.mutation_prob = 0.5
-                self.requirements.crossover_prob = 0.5
-        else:
-            if self.max_std < self.current_std:
-                std_max = self.current_std
-            else:
-                std_max = self.max_std
-        return std_max
-
-    def operators_prob_update(self):
-        std = float(self.current_std)
-        max_std = float(self.max_std)
-
-        mutation_prob = 1 - (std / max_std) if max_std > 0 and std != max_std else 0.5
-        crossover_prob = 1 - mutation_prob
-
-        self.requirements.mutation_prob = mutation_prob
-        self.requirements.crossover_prob = crossover_prob

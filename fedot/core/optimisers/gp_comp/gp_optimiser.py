@@ -26,8 +26,7 @@ from fedot.core.optimisers.gp_comp.operators.regularization import Regularizatio
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters, \
-    do_nothing_cb, OptimisationCallback
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
@@ -195,11 +194,16 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.optimisation_callback(next_population, self.generations)
         clean_operators_history(next_population)
         self.population = next_population
+        self._operators_prob_update()
 
         self.log.info(f'Generation num: {self.generations.generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
         self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
+
+    def _operators_prob_update(self):
+        """Extension point of the algorithm to adaptively modify parameters on each iteration."""
+        pass
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
