@@ -231,17 +231,20 @@ class EvoGraphOptimiser(GraphOptimiser):
                                            evaluator,
                                            self.graph_generation_params)
 
-                num_of_parents = num_of_parents_in_crossover(pop_size)
+                # TODO: collapse this selection & reprodue for 1 and for many
+                if len(self.population) == 1:
+                    new_population = list(self.reproduce(self.population[0]))
+                else:
+                    num_of_parents = num_of_parents_in_crossover(pop_size)
 
-                selected_individuals = selection(types=self.parameters.selection_types,
-                                                 population=individuals_to_select,
-                                                 pop_size=num_of_parents,
-                                                 params=self.graph_generation_params)
+                    selected_individuals = selection(types=self.parameters.selection_types,
+                                                     population=individuals_to_select,
+                                                     pop_size=num_of_parents,
+                                                     params=self.graph_generation_params)
 
-                new_population = []
-
-                for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
-                    new_population += self.reproduce(ind_1, ind_2)
+                    new_population = []
+                    for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
+                        new_population += self.reproduce(ind_1, ind_2)
 
                 new_population = evaluator(new_population)
 
