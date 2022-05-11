@@ -27,6 +27,9 @@ class Graph:
     def _empty_postproc(self, nodes=None):
         pass
 
+    def _empty_postproc(self, nodes=None):
+        pass
+
     def add_node(self, new_node: 'GraphNode'):
         """
         Add new node to the Pipeline
