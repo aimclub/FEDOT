@@ -307,8 +307,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                              params=self.graph_generation_params,
                              ind=new_ind, requirements=self.requirements,
                              max_depth=self.max_depth, log=self.log) for new_ind in new_inds]
-        for ind in new_inds:
-            ind.fitness = None
 
         return new_inds
 
