@@ -257,13 +257,14 @@ def test_gp_composer_with_start_depth(data_fixture, request):
                                        max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
                                        crossover_prob=0.4, mutation_prob=0.5, start_depth=2)
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
+    optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
+                                                      with_auto_depth_configuration=True)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser(parameters=optimiser_parameters)
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
-    assert composer.optimiser.max_depth == 5
+    assert composer.optimiser.max_depth == 2
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
