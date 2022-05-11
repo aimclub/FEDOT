@@ -8,7 +8,7 @@ from fedot.core.operations.operation import Operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
-import numpy as np
+
 
 class Model(Operation):
     """
