@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from ptan.agent import default_states_preprocessor
 from tensorboardX import SummaryWriter
 from torch import optim
+from tqdm import tqdm
 
 from fedot.core.utils import fedot_project_root
 from fedot.rl.network import A2CRnn
@@ -125,12 +126,13 @@ if __name__ == '__main__':
                     if tracker.reward(new_rewards[0], step_idx):
                         break
 
-                if (step_idx % 500) == 0 and step_idx != 0:
+                if (step_idx % 100) == 0 and step_idx != 0:
                     path_to_save = join(path_to_checkpoint, f'agent_{step_idx}')
                     torch.save(net.state_dict(), path_to_save)
 
                     with torch.no_grad():
-                        for val_id, val_name in enumerate(datasets):
+                        for val_id, val_name in enumerate(tqdm(datasets)):
+                            val_name = val_name[:-4]
                             val_total_rewards = []
                             val_correct_rewards = []
                             val_correct_pipelines = 0
@@ -162,6 +164,8 @@ if __name__ == '__main__':
                             tb_writer.add_scalar(val_name + '_reward', np.mean(val_total_rewards), step_idx)
                             tb_writer.add_scalar(val_name + '_pos_reward', np.mean(val_correct_rewards), step_idx)
                             tb_writer.add_scalar(val_name + '_correct_pipelines', val_correct_pipelines, step_idx)
+
+                            envs[val_id * NUM_ENV].reset()
 
                 if len(batch) < BATCH_SIZE:
                     continue
