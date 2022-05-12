@@ -280,7 +280,7 @@ class PipelineEvolutionVisualiser:
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
-                                tags_data: Optional[List[str]] = None, n_best: Optional[float] = None,
+                                tags_data: Optional[List[str]] = None, pct_best: Optional[float] = None,
                                 get_tags: bool = True):
         history_data = {
             'generation': [],
@@ -304,7 +304,7 @@ class PipelineEvolutionVisualiser:
 
         df_history = pd.DataFrame.from_dict(history_data)
 
-        if n_best is not None:
+        if pct_best is not None:
             generation_sizes = df_history.groupby('generation')['individual'].nunique()
 
             df_individuals = df_history[['generation', 'individual', 'fitness']] \
@@ -315,7 +315,7 @@ class PipelineEvolutionVisualiser:
 
             best_individuals = df_individuals[
                 df_individuals.apply(
-                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * n_best,
+                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * pct_best,
                     axis='columns'
                 )
             ]['individual']
@@ -325,15 +325,15 @@ class PipelineEvolutionVisualiser:
         return df_history
 
     def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
-                              n_best: Optional[float] = None):
+                              pct_best: Optional[float] = None):
         """ Visualizes fitness values across generations
         :param history: OptHistory
         :param save_path: path to save the visualization. If set, then the image will be saved,
         and if not, it will be displayed
-        :param n_best: fraction of the best individuals of each generation that included in the visualization.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
         Must be in the interval (0, 1].
         """
-        df_history = self.__get_history_dataframe(history, get_tags=False, n_best=n_best)
+        df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
         df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
         # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
         palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
@@ -349,7 +349,7 @@ class PipelineEvolutionVisualiser:
         ax.set_title('Fitness by generations')
         ax.set_xticklabels(range(len(history.historical_fitness)))
         ax.set_xlabel('Generation')
-        str_fraction_of_pipelines = "all" if n_best is None else f"top {n_best * 100}% of"
+        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
 
         if not save_path:
@@ -364,7 +364,7 @@ class PipelineEvolutionVisualiser:
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[str] = None,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
-                                 n_best: Optional[float] = None):
+                                 pct_best: Optional[float] = None):
         # TODO: Docstring
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
@@ -374,7 +374,7 @@ class PipelineEvolutionVisualiser:
         generation_column_name = 'Generation'
         tag_column_name = 'Operation'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, n_best)
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
         df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
         tags_found = df_history[tag_column_name].unique()
 
@@ -392,7 +392,7 @@ class PipelineEvolutionVisualiser:
         fig.set_dpi(110)
         fig.set_facecolor('w')
         ax = plt.gca()
-        str_fraction_of_pipelines = "all" if n_best is None else f"top {n_best * 100}% of"
+        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
         if save_path:
@@ -407,7 +407,7 @@ class PipelineEvolutionVisualiser:
     def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path: Optional[str] = None,
                                               tags_model: Optional[List[str]] = None,
                                               tags_data: Optional[List[str]] = None,
-                                              n_best: Optional[float] = None, hide_fitness_color: bool = False):
+                                              pct_best: Optional[float] = None, hide_fitness_color: bool = False):
         # TODO: Docstring
 
         def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
@@ -459,7 +459,7 @@ class PipelineEvolutionVisualiser:
         fitness_column_name = 'Fitness'
         tag_column_name = 'Operation'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, n_best)
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
         df_history = df_history.rename({
             'generation': generation_column_name,
             'fitness': fitness_column_name,
@@ -513,9 +513,9 @@ class PipelineEvolutionVisualiser:
         bars = ax.barh(tags_found, count, color=color)
         ax.set_title(title)
         ax.set_xlim(0, 1)
-        str_fraction_of_pipelines = "all" if n_best is None else f"top {n_best * 100}% of"
+        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_xlabel(f'Fraction of operation in {str_fraction_of_pipelines} generation pipelines')
-        ax.set_ylabel('Operation', loc='top')
+        ax.set_ylabel(tag_column_name, loc='top')
         ax.invert_yaxis()
         plt.tight_layout()
 

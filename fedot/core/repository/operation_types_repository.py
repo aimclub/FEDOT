@@ -294,7 +294,8 @@ class OperationTypesRepository:
     def operations(self):
         return self._repo
 
-    def get_operation_tag(self, operation: str, tags_to_find: Optional[List[str]] = None) -> Optional[str]:
+    def get_first_suitable_operation_tag(self, operation: str, tags_to_find: Optional[List[str]] = None) \
+            -> Optional[str]:
         # TODO: Docstring
         tags_to_find = tags_to_find or self.default_tags
 
@@ -304,8 +305,7 @@ class OperationTypesRepository:
         for tag in tags_to_find:
             if tag in info.tags:
                 return tag
-        else:
-            return None
+        return None
 
 
 def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
@@ -323,11 +323,10 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
     }
 
     for repo, tags in repos_tags.items():
-        tag = repo.get_operation_tag(node_name, tags)
+        tag = repo.get_first_suitable_operation_tag(node_name, tags)
         if tag is not None:
             return tag
-    else:
-        return None
+    return None
 
 
 def _is_operation_contains_tag(candidate_tags: List[str],
