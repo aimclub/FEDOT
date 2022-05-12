@@ -125,7 +125,7 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, plot_type: Optional[PlotType, str] = PlotType.fitness_box, save_path: Optional[str] = None,
+    def show(self, plot_type: Optional[Union[PlotType, str]] = PlotType.fitness_box, save_path: Optional[str] = None,
              pct_best: Optional[float] = None, hide_fitness: Optional[bool] = False):
         """ Visualizes fitness values or operations used across generations.
 
