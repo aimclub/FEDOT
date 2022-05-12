@@ -1,13 +1,12 @@
 from abc import abstractmethod
+from copy import deepcopy
 from dataclasses import dataclass
-from functools import partial
 from typing import (Any, Callable, List, Optional, Union, Sequence)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
-from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
@@ -70,13 +69,6 @@ class GraphOptimiser:
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
         self.parameters = parameters
-
-        self.max_depth = self.requirements.start_depth \
-            if self.requirements.start_depth \
-            else self.requirements.max_depth
-
-        self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
-                                                 requirements=self.requirements, max_depth=self.max_depth)
 
         self.initial_graph = ensure_wrapped_in_sequence(initial_graph)
 
