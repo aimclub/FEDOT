@@ -4,7 +4,6 @@ import timeit
 from abc import ABC, abstractmethod
 from contextlib import closing
 from random import choice
-
 from typing import Dict, Optional
 
 from fedot.core.dag.graph import Graph

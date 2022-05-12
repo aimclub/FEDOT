@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Union, Collection, Tuple
+from typing import Collection, Optional, Sequence, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -11,6 +11,7 @@ from fedot.core.optimisers.objective.data_objective_builder import DataObjective
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.preprocessing.cache import PreprocessingCache
 
 
 @dataclass
@@ -57,13 +58,15 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  history: Optional[OptHistory] = None,
-                 cache: Optional[OperationsCache] = None):
+                 pipelines_cache: Optional[OperationsCache] = None,
+                 preprocessing_cache: Optional[PreprocessingCache] = None):
 
         super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
 
         self.optimiser: GraphOptimiser = optimiser
-        self.cache: Optional[OperationsCache] = cache
+        self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
+        self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
         self.history: Optional[OptHistory] = history
         self.best_models: Collection[Pipeline] = ()
 
@@ -71,7 +74,7 @@ class GPComposer(Composer):
                                                       composer_requirements.max_pipeline_fit_time,
                                                       composer_requirements.cv_folds,
                                                       composer_requirements.validation_blocks,
-                                                      cache)
+                                                      pipelines_cache, preprocessing_cache)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary

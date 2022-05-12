@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Optional, Callable, Iterable, Tuple
+from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
 
@@ -9,6 +9,8 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.preprocessing.cache import PreprocessingCache
+
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -28,13 +30,19 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     :param cache: Cache manager for fitted models, optional.
     """
 
-    def __init__(self, objective: Objective, data_producer: DataSource, time_constraint: Optional[timedelta] = None,
-                 validation_blocks: Optional[int] = None, cache: Optional[OperationsCache] = None):
+    def __init__(self,
+                 objective: Objective,
+                 data_producer: DataSource,
+                 time_constraint: Optional[timedelta] = None,
+                 validation_blocks: Optional[int] = None,
+                 pipelines_cache: Optional[OperationsCache] = None,
+                 preprocessing_cache: Optional[PreprocessingCache] = None):
         super().__init__(objective)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
-        self._cache = cache
+        self._pipelines_cache = pipelines_cache
+        self._preprocessing_cache = preprocessing_cache
         self._log = default_log(self)
 
     def evaluate(self, graph: Pipeline) -> Fitness:
@@ -77,12 +85,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         """
         graph.fit(
             train_data,
-            use_fitted=graph.fit_from_cache(self._cache, fold_id),
-            time_constraint=self._time_constraint
+            use_fitted=graph.fit_from_cache(self._pipelines_cache, fold_id),
+            time_constraint=self._time_constraint,
+            preprocessing_cache=self._preprocessing_cache
         )
-
-        if self._cache is not None:
-            self._cache.save_pipeline(graph, fold_id)
+        if self._pipelines_cache is not None:
+            self._pipelines_cache.save_pipeline(graph, fold_id)
         return graph
 
     def evaluate_intermediate_metrics(self, graph: Pipeline):

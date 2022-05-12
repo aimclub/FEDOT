@@ -1,7 +1,7 @@
 import datetime
 import traceback
 
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
@@ -11,6 +11,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.preprocessing.cache import PreprocessingCache
 
 
 class AssumptionsHandler:
@@ -46,7 +47,8 @@ class AssumptionsHandler:
 
     def fit_assumption_and_check_correctness(self,
                                              pipeline: Pipeline,
-                                             cache: Optional[OperationsCache] = None) -> [Pipeline, datetime.timedelta]:
+                                             pipelines_cache: Optional[OperationsCache] = None,
+                                             preprocessing_cache: Optional[PreprocessingCache] = None) -> Pipeline:
         """
         Check is initial pipeline can be fitted on a presented data
 
@@ -56,9 +58,13 @@ class AssumptionsHandler:
         try:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
-            pipeline.fit(data_train)
-            if cache is not None:
-                cache.save_pipeline(pipeline)
+            pipeline.fit(
+                data_train,
+                use_fitted=pipeline.fit_from_cache(pipelines_cache),
+                preprocessing_cache=preprocessing_cache
+            )
+            if pipelines_cache is not None:
+                pipelines_cache.save_pipeline(pipeline)
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
         except Exception as ex:

@@ -14,7 +14,7 @@ class MultiModalData(dict):
         super(MultiModalData, self).__init__(*arg, **kw)
 
         # Check if input data contains different targets
-        self.contain_side_inputs = not all([value.supplementary_data.is_main_target for value in self.values()])
+        self.contain_side_inputs = not all(value.supplementary_data.is_main_target for value in self.values())
 
     @property
     def idx(self):

@@ -1,8 +1,8 @@
 import random
-from copy import deepcopy
 
 from testfixtures import LogCapture
 import logging
+from copy import deepcopy
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -14,6 +14,8 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from testfixtures import LogCapture
+
 from ..api.test_main_api import get_dataset
 from ..tasks.test_classification import get_binary_classification_data
 
@@ -32,7 +34,8 @@ def test_compose_fedot_model_with_tuning():
                                                                          logger=default_log(prefix='test_log'),
                                                                          timeout=0.1,
                                                                          n_jobs=1,
-                                                                         use_cache=False),
+                                                                         use_pipelines_cache=False,
+                                                                         use_preprocessing_cache=False)
                                                          composer_params=dict(max_depth=1,
                                                                               max_arity=1,
                                                                               pop_size=2,

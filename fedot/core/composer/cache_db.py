@@ -12,6 +12,13 @@ if TYPE_CHECKING:
 
 
 class OperationsCacheDB:
+    """
+    Database for OperationsCache class.
+    Includes low-level idea of caching pipeline nodes using sqlite3.
+
+    :param db_path: str db file path
+    """
+
     def __init__(self, db_path: str):
         self.db_path = db_path or Path(default_fedot_data_dir(), f'tmp_{str(uuid.uuid4())}')
         self._db_suffix = '.cache_db'

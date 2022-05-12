@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, List, Optional, Tuple, Union
@@ -18,6 +19,7 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.preprocessing.cache import PreprocessingCache
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -125,8 +127,9 @@ class Pipeline(Graph):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=False,
-            time_constraint: Optional[timedelta] = None, n_jobs=1) -> OutputData:
+    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted: bool = False,
+            time_constraint: Optional[timedelta] = None, n_jobs=1,
+            preprocessing_cache: Optional[PreprocessingCache] = None) -> OutputData:
         """
         Run training process in all nodes in pipeline starting with root.
 
@@ -138,20 +141,20 @@ class Pipeline(Graph):
         """
         _replace_n_jobs_in_nodes(self, n_jobs)
 
-        if not use_fitted:
-            self.unfit(mode='all', unfit_preprocessor=True)
-        else:
+        if use_fitted:
             self.unfit(mode='data_operations', unfit_preprocessor=False)
+        else:
+            self.unfit(mode='all', unfit_preprocessor=True)
+        with preprocessing_cache.using_cache(self, input_data) if preprocessing_cache is not None else nullcontext():
+            # Make copy of the input data to avoid performing inplace operations
+            copied_input_data = deepcopy(input_data)
+            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                           data=copied_input_data)
 
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                       data=copied_input_data)
-
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                      data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                          data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 

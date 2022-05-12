@@ -12,12 +12,12 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.composer.random_composer import RandomSearchComposer, RandomSearchOptimiser, RandomGraphFactory
+from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
+from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimiser
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.objective import Objective
@@ -290,14 +290,14 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser_params(parameters=optimiser_parameters).with_cache(OperationsCache())
-    composer = builder.build()
+    composer: GPComposer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
 
-    global_cache_len_before = len(composer.cache)
+    global_cache_len_before = len(composer.pipelines_cache)
     new_pipeline = pipeline_first()
     objective = composer.objective_builder.build(data)
     objective(new_pipeline)
-    global_cache_len_after = len(composer.cache)
+    global_cache_len_after = len(composer.pipelines_cache)
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None
 

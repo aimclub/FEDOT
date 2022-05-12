@@ -1,11 +1,10 @@
 import datetime
 import gc
-import traceback
-from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
+from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -22,6 +21,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.preprocessing.cache import PreprocessingCache
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 
@@ -29,7 +29,8 @@ class ApiComposer:
 
     def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
-        self.cache: Optional[OperationsCache] = None
+        self.pipelines_cache: Optional[OperationsCache] = None
+        self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.preset_name = None
         self.timer = None
 
@@ -86,11 +87,15 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    def init_cache(self, use_cache: bool):
-        if use_cache:
-            self.cache = OperationsCache()
+    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool):
+        if use_pipelines_cache:
+            self.pipelines_cache = OperationsCache()
             #  in case of previously generated singleton cache
-            self.cache.reset()
+            self.pipelines_cache.reset()
+        if use_preprocessing_cache:
+            self.preprocessing_cache = PreprocessingCache()
+            #  in case of previously generated singleton cache
+            self.preprocessing_cache.reset()
 
     @staticmethod
     def _init_composer_requirements(api_params: dict,
@@ -161,12 +166,13 @@ class ApiComposer:
         # Work with initial assumptions
         assumption_handler = AssumptionsHandler(log, train_data)
 
-        # Set initial assumption and check correctness
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations)
         with self.timer.launch_assumption_fit():
-            fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
-                                                                                        self.cache)
+            fitted_assumption = \
+                assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                                                                        pipelines_cache=self.pipelines_cache,
+                                                                        preprocessing_cache=self.preprocessing_cache)
         log.info(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
         self.preset_name = assumption_handler.propose_preset(preset, self.timer)
 
@@ -189,7 +195,7 @@ class ApiComposer:
                                    external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_function) \
             .with_history(composer_params.get('history_folder')) \
-            .with_cache(self.cache)
+            .with_cache(self.pipelines_cache, self.preprocessing_cache)
         gp_composer: GPComposer = builder.build()
 
         if self.timer.have_time_for_composing(composer_params['pop_size']):
@@ -274,7 +280,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     :param common_dict: dictionary with parameters for all AutoML modules
     """
     api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
-                           use_cache=False)
+                           use_pipelines_cache=False, use_preprocessing_cache=False)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,

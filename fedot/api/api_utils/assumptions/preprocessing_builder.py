@@ -1,7 +1,7 @@
-from typing import Union, Optional
+from typing import Optional, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import data_has_missing_values, data_has_categorical_features
+from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
