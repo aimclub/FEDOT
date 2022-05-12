@@ -1,12 +1,10 @@
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Optional, Tuple, Union, List, Iterable, Sequence
+from typing import Any, Optional, Union, List, Iterable, Sequence
 
-import numpy as np
 from tqdm import tqdm
 
-from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
@@ -15,6 +13,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
     random_graph
 )
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
@@ -31,8 +30,6 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
-
-MAX_NUM_OF_GENERATED_INDS = 10000
 
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
@@ -125,10 +122,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                                        adaptive=parameters.with_auto_depth_configuration)
         self.max_depth = self._graph_depth.initial
 
-        self.graph_generation_function = partial(random_graph,
-                                                 params=self.graph_generation_params,
-                                                 requirements=self.requirements)
-
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
 
         # stopping_after_n_generation may be None, so use some obvious max number
@@ -146,46 +139,22 @@ class EvoGraphOptimiser(GraphOptimiser):
                 'Optimisation finished: Early stopping criteria was satisfied'
             )
 
-    def _create_randomized_pop(self, individuals: List[Individual], pop_size: int, max_depth: int) -> List[Individual]:
-        """
-        Fill first population with mutated variants of the initial_graphs
-        :param individuals: Initial assumption for first population
-        :return: list of individuals
-        """
-        initial_req = deepcopy(self.requirements)
-        initial_req.mutation_prob = 1
-
-        randomized_pop = []
-        n_iter = pop_size * 10
-        while n_iter > 0:
-            initial_individual = np.random.choice(individuals)
-            n_iter -= 1
-            new_ind = mutation(types=self.parameters.mutation_types,
-                               params=self.graph_generation_params,
-                               ind=initial_individual,
-                               requirements=initial_req,
-                               max_depth=max_depth, log=self.log)
-            if new_ind not in randomized_pop:
-                # to suppress duplicated
-                randomized_pop.append(new_ind)
-
-            if len(randomized_pop) == pop_size - len(individuals):
-                break
-
-        # add initial graph to population
-        for initial in individuals:
-            randomized_pop.append(initial)
-
-        return randomized_pop
-
-    def _init_population(self, pop_size: int, max_depth: int):
-        if self.initial_graph:
-            initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
-                                   self.initial_graph]
-            new_population = self._create_randomized_pop(initial_individuals, pop_size, max_depth)
+    def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
+        builder = InitialPopulationBuilder(self.graph_generation_params)
+        if not self.initial_graph:
+            random_graph_sampler = partial(random_graph, self.graph_generation_params, self.requirements, max_depth)
+            builder.with_custom_sampler(random_graph_sampler)
         else:
-            new_population = self._make_population(pop_size, max_depth)
-        return new_population
+            initial_req = deepcopy(self.requirements)
+            initial_req.mutation_prob = 1
+
+            def mutate_operator(ind: Individual):
+                return self._mutate(ind, max_depth, custom_requirements=initial_req)
+
+            initial_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
+            builder.with_initial_individuals(initial_graphs).with_mutated_inds(mutate_operator)
+
+        return builder.build(pop_size)
 
     def _get_evaluator(self, objective_evaluator: ObjectiveEvaluate) -> EvaluationDispatcher:
         return EvaluationDispatcher(objective_evaluator,
@@ -304,26 +273,3 @@ class EvoGraphOptimiser(GraphOptimiser):
                          crossover_prob=self.requirements.crossover_prob,
                          max_depth=self.max_depth, log=self.log,
                          params=self.graph_generation_params)
-
-    def _mutate_population(self, population: PopulationT) -> PopulationT:
-        return [mutation(types=self.parameters.mutation_types,
-                         params=self.graph_generation_params,
-                         ind=ind, requirements=self.requirements,
-                         max_depth=self.max_depth, log=self.log) for ind in population]
-
-    def _make_population(self, pop_size: int, max_depth: int) -> List[Any]:
-        pop = []
-        iter_number = 0
-        while len(pop) < pop_size:
-            iter_number += 1
-            graph = self.graph_generation_function(max_depth=max_depth)
-            if constraint_function(graph, self.graph_generation_params):
-                pop.append(Individual(graph))
-
-            if iter_number > MAX_NUM_OF_GENERATED_INDS:
-                self.log.debug(
-                    f'More than {MAX_NUM_OF_GENERATED_INDS} generated in population making function. '
-                    f'Process is stopped')
-                break
-
-        return pop
