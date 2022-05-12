@@ -218,21 +218,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = evaluator(new_population)
 
-                with_elitism = self.with_elitism(pop_size)
-                num_of_new_individuals = pop_size
-                if with_elitism:
-                    num_of_new_individuals -= len(self.generations.best_individuals)
+                new_population = self._inheritance(new_population, pop_size)
 
-                new_population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
-                                             self.population,
-                                             new_population, num_of_new_individuals,
-                                             graph_params=self.graph_generation_params)
-
-                # Add best individuals from the previous generation
-                if with_elitism:
-                    new_population.extend(self.generations.best_individuals)
-
-                # Then update generation
                 self._next_population(new_population)
 
         best = self.generations.best_individuals
@@ -250,6 +237,20 @@ class EvoGraphOptimiser(GraphOptimiser):
             return False
         else:
             return pop_size >= self._min_population_size_with_elitism
+
+    def _inheritance(self, new_population: PopulationT, pop_size: int) -> PopulationT:
+        elite_inds = self.generations.best_individuals if self.with_elitism(pop_size) else ()
+        num_of_new_individuals = pop_size - len(elite_inds)
+
+        # TODO: from inheritance together with elitism we can get duplicate inds!
+        new_population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
+                                     self.population,
+                                     new_population, num_of_new_individuals,
+                                     graph_params=self.graph_generation_params)
+
+        # Add best individuals from the previous generation
+        new_population.extend(elite_inds)
+        return new_population
 
     def _mutate(self, ind: Individual,
                 max_depth: Optional[int] = None,
