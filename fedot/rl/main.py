@@ -113,6 +113,8 @@ if __name__ == '__main__':
         makedirs(path_to_checkpoint)
 
     tb_writer = SummaryWriter(log_dir=path_to_tbX)
+    ids_x_axis = [0 for i in range(len(datasets))]
+
     batch = []
 
     with RewardTracker(tb_writer, stop_reward=0.9, episodes_limit=20000) as tracker:
@@ -126,7 +128,7 @@ if __name__ == '__main__':
                     if tracker.reward(new_rewards[0], step_idx):
                         break
 
-                if (step_idx % 500) == 0 and step_idx != 0:
+                if (step_idx % 100) == 0 and step_idx != 0:
                     path_to_save = join(path_to_checkpoint, f'agent_{step_idx}')
                     torch.save(net.state_dict(), path_to_save)
 
@@ -156,10 +158,11 @@ if __name__ == '__main__':
 
                                 if info['is_correct']:
                                     val_correct_pipelines += 1
+                                    ids_x_axis[val_id] += 1
                                     val_correct_rewards.append(episode_reward)
                                     tb_writer.add_scalar(val_name + '_metric', info['metric_value'],
-                                                         val_correct_pipelines)
-                                    tb_writer.add_scalar(val_name + '_length', info['length'], val_correct_pipelines)
+                                                         ids_x_axis[val_id])
+                                    tb_writer.add_scalar(val_name + '_length', info['length'], ids_x_axis[val_id])
 
                             tb_writer.add_scalar(val_name + '_reward', np.mean(val_total_rewards), step_idx)
                             tb_writer.add_scalar(val_name + '_pos_reward', np.mean(val_correct_rewards), step_idx)
