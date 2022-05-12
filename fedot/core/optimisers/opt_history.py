@@ -10,7 +10,7 @@ from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotType
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
@@ -125,10 +125,17 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, plot_type: str = 'fitness_box', save_path: Optional[str] = None, pct_best: Optional[float] = None,
-             hide_fitness: Optional[bool] = False):
-        """ Visualizes fitness values across generations """
-        # TODO: Modify docstring
+    def show(self, plot_type: Optional[PlotType, str] = PlotType.fitness_box, save_path: Optional[str] = None,
+             pct_best: Optional[float] = None, hide_fitness: Optional[bool] = False):
+        """ Visualizes fitness values or operations used across generations.
+
+        :param plot_type: visualization to show. Possible values are listed in PlotType class.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed. Essential for animations.
+        :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
+            interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
+        :param hide_fitness: if True, visualizations that support this parameter will not display fitness.
+        """
 
         def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_error: bool = False):
             if all_historical_fitness is not None:
@@ -143,31 +150,35 @@ class OptHistory:
             print(msg_if_none)
             return False
 
-        all_historical_fitness = self.all_historical_fitness
+        if isinstance(plot_type, str):
+            try:
+                plot_type = PlotType[plot_type]
+            except KeyError:
+                raise NotImplementedError(f'Visualization "{plot_type}" is not supported.')
 
-        if pct_best is not None:  # check supported cases for `pct_best`
+        all_historical_fitness = self.all_historical_fitness
+        # Check supported cases for `pct_best`.
+        if pct_best is not None:
             if pct_best <= 0 or pct_best > 1:
                 raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
-            if not check_all_historical_fitness(msg_if_none='`pct_best` parameter is ignored.'):
+            if not check_all_historical_fitness('`pct_best` parameter is ignored.'):
                 pct_best = None
-
-        if hide_fitness and plot_type != 'operation_animated_barplot':  # check supported cases for `hide_fitness`
-            print(f'`hide_fitness` parameter is not supported for "{plot_type}". It is ignored.')
+        # Check supported cases for `hide_fitness`.
+        if hide_fitness and plot_type is not PlotType.operations_animated_barplot:
+            print(f'`hide_fitness` parameter is not supported for "{plot_type.name}". It is ignored.')
 
         viz = PipelineEvolutionVisualiser()
-        if plot_type == 'fitness_box':
-            check_all_historical_fitness(msg_if_none=f'Visualization "{plot_type}" is not supported.', raise_error=True)
+        if plot_type is PlotType.fitness_box:
+            check_all_historical_fitness(f'Visualization "{plot_type.name}" is not supported.', raise_error=True)
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type == 'operation_kde':
+        elif plot_type is PlotType.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type == 'operation_animated_barplot':
-            if check_all_historical_fitness(msg_if_none='Fitness is not displayed.'):
+        elif plot_type is PlotType.operations_animated_barplot:
+            if check_all_historical_fitness('Fitness is not displayed.'):
                 hide_fitness = True
             viz.visualize_operations_animated_barplot(
-                self, save_path=save_path, pct_best=pct_best, hide_fitness_color=hide_fitness
-            )
-        else:
-            raise ValueError(f'Visualization "{plot_type}" is not supported.')
+                self, save_path=save_path, pct_best=pct_best, hide_fitness_color=hide_fitness)
+        raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 
     @property
     def short_metrics_names(self):

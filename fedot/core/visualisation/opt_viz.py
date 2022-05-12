@@ -1,6 +1,7 @@
 import itertools
 import os
 from copy import deepcopy
+from enum import Enum, auto
 from glob import glob
 from os import remove
 from pathlib import Path
@@ -16,13 +17,18 @@ from deap import tools
 from imageio import get_writer, imread
 from matplotlib import cm, animation
 from matplotlib.colors import Normalize
-from pandas.core.common import flatten
 
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+
+
+class PlotType(Enum):
+    fitness_box = auto()
+    operations_kde = auto()
+    operations_animated_barplot = auto()
 
 
 class PipelineEvolutionVisualiser:
@@ -326,12 +332,13 @@ class PipelineEvolutionVisualiser:
 
     def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
                               pct_best: Optional[float] = None):
-        """ Visualizes fitness values across generations
-        :param history: OptHistory
+        """ Visualizes fitness values across generations in the form of boxplot.
+
+        :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
-        and if not, it will be displayed
+            and if not, it will be displayed.
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
-        Must be in the interval (0, 1].
+            Must be in the interval (0, 1].
         """
         df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
         df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
@@ -365,7 +372,16 @@ class PipelineEvolutionVisualiser:
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[str] = None,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
                                  pct_best: Optional[float] = None):
-        # TODO: Docstring
+        """ Visualizes operations used across generations in the form of KDE.
+
+        :param history: OptHistory.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed.
+        :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+        :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        """
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
 
@@ -404,11 +420,20 @@ class PipelineEvolutionVisualiser:
             print(f'The figure was saved to "{save_path}".')
             plt.close()
 
-    def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path: Optional[str] = None,
+    def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path: str,
                                               tags_model: Optional[List[str]] = None,
                                               tags_data: Optional[List[str]] = None,
                                               pct_best: Optional[float] = None, hide_fitness_color: bool = False):
-        # TODO: Docstring
+        """ Visualizes operations used across generations in the form of animated barplot.
+
+        :param history: OptHistory.
+        :param save_path: path to save the visualization.
+        :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+        :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        :param hide_fitness_color: if True, the bar colors will not correspond to fitness.
+        """
 
         def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
             t_interp = np.linspace(0, 1, smoothness)
@@ -436,7 +461,7 @@ class PipelineEvolutionVisualiser:
                     continue
                 bars[i].set_facecolor(frame_color[i])
 
-        if save_path is None:
+        if not save_path:
             raise ValueError('`save_path` should be set to save the animation.')
 
         save_path = Path(save_path)

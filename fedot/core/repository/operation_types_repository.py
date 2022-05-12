@@ -296,7 +296,12 @@ class OperationTypesRepository:
 
     def get_first_suitable_operation_tag(self, operation: str, tags_to_find: Optional[List[str]] = None) \
             -> Optional[str]:
-        # TODO: Docstring
+        """ Finds the first suitable tag for the operation in the repository.
+
+        :param operation: name of the operation.
+        :param tags_to_find: list of suitable tags.
+        :return: first suitable tag or None.
+        """
         tags_to_find = tags_to_find or self.default_tags
 
         info = self.operation_info_by_id(operation)
@@ -311,7 +316,15 @@ class OperationTypesRepository:
 def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
                      tags_data: Optional[List[str]] = None,
                      repos_tags: Optional[Dict['OperationTypesRepository', List[str]]] = None) -> Optional[str]:
-    # TODO: Docstring
+    """ Finds the first suitable tag for the OptNode across Fedot repositories.
+
+    :param opt_node: OptNode or its name.
+    :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+    :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+    :param repos_tags: dictionary mapping OperationTypesRepository with suitable tags. Can be used only if no tags_model
+        and tags_data specified.
+    :return: first suitable tag or None.
+    """
     if (tags_model or tags_data) and repos_tags:
         raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
 
@@ -336,9 +349,9 @@ def _is_operation_contains_tag(candidate_tags: List[str],
     The function checks which operations are suitable for the selected tags
 
     :param candidate_tags: list with tags that the operation must have in order
-    to fit the selected task
+        to fit the selected task
     :param operation_tags: list with tags with names as in repository json file
-    which correspond to the considering operation
+        which correspond to the considering operation
     :param is_full_match: requires all tags to match, or at least one
 
     :return : is there a match on the tags
