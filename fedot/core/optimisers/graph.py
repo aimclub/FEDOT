@@ -1,11 +1,12 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union
+from typing import Any, Iterable, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import Log, default_log
+from fedot.core.utilities.data_structures import UniqueList, ensure_wrapped_in_sequence
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
@@ -38,18 +39,23 @@ class OptNode:
                  ):
         default_dict = {'params': DEFAULT_PARAMS_STUB}
 
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         if isinstance(content, str):
             content = {'name': content}
 
-        self.nodes_from = nodes_from if nodes_from is not None else []
+        self._nodes_from = UniqueList(nodes_from or ())
         self.content = {**content, **default_dict}
         self._operator = NodeOperator(self)
+        self.uid = str(uuid4())
+
+    @property
+    def nodes_from(self) -> List:
+        return self._nodes_from
+
+    @nodes_from.setter
+    def nodes_from(self, nodes: Optional[Iterable['OptNode']]):
+        self._nodes_from = UniqueList(nodes)
 
     @property
     def _node_adapter(self):
@@ -83,24 +89,15 @@ class OptGraph:
     """
 
     def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None,
-                 log: Log = None):
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+                 log: Optional[Log] = None):
+        self.log = log or default_log(__name__)
 
-        self.uid = str(uuid4())
         self.nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)
-        self._serialization_id = uuid4().hex
 
         if nodes:
-            if isinstance(nodes, list):
-                for node in nodes:
-                    self.add_node(node)
-            else:
-                self.add_node(nodes)
+            for node in ensure_wrapped_in_sequence(nodes):
+                self.add_node(node)
 
     def _empty_postproc(self, nodes=None):
         pass
@@ -189,7 +186,6 @@ class OptGraph:
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        result.uid = uuid4()
         return result
 
     def __deepcopy__(self, memo=None):
@@ -198,7 +194,6 @@ class OptGraph:
         memo[id(self)] = result
         for k, v in self.__dict__.items():
             setattr(result, k, deepcopy(v, memo))
-        result.uid = uuid4()
         return result
 
 

@@ -56,18 +56,16 @@ def run_automl(df: pd.DataFrame, features_to_use: list, target_series: str,
                                                  features=features_to_use,
                                                  forecast_length=forecast_horizon)
     # Prepare parameters for algorithm launch
-    # timeout 2 - means that AutoML algorithm will work for 2 minutes
     composer_params = {'max_depth': 6,
                        'max_arity': 3,
                        'pop_size': 20,
                        'num_of_generations': 100,
-                       'timeout': timeout,
                        'preset': 'fast_train',
                        'metric': 'rmse',
                        'cv_folds': None,
                        'validation_blocks': None}
     forecast, obtained_pipeline = multi_automl_fit_forecast(mm_train, mm_test,
-                                                            composer_params,
+                                                            timeout, composer_params,
                                                             ts, forecast_horizon,
                                                             vis=False)
 

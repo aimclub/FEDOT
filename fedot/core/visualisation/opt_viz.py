@@ -1,33 +1,35 @@
 import itertools
+import math
 import os
 from copy import deepcopy
 from glob import glob
 from os import remove
 from time import time
-from typing import List, Any, Tuple
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+from pandas.core.common import flatten
 import seaborn as sns
 from PIL import Image
 from deap import tools
 from imageio import get_writer, imread
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 
-from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.log import Log, default_log
+from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
 class PipelineEvolutionVisualiser:
 
-    def __init__(self, log: Log = default_log(__name__)):
+    def __init__(self, log: Optional[Log] = None):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
-        self.log = log
+        self.log = log or default_log(__name__)
         self.pipelines_imgs = []
         self.convergence_imgs = []
         self.best_pipelines_imgs = []
@@ -77,9 +79,9 @@ class PipelineEvolutionVisualiser:
         plt.rcParams['axes.titlesize'] = 20
         plt.rcParams['axes.labelsize'] = 20
         for ts in ts_set:
-            plt.plot(df['ts'], df['fitness'], label='Composer')
+            plt.plot(df['ts'], df['fitness'])
             plt.xlabel('Evaluation', fontsize=18)
-            plt.ylabel('Best ROC AUC', fontsize=18)
+            plt.ylabel('Best metric', fontsize=18)
             plt.axvline(x=ts, color='black')
             plt.legend(loc='upper left')
             fig.canvas.draw()
@@ -87,6 +89,41 @@ class PipelineEvolutionVisualiser:
             self.convergence_imgs.append(img)
             plt.clf()
         plt.close('all')
+
+    @staticmethod
+    def visualise_fitness_by_generations(history, save_path_to_file: str):
+        """ Visualizes fitness values across generations
+        :param history: OptHistory
+        :param save_path_to_file: path where to save visualization. If set, then the image will be saved,
+        and if not, it will be displayed """
+        # Get list of generations numbers per fitness result
+        generations = []
+        for gen_num in range(len(history.historical_fitness)):
+            num_of_ind_in_gen = len(history.historical_fitness[gen_num])
+            generations.append([gen_num] * num_of_ind_in_gen)
+        generations = list(flatten(generations))
+
+        # Visualize
+        fitness = [abs(fitness.value) for fitness in history.all_historical_fitness]
+        fig, ax = plt.subplots(figsize=(15, 10))
+
+        # Get color palette for fitness. The lower the fitness value, the brighter the green color
+        palette = sns.light_palette("seagreen", n_colors=len(history.historical_fitness))
+        min_fitnesses = [min(i) for i in history.historical_fitness]
+        min_fitnesses.sort(reverse=True)
+        colors = [palette[min_fitnesses.index(min(i))] for i in history.historical_fitness]
+
+        sns.boxplot(x=generations, y=fitness, palette=colors)
+        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
+        ax.set_xticklabels(range(len(history.historical_fitness)))
+        ax.set_xlabel(xlabel=f'generations', fontsize=20)
+        ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
+
+        if not save_path_to_file:
+            plt.show()
+        else:
+            plt.savefig(save_path_to_file)
+            plt.close()
 
     def visualise_history(self, history):
         try:
@@ -205,9 +242,9 @@ class PipelineEvolutionVisualiser:
         pareto_obj_first, pareto_obj_second = [], []
         for i in range(len(archive)):
             fit_first = archive[i].fitness.values[objectives_numbers[0]]
-            pareto_obj_first.append(fit_first if fit_first > 0 else -fit_first)
+            pareto_obj_first.append(abs(fit_first))
             fit_second = archive[i].fitness.values[objectives_numbers[1]]
-            pareto_obj_second.append(fit_second if fit_second > 0 else -fit_second)
+            pareto_obj_second.append(abs(fit_second))
 
         fig, ax = plt.subplots()
 
@@ -215,9 +252,9 @@ class PipelineEvolutionVisualiser:
             obj_first, obj_second = [], []
             for i in range(len(individuals)):
                 fit_first = individuals[i].fitness.values[objectives_numbers[0]]
-                obj_first.append(fit_first if fit_first > 0 else -fit_first)
+                obj_first.append(abs(fit_first))
                 fit_second = individuals[i].fitness.values[objectives_numbers[1]]
-                obj_second.append(fit_second if fit_second > 0 else -fit_second)
+                obj_second.append(abs(fit_second))
             ax.scatter(obj_first, obj_second, c='green')
 
         ax.scatter(pareto_obj_first, pareto_obj_second, c='red')

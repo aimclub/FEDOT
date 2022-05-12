@@ -4,6 +4,7 @@ from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Any, Callable, List, Union
 
 import numpy as np
+
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
@@ -11,7 +12,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import DEFAULT_PARAMS_STUB, ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -58,7 +60,7 @@ def get_mutation_prob(mut_id, node):
 
 
 def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
-    return not (random() > mutation_prob or mutation_type == MutationTypesEnum.none)
+    return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
 
 
 def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List[Union[MutationTypesEnum, Callable]],
@@ -106,14 +108,14 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
             new_graph = mutation_func(new_graph, requirements=requirements,
                                       params=params,
                                       max_depth=max_depth)
-        elif mutation_type != MutationTypesEnum.none:
+        elif mutation_type is not MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
     return new_graph
 
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
              ind: Individual, requirements, log: Log,
-             max_depth: int = None, add_to_history=True) -> Any:
+             max_depth: int = None) -> Any:
     """ Function apply mutation operator to graph """
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
@@ -130,14 +132,12 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
         is_correct_graph = constraint_function(new_graph, params)
         if is_correct_graph:
             new_individual = Individual(new_graph)
-            if add_to_history:
-                new_individual = Individual(new_graph)
-                new_individual.parent_operators = ind.parent_operators
-                for mutation_name in mutation_names:
-                    new_individual.parent_operators.append(
-                        ParentOperator(operator_type='mutation',
-                                       operator_name=str(mutation_name),
-                                       parent_objects=[ind]))
+            new_individual.parent_operators = deepcopy(ind.parent_operators)
+            for mutation_name in mutation_names:
+                new_individual.parent_operators.append(
+                    ParentOperator(operator_type='mutation',
+                                   operator_name=str(mutation_name),
+                                   parent_individuals=[ind]))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '

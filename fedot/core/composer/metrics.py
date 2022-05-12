@@ -1,11 +1,13 @@
 import sys
 from abc import abstractmethod
+from typing import Callable, Optional
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score, roc_curve, auc)
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
@@ -16,6 +18,20 @@ def from_maximised_metric(metric_func):
         return -metric_func(*args, **kwargs)
 
     return wrapper
+
+
+def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """ Symmetric mean absolute percentage error """
+
+    numerator = 2 * np.abs(y_true - y_pred)
+    denominator = np.abs(y_true) + np.abs(y_pred)
+    result = numerator / denominator
+    result[np.isnan(result)] = 0.0
+    return float(np.mean(100 * result))
+
+
+# Type for a Callable that can be accepted as a custom metric
+MetricCallable = Callable[[Pipeline, InputData, Optional[int]], float]
 
 
 class Metric:
@@ -53,6 +69,7 @@ class QualityMetric:
                 reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
             metric = cls.metric(reference_data, results)
         except Exception as ex:
+            # TODO: use log instead of stdout
             print(f'Metric evaluation error: {ex}')
         return metric
 
@@ -164,6 +181,14 @@ class MAPE(QualityMetric):
     def metric(reference: InputData, predicted: OutputData) -> float:
         return mean_absolute_percentage_error(y_true=reference.target,
                                               y_pred=predicted.predict)
+
+
+class SMAPE(QualityMetric):
+    default_value = sys.maxsize
+
+    @staticmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        return smape(y_true=reference.target, y_pred=predicted.predict)
 
 
 class F1(QualityMetric):

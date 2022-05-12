@@ -2,6 +2,7 @@ from copy import copy, deepcopy
 from random import seed
 
 import numpy as np
+from typing import List, Optional
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -72,13 +73,119 @@ def test_delete_primary_node():
     assert isinstance(new_primary_node, GraphNode)
 
 
+def test_delete_node_with_duplicated_edges():
+    ok_primary_node = GraphNode('n1')
+    bad_primary_node = GraphNode('n2')
+    nodes_from_with_duplicate = [bad_primary_node, ok_primary_node, bad_primary_node]
+    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+
+    to_delete_node = find_same_node(graph.nodes, bad_primary_node)
+    graph.delete_node(to_delete_node)
+
+    assert not find_same_node(graph.nodes, bad_primary_node)
+    assert not find_same_node(graph.root_node.nodes_from, bad_primary_node)
+
+
+def test_delete_subtree_with_several_edges_near():
+    ok_primary_node = GraphNode('n1')
+    bad_primary_node = GraphNode('n2a')
+    bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
+    root_node = GraphNode('n3', nodes_from=[bad_secondary_node, ok_primary_node, bad_primary_node])
+    graph = Graph(root_node)
+
+    to_delete_node = find_same_node(graph.nodes, bad_secondary_node)
+    graph.delete_subtree(to_delete_node)
+
+    assert not find_same_node(graph.nodes, bad_secondary_node)
+    assert not find_same_node(graph.nodes, bad_primary_node)
+    subtree_child = graph.root_node
+    assert not find_same_node(subtree_child.nodes_from, bad_secondary_node)
+    assert not find_same_node(subtree_child.nodes_from, bad_primary_node)
+
+
+def test_delete_subtree_with_several_edges_distant():
+    ok_primary_node = GraphNode('n1')
+    bad_primary_node = GraphNode('n2a')
+    bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
+    subtree_child = GraphNode('n3', nodes_from=[bad_secondary_node, ok_primary_node])
+    root_node = GraphNode('n4', nodes_from=[subtree_child, bad_primary_node])
+    graph = Graph(root_node)
+
+    to_delete_node = find_same_node(graph.nodes, bad_secondary_node)
+    graph.delete_subtree(to_delete_node)
+
+    assert not find_same_node(graph.nodes, bad_secondary_node)
+    assert not find_same_node(graph.nodes, bad_primary_node)
+    subtree_child = find_same_node(graph.nodes, subtree_child)
+    assert find_same_node(subtree_child.nodes_from, ok_primary_node)
+    assert not find_same_node(subtree_child.nodes_from, bad_secondary_node)
+    # most important check: that distant edge from uder subtree is pruned
+    assert not find_same_node(graph.root_node.nodes_from, bad_primary_node)
+
+
+def test_delete_subtree_with_duplicated_edges():
+    ok_primary_node = GraphNode('n1')
+    bad_primary_node = GraphNode('n2a')
+    bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
+    nodes_from_with_duplicate = [bad_secondary_node, ok_primary_node, bad_secondary_node, bad_primary_node]
+    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+
+    to_delete_node = find_same_node(graph.nodes, bad_secondary_node)
+    graph.delete_subtree(to_delete_node)
+
+    assert not find_same_node(graph.nodes, bad_secondary_node)
+    assert not find_same_node(graph.nodes, bad_primary_node)
+    assert not find_same_node(graph.root_node.nodes_from, bad_secondary_node)
+    assert not find_same_node(graph.root_node.nodes_from, bad_primary_node)
+
+
+def test_update_node_with_duplicated_edges():
+    ok_primary_node = GraphNode('n1')
+    bad_primary_node = GraphNode('n2')
+    nodes_from_with_duplicate = [bad_primary_node, ok_primary_node, bad_primary_node]
+    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+
+    updated_node = GraphNode('n2b')
+    to_update_node = find_same_node(graph.nodes, bad_primary_node)
+    graph.update_node(to_update_node, updated_node)
+
+    assert not find_same_node(graph.nodes, bad_primary_node)
+    assert not find_same_node(graph.root_node.nodes_from, bad_primary_node)
+    assert find_same_node(graph.nodes, updated_node)
+    assert find_same_node(graph.root_node.nodes_from, updated_node)
+
+
+def test_update_subtree_with_duplicated_edges():
+    ok_primary_node = GraphNode('n1')
+    bad_primary_node = GraphNode('n2a')
+    bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
+    nodes_from_with_duplicate = [bad_secondary_node, ok_primary_node, bad_secondary_node, bad_primary_node]
+    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+
+    updated_node = GraphNode('n4b', nodes_from=[GraphNode('n4a')])
+    to_update_node = find_same_node(graph.nodes, bad_secondary_node)
+    graph.update_subtree(to_update_node, updated_node)
+
+    assert not find_same_node(graph.nodes, bad_secondary_node)
+    assert not find_same_node(graph.nodes, bad_primary_node)
+    assert not find_same_node(graph.root_node.nodes_from, bad_secondary_node)
+    assert not find_same_node(graph.root_node.nodes_from, bad_primary_node)
+    assert find_same_node(graph.nodes, updated_node)
+    assert find_same_node(graph.root_node.nodes_from, updated_node)
+
+
 def test_graph_copy():
-    pipeline = Graph(GraphNode(content='n1'))
-    pipeline_copy = copy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
+    graph = Graph(GraphNode(content='n1'))
+    graph_copy = copy(graph)
+    assert id(graph) != id(graph_copy)
 
 
-def test_pipeline_deepcopy():
-    pipeline = Graph(GraphNode(content='n1'))
-    pipeline_copy = deepcopy(pipeline)
-    assert pipeline.uid != pipeline_copy.uid
+def test_graph_deepcopy():
+    graph = Graph(GraphNode(content='n1'))
+    graph_copy = deepcopy(graph)
+    graph.nodes[0] = GraphNode(content='n11')
+    assert graph != graph_copy
+
+
+def find_same_node(nodes: List[GraphNode], target: GraphNode) -> Optional[GraphNode]:
+    return next(filter(lambda n: n.descriptive_id == target.descriptive_id, nodes), None)

@@ -126,7 +126,7 @@ if __name__ == '__main__':
                     if tracker.reward(new_rewards[0], step_idx):
                         break
 
-                if (step_idx % 100) == 0 and step_idx != 0:
+                if (step_idx % 500) == 0 and step_idx != 0:
                     path_to_save = join(path_to_checkpoint, f'agent_{step_idx}')
                     torch.save(net.state_dict(), path_to_save)
 

@@ -2,17 +2,14 @@ from abc import abstractmethod
 from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
-from typing import (Any, Callable, List, Optional, Union)
+from typing import (Any, Callable, List, Optional, Union, Sequence)
 
 import numpy as np
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_operators import (
-    evaluate_individuals,
-    random_graph
-)
+from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
@@ -26,7 +23,7 @@ class GraphOptimiserParameters:
         :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
         evolution. Default False.
         :param depth_increase_step: the step of depth increase in automated depth configuration
-        :param multi_objective: flag used for of algorithm type definition (muti-objective if true or  single-objective
+        :param multi_objective: flag used for of algorithm type definition (multi-objective if true or single-objective
         if false). Value is defined in ComposerBuilder. Default False.
     """
 
@@ -43,13 +40,13 @@ class GraphOptimiserParameters:
 
 class GraphOptimiser:
     """
-    Base class of graph optimiser. It allow to find the optimal solution using specified metric (one or several).
+    Base class of graph optimiser. It allows to find the optimal solution using specified metric (one or several).
     To implement the specific optimisation method,
     the abstract method 'optimize' should be re-defined in the ancestor class
     (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param initial_graph: graph which was initialized outside the optimiser
-    :param requirements: implementation-independent requirements for graph optimizer
+    :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
     :param metrics: metrics for optimisation
     :param parameters: parameters for specific implementation of graph optimiser
@@ -61,12 +58,9 @@ class GraphOptimiser:
                  graph_generation_params: 'GraphGenerationParams',
                  metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
@@ -87,7 +81,8 @@ class GraphOptimiser:
     @abstractmethod
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+                 show_progress: bool = True,
+                 **kwargs) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
         :param objective_function: function for calculation of the objective function for optimisation
@@ -107,29 +102,23 @@ class GraphOptimiser:
         """
         return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
-    def default_on_next_iteration_callback(self, individuals: List[Individual], archive: List[Individual]):
+    def default_on_next_iteration_callback(self, individuals: List[Individual],
+                                           archive: Optional[List[Individual]] = None):
         """
-        Default variant of callblack that preservs optimisation history
+        Default variant of callback that preserves optimisation history
         :param individuals: list of individuals obtained in iteration
-        :param archive: optional list of best individuals for previous iterations
+        :param archive: optional list of the best individuals for previous iterations
         :return:
         """
         try:
             self.history.add_to_history(individuals)
-            self.history.save_current_results()
+            if self.history.save_folder:
+                self.history.save_current_results()
             archive = deepcopy(archive)
             if archive is not None:
                 self.history.add_to_archive_history(archive.items)
         except Exception as ex:
             self.log.warn(f'Callback was not successful because of {ex}')
-
-    def _evaluate_individuals(self, individuals_set, objective_function, timer=None):
-        evaluated_individuals = evaluate_individuals(individuals_set=individuals_set,
-                                                     objective_function=objective_function,
-                                                     graph_generation_params=self.graph_generation_params,
-                                                     timer=timer, is_multi_objective=self.parameters.multi_objective)
-        individuals_set = correct_if_has_nans(evaluated_individuals, self.log)
-        return individuals_set
 
     def _is_stopping_criteria_triggered(self):
         is_stopping_needed = self.stopping_after_n_generation is not None
@@ -146,23 +135,9 @@ class GraphGenerationParams:
     This dataclass is for defining the parameters using in graph generation process
 
     :param adapter: the function for processing of external object that should be optimized
-    :param rules_for_constraint: set of constraints
+    :param rules_for_constraint: collection of constraints
     :param advisor: class of task-specific advices for graph changes
     """
     adapter: BaseOptimizationAdapter = DirectAdapter()
-    rules_for_constraint: Optional[List[Callable]] = None
+    rules_for_constraint: Sequence[Callable] = tuple()
     advisor: Optional[DefaultChangeAdvisor] = DefaultChangeAdvisor()
-
-
-def correct_if_has_nans(individuals, log):
-    len_before = len(individuals)
-    individuals = [ind for ind in individuals if ind.fitness is not None]
-    len_after = len(individuals)
-
-    if len_after != len_before:
-        log.info(f'None were removed from candidates')
-
-    if len(individuals) == 0:
-        raise ValueError('All evaluations of fitness was unsuccessful.')
-
-    return individuals

@@ -1,12 +1,14 @@
 from copy import deepcopy
 
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
-def get_pipeline():
+def get_pipeline() -> Pipeline:
     third_level_one = PrimaryNode('lda')
 
     second_level_one = SecondaryNode('qda', nodes_from=[third_level_one])
@@ -93,6 +95,38 @@ def test_node_children():
     # then
     assert len(children) == 1
     assert children[0] is pipeline.nodes[1]
+
+
+# ------------------------------------------------------------------------------
+# Tests for distance_to_other method
+
+def test_distance_to_same_pipeline_restored():
+    # given
+    adapter = PipelineAdapter()
+    pipeline = get_pipeline()
+    opt_graph = adapter.adapt(pipeline)
+
+    # when
+    distance = pipeline.operator.distance_to(adapter.restore(opt_graph))
+
+    # then
+    assert distance == 0
+
+
+def test_known_distances():
+    pipeline_scaling = PipelineBuilder().add_node('scaling').to_pipeline()  # scaling
+    pipeline_xgboost = PipelineBuilder().add_node('xgboost').to_pipeline()  # xgboost
+    pipeline_knn = PipelineBuilder().add_node('scaling').add_node('knn').to_pipeline()  # scaling -> knn
+    pipeline_linear = PipelineBuilder().add_node('scaling').add_node('linear').to_pipeline()  # scaling -> linear
+    pipeline_knn_alternate_params = PipelineBuilder().add_node('scaling').\
+        add_node('knn', params={'mectric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
+
+    assert pipeline_knn.operator.distance_to(pipeline_knn) == 0  # the same pipeline
+    assert pipeline_knn.operator.distance_to(pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge
+    assert pipeline_knn.operator.distance_to(pipeline_linear) == 1  # changes: 1 node (operation)
+    assert pipeline_knn.operator.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 node (params)
+    assert pipeline_knn.operator.distance_to(pipeline_xgboost) == 3  # changes: 2 nodes (operations) + 1 edge
+    assert pipeline_linear.operator.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 operation + params
 
 
 # ------------------------------------------------------------------------------
@@ -240,7 +274,7 @@ def test_get_all_edges():
     knn = pipeline.nodes[1]
     logit = pipeline.nodes[0]
 
-    res_edges = [[knn, logit], [qda_second, knn], [qda_first, knn], [lda, qda_second]]
+    res_edges = [(knn, logit), (qda_second, knn), (qda_first, knn), (lda, qda_second)]
 
     edges = pipeline.operator.get_all_edges()
     assert res_edges == edges

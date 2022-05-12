@@ -73,8 +73,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     composer = builder.build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
-    pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose,
-                                                       is_visualise=True)
+    pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
 
     composer.history.write_composer_history_to_csv()
 

@@ -1,12 +1,12 @@
-from copy import deepcopy
 from typing import TYPE_CHECKING, List, Optional, Union
-from uuid import uuid4
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
+
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 
 class Graph:
@@ -17,16 +17,12 @@ class Graph:
     """
 
     def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
-        self.uid = str(uuid4())
         self.nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
-            if isinstance(nodes, list):
-                for node in nodes:
-                    self.add_node(node)
-            else:
-                self.add_node(nodes)
+            for node in ensure_wrapped_in_sequence(nodes):
+                self.add_node(node)
 
     def _empty_postproc(self, nodes=None):
         pass
@@ -99,19 +95,3 @@ class Graph:
     @property
     def depth(self) -> int:
         return self.operator.graph_depth()
-
-    def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        result.uid = uuid4()
-        return result
-
-    def __deepcopy__(self, memo=None):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            setattr(result, k, deepcopy(v, memo))
-        result.uid = uuid4()
-        return result

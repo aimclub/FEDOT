@@ -79,10 +79,9 @@ def get_small_classification_dataset():
     return train_input, predict_input, y_test
 
 
-def get_time_series():
+def get_time_series(len_forecast=5, length=80):
     """ Function returns time series for time series forecasting task """
-    len_forecast = 5
-    synthetic_ts = generate_synthetic_data(length=80)
+    synthetic_ts = generate_synthetic_data(length=length)
 
     train_data = synthetic_ts[:-len_forecast]
     test_data = synthetic_ts[-len_forecast:]
@@ -107,7 +106,7 @@ def get_time_series():
     return train_input, predict_input, test_data
 
 
-def get_multivariate_time_series():
+def get_multivariate_time_series(mutli_ts=False):
     """ Generate several time series in one InputData block """
     ts_1 = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).reshape((-1, 1))
     ts_2 = np.array([10, 11, 12, 13, 14, 15, 16, 17, 18, 19]).reshape((-1, 1))
@@ -115,14 +114,20 @@ def get_multivariate_time_series():
 
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=2))
+    if mutli_ts:
+        data_type = DataTypesEnum.multi_ts
+        target = several_ts
+    else:
+        data_type = DataTypesEnum.ts
+        target = np.ravel(ts_1)
     train_input = InputData(idx=np.arange(0, len(several_ts)),
-                            features=several_ts, target=np.ravel(ts_1),
-                            task=task, data_type=DataTypesEnum.ts)
+                            features=several_ts, target=target,
+                            task=task, data_type=data_type)
     return train_input
 
 
 def get_nan_inf_data():
-    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT]*4})
+    supp_data = SupplementaryData(column_types={'features': [NAME_CLASS_FLOAT] * 4})
     train_input = InputData(idx=[0, 1, 2, 3],
                             features=np.array([[1, 2, 3, 4],
                                                [2, np.nan, 4, 5],
@@ -473,6 +478,41 @@ def test_lagged_with_multivariate_time_series():
     input_data = get_multivariate_time_series()
     lagged = LaggedTransformationImplementation(**{'window_size': 2})
 
+    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
+    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+
+    # Check correctness on fit stage
+    lagged_features = transformed_for_fit.predict
+    assert lagged_features.shape == correct_fit_output.shape
+    assert np.all(np.isclose(lagged_features, correct_fit_output))
+
+    # Check correctness on predict stage
+    lagged_predict = transformed_for_predict.predict
+    assert lagged_predict.shape == correct_predict_output.shape
+    assert np.all(np.isclose(lagged_predict, correct_predict_output))
+
+
+def test_lagged_with_multi_ts_type():
+    """
+        Checking the correct processing of time series with multi_ts data type in the lagged operation
+    """
+    correct_fit_output = np.array([[0., 1.],
+                                   [1., 2.],
+                                   [2., 3.],
+                                   [3., 4.],
+                                   [4., 5.],
+                                   [5., 6.],
+                                   [6., 7.],
+                                   [10., 11.],
+                                   [11., 12.],
+                                   [12., 13.],
+                                   [13., 14.],
+                                   [14., 15.],
+                                   [15., 16.],
+                                   [16., 17.]])
+    correct_predict_output = np.array([[8, 9]])
+    input_data = get_multivariate_time_series(mutli_ts=True)
+    lagged = LaggedTransformationImplementation(**{'window_size': 2})
     transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
     transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
 

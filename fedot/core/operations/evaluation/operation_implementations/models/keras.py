@@ -9,11 +9,9 @@ except ModuleNotFoundError:
     print('Tensorflow non installed, continue')
 
 from sklearn import preprocessing
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
-from fedot.core.operations.evaluation. \
-    operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
@@ -33,7 +31,7 @@ def create_deep_cnn(input_shape: tuple,
                     num_classes: int):
     model = tf.keras.Sequential(
         [
-            tf.keras.Input(shape=input_shape),
+            tf.keras.layers.InputLayer(input_shape=input_shape),
             tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
             tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
             tf.keras.layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
@@ -52,7 +50,7 @@ def create_simple_cnn(input_shape: tuple,
                       num_classes: int):
     model = tf.keras.Sequential(
         [
-            tf.keras.Input(shape=input_shape),
+            tf.keras.layers.InputLayer(input_shape=input_shape),
             tf.keras.layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
             tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
             tf.keras.layers.Flatten(),
@@ -64,12 +62,22 @@ def create_simple_cnn(input_shape: tuple,
     return model
 
 
+def create_vgg16(input_shape: tuple,
+                 num_classes: int):
+    model = tf.keras.applications.vgg16.VGG16(include_top=True,
+                                              weights=None,
+                                              input_shape=input_shape,
+                                              classes=num_classes,
+                                              classifier_activation='sigmoid')
+    return model
+
+
 def fit_cnn(train_data: InputData,
             model,
             epochs: int = 10,
             batch_size: int = 128,
             optimizer_params: dict = None,
-            logger: Log = None):
+            logger: Optional[Log] = None):
     x_train, y_train = train_data.features, train_data.target
     transformed_x_train, transform_flag = check_input_array(x_train)
 
@@ -77,13 +85,14 @@ def fit_cnn(train_data: InputData,
         logger = default_log(__name__)
 
     if transform_flag:
-        logger.warn('Train data set was not scaled. The data was divided by 255.')
+        logger.debug('Train data set was not scaled. The data was divided by 255.')
 
-    if len(x_train.shape) < 4:
+    if len(x_train.shape) == 3:
         transformed_x_train = np.expand_dims(x_train, -1)
 
-    le = preprocessing.OneHotEncoder()
-    y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
+    if len(train_data.target.shape) < 2:
+        le = preprocessing.OneHotEncoder()
+        y_train = le.fit_transform(y_train.reshape(-1, 1)).toarray()
 
     if optimizer_params is None:
         optimizer_params = {'loss': "categorical_crossentropy",
@@ -91,9 +100,7 @@ def fit_cnn(train_data: InputData,
                             'metrics': ["accuracy"]}
 
     model.compile(**optimizer_params)
-
     model.num_classes = train_data.num_classes
-
     if logger is None:
         logger = default_log(__name__)
 
@@ -119,12 +126,14 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
 
     if np.max(transformed_x_test) > 1:
         logger.warn('Test data set was not scaled. The data was divided by 255.')
-    transformed_x_test = np.expand_dims(x_test, -1)
+
+    if len(x_test.shape) == 3:
+        transformed_x_test = np.expand_dims(x_test, -1)
 
     if output_mode == 'labels':
-        prediction = trained_model.predict(transformed_x_test)
+        prediction = np.round(trained_model.predict(transformed_x_test))
     elif output_mode in ['probs', 'full_probs', 'default']:
-        prediction = trained_model.predict_proba(transformed_x_test)
+        prediction = trained_model.predict(transformed_x_test)
         if trained_model.num_classes < 2:
             logger.error('Data set contain only 1 target class. Please reformat your data.')
             raise NotImplementedError()
@@ -136,11 +145,12 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
 
 
 cnn_model_dict = {'deep': create_deep_cnn,
-                  'simplified': create_simple_cnn}
+                  'simplified': create_simple_cnn,
+                  'vgg16': create_vgg16}
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, log: Log = None, **params: Optional[dict]):
+    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
         super().__init__(log)
         self.params = {'image_shape': (28, 28, 1),
                        'num_classes': 2,
@@ -165,7 +175,12 @@ class FedotCNNImplementation(ModelImplementation):
         :param train_data: data to train the model
         """
 
-        self.classes = np.unique(train_data.target)
+        # TODO make case for multiclass multioutput task
+        # check for multioutput target
+        if len(train_data.target.shape) < 2:
+            self.classes = np.unique(train_data.target)
+        else:
+            self.classes = np.arange(train_data.target.shape[1])
 
         if self.model is None:
             self.model = cnn_model_dict[self.params['architecture_type']](input_shape=self.params['image_shape'],

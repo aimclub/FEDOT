@@ -51,7 +51,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
 
     if is_visualise:
         pipeline.show()
-        fedot.plot_prediction()
+        fedot.plot_prediction(target='ssh')
 
     return metric
 

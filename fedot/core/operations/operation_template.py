@@ -1,9 +1,11 @@
 import os
 from abc import ABC, abstractmethod
 from io import BytesIO
+from typing import Optional
 
 import joblib
 import numpy as np
+
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import Node
 
@@ -15,15 +17,12 @@ class OperationTemplateAbstract(ABC):
     Atomized_operation is pipeline which can be used like general operation.
     """
 
-    def __init__(self, log: Log = None):
+    def __init__(self, log: Optional[Log] = None):
         self.operation_id = None
         self.operation_type = None
         self.nodes_from = None
 
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     @abstractmethod
     def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
@@ -189,8 +188,7 @@ class OperationTemplate(OperationTemplateAbstract):
                 self.fitted_operation_path = fitted_operation_path
             elif isinstance(fitted_operation_path, list):
                 # Path were set as folders and files in tuple or list
-                self.fitted_operation_path = os.path.join(fitted_operation_path[0],
-                                                          fitted_operation_path[1])
+                self.fitted_operation_path = os.path.join(*fitted_operation_path[:2])
 
         if 'custom_params' in operation_object:
             self.custom_params = operation_object['custom_params']

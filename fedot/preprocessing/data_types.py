@@ -1,3 +1,6 @@
+from copy import copy
+from typing import Optional
+
 import numpy as np
 import pandas as pd
 
@@ -19,7 +22,7 @@ class TableTypesCorrector:
     Class for checking types in input data. Also perform conversion for columns with types conflicts
     """
 
-    def __init__(self, log: Log = None):
+    def __init__(self, log: Optional[Log] = None):
         # Maximum allowed unique categories in categorical table (if more - transform it into float)
         self.categorical_max_classes_th = MAX_CATEGORIES_TH
         # Threshold to convert numerical into categorical column
@@ -38,16 +41,16 @@ class TableTypesCorrector:
         self.numerical_into_str = []
         self.categorical_into_float = []
 
+        # Indices of columns with filed string into numerical transformation
+        self.string_columns_transformation_failed = {}
+
         # Is target column contains non-numerical cells during conversion
         self.target_converting_has_errors = False
 
-        # Lists with column types for converting
+        # Lists with column types for converting calculated on source input data
         self.features_types = None
         self.target_types = None
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
@@ -59,9 +62,9 @@ class TableTypesCorrector:
         self.target_columns_info = define_column_types(data.target)
 
         # Correct types in features table
-        table = self.features_types_converting(features=data.features)
+        data.features = self.features_types_converting(features=data.features)
         # Remain only correct columns
-        data.features = self.remove_incorrect_features(table, self.features_converted_columns)
+        data.features = self.remove_incorrect_features(data.features, self.features_converted_columns)
 
         # And in target(s)
         data.target = self.target_types_converting(target=data.target, task=data.task)
@@ -72,10 +75,11 @@ class TableTypesCorrector:
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
-
         # Save info about features and target types
-        self.features_types = data.supplementary_data.column_types['features']
-        self.target_types = data.supplementary_data.column_types['target']
+        self.features_types = copy(data.supplementary_data.column_types['features'])
+        self.target_types = copy(data.supplementary_data.column_types['target'])
+
+        self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def convert_data_for_predict(self, data: 'InputData'):
@@ -92,6 +96,7 @@ class TableTypesCorrector:
         # Convert column types
         self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
+        self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
@@ -101,7 +106,7 @@ class TableTypesCorrector:
         :param table: tabular dataset based on which new dataset will be generated
         :param converted_columns: dictionary with actions with table
         """
-        if len(converted_columns) == 0:
+        if not converted_columns:
             return table
 
         self.columns_to_del = [column_id for column_id, new_type_name in converted_columns.items() if
@@ -124,21 +129,20 @@ class TableTypesCorrector:
         if not features_with_mixed_types:
             return features
 
-        if features_with_mixed_types:
-            # There are mixed-types columns in features table - convert them
-            for mixed_column_id in features_with_mixed_types:
-                column_info = self.features_columns_info[mixed_column_id]
+        # There are mixed-types columns in features table - convert them
+        for mixed_column_id in features_with_mixed_types:
+            column_info = self.features_columns_info[mixed_column_id]
 
-                if column_info.get('str_number') > 0:
-                    # There are string elements in the array
-                    mixed_column = features[:, mixed_column_id]
-                    updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
-                                                                                        mixed_column_id)
-                    # Store information about converted columns
-                    self.features_converted_columns.update({mixed_column_id: new_type_name})
+            if column_info.get('str_number') > 0:
+                # There are string elements in the array
+                mixed_column = features[:, mixed_column_id]
+                updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
+                                                                                    mixed_column_id)
+                # Store information about converted columns
+                self.features_converted_columns.update({mixed_column_id: new_type_name})
 
-                    if updated_column is not None:
-                        features[:, mixed_column_id] = updated_column
+                if updated_column is not None:
+                    features[:, mixed_column_id] = updated_column
 
         return features
 
@@ -153,21 +157,20 @@ class TableTypesCorrector:
         if not target_with_mixed_types:
             return target
 
-        if target_with_mixed_types:
-            # There are mixed-types columns in features table - convert them
-            for mixed_column_id in target_with_mixed_types:
-                column_info = self.target_columns_info[mixed_column_id]
+        # There are mixed-types columns in features table - convert them
+        for mixed_column_id in target_with_mixed_types:
+            column_info = self.target_columns_info[mixed_column_id]
 
-                if column_info.get('str_number') > 0:
-                    # There are string elements in the array
-                    mixed_column = target[:, mixed_column_id]
-                    updated_column, new_type_name = self._convert_target_into_one_type(mixed_column, column_info,
-                                                                                       mixed_column_id, task)
-                    # Store information about converted columns
-                    self.target_converted_columns.update({mixed_column_id: new_type_name})
+            if column_info.get('str_number') > 0:
+                # There are string elements in the array
+                mixed_column = target[:, mixed_column_id]
+                updated_column, new_type_name = self._convert_target_into_one_type(mixed_column, column_info,
+                                                                                   mixed_column_id, task)
+                # Store information about converted columns
+                self.target_converted_columns.update({mixed_column_id: new_type_name})
 
-                    if updated_column is not None:
-                        target[:, mixed_column_id] = updated_column
+                if updated_column is not None:
+                    target[:, mixed_column_id] = updated_column
 
         return target
 
@@ -180,19 +183,35 @@ class TableTypesCorrector:
             # Information about column types is empty - there is a need to launch algorithm to collect info
             self.features_columns_info = define_column_types(predictors)
             predictors = self.features_types_converting(features=predictors)
-        if not self.target_columns_info and task.task_type != TaskTypesEnum.ts_forecasting:
+        if not self.target_columns_info and task.task_type is not TaskTypesEnum.ts_forecasting:
             self.target_columns_info = define_column_types(target)
             target = self.target_types_converting(target=target, task=task)
 
         features_types = _generate_list_with_types(self.features_columns_info, self.features_converted_columns)
         self._check_columns_vs_types_number(predictors, features_types)
 
-        if target is None or task.task_type == TaskTypesEnum.ts_forecasting:
+        if target is None or task.task_type is TaskTypesEnum.ts_forecasting:
             return {'features': features_types}
         else:
             target_types = _generate_list_with_types(self.target_columns_info, self.target_converted_columns)
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
+
+    def _retain_columns_info_without_types_conflicts(self, data: 'InputData'):
+        """ Update information in supplementary info - retain info only about remained columns.
+        Such columns have no conflicts with types converting.
+        """
+        if len(self.string_columns_transformation_failed) > 0:
+            self.log.warn(f'Columns with indices {list(self.string_columns_transformation_failed.keys())} were '
+                          f'removed during mixed types column converting due to conflicts.')
+
+            data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
+
+            remained_column_types = []
+            for i, col in enumerate(data.supplementary_data.column_types['features']):
+                if i not in self.string_columns_transformation_failed:
+                    remained_column_types.append(col)
+            data.supplementary_data.column_types['features'] = remained_column_types
 
     def _check_columns_vs_types_number(self, table: np.array, column_types: list):
         # Check if columns number correct
@@ -210,7 +229,7 @@ class TableTypesCorrector:
         """
         if len(column_info['types']) == 2 and NAME_CLASS_NONE in column_info['types']:
             # Column contain only one data type and nans
-            filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_info['types']))
+            filtered_types = [x for x in column_info['types'] if x != NAME_CLASS_NONE]
             return mixed_column, filtered_types[0]
 
         string_objects_number = column_info['str_number']
@@ -332,6 +351,8 @@ class TableTypesCorrector:
                     non_nan_all_objects_number = n_rows - nans_number
                     failed_ratio = failed_objects_number / non_nan_all_objects_number
 
+                    # If all objects are truly strings - all objects transform into nan
+                    is_column_contain_numerical_objects = failed_ratio != 1
                     if failed_ratio < 0.5:
                         # The majority of objects can be converted into numerical
                         data.features[:, column_id] = converted_column.values
@@ -340,6 +361,10 @@ class TableTypesCorrector:
                         self.categorical_into_float.append(column_id)
                         features_types = data.supplementary_data.column_types['features']
                         features_types[column_id] = NAME_CLASS_FLOAT
+                    elif failed_ratio >= 0.5 and is_column_contain_numerical_objects:
+                        # Probably numerical column contains '?' or 'x' as nans equivalents
+                        # Add columns to remove list
+                        self.string_columns_transformation_failed.update({column_id: 'removed'})
 
     def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
         """ Apply conversion into float string column for every signed column """
@@ -349,7 +374,7 @@ class TableTypesCorrector:
 
         n_rows, n_cols = data.features.shape
         for column_id in range(n_cols):
-            if column_id in self.categorical_into_float:
+            if column_id in self.categorical_into_float and column_id not in self.string_columns_transformation_failed:
                 string_column = pd.Series(data.features[:, column_id])
 
                 # Column must be converted into float from categorical
@@ -366,6 +391,7 @@ def define_column_types(table: np.array):
     types, which column contains. If column with mixed type contain str object
     additional field 'str_ids' with indices of string objects is prepared
     """
+
     # TODO: current processing is relatively computationally expensive - probably refactor needed
 
     def type_ignoring_nans(item):
@@ -390,7 +416,7 @@ def define_column_types(table: np.array):
         # Store only unique values
         set_column_types = set(column_types)
         # Convert types into string names
-        column_types_names = list(map(lambda x: str(x), set_column_types))
+        column_types_names = list(map(str, set_column_types))
 
         if len(column_types_names) > 1:
             # There are several types in one column
@@ -512,7 +538,7 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
             updated_column_types.append(column_types[0])
         elif len(column_types) == 2 and NAME_CLASS_NONE in column_types:
             # Column with one type and nans
-            filtered_types = list(filter(lambda x: x != NAME_CLASS_NONE, column_types))
+            filtered_types = [x for x in column_types if x != NAME_CLASS_NONE]
             updated_column_types.append(filtered_types[0])
         else:
             if any('str' in column_type_name for column_type_name in column_types):

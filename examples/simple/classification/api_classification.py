@@ -14,14 +14,13 @@ def run_classification_example(timeout: float = None):
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
-    auto_model = Fedot(problem=problem, seed=42, timeout=timeout)
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=1)
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
     auto_model.plot_prediction()
-
     return prediction
 
 
 if __name__ == '__main__':
-    run_classification_example(timeout=2)
+    run_classification_example(timeout=4)

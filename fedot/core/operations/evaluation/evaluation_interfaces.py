@@ -2,12 +2,8 @@ import warnings
 from abc import abstractmethod
 from typing import Optional
 
+import numpy as np
 from catboost import CatBoostClassifier, CatBoostRegressor
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
-from fedot.core.repository.tasks import TaskTypesEnum
 from lightgbm import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
@@ -31,6 +27,12 @@ from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from xgboost import XGBClassifier, XGBRegressor
 
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.log import Log, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
+from fedot.core.repository.tasks import TaskTypesEnum
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -44,16 +46,13 @@ class EvaluationStrategy:
     """
 
     def __init__(self, operation_type: str, params: Optional[dict] = None,
-                 log=None):
+                 log: Optional[Log] = None):
         self.params_for_fit = params
         self.operation_id = operation_type
 
         self.output_mode = False
 
-        if not log:
-            self.log: Log = default_log(__name__)
-        else:
-            self.log: Log = log
+        self.log = log or default_log(__name__)
 
     @property
     def operation_type(self):
@@ -162,8 +161,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained Sklearn operation
         """
-
         warnings.filterwarnings("ignore", category=RuntimeWarning)
+
         if self.params_for_fit:
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
@@ -213,7 +212,12 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         return str(self._convert_to_operation(self.operation_type))
 
     def _sklearn_compatible_prediction(self, trained_operation, features):
-        n_classes = len(trained_operation.classes_)
+        is_multi_output_target = isinstance(trained_operation.classes_, list)
+        # Check if target is multilabel (has 2 or more columns)
+        if is_multi_output_target:
+            n_classes = len(trained_operation.classes_[0])
+        else:
+            n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
             prediction = trained_operation.predict(features)
         elif self.output_mode in ['probs', 'full_probs', 'default']:
@@ -221,7 +225,10 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             if n_classes < 2:
                 raise NotImplementedError()
             elif n_classes == 2 and self.output_mode != 'full_probs':
-                prediction = prediction[:, 1]
+                if is_multi_output_target:
+                    prediction = np.stack([pred[:, 1] for pred in prediction]).T
+                else:
+                    prediction = prediction[:, 1]
         else:
             raise ValueError(f'Output model {self.output_mode} is not supported')
 

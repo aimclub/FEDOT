@@ -1,22 +1,21 @@
 import csv
-import datetime
 import itertools
 import json
 import os
 import shutil
 from copy import deepcopy
 from dataclasses import dataclass
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
 
-from fedot.core.optimisers.utils.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.utils import default_fedot_data_dir
@@ -26,7 +25,7 @@ from fedot.core.utils import default_fedot_data_dir
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_objects: List['Individual']
+    parent_individuals: List['Individual']
     uid: str = None
 
     def __post_init__(self):
@@ -43,14 +42,15 @@ class OptHistory:
         self.metrics = metrics
         self.individuals: List[List['Individual']] = []
         self.archive_history: List[List['Individual']] = []
-        self.save_folder: str = save_folder if save_folder \
-            else f'composing_history_{datetime.datetime.now().timestamp()}'
+        self.save_folder: Optional[str] = save_folder
 
     def add_to_history(self, individuals: List['Individual']):
-        self.individuals.append([deepcopy(ind) for ind in individuals])
+        new_inds = deepcopy(individuals)
+        self.individuals.append(new_inds)
 
     def add_to_archive_history(self, individuals: List['Individual']):
-        self.archive_history.append([ind for ind in individuals])
+        new_inds = deepcopy(individuals)
+        self.archive_history.append(new_inds)
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()
@@ -62,14 +62,10 @@ class OptHistory:
         adapter = PipelineAdapter()
         for gen_num, gen_inds in enumerate(self.individuals):
             for ind_num, ind in enumerate(gen_inds):
-                if self.is_multi_objective:
-                    fitness = ind.fitness.values
-                else:
-                    fitness = ind.fitness
-                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.computation_time)
+                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
                 row = [
-                    idx, gen_num, fitness,
-                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.computation_time
+                    idx, gen_num, ind.fitness.values,
+                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
                 ]
                 self._add_history_to_csv(file, row)
                 idx += 1
@@ -80,10 +76,11 @@ class OptHistory:
             metric_str = 'metric'
             if self.is_multi_objective:
                 metric_str += 's'
-            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'computation_time']
+            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
             writer.writerow(row)
 
-    def _add_history_to_csv(self, f: str, row: List[Any]):
+    @staticmethod
+    def _add_history_to_csv(f: str, row: List[Any]):
         with open(f, 'a', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             writer.writerow(row)
@@ -91,20 +88,21 @@ class OptHistory:
     def save_current_results(self, path: Optional[str] = None):
         if not path:
             path = self._get_save_path()
-        try:
-            last_gen_id = len(self.individuals) - 1
-            last_gen = self.individuals[last_gen_id]
-            for ind_id, individual in enumerate(last_gen):
-                # TODO support multi-objective case
-                ind_path = os.path.join(path, str(last_gen_id), str(individual.graph.uid))
-                additional_info = \
-                    {'fitness_name': self.short_metrics_names[0],
-                     'fitness_value': self.historical_fitness[last_gen_id][ind_id]}
-                PipelineAdapter().restore_as_template(
-                    individual.graph, individual.computation_time
-                ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
-        except Exception as ex:
-            print(ex)
+        if path is not None:
+            try:
+                last_gen_id = len(self.individuals) - 1
+                last_gen = self.individuals[last_gen_id]
+                for ind_id, individual in enumerate(last_gen):
+                    # TODO support multi-objective case
+                    ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
+                    additional_info = \
+                        {'fitness_name': self.short_metrics_names[0],
+                         'fitness_value': self.historical_fitness[last_gen_id][ind_id].values[0]}
+                    PipelineAdapter().restore_as_template(
+                        individual.graph, individual.metadata
+                    ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
+            except Exception as ex:
+                print(ex)
 
     def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
         if json_file_path is None:
@@ -121,10 +119,19 @@ class OptHistory:
                 return json.load(json_fp, cls=Serializer)
 
     def clean_results(self, path: Optional[str] = None):
-        if not path:
+        if not path and self.save_folder is not None:
             path = os.path.join(default_fedot_data_dir(), self.save_folder)
-        shutil.rmtree(path, ignore_errors=True)
-        os.mkdir(path)
+        if path is not None:
+            shutil.rmtree(path, ignore_errors=True)
+            os.mkdir(path)
+
+    def show(self, save_path_to_file: str = None):
+        """ Visualizes fitness values across generations """
+
+        if self.all_historical_fitness is None:
+            return
+        viz = PipelineEvolutionVisualiser()
+        viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
 
     @property
     def short_metrics_names(self):
@@ -182,7 +189,7 @@ class OptHistory:
     def historical_pipelines(self):
         adapter = PipelineAdapter()
         return [
-            adapter.restore_as_template(ind.graph, ind.computation_time)
+            adapter.restore_as_template(ind.graph, ind.metadata)
             for ind in list(itertools.chain(*self.individuals))
         ]
 
@@ -191,11 +198,13 @@ class OptHistory:
         return type(self.individuals[0][0].fitness) is MultiObjFitness
 
     def _get_save_path(self):
-        if os.path.sep in self.save_folder:
-            # Defined path is full - there is no need to use default dir
-            # Create folder if it's not exists
-            if os.path.isdir(self.save_folder) is False:
-                os.makedirs(self.save_folder)
-            return self.save_folder
-        else:
-            return os.path.join(default_fedot_data_dir(), self.save_folder)
+        if self.save_folder is not None:
+            if os.path.sep in self.save_folder:
+                # Defined path is full - there is no need to use default dir
+                # Create folder if it's not exists
+                if os.path.isdir(self.save_folder) is False:
+                    os.makedirs(self.save_folder)
+                return self.save_folder
+            else:
+                return os.path.join(default_fedot_data_dir(), self.save_folder)
+        return None

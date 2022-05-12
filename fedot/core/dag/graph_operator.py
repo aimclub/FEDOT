@@ -1,8 +1,11 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Tuple
+from typing import Any, List, Optional, Union, Tuple, Dict
+
+from networkx import set_node_attributes, graph_edit_distance
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
 
 
 class GraphOperator:
@@ -25,11 +28,13 @@ class GraphOperator:
         self._postproc_nodes()
 
     def delete_subtree(self, node: GraphNode):
-        """Delete node with all the parents it has"""
-        for node_child in self.node_children(node):
-            node_child.nodes_from.remove(node)
-        for subtree_node in node.ordered_subnodes_hierarchy():
-            self._graph.nodes.remove(subtree_node)
+        """Delete node with all the parents it has.
+        and delete all edges from removed nodes to remaining graph nodes."""
+        subtree_nodes = node.ordered_subnodes_hierarchy()
+        self._graph.nodes = remove_items(self._graph.nodes, subtree_nodes)
+        # prune all edges coming from the removed subtree
+        for node in self._graph.nodes:
+            node.nodes_from = remove_items(node.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
@@ -95,10 +100,10 @@ class GraphOperator:
 
     def sort_nodes(self):
         """layer by layer sorting"""
-        if not isinstance(self._graph.root_node, list):
-            nodes = self._graph.root_node.ordered_subnodes_hierarchy()
-        else:
+        if isinstance(self._graph.root_node, list):
             nodes = self._graph.nodes
+        else:
+            nodes = self._graph.root_node.ordered_subnodes_hierarchy()
         self._graph.nodes = nodes
 
     def node_children(self, node) -> List[Optional[GraphNode]]:
@@ -119,7 +124,7 @@ class GraphOperator:
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
-        Method removes nodes and edges that do not the result of the pipeline
+        Method removes nodes and edges that do not affect the result of the pipeline
 
         Leftovers - edges and nodes that remain after the removal of the edge / node
         and do not affect the result of the pipeline
@@ -157,7 +162,7 @@ class GraphOperator:
         self._postproc_nodes()
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
-        if len(self._graph.nodes) == 0:
+        if not self._graph.nodes:
             return []
         roots = [node for node in self._graph.nodes
                  if not any(self._graph.operator.node_children(node))]
@@ -166,16 +171,13 @@ class GraphOperator:
         return roots
 
     def is_graph_equal(self, other_graph: 'Graph') -> bool:
-        if isinstance(self._graph.root_node, list):
-            if isinstance(other_graph.root_node, list):
-                return set([rn.descriptive_id for rn in self._graph.root_node]) == \
-                       set([rn.descriptive_id for rn in other_graph.root_node])
-            else:
-                return False
-        elif isinstance(other_graph.root_node, list):
-            return False
-        else:
+        if all(isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
+            return set(rn.descriptive_id for rn in self._graph.root_node) == \
+                   set(rn.descriptive_id for rn in other_graph.root_node)
+        elif all(not isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
             return self._graph.root_node.descriptive_id == other_graph.root_node.descriptive_id
+        else:
+            return False
 
     def graph_description(self) -> str:
         return str({
@@ -185,22 +187,19 @@ class GraphOperator:
         })
 
     def graph_depth(self) -> int:
-        if len(self._graph.nodes) == 0:
+        if not self._graph.nodes:
             return 0
 
         def _depth_recursive(node: GraphNode):
             if node is None:
                 return 0
-            if node.nodes_from is None or len(node.nodes_from) == 0:
+            if node.nodes_from is None or not node.nodes_from:
                 return 1
             else:
-                return 1 + max([_depth_recursive(next_node) for next_node in node.nodes_from])
+                return 1 + max(_depth_recursive(next_node) for next_node in node.nodes_from)
 
-        root = self.root_node()
-        if isinstance(root, list):
-            return max([_depth_recursive(n) for n in root])
-        else:
-            return _depth_recursive(root)
+        root = ensure_wrapped_in_sequence(self.root_node())
+        return max(_depth_recursive(n) for n in root)
 
     def get_nodes_degrees(self):
         """ Nodes degree as the number of edges the node has:
@@ -219,5 +218,24 @@ class GraphOperator:
         for node in self._graph.nodes:
             if node.nodes_from:
                 for parent_node in node.nodes_from:
-                    edges.append([parent_node, node])
+                    edges.append((parent_node, node))
         return edges
+
+    def distance_to(self, other_graph: 'Graph') -> int:
+        def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
+            node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
+
+            is_operation_match = str(node_1) == str(node_2)
+            is_params_match = node_1.content.get('params') == node_2.content.get('params')
+            is_match = is_operation_match and is_params_match
+            return is_match
+
+        graphs = (self._graph, other_graph)
+        nx_graphs = []
+        for graph in graphs:
+            nx_graph, nodes = graph_structure_as_nx_graph(graph)
+            set_node_attributes(nx_graph, nodes, name='node')
+            nx_graphs.append(nx_graph)
+
+        distance = graph_edit_distance(*nx_graphs, node_match=node_match)
+        return int(distance)

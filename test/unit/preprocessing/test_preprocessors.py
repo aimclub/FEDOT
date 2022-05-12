@@ -1,4 +1,7 @@
+import os
+
 import numpy as np
+import pandas as pd
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -8,8 +11,23 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
+from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
     correct_preprocessing_params
+
+
+def get_data_with_string_columns():
+    file_path = os.path.join(project_root_path, 'test/data/data_with_mixed_column.csv')
+    df = pd.read_csv(file_path)
+
+    task = Task(TaskTypesEnum.classification)
+    input_data = InputData(idx=np.arange(len(df)),
+                           features=np.array(df[['mixed_column', 'numerical_column']]),
+                           target=np.array(df['target']).reshape(-1, 1),
+                           task=task,
+                           data_type=DataTypesEnum.table)
+
+    return input_data
 
 
 def generate_linear_pipeline():
@@ -54,9 +72,9 @@ def data_with_complicated_types():
     features = np.array([[0, np.nan, 1, 1, 1, 'monday', 'a ', 'true', 1, '0', 'a'],
                          [np.nan, 5, 2, 2, 0, 'tuesday', 'b', np.nan, 0, '1', np.inf],
                          [2, np.nan, 3, 3, np.nan, 3, 'c', 'false', 1, '?', 'c'],
-                         [3, np.nan, 4, 4, 3.0, 4, '  a  ', 'true', 0, '2', '1'],
-                         [4, np.nan, 5, 5.0, 0, 5, '   b ', np.nan, 0, '3', '2'],
-                         [5, np.nan, 6, 6, 0, 6, '   c  ', 'false', 0, '4', '3'],
+                         [3, np.nan, 4, 4, 3.0, 4, '  a  ', 'true', 0, '2', 'd'],
+                         [4, np.nan, 5, 5.0, 0, 5, '   b ', np.nan, 0, '3', 'e'],
+                         [5, np.nan, 6, 6, 0, 6, '   c  ', 'false', 0, '4', 'f'],
                          [6, np.inf, 7, 7, 0, 7, '    a  ', 'true', 1, '5', 'g'],
                          [7, np.inf, 8, 8, 1.0, 1, ' b   ', np.nan, 0, '6', 'h'],
                          [np.inf, np.inf, '9', '9', 2, 2, np.nan, 'true', 1, '7', 'i'],
@@ -138,3 +156,20 @@ def test_complicated_table_types_processed_correctly():
     assert types_correctors[DEFAULT_SOURCE_NAME].categorical_into_float[0] == 7
     # Three columns in the table must be converted into string
     assert len(types_correctors[DEFAULT_SOURCE_NAME].numerical_into_str) == 3
+
+
+def test_numerical_column_with_string_nans():
+    """
+    A table is generated in which one column contains numeric data along with the
+    characters '?' and 'x'. These cells replace the nan. This column must be removed
+    from the table.
+    """
+    input_data = get_data_with_string_columns()
+
+    types_corr = TableTypesCorrector()
+    # Set maximum allowed unique classes in categorical column
+    types_corr.categorical_max_classes_th = 5
+    data = types_corr.convert_data_for_fit(input_data)
+
+    n_rows, n_cols = data.features.shape
+    assert n_cols == 1

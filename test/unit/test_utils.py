@@ -6,8 +6,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from fedot.core.utils import default_fedot_data_dir, labels_to_dummy_probs, save_file_to_csv, \
-    split_data
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.utils import default_fedot_data_dir, labels_to_dummy_probs, save_file_to_csv, split_data
 
 
 def test_default_fedot_data_dir():
@@ -51,3 +51,19 @@ def test_save_file_to_csv():
     assert os.path.exists(file_to_save)
     assert '1,2,3' in content[1]
     os.remove(file_to_save)
+
+
+def test_ensure_wrapped_in_sequence():
+    cases = [
+        str(),
+        int(),
+        (i for i in range(5)),
+        [int()],
+        (int(),),
+    ]
+
+    container_types = [list, tuple, set]
+
+    for case in cases:
+        for container_type in container_types:
+            assert isinstance(ensure_wrapped_in_sequence(case, container_type), container_type)

@@ -1,5 +1,5 @@
-from copy import deepcopy
-from typing import Union, Dict
+from typing import Dict, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -11,7 +11,6 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import probs_to_labels
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
@@ -27,7 +26,7 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task, log: Log = None):
+    def __init__(self, task: Task, log: Optional[Log] = None):
         self.task = task
         self.preprocessor = DataPreprocessor(log)
 
@@ -55,18 +54,19 @@ class ApiDataProcessor:
                                           ml_task=self.task,
                                           is_predict=is_predict)
             if isinstance(data, dict) and idx is not None:
-                for k in data.keys():
-                    data[k].idx = idx
+                for key in data:
+                    data[key].idx = idx
         except Exception as ex:
-            raise ValueError('Please specify a features as path to csv file, as Numpy array, '
-                             'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
+            raise ValueError('Please specify the "features" as path to as path to csv file/'
+                             'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
+                             f'Exception: {ex}')
 
         # Perform obligatory steps of data preprocessing
         if is_predict:
             data = self.preprocessor.obligatory_prepare_for_predict(data)
         else:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
-        return deepcopy(data)
+        return data
 
     def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
         """ Prepare predictions """
@@ -87,17 +87,11 @@ class ApiDataProcessor:
 
         return output_prediction
 
-    def correct_predictions(self, metric_name: str,
-                            real: InputData, prediction: OutputData):
+    def correct_predictions(self, real: InputData, prediction: OutputData):
         """ Change shape for models predictions if its necessary. Apply """
         if self.task == TaskTypesEnum.ts_forecasting:
             real.target = real.target[~np.isnan(prediction.predict)]
             prediction.predict = prediction.predict[~np.isnan(prediction.predict)]
-
-        if metric_name == 'f1':
-            if real.num_classes == 2:
-                prediction.predict = _convert_to_two_classes(prediction.predict)
-            prediction.predict = probs_to_labels(prediction.predict)
 
         if data_type_is_table(prediction):
             # Check dimensions for real and predicted values
@@ -120,12 +114,3 @@ class ApiDataProcessor:
                 rec = recommendations[name]
                 # Apply desired preprocessing function
                 self.recommendations[name](input_data, *rec.values())
-
-
-def _convert_to_two_classes(predict):
-    """ Prepare array with predicted probabilities for correct binarization
-    Example: array [[0.5], [0.7]] will be converted into [[0.5, 0.5], [0.3, 0.7]]
-    """
-    if len(predict.shape) > 1:
-        predict = np.ravel(predict)
-    return np.vstack([1 - predict, predict]).transpose()

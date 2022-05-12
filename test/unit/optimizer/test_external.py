@@ -9,8 +9,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import (MetricsEnum)
-
+from fedot.core.repository.quality_metrics_repository import MetricsEnum
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
@@ -26,7 +25,7 @@ class StaticOptimizer(GraphOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
-                 log: Log = None,
+                 log: Optional[Log] = None,
                  **kwargs):
         super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
         self.change_types = []
@@ -34,7 +33,8 @@ class StaticOptimizer(GraphOptimiser):
 
     def optimise(self, objective_function,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+                 show_progress: bool = True,
+                 **kwargs):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('logit'))
@@ -46,9 +46,11 @@ def test_external_static_optimizer(data_fixture, request):
     train_data, test_data = train_test_data_setup(data=data)
 
     automl = Fedot(problem='classification', timeout=0.2, verbose_level=4,
-                   preset='fast_train', composer_params={'with_tuning': False,
-                                                         'optimizer': StaticOptimizer,
-                                                         'optimizer_external_params': {'node_name': 'logit'}})
+                   preset='fast_train',
+                   composer_params={'with_tuning': False,
+                                    'optimizer': StaticOptimizer,
+                                    'pop_size': 2,
+                                    'optimizer_external_params': {'node_name': 'logit'}})
     obtained_pipeline = automl.fit(train_data)
     automl.predict(test_data)
 

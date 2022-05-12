@@ -1,10 +1,14 @@
+from typing import Optional
+
+import numpy as np
+
 from fedot.core.data.data import OutputData
 from fedot.core.log import Log
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import TaskTypesEnum
-import numpy as np
+
 
 class Model(Operation):
     """
@@ -14,7 +18,7 @@ class Model(Operation):
     :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Log = None):
+    def __init__(self, operation_type: str, log: Optional[Log] = None):
         super().__init__(operation_type=operation_type, log=log)
         self.operations_repo = OperationTypesRepository('model')
 

@@ -2,6 +2,17 @@ from copy import copy
 from typing import Optional
 
 import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+from fedot.core.data.data import InputData
+from fedot.core.log import Log
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
+    prepare_target,
+    ts_to_table
+)
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
+from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class TorchMock:
@@ -11,25 +22,16 @@ class TorchMock:
 try:
     import torch
     import torch.nn as nn
+
     from torch.utils.data import DataLoader, TensorDataset
 except ModuleNotFoundError:
     torch = object()
     nn = TorchMock
     print('Torch non installed - continue.')
 
-from sklearn.preprocessing import StandardScaler
-
-from fedot.core.data.data import InputData
-from fedot.core.log import Log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
-    prepare_target
-from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.pipelines.ts_wrappers import exception_if_not_ts_task, _update_input
-from fedot.core.repository.dataset_types import DataTypesEnum
-
 
 class CLSTMImplementation(ModelImplementation):
-    def __init__(self, log: Log = None, **params):
+    def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.params = params
         self.epochs = params.get("num_epochs")

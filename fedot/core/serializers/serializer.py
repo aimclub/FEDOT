@@ -3,6 +3,9 @@ from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Type, TypeVar, Union
 
+from fedot.core.optimisers.fitness.fitness import Fitness
+from fedot.core.pipelines.node import NodeMetadata
+
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 CLASS_PATH_KEY = '_class_path'
@@ -16,13 +19,10 @@ class Serializer(JSONEncoder, JSONDecoder):
     CODERS_BY_TYPE = {}
 
     def __init__(self, *args, **kwargs):
-        encoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONEncoder.__init__).parameters}
-        encoder_kwargs['default'] = self.default
-        JSONEncoder.__init__(self, **encoder_kwargs)
-
-        decoder_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(JSONDecoder.__init__).parameters}
-        decoder_kwargs['object_hook'] = self.object_hook
-        JSONDecoder.__init__(self, **decoder_kwargs)
+        for base_class, coder_name in [(JSONEncoder, 'default'), (JSONDecoder, 'object_hook')]:
+            base_kwargs = {k: kwargs[k] for k in kwargs.keys() & signature(base_class.__init__).parameters}
+            base_kwargs[coder_name] = getattr(self, coder_name)
+            base_class.__init__(self, **base_kwargs)
 
         if not Serializer.CODERS_BY_TYPE:
             from uuid import UUID
@@ -33,7 +33,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             from fedot.core.optimisers.gp_comp.individual import Individual
             from fedot.core.optimisers.graph import OptGraph, OptNode
             from fedot.core.optimisers.opt_history import OptHistory, ParentOperator
-            from fedot.core.utils import ComparableEnum
+            from fedot.core.utilities.data_structures import ComparableEnum
 
             from .coders import (
                 any_from_json,
@@ -44,6 +44,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 graph_node_to_json,
                 graph_to_json,
                 operation_to_json,
+                fitness_from_json,
                 opt_history_from_json,
                 parent_operator_to_json,
                 uuid_from_json,
@@ -55,6 +56,7 @@ class Serializer(JSONEncoder, JSONDecoder):
             basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
             Serializer.CODERS_BY_TYPE = {
                 Individual: basic_serialization,
+                Fitness: {_to_json: any_to_json, _from_json: fitness_from_json},
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},
@@ -62,6 +64,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 ParentOperator: {_to_json: parent_operator_to_json, _from_json: any_from_json},
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
+                NodeMetadata: {_to_json: any_to_json, _from_json: any_from_json}
             }
             Serializer.CODERS_BY_TYPE.update({
                 OptNode: Serializer.CODERS_BY_TYPE[GraphNode],

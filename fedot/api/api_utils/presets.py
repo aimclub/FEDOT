@@ -1,5 +1,12 @@
+import datetime
 from copy import copy
+from typing import Tuple, Union
 
+from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import \
+    PipelineComposerRequirements
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
+    FAST_TRAIN_PRESET_NAME, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -29,9 +36,6 @@ class OperationsPreset:
             available_operations = self._filter_operations_by_preset()
             updated_params['available_operations'] = available_operations
 
-        if updated_params['with_tuning']:
-            updated_params['with_tuning'] = True
-
         return updated_params
 
     def _filter_operations_by_preset(self):
@@ -43,7 +47,7 @@ class OperationsPreset:
         preset_name = self.preset_name
         if 'stable' in self.preset_name:
             # Use best_quality preset but exclude several operations
-            preset_name = 'best_quality'
+            preset_name = BEST_QUALITY_PRESET_NAME
         excluded = ['mlp', 'svc', 'svr', 'arima', 'exog_ts', 'text_clean',
                     'catboost', 'lda', 'qda', 'lgbm', 'one_hot_encoding',
                     'resample', 'stl_arima']
@@ -84,3 +88,44 @@ class OperationsPreset:
         available_operations = [_ for _ in available_operations if _ not in excluded_operations]
 
         return available_operations
+
+
+def update_builder(builder: ComposerBuilder,
+                   composer_requirements: PipelineComposerRequirements,
+                   fit_time: datetime.timedelta,
+                   full_minutes_timeout: Union[int, None], preset: str) -> Tuple[ComposerBuilder, str]:
+    """ Updates the builder if a preset needs to be set automatically """
+    if preset != 'auto':
+        return builder, preset
+
+    # Find appropriate preset
+    new_preset = change_preset_based_on_initial_fit(fit_time, full_minutes_timeout)
+
+    preset_manager = OperationsPreset(task=builder.task, preset_name=new_preset)
+    new_operations = preset_manager.composer_params_based_on_preset(composer_params={'preset': new_preset})
+    # Insert updated operations list into source composer parameters
+    composer_requirements.primary = new_operations['available_operations']
+    composer_requirements.secondary = copy(new_operations['available_operations'])
+    builder.with_requirements(composer_requirements)
+    return builder, new_preset
+
+
+def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,
+                                       full_minutes_timeout: Union[int, None]) -> str:
+    """
+    If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
+
+    :param fit_time: spend time for fit initial pipeline
+    :param full_minutes_timeout: minutes for AutoML algorithm
+    """
+    if full_minutes_timeout in [-1, None]:
+        return BEST_QUALITY_PRESET_NAME
+
+    # Change preset to appropriate one
+    init_fit_minutes = fit_time.total_seconds() / 60
+    minimal_minutes_for_all_calculations = init_fit_minutes * MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+    if minimal_minutes_for_all_calculations > full_minutes_timeout:
+        # It is possible to train only few number of pipelines during optimization - use simplified preset
+        return FAST_TRAIN_PRESET_NAME
+    else:
+        return BEST_QUALITY_PRESET_NAME

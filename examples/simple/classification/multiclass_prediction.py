@@ -76,7 +76,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     composer = builder.build()
 
     # run the search of best suitable model
-    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose, is_visualise=False)
+    pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipeline_evo_composed.fit(input_data=dataset_to_compose)
 
     return pipeline_evo_composed

@@ -1,19 +1,19 @@
 import random
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, Any, List
 
 import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
+from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
+from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 
 
 class ApiParams:
 
     def __init__(self):
-        self.default_forecast_length = 30
         self.api_params = None
         self.log = None
         self.task = None
@@ -22,52 +22,27 @@ class ApiParams:
         self.metric_name = None
         self.initial_assumption = None
 
-    def check_input_params(self, **input_params):
-        self.metric_to_compose = None
-        self.api_params['problem'] = input_params['problem']
-        self.log = default_log('FEDOT logger', verbose_level=input_params['verbose_level'])
+    def initialize_params(self, input_params: Dict[str, Any]):
+        """ Merge input_params dictionary with several parameters for AutoML algorithm """
+        self.get_initial_params(input_params)
+        preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
+        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
 
-        if input_params['seed'] is not None:
-            np.random.seed(input_params['seed'])
-            random.seed(input_params['seed'])
+        # Final check for correctness for timeout and generations
+        self.api_params = check_timeout_vs_generations(self.api_params)
 
-        if 'metric' in self.api_params:
-            self.api_params['composer_metric'] = self.api_params['metric']
-            del self.api_params['metric']
-            self.metric_to_compose = self.api_params['composer_metric']
-
-        if input_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
-            self.log.warn('The value of the forecast depth was set to {}.'.format(self.default_forecast_length))
-            self.task_params = TsForecastingParams(forecast_length=self.default_forecast_length)
-
-        if input_params['problem'] == 'clustering':
-            raise ValueError('This type of task is not not supported in API now')
-
-    def get_initial_params(self, **input_params):
-        if input_params['composer_params'] is None:
-            self.api_params = self.get_default_evo_params(problem=input_params['problem'])
-        else:
-            self.api_params = {**self.get_default_evo_params(problem=input_params['problem']),
-                               **input_params['composer_params']}
-
-        self.check_input_params(**input_params)
-
-        self.task = self.get_task_params(input_params['problem'],
-                                         input_params['task_params'])
-        self.metric_name = self.get_default_metric(input_params['problem'])
+    def get_initial_params(self, input_params: Dict[str, Any]):
+        self._parse_input_params(input_params)
 
         param_dict = {
             'task': self.task,
             'logger': self.log,
             'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose
+            'composer_metric': self.metric_to_compose,
+            'timeout': input_params['timeout'],
+            'current_model': None
         }
         self.api_params = {**self.api_params, **param_dict}
-
-    def initialize_params(self, **input_params):
-        self.get_initial_params(**input_params)
-        preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
-        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
 
     def accept_and_apply_recommendations(self, input_data: Union[InputData, MultiModalData], recommendations: Dict):
         """
@@ -89,12 +64,14 @@ class ApiParams:
 
     def change_preset_for_label_encoded_data(self, task: Task):
         """ Change preset on tree like preset, if data had been label encoded """
-        if self.api_params.get('preset') is not None:
+        if 'preset' in self.api_params:
             preset_name = ''.join((self.api_params['preset'], '*tree'))
         else:
             preset_name = '*tree'
         preset_operations = OperationsPreset(task=task, preset_name=preset_name)
-        del self.api_params['available_operations']
+
+        if self.api_params.get('available_operations') is not None:
+            del self.api_params['available_operations']
         self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
         param_dict = {
             'task': self.task,
@@ -104,16 +81,51 @@ class ApiParams:
         }
         self.api_params = {**self.api_params, **param_dict}
 
+    def _parse_input_params(self, input_params: Dict[str, Any]):
+        """ Parses input params into different class fields """
+        self.log = default_log('FEDOT logger', verbose_level=input_params['verbose_level'])
+        simple_keys = ['problem', 'n_jobs', 'use_cache']
+        self.api_params = {k: input_params[k] for k in simple_keys}
+        problem = self.api_params['problem']
+
+        default_evo_params = self.get_default_evo_params(input_params['problem'])
+        if input_params['composer_params'] is None:
+            evo_params = default_evo_params
+        else:
+            if input_params['preset'] is not None:
+                input_params['composer_params']['preset'] = input_params['preset']
+            evo_params = {**default_evo_params, **input_params['composer_params']}
+        self.api_params.update(evo_params)
+
+        if input_params['seed'] is not None:
+            np.random.seed(input_params['seed'])
+            random.seed(input_params['seed'])
+
+        self.metric_to_compose = None
+        if 'metric' in self.api_params:
+            self.api_params['composer_metric'] = self.api_params['metric']
+            del self.api_params['metric']
+            self.metric_to_compose = self.api_params['composer_metric']
+
+        if problem == 'ts_forecasting' and input_params['task_params'] is None:
+            self.log.warn(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
+            input_params['task_params'] = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
+
+        if problem == 'clustering':
+            raise ValueError('This type of task is not not supported in API now')
+
+        self.task = self.get_task_params(problem, input_params['task_params'])
+        self.metric_name = self.get_default_metric(problem)
+
     @staticmethod
     def get_default_evo_params(problem: str):
         """ Dictionary with default parameters for composer """
-        params = {'max_depth': 3,
-                  'max_arity': 4,
+        params = {'max_depth': 6,
+                  'max_arity': 3,
                   'pop_size': 20,
-                  'num_of_generations': 20,
-                  'timeout': 2,
+                  'num_of_generations': 100,
                   'with_tuning': True,
-                  'preset': 'best_quality',
+                  'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
                   'stopping_after_n_generation': 10}
@@ -126,7 +138,7 @@ class ApiParams:
         return params
 
     @staticmethod
-    def get_default_metric(problem: str):
+    def get_default_metric(problem: str) -> Union[str, List[str]]:
         default_test_metric_dict = {
             'regression': ['rmse', 'mae'],
             'classification': ['roc_auc', 'f1'],
@@ -137,7 +149,7 @@ class ApiParams:
         return default_test_metric_dict[problem]
 
     @staticmethod
-    def get_task_params(problem, task_params: Optional[TaskParams] = None):
+    def get_task_params(problem: str, task_params: Optional[TaskParams] = None):
         """ Return task parameters by machine learning problem name (string) """
         task_dict = {'regression': Task(TaskTypesEnum.regression, task_params=task_params),
                      'classification': Task(TaskTypesEnum.classification, task_params=task_params),
@@ -145,3 +157,18 @@ class ApiParams:
                      'ts_forecasting': Task(TaskTypesEnum.ts_forecasting, task_params=task_params)
                      }
         return task_dict[problem]
+
+
+def check_timeout_vs_generations(api_params):
+    timeout = api_params['timeout']
+    num_of_generations = api_params['num_of_generations']
+    if timeout in [-1, None]:
+        api_params['timeout'] = None
+        if num_of_generations is None:
+            raise ValueError('"num_of_generations" should be specified if infinite "timeout" is given')
+    elif timeout > 0:
+        if num_of_generations is None:
+            api_params['num_of_generations'] = 10000
+    else:
+        raise ValueError(f'invalid "timeout" value: timeout={timeout}')
+    return api_params

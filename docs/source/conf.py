@@ -22,7 +22,7 @@ copyright = '2020-2022, NSS Lab'
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.5.1'
+release = '0.5.2'
 # -- General configuration ---------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be

@@ -21,20 +21,20 @@ class SearchSpace:
     def get_parameters_dict(self):
         parameters_per_operation = {
             'kmeans': {
-                'n_clusters': (hp.choice, [[2, 3, 4, 5, 6]])
+                'n_clusters': (hp.uniformint, [2, 7])
             },
             'adareg': {
                 'n_estimators': (hp.choice, [[100]]),
-                'learning_rate': (hp.uniform, [1e-3, 1.0]),
+                'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'loss': (hp.choice, [["linear", "square", "exponential"]])
             },
             'gbr': {
                 'n_estimators': (hp.choice, [[100]]),
                 'loss': (hp.choice, [["ls", "lad", "huber", "quantile"]]),
-                'learning_rate': (hp.uniform, [1e-3, 1.0]),
-                'max_depth': (hp.choice, [range(1, 11)]),
-                'min_samples_split': (hp.choice, [range(2, 21)]),
-                'min_samples_leaf': (hp.choice, [range(1, 21)]),
+                'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                'max_depth': (hp.uniformint, [1, 11]),
+                'min_samples_split': (hp.uniformint, [2, 21]),
+                'min_samples_leaf': (hp.uniformint, [1, 21]),
                 'subsample': (hp.uniform, [0.05, 1.0]),
                 'max_features': (hp.uniform, [0.05, 1.0]),
                 'alpha': (hp.uniform, [0.75, 0.99])
@@ -46,8 +46,8 @@ class SearchSpace:
                 'n_estimators': (hp.choice, [[100]]),
                 'criterion': (hp.choice, [["gini", "entropy"]]),
                 'max_features': (hp.uniform, [0.05, 1.01]),
-                'min_samples_split': (hp.choice, [range(2, 10)]),
-                'min_samples_leaf': (hp.choice, [range(1, 15)]),
+                'min_samples_split': (hp.uniformint, [2, 10]),
+                'min_samples_leaf': (hp.uniformint, [1, 15]),
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'lasso': {
@@ -59,68 +59,68 @@ class SearchSpace:
             'rfr': {
                 'n_estimators': (hp.choice, [[100]]),
                 'max_features': (hp.uniform, [0.05, 1.01]),
-                'min_samples_split': (hp.choice, [range(2, 21)]),
-                'min_samples_leaf': (hp.choice, [range(1, 21)]),
+                'min_samples_split': (hp.uniformint, [2, 21]),
+                'min_samples_leaf': (hp.uniformint, [1, 21]),
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'xgbreg': {
                 'n_estimators': (hp.choice, [[100]]),
-                'max_depth': (hp.choice, [range(1, 11)]),
-                'learning_rate': (hp.choice, [[1e-3, 1e-2, 1e-1, 0.5, 1.]]),
-                'subsample': (hp.choice, [np.arange(0.05, 1.01, 0.05)]),
-                'min_child_weight': (hp.choice, [range(1, 21)]),
+                'max_depth': (hp.uniformint, [1, 11]),
+                'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
+                'subsample': (hp.uniform, [0.05, 1.0]),
+                'min_child_weight': (hp.uniformint, [1, 21]),
                 'objective': (hp.choice, [['reg:squarederror']])
             },
             'xgboost': {
                 'n_estimators': (hp.choice, [[100]]),
-                'max_depth': (hp.choice, [range(1, 7)]),
-                'learning_rate': (hp.uniform, [0.1, 0.9]),
+                'max_depth': (hp.uniformint, [1, 7]),
+                'learning_rate': (hp.loguniform, [np.log(1e-3), np.log(1)]),
                 'subsample': (hp.uniform, [0.05, 0.99]),
-                'min_child_weight': (hp.choice, [range(1, 21)])
+                'min_child_weight': (hp.uniform, [1, 21])
             },
             'svr': {
                 'loss': (hp.choice, [["epsilon_insensitive", "squared_epsilon_insensitive"]]),
-                'tol': (hp.choice, [[1e-5, 1e-4, 1e-3, 1e-2, 1e-1]]),
+                'tol': (hp.loguniform, [np.log(1e-5), np.log(1e-1)]),
                 'C': (hp.uniform, [1e-4, 25.0]),
                 'epsilon': (hp.uniform, [1e-4, 1.0])
             },
             'dtreg': {
-                'max_depth': (hp.choice, [range(1, 11)]),
-                'min_samples_split': (hp.choice, [range(2, 21)]),
-                'min_samples_leaf': (hp.choice, [range(1, 21)])
+                'max_depth': (hp.uniformint, [1, 11]),
+                'min_samples_split': (hp.uniformint, [2, 21]),
+                'min_samples_leaf': (hp.uniformint, [1, 21])
             },
             'treg': {
                 'n_estimators': (hp.choice, [[100]]),
                 'max_features': (hp.uniform, [0.05, 1.0]),
-                'min_samples_split': (hp.choice, [range(2, 21)]),
-                'min_samples_leaf': (hp.choice, [range(1, 21)]),
+                'min_samples_split': (hp.uniformint, [2, 21]),
+                'min_samples_leaf': (hp.uniformint, [1, 21]),
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'dt': {
-                'max_depth': (hp.choice, [range(1, 11)]),
-                'min_samples_split': (hp.choice, [range(2, 21)]),
-                'min_samples_leaf': (hp.choice, [range(1, 21)])
+                'max_depth': (hp.uniformint, [1, 11]),
+                'min_samples_split': (hp.uniformint, [2, 21]),
+                'min_samples_leaf': (hp.uniformint, [1, 21])
             },
             'knnreg': {
-                'n_neighbors': (hp.choice, [range(1, 50)]),
+                'n_neighbors': (hp.uniformint, [1, 50]),
                 'weights': (hp.choice, [["uniform", "distance"]]),
                 'p': (hp.choice, [[1, 2]])
             },
             'knn': {
-                'n_neighbors': (hp.choice, [range(1, 50)]),
+                'n_neighbors': (hp.uniformint, [1, 50]),
                 'weights': (hp.choice, [["uniform", "distance"]]),
                 'p': (hp.choice, [[1, 2]])
             },
             'arima': {
-                'p': (hp.choice, [[1, 2, 3, 4, 5, 6]]),
-                'd': (hp.choice, [[0, 1]]),
-                'q': (hp.choice, [[1, 2, 3, 4]])
+                'p': (hp.uniformint, [1, 7]),
+                'd': (hp.uniformint, [0, 2]),
+                'q': (hp.uniformint, [1, 5])
             },
             'stl_arima': {
-                'p': (hp.choice, [[1, 2, 3, 4, 5, 6]]),
-                'd': (hp.choice, [[0, 1]]),
-                'q': (hp.choice, [[1, 2, 3, 4]]),
-                'period': (hp.choice, [range(1, 365)])
+                'p': (hp.uniformint, [1, 7]),
+                'd': (hp.uniformint, [0, 2]),
+                'q': (hp.uniformint, [1, 5]),
+                'period': (hp.uniformint, [1, 365])
             },
             'ar': {
                 'lag_1': (hp.uniform, [2, 200]),
@@ -170,9 +170,9 @@ class SearchSpace:
                 'hidden_size': (hp.uniform, [20, 200]),
                 'teacher_forcing': (hp.uniform, [0, 1]),
                 'learning_rate': (hp.uniform, [0.0005, 0.005]),
-                'cnn1_kernel_size': (hp.choice, [[3, 4, 5, 6, 7]]),
+                'cnn1_kernel_size': (hp.uniformint, [3, 8]),
                 'cnn1_output_size': (hp.choice, [[8, 16, 32, 64]]),
-                'cnn2_kernel_size': (hp.choice, [[3, 4, 5, 6, 7]]),
+                'cnn2_kernel_size': (hp.uniformint, [3, 8]),
                 'cnn2_output_size': (hp.choice, [[8, 16, 32, 64]]),
                 'batch_size': (hp.choice, [[64, 128]]),
                 'num_epochs': (hp.choice, [[10, 20, 50, 100]]),
@@ -184,17 +184,21 @@ class SearchSpace:
                 'svd_solver': (hp.choice, [['full']])
             },
             'kernel_pca': {
-                'n_components': (hp.choice, [range(1, 20)])
+                'n_components': (hp.uniformint, [1, 20]),
+                'kernel': (hp.choice, [['linear', 'poly', 'rbf', 'sigmoid', 'cosine', 'precomputed']])
+            },
+            'fast_ica': {
+                'n_components': (hp.uniformint, [1, 20])
             },
             'ransac_lin_reg': {
                 'min_samples': (hp.uniform, [0.1, 0.9]),
-                'residual_threshold': (hp.choice, [[0.1, 1.0, 100.0, 500.0, 1000.0]]),
+                'residual_threshold': (hp.loguniform, [np.log(0.1), np.log(1000)]),
                 'max_trials': (hp.uniform, [50, 500]),
                 'max_skips': (hp.uniform, [50, 500000])
             },
             'ransac_non_lin_reg': {
                 'min_samples': (hp.uniform, [0.1, 0.9]),
-                'residual_threshold': (hp.choice, [[0.1, 1.0, 100.0, 500.0, 1000.0]]),
+                'residual_threshold': (hp.loguniform, [np.log(0.1), np.log(1000)]),
                 'max_trials': (hp.uniform, [50, 500]),
                 'max_skips': (hp.uniform, [50, 500000])
             },
@@ -209,36 +213,36 @@ class SearchSpace:
                 'bootstrap': (hp.choice, [[True, False]])
             },
             'rfe_lin_reg': {
-                'n_features_to_select': (hp.choice, [[0.5, 0.7, 0.9]]),
-                'step': (hp.choice, [[0.1, 0.15, 0.2]])
+                'n_features_to_select': (hp.uniform, [0.5, 0.9]),
+                'step': (hp.uniform, [0.1, 0.2])
             },
             'rfe_non_lin_reg': {
-                'n_features_to_select': (hp.choice, [[0.5, 0.7, 0.9]]),
-                'step': (hp.choice, [[0.1, 0.15, 0.2]])
+                'n_features_to_select': (hp.uniform, [0.5, 0.9]),
+                'step': (hp.uniform, [0.1, 0.2])
             },
             'poly_features': {
-                'degree': (hp.choice, [[2, 3, 4]]),
+                'degree': (hp.uniformint, [2, 5]),
                 'interaction_only': (hp.choice, [[True, False]])
             },
             'polyfit': {
-                'degree': (hp.choice, [[1, 2, 3, 4, 5]])
+                'degree': (hp.uniformint, [1, 6])
             },
             'lagged': {
-                'window_size': (hp.uniform, [5, 500])
+                'window_size': (hp.uniformint, [5, 500])
             },
             'sparse_lagged': {
-                'window_size': (hp.uniform, [5, 500]),
+                'window_size': (hp.uniformint, [5, 500]),
                 'n_components': (hp.uniform, [0, 0.5]),
                 'use_svd': (hp.choice, [[True, False]])
             },
             'smoothing': {
-                'window_size': (hp.uniform, [2, 20])
+                'window_size': (hp.uniformint, [2, 20])
             },
             'gaussian_filter': {
                 'sigma': (hp.uniform, [1, 5])
             },
             'diff_filter': {
-                'poly_degree': (hp.uniform, [1, 4]),
+                'poly_degree': (hp.uniformint, [1, 5]),
                 'order': (hp.uniform, [1, 3]),
                 'window_size': (hp.uniform, [3, 20])
             },
@@ -247,35 +251,35 @@ class SearchSpace:
             },
             'lgbm': {
                 'class_weight': (hp.choice, [[None, 'balanced']]),
-                'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
+                'num_leaves': (hp.uniformint, [2, 256]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
-                'lambda_l1': (hp.uniform, [1e-8, 10.0]),
-                'lambda_l2': (hp.uniform, [1e-8, 10.0])
+                'lambda_l1': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'lambda_l2': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'lgbmreg': {
-                'num_leaves': (hp.choice, [np.arange(2, 256, 8, dtype=int)]),
+                'num_leaves': (hp.uniformint, [2, 256]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
-                'lambda_l1': (hp.uniform, [1e-8, 10.0]),
-                'lambda_l2': (hp.uniform, [1e-8, 10.0])
+                'lambda_l1': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'lambda_l2': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'catboost': {
-                'max_depth': (hp.choice, [range(1, 11)]),
+                'max_depth': (hp.uniformint, [1, 11]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
-                'border_count': (hp.randint, [2, 255]),
-                'l2_leaf_reg': (hp.uniform, [1e-8, 10.0]),
+                'border_count': (hp.uniformint, [2, 255]),
+                'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)]),
                 'loss_function': (hp.choice, [['Logloss', 'CrossEntropy']])
             },
             'catboostreg': {
-                'max_depth': (hp.choice, [range(1, 11)]),
+                'max_depth': (hp.uniformint, [1, 11]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'min_data_in_leaf': (hp.qloguniform, [0, 6, 1]),
-                'border_count': (hp.randint, [2, 255]),
-                'l2_leaf_reg': (hp.uniform, [1e-8, 10.0])
+                'border_count': (hp.uniformint, [2, 255]),
+                'l2_leaf_reg': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'resample': {
                 'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
@@ -316,7 +320,7 @@ class SearchSpace:
         if operation_parameters is not None:
             # If there are not parameter_name - return list with all parameters
             if parameter_name is None:
-                return list(operation_parameters.keys())
+                return list(operation_parameters)
             else:
                 hyperopt_tuple = operation_parameters.get(parameter_name)
                 return hyperopt_tuple[0](label, *hyperopt_tuple[1])

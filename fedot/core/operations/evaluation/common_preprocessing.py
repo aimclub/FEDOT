@@ -5,7 +5,7 @@ from fedot.core.data.data import InputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
-    PolyFeaturesImplementation, ScalingImplementation
+    PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
     OneHotEncodingImplementation, LabelEncodingImplementation
 
@@ -21,7 +21,8 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'kernel_pca': KernelPCAImplementation,
         'poly_features': PolyFeaturesImplementation,
         'one_hot_encoding': OneHotEncodingImplementation,
-        'label_encoding': LabelEncodingImplementation
+        'label_encoding': LabelEncodingImplementation,
+        'fast_ica': FastICAImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

@@ -1,5 +1,7 @@
-from typing import List, Optional
+from typing import List, Any, Dict, Optional, Union
+from uuid import uuid4
 
+from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
 
@@ -7,12 +9,14 @@ ERROR_PREFIX = 'Invalid graph configuration:'
 
 
 class Individual:
-    def __init__(self, graph: 'OptGraph', fitness: List[float] = None,
-                 parent_operators: List[ParentOperator] = None, computation_time: Optional[int] = None):
-        self.parent_operators = parent_operators if parent_operators is not None else []
-        self.fitness = fitness
-        self.computation_time = computation_time
+    def __init__(self, graph: OptGraph,
+                 parent_operators: Optional[List[ParentOperator]] = None,
+                 metadata: Optional[Dict[str, Any]] = None):
         self.graph = graph
+        self.parent_operators = parent_operators or []
+        self.metadata: Dict[str, Any] = metadata or {}
+        self.fitness = null_fitness()
+        self.uid = str(uuid4())
 
-    def __eq__(self, other):
-        return self.graph == other.graph
+    def __eq__(self, other: 'Individual'):
+        return self.uid == other.uid

@@ -6,6 +6,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 # Additional custom functions
 from cases.industrial.processing import automl_fit_forecast, plot_diesel_and_wind, plot_results, prepare_unimodal_data
 # FEDOT imports
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data_split import train_test_data_setup
 
 rcParams['figure.figsize'] = 15, 7
@@ -31,17 +32,17 @@ if __name__ == '__main__':
     train_input, predict_input = train_test_data_setup(input_ts)
 
     # Prepare parameters for algorithm launch
-    # timeout 2 - means that AutoML algorithm will work for 2 minutes
+    timeout = 2.
     composer_params = {'max_depth': 3,
                        'max_arity': 4,
                        'pop_size': 20,
                        'num_of_generations': 20,
-                       'timeout': 2,
                        'with_tuning': True,
-                       'preset': 'best_quality',
+                       'preset': BEST_QUALITY_PRESET_NAME,
                        'genetic_scheme': None,
                        'history_folder': None}
-    forecast, obtained_pipeline = automl_fit_forecast(train_input, predict_input, composer_params,
+    forecast, obtained_pipeline = automl_fit_forecast(train_input, predict_input,
+                                                      timeout, composer_params,
                                                       vis=True, in_sample_forecasting=False)
 
     mse_metric = mean_squared_error(predict_input.target, forecast, squared=False)

@@ -1,10 +1,11 @@
-from typing import Iterator, Tuple
+from typing import Iterator, Optional, Tuple
 
 import numpy as np
 from sklearn.model_selection import KFold, TimeSeriesSplit
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.log import Log, default_log
 
 
 class OneFoldInputDataSplit:
@@ -80,6 +81,8 @@ def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputDat
 
     :param data: InputData for train and test splitting
     :param folds: number of folds
+    :param validation_blocks: number of validation block per each fold (unused)
+    :param log: log object
 
     :return Iterator[InputData, InputData]: return split train/test data
     """
@@ -108,7 +111,8 @@ def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputDat
         yield train_data, test_data
 
 
-def ts_cv_generator(data, folds: int, validation_blocks: int, log) -> Iterator[Tuple[InputData, InputData]]:
+def ts_cv_generator(data: InputData, folds: int,
+                    validation_blocks: int = 1, log: Optional[Log] = None) -> Iterator[Tuple[InputData, InputData]]:
     """ Splitting data for time series cross validation
 
     :param data: source InputData with time series data type
@@ -116,6 +120,8 @@ def ts_cv_generator(data, folds: int, validation_blocks: int, log) -> Iterator[T
     :param validation_blocks: number of validation block per each fold
     :param log: log object
     """
+    if not log:
+        log = default_log(__name__)
     # Forecast horizon for each fold
     horizon = data.task.task_params.forecast_length * validation_blocks
 
@@ -123,15 +129,13 @@ def ts_cv_generator(data, folds: int, validation_blocks: int, log) -> Iterator[T
         tscv = TsInputDataSplit(gap=0, validation_blocks=validation_blocks,
                                 n_splits=folds, test_size=horizon)
         for train_data, test_data in tscv.input_split(data):
-            yield train_data, test_data, validation_blocks
+            yield train_data, test_data
     except ValueError:
         log.info(f'Time series length too small for cross validation with {folds} folds. Perform one fold validation')
         # Perform one fold validation (folds parameter will be ignored)
         one_fold_split = OneFoldInputDataSplit()
         for train_data, test_data in one_fold_split.input_split(data):
-            # Number of validation blocks become 'None'
-            vb_number = None
-            yield train_data, test_data, vb_number
+            yield train_data, test_data
 
 
 def _table_data_by_index(index, values: InputData):

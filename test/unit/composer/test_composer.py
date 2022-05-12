@@ -1,7 +1,6 @@
 import datetime
 import os
 import random
-import shelve
 
 import numpy as np
 import pandas as pd
@@ -10,14 +9,13 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
+from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.constraint import constraint_function
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, \
-    sample_split_ratio_for_tasks
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.random_composer import RandomSearchComposer
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
@@ -167,8 +165,8 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_completed_evolution.compose_pipeline(data=data)
 
-    assert len(gp_composer_terminated_evolution.history.individuals) == 1
-    assert len(gp_composer_completed_evolution.history.individuals) == 2
+    assert len(gp_composer_terminated_evolution.history.individuals) == 2
+    assert len(gp_composer_completed_evolution.history.individuals) == 3
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
@@ -261,8 +259,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser(parameters=optimiser_parameters)
     composer = builder.build()
-    composer.compose_pipeline(data=dataset_to_compose,
-                              is_visualise=True)
+    composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
     assert composer.optimiser.max_depth == 5
 
@@ -274,23 +271,21 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     available_model_types = ['rf', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
-                                       max_pipeline_fit_time=datetime.timedelta(minutes=5))
+                                       max_arity=2, max_depth=4, pop_size=3, num_of_generations=1,
+                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2
+                                       )
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache()
+        quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache(OperationsCache())
     composer = builder.build()
-    train_data, test_data = train_test_data_setup(data,
-                                                  sample_split_ratio_for_tasks[data.task.task_type])
-    composer.compose_pipeline(data=dataset_to_compose, is_visualise=True)
-    with shelve.open(composer.cache.db_path) as cache:
-        global_cache_len_before = len(cache.dict)
+    composer.compose_pipeline(data=dataset_to_compose)
+
+    global_cache_len_before = len(composer.cache)
     new_pipeline = pipeline_first()
-    composer.composer_metric([quality_metric], dataset_to_compose, test_data, new_pipeline)
-    with shelve.open(composer.cache.db_path) as cache:
-        global_cache_len_after = len(cache.dict)
+    objective, _ = composer.objective_builder.build(data)
+    objective(new_pipeline)
+    global_cache_len_after = len(composer.cache)
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None
 
@@ -300,7 +295,6 @@ def test_gp_composer_builder_default_params_correct():
     builder = ComposerBuilder(task=task)
 
     # Initialise default parameters
-    builder.set_default_composer_params()
     composer_with_default_params = builder.build()
 
     # Get default available operations for regression task

@@ -1,4 +1,4 @@
-from typing import List, Type, Union
+from typing import List, Optional, Type, Union
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
@@ -6,8 +6,7 @@ from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
 from fedot.sensitivity.nodes_sensitivity import NodesAnalysis
-from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity \
-    import MultiOperationsHPAnalyze
+from fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity import MultiOperationsHPAnalyze
 from fedot.sensitivity.pipeline_sensitivity import PipelineAnalysis
 from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
@@ -35,7 +34,7 @@ class PipelineSensitivityAnalysis:
                  nodes_to_analyze: List[Node] = None,
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
 
         self.log = default_log(__name__) if log is None else log
 

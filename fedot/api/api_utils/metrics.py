@@ -1,3 +1,4 @@
+import os
 from typing import Callable, List, Union
 
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error,
@@ -5,6 +6,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
+from fedot.core.composer.metrics import smape
 
 
 class ApiMetrics:
@@ -14,7 +16,12 @@ class ApiMetrics:
     """
 
     def __init__(self, problem: str):
-        self.problem = problem
+        if '/' in problem:
+            # Solve multitask problem
+            self.main_problem, self.side_problem = problem.split('/')
+        else:
+            self.main_problem = problem
+            self.side_problem = None
 
     def get_problem_metrics(self):
         task_dict = {
@@ -24,7 +31,7 @@ class ApiMetrics:
             'clustering': 'silhouette',
             'ts_forecasting': ['rmse', 'mae']
         }
-        return task_dict[self.problem]
+        return task_dict[self.main_problem]
 
     def get_metrics_for_task(self, metric_name: Union[str, List[str]]):
         """ Return one metric for task by name (str)
@@ -52,6 +59,7 @@ class ApiMetrics:
             'mse': mean_squared_error,
             'r2': r2_score,
             'rmse': mean_squared_error,
+            'smape': smape
         }
 
         return tuner_dict.get(metric_name)
@@ -71,6 +79,7 @@ class ApiMetrics:
             'mse': RegressionMetricsEnum.MSE,
             'msle': RegressionMetricsEnum.MSLE,
             'mape': RegressionMetricsEnum.MAPE,
+            'smape': RegressionMetricsEnum.SMAPE,
             'r2': RegressionMetricsEnum.R2,
             'rmse': RegressionMetricsEnum.RMSE,
             'rmse_pen': RegressionMetricsEnum.RMSE_penalty,

@@ -1,10 +1,11 @@
 from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar
-from hyperopt import fmin, tpe, space_eval
+from typing import Callable, ClassVar, Optional
+
+from hyperopt import fmin, space_eval, tpe
 
 from fedot.core.log import Log
-from fedot.core.pipelines.tuning.search_space import convert_params, SearchSpace
+from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
 
@@ -13,12 +14,18 @@ class PipelineTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes simultaneously
     """
 
-    def __init__(self, pipeline, task, iterations=100,
+    def __init__(self, pipeline, task,
+                 iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Log = None,
+                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
-        super().__init__(pipeline, task, iterations, timeout, log, search_space, algo)
+        super().__init__(pipeline=pipeline, task=task,
+                         iterations=iterations, early_stopping_rounds=early_stopping_rounds,
+                         timeout=timeout,
+                         log=log,
+                         search_space=search_space,
+                         algo=algo)
 
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
                       cv_folds: int = None, validation_blocks: int = None):
@@ -30,10 +37,8 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict = self._get_parameters_for_tune()
 
-        is_need_to_maximize = _greater_is_better(target=input_data.target,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params,
-                                                 data_type=input_data.data_type)
+        is_need_to_maximize = _greater_is_better(loss_function=loss_function,
+                                                 loss_params=loss_params)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
@@ -47,6 +52,7 @@ class PipelineTuner(HyperoptTuner):
                     parameters_dict,
                     algo=self.algo,
                     max_evals=self.iterations,
+                    early_stop_fn=self.early_stop_fn,
                     timeout=self.max_seconds)
 
         best = space_eval(space=parameters_dict, hp_assignment=best)

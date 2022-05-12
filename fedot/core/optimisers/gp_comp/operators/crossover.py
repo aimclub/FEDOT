@@ -8,7 +8,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, repla
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import ParentOperator
-from fedot.core.utils import ComparableEnum as Enum
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -25,7 +25,7 @@ class CrossoverTypesEnum(Enum):
 def will_crossover_be_applied(graph_first, graph_second, crossover_prob, crossover_type) -> bool:
     return not (graph_first is graph_second or
                 random() > crossover_prob or
-                crossover_type == CrossoverTypesEnum.none)
+                crossover_type is CrossoverTypesEnum.none)
 
 
 def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
@@ -36,7 +36,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
     is_custom_crossover = isinstance(crossover_type, Callable)
     try:
         if will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_prob, crossover_type):
-            if crossover_type in crossover_by_type.keys() or is_custom_crossover:
+            if crossover_type in crossover_by_type or is_custom_crossover:
                 for _ in range(MAX_NUM_OF_ATTEMPTS):
                     if is_custom_crossover:
                         crossover_func = crossover_type
@@ -46,7 +46,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
 
                     is_custom_operator = isinstance(ind_first, OptGraph)
                     input_obj_first = deepcopy(ind_first.graph)
-                    input_obj_second = deepcopy(ind_first.graph)
+                    input_obj_second = deepcopy(ind_second.graph)
                     if is_custom_operator:
                         input_obj_first = params.adapter.restore(input_obj_first)
                         input_obj_second = params.adapter.restore(input_obj_second)
@@ -58,19 +58,21 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                         for graph_id, graph in enumerate(new_graphs):
                             new_graphs[graph_id] = params.adapter.adapt(graph)
 
-                    are_correct = \
-                        all([constraint_function(new_graph, params)
-                             for new_graph in new_graphs])
+                    are_correct = all(constraint_function(new_graph, params)
+                                      for new_graph in new_graphs)
 
                     if are_correct:
                         operator = ParentOperator(operator_type='crossover',
                                                   operator_name=str(crossover_type),
-                                                  parent_objects=[ind_first, ind_second])
+                                                  parent_individuals=[
+                                                      ind_first,
+                                                      ind_second
+                                                  ])
                         for graph in new_graphs:
                             new_ind = Individual(graph)
                             new_ind.parent_operators = []
-                            new_ind.parent_operators.extend(ind_first.parent_operators)
-                            new_ind.parent_operators.extend(ind_second.parent_operators)
+                            new_ind.parent_operators.extend(deepcopy(ind_first.parent_operators))
+                            new_ind.parent_operators.extend(deepcopy(ind_second.parent_operators))
                             new_ind.parent_operators.append(operator)
                             new_inds.append(new_ind)
                         return new_inds
@@ -82,9 +84,9 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
     except Exception as ex:
         log.error(f'Crossover ex: {ex}')
 
-    graph_first_copy = deepcopy(ind_first)
-    graph_second_copy = deepcopy(ind_second)
-    return graph_first_copy, graph_second_copy
+    ind_first_copy = deepcopy(ind_first)
+    ind_second_copy = deepcopy(ind_second)
+    return ind_first_copy, ind_second_copy
 
 
 def subtree_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> Any:

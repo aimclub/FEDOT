@@ -1,15 +1,17 @@
 from copy import deepcopy
 from datetime import timedelta
-from multiprocessing import Manager, Process
 from typing import Callable, List, Optional, Tuple, Union
+
+import func_timeout
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.data.data import InputData
+from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
+from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
@@ -30,14 +32,10 @@ class Pipeline(Graph):
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Log = None):
+                 log: Optional[Log] = None):
         self.computation_time = None
         self.template = None
-        self.log = log
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor(self.log)
@@ -76,7 +74,7 @@ class Pipeline(Graph):
         self.fit(input_data, use_fitted=False)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations=False,
-                             time: timedelta = timedelta(minutes=3)) -> Manager:
+                             time: timedelta = timedelta(minutes=3)):
         """
         Run training process with time limit. Create
 
@@ -86,25 +84,23 @@ class Pipeline(Graph):
         :param time: time constraint for operation fitting process (seconds)
         """
         time = int(time.total_seconds())
-        manager = Manager()
-        process_state_dict = manager.dict()
-        fitted_operations = manager.list()
-        p = Process(target=self._fit,
-                    args=(input_data, use_fitted_operations, process_state_dict, fitted_operations),
-                    kwargs={})
-        p.start()
-        p.join(time)
-        if p.is_alive():
-            p.terminate()
+        process_state_dict = {}
+        fitted_operations = []
+        try:
+            func_timeout.func_timeout(
+                time, self._fit,
+                args=(input_data, use_fitted_operations, process_state_dict, fitted_operations)
+            )
+        except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
 
-        self.computation_time = process_state_dict['computation_time']
+        self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, node in enumerate(self.nodes):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: Manager = None,
-             fitted_operations: Manager = None):
+    def _fit(self, input_data: InputData, use_fitted_operations=False, process_state_dict: dict = None,
+             fitted_operations: list = None):
         """
         Run training process in all nodes in pipeline starting with root.
 
@@ -127,21 +123,28 @@ class Pipeline(Graph):
             return train_predicted
         else:
             process_state_dict['train_predicted'] = train_predicted
-            process_state_dict['computation_time'] = self.computation_time
+            process_state_dict['computation_time_in_seconds'] = self.computation_time
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
     def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=False,
-            time_constraint: Optional[timedelta] = None):
+            time_constraint: Optional[timedelta] = None, n_jobs=1) -> OutputData:
         """
         Run training process in all nodes in pipeline starting with root.
 
         :param input_data: data used for operation training
         :param use_fitted: flag defining whether use saved information about previous fits or not
         :param time_constraint: time constraint for operation fitting (seconds)
+        :param n_jobs: number of threads for nodes fitting
+
         """
+
+        _replace_n_jobs_in_nodes(self, n_jobs)
+
         if not use_fitted:
-            self.unfit(unfit_preprocessor=True)
+            self.unfit(mode='all', unfit_preprocessor=True)
+        else:
+            self.unfit(mode='data_operations', unfit_preprocessor=False)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
@@ -166,28 +169,26 @@ class Pipeline(Graph):
 
     @property
     def is_fitted(self):
-        return all([(node.fitted_operation is not None) for node in self.nodes])
+        return all(node.fitted_operation is not None for node in self.nodes)
 
-    def unfit(self, unfit_preprocessor: bool = True):
+    def unfit(self, mode='all', unfit_preprocessor: bool = True):
         """
         Remove fitted operations for all nodes.
+
+        :param mode:
+            - 'all' - All models will be unfitted
+            - 'data_operations' - All data operations will be unfitted
+        :param unfit_preprocessor: should we unfit preprocessor
         """
         for node in self.nodes:
-            node.unfit()
+            if mode == 'all' or (mode == 'data_operations' and isinstance(node.content['name'], DataOperation)):
+                node.unfit()
 
         if unfit_preprocessor:
             self.preprocessor = DataPreprocessor(self.log)
 
-    def fit_from_cache(self, cache: OperationsCache, fold_num: int = 0) -> bool:
-        is_cache_used = False
-        for node in self.nodes:
-            cached_state = cache.get(node, fold_num)
-            if cached_state:
-                node.fitted_operation = cached_state.operation
-                is_cache_used = True
-            else:
-                node.fitted_operation = None
-        return is_cache_used
+    def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
+        return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
         """
@@ -323,10 +324,10 @@ class Pipeline(Graph):
         pipeline.preprocessor = self.preprocessor
         return pipeline
 
-    def _assign_data_to_nodes(self, input_data) -> Optional[InputData]:
+    def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
         if isinstance(input_data, MultiModalData):
-            for node in [n for n in self.nodes if isinstance(n, PrimaryNode)]:
-                if node.operation.operation_type in input_data.keys():
+            for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
+                if node.operation.operation_type in input_data:
                     node.node_data = input_data[node.operation.operation_type]
                     node.direct_set = True
                 else:
@@ -354,3 +355,13 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
     appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)
+
+
+def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
+    """ Function change number of jobs for nodes"""
+    for node in pipeline.nodes:
+        # TODO refactor
+        if 'n_jobs' in node.content['params']:
+            node.content['params']['n_jobs'] = n_jobs
+        if 'num_threads' in node.content['params']:
+            node.content['params']['num_threads'] = n_jobs

@@ -86,7 +86,7 @@ main_params_names = ['problem', 'preset', 'timeout', 'seed']
 # parameters to fit model
 fit_params_names = ['train', 'target']
 # composer parameters
-composer_params_names = ['depth', 'arity', 'popsize', 'gen_num', 'c_timeout',
+composer_params_names = ['depth', 'arity', 'popsize', 'gen_num',
                          'opers', 'tuning', 'cv_folds', 'val_bl', 'hist_path']
 # dictionary with keys for parser creation
 arguments_dicts = [{'tag': '--problem',
@@ -124,8 +124,6 @@ arguments_dicts = [{'tag': '--problem',
                     'help': 'Composer parameter: population size'},
                    {'tag': '--gen_num',
                     'help': 'Composer parameter: number of generations'},
-                   {'tag': '--c_timeout',
-                    'help': 'Composer parameter: composing time (minutes)'},
                    {'tag': '--opers',
                     'help': 'Composer parameter: model names to use',
                     'is_list': True},
@@ -151,7 +149,6 @@ keys_names = {'problem': 'problem',
               'arity': 'max_arity',
               'popsize': 'pop_size',
               'gen_num': 'num_of_generations',
-              'c_timeout': 'timeout',
               'opers': 'available_operations',
               'tuning': 'with_tuning',
               'cv_folds': 'cv_folds',

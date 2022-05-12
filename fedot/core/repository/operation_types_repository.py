@@ -5,6 +5,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional
 
+from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -71,7 +72,8 @@ class OperationTypesRepository:
 
                 if operations is not None:
                     for operation in operations:
-                        self._repo.append(operation)
+                        if operation not in self._repo:
+                            self._repo.append(operation)
 
         else:
             self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
@@ -296,7 +298,7 @@ def _is_operation_contains_tag(candidate_tags: List[str],
     :return : is there a match on the tags
     """
 
-    matches = ([(tag in operation_tags) for tag in candidate_tags])
+    matches = (tag in operation_tags for tag in candidate_tags)
     if is_full_match:
         return all(matches)
     else:
@@ -337,8 +339,9 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     :return : list with operation aliases
     """
     # Preset None means that all operations will be returned
-    if preset is not None and 'best_quality' in preset:
-        preset = None
+    if preset is not None:
+        if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
+            preset = None
 
     task_type = task.task_type if task else None
     if mode != 'all':

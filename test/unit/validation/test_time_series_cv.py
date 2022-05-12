@@ -49,7 +49,7 @@ def test_ts_cv_generator_correct():
     validation_horizon = validation_elements_per_fold * folds
 
     i = 0
-    for train_data, test_data, vb_number in ts_cv_generator(time_series, folds, validation_blocks, log):
+    for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
         train_len = len(train_data.idx)
         assert train_len == ts_len - validation_horizon
         validation_horizon -= validation_elements_per_fold
@@ -68,7 +68,7 @@ def test_cv_folds_too_large_correct():
     log, forecast_len, validation_blocks, time_series = configure_experiment()
 
     i = 0
-    for train_data, test_data, vb_number in ts_cv_generator(time_series, folds, validation_blocks, log):
+    for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
         i += 1
         assert len(train_data.idx) == 95
     assert i == 1
@@ -133,7 +133,7 @@ def test_composer_cv_correct():
         with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()
 
-    obtained_pipeline = composer.compose_pipeline(data=time_series, is_visualise=False)
+    obtained_pipeline = composer.compose_pipeline(data=time_series)
     assert isinstance(obtained_pipeline, Pipeline)
 
 
@@ -142,18 +142,18 @@ def test_api_cv_correct():
     time series through api """
     folds = 2
     _, forecast_len, validation_blocks, time_series = configure_experiment()
+    timeout = 0.05
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
-                       'timeout': 0.05,
                        'preset': 'fast_train',
                        'cv_folds': folds,
                        'validation_blocks': validation_blocks}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 
     model = Fedot(problem='ts_forecasting',
+                  timeout=timeout,
                   composer_params=composer_params,
                   task_params=task_parameters,
                   verbose_level=2)
     fedot_model = model.fit(features=time_series)
-    is_succeeded = True
-    assert is_succeeded
+    assert fedot_model is not None

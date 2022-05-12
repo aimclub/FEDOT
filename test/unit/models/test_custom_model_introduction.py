@@ -220,9 +220,8 @@ def test_composing_with_custom_model():
 
     initial_assumption = get_simple_pipeline(train_data)
 
-    automl = Fedot(problem='ts_forecasting', composer_params={'timeout': 0.1,
-                                                              'initial_assumption': initial_assumption},
-                   preset='ts',
+    automl = Fedot(problem='ts_forecasting', preset='ts',
+                   timeout=0.1, composer_params={'initial_assumption': initial_assumption},
                    task_params=TsForecastingParams(forecast_length=5), verbose_level=0)
     pipeline = automl.fit(train_data)
 

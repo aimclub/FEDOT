@@ -3,7 +3,7 @@ import os
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union, Dict, Any
 from uuid import uuid4
 
 import joblib
@@ -13,6 +13,8 @@ from fedot.core.log import Log, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -24,7 +26,7 @@ class NumpyIntEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
-        return super().default(self, obj)
+        return super().default(obj)
 
 
 class PipelineTemplate:
@@ -36,41 +38,29 @@ class PipelineTemplate:
     :params log: Log object to record messages
     """
 
-    def __init__(self, pipeline: 'Pipeline' = None, log: Log = None):
+    def __init__(self, pipeline: 'Pipeline' = None, log: Optional[Log] = None):
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
+        self.unique_pipeline_id = str(uuid4())
+        self.metadata: Dict[str, Any] = {}
         if pipeline is not None:
             self.depth = pipeline.depth
-            self.unique_pipeline_id = str(uuid4()) if not pipeline.uid else pipeline.uid
-            self.struct_id = pipeline.root_node.descriptive_id if pipeline.root_node else ''
+            self.metadata['computation_time_in_seconds'] = pipeline.computation_time
 
             # Save preprocessing operations
             self.data_preprocessor = pipeline.preprocessor
         else:
             self.depth = 0
-            self.unique_pipeline_id = str(uuid4())
-            self.struct_id = ''
             self.data_preprocessor = None
 
-        try:
-            self.computation_time = pipeline.computation_time
-        except AttributeError:
-            self.computation_time = None
-
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
 
         self._pipeline_to_template(pipeline)
 
     def _pipeline_to_template(self, pipeline):
         try:
-            if isinstance(pipeline.root_node, list):
-                # TODO improve for graph with several roots
-                self._extract_pipeline_structure(pipeline.root_node[0], 0, [])
-            else:
-                self._extract_pipeline_structure(pipeline.root_node, 0, [])
+            # TODO improve for graph with several roots
+            self._extract_pipeline_structure(ensure_wrapped_in_sequence(pipeline.root_node)[0], 0, [])
         except Exception as ex:
             self.log.info(f'Cannot export to template: {ex}')
         self.link_to_empty_pipeline = pipeline
@@ -117,17 +107,17 @@ class PipelineTemplate:
         """
 
         pipeline_template_dict = self.convert_to_dict(root_node)
+        if additional_info is not None:
+            pipeline_template_dict['additional_info'] = additional_info
         fitted_ops = {}
         if path is None:
             fitted_ops = self._create_fitted_operations()
-
             if fitted_ops is not None:
                 for operation in pipeline_template_dict['nodes']:
                     saved_key = f'operation_{operation["operation_id"]}'
-                    if saved_key in fitted_ops.keys():
-                        pipeline_template_dict['fitted_operation_path'] = saved_key
-                    else:
-                        pipeline_template_dict['fitted_operation_path'] = None
+                    if saved_key not in fitted_ops:
+                        saved_key = None
+                    pipeline_template_dict['fitted_operation_path'] = saved_key
 
         json_data = json.dumps(pipeline_template_dict, indent=4, cls=NumpyIntEncoder)
 
@@ -140,11 +130,8 @@ class PipelineTemplate:
         if not os.path.exists(absolute_path):
             os.makedirs(absolute_path)
 
-        if additional_info is not None:
-            pipeline_template_dict['additional_info'] = additional_info
-
         with open(os.path.join(absolute_path, f'{self.unique_pipeline_id}.json'), 'w', encoding='utf-8') as f:
-            f.write(json.dumps(pipeline_template_dict, indent='\t', cls=NumpyIntEncoder))
+            f.write(json_data)
             resulted_path = os.path.join(absolute_path, f'{self.unique_pipeline_id}.json')
             self.log.debug(f'The pipeline saved in the path: {resulted_path}.')
 
@@ -182,7 +169,7 @@ class PipelineTemplate:
         for operation in self.operation_templates:
             dict_fitted_operations[f'operation_{operation.operation_id}'] = operation.export_operation(path)
 
-        if all([val is None for val in dict_fitted_operations.values()]):
+        if all(val is None for val in dict_fitted_operations.values()):
             return None
 
         # Save preprocessing module
@@ -275,7 +262,7 @@ class PipelineTemplate:
                 restored_data_preprocessor = joblib.load(path_to_preprocessor)
                 pipeline.preprocessor = restored_data_preprocessor
         elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
-            tmp_path = 'preprocessing.tmp'
+            tmp_path = os.path.join(default_fedot_data_dir(), 'preprocessing.tmp')
             with open(tmp_path, 'wb') as f:
                 f.write(BytesIO(dict_fitted_operations['preprocessing']).getbuffer())
             pipeline.preprocessor = joblib.load(tmp_path)

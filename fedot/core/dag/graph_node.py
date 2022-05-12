@@ -1,6 +1,8 @@
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Iterable
+from uuid import uuid4
 
 from fedot.core.dag.node_operator import NodeOperator
+from fedot.core.utilities.data_structures import UniqueList
 
 
 class GraphNode:
@@ -17,18 +19,29 @@ class GraphNode:
 
     def __init__(self, content: Union[dict, str],
                  nodes_from: Optional[List['GraphNode']] = None):
-        self.nodes_from = nodes_from
+        self._nodes_from = None
+        if nodes_from is not None:
+            self._nodes_from = UniqueList(nodes_from)
         # Wrap string into dict if it is necessary
         if isinstance(content, str):
             content = {'name': content}
         self.content = content
         self._operator = NodeOperator(self)
+        self.uid = str(uuid4())
 
     def __str__(self):
         return str(self.content['name'])
 
     def __repr__(self):
         return self.__str__()
+
+    @property
+    def nodes_from(self) -> List:
+        return self._nodes_from
+
+    @nodes_from.setter
+    def nodes_from(self, nodes: Optional[Iterable['GraphNode']]):
+        self._nodes_from = UniqueList(nodes)
 
     @property
     def descriptive_id(self):

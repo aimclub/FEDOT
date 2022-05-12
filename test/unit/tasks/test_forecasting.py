@@ -197,7 +197,7 @@ def test_regression_multiscale_pipeline_forecast_correct():
     assert rmse_test < rmse_threshold
 
 
-def test_ts_single_pipeline_model_without_multiotput_support():
+def test_ts_single_pipeline_model_without_multioutput_support():
     time_series = generate_synthetic_data(20)
     len_forecast = 2
     train_part = time_series[:-len_forecast]

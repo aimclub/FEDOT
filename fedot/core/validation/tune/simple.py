@@ -7,7 +7,7 @@ def fit_predict_one_fold(data, pipeline):
     """ Simple strategy for model evaluation based on one folder check
 
     :param data: InputData for validation
-    :param pipeline: Chain to validate
+    :param pipeline: Pipeline to validate
     """
 
     # Train test split

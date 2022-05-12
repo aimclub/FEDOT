@@ -4,13 +4,12 @@ from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union
 
-import imageio
+import cv2
 import numpy as np
 import pandas as pd
-from PIL import Image
 
+from fedot.core.data.array_utilities import atleast_2d
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
-from fedot.core.data.merge import DataMerger
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -25,6 +24,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    target: Optional[np.array] = None
+
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
@@ -34,7 +35,8 @@ class Data:
                  task: Task = Task(TaskTypesEnum.classification),
                  data_type: DataTypesEnum = DataTypesEnum.table,
                  columns_to_drop: Optional[List] = None,
-                 target_columns: Union[str, List] = ''):
+                 target_columns: Union[str, List] = '',
+                 index_col: Optional[Union[str, int]] = 0):
         """
         :param file_path: the path to the CSV with data
         :param columns_to_drop: the names of columns that should be dropped
@@ -42,24 +44,17 @@ class Data:
         :param task: the task that should be solved with data
         :param data_type: the type of data interpretation
         :param target_columns: name of target column (last column if empty and no target if None)
+        :param index_col: column name or index to use as the Data.idx;
+            if None then arrange new unique index
         :return:
         """
 
-        data_frame = pd.read_csv(file_path, sep=delimiter)
+        data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
         if columns_to_drop:
             data_frame = data_frame.drop(columns_to_drop, axis=1)
 
-        # Get indices of the DataFrame
-        data_array = np.array(data_frame).T
-        idx = data_array[0]
-        if isinstance(idx[0], float) and idx[0] == round(idx[0]):
-            # if float indices is unnecessary
-            idx = [str(round(i)) for i in idx]
-        if type(target_columns) is list:
-            features, target = process_multiple_columns(target_columns, data_frame)
-        else:
-            features, target = process_one_column(target_columns, data_frame,
-                                                  data_array)
+        idx = data_frame.index.to_numpy()
+        features, target = process_target_and_features(data_frame, target_columns)
 
         return InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
 
@@ -96,6 +91,56 @@ class Data:
                                    target=time_series,
                                    task=task,
                                    data_type=DataTypesEnum.ts)
+
+        return input_data
+
+    @staticmethod
+    def from_csv_multi_time_series(task: Task,
+                                   file_path=None,
+                                   delimiter=',',
+                                   is_predict=False,
+                                   columns_to_use: Optional[list] = None,
+                                   target_column: Optional[str] = ''):
+        """
+        Forms InputData of multi_ts type from columns of different variant of the same variable
+
+        :param task: the task that should be solved with data
+        :param file_path: path to csv file
+        :param delimiter: delimiter for pandas df
+        :param is_predict: is preparing for fit or predict stage
+        :param columns_to_use: list with names of columns of different variant of the same variable
+        :param target_column: string with name of target column, used for predict stage
+        """
+        df = pd.read_csv(file_path, sep=delimiter)
+
+        idx = get_indices_from_file(df, file_path)
+        if columns_to_use is not None:
+            actual_df = df[columns_to_use]
+            multi_time_series = actual_df.to_numpy()
+        else:
+            multi_time_series = df.to_numpy()
+
+        if is_predict:
+            # Prepare data for prediction
+            len_forecast = task.task_params.forecast_length
+            if target_column is not None:
+                time_series = np.array(df[target_column])
+            else:
+                time_series = np.array(df[df.columns[-1]])
+            start_forecast = multi_time_series.shape[0]
+            end_forecast = start_forecast + len_forecast
+            input_data = InputData(idx=np.arange(start_forecast, end_forecast),
+                                   features=time_series,
+                                   target=None,
+                                   task=task,
+                                   data_type=DataTypesEnum.multi_ts)
+        else:
+            # Prepare InputData for train the pipeline
+            input_data = InputData(idx=idx,
+                                   features=multi_time_series,
+                                   target=multi_time_series,
+                                   task=task,
+                                   data_type=DataTypesEnum.multi_ts)
 
         return input_data
 
@@ -181,7 +226,7 @@ class Data:
                         label: str = 'label',
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: DataTypesEnum = DataTypesEnum.table,
-                        export_to_meta=False, is_multilabel=False) -> 'InputData':
+                        export_to_meta=False, is_multilabel=False, shuffle=True) -> 'InputData':
         """
         Generates InputData from the set of JSON files with different fields
         :param files_path: path the folder with jsons
@@ -191,26 +236,31 @@ class Data:
         :param data_type: data type in fields (as well as type for obtained InputData)
         :param export_to_meta: combine extracted field and save to CSV
         :param is_multilabel: if True, creates multilabel target
+        :param shuffle: if True, shuffles data
         :return: combined dataset
         """
 
         if os.path.isfile(files_path):
             raise ValueError("""Path to the directory expected but got file""")
 
-        df_data = JSONBatchLoader(path=files_path, label=label, fields_to_use=fields_to_use).extract(export_to_meta)
+        df_data = JSONBatchLoader(path=files_path, label=label, fields_to_use=fields_to_use,
+                                  shuffle=shuffle).extract(export_to_meta)
 
         if len(fields_to_use) > 1:
             fields_to_combine = []
-            for f in fields_to_use:
-                fields_to_combine.append(np.array(df_data[f]))
+            for field in fields_to_use:
+                fields_to_combine.append(np.array(df_data[field]))
+                # Unite if the element of text data is divided into strings
+                if isinstance(df_data[field][0], list):
+                    df_data[field] = [' '.join(piece) for piece in df_data[field]]
 
             features = np.column_stack(tuple(fields_to_combine))
         else:
-            val = df_data[fields_to_use[0]]
+            field = df_data[fields_to_use[0]]
             # process field with nested list
-            if isinstance(val[0], list):
-                val = [' '.join(v) for v in val]
-            features = np.array(val)
+            if isinstance(field[0], list):
+                field = [' '.join(piece) for piece in field]
+            features = np.array(field)
 
         if is_multilabel:
             target = df_data[label]
@@ -233,13 +283,18 @@ class Data:
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
 
+    def to_csv(self, path_to_save):
+        dataframe = pd.DataFrame(data=self.features, index=self.idx)
+        if self.target is not None:
+            dataframe['target'] = self.target
+        dataframe.to_csv(path_to_save)
+
 
 @dataclass
 class InputData(Data):
     """
     Data class for input data for the nodes
     """
-    target: Optional[np.array] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -247,17 +302,6 @@ class InputData(Data):
             return len(np.unique(self.target))
         else:
             return None
-
-    @staticmethod
-    def from_predictions(outputs: List['OutputData']):
-        """ Method obtain predictions from previous nodes """
-        # Update not only features but idx, target and task also
-        idx, features, target, task, d_type, updated_info = DataMerger(outputs).merge()
-
-        # Mark data as preprocessed already
-        updated_info.was_preprocessed = True
-        return InputData(idx=idx, features=features, target=target, task=task,
-                         data_type=d_type, supplementary_data=updated_info)
 
     def subset_range(self, start: int, end: int):
         if not (0 <= start <= end <= len(self.idx)):
@@ -303,7 +347,7 @@ class InputData(Data):
         """
         Shuffles features and target if possible
         """
-        if self.data_type == DataTypesEnum.table:
+        if self.data_type is DataTypesEnum.table:
             shuffled_ind = np.random.permutation(len(self.features))
             idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
                 shuffled_ind]
@@ -348,7 +392,7 @@ class InputData(Data):
             # note, that string indexes do not have an order and always we think that indexes we want to predict go
             # immediately after the train indexes
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
-            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx)+1))
+            copied_data.idx = pipeline.last_idx_int + np.array(range(1, len(copied_data.idx) + 1))
         return copied_data
 
     @staticmethod
@@ -368,24 +412,26 @@ class OutputData(Data):
     target: Optional[np.array] = None
 
 
-def _resize_image(file_path: str, target_size: tuple):
-    im = Image.open(file_path)
-    im_resized = im.resize(target_size, Image.NEAREST)
-    im_resized.save(file_path, 'jpeg')
+def _resize_image(file_path: str, target_size: Tuple[int, int]):
+    """
+    Function resizes and rewrites the input image
+    """
 
-    img = np.asarray(imageio.imread(file_path, 'jpeg'))
-    if len(img.shape) == 3:
-        # TODO refactor for multi-color
-        img = img[..., 0] + img[..., 1] + img[..., 2]
+    img = cv2.imread(file_path)
+    if img.shape[:2] != target_size:
+        img = cv2.resize(img, (target_size[0], target_size[1]))
+        cv2.imwrite(file_path, img)
     return img
 
 
-def process_one_column(target_column, data_frame, data_array):
+def process_target_and_features(data_frame: pd.DataFrame,
+                                target_column: Optional[Union[str, List[str]]]
+                                ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
     """ Function process pandas dataframe with single column
 
-    :param target_column: name of column with target or None
-    :param data_frame: loaded panda DataFrame
-    :param data_array: array received from source DataFrame
+    :param data_frame: loaded pandas DataFrame
+    :param target_column: names of columns with target or None
+
     :return features: numpy array (table) with features
     :return target: numpy array (column) with target
     """
@@ -393,39 +439,26 @@ def process_one_column(target_column, data_frame, data_array):
         # Take the last column in the table
         target_column = data_frame.columns[-1]
 
-    if target_column and target_column in data_frame.columns:
-        target = np.array(data_frame[target_column])
-        pos = list(data_frame.keys()).index(target_column)
-        features = np.delete(data_array.T, [0, pos], axis=1)
+    if target_column:
+        target = atleast_2d(data_frame[target_column].to_numpy())
+        features = data_frame.drop(columns=target_column).to_numpy()
     else:
-        # no target in data
-        features = data_array[1:].T
         target = None
-
-    if target is not None:
-        target = np.array(target)
-        if len(target.shape) < 2:
-            target = target.reshape((-1, 1))
+        features = data_frame.to_numpy()
 
     return features, target
 
 
-def process_multiple_columns(target_columns, data_frame):
-    """ Function for processing target """
-    features = np.array(data_frame.drop(columns=target_columns))
-
-    # Remove index column
-    targets = np.array(data_frame[target_columns])
-
-    return features, targets
-
-
 def data_type_is_table(data: Union[InputData, OutputData]) -> bool:
-    return data.data_type == DataTypesEnum.table
+    return data.data_type is DataTypesEnum.table
 
 
 def data_type_is_ts(data: InputData) -> bool:
-    return data.data_type == DataTypesEnum.ts
+    return data.data_type is DataTypesEnum.ts
+
+
+def data_type_is_multi_ts(data: InputData) -> bool:
+    return data.data_type is DataTypesEnum.multi_ts
 
 
 def get_indices_from_file(data_frame, file_path):

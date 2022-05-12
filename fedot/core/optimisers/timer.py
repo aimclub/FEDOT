@@ -1,16 +1,14 @@
 import datetime
 from abc import ABC
+from typing import Optional
 
 from fedot.core.log import Log, default_log
 
 
 class Timer(ABC):
-    def __init__(self, timeout: datetime.timedelta = None, log: Log = None):
+    def __init__(self, timeout: datetime.timedelta = None, log: Optional[Log] = None):
         self.process_terminated = False
-        if not log:
-            self.log = default_log(__name__)
-        else:
-            self.log = log
+        self.log = log or default_log(__name__)
         self.timeout = timeout
 
     def __enter__(self):
@@ -45,7 +43,7 @@ class Timer(ABC):
 
 
 class OptimisationTimer(Timer):
-    def __init__(self, timeout: datetime.timedelta = None, log: Log = None):
+    def __init__(self, timeout: datetime.timedelta = None, log: Optional[Log] = None):
         super().__init__(timeout=timeout, log=log)
         self.init_time = 0
 
@@ -80,3 +78,7 @@ class OptimisationTimer(Timer):
         self.log.info(f'Composition time: {round(self.minutes_from_start, 3)} min')
         if self.process_terminated:
             self.log.info('Algorithm was terminated due to processing time limit')
+
+
+def get_forever_timer() -> Timer:
+    return Timer(timeout=None)

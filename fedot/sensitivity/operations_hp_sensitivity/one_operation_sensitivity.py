@@ -1,23 +1,25 @@
 from copy import deepcopy
 from os.path import join
-from threading import Thread, Lock
-from typing import List, Union
+from threading import Lock, Thread
+from typing import List, Optional, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
 from fedot.sensitivity.operations_hp_sensitivity.problem import OneOperationProblem
-from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import analyze_method_by_name, \
+from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import (
+    analyze_method_by_name,
     sample_method_by_name
-from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements, HyperparamsAnalysisMetaParams
+)
+from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
 
 
 class OneOperationHPAnalyze(NodeAnalyzeApproach):
@@ -25,7 +27,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
     def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Log = None):
+                 path_to_save=None, log: Optional[Log] = None):
         super().__init__(pipeline, train_data, test_data, path_to_save)
 
         requirements = SensitivityAnalysisRequirements() if requirements is None else requirements
@@ -78,7 +80,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         converted_samples: List[dict] = self.problem.convert_sample_to_dict(samples)
         sampled_pipelines: List[Pipeline] = self._apply_params_to_node(params=converted_samples,
-                                                                    node=node)
+                                                                       node=node)
 
         return sampled_pipelines
 

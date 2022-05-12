@@ -157,7 +157,11 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
                          'kernel_pca': ts_data_operations, 'poly_features': ts_data_operations,
                          'ransac_lin_reg': ts_data_operations, 'ransac_non_lin_reg': ts_data_operations,
                          'rfe_lin_reg': ts_data_operations, 'rfe_non_lin_reg': ts_data_operations,
-                         'pca': ts_data_operations}
+                         'pca': ts_data_operations,
+                         'gaussian_filter': ['lagged', 'sparse_lagged'],
+                         'diff_filter': ['lagged', 'sparse_lagged'],
+                         'smoothing': ['lagged', 'sparse_lagged'],
+                         'cut': ['lagged', 'sparse_lagged']}
 
     for node in pipeline.nodes:
         # Operation name in the current node
@@ -172,7 +176,6 @@ def has_no_data_flow_conflicts_in_ts_pipeline(pipeline: 'Pipeline'):
                 forbidden_parents = wrong_connections.get(current_operation)
                 if forbidden_parents is not None:
                     __check_connection(parent_operation, forbidden_parents)
-
     return True
 
 
