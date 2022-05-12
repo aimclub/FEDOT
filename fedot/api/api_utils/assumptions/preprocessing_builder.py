@@ -24,6 +24,9 @@ class PreprocessingBuilder:
                          *initial_nodes: Optional[Node]) -> PipelineBuilder:
         preprocessing_builder = cls(task_type, *initial_nodes)
         if isinstance(data, MultiModalData):
+            # if the data is unimodal, initial_nodes = tuple of None
+            # if the data is multimodal, initial_nodes = tuple of 1 element (current data_source node)
+            # so the whole data is reduced to the current data_source for an easier preprocessing
             data = data[str(initial_nodes[0])]
         if data_has_missing_values(data):
             preprocessing_builder = preprocessing_builder.with_gaps()

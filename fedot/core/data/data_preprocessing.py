@@ -110,7 +110,7 @@ def force_categorical_determination(table):
 
 def data_has_missing_values(data: InputData) -> bool:
     """ Check data for missing values."""
-    # TODO add check for missing text data and write test
+    # TODO: @andreygetmanov (add check for missing text data and write test)
     if data_type_is_suitable_preprocessing(data):
         return pd.DataFrame(data.features).isna().sum().sum() > 0
     return False
@@ -140,7 +140,7 @@ def data_has_text_features(data: InputData) -> bool:
     return isinstance(data.features[0], str) and len(data.features.shape) == 1
 
 
-# TODO should it be there or outside preprocessing
+# TODO: @andreygetmanov (should it be there or outside preprocessing)
 def data_has_image_features(data: InputData) -> bool:
     """
     Check data for text fields.

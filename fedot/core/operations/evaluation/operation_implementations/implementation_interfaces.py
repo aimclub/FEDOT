@@ -160,8 +160,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         # For every column in table make check
         for column_id in range(0, columns_amount):
-            column = features[:, column_id] if columns_amount >= 1 else features
-            # column = features[:, column_id] if columns_amount > 1 else features
+            column = features[:, column_id] if columns_amount > 1 else features
             if len(np.unique(column)) > 2:
                 non_bool_ids.append(column_id)
             else:

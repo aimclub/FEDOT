@@ -145,7 +145,7 @@ def data_with_text_features():
                             supplementary_data=SupplementaryData(was_preprocessed=False))
 
     return train_input
-# TODO test data with image features
+# TODO: @andreygetmanov (test data with image features)
 
 
 def test_correct_api_dataset_preprocessing():
