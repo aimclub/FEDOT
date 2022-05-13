@@ -124,12 +124,12 @@
 		"scaling": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple", "scaling"]
+			"tags": ["simple", "feature_scaling"]
 		},
 		"normalization": {
 			"meta": "custom_preprocessing",
 			"presets": ["fast_train", "ts", "*tree"],
-			"tags": ["simple", "scaling"]
+			"tags": ["simple", "feature_scaling"]
 		},
 		"simple_imputation": {
 			"meta": "custom_preprocessing",
