@@ -130,7 +130,8 @@ class OptHistory:
              pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
         """ Visualizes fitness values or operations used across generations.
 
-        :param plot_type: visualization to show. Possible values are listed in PlotType class.
+        :param plot_type: visualization to show. Expecting values are listed in the
+            'fedot.core.visualisation.opt_viz.PlotType' enumeration.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed. Essential for animations.
         :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
@@ -158,7 +159,7 @@ class OptHistory:
                 plot_type = PlotType[plot_type]
             except KeyError:
                 raise NotImplementedError(
-                    f'Visualization "{plot_type}" is not supported. Possible values: '
+                    f'Visualization "{plot_type}" is not supported. Expecting values: '
                     f'{", ".join(PlotType.member_names())}.')
 
         all_historical_fitness = self.all_historical_fitness
