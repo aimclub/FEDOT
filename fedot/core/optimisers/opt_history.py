@@ -144,6 +144,8 @@ class OptHistory:
             msg_prefix = 'The history has no fitness data.'
             if msg_if_none:
                 msg_if_none = ' '.join([msg_prefix, msg_if_none])
+            else:
+                msg_if_none = msg_prefix
 
             if raise_exception:
                 raise ValueError(msg_if_none)
