@@ -302,7 +302,10 @@ class PipelineEvolutionVisualiser:
                 for node in ind.graph.nodes:
                     history_data['generation'].append(gen_num)
                     history_data['individual'].append(ind.uid)
-                    history_data['fitness'].append(abs(ind.fitness.value))
+                    fitness = ind.fitness
+                    # Support for older histories
+                    fitness = abs(fitness) if isinstance(fitness, float) else abs(fitness.value)
+                    history_data['fitness'].append(fitness)
                     history_data['node'].append(node.content['name'])
                     if not get_tags:
                         continue
