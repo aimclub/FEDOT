@@ -55,7 +55,7 @@ class OperationTypesRepository:
 
     DEFAULT_MODEL_TAGS = ['linear', 'non_linear']
     DEFAULT_DATA_OPERATION_TAGS = [
-        'data_source', 'scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
+        'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
         'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
         'imbalanced'
     ]
