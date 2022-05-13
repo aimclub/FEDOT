@@ -533,10 +533,9 @@ class PipelineEvolutionVisualiser:
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
         if show_fitness_color:
             bar_color = smoothen_frames_data(bar_color, animation_frames_per_step, animation_interpolation_power)
-            fig.colorbar(
-                cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap),
-                label=fitness_column_name
-            )
+            sm = cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap)
+            sm.set_array([])
+            fig.colorbar(sm, label=fitness_column_name)
         else:
             no_fitness_palette = sns.color_palette(no_fitness_palette, n_colors=len(tags_found))
 
