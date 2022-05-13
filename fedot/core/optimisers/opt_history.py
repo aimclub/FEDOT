@@ -176,6 +176,8 @@ class OptHistory:
         elif plot_type is PlotType.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotType.operations_animated_barplot:
+            if not save_path:
+                raise ValueError('Expecting argument `save_path` to save the animation.')
             if check_all_historical_fitness('Fitness is not displayed.'):
                 hide_fitness = True
             viz.visualize_operations_animated_barplot(
