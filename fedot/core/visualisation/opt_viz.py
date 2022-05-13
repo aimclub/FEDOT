@@ -15,7 +15,7 @@ import seaborn as sns
 from PIL import Image
 from deap import tools
 from imageio import get_writer, imread
-from matplotlib import cm, animation
+from matplotlib import cm, animation, ticker
 from matplotlib.colors import Normalize
 
 from fedot.core.log import Log, default_log
@@ -352,7 +352,7 @@ class PipelineEvolutionVisualiser:
         # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
         palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
             sort_values('fitness', ignore_index=True)['generation'].sort_values().index
-        palette = sns.light_palette("seagreen", n_colors=len(palette_ranks))
+        palette = sns.color_palette('YlOrRd', n_colors=len(palette_ranks))
 
         plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
         fig = plot.figure
@@ -361,8 +361,12 @@ class PipelineEvolutionVisualiser:
         ax = plt.gca()
 
         ax.set_title('Fitness by generations')
-        ax.set_xticklabels(range(len(history.historical_fitness)))
         ax.set_xlabel('Generation')
+        # Set ticks for every 5 generation if there's more than 10 generations.
+        if len(history.historical_fitness) > 10:
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
+            ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+            ax.xaxis.grid(True)
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
 
@@ -477,7 +481,7 @@ class PipelineEvolutionVisualiser:
         animation_interpolation_power = 4
         animation_dpi = 200
         fitness_colormap = cm.get_cmap('YlOrRd')
-        no_fitness_palette = sns.color_palette('Set2')
+        no_fitness_palette = 'crest'
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
@@ -533,6 +537,8 @@ class PipelineEvolutionVisualiser:
                 cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap),
                 label=fitness_column_name
             )
+        else:
+            no_fitness_palette = sns.color_palette(no_fitness_palette, n_colors=len(tags_found))
 
         count = bar_data[0]
         color = bar_color[0] if show_fitness_color else [no_fitness_palette[i] for i in range(len(tags_found))]
