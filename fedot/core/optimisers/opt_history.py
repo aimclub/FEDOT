@@ -137,7 +137,7 @@ class OptHistory:
         :param show_fitness: if False, visualizations that support this parameter will not display fitness.
         """
 
-        def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_error: bool = False):
+        def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_exception: bool = False):
             if all_historical_fitness is not None:
                 return True
 
@@ -145,7 +145,7 @@ class OptHistory:
             if msg_if_none:
                 msg_if_none = ' '.join([msg_prefix, msg_if_none])
 
-            if raise_error:
+            if raise_exception:
                 raise ValueError(msg_if_none)
             print(msg_if_none)
             return False
@@ -171,7 +171,7 @@ class OptHistory:
 
         viz = PipelineEvolutionVisualiser()
         if plot_type is PlotType.fitness_box:
-            check_all_historical_fitness(f'Visualization "{plot_type.name}" is not supported.', raise_error=True)
+            check_all_historical_fitness(f'Visualization "{plot_type.name}" is not supported.', raise_exception=True)
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotType.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
