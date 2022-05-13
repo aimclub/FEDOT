@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import shutil
+import warnings
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
@@ -137,7 +138,7 @@ class OptHistory:
         :param show_fitness: if False, visualizations that support this parameter will not display fitness.
         """
 
-        def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_exception: bool = False):
+        def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_exception: bool = False) -> bool:
             if all_historical_fitness is not None:
                 return True
 
@@ -149,7 +150,7 @@ class OptHistory:
 
             if raise_exception:
                 raise ValueError(msg_if_none)
-            print(msg_if_none)
+            warnings.warn(msg_if_none, stacklevel=3)
             return False
 
         if isinstance(plot_type, str):
@@ -169,7 +170,8 @@ class OptHistory:
                 pct_best = None
         # Check supported cases for show_fitness == False.
         if not show_fitness and plot_type is not PlotType.operations_animated_barplot:
-            print(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
+            warnings.warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
+                          stacklevel=2)
 
         viz = PipelineEvolutionVisualiser()
         if plot_type is PlotType.fitness_box:
