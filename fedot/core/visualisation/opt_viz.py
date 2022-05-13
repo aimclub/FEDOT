@@ -30,6 +30,10 @@ class PlotType(Enum):
     operations_kde = auto()
     operations_animated_barplot = auto()
 
+    @classmethod
+    def member_names(cls):
+        return cls._member_names_
+
 
 class PipelineEvolutionVisualiser:
 

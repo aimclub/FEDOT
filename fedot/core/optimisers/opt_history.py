@@ -154,7 +154,9 @@ class OptHistory:
             try:
                 plot_type = PlotType[plot_type]
             except KeyError:
-                raise NotImplementedError(f'Visualization "{plot_type}" is not supported.')
+                raise NotImplementedError(
+                    f'Visualization "{plot_type}" is not supported. Possible values: '
+                    f'{", ".join(PlotType.member_names())}.')
 
         all_historical_fitness = self.all_historical_fitness
         # Check supported cases for `pct_best`.
@@ -178,7 +180,8 @@ class OptHistory:
                 hide_fitness = True
             viz.visualize_operations_animated_barplot(
                 self, save_path=save_path, pct_best=pct_best, hide_fitness_color=hide_fitness)
-        raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
+        else:
+            raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 
     @property
     def short_metrics_names(self):
