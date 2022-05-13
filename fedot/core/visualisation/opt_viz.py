@@ -548,7 +548,7 @@ class PipelineEvolutionVisualiser:
         ax.set_xlim(0, 1)
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_xlabel(f'Fraction of operation in {str_fraction_of_pipelines} generation pipelines')
-        ax.set_ylabel(tag_column_name, loc='top')
+        ax.set_ylabel(tag_column_name)
         ax.invert_yaxis()
         plt.tight_layout()
 
