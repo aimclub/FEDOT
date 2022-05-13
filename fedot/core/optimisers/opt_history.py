@@ -126,7 +126,7 @@ class OptHistory:
             os.mkdir(path)
 
     def show(self, plot_type: Optional[Union[PlotType, str]] = PlotType.fitness_box, save_path: Optional[str] = None,
-             pct_best: Optional[float] = None, hide_fitness: Optional[bool] = False):
+             pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
         """ Visualizes fitness values or operations used across generations.
 
         :param plot_type: visualization to show. Possible values are listed in PlotType class.
@@ -134,7 +134,7 @@ class OptHistory:
             and if not, it will be displayed. Essential for animations.
         :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
             interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
-        :param hide_fitness: if True, visualizations that support this parameter will not display fitness.
+        :param show_fitness: if False, visualizations that support this parameter will not display fitness.
         """
 
         def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_error: bool = False):
@@ -165,9 +165,9 @@ class OptHistory:
                 raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
             if not check_all_historical_fitness('`pct_best` parameter is ignored.'):
                 pct_best = None
-        # Check supported cases for `hide_fitness`.
-        if hide_fitness and plot_type is not PlotType.operations_animated_barplot:
-            print(f'`hide_fitness` parameter is not supported for "{plot_type.name}". It is ignored.')
+        # Check supported cases for show_fitness == False.
+        if not show_fitness and plot_type is not PlotType.operations_animated_barplot:
+            print(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
 
         viz = PipelineEvolutionVisualiser()
         if plot_type is PlotType.fitness_box:
@@ -179,7 +179,7 @@ class OptHistory:
             if check_all_historical_fitness('Fitness is not displayed.'):
                 hide_fitness = True
             viz.visualize_operations_animated_barplot(
-                self, save_path=save_path, pct_best=pct_best, hide_fitness_color=hide_fitness)
+                self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
         else:
             raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 
