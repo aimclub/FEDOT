@@ -23,7 +23,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
-from fedot.core.utilities.aggregate_condition import AggregateCondition
+from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -139,7 +139,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimisation = \
-            AggregateCondition(self.log) \
+            GroupedCondition(self.log) \
             .add_condition(
                 lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
                 'Optimisation stopped: Time limit is reached'

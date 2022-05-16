@@ -6,11 +6,11 @@ ConditionType = Callable[[], bool]
 ConditionEntryType = Tuple[ConditionType, Optional[str]]
 
 
-class AggregateCondition:
+class GroupedCondition:
     """Represents sequence of ordinary conditions with logging.
     All composed conditions are combined with reduce function on booleans.
 
-    By the default 'any' is used, so in this case CompositeCondition is True
+    By the default 'any' is used, so in this case the grouped condition is True
     if any of the composed conditions is True. The message corresponding
     to the actual fired condition is logged (if it was provided)."""
 
@@ -19,7 +19,7 @@ class AggregateCondition:
         self._conditions: List[ConditionEntryType] = []
         self._log = log or default_log(__name__)
 
-    def add_condition(self, condition: ConditionType, log_msg: Optional[str] = None) -> 'AggregateCondition':
+    def add_condition(self, condition: ConditionType, log_msg: Optional[str] = None) -> 'GroupedCondition':
         """Builder-like method for adding conditions."""
         self._conditions.append((condition, log_msg))
         return self
