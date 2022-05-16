@@ -101,18 +101,20 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
-        self._min_population_size_with_elitism = 3
-
         self.parameters = parameters or GPGraphOptimiserParameters()
-
-        is_steady_state = self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state
-        self._pop_size: PopulationSize = ConstRatePopulationSize(
-            pop_size=requirements.pop_size or 10,
-            offspring_rate=1.0 if is_steady_state else requirements.offspring_rate
-        )
 
         self.population = None
         self.generations = GenerationKeeper(self.objective)
+        self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
+
+        self._min_population_size_with_elitism = 3
+
+        is_steady_state = self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state
+        default_pop_size = 10
+        self._pop_size: PopulationSize = ConstRatePopulationSize(
+            pop_size=requirements.pop_size or default_pop_size,
+            offspring_rate=1.0 if is_steady_state else requirements.offspring_rate
+        )
 
         start_depth = requirements.start_depth or requirements.max_depth
         self._graph_depth = GraphDepth(self.generations,
@@ -121,8 +123,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                                        max_stagnated_generations=parameters.depth_increase_step,
                                        adaptive=parameters.with_auto_depth_configuration)
         self.max_depth = self._graph_depth.initial
-
-        self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
 
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
