@@ -68,7 +68,7 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
-    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
+    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]) -> OutputData:
         """ Prepare predictions """
         if self.task.task_type == TaskTypesEnum.classification:
             output_prediction = current_pipeline.predict(test_data, output_mode='labels')

@@ -408,8 +408,8 @@ class OutputData(Data):
     """
     Data type for data prediction in the node
     """
-    predict: np.array = None
-    target: Optional[np.array] = None
+    predict: np.ndarray = None
+    target: Optional[np.ndarray] = None
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
