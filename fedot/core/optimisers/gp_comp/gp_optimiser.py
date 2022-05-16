@@ -197,25 +197,19 @@ class EvoGraphOptimiser(GraphOptimiser):
                 self.max_depth = self._graph_depth.next()
                 self.log.info(f'Next population size: {pop_size}; max graph depth: {self.max_depth}')
 
-                individuals_to_select = \
-                    regularized_population(self.parameters.regularization_type,
-                                           self.population,
-                                           evaluator,
-                                           self.graph_generation_params)
+                individuals_to_select = regularized_population(self.parameters.regularization_type,
+                                                               self.population,
+                                                               evaluator,
+                                                               self.graph_generation_params)
 
-                # TODO: collapse this selection & reprodue for 1 and for many
-                if len(self.population) == 1:
-                    new_population = self.population
-                else:
-                    num_of_parents = num_of_parents_in_crossover(pop_size)
-                    selected_individuals = selection(types=self.parameters.selection_types,
-                                                     population=individuals_to_select,
-                                                     pop_size=num_of_parents,
-                                                     params=self.graph_generation_params)
-                    new_population = self._reproduce(selected_individuals)
+                num_of_parents = num_of_parents_in_crossover(pop_size)
+                selected_individuals = selection(types=self.parameters.selection_types,
+                                                 population=individuals_to_select,
+                                                 pop_size=num_of_parents,
+                                                 params=self.graph_generation_params)
+                new_population = self._reproduce(selected_individuals)
 
                 new_population = list(map(self._mutate, new_population))
-
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
@@ -262,11 +256,13 @@ class EvoGraphOptimiser(GraphOptimiser):
                         ind=ind, requirements=requirements,
                         max_depth=max_depth, log=self.log)
 
-    def _reproduce(self, selected_individuals: PopulationT) -> PopulationT:
+    def _reproduce(self, population: PopulationT) -> PopulationT:
+        if len(population) == 1:
+            return population
         new_population = []
-        for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
+        for ind_1, ind_2 in zip(population[::2], population[1::2]):
             new_population += self._crossover_pair(ind_1, ind_2)
-        return list(filter(None, new_population))
+        return new_population
 
     def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
         return crossover(self.parameters.crossover_types,
