@@ -38,7 +38,7 @@ def prepare_builder_with_custom_params(return_all: bool):
 
 def test_gp_composer_builder():
     builder, scheme_type, metric_function, task = prepare_builder_with_custom_params(return_all=True)
-    default_complexity_metrics = builder._default_complexity_metrics()
+    default_complexity_metrics = builder._get_default_complexity_metrics()
 
     composer_with_custom_params = builder.build()
 

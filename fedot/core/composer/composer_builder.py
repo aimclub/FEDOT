@@ -37,8 +37,8 @@ class ComposerBuilder:
         self.initial_pipelines = None
         self.log = None
         self.cache = None
-        self.composer_requirements = self._default_composer_params()
-        self.metrics = self._default_quality_metrics(task)
+        self.composer_requirements = self._get_default_composer_params()
+        self.metrics = self._get_default_quality_metrics(task)
 
     def with_optimiser(self, optimiser: Optional[GraphOptimiser] = None,
                        parameters: Optional[GraphOptimiserParameters] = None,
@@ -71,13 +71,13 @@ class ComposerBuilder:
         self.cache = cache
         return self
 
-    def _default_composer_params(self) -> PipelineComposerRequirements:
+    def _get_default_composer_params(self) -> PipelineComposerRequirements:
         # Get all available operations for task
         operations = get_operations_for_task(task=self.task, mode='all')
         return PipelineComposerRequirements(primary=operations, secondary=operations)
 
     @staticmethod
-    def _default_quality_metrics(task: Task) -> List[MetricsEnum]:
+    def _get_default_quality_metrics(task: Task) -> List[MetricsEnum]:
         # Set metrics
         metric_function = ClassificationMetricsEnum.ROCAUC_penalty
         if task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
@@ -85,7 +85,7 @@ class ComposerBuilder:
         return [metric_function]
 
     @staticmethod
-    def _default_complexity_metrics() -> List[MetricsEnum]:
+    def _get_default_complexity_metrics() -> List[MetricsEnum]:
         return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
@@ -102,7 +102,7 @@ class ComposerBuilder:
             self.optimiser_parameters.multi_objective = True
         else:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
-            self.metrics = self.metrics + self._default_complexity_metrics()
+            self.metrics = self.metrics + self._get_default_complexity_metrics()
             self.optimiser_parameters.multi_objective = False
 
         if self.optimiser_parameters.mutation_types is None:
