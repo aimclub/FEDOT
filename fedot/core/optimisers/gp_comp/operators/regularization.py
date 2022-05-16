@@ -1,9 +1,10 @@
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, List, Optional
+from typing import Any, List, Optional
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -14,47 +15,48 @@ class RegularizationTypesEnum(Enum):
     decremental = 'decremental'
 
 
-def regularized_population(reg_type: RegularizationTypesEnum, population: List[Any],
+def regularized_population(reg_type: RegularizationTypesEnum, population: PopulationT,
                            evaluator: EvaluationDispatcher,
                            params: GraphGenerationParams,
-                           size: Optional[int] = None) -> List[Any]:
+                           size: Optional[int] = None) -> PopulationT:
     if reg_type is RegularizationTypesEnum.decremental:
-        additional_inds = decremental_regularization(population, evaluator, params, size)
-        return population + additional_inds
+        return decremental_regularization(population, evaluator, params, size)
     elif reg_type is RegularizationTypesEnum.none:
         return population
     else:
         raise ValueError(f'Required regularization type not found: {type}')
 
 
-def decremental_regularization(population: List[Individual],
+def decremental_regularization(population: PopulationT,
                                evaluator: EvaluationDispatcher,
                                params: GraphGenerationParams,
-                               size: Optional[int] = None) -> List[Any]:
-    size = size if size else len(population)
+                               size: Optional[int] = None) -> PopulationT:
+    size = size or len(population)
     additional_inds = []
-    prev_nodes_ids = []
+    prev_nodes_ids = set()
     for ind in population:
-        ind_subtrees = [node for node in ind.graph.nodes if node != ind.graph.root_node]
-        subtrees = [OptGraph(deepcopy(node.ordered_subnodes_hierarchy())) for node in ind_subtrees if
-                    is_fitted_subtree(node, prev_nodes_ids)]
-        additional_inds += subtrees
-        prev_nodes_ids += [subtree.root_node.descriptive_id for subtree in subtrees]
-        for add_ind in additional_inds:
-            add_ind.parent_operators.append(
-                ParentOperator(operator_type='regularization',
-                               operator_name='decremental_regularization',
-                               parent_individuals=[ind]))
+        prev_nodes_ids.add(ind.graph.root_node.descriptive_id)
+        subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())))
+                        for node in ind.graph.nodes
+                        if is_fitted_subtree(node) and node.descriptive_id not in prev_nodes_ids]
 
-    additional_inds = [ind for ind in additional_inds if constraint_function(ind, params)]
+        parent_operator = ParentOperator(operator_type='regularization',
+                                         operator_name='decremental_regularization',
+                                         parent_individuals=[ind])
+        for add_ind in subtree_inds:
+            add_ind.parent_operators.append(parent_operator)
+        additional_inds.extend(subtree_inds)
+        prev_nodes_ids.update(subtree.graph.root_node.descriptive_id for subtree in subtree_inds)
 
-    if len(additional_inds) > 0:
-        population = evaluator(population)
+    additional_inds = [ind for ind in additional_inds if constraint_function(ind.graph, params)]
+
+    evaluator(additional_inds)
+    additional_inds.extend(population)
     if len(additional_inds) > size:
         additional_inds = sorted(additional_inds, key=lambda ind: ind.fitness)[:size]
 
     return additional_inds
 
 
-def is_fitted_subtree(node: Any, prev_nodes_ids: List[Any]) -> bool:
-    return node.nodes_from and node.descriptive_id not in prev_nodes_ids and node.fitted_model
+def is_fitted_subtree(node: Any) -> bool:
+    return node.nodes_from and node.fitted_model
