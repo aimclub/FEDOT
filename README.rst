@@ -158,7 +158,7 @@ In Russian:
 - General concepts of evolutionary design for composite pipelines - `habr.com <https://habr.com/ru/company/spbifmo/blog/558450>`__
 - Automated time series forecasting with FEDOT - `habr.com <https://habr.com/ru/post/559796/>`__
 - Details of FEDOT-based solution for Emergency DataHack - `habr.com <https://habr.com/ru/post/577886/>`__
-- Data preprocessing in AutoML `ODS <https://habr.com/ru/company/ods/blog/657525/>`__
+- Data preprocessing in AutoML - `ODS blog <https://habr.com/ru/company/ods/blog/657525/>`__
 - FEDOT in open-source section of Highload++ 2022 conference - `presentation <https://docs.yandex.ru/docs/view?url=ya-disk-public%3A%2F%2Fi27LScu3s3IIHDzIXt9O5EiEAMl6ThY6QLu3X1oYH%2FFiAl%2BLcNp4O4yTSYd2gRZnW5aDQ4kMZEXE%2BwNjbq78ug%3D%3D%3A%2F%D0%94%D0%B5%D0%BD%D1%8C%201%2F4.%D0%A1%D0%B8%D0%BD%D0%BD%D0%B0%D0%BA%D1%81%2F9.Open%20source-%D1%82%D1%80%D0%B8%D0%B1%D1%83%D0%BD%D0%B0_HL_FEDOT.pptx&name=9.Open%20source-%D1%82%D1%80%D0%B8%D0%B1%D1%83%D0%BD%D0%B0_HL_FEDOT.pptx>`__
 
 In Chinese:
