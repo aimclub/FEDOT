@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Optional, Union, List, Iterable, Sequence
+from typing import Any, Optional, Union, List, Iterable, Sequence, Tuple
 
 from tqdm import tqdm
 
@@ -23,7 +23,7 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.parameters.graph_depth import GraphDepth
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection, crossover_parents_selection
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
@@ -202,10 +202,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                                evaluator,
                                                                self.graph_generation_params)
 
-                num_of_parents = num_of_parents_in_crossover(pop_size)
                 selected_individuals = selection(types=self.parameters.selection_types,
                                                  population=individuals_to_select,
-                                                 pop_size=num_of_parents,
+                                                 pop_size=pop_size,
                                                  params=self.graph_generation_params)
                 new_population = self._reproduce(selected_individuals)
 
@@ -260,7 +259,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         if len(population) == 1:
             return population
         new_population = []
-        for ind_1, ind_2 in zip(population[::2], population[1::2]):
+        for ind_1, ind_2 in crossover_parents_selection(population):
             new_population += self._crossover_pair(ind_1, ind_2)
         return new_population
 
