@@ -1,6 +1,4 @@
-from abc import abstractmethod
-from collections.abc import Sequence
-from typing import Any, Optional, Union, Iterable, Callable
+from typing import Any, Optional, Union, Iterable, Callable, Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
@@ -21,7 +19,6 @@ class Objective:
         self.is_multi_objective = is_multi_objective
         self._log = log or default_log(str(self.__class__))
 
-    @abstractmethod
     def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []
         for metric in self.metrics:
