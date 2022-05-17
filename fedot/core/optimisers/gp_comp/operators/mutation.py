@@ -379,7 +379,12 @@ def reduce_mutation(graph: OptGraph, requirements, **kwargs) -> OptGraph:
     return graph
 
 
+def no_mutation(graph: Any, *args, **kwargs):
+    return graph
+
+
 mutation_by_type = {
+    MutationTypesEnum.none: no_mutation,
     MutationTypesEnum.simple: simple_mutation,
     MutationTypesEnum.growth: partial(growth_mutation, local_growth=False),
     MutationTypesEnum.local_growth: partial(growth_mutation, local_growth=True),
@@ -388,5 +393,4 @@ mutation_by_type = {
     MutationTypesEnum.single_edge: single_edge_mutation,
     MutationTypesEnum.single_drop: single_drop_mutation,
     MutationTypesEnum.single_change: single_change_mutation,
-
 }

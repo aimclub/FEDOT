@@ -70,5 +70,5 @@ def test_auto_preset_converted_correctly():
                                                        'pop_size': 500})
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
-    assert fedot_model.api_composer.history is None
+    assert fedot_model.history is None
     assert fedot_model.api_composer.preset_name == FAST_TRAIN_PRESET_NAME

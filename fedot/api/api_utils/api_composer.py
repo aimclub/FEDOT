@@ -1,10 +1,10 @@
 import datetime
 import gc
 import traceback
-from typing import Callable, Dict, List, Optional, Type, Union
+from typing import Callable, Dict, List, Optional, Type, Union, Tuple
 
 import numpy as np
-from deap import tools
+from deap.tools import HallOfFame
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -27,8 +27,8 @@ from fedot.core.optimisers.gp_comp.gp_optimiser import (
 )
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
-from fedot.core.optimisers.utils.pareto import ParetoFront
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -43,11 +43,7 @@ class ApiComposer:
         self.metrics = ApiMetrics(problem)
         self.optimiser = EvoGraphOptimiser
         self.optimizer_external_parameters = None
-        self.current_model = None
-        self.best_models = None
-        self.history = None
         self.cache: Optional[OperationsCache] = None
-
         self.preset_name = None
         self.timer = None
 
@@ -73,24 +69,11 @@ class ApiComposer:
         return metric_function
 
     def obtain_model(self, **common_dict):
-        self.best_models = None
-        self.history = None
         preset = common_dict['preset']
         # Prepare parameters
         api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
-
         # Start composing - pipeline structure search
-        self.current_model, self.best_models, self.history = self.compose_fedot_model(
-            api_params=api_params_dict,
-            composer_params=composer_params_dict,
-            tuning_params=tuner_params_dict,
-            preset=preset)
-
-        if isinstance(self.best_models, tools.ParetoFront):
-            self.best_models.__class__ = ParetoFront
-            self.best_models.objective_names = common_dict['composer_metric']
-
-        return self.current_model, self.best_models, self.history
+        return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict, preset)
 
     def get_gp_composer_builder(self, task: Task,
                                 metric_function,
@@ -207,7 +190,7 @@ class ApiComposer:
             self.cache.reset()
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
-                            preset: str):
+                            preset: str) -> Tuple[Pipeline, HallOfFame, OptHistory]:
         """ Function for composing FEDOT pipeline model """
         # Initialize timer for all AutoMl operations
         self.timer = ApiTime(time_for_automl=api_params['timeout'],
@@ -300,11 +283,13 @@ class ApiComposer:
             for pipeline in pipeline_gp_composed:
                 pipeline.log = api_params['logger']
             pipeline_gp_composed = pipeline_gp_composed[0]
-            best_candidates = gp_composer.optimiser.archive
+            # TODO: remove such access to internals
+            best_candidates = gp_composer.optimiser.generations.archive
         else:
             best_candidates = [pipeline_gp_composed]
             pipeline_gp_composed.log = api_params['logger']
 
+        # Tune only the best pipeline
         pipeline_gp_composed = self.tune_final_pipeline(api_params=api_params, tuning_params=tuning_params,
                                                         composer_requirements=composer_requirements,
                                                         pipeline_gp_composed=pipeline_gp_composed,

@@ -60,8 +60,7 @@ class Composer(ABC):
                  composer_requirements: ComposerRequirements,
                  metrics: Sequence[MetricsEnum],
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
-                 logger: Optional[Log] = None):
-        self.metrics = metrics
+                 logger: Log = None):
         self.composer_requirements = composer_requirements
         self.initial_pipelines = initial_pipelines
         self.optimiser = optimiser

@@ -1,25 +1,6 @@
-from typing import Any
-
 import numpy as np
 
 from fedot.core.data.data import InputData
-
-
-def is_equal_archive(old_archive: Any, new_archive: Any) -> bool:
-    fronts_coincidence = True
-    if len(old_archive.items) != len(new_archive.items):
-        fronts_coincidence = False
-    else:
-        for new_ind in new_archive.items:
-            is_ind_found = False
-            for old_ind in old_archive.items:
-                if new_ind.fitness == old_ind.fitness:
-                    is_ind_found = True
-                    break
-            if not is_ind_found:
-                fronts_coincidence = False
-                break
-    return fronts_coincidence
 
 
 def get_metric_position(metrics, metric_type):

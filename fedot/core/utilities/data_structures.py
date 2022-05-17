@@ -2,7 +2,7 @@ import collections.abc
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Callable, Container, Iterable, List, Sequence, Sized, TypeVar, Union
+from typing import Callable, Container, Iterator, Iterable, List, Sequence, Sized, TypeVar, Union
 
 
 class UniqueList(list):
@@ -113,3 +113,29 @@ class Comparable(ABC):
 
     def __ge__(self, other) -> bool:
         return not self.__lt__(other)
+
+
+class BidirectionalIterator(Iterator[T]):
+    @abstractmethod
+    def has_prev(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def has_next(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def next(self) -> T:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def prev(self) -> T:
+        raise NotImplementedError()
+
+    def __next__(self):
+        if self.has_next():
+            return self.next()
+        raise StopIteration()
+
+    def __iter__(self):
+        return self
