@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Sequence, Any
 
 import numpy as np
 
@@ -66,6 +66,7 @@ class RemoteEvaluator:
         params = self.remote_task_params
 
         client = self.client
+        execution_ids = {}
         pipelines_parts = _prepare_batches(pipelines, params)
         final_pipelines = []
 
@@ -75,7 +76,7 @@ class RemoteEvaluator:
                 try:
                     verify_pipeline(pipeline)
                 except ValueError:
-                    pipeline.execution_id = None
+                    execution_ids[id(pipeline)] = None
                     continue
 
                 pipeline_json, _ = pipeline.save()
@@ -84,18 +85,18 @@ class RemoteEvaluator:
                 config = _get_config(pipeline_json, params, self.client.exec_params, self.client.connect_params)
 
                 task_id = client.create_task(config=config)
-
-                pipeline.execution_id = task_id
+                execution_ids[id(pipeline)] = task_id
 
             # waiting for readiness of all pipelines
             ex_time = client.wait_until_ready()
 
             # download of remote execution result for each pipeline
             for p_id, pipeline in enumerate(pipelines_part):
-                if pipeline.execution_id:
+                task_id = execution_ids.get(id(pipeline), None)
+                if task_id:
                     try:
                         pipelines_part[p_id] = client.download_result(
-                            execution_id=pipeline.execution_id
+                            execution_id=task_id
                         )
                     except Exception as ex:
                         self._logger.warning(f'{p_id}, {ex}')
@@ -106,14 +107,14 @@ class RemoteEvaluator:
         return final_pipelines
 
 
-def _prepare_batches(pipelines, params):
+def _prepare_batches(pipelines: Sequence[Any], params):
     num_parts = np.floor(len(pipelines) / params.max_parallel)
     num_parts = max(num_parts, 1)
     pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
     return pipelines_parts
 
 
-def _get_config(pipeline_json, params: RemoteTaskParams, client_params: dict, conn_params: dict):
+def _get_config(pipeline_json: dict, params: RemoteTaskParams, client_params: dict, conn_params: dict):
     var_names = list(map(str, params.var_names)) \
         if params.var_names is not None else []
     train_data_idx = list(map(str, params.train_data_idx)) \
