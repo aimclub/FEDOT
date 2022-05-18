@@ -2,7 +2,7 @@ import json
 import os
 import shutil
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import requests
@@ -64,7 +64,7 @@ class DataMallClient(Client):
                                             config=config)
         return created_ex['id']
 
-    def wait_until_ready(self):
+    def wait_until_ready(self) -> timedelta:
         statuses = ['']
         all_executions = self._get_executions()
         self._logger.info(all_executions)
@@ -204,7 +204,7 @@ class DataMallClient(Client):
         if response.status_code != 204:
             raise ValueError(f'Unable to stop execution. Reason: {response.text}')
 
-    def download_result(self, execution_id: int):
+    def download_result(self, execution_id: int, result_cls=Pipeline) -> Pipeline:
         response = requests.get(
             url=f'{self.controller_server}/executions/{self._current_project_id}/{execution_id}/download',
             cookies={USER_TOKEN_KEY: self._user_token},
@@ -230,8 +230,8 @@ class DataMallClient(Client):
                                         f'execution-{execution_id}',
                                         'out')
         results_folder = os.listdir(results_path_out)[0]
-        pipeline = Pipeline.from_serialized(os.path.join(results_path_out, results_folder,
-                                            'fitted_pipeline.json'))
+        load_path = os.path.join(results_path_out, results_folder, 'fitted_pipeline.json')
+        pipeline = result_cls.from_serialized(load_path)
 
         clean_dir(results_path_out)
         return pipeline

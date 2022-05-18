@@ -58,6 +58,6 @@ evaluator.init(
 )
 
 pipelines = [Pipeline(PrimaryNode('rf'))] * num_parallel
-fitted_pipelines = evaluator.compute_pipelines(pipelines)
+fitted_pipelines = evaluator.compute_graphs(pipelines)
 
 [print(p.is_fitted) for p in fitted_pipelines]

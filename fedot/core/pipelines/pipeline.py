@@ -19,12 +19,13 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utilities.serializable import Serializable
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-class Pipeline(Graph):
+class Pipeline(Graph, Serializable):
     """
     Base class used for composite model structure definition
 
@@ -39,11 +40,6 @@ class Pipeline(Graph):
         self.preprocessor = DataPreprocessor()
         super().__init__(nodes)
         self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
-
-    @classmethod
-    def from_serialized(cls, source: Union[str, dict], dict_fitted_operations: dict = None):
-        default_instance = cls()
-        return default_instance.load(source, dict_fitted_operations)
 
     def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
         """Method to update nodes types after performing some action on the pipeline
@@ -270,7 +266,7 @@ class Pipeline(Graph):
         :return: json containing a composite operation description
         """
         template = PipelineTemplate(self)
-        json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node,
+        json_object, dict_fitted_operations = template.export_pipeline(path, root_node=self.root_node,
                                                                             datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
 

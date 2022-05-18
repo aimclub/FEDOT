@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 from typing import Optional
 from uuid import uuid4
 
@@ -21,11 +22,11 @@ class TestClient(Client):
         fit_pipeline(config)
         return str(uuid4())
 
-    def wait_until_ready(self):
-        return 0
+    def wait_until_ready(self) -> timedelta:
+        return timedelta()
 
-    def download_result(self, execution_id: int):
+    def download_result(self, execution_id: int, result_cls=Pipeline) -> Pipeline:
         results_path_out = os.path.join(self.output_path)
         results_folder = os.listdir(results_path_out)[0]
-        pipeline = Pipeline.from_serialized(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
+        pipeline = result_cls.from_serialized(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
         return pipeline
