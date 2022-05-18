@@ -1,13 +1,11 @@
 import sys
 from abc import abstractmethod
-from typing import Callable, Optional, Union, TypeVar
 
 import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_error, mean_absolute_percentage_error,
                              mean_squared_error, mean_squared_log_error, precision_score, r2_score, roc_auc_score,
                              silhouette_score, roc_curve, auc)
 
-from fedot.core.dag.graph import Graph
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -30,11 +28,6 @@ def smape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     result = numerator / denominator
     result[np.isnan(result)] = 0.0
     return float(np.mean(100 * result))
-
-
-# Type for a Callable that can be accepted as a custom metric
-G = TypeVar('G', bound=Graph)
-MetricCallable = Callable[[G, InputData, Optional[int]], Union[float, int]]
 
 
 class Metric:

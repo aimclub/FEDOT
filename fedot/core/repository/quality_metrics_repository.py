@@ -1,13 +1,20 @@
-from typing import Callable, Union
+from numbers import Real
+from typing import Callable, Union, TypeVar
 
 from fedot.core.composer.metrics import (ComputationTime, Accuracy, F1, Logloss, MAE,
                                          MAPE, SMAPE, MSE, MSLE, Metric, NodeNum, Precision, R2,
-                                         RMSE, ROCAUC, Silhouette, StructuralComplexity, MetricCallable)
+                                         RMSE, ROCAUC, Silhouette, StructuralComplexity)
+from fedot.core.dag.graph import Graph
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
 class MetricsEnum(Enum):
     pass
+
+
+G = TypeVar('G', bound=Graph, covariant=True)
+MetricCallable = Callable[[G, ...], Real]
+MetricType = Union[MetricCallable, MetricsEnum]
 
 
 class QualityMetricsEnum(MetricsEnum):
@@ -44,9 +51,6 @@ class RegressionMetricsEnum(QualityMetricsEnum):
     RMSE_penalty = 'rmse_pen'
 
 
-MetricType = Union[MetricCallable, MetricsEnum]
-
-
 class MetricsRepository:
     _metrics_implementations = {
         # classification
@@ -76,7 +80,7 @@ class MetricsRepository:
         ComplexityMetricsEnum.computation_time: ComputationTime.get_value
     }
 
-    def metric_by_id(self, metric_id: MetricsEnum, default_callable: Callable = None) -> Callable:
+    def metric_by_id(self, metric_id: MetricsEnum, default_callable: MetricCallable = None) -> MetricCallable:
         return self._metrics_implementations.get(metric_id, default_callable)
 
     def metric_class_by_id(self, metric_id: MetricsEnum) -> Metric:

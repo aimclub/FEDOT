@@ -1,3 +1,4 @@
+from numbers import Real
 from typing import Any, Optional, Union, Iterable, Callable, Sequence
 
 from fedot.core.dag.graph import Graph
@@ -36,7 +37,7 @@ class Objective:
         return [str(metric) for metric in self.metrics]
 
 
-def to_fitness(metric_values: Optional[Sequence[float]], multi_objective: bool = False) -> Fitness:
+def to_fitness(metric_values: Optional[Sequence[Real]], multi_objective: bool = False) -> Fitness:
     if metric_values is None:
         return null_fitness()
     elif multi_objective:
