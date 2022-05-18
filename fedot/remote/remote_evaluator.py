@@ -95,9 +95,7 @@ class RemoteEvaluator:
                 task_id = execution_ids.get(id(pipeline), None)
                 if task_id:
                     try:
-                        pipelines_part[p_id] = client.download_result(
-                            execution_id=task_id
-                        )
+                        pipelines_part[p_id] = client.download_result(task_id)
                     except Exception as ex:
                         self._logger.warning(f'{p_id}, {ex}')
             final_pipelines.extend(pipelines_part)

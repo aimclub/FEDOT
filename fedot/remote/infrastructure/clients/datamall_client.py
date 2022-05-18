@@ -230,9 +230,8 @@ class DataMallClient(Client):
                                         f'execution-{execution_id}',
                                         'out')
         results_folder = os.listdir(results_path_out)[0]
-        pipeline = Pipeline()
-        pipeline.load(os.path.join(results_path_out, results_folder,
-                                   'fitted_pipeline.json'))
+        pipeline = Pipeline.from_serialized(os.path.join(results_path_out, results_folder,
+                                            'fitted_pipeline.json'))
 
         clean_dir(results_path_out)
         return pipeline

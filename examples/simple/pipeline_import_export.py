@@ -63,8 +63,7 @@ def run_import_export_example(pipeline_path, pipeline):
 
     # Import pipeline
     json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
+    new_pipeline = Pipeline.from_serialized(json_path_load)
 
     predicted_output_after_export = new_pipeline.predict(predict_input)
     prediction_after_export = np.array(predicted_output_after_export.predict)
@@ -73,8 +72,7 @@ def run_import_export_example(pipeline_path, pipeline):
 
     dict_pipeline, dict_fitted_operations = pipeline.save()
     dict_pipeline = json.loads(dict_pipeline)
-    pipeline_from_dict = Pipeline()
-    pipeline_from_dict.load(dict_pipeline, dict_fitted_operations)
+    pipeline_from_dict = Pipeline.from_serialized(dict_pipeline, dict_fitted_operations)
 
     predicted_output = pipeline_from_dict.predict(predict_input)
     prediction = np.array(predicted_output.predict)

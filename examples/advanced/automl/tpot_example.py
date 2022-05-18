@@ -53,8 +53,7 @@ def tpot_classification_pipeline_evaluation():
 
     # Import pipeline
     json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
+    new_pipeline = Pipeline.from_serialized(json_path_load)
 
     predicted_output_after_export = new_pipeline.predict(test_data, output_mode="full_probs")
     prediction_after_export = predicted_output_after_export.predict[:, 0]
@@ -85,8 +84,7 @@ def tpot_regression_pipeline_evaluation():
 
     # Import pipeline
     json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
+    new_pipeline = Pipeline.from_serialized(json_path_load)
 
     predicted_output_after_export = new_pipeline.predict(test_data)
     prediction_after_export = predicted_output_after_export.predict[:4]
@@ -112,8 +110,7 @@ def tpot_ts_pipeline_evaluation():
 
     # Import pipeline
     json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
+    new_pipeline = Pipeline.from_serialized(json_path_load)
 
     predicted_output_after_export = new_pipeline.predict(test_data)
     prediction_after_export = predicted_output_after_export.predict[:4]

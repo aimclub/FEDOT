@@ -81,8 +81,7 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
 
 def pipeline_from_json(json_str: str):
     json_dict = json.loads(json_str)
-    pipeline = Pipeline()
-    pipeline.load(json_dict)
+    pipeline = Pipeline.from_serialized(json_dict)
 
     return pipeline
 

@@ -18,8 +18,7 @@ class AtomizedModelTemplate(OperationTemplateAbstract):
         self.pipeline_template = None
 
         if path:
-            pipeline = Pipeline()
-            pipeline.load(path)
+            pipeline = Pipeline.from_serialized(path)
             self.next_pipeline_template = AtomizedModel(pipeline)
             self.pipeline_template = PipelineTemplate(pipeline)
 

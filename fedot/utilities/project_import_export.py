@@ -77,8 +77,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             if file == 'pipeline.json':
-                pipeline = Pipeline()
-                pipeline.load(os.path.join(root, file))
+                pipeline = Pipeline.from_serialized(os.path.join(root, file))
             elif file == 'train_data.csv':
                 train_data = InputData.from_csv(os.path.join(root, file))
             elif file == 'test_data.csv':

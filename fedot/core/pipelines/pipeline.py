@@ -41,6 +41,11 @@ class Pipeline(Graph):
         super().__init__(nodes)
         self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
 
+    @classmethod
+    def from_serialized(cls, source: Union[str, dict], dict_fitted_operations: dict = None):
+        default_instance = cls()
+        return default_instance.load(source, dict_fitted_operations)
+
     def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
         """Method to update nodes types after performing some action on the pipeline
         via GraphOperator, if any of them are GraphNode type"""

@@ -27,6 +27,5 @@ class TestClient(Client):
     def download_result(self, execution_id: int):
         results_path_out = os.path.join(self.output_path)
         results_folder = os.listdir(results_path_out)[0]
-        pipeline = Pipeline()
-        pipeline.load(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
+        pipeline = Pipeline.from_serialized(os.path.join(results_path_out, results_folder, 'fitted_pipeline.json'))
         return pipeline
