@@ -14,7 +14,7 @@ from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.composer.random_composer import RandomSearchComposer
+from fedot.core.composer.random_composer import RandomSearchComposer, RandomSearchOptimiser, RandomGraphFactory
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
@@ -74,10 +74,12 @@ def test_random_composer(data_fixture, request):
     metric_function = MetricsRepository().metric_by_id(ClassificationMetricsEnum.ROCAUC)
 
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
-    random_composer = RandomSearchComposer(composer_requirements=req, iter_num=1, metrics=metric_function)
+    iter_num = 2
+    optimiser = RandomSearchOptimiser(iter_num, RandomGraphFactory(req.primary, req.secondary))
+    random_composer = RandomSearchComposer(optimiser, composer_requirements=req, metrics=metric_function)
+
     pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)
     pipeline_random_composed.fit_from_scratch(input_data=dataset_to_compose)
-
     predicted_random_composed = pipeline_random_composed.predict(dataset_to_validate)
 
     roc_on_valid_random_composed = roc_auc(y_true=dataset_to_validate.target,
