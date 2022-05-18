@@ -77,8 +77,6 @@ class DataObjectiveBuilder:
                 default_validation_blocks = 3
                 self.log.info(f'For ts cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
-                # NB: this change isn't propagated back into ComposerRequirements!
-                self.validation_blocks = default_validation_blocks
             cv_generator = partial(ts_cv_generator, data,
                                    self.cv_folds,
                                    self.validation_blocks,

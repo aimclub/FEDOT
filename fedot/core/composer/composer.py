@@ -71,7 +71,7 @@ class Composer(ABC):
         :param data: Data used for problem solving.
         :return: Best composed pipeline or pipelines.
          For single-objective optimization -- the best pipeline.
-         For multi-objective optimization -- the list of the graph is returned.
+         For multi-objective optimization -- a list of the best pipelines is returned.
          Returned pipelines are ordered by the descending primary metric (the first is the best).
         """
 

@@ -49,7 +49,10 @@ class DataObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         return self._objective
 
     def evaluate(self, graph: Pipeline) -> Fitness:
-        graph.log = self._log  # TODO: remove. why it's needed? members shouldn't be assigned in this way.
+        # Seems like a workaround for situation when logger is lost
+        #  when adapting and restoring it to/from OptGraph.
+        graph.log = self._log
+
         graph_id = graph.root_node.descriptive_id
         self._log.debug(f'Pipeline {graph_id} fit started')
 
