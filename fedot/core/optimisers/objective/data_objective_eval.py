@@ -16,7 +16,7 @@ from .objective_eval import ObjectiveEvaluate
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
 
-class DataObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
+class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     """
     Evaluator of Objective that requires train and test data for metric evaluation.
     Its role is to prepare graph on train-data and then evaluate metrics on test data.

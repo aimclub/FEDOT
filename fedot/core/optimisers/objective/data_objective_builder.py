@@ -12,7 +12,7 @@ from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
-from .data_objective_eval import DataSource, DataObjectiveEvaluate
+from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
 
 
 _sample_split_ratio_for_tasks = {
@@ -45,11 +45,11 @@ class DataObjectiveBuilder:
         else:
             data_producer = self._build_holdout_producer(data)
 
-        objective_evaluate = DataObjectiveEvaluate(objective=self.objective,
-                                                   data_producer=data_producer,
-                                                   time_constraint=self.max_pipeline_fit_time,
-                                                   validation_blocks=self.validation_blocks,
-                                                   cache=self.cache, log=self.log)
+        objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective,
+                                                       data_producer=data_producer,
+                                                       time_constraint=self.max_pipeline_fit_time,
+                                                       validation_blocks=self.validation_blocks,
+                                                       cache=self.cache, log=self.log)
         return objective_evaluate
 
     def _build_holdout_producer(self, data: InputData) -> DataSource:
