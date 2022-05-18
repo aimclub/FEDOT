@@ -7,7 +7,6 @@ from random import choice
 from typing import Dict, Optional
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
@@ -17,11 +16,7 @@ from fedot.core.optimisers.objective import ObjectiveEvaluate
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 
-G = TypeVar('G', bound=Graph)
-GN = TypeVar('GN', bound=GraphNode)
-
-
-class EvaluationDispatcher(Generic[G, GN], Operator[PopulationT]):
+class EvaluationDispatcher(Operator[PopulationT]):
     """Defines objective-independent details of how evaluation of individuals must be handled.
     Responsibilities:
     - Handle evaluation policy (e.g. sequential, parallel, async) and dispatch evaluation.
@@ -29,8 +24,8 @@ class EvaluationDispatcher(Generic[G, GN], Operator[PopulationT]):
     - Save additional metadata related to evaluation process (e.g. computation time)
     """
     def __init__(self,
-                 objective_eval: ObjectiveEvaluate[G],
-                 graph_adapter: BaseOptimizationAdapter[G, GN],
+                 objective_eval: ObjectiveEvaluate,
+                 graph_adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  log: Log = None,
                  n_jobs: int = 1,
@@ -95,7 +90,7 @@ class EvaluationDispatcher(Generic[G, GN], Operator[PopulationT]):
         gc.collect()
 
     def _reset_eval_cache(self):
-        self.evaluation_cache: Dict[int, G] = {}
+        self.evaluation_cache: Dict[int, Graph] = {}
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
