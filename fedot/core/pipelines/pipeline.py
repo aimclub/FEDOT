@@ -33,7 +33,6 @@ class Pipeline(Graph):
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
         self.computation_time = None
-        self.template = None
         self.log = default_log(self)
 
         # Define data preprocessor
@@ -270,7 +269,7 @@ class Pipeline(Graph):
         :param datetime_in_path flag for addition of the datetime stamp to saving path
         :return: json containing a composite operation description
         """
-        self.template = PipelineTemplate(self)
+        template = PipelineTemplate(self)
         json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node,
                                                                             datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
@@ -283,8 +282,8 @@ class Pipeline(Graph):
         :param dict_fitted_operations dictionary of the fitted operations
         """
         self.nodes = []
-        self.template = PipelineTemplate(self)
-        self.template.import_pipeline(source, dict_fitted_operations)
+        template = PipelineTemplate(self)
+        template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other) -> bool:
         return self.root_node.descriptive_id == other.root_node.descriptive_id
