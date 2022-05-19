@@ -1,6 +1,7 @@
 import datetime
 import gc
 import traceback
+from copy import copy
 from typing import Callable, Dict, List, Optional, Type, Union, Tuple, Collection
 
 import numpy as np
@@ -8,7 +9,7 @@ from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.presets import update_builder, change_preset_based_on_initial_fit
+from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -98,6 +99,14 @@ class ApiComposer:
         :param initial_assumption: list of initial pipelines
         :param optimizer_external_parameters: eternal parameters for optimizer
         """
+        # Update builder and preset if required
+        if preset != 'auto':
+            new_operations = OperationsPreset(task=task, preset_name=preset).filter_operations_by_preset()
+            # Insert updated operations list into source composer parameters
+            composer_requirements.primary = new_operations
+            composer_requirements.secondary = copy(new_operations)
+        # Store information about preset
+        self.preset_name = preset
 
         # TODO: make it cleaner after jetbrains will solve https://youtrack.jetbrains.com/issue/PY-28496 in the future
         builder = ComposerBuilder(task=task) \
@@ -107,12 +116,6 @@ class ApiComposer:
             .with_logger(logger) \
             .with_cache(self.cache) \
             .with_initial_pipelines(initial_assumption)
-
-        # Update builder and preset if required
-        if preset != 'auto':
-            builder = update_builder(builder, composer_requirements, preset)
-        # Store information about preset
-        self.preset_name = preset
         return builder
 
     @staticmethod

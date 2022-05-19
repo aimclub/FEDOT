@@ -1,10 +1,7 @@
 import datetime
 from copy import copy
-from typing import Tuple, Union
+from typing import Union
 
-from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import \
-    PipelineComposerRequirements
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
     FAST_TRAIN_PRESET_NAME, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
@@ -33,12 +30,12 @@ class OperationsPreset:
             self.preset_name = updated_params['preset']
 
         if self.preset_name is not None and 'available_operations' not in composer_params:
-            available_operations = self._filter_operations_by_preset()
+            available_operations = self.filter_operations_by_preset()
             updated_params['available_operations'] = available_operations
 
         return updated_params
 
-    def _filter_operations_by_preset(self):
+    def filter_operations_by_preset(self):
         """ Filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
@@ -88,20 +85,6 @@ class OperationsPreset:
         available_operations = [_ for _ in available_operations if _ not in excluded_operations]
 
         return available_operations
-
-
-def update_builder(builder: ComposerBuilder,
-                   composer_requirements: PipelineComposerRequirements,
-                   new_preset: str) -> ComposerBuilder:
-    """ Updates the builder if a preset needs to be set automatically """
-
-    preset_manager = OperationsPreset(task=builder.task, preset_name=new_preset)
-    new_operations = preset_manager.composer_params_based_on_preset(composer_params={'preset': new_preset})
-    # Insert updated operations list into source composer parameters
-    composer_requirements.primary = new_operations['available_operations']
-    composer_requirements.secondary = copy(new_operations['available_operations'])
-    builder.with_requirements(composer_requirements)
-    return builder
 
 
 def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,

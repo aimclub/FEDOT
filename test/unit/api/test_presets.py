@@ -18,10 +18,10 @@ def test_presets_classification():
     available_operations = list(filtered_operations)
 
     preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality._filter_operations_by_preset()
+    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
 
     preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train._filter_operations_by_preset()
+    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
 
     assert len(operations_for_fast_train) < len(operations_for_best_quality) == len(available_operations)
     assert {'dt', 'logit', 'knn'} <= set(operations_for_fast_train)
@@ -33,10 +33,10 @@ def test_presets_regression():
     regr_operations = get_operations_for_task(task=task, mode='all')
 
     preset_best_quality = OperationsPreset(task=task, preset_name='best_quality')
-    operations_for_best_quality = preset_best_quality._filter_operations_by_preset()
+    operations_for_best_quality = preset_best_quality.filter_operations_by_preset()
 
     preset_fast_train = OperationsPreset(task=task, preset_name='fast_train')
-    operations_for_fast_train = preset_fast_train._filter_operations_by_preset()
+    operations_for_fast_train = preset_fast_train.filter_operations_by_preset()
 
     assert len(operations_for_fast_train) < len(operations_for_best_quality) <= len(regr_operations)
     assert {'dtreg', 'lasso', 'ridge', 'linear'} <= set(operations_for_fast_train)
