@@ -192,6 +192,7 @@ class ApiComposer:
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
                             preset: str) -> Tuple[Pipeline, HallOfFame, OptHistory]:
         """ Function for composing FEDOT pipeline model """
+        log = api_params['logger']
         # Initialize timer for all AutoMl operations
         self.timer = ApiTime(time_for_automl=api_params['timeout'],
                              with_tuning=tuning_params['with_tuning'])
@@ -203,10 +204,9 @@ class ApiComposer:
         else:
             self._set_initial_assumption(api_params=api_params, composer_params=composer_params)
 
-        api_params['logger'].message('AutoML started. Parameters tuning: {}. ''Set of candidate models: {}. '
-                                     'Time limit: {} min'.format(tuning_params['with_tuning'],
-                                                                 composer_params['available_operations'],
-                                                                 api_params['timeout']))
+        log.message(f"AutoML started. Parameters tuning: {tuning_params['with_tuning']}. "
+                    f"Set of candidate models: {composer_params['available_operations']}. "
+                    f"Time limit: {api_params['timeout']} min.")
 
         primary_operations, secondary_operations = self.divide_operations(composer_params['available_operations'],
                                                                           api_params['task'])
@@ -264,32 +264,31 @@ class ApiComposer:
                                          optimizer_external_parameters=self.optimizer_external_parameters,
                                          data=api_params['train_data'],
                                          initial_assumption=api_params['initial_assumption'],
-                                         logger=api_params['logger'])
+                                         logger=log)
         gp_composer: Optional[GPComposer] = None
         timeout_were_set = self.timer.datetime_composing is not None
         if timeout_were_set and init_pipeline_fit_time >= self.timer.datetime_composing / composer_params['pop_size']:
-            api_params['logger'].message(f'Timeout is too small for composing '
-                                         f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.,'
-                                         ' so it is skipped.')
+            log.message(f'Timeout is too small for composing and is skipped '
+                        f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.')
             # Use initial pipeline as final solution
             pipeline_gp_composed = fitted_initial_pipeline
         else:
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 gp_composer = builder.build()
-                api_params['logger'].message(f'Pipeline composition started. Initial pipeline was fitted '
+                log.message(f'Pipeline composition started. Initial pipeline was fitted '
                                              f'for fit_time {init_pipeline_fit_time.total_seconds()} sec.')
                 pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
 
         if isinstance(pipeline_gp_composed, list):
             for pipeline in pipeline_gp_composed:
-                pipeline.log = api_params['logger']
+                pipeline.log = log
             pipeline_gp_composed = pipeline_gp_composed[0]
             # TODO: remove such access to internals
             best_candidates = gp_composer.optimiser.generations.archive
         else:
             best_candidates = [pipeline_gp_composed]
-            pipeline_gp_composed.log = api_params['logger']
+            pipeline_gp_composed.log = log
 
         # Tune only the best pipeline
         pipeline_gp_composed = self.tune_final_pipeline(api_params=api_params, tuning_params=tuning_params,
@@ -298,7 +297,7 @@ class ApiComposer:
                                                         timer=self.timer,
                                                         init_pipeline_fit_time=init_pipeline_fit_time)
 
-        api_params['logger'].message('Model generation finished')
+        log.message('Model generation finished')
 
         if gp_composer is not None:
             history = gp_composer.history
