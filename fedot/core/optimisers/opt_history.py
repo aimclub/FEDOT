@@ -11,7 +11,7 @@ from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypeEnum
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
@@ -126,12 +126,12 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, plot_type: Optional[Union[PlotTypeEnum, str]] = PlotTypeEnum.fitness_box, save_path: Optional[str] = None,
+    def show(self, plot_type: Optional[Union[PlotTypesEnum, str]] = PlotTypesEnum.fitness_box, save_path: Optional[str] = None,
              pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
         """ Visualizes fitness values or operations used across generations.
 
         :param plot_type: visualization to show. Expected values are listed in
-            'fedot.core.visualisation.opt_viz.PlotTypeEnum'.
+            'fedot.core.visualisation.opt_viz.PlotTypesEnum'.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed. Essential for animations.
         :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
@@ -156,11 +156,11 @@ class OptHistory:
 
         if isinstance(plot_type, str):
             try:
-                plot_type = PlotTypeEnum[plot_type]
+                plot_type = PlotTypesEnum[plot_type]
             except KeyError:
                 raise NotImplementedError(
                     f'Visualization "{plot_type}" is not supported. Expected values: '
-                    f'{", ".join(PlotTypeEnum.member_names())}.')
+                    f'{", ".join(PlotTypesEnum.member_names())}.')
 
         all_historical_fitness = self.all_historical_fitness
         # Check supported cases for `pct_best`.
@@ -170,17 +170,17 @@ class OptHistory:
             if not check_all_historical_fitness('`pct_best` parameter is ignored.'):
                 pct_best = None
         # Check supported cases for show_fitness == False.
-        if not show_fitness and plot_type is not PlotTypeEnum.operations_animated_bar:
+        if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
             warnings.warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
                           stacklevel=2)
 
         viz = PipelineEvolutionVisualiser()
-        if plot_type is PlotTypeEnum.fitness_box:
+        if plot_type is PlotTypesEnum.fitness_box:
             check_all_historical_fitness(f'Visualization "{plot_type.name}" is not supported.', raise_exception=True)
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type is PlotTypeEnum.operations_kde:
+        elif plot_type is PlotTypesEnum.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type is PlotTypeEnum.operations_animated_bar:
+        elif plot_type is PlotTypesEnum.operations_animated_bar:
             if not save_path:
                 raise ValueError('Argument `save_path` is required to save the animation.')
             if check_all_historical_fitness('Fitness is not displayed.'):

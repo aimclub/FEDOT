@@ -25,7 +25,7 @@ from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
-class PlotTypeEnum(Enum):
+class PlotTypesEnum(Enum):
     fitness_box = auto()
     operations_kde = auto()
     operations_animated_bar = auto()
