@@ -190,7 +190,7 @@ class Pipeline(Graph):
     def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
         return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
 
-    def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default'):
+    def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
         """
         Run the predict process in all nodes in pipeline starting with root.
 

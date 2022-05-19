@@ -1,6 +1,8 @@
+import collections.abc
+
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Container, Iterable, List, Sized, TypeVar, Union
+from typing import Callable, Container, Iterator, Iterable, List, Sequence, Sized, TypeVar, Union
 
 
 class UniqueList(list):
@@ -64,11 +66,18 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
     return True
 
 
-T = TypeVar('T')  # TODO: make more general, not just for `ensure_list` method
+T = TypeVar('T')
 
 
-def ensure_list(obj: Union[T, List[T]]) -> List[T]:
-    return obj if isinstance(obj, list) else [obj]
+def ensure_wrapped_in_sequence(
+        obj: Union[T, Iterable[T], Sequence[T]],
+        sequence_factory: Callable[[Union[Sequence[T], Iterable[T]]], Sequence[T]] = list
+) -> Sequence[T]:
+    if isinstance(obj, str) or not isinstance(obj, collections.abc.Iterable):
+        return sequence_factory([obj])
+    elif not isinstance(obj, collections.abc.Sequence) or not isinstance(obj, sequence_factory):
+        return sequence_factory(obj)
+    return obj
 
 
 class ComparableEnum(Enum):
@@ -104,3 +113,29 @@ class Comparable(ABC):
 
     def __ge__(self, other) -> bool:
         return not self.__lt__(other)
+
+
+class BidirectionalIterator(Iterator[T]):
+    @abstractmethod
+    def has_prev(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def has_next(self) -> bool:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def next(self) -> T:
+        raise NotImplementedError()
+
+    @abstractmethod
+    def prev(self) -> T:
+        raise NotImplementedError()
+
+    def __next__(self):
+        if self.has_next():
+            return self.next()
+        raise StopIteration()
+
+    def __iter__(self):
+        return self

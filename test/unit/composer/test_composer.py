@@ -165,7 +165,7 @@ def test_composition_time(data_fixture, request):
 
     _ = gp_composer_completed_evolution.compose_pipeline(data=data)
 
-    assert len(gp_composer_terminated_evolution.history.individuals) == 2
+    assert len(gp_composer_terminated_evolution.history.individuals) == 1  # only the initial randomized population
     assert len(gp_composer_completed_evolution.history.individuals) == 3
 
 
@@ -228,6 +228,11 @@ def test_multi_objective_composer(data_fixture, request):
     composer = builder.build()
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
+
+    assert type(pipelines_evo_composed) is list
+    assert len(composer.objective_builder.metrics) > 1
+    assert composer.optimiser.parameters.multi_objective
+
     for pipeline_evo_composed in pipelines_evo_composed:
         pipeline_evo_composed.fit_from_scratch(input_data=dataset_to_compose)
         predicted_gp_composed = pipeline_evo_composed.predict(dataset_to_validate)
@@ -237,9 +242,6 @@ def test_multi_objective_composer(data_fixture, request):
 
         pipelines_roc_auc.append(roc_on_valid_gp_composed)
 
-    assert type(composer.metrics) is list and len(composer.metrics) > 1
-    assert type(pipelines_evo_composed) is list
-    assert composer.optimiser.parameters.multi_objective
     assert all([roc_auc > 0.6 for roc_auc in pipelines_roc_auc])
 
 

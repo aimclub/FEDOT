@@ -4,6 +4,7 @@ from typing import Optional, Union
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.warnings_processor import suppress_stdout
+from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.utils import DEFAULT_PARAMS_STUB
@@ -31,7 +32,8 @@ class Operation:
         params = kwargs.get('params')
         params_for_fit = None
         if params != DEFAULT_PARAMS_STUB:
-            params_for_fit = params
+            params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
+                                                         n_samples_data=kwargs.get('n_samples_data')).correct(params)
 
         try:
             self._eval_strategy = \
@@ -74,7 +76,7 @@ class Operation:
         :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
 
-        self._init(data.task, params=params)
+        self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
         with suppress_stdout():
             self.fitted_operation = self._eval_strategy.fit(train_data=data)

@@ -4,6 +4,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+from deap.tools import HallOfFame
 
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
@@ -15,17 +16,23 @@ from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
+from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
-from fedot.core.utilities.data_structures import ensure_list
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
+
+FeaturesType = Union[str, np.ndarray, pd.DataFrame, InputData, dict]
+TargetType = Union[str, np.ndarray, pd.Series, dict]
 
 
 class Fedot:
@@ -115,18 +122,18 @@ class Fedot:
                                                log=self.params.api_params['logger'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
-        self.target = None
-        self.train_data = None
-        self.current_pipeline = None
-        self.best_models = None
-        self.history = None
-        self.test_data = None
-        self.prediction = None
+        self.target: Optional[TargetType] = None
+        self.prediction: Optional[OutputData] = None
+        self.train_data: Optional[InputData] = None
+        self.test_data: Optional[InputData] = None
+        self.current_pipeline: Optional[Pipeline] = None
+        self.best_models: Optional[HallOfFame] = None
+        self.history: Optional[OptHistory] = None
 
     def fit(self,
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-            target: Union[str, np.ndarray, pd.Series, dict] = 'target',
-            predefined_model: Union[str, Pipeline] = None):
+            target: TargetType = 'target',
+            predefined_model: Union[str, Pipeline] = None) -> Pipeline:
         """
         Fit the graph with a predefined structure or compose and fit the new graph
         :param features: the array with features of train data
@@ -170,8 +177,8 @@ class Fedot:
         return self.current_pipeline
 
     def predict(self,
-                features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
-                save_predictions: bool = False):
+                features: FeaturesType,
+                save_predictions: bool = False) -> np.ndarray:
         """
         Predict new target using already fitted model
         :param features: the array with features of test data
@@ -192,9 +199,9 @@ class Fedot:
         return self.prediction.predict
 
     def predict_proba(self,
-                      features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
+                      features: FeaturesType,
                       save_predictions: bool = False,
-                      probs_for_all_classes: bool = False):
+                      probs_for_all_classes: bool = False) -> np.ndarray:
         """
         Predict the probability of new target using already fitted classification model
         :param features: the array with features of test data
@@ -224,7 +231,7 @@ class Fedot:
     def forecast(self,
                  pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict],
                  forecast_length: int = 1,
-                 save_predictions: bool = False):
+                 save_predictions: bool = False) -> np.ndarray:
         """
         Forecast the new values of time series
         :param pre_history: the array with features for pre-history of the forecast
@@ -262,14 +269,20 @@ class Fedot:
         """
         self.current_pipeline.load(path)
 
-    def plot_prediction(self):
+    def plot_pareto(self):
+        metric_names = self.params.metric_to_compose
+        PipelineEvolutionVisualiser().visualise_pareto(archive=self.best_models,
+                                                       objectives_names=metric_names,
+                                                       show=True)
+
+    def plot_prediction(self, target: [Optional] = None):
         """
         Plot the prediction obtained from graph
+        :param target: user-specified name of target variable for MultiModalData
         """
-
         if self.prediction is not None:
             if self.params.api_params['task'].task_type == TaskTypesEnum.ts_forecasting:
-                plot_forecast(self.test_data, self.prediction)
+                plot_forecast(self.test_data, self.prediction, target)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.regression:
                 plot_biplot(self.prediction)
             elif self.params.api_params['task'].task_type == TaskTypesEnum.classification:
@@ -305,7 +318,7 @@ class Fedot:
                 self.test_data.target = target[:len(self.prediction.predict)]
 
         # TODO change to sklearn metrics
-        metric_names = ensure_list(metric_names)
+        metric_names = ensure_wrapped_in_sequence(metric_names)
 
         calculated_metrics = dict()
         for metric_name in metric_names:
@@ -334,6 +347,7 @@ class Fedot:
         return calculated_metrics
 
     def save_predict(self, predicted_data: OutputData):
+        # TODO unify with OutputData.save_to_csv()
         """ Save pipeline forecasts in csv file """
         if len(predicted_data.predict.shape) >= 2:
             prediction = predicted_data.predict.tolist()
@@ -343,11 +357,24 @@ class Fedot:
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
         self.params.api_params['logger'].info('Predictions was saved in current directory.')
 
+    def export_as_project(self, project_path='fedot_project.zip'):
+        export_project_to_zip(zip_name=project_path, opt_history=self.history,
+                              pipeline=self.current_pipeline,
+                              train_data=self.train_data, test_data=self.test_data)
+
+    def import_as_project(self, project_path='fedot_project.zip'):
+        self.current_pipeline, self.train_data, self.test_data, self.history = \
+            import_project_from_zip(zip_path=project_path)
+        # TODO workaround to init internal fields of API and data
+        self.train_data = self.data_processor.define_data(features=self.train_data, is_predict=False)
+        self.test_data = self.data_processor.define_data(features=self.test_data, is_predict=True)
+        self.predict(self.test_data)
+
     def update_params(self, timeout, num_of_generations, initial_assumption):
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
 
-    def explain(self, features: Union[str, np.ndarray, pd.DataFrame, InputData, dict] = None,
+    def explain(self, features: FeaturesType = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
         """Create explanation for 'current_pipeline' according to the selected 'method'.
         An `Explainer` instance is returned.

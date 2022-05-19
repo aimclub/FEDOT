@@ -1,4 +1,5 @@
-from typing import Dict, Optional, Union
+from typing import Dict, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -56,8 +57,9 @@ class ApiDataProcessor:
                 for key in data:
                     data[key].idx = idx
         except Exception as ex:
-            raise ValueError('Please specify a features as path to csv file, as Numpy array, '
-                             'Pandas DataFrame, FEDOT InputData or dict for multimodal data')
+            raise ValueError('Please specify the "features" as path to as path to csv file/'
+                             'Numpy array/Pandas DataFrame/FEDOT InputData/dict for multimodal data, '
+                             f'Exception: {ex}')
 
         # Perform obligatory steps of data preprocessing
         if is_predict:
@@ -66,7 +68,7 @@ class ApiDataProcessor:
             data = self.preprocessor.obligatory_prepare_for_fit(data)
         return data
 
-    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]):
+    def define_predictions(self, current_pipeline: Pipeline, test_data: Union[InputData, MultiModalData]) -> OutputData:
         """ Prepare predictions """
         if self.task.task_type == TaskTypesEnum.classification:
             output_prediction = current_pipeline.predict(test_data, output_mode='labels')

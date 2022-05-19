@@ -17,11 +17,11 @@ The Pipeline object has a *'save_pipeline'* method that takes a single argument,
 the path to where the JSON object and fitted models will be saved.
 You can specify the path to save files with the folder name:
 
-- /home/user/project/model/my_pipeline,
+- ~/project/model/my_pipeline,
 
 this way your pipeline and trained models will be saved in a folder in the following hierarchy:
 
-- /home/user/project/model/my_pipeline:
+- ~/project/model/my_pipeline:
     - my_pipeline.json
     - fitted_models:
         - model_0.pkl

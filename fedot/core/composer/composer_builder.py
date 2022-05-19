@@ -1,7 +1,5 @@
 from typing import Optional, Union, List, Dict, Sequence
 
-from deap import tools
-
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
@@ -13,15 +11,21 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import EvoGraphParameterFreeOptimiser
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters, GraphGenerationParams
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsEnum, ClassificationMetricsEnum, \
-    RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import (
+    MetricsEnum,
+    ClassificationMetricsEnum,
+    RegressionMetricsEnum,
+    ComplexityMetricsEnum
+)
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 
 class ComposerBuilder:
+
     def __init__(self, task: Task):
         self.task = task
 
@@ -33,8 +37,8 @@ class ComposerBuilder:
         self.initial_pipelines = None
         self.log = None
         self.cache = None
-        self.composer_requirements = self._default_composer_params()
-        self.metrics = self._default_metrics()
+        self.composer_requirements = self._get_default_composer_params()
+        self.metrics = self._get_default_quality_metrics(task)
 
     def with_optimiser(self, optimiser: Optional[GraphOptimiser] = None,
                        parameters: Optional[GraphOptimiserParameters] = None,
@@ -51,10 +55,8 @@ class ComposerBuilder:
         self.composer_requirements = requirements
         return self
 
-    def with_metrics(self, metrics: Union[List[MetricsEnum], MetricsEnum]):
-        if type(metrics) is not list:
-            metrics = [metrics]
-        self.metrics = metrics
+    def with_metrics(self, metrics: Union[MetricsEnum, List[MetricsEnum]]):
+        self.metrics = ensure_wrapped_in_sequence(metrics)
         return self
 
     def with_initial_pipelines(self, initial_pipelines: Optional[Pipeline]):
@@ -69,17 +71,22 @@ class ComposerBuilder:
         self.cache = cache
         return self
 
-    def _default_composer_params(self) -> PipelineComposerRequirements:
+    def _get_default_composer_params(self) -> PipelineComposerRequirements:
         # Get all available operations for task
         operations = get_operations_for_task(task=self.task, mode='all')
         return PipelineComposerRequirements(primary=operations, secondary=operations)
 
-    def _default_metrics(self) -> Sequence[MetricsEnum]:
+    @staticmethod
+    def _get_default_quality_metrics(task: Task) -> List[MetricsEnum]:
         # Set metrics
         metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-        if self.task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
+        if task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
             metric_function = RegressionMetricsEnum.RMSE
         return [metric_function]
+
+    @staticmethod
+    def _get_default_complexity_metrics() -> List[MetricsEnum]:
+        return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
         optimiser_type = self.optimiser_cls
@@ -89,12 +96,14 @@ class ComposerBuilder:
 
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         advisor=PipelineChangeAdvisor())
-        # TODO: this doesn't uniquely define MO optimisation. Need to properly set is_multi_objective
         if len(self.metrics) > 1:
-            self.optimiser_parameters.archive_type = tools.ParetoFront()
             # TODO add possibility of using regularization in MO alg
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
             self.optimiser_parameters.multi_objective = True
+        else:
+            # Add default complexity metric for supplementary comparison of individuals with equal fitness
+            self.metrics = self.metrics + self._get_default_complexity_metrics()
+            self.optimiser_parameters.multi_objective = False
 
         if self.optimiser_parameters.mutation_types is None:
             self.optimiser_parameters.mutation_types = [boosting_mutation, parameter_change_mutation,

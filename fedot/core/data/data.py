@@ -1,10 +1,10 @@
 import glob
 import os
-import cv2
 from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union
 
+import cv2
 import numpy as np
 import pandas as pd
 
@@ -24,6 +24,8 @@ class Data:
     features: np.array
     task: Task
     data_type: DataTypesEnum
+    target: Optional[np.array] = None
+
     # Object with supplementary info
     supplementary_data: SupplementaryData = field(default_factory=SupplementaryData)
 
@@ -281,13 +283,18 @@ class Data:
         return InputData(idx=idx, features=features,
                          target=target, task=task, data_type=data_type)
 
+    def to_csv(self, path_to_save):
+        dataframe = pd.DataFrame(data=self.features, index=self.idx)
+        if self.target is not None:
+            dataframe['target'] = self.target
+        dataframe.to_csv(path_to_save)
+
 
 @dataclass
 class InputData(Data):
     """
     Data class for input data for the nodes
     """
-    target: Optional[np.array] = None
 
     @property
     def num_classes(self) -> Optional[int]:
@@ -401,8 +408,8 @@ class OutputData(Data):
     """
     Data type for data prediction in the node
     """
-    predict: np.array = None
-    target: Optional[np.array] = None
+    predict: np.ndarray = None
+    target: Optional[np.ndarray] = None
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):

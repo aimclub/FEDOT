@@ -1,5 +1,6 @@
 import re
 import string
+
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Union
 
@@ -7,7 +8,7 @@ from fedot.core.composer.cache_db import OperationsCacheDB
 from fedot.core.log import Log, SingletonMeta, default_log
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.node import Node
-from fedot.core.utilities.data_structures import ensure_list
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -57,7 +58,7 @@ class OperationsCache(metaclass=SingletonMeta):
         try:
             mapped = [
                 (_get_structural_id(node, fold_id), CachedState(node.fitted_operation))
-                for node in ensure_list(nodes)
+                for node in ensure_wrapped_in_sequence(nodes)
                 if node.fitted_operation is not None
             ]
             self._db.add_operations(mapped)
@@ -80,7 +81,7 @@ class OperationsCache(metaclass=SingletonMeta):
         """
         cache_was_used = False
         try:
-            nodes_lst = ensure_list(nodes)
+            nodes_lst = ensure_wrapped_in_sequence(nodes)
             structural_ids = [_get_structural_id(node, fold_id) for node in nodes_lst]
             cached_states = self._db.get_operations(structural_ids)
             for idx, cached_state in enumerate(cached_states):

@@ -115,7 +115,7 @@ def test_operators_in_history():
     auto_model.fit(features=file_path_train, target='Y')
 
     assert auto_model.history is not None
-    assert len(auto_model.history.individuals) == num_of_gens + 2  # initial assumptions and final model
+    assert len(auto_model.history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
 
     # test history dumps
     dumped_history = auto_model.history.save()
