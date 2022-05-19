@@ -23,13 +23,21 @@ class AssumptionsBuilder:
         self.assumptions_generator = TaskAssumptions.for_task(task, self.repo)
 
     @staticmethod
-    def get(task: Task, data: Union[InputData, MultiModalData]):
+    def get(task: Task, data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
+        if not repository_name:
+            if data.data_type == DataTypesEnum.multi_ts:
+                # It is needed to use data operations also for multi_ts data
+                repository_name = 'all'
+            else:
+                repository_name = 'model'
+
         if isinstance(data, InputData):
-            return UniModalAssumptionsBuilder(task, data)
+            cls = UniModalAssumptionsBuilder
         elif isinstance(data, MultiModalData):
-            return MultiModalAssumptionsBuilder(task, data)
+            cls = MultiModalAssumptionsBuilder
         else:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
+        return cls(task, data, repository_name=repository_name)
 
     def with_logger(self, logger: Log):
         raise NotImplementedError('abstract')
@@ -65,6 +73,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]]):
         if available_operations:
+            _check_available_operations(self.task.task_type, available_operations)
             operations_for_the_task, _ = self.repo.suitable_operation(self.task.task_type, self.data_type)
             operations_to_choose_from = set(operations_for_the_task).intersection(available_operations)
             if operations_to_choose_from:
@@ -126,3 +135,10 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
             ensemble_builder = PipelineBuilder(*ensemble_nodes).join_branches(ensemble_operation)
             ensemble_builders.append(ensemble_builder)
         return ensemble_builders
+
+
+def _check_available_operations(task_type: TaskTypesEnum, available_operations: List[str]):
+    """Since it is impossible to form a valid pipeline for the time series
+    without 'lagged' operation, it is added to the list of available operations."""
+    if task_type is TaskTypesEnum.ts_forecasting and 'lagged' not in available_operations:
+        available_operations.append('lagged')

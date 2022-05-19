@@ -1,7 +1,7 @@
 import datetime
 import gc
 import traceback
-from typing import Callable, Dict, List, Optional, Type, Union, Tuple
+from typing import Callable, Dict, List, Optional, Type, Union, Tuple, Collection
 
 import numpy as np
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
@@ -158,31 +158,6 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    @staticmethod
-    def _set_initial_assumption(api_params: dict, composer_params: dict):
-        """ Generates and sets an initial assumption, if not given, from the given available operations
-        Also, since it is impossible to form a valid pipeline for the time series problem without 'lagged' operation,
-        if it is not in the list of available ones, it is added """
-
-        if api_params['task'].task_type is TaskTypesEnum.ts_forecasting and \
-                'lagged' not in composer_params['available_operations']:
-            composer_params['available_operations'].append('lagged')
-
-        if not api_params['initial_assumption']:
-            is_input = isinstance(api_params['train_data'], InputData)
-            if is_input and api_params['train_data'].data_type == DataTypesEnum.multi_ts:
-                # It is needed to use data operations also for multi_ts data
-                repository_name = 'all'
-            else:
-                repository_name = 'model'
-            assumptions_builder = AssumptionsBuilder(task=api_params['task'],
-                                                     data=api_params['train_data'],
-                                                     repository_name=repository_name) \
-                .get(api_params['task'], api_params['train_data']) \
-                .with_logger(api_params['logger']) \
-                .from_operations(composer_params['available_operations'])
-            api_params['initial_assumption'] = assumptions_builder.build()
-
     def init_cache(self, use_cache: bool):
         if use_cache:
             self.cache = OperationsCache()
@@ -201,8 +176,12 @@ class ApiComposer:
 
         if not composer_params['available_operations']:
             composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
-        else:
-            self._set_initial_assumption(api_params=api_params, composer_params=composer_params)
+        if not api_params['initial_assumption']:
+            assumptions_builder = AssumptionsBuilder \
+                .get(api_params['task'], api_params['train_data']) \
+                .from_operations(composer_params['available_operations']) \
+                .with_logger(log)
+            api_params['initial_assumption'] = assumptions_builder.build()
 
         log.message(f"AutoML started. Parameters tuning: {tuning_params['with_tuning']}. "
                     f"Set of candidate models: {composer_params['available_operations']}. "
