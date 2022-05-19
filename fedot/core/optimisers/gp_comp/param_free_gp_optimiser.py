@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Any
+from typing import List, Optional, Union, Any, Sequence
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
@@ -9,6 +9,7 @@ from fedot.core.optimisers.gp_comp.parameters.mutation_prob import AdaptiveMutat
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, AdaptivePopulationSize
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.pipelines.pipeline import Pipeline
 
 DEFAULT_MAX_POP_SIZE = 55
 
@@ -20,14 +21,15 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     For details, see https://ieeexplore.ieee.org/document/9504773
     """
 
-    def __init__(self, initial_graph: Union[Any, List[Any]],
+    def __init__(self,
                  objective: Objective,
+                 initial_graph: Union[Pipeline, Sequence[Pipeline]],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
                  log: Log = None):
-        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
 
         self._min_population_size_with_elitism = 7
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:

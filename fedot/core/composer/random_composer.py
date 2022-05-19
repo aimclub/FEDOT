@@ -6,8 +6,9 @@ from numpy import random
 
 from fedot.core.composer.composer import ComposerRequirements, Composer
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
-from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
+from fedot.core.optimisers.fitness import Fitness
+from fedot.core.optimisers.objective import Objective, ObjectiveFunction
+from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Node, Pipeline
 
@@ -17,18 +18,17 @@ class RandomSearchComposer(Composer):
                  composer_requirements: ComposerRequirements,
                  metrics: Optional[Callable] = None):
         super().__init__(optimiser, composer_requirements)
+        self.optimiser = optimiser
         self._metrics = metrics
 
     def compose_pipeline(self, data: InputData) -> Pipeline:
         train_data = data
         test_data = data
 
-        def metric(pipeline: Pipeline) -> float:
+        # custom objective evaluator
+        def objective_eval(pipeline: Pipeline) -> Fitness:
             pipeline.fit(train_data)
-            return self._metrics(pipeline, test_data)
-
-        objective = Objective(metric)
-        objective_eval = ObjectiveEvaluate(objective)
+            return self.optimiser.objective(pipeline, reference_data=test_data)
 
         best_pipeline = self.optimiser.optimise(objective_eval)
         return best_pipeline
@@ -75,29 +75,29 @@ class RandomGraphFactory:
         return self.__secondary_node_func(random.choice(self.__secondary_candidates), parent_nodes)
 
 
-class RandomSearchOptimiser:
+class RandomSearchOptimiser(GraphOptimiser):
 
-    def __init__(self, iter_num: int, random_pipeline_factory: Callable[..., Pipeline]):
+    def __init__(self, objective: Objective,
+                 random_pipeline_factory: Callable[..., Pipeline],
+                 iter_num: int = 1):
         self._factory = random_pipeline_factory
         self._iter_num = iter_num
-        self._log = default_log(__name__)
+        super().__init__(objective)
 
-    def optimise(self, objective_evaluator: ObjectiveEvaluate) -> Pipeline:
+    def optimise(self, objective_evaluator: ObjectiveFunction, show_progress: bool = True) -> Pipeline:
         best_metric_value = 1000
-        best_set = []
+        best_set = None
         history = []
         for i in range(self._iter_num):
-            self._log.info(f'Iter {i}')
             new_pipeline = self._factory()
             new_metric_value = objective_evaluator(new_pipeline).value
             new_metric_value = round(new_metric_value, 3)
-
-            history.append((new_pipeline, new_metric_value))
-
-            self._log.info(f'Try {new_metric_value} with length {len(new_pipeline.nodes)}')
             if new_metric_value < best_metric_value:
                 best_metric_value = new_metric_value
                 best_set = new_pipeline
-                self._log.info(f'Better pipeline found: metric {best_metric_value}')
 
+            history.append((new_pipeline, new_metric_value))
+            if show_progress:
+                self.log.info(f'Iter {i}: best metric {best_metric_value},'
+                              f'try {new_metric_value} with num nodes {len(new_pipeline.nodes)}')
         return best_set

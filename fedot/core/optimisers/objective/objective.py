@@ -1,12 +1,13 @@
 from numbers import Real
-from typing import Any, Optional, Union, Iterable, Callable, Sequence
+from typing import Any, Optional, Union, Iterable, Callable, Sequence, TypeVar
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.fitness import *
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
 
-ObjectiveFunction = Callable[[Graph], Fitness]
+G = TypeVar('G', bound=Graph, covariant=True)
+ObjectiveFunction = Callable[[G], Fitness]
 
 
 class Objective:

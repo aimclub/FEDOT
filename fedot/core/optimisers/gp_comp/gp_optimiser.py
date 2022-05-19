@@ -24,6 +24,7 @@ from fedot.core.optimisers.gp_comp.parameters.graph_depth import GraphDepth
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection, crossover_parents_selection
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
@@ -91,16 +92,14 @@ class EvoGraphOptimiser(GraphOptimiser):
     Multi-objective evolutionary graph optimiser named GPComp
     """
 
-    def __init__(self, initial_graph: Union[Any, List[Any]],
+    def __init__(self,
                  objective: Objective,
+                 initial_graph: Union[Pipeline, Sequence[Pipeline]],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  log: Optional[Log] = None):
-        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
-
-        self.graph_generation_params = graph_generation_params
-        self.requirements = requirements
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
         self.parameters = parameters or GPGraphOptimiserParameters()
 
         self.population = None

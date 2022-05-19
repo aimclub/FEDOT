@@ -116,8 +116,8 @@ class ComposerBuilder:
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective, log=self.log)
 
-        optimiser = optimiser_type(initial_graph=self.initial_pipelines,
-                                   objective=objective,
+        optimiser = optimiser_type(objective=objective,
+                                   initial_graph=self.initial_pipelines,
                                    requirements=self.composer_requirements,
                                    graph_generation_params=graph_generation_params,
                                    parameters=self.optimiser_parameters,
