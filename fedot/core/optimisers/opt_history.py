@@ -184,7 +184,7 @@ class OptHistory:
             if not save_path:
                 raise ValueError('Argument `save_path` is required to save the animation.')
             if check_all_historical_fitness('Fitness is not displayed.'):
-                hide_fitness = True
+                show_fitness = False
             viz.visualize_operations_animated_bar(
                 self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
         else:
