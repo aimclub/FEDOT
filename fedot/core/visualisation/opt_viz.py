@@ -371,6 +371,7 @@ class PipelineEvolutionVisualiser:
             ax.xaxis.grid(True)
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
+        ax.yaxis.grid(True)
 
         if not save_path:
             plt.show()
