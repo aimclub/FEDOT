@@ -76,48 +76,6 @@ class ApiComposer:
         # Start composing - pipeline structure search
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict, preset)
 
-    def get_gp_composer_builder(self, task: Task,
-                                metric_function,
-                                preset: str,
-                                composer_requirements: PipelineComposerRequirements,
-                                optimiser: Type[GraphOptimiser],
-                                optimizer_parameters: GraphOptimiserParameters,
-                                logger: Log,
-                                initial_assumption: Union[Pipeline, List[Pipeline]] = None,
-                                optimizer_external_parameters: Optional[Dict] = None):
-        """
-        Return GPComposerBuilder with parameters and if it is necessary
-        initial_assumption in it
-
-        :param task: task for solving
-        :param metric_function: function for individuals evaluating
-        :param preset: name of using preset
-        :param composer_requirements: params for composer
-        :param optimiser: optimiser for composer
-        :param optimizer_parameters: params for optimizer
-        :param logger: log object
-        :param initial_assumption: list of initial pipelines
-        :param optimizer_external_parameters: eternal parameters for optimizer
-        """
-        # Update builder and preset if required
-        if preset != 'auto':
-            new_operations = OperationsPreset(task=task, preset_name=preset).filter_operations_by_preset()
-            # Insert updated operations list into source composer parameters
-            composer_requirements.primary = new_operations
-            composer_requirements.secondary = copy(new_operations)
-        # Store information about preset
-        self.preset_name = preset
-
-        # TODO: make it cleaner after jetbrains will solve https://youtrack.jetbrains.com/issue/PY-28496 in the future
-        builder = ComposerBuilder(task=task) \
-            .with_requirements(composer_requirements) \
-            .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters) \
-            .with_metrics(metric_function) \
-            .with_logger(logger) \
-            .with_cache(self.cache) \
-            .with_initial_pipelines(initial_assumption)
-        return builder
-
     @staticmethod
     def divide_operations(available_operations, task):
         """ Function divide operations for primary and secondary """
@@ -154,21 +112,25 @@ class ApiComposer:
                             preset: str) -> Tuple[Pipeline, HallOfFame, OptHistory]:
         """ Function for composing FEDOT pipeline model """
         log = api_params['logger']
+        task = api_params['task']
+
         # Initialize timer for all AutoMl operations
         self.timer = ApiTime(time_for_automl=api_params['timeout'],
                              with_tuning=tuning_params['with_tuning'])
 
         metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
 
-        if not composer_params['available_operations']:
-            composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
+        available_operations = composer_params['available_operations']
+        if not available_operations:
+            if preset == 'auto':
+                available_operations = get_operations_for_task(task, mode='model')
+            else:
+                available_operations = OperationsPreset(task, preset).filter_operations_by_preset()
+        primary_operations, secondary_operations = self.divide_operations(available_operations, task)
 
         log.message(f"AutoML started. Parameters tuning: {tuning_params['with_tuning']}. "
                     f"Set of candidate models: {composer_params['available_operations']}. "
                     f"Time limit: {api_params['timeout']} min.")
-
-        primary_operations, secondary_operations = self.divide_operations(composer_params['available_operations'],
-                                                                          api_params['task'])
 
         # the choice and initialisation of the GP composer
         composer_requirements = PipelineComposerRequirements(primary=primary_operations,
@@ -187,7 +149,6 @@ class ApiComposer:
                                                                  'collect_intermediate_metric'])
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
@@ -197,7 +158,7 @@ class ApiComposer:
                      MutationTypesEnum.single_add]
 
         # TODO remove workaround after validation fix
-        if api_params['task'].task_type is not TaskTypesEnum.ts_forecasting:
+        if task.task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
         optimizer_parameters = GPGraphOptimiserParameters(
@@ -215,7 +176,7 @@ class ApiComposer:
         initial_assumption = api_params['initial_assumption']
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
-                .get(api_params['task'], api_params['train_data']) \
+                .get(task, api_params['train_data']) \
                 .from_operations(composer_params['available_operations']) \
                 .with_logger(log)
             initial_assumption = assumptions_builder.build()
@@ -224,18 +185,17 @@ class ApiComposer:
             fit_and_check_correctness(initial_assumption[0], api_params['train_data'],
                                       logger=log, cache=self.cache, n_jobs=composer_requirements.n_jobs)
         full_minutes_timeout: Optional[int] = api_params['timeout']
+        # TODO (gkirgizov): this should go before the lines using 'preset'
         preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, full_minutes_timeout)
 
-        builder = \
-            self.get_gp_composer_builder(task=api_params['task'],
-                                         metric_function=metric_function,
-                                         preset=preset,
-                                         composer_requirements=composer_requirements,
-                                         optimiser=self.optimiser,
-                                         optimizer_parameters=optimizer_parameters,
-                                         optimizer_external_parameters=self.optimizer_external_parameters,
-                                         initial_assumption=initial_assumption,
-                                         logger=log)
+        builder = ComposerBuilder(task=task) \
+            .with_requirements(composer_requirements) \
+            .with_optimiser(self.optimiser, optimizer_parameters, self.optimizer_external_parameters) \
+            .with_metrics(metric_function) \
+            .with_logger(log) \
+            .with_cache(self.cache) \
+            .with_initial_pipelines(initial_assumption)
+
         gp_composer: Optional[GPComposer] = None
         timeout_were_set = self.timer.datetime_composing is not None
         if timeout_were_set and init_pipeline_fit_time >= self.timer.datetime_composing / composer_params['pop_size']:

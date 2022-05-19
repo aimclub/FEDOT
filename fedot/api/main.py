@@ -372,6 +372,7 @@ class Fedot:
         self.predict(self.test_data)
 
     def update_params(self, timeout, num_of_generations, initial_assumption):
+        # TODO: remove, unnecessary method
         if initial_assumption is not None:
             self.params.api_params['initial_assumption'] = initial_assumption
 
