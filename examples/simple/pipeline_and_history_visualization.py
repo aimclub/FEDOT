@@ -20,18 +20,17 @@ def generate_history(generations, pop_size, folder=None):
     return history
 
 
-def run_pipeline_ang_history_visualisation(generations=2, pop_size=10,
-                                           with_pipeline_visualisation=True):
-    """ Function run visualisation of composing history and pipeline """
+def run_pipeline_and_history_visualization(generations=2, pop_size=10, with_pipeline_visualization=True):
+    """ Function run visualization of composing history and pipeline """
     # Generate pipeline and history
     pipeline = classification_three_depth_manual_pipeline()
     history = generate_history(generations, pop_size)
 
     visualiser = PipelineEvolutionVisualiser()
     visualiser.visualise_history(history)
-    if with_pipeline_visualisation:
+    if with_pipeline_visualization:
         pipeline.show()
 
 
 if __name__ == '__main__':
-    run_pipeline_ang_history_visualisation()
+    run_pipeline_and_history_visualization()

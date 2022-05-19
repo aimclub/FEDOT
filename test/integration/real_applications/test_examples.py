@@ -13,7 +13,7 @@ from examples.simple.classification.api_classification import run_classification
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.classification.multiclass_prediction import get_model
 from examples.simple.interpretable.api_explain import run_api_explain_example
-from examples.simple.pipeline_and_history_visualisation import run_pipeline_ang_history_visualisation
+from examples.simple.pipeline_and_history_visualization import run_pipeline_and_history_visualization
 from examples.simple.pipeline_log import run_log_example
 from examples.simple.pipeline_tune import get_case_train_test_data, pipeline_tuning
 from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
@@ -67,7 +67,7 @@ def test_nemo_multiple_points_example():
 
 
 def test_pipeline_and_history_example():
-    run_pipeline_ang_history_visualisation(with_pipeline_visualisation=False)
+    run_pipeline_and_history_visualization(with_pipeline_visualisation=False)
 
 
 def test_log_example():
