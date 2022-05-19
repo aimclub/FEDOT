@@ -1,10 +1,11 @@
-from typing import Optional, Union, List, Dict
+from typing import Optional, Union, List, Dict, Sequence, Type
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
+from fedot.core.log import Log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
@@ -26,18 +27,18 @@ from fedot.core.optimisers.objective.objective import Objective
 class ComposerBuilder:
 
     def __init__(self, task: Task):
-        self.task = task
+        self.task: Task = task
 
-        self.optimiser_cls = EvoGraphOptimiser
-        self.optimiser_parameters = GPGraphOptimiserParameters()
-        self.optimizer_external_parameters = {}
+        self.optimiser_cls: Type[GraphOptimiser] = EvoGraphOptimiser
+        self.optimiser_parameters: GraphOptimiserParameters = GPGraphOptimiserParameters()
+        self.optimizer_external_parameters: dict = {}
 
-        self.composer_cls = GPComposer
-        self.initial_pipelines = None
-        self.log = None
-        self.cache = None
-        self.composer_requirements = self._get_default_composer_params()
-        self.metrics = self._get_default_quality_metrics(task)
+        self.composer_cls: Type[Composer] = GPComposer
+        self.initial_pipelines: Optional[Sequence[Pipeline]] = None
+        self.log: Optional[Log] = None
+        self.cache: Optional[OperationsCache] = None
+        self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
+        self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
 
     def with_optimiser(self, optimiser: Optional[GraphOptimiser] = None,
                        parameters: Optional[GraphOptimiserParameters] = None,
@@ -58,7 +59,13 @@ class ComposerBuilder:
         self.metrics = ensure_wrapped_in_sequence(metrics)
         return self
 
-    def with_initial_pipelines(self, initial_pipelines: Optional[Pipeline]):
+    def with_initial_pipelines(self, initial_pipelines: Optional[Union[Pipeline, Sequence[Pipeline]]]):
+        # TODO (gkirgizov): remove union form optimiser type; handle it here
+        if isinstance(initial_pipelines, Pipeline):
+            initial_pipelines = [initial_pipelines]
+        elif not isinstance(initial_pipelines, list):
+            raise ValueError(f'Incorrect type of initial_assumption: '
+                             f'Sequence[Pipeline] or Pipeline needed, but has {type(initial_pipelines)}')
         self.initial_pipelines = initial_pipelines
         return self
 

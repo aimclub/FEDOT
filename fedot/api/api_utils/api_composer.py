@@ -85,6 +85,7 @@ class ApiComposer:
                                 data: Union[InputData, MultiModalData],
                                 logger: Log,
                                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
+                                available_operations: Optional[List[str]] = None,
                                 optimizer_external_parameters: Optional[Dict] = None):
         """
         Return GPComposerBuilder with parameters and if it is necessary
@@ -100,8 +101,20 @@ class ApiComposer:
         :param data: data for evaluating
         :param logger: log object
         :param initial_assumption: list of initial pipelines
+        :param available_operations: list of available operations for building initial assumption
         :param optimizer_external_parameters: eternal parameters for optimizer
         """
+        if initial_assumption is None:
+            assumptions_builder = AssumptionsBuilder \
+                .get(task, data) \
+                .from_operations(available_operations) \
+                .with_logger(logger)
+            initial_assumption = assumptions_builder.build()
+
+        # Check initial assumption
+        fitted_pipeline, fit_time = fit_and_check_correctness(initial_assumption[0], data,
+                                                              logger=logger, cache=self.cache,
+                                                              n_jobs=composer_requirements.n_jobs)
 
         # TODO: make it cleaner after jetbrains will solve https://youtrack.jetbrains.com/issue/PY-28496 in the future
         builder = ComposerBuilder(task=task) \
@@ -109,22 +122,8 @@ class ApiComposer:
             .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters) \
             .with_metrics(metric_function) \
             .with_logger(logger) \
-            .with_cache(self.cache)
-
-        if initial_assumption is None:
-            initial_pipelines = AssumptionsBuilder.get(task, data).build()
-        elif isinstance(initial_assumption, Pipeline):
-            initial_pipelines = [initial_assumption]
-        else:
-            if not isinstance(initial_assumption, list):
-                prefix = 'Incorrect type of initial_assumption'
-                raise ValueError(f'{prefix}: List[Pipeline] or Pipeline needed, but has {type(initial_assumption)}')
-            initial_pipelines = initial_assumption
-        # Check initial assumption
-        fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger,
-                                                              cache=self.cache,
-                                                              n_jobs=composer_requirements.n_jobs)
-        builder = builder.with_initial_pipelines(initial_pipelines)
+            .with_cache(self.cache) \
+            .with_initial_pipelines(initial_assumption)
 
         # Update builder and preset if required
         builder, new_preset = update_builder(builder, composer_requirements, fit_time, full_minutes_timeout, preset)
@@ -176,12 +175,6 @@ class ApiComposer:
 
         if not composer_params['available_operations']:
             composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
-        if not api_params['initial_assumption']:
-            assumptions_builder = AssumptionsBuilder \
-                .get(api_params['task'], api_params['train_data']) \
-                .from_operations(composer_params['available_operations']) \
-                .with_logger(log)
-            api_params['initial_assumption'] = assumptions_builder.build()
 
         log.message(f"AutoML started. Parameters tuning: {tuning_params['with_tuning']}. "
                     f"Set of candidate models: {composer_params['available_operations']}. "
@@ -243,6 +236,7 @@ class ApiComposer:
                                          optimizer_external_parameters=self.optimizer_external_parameters,
                                          data=api_params['train_data'],
                                          initial_assumption=api_params['initial_assumption'],
+                                         available_operations=composer_params['available_operations'],
                                          logger=log)
         gp_composer: Optional[GPComposer] = None
         timeout_were_set = self.timer.datetime_composing is not None
