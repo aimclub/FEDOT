@@ -310,8 +310,8 @@ def test_fill_nan_without_categorical():
     prediction = pipeline.predict(test_data)
     prediction_train = pipeline.predict(train_data)
 
-    assert np.isnan(prediction.features).sum() == 0
-    assert np.isnan(prediction_train.features).sum() == 0
+    assert pd.isna(prediction.features).sum() == 0
+    assert pd.isna(prediction_train.features).sum() == 0
 
 
 def test_multivariate_ts():

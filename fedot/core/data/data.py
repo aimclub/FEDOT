@@ -472,6 +472,10 @@ def data_type_is_multi_ts(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.multi_ts
 
 
+def data_type_is_text(data: InputData) -> bool:
+    return data.data_type is DataTypesEnum.text
+
+
 def get_indices_from_file(data_frame, file_path):
     if 'datetime' in data_frame.columns:
         df = pd.read_csv(file_path,
