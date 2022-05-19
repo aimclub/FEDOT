@@ -2,7 +2,6 @@ import os
 from datetime import timedelta
 
 import numpy as np
-import pandas as pd
 from sklearn.metrics import mean_squared_error
 
 from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
@@ -13,7 +12,6 @@ from examples.simple.classification.api_classification import run_classification
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.classification.multiclass_prediction import get_model
 from examples.simple.interpretable.api_explain import run_api_explain_example
-from examples.simple.pipeline_and_history_visualization import run_pipeline_and_history_visualization
 from examples.simple.pipeline_log import run_log_example
 from examples.simple.pipeline_tune import get_case_train_test_data, pipeline_tuning
 from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
@@ -66,10 +64,6 @@ def test_nemo_multiple_points_example():
                          is_boxplot_visualize=False)
 
 
-def test_pipeline_and_history_example():
-    run_pipeline_and_history_visualization(with_pipeline_visualisation=False)
-
-
 def test_log_example():
     log_file_name = 'example_log.log'
     run_log_example(log_file_name)
@@ -100,7 +94,7 @@ def test_api_example():
     prediction = run_classification_example(timeout=1)
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example(with_plot=False, with_pipeline_vis=False, timeout=1)
+    forecast = run_ts_forecasting_example(timeout=1)
     assert forecast is not None
 
     pareto = run_classification_multiobj_example(timeout=1)

@@ -1,33 +1,20 @@
-from examples.simple.classification.classification_pipelines import classification_three_depth_manual_pipeline
-from fedot.core.optimisers.fitness.fitness import SingleObjFitness
-from fedot.core.optimisers.gp_comp.individual import Individual
+import os.path
+from pathlib import Path
+
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.utils import fedot_project_root
 
 
-def generate_history(generations, pop_size, folder=None):
-    history = OptHistory(save_folder=folder)
-    converter = GraphGenerationParams().adapter
-    for gen in range(generations):
-        new_pop = []
-        for idx in range(pop_size):
-            pipeline = classification_three_depth_manual_pipeline()
-            ind = Individual(converter.adapt(pipeline))
-            ind.fitness = SingleObjFitness(1. / (gen * idx + 1.))
-            new_pop.append(ind)
-        history.add_to_history(new_pop)
-    return history
-
-
-def run_pipeline_and_history_visualization(generations=2, pop_size=10, with_pipeline_visualization=True):
+def run_pipeline_and_history_visualization(with_pipeline_visualization=True):
     """ Function run visualization of composing history and pipeline """
     # Generate pipeline and history
-    pipeline = classification_three_depth_manual_pipeline()
-    history = generate_history(generations, pop_size)
+    history = OptHistory.load(os.path.join(fedot_project_root(), 'examples', 'data', 'history', 'opt_history.json'))
+    pipeline = PipelineAdapter().restore(history.individuals[-1][-1].graph)
 
-    visualiser = PipelineEvolutionVisualiser()
-    visualiser.visualise_history(history)
+    history.show('fitness_box', pct_best=0.5)
+    history.show('operations_kde')
+    history.show('operations_animated_bar', save_path='example_animation.gif', show_fitness=False)
     if with_pipeline_visualization:
         pipeline.show()
 

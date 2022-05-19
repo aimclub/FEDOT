@@ -25,7 +25,7 @@ from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
-class PlotType(Enum):
+class PlotTypeEnum(Enum):
     fitness_box = auto()
     operations_kde = auto()
     operations_animated_bar = auto()
@@ -86,13 +86,13 @@ class PipelineEvolutionVisualiser:
             prev_fit = fitness_history[fit_id]
         ts_set = list(range(len(fitness_history)))
         df = pd.DataFrame(
-            {'ts': ts_set, 'fitness': [-f for f in fitness_history]})
+            {'ts': ts_set, 'fitness': [-f.value for f in fitness_history]})
 
         fig = plt.figure(figsize=(10, 10))
         plt.rcParams['axes.titlesize'] = 20
         plt.rcParams['axes.labelsize'] = 20
         for ts in ts_set:
-            plt.plot(df['ts'], df['fitness'])
+            plt.plot(df['ts'], df['fitness'], label='Composer')
             plt.xlabel('Evaluation', fontsize=18)
             plt.ylabel('Best metric', fontsize=18)
             plt.axvline(x=ts, color='black')
@@ -313,10 +313,10 @@ class PipelineEvolutionVisualiser:
                     # Support for older histories
                     fitness = abs(fitness) if isinstance(fitness, float) else abs(fitness.value)
                     history_data['fitness'].append(fitness)
-                    history_data['node'].append(node.content['name'])
+                    history_data['node'].append(str(node))
                     if not get_tags:
                         continue
-                    history_data['tag'].append(get_opt_node_tag(node, tags_model=tags_model, tags_data=tags_data))
+                    history_data['tag'].append(get_opt_node_tag(str(node), tags_model=tags_model, tags_data=tags_data))
 
         df_history = pd.DataFrame.from_dict(history_data)
 
@@ -425,6 +425,8 @@ class PipelineEvolutionVisualiser:
         ax = plt.gca()
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
+        # ax.legend()
+        # plt.tight_layout()
 
         if save_path:
             save_path = Path(save_path)

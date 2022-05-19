@@ -8,7 +8,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.utils import DEFAULT_PARAMS_STUB
-from fedot.core.visualisation.opt_viz import PlotType
+from fedot.core.visualisation.opt_viz import PlotTypeEnum
 
 
 def create_individual():
@@ -76,12 +76,12 @@ def test_all_historical_quality():
     assert all_quality[0] == -0.9 and all_quality[4] == -1.4 and all_quality[5] == -1.3 and all_quality[10] == -1.2
 
 
-@pytest.mark.parametrize('plot_type', PlotType)
-def test_history_show_saving_plots(tmp_path, plot_type: PlotType):
+@pytest.mark.parametrize('plot_type', PlotTypeEnum)
+def test_history_show_saving_plots(tmp_path, plot_type: PlotTypeEnum):
     generations_quantity = 2
     pop_size = 5
     save_path = Path(tmp_path, plot_type.name)
-    save_path = save_path.with_suffix('.gif') if plot_type is PlotType.operations_animated_bar \
+    save_path = save_path.with_suffix('.gif') if plot_type is PlotTypeEnum.operations_animated_bar \
         else save_path.with_suffix('.png')
     history = generate_history(generations_quantity, pop_size)
     history.show(plot_type=plot_type, save_path=str(save_path), pct_best=0.1)
