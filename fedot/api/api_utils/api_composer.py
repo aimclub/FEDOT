@@ -8,7 +8,7 @@ from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.presets import update_builder
+from fedot.api.api_utils.presets import update_builder, change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -78,14 +78,11 @@ class ApiComposer:
     def get_gp_composer_builder(self, task: Task,
                                 metric_function,
                                 preset: str,
-                                full_minutes_timeout: int,
                                 composer_requirements: PipelineComposerRequirements,
                                 optimiser: Type[GraphOptimiser],
                                 optimizer_parameters: GraphOptimiserParameters,
-                                data: Union[InputData, MultiModalData],
                                 logger: Log,
                                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
-                                available_operations: Optional[List[str]] = None,
                                 optimizer_external_parameters: Optional[Dict] = None):
         """
         Return GPComposerBuilder with parameters and if it is necessary
@@ -94,27 +91,13 @@ class ApiComposer:
         :param task: task for solving
         :param metric_function: function for individuals evaluating
         :param preset: name of using preset
-        :param full_minutes_timeout: number of minutes for all AutoML
         :param composer_requirements: params for composer
         :param optimiser: optimiser for composer
         :param optimizer_parameters: params for optimizer
-        :param data: data for evaluating
         :param logger: log object
         :param initial_assumption: list of initial pipelines
-        :param available_operations: list of available operations for building initial assumption
         :param optimizer_external_parameters: eternal parameters for optimizer
         """
-        if initial_assumption is None:
-            assumptions_builder = AssumptionsBuilder \
-                .get(task, data) \
-                .from_operations(available_operations) \
-                .with_logger(logger)
-            initial_assumption = assumptions_builder.build()
-
-        # Check initial assumption
-        fitted_pipeline, fit_time = fit_and_check_correctness(initial_assumption[0], data,
-                                                              logger=logger, cache=self.cache,
-                                                              n_jobs=composer_requirements.n_jobs)
 
         # TODO: make it cleaner after jetbrains will solve https://youtrack.jetbrains.com/issue/PY-28496 in the future
         builder = ComposerBuilder(task=task) \
@@ -126,10 +109,11 @@ class ApiComposer:
             .with_initial_pipelines(initial_assumption)
 
         # Update builder and preset if required
-        builder, new_preset = update_builder(builder, composer_requirements, fit_time, full_minutes_timeout, preset)
+        if preset != 'auto':
+            builder = update_builder(builder, composer_requirements, preset)
         # Store information about preset
-        self.preset_name = new_preset
-        return builder, fitted_pipeline, fit_time
+        self.preset_name = preset
+        return builder
 
     @staticmethod
     def divide_operations(available_operations, task):
@@ -225,18 +209,29 @@ class ApiComposer:
         if 'optimizer_external_params' in composer_params:
             self.optimizer_external_parameters = composer_params['optimizer_external_params']
 
-        builder, fitted_initial_pipeline, init_pipeline_fit_time = \
+        initial_assumption = api_params['initial_assumption']
+        if initial_assumption is None:
+            assumptions_builder = AssumptionsBuilder \
+                .get(api_params['task'], api_params['train_data']) \
+                .from_operations(composer_params['available_operations']) \
+                .with_logger(log)
+            initial_assumption = assumptions_builder.build()
+
+        fitted_initial_pipeline, init_pipeline_fit_time = \
+            fit_and_check_correctness(initial_assumption[0], api_params['train_data'],
+                                      logger=log, cache=self.cache, n_jobs=composer_requirements.n_jobs)
+        full_minutes_timeout: Optional[int] = api_params['timeout']
+        preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, full_minutes_timeout)
+
+        builder = \
             self.get_gp_composer_builder(task=api_params['task'],
                                          metric_function=metric_function,
                                          preset=preset,
-                                         full_minutes_timeout=api_params['timeout'],
                                          composer_requirements=composer_requirements,
                                          optimiser=self.optimiser,
                                          optimizer_parameters=optimizer_parameters,
                                          optimizer_external_parameters=self.optimizer_external_parameters,
-                                         data=api_params['train_data'],
-                                         initial_assumption=api_params['initial_assumption'],
-                                         available_operations=composer_params['available_operations'],
+                                         initial_assumption=initial_assumption,
                                          logger=log)
         gp_composer: Optional[GPComposer] = None
         timeout_were_set = self.timer.datetime_composing is not None

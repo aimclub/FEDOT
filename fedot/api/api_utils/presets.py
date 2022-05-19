@@ -92,14 +92,8 @@ class OperationsPreset:
 
 def update_builder(builder: ComposerBuilder,
                    composer_requirements: PipelineComposerRequirements,
-                   fit_time: datetime.timedelta,
-                   full_minutes_timeout: Union[int, None], preset: str) -> Tuple[ComposerBuilder, str]:
+                   new_preset: str) -> ComposerBuilder:
     """ Updates the builder if a preset needs to be set automatically """
-    if preset != 'auto':
-        return builder, preset
-
-    # Find appropriate preset
-    new_preset = change_preset_based_on_initial_fit(fit_time, full_minutes_timeout)
 
     preset_manager = OperationsPreset(task=builder.task, preset_name=new_preset)
     new_operations = preset_manager.composer_params_based_on_preset(composer_params={'preset': new_preset})
@@ -107,7 +101,7 @@ def update_builder(builder: ComposerBuilder,
     composer_requirements.primary = new_operations['available_operations']
     composer_requirements.secondary = copy(new_operations['available_operations'])
     builder.with_requirements(composer_requirements)
-    return builder, new_preset
+    return builder
 
 
 def change_preset_based_on_initial_fit(fit_time: datetime.timedelta,
