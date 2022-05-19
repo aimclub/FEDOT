@@ -14,7 +14,7 @@ from fedot.core.repository.quality_metrics_repository import \
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
 from fedot.core.validation.tune.time_series import cv_time_series_predictions
-from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data, get_statsmodels_pipeline
 
 log = default_log(__name__)
 
@@ -126,7 +126,7 @@ def test_composer_cv_correct():
         cv_folds=folds,
         validation_blocks=validation_blocks)
 
-    init_pipeline = get_simple_ts_pipeline()
+    init_pipeline = get_statsmodels_pipeline()
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=time_series.task). \
         with_requirements(composer_requirements). \
