@@ -170,7 +170,7 @@ class OptHistory:
             if not check_all_historical_fitness('`pct_best` parameter is ignored.'):
                 pct_best = None
         # Check supported cases for show_fitness == False.
-        if not show_fitness and plot_type is not PlotType.operations_animated_barplot:
+        if not show_fitness and plot_type is not PlotType.operations_animated_bar:
             warnings.warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
                           stacklevel=2)
 
@@ -180,12 +180,12 @@ class OptHistory:
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotType.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type is PlotType.operations_animated_barplot:
+        elif plot_type is PlotType.operations_animated_bar:
             if not save_path:
                 raise ValueError('Argument `save_path` is required to save the animation.')
             if check_all_historical_fitness('Fitness is not displayed.'):
                 hide_fitness = True
-            viz.visualize_operations_animated_barplot(
+            viz.visualize_operations_animated_bar(
                 self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
         else:
             raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')

@@ -81,7 +81,7 @@ def test_history_show_saving_plots(tmp_path, plot_type: PlotType):
     generations_quantity = 2
     pop_size = 5
     save_path = Path(tmp_path, plot_type.name)
-    save_path = save_path.with_suffix('.gif') if plot_type is PlotType.operations_animated_barplot \
+    save_path = save_path.with_suffix('.gif') if plot_type is PlotType.operations_animated_bar \
         else save_path.with_suffix('.png')
     history = generate_history(generations_quantity, pop_size)
     history.show(plot_type=plot_type, save_path=str(save_path), pct_best=0.1)

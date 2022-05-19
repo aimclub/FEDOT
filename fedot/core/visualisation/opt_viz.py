@@ -28,7 +28,7 @@ from fedot.core.visualisation.graph_viz import GraphVisualiser
 class PlotType(Enum):
     fitness_box = auto()
     operations_kde = auto()
-    operations_animated_barplot = auto()
+    operations_animated_bar = auto()
 
     @classmethod
     def member_names(cls):
@@ -433,11 +433,11 @@ class PipelineEvolutionVisualiser:
             print(f'The figure was saved to "{save_path}".')
             plt.close()
 
-    def visualize_operations_animated_barplot(self, history: 'OptHistory', save_path: str,
-                                              tags_model: Optional[List[str]] = None,
-                                              tags_data: Optional[List[str]] = None,
-                                              pct_best: Optional[float] = None, show_fitness_color: bool = True):
-        """ Visualizes operations used across generations in the form of animated barplot.
+    def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: str,
+                                          tags_model: Optional[List[str]] = None,
+                                          tags_data: Optional[List[str]] = None,
+                                          pct_best: Optional[float] = None, show_fitness_color: bool = True):
+        """ Visualizes operations used across generations in the form of animated bar plot.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization.
