@@ -3,7 +3,7 @@ import gc
 import traceback
 from collections.abc import Sequence
 from copy import copy
-from typing import Callable, Dict, List, Optional, Type, Union, Tuple, Collection
+from typing import Callable, Dict, List, Optional, Type, Union, Tuple, Collection, Any
 
 import numpy as np
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
@@ -239,11 +239,14 @@ class ApiComposer:
         if isinstance(pipeline_gp_composed, Sequence):
             pipeline_gp_composed = pipeline_gp_composed[0]
 
-        pipeline_gp_composed = self.tune_final_pipeline(api_params=api_params, tuning_params=tuning_params,
-                                                        composer_requirements=composer_requirements,
-                                                        pipeline_gp_composed=pipeline_gp_composed,
-                                                        timer=self.timer,
-                                                        init_pipeline_fit_time=init_pipeline_fit_time)
+        if tuning_params['with_tuning']:
+            timeout_for_tuning = self.timer.determine_resources_for_tuning(init_pipeline_fit_time)
+            pipeline_gp_composed = self.tune_final_pipeline(task, api_params['train_data'],
+                                                            tuning_params['tuner_metric'],
+                                                            composer_requirements,
+                                                            pipeline_gp_composed,
+                                                            timeout_for_tuning,
+                                                            log)
 
         log.message('Model generation finished')
         # enforce memory cleaning
@@ -254,7 +257,7 @@ class ApiComposer:
         timeout_not_set = self.timer.datetime_composing is None
         return timeout_not_set or init_pipeline_fit_time < self.timer.datetime_composing / pop_size
 
-    def tuner_metric_by_name(self, train_data: InputData, task: Task):
+    def _tuner_metric_by_name(self, train_data: InputData, task: Task):
         """ Function allow to obtain metric for tuner by its name
 
         :param train_data: InputData for train
@@ -285,48 +288,45 @@ class ApiComposer:
 
         return loss_function, loss_params
 
-    def tune_final_pipeline(self, api_params, tuning_params,
-                            composer_requirements, pipeline_gp_composed,
-                            timer: ApiTime, init_pipeline_fit_time):
+    def tune_final_pipeline(self, task: Task,
+                            train_data: InputData,
+                            tuner_metric: Optional[Any],
+                            composer_requirements: PipelineComposerRequirements,
+                            pipeline_gp_composed: Pipeline,
+                            timeout_for_tuning: int,
+                            log: Log):
         """ Launch tuning procedure for obtained pipeline by composer """
-        if not tuning_params['with_tuning']:
-            # Return source pipeline
-            return pipeline_gp_composed
-
-        timeout_for_tuning = timer.determine_resources_for_tuning(init_pipeline_fit_time)
 
         if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
-            api_params['logger'].info(f'Time for pipeline composing was {str(timer.composing_spend_time)}.\n'
-                                      f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
-                                      f'to tune the hyperparameters.')
-            api_params['logger'].info('Composed pipeline returned without tuning.')
+            log.info(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
+                     f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
+                     f'to tune the hyperparameters.')
+            log.info('Composed pipeline returned without tuning.')
         else:
-            if tuning_params['tuner_metric'] is None:
+            if tuner_metric is None:
                 # Default metric for tuner
-                tune_metrics = TunerMetricByTask(api_params['task'].task_type)
-                tuner_loss, loss_params = tune_metrics.get_metric_and_params(api_params['train_data'])
-                api_params['logger'].message(f'Tuner metric is None, '
-                                             f'{tuner_loss.__name__} was set as default')
+                tune_metrics = TunerMetricByTask(task.task_type)
+                tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+                log.message(f'Tuner metric is None, {tuner_loss.__name__} is set as default')
             else:
                 # Get metric and parameters by name
-                tuner_loss, loss_params = self.tuner_metric_by_name(train_data=api_params['train_data'],
-                                                                    task=api_params['task'])
+                tuner_loss, loss_params = self._tuner_metric_by_name(train_data=train_data, task=task)
 
             # Tune all nodes in the pipeline
-            with timer.launch_tuning():
-                api_params['logger'].message('Hyperparameters tuning started')
+            with self.timer.launch_tuning():
+                log.message('Hyperparameters tuning started')
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
                 pipeline_gp_composed = pipeline_gp_composed. \
                     fine_tune_all_nodes(loss_function=tuner_loss,
                                         loss_params=loss_params,
-                                        input_data=api_params['train_data'],
+                                        input_data=train_data,
                                         iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
                                         timeout=timeout_for_tuning,
                                         cv_folds=folds,
                                         validation_blocks=vb_number)
-                api_params['logger'].message('Hyperparameters tuning finished')
+                log.message('Hyperparameters tuning finished')
         return pipeline_gp_composed
 
 
