@@ -1,6 +1,8 @@
 import random
+from itertools import repeat, cycle
 
 import numpy as np
+import pytest
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
@@ -35,6 +37,9 @@ def custom_metric(custom_model: CustomModel):
 
 
 def test_custom_graph_opt():
+    """Test checks for the use case of custom graph optimisation:
+    that it can be initialised without problem and returns sane result."""
+
     nodes_types = ['A', 'B', 'C', 'D']
     rules = [has_no_self_cycled_nodes]
 
@@ -70,5 +75,5 @@ def test_custom_graph_opt():
     assert optimized_network is not None
     assert isinstance(optimized_network, CustomModel)
     assert isinstance(optimized_network.nodes[0], CustomNode)
-
-    assert 'custom_A' in [str(_) for _ in optimized_network.nodes]
+    assert len(optimized_network.nodes) > 1
+    assert optimized_network.depth > 1
