@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Dict, Sequence, Type
+from typing import Optional, Union, List, Dict, Sequence, Type, Iterable
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
@@ -61,11 +61,12 @@ class ComposerBuilder:
 
     def with_initial_pipelines(self, initial_pipelines: Optional[Union[Pipeline, Sequence[Pipeline]]]):
         if isinstance(initial_pipelines, Pipeline):
-            initial_pipelines = [initial_pipelines]
-        elif not isinstance(initial_pipelines, list):
+            self.initial_pipelines = [initial_pipelines]
+        elif isinstance(initial_pipelines, Iterable):
+            self.initial_pipelines = list(initial_pipelines)
+        else:
             raise ValueError(f'Incorrect type of initial_assumption: '
                              f'Sequence[Pipeline] or Pipeline needed, but has {type(initial_pipelines)}')
-        self.initial_pipelines = initial_pipelines
         return self
 
     def with_logger(self, logger):
@@ -95,7 +96,7 @@ class ComposerBuilder:
 
     def build(self) -> Composer:
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
-                                                        advisor=PipelineChangeAdvisor())
+                                                        advisor=PipelineChangeAdvisor(self.task))
 
         if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg

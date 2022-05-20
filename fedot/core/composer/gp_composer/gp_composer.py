@@ -86,8 +86,6 @@ class GPComposer(Composer):
                                                       cache, logger)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
-        self.optimiser.graph_generation_params.advisor.task = data.task
-
         # TODO: move this late-init logic to the point before optimiser is constructed
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
             self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
