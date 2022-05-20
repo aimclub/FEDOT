@@ -506,26 +506,49 @@ class PipelineEvolutionVisualiser:
         }, axis='columns')
         tags_found = df_history[tag_column_name].unique()
         tags_found = [tag for tag in tags_all if tag in tags_found]
+        # Getting normed fraction of individuals  per generation that contain operations given.
+        generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
+        operations_with_individuals_count = df_history.groupby(
+                [generation_column_name, tag_column_name],
+                as_index=False
+            ).aggregate({'individual': 'nunique'})
+        operations_with_individuals_count['individual'] = operations_with_individuals_count.apply(
+            lambda row: row['individual'] / generation_sizes[row[generation_column_name]],
+            axis='columns')
 
-        nodes_per_generation = df_history[generation_column_name].value_counts()
-
-        aggregation = {fitness_column_name: 'mean', 'node': 'count'} if show_fitness_color else {'node': 'count'}
-
-        df_history = df_history.groupby([generation_column_name, tag_column_name], as_index=False).agg(aggregation)
-        df_history = df_history.rename({'node': 'node_count'}, axis='columns')
-        df_history['node_count'] = df_history.apply(
-            lambda row: row['node_count'] / nodes_per_generation[row[generation_column_name]], axis=1)
-        df_history = df_history.set_index([generation_column_name, tag_column_name])
+        if show_fitness_color:
+            # Getting fitness per individual with the list of contained operations in the form of
+            # '.operation_1.operation_2. ... .operation_n.'
+            individuals_fitness = df_history[[generation_column_name, 'individual', fitness_column_name]] \
+                .drop_duplicates()
+            individuals_fitness['operations'] = individuals_fitness.apply(
+                lambda row: '.{}.'.format('.'.join(
+                    df_history[
+                        (df_history[generation_column_name] == row[generation_column_name]) &
+                        (df_history['individual'] == row['individual'])
+                    ][tag_column_name])),
+                axis='columns')
+            # Getting mean fitness of individuals with the operations given.
+            operations_with_individuals_count[fitness_column_name] = operations_with_individuals_count.apply(
+                lambda row: individuals_fitness[
+                    (individuals_fitness[generation_column_name] == row[generation_column_name]) &
+                    (individuals_fitness['operations'].str.contains(f'.{row[tag_column_name]}.'))
+                    ][fitness_column_name].mean(),
+                axis='columns')
+            del individuals_fitness
+        # Replacing the initial DataFrame with the processed one
+        df_history = operations_with_individuals_count.set_index([generation_column_name, tag_column_name])
+        del operations_with_individuals_count
 
         min_fitness = df_history[fitness_column_name].min() if show_fitness_color else None
         max_fitness = df_history[fitness_column_name].max() if show_fitness_color else None
 
-        generations = df_history.index.get_level_values(0).unique()
-        # Getting data through all generations and filling with zeroes
+        generations = generation_sizes.index.unique()
         bar_data = []
         bar_color = []
+        # Getting data by tags through all generations and filling with zeroes where no such tag
         for gen_num in generations:
-            bar_data.append([df_history.loc[gen_num]['node_count'].get(tag, 0) for tag in tags_found])
+            bar_data.append([df_history.loc[gen_num]['individual'].get(tag, 0) for tag in tags_found])
             if not show_fitness_color:
                 continue
             fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
@@ -534,7 +557,10 @@ class PipelineEvolutionVisualiser:
                 fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
 
         bar_data = smoothen_frames_data(bar_data, animation_frames_per_step, animation_interpolation_power)
-        bar_title = [i for gen_num in generations for i in [f'Generation {gen_num}'] * animation_frames_per_step]
+        title_template = 'Generation {}'
+        if pct_best is not None:
+            title_template += f', top {pct_best * 100}%'
+        bar_title = [i for gen_num in generations for i in [title_template.format(gen_num)] * animation_frames_per_step]
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
         if show_fitness_color:
@@ -552,8 +578,7 @@ class PipelineEvolutionVisualiser:
         bars = ax.barh(tags_found, count, color=color)
         ax.set_title(title)
         ax.set_xlim(0, 1)
-        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
-        ax.set_xlabel(f'Fraction of operation in {str_fraction_of_pipelines} generation pipelines')
+        ax.set_xlabel(f'Fraction of pipelines containing the operation')
         ax.xaxis.grid(True)
         ax.set_ylabel(tag_column_name)
         ax.invert_yaxis()
