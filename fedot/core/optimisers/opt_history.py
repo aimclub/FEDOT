@@ -139,19 +139,19 @@ class OptHistory:
         :param show_fitness: if False, visualizations that support this parameter will not display fitness.
         """
 
-        def check_all_historical_fitness(msg_if_none: Optional[str] = None, raise_exception: bool = False) -> bool:
+        def is_history_contains_fitness(msg_if_not: Optional[str] = None, raise_exception: bool = False) -> bool:
             if all_historical_fitness is not None:
                 return True
 
             msg_prefix = 'The history has no fitness data.'
-            if msg_if_none:
-                msg_if_none = ' '.join([msg_prefix, msg_if_none])
+            if msg_if_not:
+                msg_if_not = ' '.join([msg_prefix, msg_if_not])
             else:
-                msg_if_none = msg_prefix
+                msg_if_not = msg_prefix
 
             if raise_exception:
-                raise ValueError(msg_if_none)
-            warnings.warn(msg_if_none, stacklevel=3)
+                raise ValueError(msg_if_not)
+            warnings.warn(msg_if_not, stacklevel=3)
             return False
 
         if isinstance(plot_type, str):
@@ -167,7 +167,7 @@ class OptHistory:
         if pct_best is not None:
             if pct_best <= 0 or pct_best > 1:
                 raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
-            if not check_all_historical_fitness('`pct_best` parameter is ignored.'):
+            if not is_history_contains_fitness(msg_if_not='`pct_best` parameter is ignored.'):
                 pct_best = None
         # Check supported cases for show_fitness == False.
         if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
@@ -176,14 +176,15 @@ class OptHistory:
 
         viz = PipelineEvolutionVisualiser()
         if plot_type is PlotTypesEnum.fitness_box:
-            check_all_historical_fitness(f'Visualization "{plot_type.name}" is not supported.', raise_exception=True)
+            is_history_contains_fitness(
+                msg_if_not=f'Visualization "{plot_type.name}" is not supported.', raise_exception=True)
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotTypesEnum.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotTypesEnum.operations_animated_bar:
             if not save_path:
                 raise ValueError('Argument `save_path` is required to save the animation.')
-            if check_all_historical_fitness('Fitness is not displayed.'):
+            if not is_history_contains_fitness(msg_if_not='Fitness is not displayed.'):
                 show_fitness = False
             viz.visualize_operations_animated_bar(
                 self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
