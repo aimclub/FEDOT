@@ -15,15 +15,11 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
     :param composite_flag:  add additional random forest estimator
     """
     node_first = PrimaryNode('cnn')
-    node_first.custom_params = {'image_shape': (28, 28, 1),
-                                'architecture': 'deep',
-                                'num_classes': 10,
+    node_first.custom_params = {'architecture': 'deep',
                                 'epochs': 15,
                                 'batch_size': 128}
     node_second = PrimaryNode('cnn')
-    node_second.custom_params = {'image_shape': (28, 28, 1),
-                                 'architecture_type': 'simplified',
-                                 'num_classes': 10,
+    node_second.custom_params = {'architecture_type': 'simplified',
                                  'epochs': 10,
                                  'batch_size': 128}
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])

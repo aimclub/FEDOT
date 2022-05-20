@@ -16,7 +16,6 @@ def generate_multi_modal_pipeline(data: MultiModalData):
     image_node = SecondaryNode('cnn', nodes_from=[ds_image])
     image_node.custom_params = {'image_shape': images_size,
                                 'architecture': 'simplified',
-                                'num_classes': 2,
                                 'epochs': 15,
                                 'batch_size': 128}
 

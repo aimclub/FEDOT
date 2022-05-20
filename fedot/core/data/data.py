@@ -184,6 +184,9 @@ class Data:
                 # upload from array
                 features = np.load(images)
                 target = np.load(labels)
+                # add channels if None
+                if len(features.shape) == 3:
+                    features = np.expand_dims(features, -1)
 
         idx = np.arange(0, len(features))
 
