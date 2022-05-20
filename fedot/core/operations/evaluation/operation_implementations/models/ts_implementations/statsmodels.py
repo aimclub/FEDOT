@@ -191,6 +191,10 @@ class AutoRegImplementation(ModelImplementation):
 
         if is_fit_pipeline_stage:
             predicted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
+            # adding nan to target as in predicted
+            nan_mask = np.isnan(predicted)
+            target = target.astype(float)
+            target[nan_mask] = np.nan
             _, predict = ts_to_table(idx=old_idx,
                                      time_series=predicted,
                                      window_size=forecast_length)
