@@ -187,7 +187,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
     opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        metric_function).with_optimiser(parameters=opt_params)
+        metric_function).with_optimiser_params(parameters=opt_params)
     gp_composer = builder.build()
     pipeline_gp_composed = gp_composer.compose_pipeline(data=dataset_to_compose)
 
@@ -223,7 +223,7 @@ def test_multi_objective_composer(data_fixture, request):
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       selection_types=[SelectionTypesEnum.spea2])
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        metrics).with_optimiser(parameters=optimiser_parameters)
+        metrics).with_optimiser_params(parameters=optimiser_parameters)
     composer = builder.build()
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
@@ -259,7 +259,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       with_auto_depth_configuration=True)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        quality_metric).with_optimiser(parameters=optimiser_parameters)
+        quality_metric).with_optimiser_params(parameters=optimiser_parameters)
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
@@ -279,7 +279,7 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        quality_metric).with_optimiser(parameters=optimiser_parameters).with_cache(OperationsCache())
+        quality_metric).with_optimiser_params(parameters=optimiser_parameters).with_cache(OperationsCache())
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
 

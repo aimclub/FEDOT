@@ -210,9 +210,9 @@ class ApiComposer:
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(initial_assumption) \
-            .with_optimiser(optimiser_cls=composer_params.get('optimizer'),
-                            parameters=self._init_optimiser_params(task, composer_params),
-                            external_parameters= composer_params.get('optimizer_external_params')) \
+            .with_optimiser(composer_params.get('optimizer')) \
+            .with_optimiser_params(parameters=self._init_optimiser_params(task, composer_params),
+                                   external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_function) \
             .with_logger(log) \
             .with_cache(self.cache)

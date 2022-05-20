@@ -72,7 +72,7 @@ def compose_pipeline(pipeline, train_data, task):
     optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
     builder = ComposerBuilder(task=task). \
-        with_optimiser(parameters=optimiser_parameters). \
+        with_optimiser_params(parameters=optimiser_parameters). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipelines([pipeline])
     composer = builder.build()
