@@ -4,11 +4,10 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
-from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.log import Log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
@@ -98,13 +97,6 @@ class ComposerBuilder:
     def build(self) -> Composer:
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         advisor=PipelineChangeAdvisor())
-
-        if self.optimiser_parameters.mutation_types is None:
-            self.optimiser_parameters.mutation_types = [boosting_mutation, parameter_change_mutation,
-                                                        MutationTypesEnum.single_edge,
-                                                        MutationTypesEnum.single_change,
-                                                        MutationTypesEnum.single_drop,
-                                                        MutationTypesEnum.single_add]
 
         if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg

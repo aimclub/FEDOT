@@ -144,7 +144,7 @@ class ApiComposer:
         return composer_requirements
 
     @staticmethod
-    def _init_optimiser_params(task: Task, composer_params: dict) -> GraphOptimiserParameters:
+    def _init_optimiser_params(task: Task, composer_params: dict) -> GPGraphOptimiserParameters:
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
