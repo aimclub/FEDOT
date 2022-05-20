@@ -60,7 +60,6 @@ class ComposerBuilder:
         return self
 
     def with_initial_pipelines(self, initial_pipelines: Optional[Union[Pipeline, Sequence[Pipeline]]]):
-        # TODO (gkirgizov): remove union form optimiser type; handle it here
         if isinstance(initial_pipelines, Pipeline):
             initial_pipelines = [initial_pipelines]
         elif not isinstance(initial_pipelines, list):
