@@ -40,11 +40,11 @@ class ComposerBuilder:
         self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
 
-    def with_optimiser(self, optimiser: Optional[GraphOptimiser] = None,
+    def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimiser]] = None,
                        parameters: Optional[GraphOptimiserParameters] = None,
                        optimizer_external_parameters: Optional[Dict] = None):
-        if optimiser is not None:
-            self.optimiser_cls = optimiser
+        if optimiser_cls is not None:
+            self.optimiser_cls = optimiser_cls
         if parameters is not None:
             self.optimiser_parameters = parameters
         if optimizer_external_parameters is not None:

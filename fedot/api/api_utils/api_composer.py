@@ -43,8 +43,6 @@ class ApiComposer:
 
     def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
-        self.optimiser = EvoGraphOptimiser
-        self.optimizer_external_parameters = None
         self.cache: Optional[OperationsCache] = None
         self.preset_name = None
         self.timer = None
@@ -145,6 +143,30 @@ class ApiComposer:
                                                                  'collect_intermediate_metric'])
         return composer_requirements
 
+    @staticmethod
+    def _init_optimiser_params(task: Task, composer_params: dict) -> GraphOptimiserParameters:
+
+        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
+        if composer_params['genetic_scheme'] == 'steady_state':
+            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+
+        mutations = [boosting_mutation, parameter_change_mutation,
+                     MutationTypesEnum.single_change,
+                     MutationTypesEnum.single_drop,
+                     MutationTypesEnum.single_add]
+        # TODO remove workaround after validation fix
+        if task.task_type is not TaskTypesEnum.ts_forecasting:
+            mutations.append(MutationTypesEnum.single_edge)
+
+        optimiser_parameters = GPGraphOptimiserParameters(
+            genetic_scheme_type=genetic_scheme_type,
+            mutation_types=mutations,
+            crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
+            history_folder=composer_params.get('history_folder'),
+            stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
+        )
+        return optimiser_parameters
+
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
                             preset: str) -> Tuple[Pipeline, HallOfFame, OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -178,30 +200,6 @@ class ApiComposer:
 
         # Get optimiser, its parameters, and composer
 
-        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if composer_params['genetic_scheme'] == 'steady_state':
-            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
-
-        mutations = [boosting_mutation, parameter_change_mutation,
-                     MutationTypesEnum.single_change,
-                     MutationTypesEnum.single_drop,
-                     MutationTypesEnum.single_add]
-        # TODO remove workaround after validation fix
-        if task.task_type is not TaskTypesEnum.ts_forecasting:
-            mutations.append(MutationTypesEnum.single_edge)
-
-        optimizer_parameters = GPGraphOptimiserParameters(
-            genetic_scheme_type=genetic_scheme_type,
-            mutation_types=mutations,
-            crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
-            history_folder=composer_params.get('history_folder'),
-            stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
-        )
-        if 'optimizer' in composer_params:
-            self.optimiser = composer_params['optimizer']
-        if 'optimizer_external_params' in composer_params:
-            self.optimizer_external_parameters = composer_params['optimizer_external_params']
-
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])
 
         log.message(f"AutoML configured."
@@ -212,7 +210,9 @@ class ApiComposer:
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(initial_assumption) \
-            .with_optimiser(self.optimiser, optimizer_parameters, self.optimizer_external_parameters) \
+            .with_optimiser(optimiser_cls=composer_params.get('optimizer'),
+                            optimizer_parameters=self._init_optimiser_params(task, composer_params),
+                            optimizer_external_parameters= composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_function) \
             .with_logger(log) \
             .with_cache(self.cache)
