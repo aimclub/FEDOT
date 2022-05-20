@@ -3,6 +3,7 @@ import itertools
 import json
 import os
 import shutil
+import warnings
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
@@ -10,7 +11,7 @@ from uuid import uuid4
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.serializers import Serializer
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.individual import Individual
@@ -125,13 +126,70 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, save_path_to_file: str = None):
-        """ Visualizes fitness values across generations """
+    def show(self, plot_type: Optional[Union[PlotTypesEnum, str]] = PlotTypesEnum.fitness_box, save_path: Optional[str] = None,
+             pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
+        """ Visualizes fitness values or operations used across generations.
 
-        if self.all_historical_fitness is None:
-            return
+        :param plot_type: visualization to show. Expected values are listed in
+            'fedot.core.visualisation.opt_viz.PlotTypesEnum'.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed. Essential for animations.
+        :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
+            interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
+        :param show_fitness: if False, visualizations that support this parameter will not display fitness.
+        """
+
+        def is_history_contains_fitness(msg_if_not: Optional[str] = None, raise_exception: bool = False) -> bool:
+            if all_historical_fitness is not None:
+                return True
+
+            msg_prefix = 'The history has no fitness data.'
+            if msg_if_not:
+                msg_if_not = ' '.join([msg_prefix, msg_if_not])
+            else:
+                msg_if_not = msg_prefix
+
+            if raise_exception:
+                raise ValueError(msg_if_not)
+            warnings.warn(msg_if_not, stacklevel=3)
+            return False
+
+        if isinstance(plot_type, str):
+            try:
+                plot_type = PlotTypesEnum[plot_type]
+            except KeyError:
+                raise NotImplementedError(
+                    f'Visualization "{plot_type}" is not supported. Expected values: '
+                    f'{", ".join(PlotTypesEnum.member_names())}.')
+
+        all_historical_fitness = self.all_historical_fitness
+        # Check supported cases for `pct_best`.
+        if pct_best is not None:
+            if pct_best <= 0 or pct_best > 1:
+                raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
+            if not is_history_contains_fitness(msg_if_not='`pct_best` parameter is ignored.'):
+                pct_best = None
+        # Check supported cases for show_fitness == False.
+        if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
+            warnings.warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
+                          stacklevel=2)
+
         viz = PipelineEvolutionVisualiser()
-        viz.visualise_fitness_by_generations(self, save_path_to_file=save_path_to_file)
+        if plot_type is PlotTypesEnum.fitness_box:
+            is_history_contains_fitness(
+                msg_if_not=f'Visualization "{plot_type.name}" is not supported.', raise_exception=True)
+            viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
+        elif plot_type is PlotTypesEnum.operations_kde:
+            viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
+        elif plot_type is PlotTypesEnum.operations_animated_bar:
+            if not save_path:
+                raise ValueError('Argument `save_path` is required to save the animation.')
+            if not is_history_contains_fitness(msg_if_not='Fitness is not displayed.'):
+                show_fitness = False
+            viz.visualize_operations_animated_bar(
+                self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
+        else:
+            raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 
     @property
     def short_metrics_names(self):

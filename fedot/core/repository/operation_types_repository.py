@@ -3,9 +3,10 @@ import os
 import warnings
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict, Union
 
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
+from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -52,10 +53,18 @@ class OperationTypesRepository:
 
     __initialized_repositories__ = {}
 
+    DEFAULT_MODEL_TAGS = ['linear', 'non_linear']
+    DEFAULT_DATA_OPERATION_TAGS = [
+        'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
+        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
+        'imbalanced'
+    ]
+
     __repository_dict__ = {
-        'model': {'file': 'model_repository.json', 'initialized_repo': None},
-        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None},
-        'automl': {'file': 'automl_repository.json', 'initialized_repo': None}
+        'model': {'file': 'model_repository.json', 'initialized_repo': None, 'default_tags': DEFAULT_MODEL_TAGS},
+        'data_operation': {'file': 'data_operation_repository.json', 'initialized_repo': None,
+                           'default_tags': DEFAULT_DATA_OPERATION_TAGS},
+        'automl': {'file': 'automl_repository.json', 'initialized_repo': None, 'default_tags': []}
 
     }
 
@@ -65,10 +74,12 @@ class OperationTypesRepository:
 
         self.repository_name = []
         self._repo = []
+        self.default_tags = []
         if operation_type == 'all':
-            for rep_name in OperationTypesRepository.__repository_dict__.keys():
-                self.repository_name.append(OperationTypesRepository.__repository_dict__[rep_name]['file'])
-                operations = OperationTypesRepository.__repository_dict__[rep_name]['initialized_repo']
+            for op_type in OperationTypesRepository.__repository_dict__.keys():
+                self.repository_name.append(OperationTypesRepository.__repository_dict__[op_type]['file'])
+                operations = OperationTypesRepository.__repository_dict__[op_type]['initialized_repo']
+                self.default_tags += OperationTypesRepository.__repository_dict__[op_type]['default_tags']
 
                 if operations is not None:
                     for operation in operations:
@@ -78,6 +89,7 @@ class OperationTypesRepository:
         else:
             self.repository_name = OperationTypesRepository.__repository_dict__[operation_type]['file']
             self._repo = OperationTypesRepository.__repository_dict__[operation_type]['initialized_repo']
+            self.default_tags = OperationTypesRepository.__repository_dict__[operation_type]['default_tags']
 
     @classmethod
     def get_available_repositories(cls):
@@ -282,6 +294,53 @@ class OperationTypesRepository:
     def operations(self):
         return self._repo
 
+    def get_first_suitable_operation_tag(self, operation: str, tags_to_find: Optional[List[str]] = None) \
+            -> Optional[str]:
+        """ Finds the first suitable tag for the operation in the repository.
+
+        :param operation: name of the operation.
+        :param tags_to_find: list of suitable tags.
+        :return: first suitable tag or None.
+        """
+        tags_to_find = tags_to_find or self.default_tags
+
+        info = self.operation_info_by_id(operation)
+        if info is None:
+            return None
+        for tag in tags_to_find:
+            if tag in info.tags:
+                return tag
+        return None
+
+
+def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
+                     tags_data: Optional[List[str]] = None,
+                     repos_tags: Optional[Dict['OperationTypesRepository', List[str]]] = None) -> Optional[str]:
+    """ Finds the first suitable tag for the OptNode across Fedot repositories.
+
+    :param opt_node: OptNode or its name.
+    :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+    :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+    :param repos_tags: dictionary mapping OperationTypesRepository with suitable tags. Can be used only if no tags_model
+        and tags_data specified.
+    :return: first suitable tag or None.
+    """
+    if (tags_model or tags_data) and repos_tags:
+        raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
+
+    node_name = opt_node.content['name'] if isinstance(opt_node, OptNode) else opt_node
+
+    repos_tags = repos_tags or {
+        OperationTypesRepository('model'): tags_model,
+        OperationTypesRepository('data_operation'): tags_data
+    }
+
+    for repo, tags in repos_tags.items():
+        tag = repo.get_first_suitable_operation_tag(node_name, tags)
+        if tag is not None:
+            return tag
+    return None
+
 
 def _is_operation_contains_tag(candidate_tags: List[str],
                                operation_tags: List[str],
@@ -290,9 +349,9 @@ def _is_operation_contains_tag(candidate_tags: List[str],
     The function checks which operations are suitable for the selected tags
 
     :param candidate_tags: list with tags that the operation must have in order
-    to fit the selected task
+        to fit the selected task
     :param operation_tags: list with tags with names as in repository json file
-    which correspond to the considering operation
+        which correspond to the considering operation
     :param is_full_match: requires all tags to match, or at least one
 
     :return : is there a match on the tags

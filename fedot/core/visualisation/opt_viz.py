@@ -1,25 +1,38 @@
 import itertools
-import math
 import os
 from copy import deepcopy
+from enum import Enum, auto
 from glob import glob
 from os import remove
+from pathlib import Path
 from time import time
 from typing import Any, List, Optional, Tuple, Sequence
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pandas.core.common import flatten
 import seaborn as sns
 from PIL import Image
 from deap import tools
 from imageio import get_writer, imread
-import matplotlib.pyplot as plt
+from matplotlib import cm, animation, ticker
+from matplotlib.colors import Normalize
 
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+
+
+class PlotTypesEnum(Enum):
+    fitness_box = auto()
+    operations_kde = auto()
+    operations_animated_bar = auto()
+
+    @classmethod
+    def member_names(cls):
+        return cls._member_names_
 
 
 class PipelineEvolutionVisualiser:
@@ -73,13 +86,13 @@ class PipelineEvolutionVisualiser:
             prev_fit = fitness_history[fit_id]
         ts_set = list(range(len(fitness_history)))
         df = pd.DataFrame(
-            {'ts': ts_set, 'fitness': [-f for f in fitness_history]})
+            {'ts': ts_set, 'fitness': [-f.value for f in fitness_history]})
 
         fig = plt.figure(figsize=(10, 10))
         plt.rcParams['axes.titlesize'] = 20
         plt.rcParams['axes.labelsize'] = 20
         for ts in ts_set:
-            plt.plot(df['ts'], df['fitness'])
+            plt.plot(df['ts'], df['fitness'], label='Composer')
             plt.xlabel('Evaluation', fontsize=18)
             plt.ylabel('Best metric', fontsize=18)
             plt.axvline(x=ts, color='black')
@@ -89,41 +102,6 @@ class PipelineEvolutionVisualiser:
             self.convergence_imgs.append(img)
             plt.clf()
         plt.close('all')
-
-    @staticmethod
-    def visualise_fitness_by_generations(history, save_path_to_file: str):
-        """ Visualizes fitness values across generations
-        :param history: OptHistory
-        :param save_path_to_file: path where to save visualization. If set, then the image will be saved,
-        and if not, it will be displayed """
-        # Get list of generations numbers per fitness result
-        generations = []
-        for gen_num in range(len(history.historical_fitness)):
-            num_of_ind_in_gen = len(history.historical_fitness[gen_num])
-            generations.append([gen_num] * num_of_ind_in_gen)
-        generations = list(flatten(generations))
-
-        # Visualize
-        fitness = [abs(fitness.value) for fitness in history.all_historical_fitness]
-        fig, ax = plt.subplots(figsize=(15, 10))
-
-        # Get color palette for fitness. The lower the fitness value, the brighter the green color
-        palette = sns.light_palette("seagreen", n_colors=len(history.historical_fitness))
-        min_fitnesses = [min(i) for i in history.historical_fitness]
-        min_fitnesses.sort(reverse=True)
-        colors = [palette[min_fitnesses.index(min(i))] for i in history.historical_fitness]
-
-        sns.boxplot(x=generations, y=fitness, palette=colors)
-        ax.set_title('Fitness by generations', fontdict={'fontsize': 22})
-        ax.set_xticklabels(range(len(history.historical_fitness)))
-        ax.set_xlabel(xlabel=f'generations', fontsize=20)
-        ax.set_ylabel(ylabel=f'fitness score', fontsize=20)
-
-        if not save_path_to_file:
-            plt.show()
-        else:
-            plt.savefig(save_path_to_file)
-            plt.close()
 
     def visualise_history(self, history):
         try:
@@ -310,6 +288,315 @@ class PipelineEvolutionVisualiser:
         self.create_gif_using_images(gif_path=f'{folder}/pareto_history.gif', files=files)
         for file in files:
             remove(file)
+
+    @staticmethod
+    def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
+                                tags_data: Optional[List[str]] = None, pct_best: Optional[float] = None,
+                                get_tags: bool = True):
+        history_data = {
+            'generation': [],
+            'individual': [],
+            'fitness': [],
+            'node': [],
+        }
+        if get_tags:
+            history_data['tag'] = []
+
+        uid_counts = {}  # Resolving individuals with the same uid
+        for gen_num, gen in enumerate(history.individuals):
+            for ind in gen:
+                uid_counts[ind.uid] = uid_counts.get(ind.uid, -1) + 1
+                for node in ind.graph.nodes:
+                    history_data['generation'].append(gen_num)
+                    history_data['individual'].append('_'.join([ind.uid, str(uid_counts[ind.uid])]))
+                    fitness = ind.fitness
+                    # Support for older histories
+                    fitness = abs(fitness) if isinstance(fitness, float) else abs(fitness.value)
+                    history_data['fitness'].append(fitness)
+                    history_data['node'].append(str(node))
+                    if not get_tags:
+                        continue
+                    history_data['tag'].append(get_opt_node_tag(str(node), tags_model=tags_model, tags_data=tags_data))
+
+        df_history = pd.DataFrame.from_dict(history_data)
+
+        if pct_best is not None:
+            generation_sizes = df_history.groupby('generation')['individual'].nunique()
+
+            df_individuals = df_history[['generation', 'individual', 'fitness']] \
+                .drop_duplicates(ignore_index=True)
+
+            df_individuals['rank_per_generation'] = df_individuals.sort_values('fitness', ascending=False). \
+                groupby('generation').cumcount()
+
+            best_individuals = df_individuals[
+                df_individuals.apply(
+                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * pct_best,
+                    axis='columns'
+                )
+            ]['individual']
+
+            df_history = df_history[df_history['individual'].isin(best_individuals)]
+
+        return df_history
+
+    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
+                              pct_best: Optional[float] = None):
+        """ Visualizes fitness values across generations in the form of boxplot.
+
+        :param history: OptHistory.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        """
+        df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
+        df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
+        # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
+        palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
+            sort_values('fitness', ignore_index=True)['generation'].sort_values().index
+        palette = sns.color_palette('YlOrRd', n_colors=len(palette_ranks))
+
+        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
+        fig = plot.figure
+        fig.set_dpi(110)
+        fig.set_facecolor('w')
+        ax = plt.gca()
+
+        ax.set_title('Fitness by generations')
+        ax.set_xlabel('Generation')
+        # Set ticks for every 5 generation if there's more than 10 generations.
+        if len(history.historical_fitness) > 10:
+            ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
+            ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
+            ax.xaxis.grid(True)
+        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
+        ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
+        ax.yaxis.grid(True)
+
+        if not save_path:
+            plt.show()
+        else:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
+            fig.savefig(save_path, dpi=300)
+            print(f'The figure was saved to "{save_path}".')
+            plt.close()
+
+    def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[str] = None,
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
+                                 pct_best: Optional[float] = None):
+        """ Visualizes operations used across generations in the form of KDE.
+
+        :param history: OptHistory.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed.
+        :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+        :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        """
+        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
+        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
+
+        tags_all = [*tags_model, *tags_data]
+
+        generation_column_name = 'Generation'
+        tag_column_name = 'Operation'
+
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
+        df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
+        tags_found = df_history[tag_column_name].unique()
+
+        plot = sns.displot(
+            data=df_history,
+            x=generation_column_name,
+            hue=tag_column_name,
+            hue_order=[t for t in tags_all if t in tags_found],
+            kind='kde',
+            clip=(0, max(df_history[generation_column_name])),
+            multiple='fill',
+            palette='Set2',
+        )
+        fig = plot.figure
+        fig.set_dpi(110)
+        fig.set_facecolor('w')
+        ax = plt.gca()
+        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
+        ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
+        # ax.legend()
+        # plt.tight_layout()
+
+        if save_path:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
+
+            fig.savefig(save_path, dpi=300)
+            print(f'The figure was saved to "{save_path}".')
+            plt.close()
+
+    def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: str,
+                                          tags_model: Optional[List[str]] = None,
+                                          tags_data: Optional[List[str]] = None,
+                                          pct_best: Optional[float] = None, show_fitness_color: bool = True):
+        """ Visualizes operations used across generations in the form of animated bar plot.
+
+        :param history: OptHistory.
+        :param save_path: path to save the visualization.
+        :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+        :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        :param show_fitness_color: if False, the bar colors will not correspond to fitness.
+        """
+
+        def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
+            t_interp = np.linspace(0, 1, smoothness)
+            point_1, point_2 = np.array(point_1), np.array(point_2)
+            return [point_1 * (1 - t ** power) + point_2 * t ** power for t in t_interp]
+
+        def smoothen_frames_data(data: Sequence[Sequence['ArrayLike']], smoothness=18, power=4) -> List[np.array]:
+            final_frames = []
+            for initial_frame in range(len(data) - 1):
+                final_frames += interpolate_points(data[initial_frame], data[initial_frame + 1], smoothness, power)
+            # final frame interpolates into itself
+            final_frames += interpolate_points(data[-1], data[-1], smoothness, power)
+
+            return final_frames
+
+        def animate(frame_num):
+            frame_count = bar_data[frame_num]
+            frame_color = bar_color[frame_num] if show_fitness_color else None
+            frame_title = bar_title[frame_num]
+
+            plt.title(frame_title)
+            for bar_num in range(len(bars)):
+                bars[bar_num].set_width(frame_count[bar_num])
+                if not show_fitness_color:
+                    continue
+                bars[bar_num].set_facecolor(frame_color[bar_num])
+
+        save_path = Path(save_path)
+        if save_path.suffix not in ['.gif', '.mp4']:
+            raise ValueError('A correct file extension (".mp4" or ".gif") should be set to save the animation.')
+
+        animation_frames_per_step = 18
+        animation_interval_between_frames_ms = 40
+        animation_interpolation_power = 4
+        animation_dpi = 200
+        fitness_colormap = cm.get_cmap('YlOrRd')
+        no_fitness_palette = 'crest'
+
+        tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
+        tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
+
+        tags_all = [*tags_model, *tags_data]
+
+        generation_column_name = 'Generation'
+        fitness_column_name = 'Fitness'
+        tag_column_name = 'Operation'
+
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
+        df_history = df_history.rename({
+            'generation': generation_column_name,
+            'fitness': fitness_column_name,
+            'tag': tag_column_name,
+        }, axis='columns')
+        tags_found = df_history[tag_column_name].unique()
+        tags_found = [tag for tag in tags_all if tag in tags_found]
+        # Getting normed fraction of individuals  per generation that contain operations given.
+        generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
+        operations_with_individuals_count = df_history.groupby(
+                [generation_column_name, tag_column_name],
+                as_index=False
+            ).aggregate({'individual': 'nunique'})
+        operations_with_individuals_count['individual'] = operations_with_individuals_count.apply(
+            lambda row: row['individual'] / generation_sizes[row[generation_column_name]],
+            axis='columns')
+
+        if show_fitness_color:
+            # Getting fitness per individual with the list of contained operations in the form of
+            # '.operation_1.operation_2. ... .operation_n.'
+            individuals_fitness = df_history[[generation_column_name, 'individual', fitness_column_name]] \
+                .drop_duplicates()
+            individuals_fitness['operations'] = individuals_fitness.apply(
+                lambda row: '.{}.'.format('.'.join(
+                    df_history[
+                        (df_history[generation_column_name] == row[generation_column_name]) &
+                        (df_history['individual'] == row['individual'])
+                    ][tag_column_name])),
+                axis='columns')
+            # Getting mean fitness of individuals with the operations given.
+            operations_with_individuals_count[fitness_column_name] = operations_with_individuals_count.apply(
+                lambda row: individuals_fitness[
+                    (individuals_fitness[generation_column_name] == row[generation_column_name]) &
+                    (individuals_fitness['operations'].str.contains(f'.{row[tag_column_name]}.'))
+                    ][fitness_column_name].mean(),
+                axis='columns')
+            del individuals_fitness
+        # Replacing the initial DataFrame with the processed one
+        df_history = operations_with_individuals_count.set_index([generation_column_name, tag_column_name])
+        del operations_with_individuals_count
+
+        min_fitness = df_history[fitness_column_name].min() if show_fitness_color else None
+        max_fitness = df_history[fitness_column_name].max() if show_fitness_color else None
+
+        generations = generation_sizes.index.unique()
+        bar_data = []
+        bar_color = []
+        # Getting data by tags through all generations and filling with zeroes where no such tag
+        for gen_num in generations:
+            bar_data.append([df_history.loc[gen_num]['individual'].get(tag, 0) for tag in tags_found])
+            if not show_fitness_color:
+                continue
+            fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
+            # Transfer fitness to color
+            bar_color.append([
+                fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
+
+        bar_data = smoothen_frames_data(bar_data, animation_frames_per_step, animation_interpolation_power)
+        title_template = 'Generation {}'
+        if pct_best is not None:
+            title_template += f', top {pct_best * 100}%'
+        bar_title = [i for gen_num in generations for i in [title_template.format(gen_num)] * animation_frames_per_step]
+
+        fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
+        if show_fitness_color:
+            bar_color = smoothen_frames_data(bar_color, animation_frames_per_step, animation_interpolation_power)
+            sm = cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap)
+            sm.set_array([])
+            fig.colorbar(sm, label=fitness_column_name)
+        else:
+            no_fitness_palette = sns.color_palette(no_fitness_palette, n_colors=len(tags_found))
+
+        count = bar_data[0]
+        color = bar_color[0] if show_fitness_color else [no_fitness_palette[i] for i in range(len(tags_found))]
+        title = bar_title[0]
+
+        bars = ax.barh(tags_found, count, color=color)
+        ax.set_title(title)
+        ax.set_xlim(0, 1)
+        ax.set_xlabel(f'Fraction of pipelines containing the operation')
+        ax.xaxis.grid(True)
+        ax.set_ylabel(tag_column_name)
+        ax.invert_yaxis()
+        plt.tight_layout()
+
+        if not save_path.is_absolute():
+            save_path = Path(os.getcwd(), save_path)
+
+        ani = animation.FuncAnimation(
+            fig,
+            animate,
+            frames=len(bar_data),
+            interval=animation_interval_between_frames_ms,
+            repeat=False
+        )
+        ani.save(str(save_path), dpi=animation_dpi)
+        print(f'The animation was saved to "{save_path}".')
+        plt.close(fig=fig)
 
 
 def figure_to_array(fig):
