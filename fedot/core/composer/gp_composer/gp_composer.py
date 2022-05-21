@@ -2,7 +2,7 @@ import platform
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import partial
-from multiprocessing import set_start_method
+from multiprocessing import set_start_method, freeze_support
 from typing import Callable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from fedot.core.composer.cache import OperationsCache
@@ -34,8 +34,7 @@ def set_multiprocess_start_method():
     system = platform.system()
     if system == 'Linux':
         set_start_method("spawn", force=True)
-    else:
-        set_start_method("fork", force=True)
+
 
 
 @dataclass
@@ -111,8 +110,8 @@ class GPComposer(Composer):
         else:
             self.optimiser.graph_generation_params.rules_for_constraint = common_rules
 
-        if self.composer_requirements.max_pipeline_fit_time:
-            set_multiprocess_start_method()
+
+        set_multiprocess_start_method()
 
         if not self.optimiser:
             raise AttributeError(f'Optimiser for graph composition is not defined')
