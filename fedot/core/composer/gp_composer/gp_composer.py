@@ -34,6 +34,8 @@ def set_multiprocess_start_method():
     system = platform.system()
     if system == 'Linux':
         set_start_method("spawn", force=True)
+    else:
+        set_start_method("fork", force=True)
 
 
 @dataclass
