@@ -197,6 +197,8 @@ class ApiComposer:
 
         if not preset or preset == 'auto':
             preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, timeout)
+            self.preset_name = preset
+            log.info(f"Preset was changed to {preset}")
         available_operations = self._set_available_operations(task, preset, available_operations)
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
                                                                  self.timer.datetime_composing, available_operations)

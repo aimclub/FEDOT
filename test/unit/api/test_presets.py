@@ -65,10 +65,8 @@ def test_auto_preset_converted_correctly():
     data = data_with_binary_features_and_categorical_target()
 
     simple_init_assumption = Pipeline(PrimaryNode('logit'))
-    fedot_model = Fedot(problem='classification', preset='auto',
-                        timeout=0.01, composer_params={'initial_assumption': simple_init_assumption,
-                                                       'pop_size': 500})
+    fedot_model = Fedot(problem='classification', preset='auto', timeout=0.01,
+                        composer_params={'initial_assumption': simple_init_assumption, 'pop_size': 500})
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
-    assert fedot_model.history is None
     assert fedot_model.api_composer.preset_name == FAST_TRAIN_PRESET_NAME
