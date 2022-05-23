@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from fedot.core.utilities.data_structures import BidirectionalIterator
 
@@ -14,12 +14,13 @@ class SequenceIterator(BidirectionalIterator[int]):
     :param min_sequence_value: minimal value in sequence
     """
 
-    def __init__(self, sequence_func: Callable, start_value: int = None, max_sequence_value: int = None,
-                 min_sequence_value: int = None):
+    def __init__(self, sequence_func: Callable,
+                 start_value: int = 0,
+                 max_sequence_value: Optional[int] = None,
+                 min_sequence_value: Optional[int] = None):
         self.sequence_func = sequence_func
         self.archive = {}
-        self.start_value = start_value
-        self.index = self.get_sequence_index(self.start_value) - 1 if start_value is not None else - 1
+        self.index = self.get_sequence_index(start_value) - 1 if start_value is not None else - 1
         self.max_sequence_value = max_sequence_value
         self.min_sequence_value = min_sequence_value
 
@@ -34,7 +35,7 @@ class SequenceIterator(BidirectionalIterator[int]):
         return has
 
     def has_next(self) -> bool:
-        if self.max_sequence_value:
+        if self.max_sequence_value is not None:
             has = self.max_sequence_value >= self.sequence_item_calculation(self.index + 1)
         else:
             has = True

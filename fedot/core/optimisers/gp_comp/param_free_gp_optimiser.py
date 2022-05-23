@@ -11,8 +11,6 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.pipeline import Pipeline
 
-DEFAULT_MAX_POP_SIZE = 55
-
 
 class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     """
@@ -27,7 +25,6 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None,
-                 max_population_size: int = DEFAULT_MAX_POP_SIZE,
                  log: Log = None):
         super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
 
@@ -39,7 +36,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
         # Define adaptive parameters
         pop_size_progression = SequenceIterator(sequence_func=fibonacci_sequence,
                                                 start_value=requirements.pop_size,
-                                                min_sequence_value=1, max_sequence_value=max_population_size)
+                                                min_sequence_value=1, max_sequence_value=requirements.max_pop_size)
         self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
         self._mutation_rate = AdaptiveMutationProb()
 

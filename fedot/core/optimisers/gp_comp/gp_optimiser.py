@@ -112,7 +112,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         default_pop_size = 10
         self._pop_size: PopulationSize = ConstRatePopulationSize(
             pop_size=requirements.pop_size or default_pop_size,
-            offspring_rate=1.0 if is_steady_state else requirements.offspring_rate
+            offspring_rate=1.0 if is_steady_state else requirements.offspring_rate,
+            max_pop_size=requirements.max_pop_size,
         )
 
         start_depth = requirements.start_depth or requirements.max_depth
