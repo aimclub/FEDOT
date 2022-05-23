@@ -20,7 +20,8 @@ LICENSE = 'BSD 3-Clause'
 
 def _readlines(*names: str, **kwargs) -> List[str]:
     encoding = kwargs.get('encoding', 'utf-8')
-    return Path(__file__).parent.joinpath(*names).read_text(encoding=encoding).splitlines()
+    lines = Path(__file__).parent.joinpath(*names).read_text(encoding=encoding).splitlines()
+    return list(map(str.strip, lines))
 
 
 def _extract_requirements(file_name: str):
