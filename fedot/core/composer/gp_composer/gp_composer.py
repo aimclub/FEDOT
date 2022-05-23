@@ -69,16 +69,17 @@ class GPComposer(Composer):
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
+                 history: Optional[OptHistory] = None,
                  logger: Optional[Log] = None,
                  cache: Optional[OperationsCache] = None):
 
         super().__init__(optimiser, composer_requirements, initial_pipelines, logger)
         self.composer_requirements = composer_requirements
 
-        self.optimiser = optimiser
+        self.optimiser: GraphOptimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
+        self.history: Optional[OptHistory] = history
 
-        self._history = OptHistory(self.optimiser.objective, self.optimiser.parameters.history_folder)
         self.objective_builder = DataObjectiveBuilder(optimiser.objective,
                                                       composer_requirements.max_pipeline_fit_time,
                                                       composer_requirements.cv_folds,
@@ -93,9 +94,8 @@ class GPComposer(Composer):
         data.shuffle()
 
         # Keep history of optimization
-        self._history.clean_results()
-        history_callback = partial(log_to_history, self._history)
-        self.optimiser.set_optimisation_callback(history_callback)
+        if self.history:
+            self.history.clean_results()
 
         # Define objective function
         objective_evaluator = self.objective_builder.build(data)
@@ -120,7 +120,3 @@ class GPComposer(Composer):
     @staticmethod
     def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):
         raise NotImplementedError()
-
-    @property
-    def history(self):
-        return self._history

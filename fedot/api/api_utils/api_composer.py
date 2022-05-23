@@ -160,7 +160,6 @@ class ApiComposer:
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=mutations,
             crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
-            history_folder=composer_params.get('history_folder'),
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
         return optimiser_parameters
@@ -219,6 +218,7 @@ class ApiComposer:
             .with_optimiser_params(parameters=self._init_optimiser_params(task, composer_params),
                                    external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_function) \
+            .with_history(composer_params.get('history_folder')) \
             .with_logger(log) \
             .with_cache(self.cache)
         gp_composer: GPComposer = builder.build()

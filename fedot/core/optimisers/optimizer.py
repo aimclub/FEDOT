@@ -38,7 +38,6 @@ class GraphOptimiserParameters:
         self.with_auto_depth_configuration = with_auto_depth_configuration
         self.depth_increase_step = depth_increase_step
         self.multi_objective = multi_objective
-        self.history_folder = history_folder
         self.stopping_after_n_generation = stopping_after_n_generation
 
 
