@@ -13,7 +13,7 @@ class MetricsEnum(Enum):
 
 
 G = TypeVar('G', bound=Graph, covariant=True)
-MetricCallable = Callable[[G, ...], Real]
+MetricCallable = Callable[[G], Real]
 MetricType = Union[MetricCallable, MetricsEnum]
 
 
