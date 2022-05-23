@@ -1,37 +1,34 @@
-import os
 from os.path import dirname, join
 from pathlib import Path
+from typing import List
 
 import setuptools
 
 # The directory containing this file
-HERE = os.path.abspath(os.path.dirname(__file__))
+HERE = Path(__file__).parent.resolve()
 
 # The text of the README file
-NAME = "fedot"
-VERSION = "0.5.2"
-AUTHOR = "NSS Lab"
-SHORT_DESCRIPTION = "Automated machine learning framework for composite pipelines"
-README = (Path(os.path.join(HERE, "README.rst"))).read_text()
-URL = "https://github.com/nccr-itmo/FEDOT"
+NAME = 'fedot'
+VERSION = '0.5.2'
+AUTHOR = 'NSS Lab'
+SHORT_DESCRIPTION = 'Automated machine learning framework for composite pipelines'
+README = Path(HERE, 'README.rst').read_text()
+URL = 'https://github.com/nccr-itmo/FEDOT'
 REQUIRES_PYTHON = '>=3.7'
-LICENSE = "BSD 3-Clause"
+LICENSE = 'BSD 3-Clause'
 
 
-def read(*names, **kwargs):
-    with open(
-            join(dirname(__file__), *names),
-            encoding=kwargs.get('encoding', 'utf8')
-    ) as fh:
-        return fh.read()
+def _readlines(*names: str, **kwargs) -> List[str]:
+    encoding = kwargs.get('encoding', 'utf-8')
+    return Path(__file__).parent.joinpath(*names).read_text(encoding=encoding).splitlines()
 
 
-def extract_requirements(file_name):
-    return [r for r in read(file_name).split('\n') if r and not r.startswith('#')]
+def _extract_requirements(file_name: str):
+    return [line for line in _readlines(file_name) if line and not line.startswith('#')]
 
 
-def get_requirements():
-    requirements = extract_requirements('requirements.txt')
+def _get_requirements(req_name: str):
+    requirements = _extract_requirements(req_name)
     return requirements
 
 
@@ -39,20 +36,23 @@ setuptools.setup(
     name=NAME,
     version=VERSION,
     author=AUTHOR,
-    author_email="itmo.nss.team@gmail.com",
+    author_email='itmo.nss.team@gmail.com',
     description=SHORT_DESCRIPTION,
     long_description=README,
-    long_description_content_type="text/x-rst",
+    long_description_content_type='text/x-rst',
     url=URL,
     python_requires=REQUIRES_PYTHON,
     license=LICENSE,
     packages=setuptools.find_packages(exclude=['test*']),
     include_package_data=True,
-    install_requires=get_requirements(),
+    install_requires=_get_requirements('requirements.txt'),
+    extras_require={
+        'extra': _get_requirements('requirements_extra.txt')
+    },
     classifiers=[
-        "License :: OSI Approved :: MIT License",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
+        'License :: OSI Approved :: MIT License',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9'
     ],
 )
