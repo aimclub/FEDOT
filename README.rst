@@ -6,7 +6,7 @@
    :stub-columns: 1
 
    * - package
-     - | |pypi| |py_6| |py_7| |py_8|
+     - | |pypi| |py_7| |py_8| |py_9|
    * - tests
      - | |build| |coverage|
    * - docs
@@ -67,13 +67,28 @@ Common installation:
 
   $ pip install fedot
 
-In order to work with FEDOT source code:
+Install with all optional dependencies (mandatory for working with images and text data):
+
+.. code-block::
+
+  $ pip install fedot[extra]
+
+Alternatively, in order to work with FEDOT source code:
 
 .. code-block::
 
    $ git clone https://github.com/nccr-itmo/FEDOT.git
    $ cd FEDOT
-   $ pip install -r requirements.txt
+   $ pip install .
+   $ pytest -s test
+
+Or if you want to install FEDOT with all optional dependencies from source code:
+
+.. code-block::
+
+   $ git clone https://github.com/nccr-itmo/FEDOT.git
+   $ cd FEDOT
+   $ pip install .[extra]
    $ pytest -s test
 
 
@@ -271,17 +286,17 @@ Other papers - in `ResearchGate <https://www.researchgate.net/project/Evolutiona
    :alt: Supported Python Versions
    :target: https://badge.fury.io/py/fedot
 
-.. |py_6| image:: https://img.shields.io/badge/python_3.6-passing-success
-   :alt: Supported Python Versions
-   :target: https://img.shields.io/badge/python_3.6-passing-success
-
 .. |py_7| image:: https://img.shields.io/badge/python_3.7-passing-success
    :alt: Supported Python Versions
-   :target: https://img.shields.io/badge/python_3.7-passing-success
+   :target: https://img.shields.io/badge/python_3.6-passing-success
 
 .. |py_8| image:: https://img.shields.io/badge/python_3.8-passing-success
    :alt: Supported Python Versions
    :target: https://img.shields.io/badge/python_3.8-passing-success
+
+.. |py_9| image:: https://img.shields.io/badge/python_3.9-passing-success
+   :alt: Supported Python Versions
+   :target: https://img.shields.io/badge/python_3.9-passing-success
 
 .. |license| image:: https://img.shields.io/github/license/nccr-itmo/FEDOT
    :alt: Supported Python Versions
