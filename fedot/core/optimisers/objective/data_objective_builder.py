@@ -13,13 +13,7 @@ from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
 from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
-
-
-_sample_split_ratio_for_tasks = {
-    TaskTypesEnum.classification: 0.8,
-    TaskTypesEnum.regression: 0.8,
-    TaskTypesEnum.ts_forecasting: 0.5
-}
+from ...constants import default_data_split_ratio_by_task
 
 
 class DataObjectiveBuilder:
@@ -57,7 +51,7 @@ class DataObjectiveBuilder:
         that always returns same data split. Equivalent to 1-fold validation."""
 
         self.log.info("Hold out validation for graph composing was applied.")
-        split_ratio = _sample_split_ratio_for_tasks[data.task.task_type]
+        split_ratio = default_data_split_ratio_by_task[data.task.task_type]
         train_data, test_data = train_test_data_setup(data, split_ratio)
 
         def data_producer(): yield train_data, test_data
