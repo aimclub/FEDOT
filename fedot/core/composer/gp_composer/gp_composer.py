@@ -1,7 +1,4 @@
-import platform
 from dataclasses import dataclass
-from functools import partial
-from multiprocessing import set_start_method
 from typing import List, Optional, Sequence, Union
 
 from fedot.core.composer.cache import OperationsCache
@@ -12,17 +9,9 @@ from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
-from fedot.core.optimisers.opt_history import OptHistory, log_to_history
+from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import common_rules, ts_rules
-from fedot.core.repository.tasks import TaskTypesEnum
-
-
-def set_multiprocess_start_method():
-    system = platform.system()
-    if system == 'Linux':
-        set_start_method("spawn", force=True)
 
 
 @dataclass
@@ -87,9 +76,6 @@ class GPComposer(Composer):
                                                       cache, logger)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
-        if self.composer_requirements.max_pipeline_fit_time:
-            set_multiprocess_start_method()
-
         # shuffle data if necessary
         data.shuffle()
 

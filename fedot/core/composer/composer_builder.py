@@ -1,4 +1,6 @@
 from functools import partial
+from multiprocessing import set_start_method
+from sys import platform
 from typing import Optional, Union, List, Dict, Sequence, Type, Iterable
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
@@ -23,6 +25,12 @@ from fedot.core.repository.quality_metrics_repository import (
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.optimisers.objective.objective import Objective
+
+
+def set_multiprocess_start_method():
+    system = platform.system()
+    if system == 'Linux':
+        set_start_method("spawn", force=True)
 
 
 class ComposerBuilder:
@@ -58,6 +66,8 @@ class ComposerBuilder:
 
     def with_requirements(self, requirements: PipelineComposerRequirements):
         self.composer_requirements = requirements
+        if self.composer_requirements.max_pipeline_fit_time:
+            set_multiprocess_start_method()
         return self
 
     def with_metrics(self, metrics: Union[MetricsEnum, List[MetricsEnum]]):
