@@ -233,12 +233,12 @@ class EvoGraphOptimiser(GraphOptimiser):
     def to_outputs(self, individuals: Iterable[Individual]) -> Union[OptGraph, List[OptGraph]]:
         graphs = [ind.graph for ind in individuals]
         # for single objective with single result return it directly
-        if not self.parameters.multi_objective and len(graphs) == 1:
+        if not self.objective.is_multi_objective and len(graphs) == 1:
             return graphs[0]
         return graphs
 
     def with_elitism(self, pop_size: int) -> bool:
-        if self.parameters.multi_objective:
+        if self.objective.is_multi_objective:
             return False
         else:
             return pop_size >= self._min_population_size_with_elitism

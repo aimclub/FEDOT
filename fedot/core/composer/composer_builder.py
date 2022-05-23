@@ -42,6 +42,7 @@ class ComposerBuilder:
     def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimiser]] = None):
         if optimiser_cls is not None:
             self.optimiser_cls = optimiser_cls
+        return self
 
     def with_optimiser_params(self, parameters: Optional[GraphOptimiserParameters] = None,
                               external_parameters: Optional[Dict] = None):
@@ -104,14 +105,14 @@ class ComposerBuilder:
                                                         advisor=PipelineChangeAdvisor(self.task),
                                                         rules_for_constraint=graph_constraint_rules)
 
-        if len(self.metrics) > 1:
+        # if len(self.metrics) > 1:
+        if self.optimiser_parameters.multi_objective:
             # TODO add possibility of using regularization in MO alg
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
-            self.optimiser_parameters.multi_objective = True
+            self.log.info("Regularisation is not supported for multi-objective optimisation.")
         else:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()
-            self.optimiser_parameters.multi_objective = False
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective, log=self.log)
 
