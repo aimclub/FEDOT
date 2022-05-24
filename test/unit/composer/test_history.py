@@ -6,25 +6,26 @@ import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, ObjectiveBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
+from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     RegressionMetricsEnum, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
@@ -146,11 +147,11 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     adapter = PipelineAdapter()
     graph_gen_params = GraphGenerationParams(adapter)
     metrics = [metric]
-    objective_builder = ObjectiveBuilder(metrics, collect_intermediate_metric=True)
-    objective_f, intermediate_metric_f = objective_builder.build(input_data)
-    evaluate = Evaluate(graph_gen_params,
-                        objective_function=objective_f,
-                        intermediate_metrics_function=intermediate_metric_f)
+    objective_builder = DataObjectiveBuilder(Objective(metrics))
+    objective_eval = objective_builder.build(input_data)
+    evaluate = EvaluationDispatcher(objective_eval,
+                                    graph_gen_params.adapter,
+                                    collect_intermediate_metrics=True)
     population = [Individual(adapter.adapt(pipeline))]
     evaluated_pipeline = evaluate(population)[0].graph
     restored_pipeline = adapter.restore(evaluated_pipeline)

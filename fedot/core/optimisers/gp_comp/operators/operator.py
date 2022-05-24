@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Callable, Sequence, Any
+from typing import TypeVar, Generic, Sequence
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.pipelines.pipeline import Pipeline
 
 T = TypeVar('T')
 
 PopulationT = Sequence[Individual]  # TODO: provisional
-ObjectiveFunction = Callable[[Pipeline], Sequence[float]]  # TODO: provisional, ensure signature
 
 
 class Operator(ABC, Generic[T]):

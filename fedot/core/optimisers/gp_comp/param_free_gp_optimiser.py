@@ -1,10 +1,10 @@
-from copy import deepcopy
 from itertools import zip_longest
-from typing import List, Optional, Union, Callable
+from typing import List, Optional, Union, Callable, Any
 
 import numpy as np
 from tqdm import tqdm
 
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
@@ -17,7 +17,9 @@ from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationS
 from fedot.core.optimisers.gp_comp.operators.regularization import regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import selection
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 DEFAULT_MAX_POP_SIZE = 55
 
@@ -29,11 +31,14 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
     For details, see https://ieeexplore.ieee.org/document/9504773
     """
 
-    def __init__(self, initial_graph, requirements, graph_generation_params, metrics: List[MetricsEnum],
+    def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
+                 requirements: PipelineComposerRequirements,
+                 graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  max_population_size: int = DEFAULT_MAX_POP_SIZE,
                  log: Log = None):
-        super().__init__(initial_graph, requirements, graph_generation_params, metrics, parameters, log)
+        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
 
         self._min_population_size_with_elitism = 7
         if self.parameters.genetic_scheme_type != GeneticSchemeTypesEnum.parameter_free:
@@ -45,14 +50,11 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                                                 min_sequence_value=1, max_sequence_value=max_population_size)
         self._pop_size: PopulationSize = AdaptivePopulationSize(self.generations, pop_size_progression)
 
-        self.stopping_after_n_generation = parameters.stopping_after_n_generation
-
-    def optimise(self, objective_function,
+    def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 intermediate_metrics_function: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
-        self.evaluator.objective_function = objective_function  # TODO: move into init!
+        evaluator = self._get_evaluator(objective_evaluator)
 
         if on_next_iteration_callback is None:
             on_next_iteration_callback = self.default_on_next_iteration_callback
@@ -63,7 +65,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                         disable=self.log.verbosity_level == -1) if show_progress else None
 
             pop_size = self._pop_size.initial
-            self.population = self.evaluator(self._init_population(pop_size))
+            self.population = evaluator(self._init_population(pop_size))
             self.generations.append(self.population)
 
             on_next_iteration_callback(self.population, self.generations.best_individuals)
@@ -82,11 +84,10 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                 self.max_std = self.update_max_std()
 
                 individuals_to_select = \
-                    regularized_population(reg_type=self.parameters.regularization_type,
-                                           population=self.population,
-                                           objective_function=objective_function,
-                                           graph_generation_params=self.graph_generation_params,
-                                           timer=t)
+                    regularized_population(self.parameters.regularization_type,
+                                           self.population,
+                                           evaluator,
+                                           self.graph_generation_params)
 
                 # TODO: collapse this selection & reprodue for 1 and for many
                 if len(self.population) == 1:
@@ -103,7 +104,7 @@ class EvoGraphParameterFreeOptimiser(EvoGraphOptimiser):
                     for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
                         new_population += self.reproduce(ind_1, ind_2)
 
-                new_population = self.evaluator(new_population)
+                new_population = evaluator(new_population)
 
                 with_elitism = self.with_elitism(pop_size)
                 num_of_new_individuals = pop_size

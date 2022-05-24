@@ -1,10 +1,7 @@
 from abc import abstractmethod
-from copy import deepcopy
 from dataclasses import dataclass
 from functools import partial
 from typing import (Any, Callable, List, Optional, Union, Sequence)
-
-import numpy as np
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.log import Log, default_log
@@ -13,7 +10,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 
 
 class GraphOptimiserParameters:
@@ -46,24 +44,26 @@ class GraphOptimiser:
     (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param initial_graph: graph which was initialized outside the optimiser
+    :param objective: objective for optimisation
     :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
-    :param metrics: metrics for optimisation
     :param parameters: parameters for specific implementation of graph optimiser
     :param log: optional parameter for log object
     """
 
     def __init__(self, initial_graph: Union[Any, List[Any]],
+                 objective: Objective,
                  requirements: Any,
                  graph_generation_params: 'GraphGenerationParams',
-                 metrics: List[MetricsEnum],
                  parameters: GraphOptimiserParameters = None,
                  log: Optional[Log] = None):
 
         self.log = log or default_log(__name__)
 
+        self._objective = objective
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
+        self.parameters = parameters
 
         self.max_depth = self.requirements.start_depth \
             if self.requirements.start_depth \
@@ -72,33 +72,28 @@ class GraphOptimiser:
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=self.max_depth)
 
+        if initial_graph and not isinstance(initial_graph, Sequence):
+            initial_graph = [initial_graph]
         self.initial_graph = initial_graph
-        self.history = OptHistory(metrics, parameters.history_folder)
+        self.history = OptHistory(objective, parameters.history_folder)
         self.history.clean_results()
 
+    @property
+    def objective(self) -> Objective:
+        return self._objective
+
     @abstractmethod
-    def optimise(self, objective_function,
+    def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True,
-                 **kwargs) -> Union[OptGraph, List[OptGraph]]:
+                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
-        :param objective_function: function for calculation of the objective function for optimisation
+        :param objective_evaluator: Defines specific Objective and graph evaluation policy.
         :param on_next_iteration_callback: callback function that runs in each iteration of optimization
         :param show_progress: print output the describes the progress during iterations
         :return: best graph (or list of graph for multi-objective case)
         """
         pass
-
-    def is_equal_fitness(self, first_fitness, second_fitness, atol=1e-10, rtol=1e-10) -> bool:
-        """ Function for the comparison of fitness values between pairs of individuals
-        :param first_fitness: fitness for individual A
-        :param second_fitness: fitness for individual B
-        :param atol: absolute tolerance parameter (see Notes).
-        :param rtol: relative tolerance parameter (see Notes).
-        :return: equality flag
-        """
-        return np.isclose(first_fitness, second_fitness, atol=atol, rtol=rtol)
 
     def default_on_next_iteration_callback(self, individuals: Sequence[Individual],
                                            best_individuals: Optional[Sequence[Individual]] = None):
@@ -116,11 +111,6 @@ class GraphOptimiser:
                 self.history.add_to_archive_history(best_individuals)
         except Exception as ex:
             self.log.warn(f'Callback was not successful because of {ex}')
-
-    # TODO: possibly remove, it's protected & not really used as abstract method
-    @abstractmethod
-    def _is_stopping_criteria_triggered(self):
-        pass
 
 
 @dataclass

@@ -6,41 +6,37 @@ from random import choice
 
 from typing import Dict, Optional
 
-from fedot.core.log import Log, default_log
-from fedot.core.optimisers.fitness import *
 from fedot.core.dag.graph import Graph
-from fedot.core.operations.model import Model
+from fedot.core.log import Log, default_log
+from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.gp_comp.operators.operator import *
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import Timer, get_forever_timer
+from fedot.core.optimisers.objective import ObjectiveEvaluate
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 
-class Evaluate(Operator[PopulationT]):
-    """Maps individuals to evaluated individuals.
+class EvaluationDispatcher(Operator[PopulationT]):
+    """Defines objective-independent details of how evaluation of individuals must be handled.
     Responsibilities:
-    - Handle evaluation policy (e.g. sequential, parallel, async)
-    - Compute Fitness for each individual in the population
+    - Handle evaluation policy (e.g. sequential, parallel, async) and dispatch evaluation.
+    - Delegate Fitness computation to ObjectiveEvaluate for each individual in the population.
     - Save additional metadata related to evaluation process (e.g. computation time)
     """
     def __init__(self,
-                 graph_gen_params: GraphGenerationParams,
-                 objective_function: ObjectiveFunction,
-                 is_multi_objective: bool = False,
+                 objective_eval: ObjectiveEvaluate,
+                 graph_adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  log: Log = None,
                  n_jobs: int = 1,
-                 intermediate_metrics_function: Optional[ObjectiveFunction] = None):
-        self.graph_gen_params = graph_gen_params
-        self.objective_function = objective_function
-        self.is_multi_objective = is_multi_objective
-        self.n_jobs = n_jobs
-        self._intermediate_metrics_function = intermediate_metrics_function
+                 collect_intermediate_metrics: bool = False):
+        self._objective_eval = objective_eval
+        self._graph_adapter = graph_adapter
+        self._collect_intermediate_metrics = collect_intermediate_metrics
 
         self.timer = timer or get_forever_timer()
         self.logger = log or default_log('Population evaluation')
-        self.graph_adapter = self.graph_gen_params.adapter
+        self._n_jobs = n_jobs
         self._reset_eval_cache()
 
     def __call__(self, population: PopulationT) -> PopulationT:
@@ -53,7 +49,7 @@ class Evaluate(Operator[PopulationT]):
         return evaluated_population
 
     def evaluate_dispatch(self, individuals: PopulationT) -> PopulationT:
-        n_jobs = determine_n_jobs(self.n_jobs, self.logger)
+        n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         if n_jobs == 1:
             mapped_evals = map(self.evaluate_single, individuals)
@@ -78,52 +74,30 @@ class Evaluate(Operator[PopulationT]):
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
         _restrict_n_jobs_in_nodes(graph)
-        adapted_graph = self.graph_adapter.restore(graph)
-        ind.fitness = self.calculate_fitness(adapted_graph)
-        self._collect_intermediate_metrics(adapted_graph)
-        self._cleanup_memory(graph)
-        ind.graph = self.graph_adapter.adapt(adapted_graph)
+        adapted_graph = self._graph_adapter.restore(graph)
+        ind.fitness = self._objective_eval(adapted_graph)
+        if self._collect_intermediate_metrics:
+            self._objective_eval.evaluate_intermediate_metrics(adapted_graph)
+        self._cleanup_memory(adapted_graph)
+        ind.graph = self._graph_adapter.adapt(adapted_graph)
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         return ind if ind.fitness.valid else None
 
-    def calculate_fitness(self, graph: Graph) -> Fitness:
-        calculated_fitness = self.objective_function(graph)
-        if calculated_fitness is None:
-            return null_fitness()
-        elif self.is_multi_objective:
-            return MultiObjFitness(values=calculated_fitness,
-                                   weights=[-1] * len(calculated_fitness))
-        else:
-            return SingleObjFitness(*calculated_fitness)
-
-    def _collect_intermediate_metrics(self, graph: Graph):
-        if not self._intermediate_metrics_function:
-            return
-        for node in graph.nodes:
-            if isinstance(node.operation, Model):
-                # TODO: leak of Pipeline type, it shouldn't be there
-                intermediate_graph = Pipeline(node)
-                intermediate_graph.preprocessor = graph.preprocessor
-                metric_values = self._intermediate_metrics_function(intermediate_graph)
-                node.metadata.metric = metric_values[0]  # saving only the most important first metric
-
     def _cleanup_memory(self, graph: Graph):
-        # TODO: leak of Pipeline type, it shouldn't be there
-        if isinstance(graph, Pipeline):
-            graph.unfit()
+        self._objective_eval.cleanup(graph)
         gc.collect()
 
     def _reset_eval_cache(self):
-        self.evaluation_cache: Dict[int, Pipeline] = {}
+        self.evaluation_cache: Dict[int, Graph] = {}
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
         fitter = RemoteEvaluator()  # singleton
         if fitter.use_remote:
             self.logger.info('Remote fit used')
-            restored_graphs = [self.graph_adapter.restore(ind.graph) for ind in population]
+            restored_graphs = [self._graph_adapter.restore(ind.graph) for ind in population]
             computed_pipelines = fitter.compute_pipelines(restored_graphs)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 

@@ -1,6 +1,5 @@
 from abc import abstractmethod
-from collections.abc import Hashable
-from typing import Sequence, Any, Union, Optional, Tuple
+from typing import Sequence, Any, Optional, Tuple
 
 import numpy as np
 

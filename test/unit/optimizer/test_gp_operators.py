@@ -5,17 +5,17 @@ import numpy as np
 from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements, ObjectiveBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.evaluation import Evaluate
+from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations, mutation, \
     reduce_mutation, single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -28,6 +28,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.core.optimisers.objective.objective import Objective
 from test.unit.composer.test_composer import to_numerical
 from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
     pipeline_third
@@ -117,15 +118,15 @@ def test_evaluate_individuals():
                              pipeline_third(), pipeline_fourth()]
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    objective_builder = ObjectiveBuilder([metric_function])
-    metric_function_for_nodes, _ = objective_builder.build(dataset_to_compose)
+    objective_builder = DataObjectiveBuilder(Objective([metric_function]))
+    objective_eval = objective_builder.build(dataset_to_compose)
     adapter = PipelineAdapter()
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=0.001)
     params = GraphGenerationParams(adapter=PipelineAdapter(), advisor=PipelineChangeAdvisor())
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
+        evaluator = EvaluationDispatcher(objective_eval, params.adapter, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 1
     assert evaluated[0].fitness is not None
@@ -135,7 +136,7 @@ def test_evaluate_individuals():
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
     timeout = datetime.timedelta(minutes=5)
     with OptimisationTimer(timeout=timeout) as t:
-        evaluator = Evaluate(params, metric_function_for_nodes, is_multi_objective=False, timer=t)
+        evaluator = EvaluationDispatcher(objective_eval, params.adapter, timer=t)
         evaluated = evaluator(population)
     assert len(evaluated) == 4
     assert all([ind.fitness.valid for ind in evaluated])
