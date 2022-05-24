@@ -1,9 +1,9 @@
-from typing import List, Optional, Union, Any, Sequence
+from typing import Optional, Union, Sequence
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
-from fedot.core.optimisers.gp_comp.iterator import SequenceIterator, fibonacci_sequence
+from fedot.core.utilities.sequence_iterator import SequenceIterator, fibonacci_sequence
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.parameters.mutation_prob import AdaptiveMutationProb
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, AdaptivePopulationSize
