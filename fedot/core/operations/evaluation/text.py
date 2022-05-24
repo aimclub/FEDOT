@@ -1,14 +1,15 @@
 import warnings
+
 from typing import Optional
 
 import numpy as np
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.text_preprocessing import (
     TextCleanImplementation
 )
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -116,7 +117,6 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain custom text preprocessing strategy for {operation_type}')
 
-
 try:
     from gensim.models import Word2Vec
 
@@ -187,7 +187,6 @@ try:
             return features
 except ModuleNotFoundError:
     print('Gensim is not installed, continue')
-
 
     class GensimTextVectorizeStrategy:
         ...

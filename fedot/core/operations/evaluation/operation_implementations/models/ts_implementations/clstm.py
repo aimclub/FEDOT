@@ -2,7 +2,6 @@ from copy import copy
 from typing import Optional
 
 import numpy as np
-from sklearn.preprocessing import StandardScaler
 
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
@@ -13,13 +12,13 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
 from fedot.core.repository.dataset_types import DataTypesEnum
+from sklearn.preprocessing import StandardScaler
 
 try:
     import torch
     import torch.nn as nn
 
     from torch.utils.data import DataLoader, TensorDataset
-
 
     class CLSTMImplementation(ModelImplementation):
         def __init__(self, log: Optional[Log] = None, **params):
@@ -223,7 +222,6 @@ try:
             y = torch.from_numpy(final_target.copy()).float()
             return DataLoader(TensorDataset(x, y), batch_size=self.batch_size), forecast_length
 
-
     class LSTMNetwork(nn.Module):
         def __init__(self,
                      hidden_size=200,
@@ -266,10 +264,8 @@ try:
 except ModuleNotFoundError:
     print('Torch is not installed, continue')
 
-
     class CLSTMImplementation:
         ...
-
 
     class LSTMNetwork:
         ...
