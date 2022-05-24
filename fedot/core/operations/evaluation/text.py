@@ -117,9 +117,9 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         else:
             raise ValueError(f'Impossible to obtain custom text preprocessing strategy for {operation_type}')
 
+
 try:
     from gensim.models import Word2Vec
-
 
     class GensimTextVectorizeStrategy(EvaluationStrategy):
         __operations_by_types = {
