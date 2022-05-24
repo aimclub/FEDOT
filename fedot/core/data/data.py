@@ -4,7 +4,6 @@ from copy import copy, deepcopy
 from dataclasses import dataclass, field
 from typing import List, Optional, Tuple, Union
 
-import cv2
 import numpy as np
 import pandas as pd
 
@@ -416,6 +415,7 @@ def _resize_image(file_path: str, target_size: Tuple[int, int]):
     """
     Function resizes and rewrites the input image
     """
+    import cv2
 
     img = cv2.imread(file_path)
     if img.shape[:2] != target_size:
