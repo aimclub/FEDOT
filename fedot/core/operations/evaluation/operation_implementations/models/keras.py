@@ -6,12 +6,12 @@ import numpy as np
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    print('Tensorflow non installed, continue')
+    print('Tensorflow is not installed, continue')
 
-from sklearn import preprocessing
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from sklearn import preprocessing
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 

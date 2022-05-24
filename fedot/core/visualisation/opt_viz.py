@@ -6,16 +6,14 @@ from glob import glob
 from os import remove
 from pathlib import Path
 from time import time
-from typing import Any, List, Optional, Tuple, Sequence
+from typing import Any, List, Optional, Sequence, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from PIL import Image
 from deap import tools
-from imageio import get_writer, imread
-from matplotlib import cm, animation, ticker
+from matplotlib import animation, cm, ticker
 from matplotlib.colors import Normalize
 
 from fedot.core.log import Log, default_log
@@ -116,6 +114,8 @@ class PipelineEvolutionVisualiser:
             self.log.error(f'Visualisation failed with {ex}')
 
     def _merge_images(self):
+        from PIL import Image
+
         for i in range(1, len(self.pipelines_imgs)):
             im1 = self.pipelines_imgs[i]
             im2 = self.best_pipelines_imgs[i]
@@ -138,6 +138,8 @@ class PipelineEvolutionVisualiser:
             remove(file)
 
     def create_gif_using_images(self, gif_path: str, files: List[str]):
+        from imageio import get_writer, imread
+
         with get_writer(gif_path, mode='I', duration=0.5) as writer:
             for filename in files:
                 image = imread(filename)
@@ -509,9 +511,9 @@ class PipelineEvolutionVisualiser:
         # Getting normed fraction of individuals  per generation that contain operations given.
         generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
         operations_with_individuals_count = df_history.groupby(
-                [generation_column_name, tag_column_name],
-                as_index=False
-            ).aggregate({'individual': 'nunique'})
+            [generation_column_name, tag_column_name],
+            as_index=False
+        ).aggregate({'individual': 'nunique'})
         operations_with_individuals_count['individual'] = operations_with_individuals_count.apply(
             lambda row: row['individual'] / generation_sizes[row[generation_column_name]],
             axis='columns')
@@ -526,7 +528,7 @@ class PipelineEvolutionVisualiser:
                     df_history[
                         (df_history[generation_column_name] == row[generation_column_name]) &
                         (df_history['individual'] == row['individual'])
-                    ][tag_column_name])),
+                        ][tag_column_name])),
                 axis='columns')
             # Getting mean fitness of individuals with the operations given.
             operations_with_individuals_count[fitness_column_name] = operations_with_individuals_count.apply(

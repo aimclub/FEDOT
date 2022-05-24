@@ -1,4 +1,3 @@
-from os.path import dirname, join
 from pathlib import Path
 from typing import List
 
@@ -48,7 +47,8 @@ setuptools.setup(
     include_package_data=True,
     install_requires=_get_requirements('requirements.txt'),
     extras_require={
-        'extra': _get_requirements('requirements_extra.txt')
+        key: _get_requirements(Path('other_requirements', f'{key}.txt'))
+        for key in ('automls', 'extra')
     },
     classifiers=[
         'License :: OSI Approved :: MIT License',
