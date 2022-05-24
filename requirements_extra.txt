@@ -1,7 +1,3 @@
-# Other AutoMLs
-tpot == 0.11.7
-h2o == 3.28.1.2
-
 # DNNs
 tensorflow >= 2.2.0, < 2.5.0; python_version == '3.7'
 tensorflow == 2.5.3; python_version >= '3.8'
