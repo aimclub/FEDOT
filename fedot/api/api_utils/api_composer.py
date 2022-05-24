@@ -187,6 +187,8 @@ class ApiComposer:
                 .from_operations(available_operations) \
                 .with_logger(log)
             initial_assumption = assumptions_builder.build()
+        elif isinstance(initial_assumption, Pipeline):
+            initial_assumption = [initial_assumption]
 
         fitted_initial_pipeline, init_pipeline_fit_time = \
             fit_and_check_correctness(initial_assumption[0], train_data,
