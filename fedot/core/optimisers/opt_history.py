@@ -239,7 +239,6 @@ def log_to_history(history: OptHistory, population: PopulationT, generations: Ge
     :param history: OptHistory for logging
     :param population: list of individuals obtained in last iteration
     :param generations: keeper of the best individuals from all iterations
-    :return:
     """
     history.add_to_history(population)
     history.add_to_archive_history(generations.best_individuals)

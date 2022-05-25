@@ -7,7 +7,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters, \
-    OptimisationCallback, do_nothing_cb
+    OptimisationCallback, do_nothing_callback
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.objective.objective import Objective

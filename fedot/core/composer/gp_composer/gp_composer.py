@@ -96,8 +96,8 @@ class GPComposer(Composer):
         data.shuffle()
 
         self._history.clean_results()
-        history_cb = partial(log_to_history, self._history)
-        self.optimiser.optimisation_callback = history_cb
+        history_callback = partial(log_to_history, self._history)
+        self.optimiser.optimisation_callback = history_callback
 
         objective_evaluator = self.objective_builder.build(data)
         opt_result = self.optimiser.optimise(objective_evaluator)

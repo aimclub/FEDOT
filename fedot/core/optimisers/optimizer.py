@@ -16,7 +16,7 @@ from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], None]
 
 
-def do_nothing_cb(*args, **kwargs):
+def do_nothing_callback(*args, **kwargs):
     pass
 
 
@@ -83,7 +83,7 @@ class GraphOptimiser:
         self.initial_graph = initial_graph
 
         # optimisation: callback function that runs on each iteration for new population
-        self.optimisation_callback: OptimisationCallback = do_nothing_cb
+        self.optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property
     def objective(self) -> Objective:
