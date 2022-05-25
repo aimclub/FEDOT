@@ -23,7 +23,6 @@ except ModuleNotFoundError:
     warn_requirement('PIL')
     PIL = None
 
-from deap import tools
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
@@ -279,7 +278,7 @@ class PipelineEvolutionVisualiser:
         plt.clf()
         plt.close('all')
 
-    def pareto_gif_create(self, pareto_fronts: List[tools.ParetoFront], individuals: List[List[Any]] = None,
+    def pareto_gif_create(self, pareto_fronts: List[List[Any]], individuals: List[List[Any]] = None,
                           objectives_numbers: Tuple[int] = (1, 0),
                           objectives_names: Tuple[str] = ('Complexity', 'ROC-AUC')):
         files = []
