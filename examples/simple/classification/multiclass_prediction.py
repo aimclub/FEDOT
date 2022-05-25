@@ -9,7 +9,7 @@ from fedot.utilities.requirements_notificator import warn_requirement
 try:
     import openpyxl
 except ImportError:
-    warn_requirement('openpyxl', 'fedot/examples/requirements.txt', should_raise=True)
+    warn_requirement('openpyxl', 'fedot[examples]', should_raise=True)
 
 from datetime import timedelta
 

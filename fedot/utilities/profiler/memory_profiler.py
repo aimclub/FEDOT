@@ -15,7 +15,7 @@ try:
 
     from memory_profiler import memory_usage
 except ImportError:
-    warn_requirement('objgraph', 'fedot/utilities/profiler/requirements_memory_profiler.txt', should_raise=True)
+    warn_requirement('objgraph', 'fedot[profilers]', should_raise=True)
 
 
 class MemoryProfiler:

@@ -8,11 +8,11 @@ from fedot.utilities.requirements_notificator import warn_requirement
 try:
     import gprof2dot
 except ImportError:
-    warn_requirement('gprof2dot', 'fedot/utilities/profiler/requirements_time_profiler.txt', should_raise=True)
+    warn_requirement('gprof2dot', 'fedot[profilers]', should_raise=True)
 try:
     import snakeviz
 except ImportError:
-    warn_requirement('snakeviz', 'fedot/utilities/profiler/requirements_time_profiler.txt', should_raise=True)
+    warn_requirement('snakeviz', 'fedot[profilers]', should_raise=True)
 
 
 class TimeProfiler:
