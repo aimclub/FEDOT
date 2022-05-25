@@ -49,12 +49,17 @@ class LogManager(metaclass=SingletonMeta):
 
     def _setup_default_logger(self, log_file, logger_name):
         formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-        file_handler = RotatingFileHandler(log_file)
-        file_handler.setLevel(logging.DEBUG)
-        file_handler.setFormatter(formatter)
         console_handler = logging.StreamHandler(sys.stdout)
+
+        try:
+            file_handler = RotatingFileHandler(log_file)
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            self.__logger_dict[logger_name].addHandler(file_handler)
+        except PermissionError:
+            # if log_file is unavailable
+            pass
         self.__logger_dict[logger_name].setLevel(logging.DEBUG)
-        self.__logger_dict[logger_name].addHandler(file_handler)
         self.__logger_dict[logger_name].addHandler(console_handler)
 
     def _setup_logger_from_json_file(self, config_file):
