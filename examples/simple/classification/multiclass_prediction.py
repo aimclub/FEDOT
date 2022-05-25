@@ -4,28 +4,33 @@ import random
 
 import pandas as pd
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     import openpyxl
 except ImportError:
-    raise ImportError("<openpyxl> is not installed on your system. It is required to run this example.")
-
-import numpy as np
+    warn_requirement('openpyxl', 'fedot[examples]', should_raise=True)
 
 from datetime import timedelta
 
-from sklearn.metrics import roc_auc_score as roc_auc
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.composer.gp_composer.gp_composer import \
-    PipelineComposerRequirements
+import numpy as np
+
 from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.quality_metrics_repository import \
-    ClassificationMetricsEnum
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import probs_to_labels
-from fedot.core.utils import ensure_directory_exists, get_split_data_paths, \
-    fedot_project_root, save_file_to_csv, split_data
+from fedot.core.utils import (
+    ensure_directory_exists,
+    fedot_project_root,
+    get_split_data_paths,
+    probs_to_labels,
+    save_file_to_csv,
+    split_data
+)
+from sklearn.metrics import roc_auc_score as roc_auc
 
 random.seed(1)
 np.random.seed(1)

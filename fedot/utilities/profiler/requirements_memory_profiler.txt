@@ -1,2 +1,0 @@
-objgraph==3.5.0
-memory_profiler==0.58.0

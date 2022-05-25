@@ -1,7 +1,7 @@
-import tensorflow as tf
 import random
 
 import numpy as np
+import tensorflow as tf
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.classification_pipelines import cnn_composite_pipeline

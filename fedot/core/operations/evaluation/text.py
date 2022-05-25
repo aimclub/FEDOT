@@ -3,17 +3,20 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     from gensim.models import Word2Vec
 except ModuleNotFoundError:
-    print('Gensim is not installed, continue')
-
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+    warn_requirement('gensim')
+    Word2Vec = None
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations. \
-    data_operations.text_preprocessing import TextCleanImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.text_preprocessing import (
+    TextCleanImplementation
+)
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 warnings.filterwarnings("ignore", category=UserWarning)
 

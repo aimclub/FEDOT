@@ -29,7 +29,7 @@ That is why we want to share the way we use RAPIDS:
    ``docker pull nvcr.io/nvidia/rapidsai/rapidsai:21.06-cuda11.2-base-ubuntu18.04``
 -  and
    ``docker run -it --rm -e NVIDIA_VISIBLE_DEVICES=0 -v /host/path/project:/home/FEDOT rapids``
--  Inside the container run ``pip3 install -r requirements.txt’
+-  Inside the container run ``pip3 install .[extra]’
 -  Run ``python3 /home/FEDOT/examples/gpu_example.py’
 
 This approach doesn’t has an entry point for the container so it allows

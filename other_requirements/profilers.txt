@@ -1,0 +1,7 @@
+# Time profiler
+snakeviz==2.1.0
+gprof2dot==2021.2.21
+
+# Memory profiler
+objgraph==3.5.0
+memory_profiler==0.58.0

@@ -3,13 +3,17 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     import nltk
 except ModuleNotFoundError:
-    print('NLTK is not installed, continue')
+    warn_requirement('nltk')
+    nltk = None
 
-from fedot.core.operations.evaluation.operation_implementations. \
-    implementation_interfaces import DataOperationImplementation
+from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
+    DataOperationImplementation
+)
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 

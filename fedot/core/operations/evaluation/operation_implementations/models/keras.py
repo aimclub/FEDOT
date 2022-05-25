@@ -3,15 +3,18 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    print('Tensorflow non installed, continue')
+    warn_requirement('tensorflow')
+    tf = None
 
-from sklearn import preprocessing
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from sklearn import preprocessing
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 

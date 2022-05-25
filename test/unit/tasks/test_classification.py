@@ -9,14 +9,19 @@ from examples.simple.classification.image_classification_problem import run_imag
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.operations.evaluation.operation_implementations.models.keras import FedotCNNImplementation, \
-    check_input_array, create_deep_cnn, fit_cnn, predict_cnn
+from fedot.core.operations.evaluation.operation_implementations.models.keras import (
+    FedotCNNImplementation,
+    check_input_array,
+    create_deep_cnn,
+    fit_cnn,
+    predict_cnn
+)
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.models.test_model import classification_dataset_with_redundant_features
 from test.unit.common_tests import is_predict_ignores_target
+from test.unit.models.test_model import classification_dataset_with_redundant_features
 
 
 def check_predict_cnn_correct(model, dataset_to_validate):

@@ -77,7 +77,7 @@ How to setup the development environments for the Fedot
    -  After you have created a virtual environment, you should install
       the libraries necessary for the FEDOT framework to work. In order
       to do this, go to the terminal console (blue square) and run the
-      following command *pip install -r requirements.txt* (red square).
+      following command *pip install .[extra]* (red square).
    -  For more details, take a look at the picture below.
 
         |Step 3|

@@ -1,22 +1,25 @@
-import os
 import cProfile
+import os
 import pstats
 import subprocess
 
+from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import gprof2dot
+except ImportError:
+    warn_requirement('gprof2dot', 'fedot[profilers]', should_raise=True)
+try:
     import snakeviz
 except ImportError:
-    raise ImportError("Required packages is not installed on your system."
-                      " It is required to run this example."
-                      " Install 'fedot/utilities/profiler/requirements_time_profiler.txt'")
+    warn_requirement('snakeviz', 'fedot[profilers]', should_raise=True)
 
 
 class TimeProfiler:
     """
     Profile code and visual interpret results of it.
     """
+
     def __init__(self):
         self.folder = None
         self.profiler = cProfile.Profile()
