@@ -2,7 +2,7 @@ import collections.abc
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Callable, Container, Iterator, Iterable, List, Sequence, Sized, TypeVar, Union
+from typing import Callable, Container, Iterator, Iterable, List, Sequence, Sized, TypeVar, Union, Optional
 
 
 class UniqueList(list):
@@ -70,10 +70,12 @@ T = TypeVar('T')
 
 
 def ensure_wrapped_in_sequence(
-        obj: Union[T, Iterable[T], Sequence[T]],
-        sequence_factory: Callable[[Union[Sequence[T], Iterable[T]]], Sequence[T]] = list
-) -> Sequence[T]:
-    if isinstance(obj, str) or not isinstance(obj, collections.abc.Iterable):
+        obj: Optional[Union[T, Iterable[T]]],
+        sequence_factory: Callable[[Iterable[T]], Sequence[T]] = list
+) -> Optional[Sequence[T]]:
+    if obj is None:
+        return obj
+    elif isinstance(obj, str) or not isinstance(obj, collections.abc.Iterable):
         return sequence_factory([obj])
     elif not isinstance(obj, collections.abc.Sequence) or not isinstance(obj, sequence_factory):
         return sequence_factory(obj)

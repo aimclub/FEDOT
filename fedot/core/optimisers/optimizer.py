@@ -11,7 +11,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (random_graph)
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
-
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], None]
 
@@ -78,11 +78,9 @@ class GraphOptimiser:
         self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
                                                  requirements=self.requirements, max_depth=self.max_depth)
 
-        if initial_graph and not isinstance(initial_graph, Sequence):
-            initial_graph = [initial_graph]
-        self.initial_graph = initial_graph
+        self.initial_graph = ensure_wrapped_in_sequence(initial_graph)
 
-        # optimisation: callback function that runs on each iteration for new population
+        # optimisation: callback function that runs on each iteration
         self.optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property
