@@ -1,8 +1,13 @@
 import warnings
-
 from typing import Optional
 
 import numpy as np
+
+try:
+    from gensim.models import Word2Vec
+except ModuleNotFoundError:
+    print('Gensim is not installed, continue')
+    Word2Vec = None
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
@@ -118,75 +123,67 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
             raise ValueError(f'Impossible to obtain custom text preprocessing strategy for {operation_type}')
 
 
-try:
-    from gensim.models import Word2Vec
+class GensimTextVectorizeStrategy(EvaluationStrategy):
+    __operations_by_types = {
+        'word2vec': Word2Vec
+    }
 
-    class GensimTextVectorizeStrategy(EvaluationStrategy):
-        __operations_by_types = {
-            'word2vec': Word2Vec
-        }
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
+        self.vectorizer = self._convert_to_operation(operation_type)
+        self.params = params
+        super().__init__(operation_type, params)
 
-        def __init__(self, operation_type: str, params: Optional[dict] = None):
-            self.vectorizer = self._convert_to_operation(operation_type)
-            self.params = params
-            super().__init__(operation_type, params)
+    def fit(self, train_data: InputData):
+        features_list = self._convert_to_one_dim(train_data.features)
 
-        def fit(self, train_data: InputData):
-            features_list = self._convert_to_one_dim(train_data.features)
+        vectorizer = self.vectorizer(features_list)
 
-            vectorizer = self.vectorizer(features_list)
+        return vectorizer
 
-            return vectorizer
+    def predict(self, trained_operation, predict_data: InputData,
+                is_fit_pipeline_stage: bool) -> OutputData:
 
-        def predict(self, trained_operation, predict_data: InputData,
-                    is_fit_pipeline_stage: bool) -> OutputData:
+        features_list = self._convert_to_one_dim(predict_data.features)
+        embeddings_trained = self.vectorizer([text.split() for text in features_list]).wv
+        predicted = np.stack([self.vectorize_sum(text, embeddings_trained) for text in features_list])
 
-            features_list = self._convert_to_one_dim(predict_data.features)
-            embeddings_trained = self.vectorizer([text.split() for text in features_list]).wv
-            predicted = np.stack([self.vectorize_sum(text, embeddings_trained) for text in features_list])
+        # Convert prediction to output (if it is required)
+        converted = self._convert_to_output(predicted, predict_data)
+        return converted
 
-            # Convert prediction to output (if it is required)
-            converted = self._convert_to_output(predicted, predict_data)
-            return converted
+    def _convert_to_operation(self, operation_type: str):
+        if operation_type in self.__operations_by_types.keys():
+            return self.__operations_by_types[operation_type]
+        else:
+            raise ValueError(f'Impossible to obtain TextVectorize strategy for {operation_type}')
 
-        def _convert_to_operation(self, operation_type: str):
-            if operation_type in self.__operations_by_types.keys():
-                return self.__operations_by_types[operation_type]
-            else:
-                raise ValueError(f'Impossible to obtain TextVectorize strategy for {operation_type}')
+    @staticmethod
+    def _convert_to_one_dim(array_with_text):
+        """ Method converts array with text into one-dimensional list
 
-        @staticmethod
-        def _convert_to_one_dim(array_with_text):
-            """ Method converts array with text into one-dimensional list
+        :param array_with_text: numpy array or list with text data
+        :return features_list: one-dimensional list with text
+        """
+        features = np.ravel(np.array(array_with_text, dtype=str))
+        features_list = list(features)
+        return features_list
 
-            :param array_with_text: numpy array or list with text data
-            :return features_list: one-dimensional list with text
-            """
-            features = np.ravel(np.array(array_with_text, dtype=str))
-            features_list = list(features)
-            return features_list
+    @property
+    def implementation_info(self) -> str:
+        return str(self._convert_to_operation(self.operation_type))
 
-        @property
-        def implementation_info(self) -> str:
-            return str(self._convert_to_operation(self.operation_type))
+    def vectorize_sum(self, text: str, embeddings):
+        """ Method converts text to a sum of token vectors
 
-        def vectorize_sum(self, text: str, embeddings):
-            """ Method converts text to a sum of token vectors
+        :param text: str with text data
+        :param embeddings: gensim.word2vec trained embeddings
+        :return features: one-dimensional np.array with numbers
+        """
+        embedding_dim = embeddings.vectors.shape[1]
+        features = np.zeros([embedding_dim], dtype='float32')
 
-            :param text: str with text data
-            :param embeddings: gensim.word2vec trained embeddings
-            :return features: one-dimensional np.array with numbers
-            """
-            embedding_dim = embeddings.vectors.shape[1]
-            features = np.zeros([embedding_dim], dtype='float32')
+        for word in text.split():
+            if word in embeddings:
+                features += embeddings[f'{word}']
 
-            for word in text.split():
-                if word in embeddings:
-                    features += embeddings[f'{word}']
-
-            return features
-except ModuleNotFoundError:
-    print('Gensim is not installed, continue')
-
-    class GensimTextVectorizeStrategy:
-        ...
+        return features
