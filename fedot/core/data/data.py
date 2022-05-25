@@ -7,6 +7,14 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    import cv2
+except ModuleNotFoundError:
+    warn_requirement('opencv-python')
+    cv2 = None
+
 from fedot.core.data.array_utilities import atleast_2d
 from fedot.core.data.load_data import JSONBatchLoader, TextBatchLoader
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -415,8 +423,6 @@ def _resize_image(file_path: str, target_size: Tuple[int, int]):
     """
     Function resizes and rewrites the input image
     """
-    import cv2
-
     img = cv2.imread(file_path)
     if img.shape[:2] != target_size:
         img = cv2.resize(img, (target_size[0], target_size[1]))

@@ -13,6 +13,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.utilities.requirements_notificator import warn_requirement
 
 
 class TorchMock:
@@ -25,9 +26,9 @@ try:
 
     from torch.utils.data import DataLoader, TensorDataset
 except ModuleNotFoundError:
+    warn_requirement('torch')
     torch = object()
     nn = TorchMock
-    print('Torch is not installed, continue')
 
 
 class CLSTMImplementation(ModelImplementation):

@@ -67,7 +67,7 @@ Common installation:
 
   $ pip install fedot
 
-Install with all optional dependencies (mandatory for working with images and text data):
+Install with all optional dependencies (mandatory for working with image/text data and loading tests):
 
 .. code-block::
 

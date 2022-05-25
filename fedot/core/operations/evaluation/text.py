@@ -3,10 +3,12 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     from gensim.models import Word2Vec
 except ModuleNotFoundError:
-    print('Gensim is not installed, continue')
+    warn_requirement('gensim')
     Word2Vec = None
 
 from fedot.core.data.data import InputData, OutputData

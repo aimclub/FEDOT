@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+import tensorflow as tf
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.classification_pipelines import cnn_composite_pipeline
@@ -45,8 +46,6 @@ def run_image_classification_problem(train_dataset: tuple,
 
 
 if __name__ == '__main__':
-    import tensorflow as tf
-
     training_set, testing_set = tf.keras.datasets.mnist.load_data(path='mnist.npz')
     roc_auc_on_valid, dataset_to_train, dataset_to_validate = run_image_classification_problem(
         train_dataset=training_set,

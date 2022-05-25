@@ -12,15 +12,25 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from deap import tools
-from matplotlib import animation, cm, ticker
-from matplotlib.colors import Normalize
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    import PIL
+
+    from PIL import Image
+except ModuleNotFoundError:
+    warn_requirement('PIL')
+    PIL = None
+
+from deap import tools
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+from matplotlib import animation, cm, ticker
+from matplotlib.colors import Normalize
 
 
 class PlotTypesEnum(Enum):

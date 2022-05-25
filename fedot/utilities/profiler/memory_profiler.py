@@ -1,21 +1,21 @@
 import inspect
 import os
-import seaborn as sns
 import time
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
 
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.composer.composer import Composer
-
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import objgraph
+
     from memory_profiler import memory_usage
 except ImportError:
-    raise ImportError("Required packages is not installed on your system."
-                      " It is required to run this example."
-                      " Install 'fedot/utilities/profiler/requirements_memory_profiler.txt'")
+    warn_requirement('objgraph', 'fedot/utilities/profiler/requirements_memory_profiler.txt', should_raise=True)
 
 
 class MemoryProfiler:
@@ -29,6 +29,7 @@ class MemoryProfiler:
     :param list roots: array with FEDOT types each of them is ROOT node in call-graph.
     :param int max_depth: maximum depth of graph.
     """
+
     def __init__(self, function, path: str, args=None, kwargs=None, roots=None, max_depth: int = 7):
         if args is None:
             args = []

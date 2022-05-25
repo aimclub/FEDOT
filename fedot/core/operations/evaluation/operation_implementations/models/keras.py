@@ -3,10 +3,13 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    print('Tensorflow is not installed, continue')
+    warn_requirement('tensorflow')
+    tf = None
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import Log, default_log
