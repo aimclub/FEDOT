@@ -22,8 +22,7 @@ def rand_population_gener_and_eval(pop_size=4):
     requirements = PipelineComposerRequirements(primary=models_set,
                                                 secondary=models_set, max_depth=1)
     pipeline_gener_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
-    random_pipeline_function = partial(random_graph, params=pipeline_gener_params,
-                                       requirements=requirements)
+    random_pipeline_function = partial(random_graph, pipeline_gener_params.validator, requirements)
     population = []
     while len(population) != pop_size:
         # to ensure uniqueness

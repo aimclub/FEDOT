@@ -1,9 +1,7 @@
-from fedot.core.composer.constraint import constraint_function
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.validation import common_rules, GraphValidator
 
 
 def get_nodes():
@@ -19,9 +17,9 @@ def test_constraint_validation_with_opt_node():
     first_node = PrimaryNode('ridge')
     second_node = OptNode({'name': "opt"})
     root = SecondaryNode('ridge', nodes_from=[first_node, second_node])
-    graph = PipelineAdapter().adapt(Pipeline(root))
-    graph_gener_params = GraphGenerationParams()
-    assert constraint_function(graph, graph_gener_params)
+    graph = Pipeline(root)
+    validator = GraphValidator(common_rules)
+    assert validator(graph)
 
 
 def test_node_operator_ordered_subnodes_hierarchy():

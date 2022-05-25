@@ -4,7 +4,7 @@ from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_compon
     has_no_self_cycled_nodes
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import (validate)
+from fedot.core.pipelines.validation import (validate_pipeline)
 from fedot.core.pipelines.validation_rules import has_correct_operation_positions, has_final_operation_as_model, \
     has_no_conflicts_in_decompose, has_no_conflicts_with_data_flow, has_no_data_flow_conflicts_in_ts_pipeline, \
     has_primary_nodes, is_pipeline_contains_ts_operations, only_non_lagged_operations_are_primary, \
@@ -311,7 +311,7 @@ def test_pipeline_with_self_cycled_nodes_raise_exception():
 
 def test_pipeline_validate_correct():
     pipeline = valid_pipeline()
-    validate(pipeline)
+    validate_pipeline(pipeline)
 
 
 def test_pipeline_with_isolated_components_raise_exception():
@@ -446,7 +446,7 @@ def test_data_sources_validation():
 def test_custom_validation():
     incorrect_pipeline = pipeline_with_incorrect_parents_position_for_decompose()
 
-    assert validate(incorrect_pipeline, rules=[has_no_cycle])
+    assert validate_pipeline(incorrect_pipeline, rules=[has_no_cycle])
 
 
 def test_pipeline_with_resample_node():

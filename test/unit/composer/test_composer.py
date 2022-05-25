@@ -12,7 +12,6 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.random_composer import RandomSearchComposer, RandomSearchOptimiser, RandomGraphFactory
 from fedot.core.data.data import InputData
@@ -25,10 +24,10 @@ from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.validation import GraphValidator
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum, \
-    MetricsRepository
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
 
@@ -323,11 +322,9 @@ def test_gp_composer_random_graph_generation_looping():
     """
     task = Task(TaskTypesEnum.regression)
 
-    params = GraphGenerationParams(
-        adapter=PipelineAdapter(),
-        rules_for_constraint=None,
-        advisor=PipelineChangeAdvisor(task=task)
-    )
+    adapter = PipelineAdapter()
+    validator = GraphValidator.for_task(task.task_type, adapter)
+    params = GraphGenerationParams(adapter, validator, PipelineChangeAdvisor(task=task))
 
     requirements = PipelineComposerRequirements(
         primary=['simple_imputation'],
@@ -345,13 +342,13 @@ def test_gp_composer_random_graph_generation_looping():
         mutation_strength=MutationStrengthEnum.mean
     )
 
-    graph = random_graph(params=params, requirements=requirements, max_depth=None)
+    graph = random_graph(validator, requirements, max_depth=None)
     nodes_name = list(map(str, graph.nodes))
 
     for primary_node in requirements.primary:
         assert primary_node in nodes_name
         assert nodes_name.count(primary_node) == 1
-    assert constraint_function(graph, params) is True
+    assert validator(graph) is True
 
 
 def test_gp_composer_early_stopping():

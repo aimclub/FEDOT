@@ -1,7 +1,6 @@
-from typing import Callable, List
+from typing import Callable, List, Sequence, Optional, Union
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.validation_rules import (
     DEFAULT_DAG_RULES,
     has_no_cycle,
@@ -9,7 +8,8 @@ from fedot.core.dag.validation_rules import (
     has_no_self_cycled_nodes,
     has_one_root
 )
-from fedot.core.optimisers.adapters import DirectAdapter
+from fedot.core.log import Log, default_log
+from fedot.core.optimisers.adapters import DirectAdapter, BaseOptimizationAdapter, PipelineAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.validation_rules import (
     has_correct_data_connections,
@@ -47,35 +47,57 @@ class_rules = [has_no_conflicts_during_multitask,
                has_no_conflicts_after_class_decompose]
 
 
-def validate(graph: Graph, rules: List[Callable] = None, task=None):
-    """ The graph is checked for compliance with the requirements
+# Validation rule can either return False or raise a ValueError to signal a failed check
+ValidateRuleType = Callable[..., bool]
 
-    :param graph: graph object
-    :param rules: rules to check
-    :param task: task which such a graph is solving
-    """
+
+def rules_by_task(task_type: Optional[TaskTypesEnum], rules: Sequence[ValidateRuleType] = ()) -> Sequence[ValidateRuleType]:
     tmp_rules = []
-    if rules is None or not rules:
-        tmp_rules.extend(common_rules)
-    else:
-        tmp_rules.extend(rules)
 
-    # Add specific rules if needed
-    if task:
-        if task.task_type is TaskTypesEnum.ts_forecasting:
-            tmp_rules.extend(ts_rules)
-        elif task.task_type is TaskTypesEnum.classification:
-            tmp_rules.extend(class_rules)
+    tmp_rules.extend(rules or common_rules)
 
-    # Check if all rules passes
+    if task_type is TaskTypesEnum.ts_forecasting:
+        tmp_rules.extend(ts_rules)
+    elif task_type is TaskTypesEnum.classification:
+        tmp_rules.extend(class_rules)
 
-    for rule_func in tmp_rules:
-        _rule_check(graph, rule_func)
-    return True
+    return tmp_rules
 
-def _rule_check(graph, rule_func):
-    """ Perform graph check by rule """
-    if rule_func in DEFAULT_DAG_RULES and isinstance(graph, OptGraph):
-        graph = DirectAdapter(base_graph_class=Graph,
-                              base_node_class=GraphNode).restore(graph)
-    rule_func(graph)
+
+class GraphValidator:
+    def __init__(self,
+                 rules: Sequence[ValidateRuleType] = (),
+                 adapter: Optional[BaseOptimizationAdapter] = None,
+                 log: Optional[Log] = None):
+        self._rules = rules
+        self._adapter = adapter or DirectAdapter()
+        self._log = log or default_log(self.__class__.__name__)
+
+    @staticmethod
+    def for_task(task_type: Optional[TaskTypesEnum] = None,
+                 adapter: Optional[BaseOptimizationAdapter] = None,
+                 log: Optional[Log] = None):
+        return GraphValidator(rules_by_task(task_type), adapter, log)
+
+    def __call__(self, graph: Union[Graph, OptGraph]) -> bool:
+        return self.validate(graph)
+
+    def validate(self, graph: Union[Graph, OptGraph]) -> bool:
+        restored_graph: Graph = self._adapter.restore(graph)
+        # Check if all rules pass
+        for rule in self._rules:
+            try:
+                if rule(restored_graph) is False:
+                    return False
+            except ValueError as err:
+                self._log.info(f'Graph validation failed with error <{err}> '
+                               f'for rule={rule} on graph={restored_graph.root_node.descriptive_id}.')
+                return False
+        return True
+
+
+def validate_pipeline(graph: Union[Graph, OptGraph], rules: List[Callable] = None, task_type: Optional[TaskTypesEnum] = None):
+    """Method for validation of graphs with default rules.
+    NB: It is preserved for simplicity, use GraphValidator instead."""
+    adapter = PipelineAdapter()
+    return GraphValidator(rules_by_task(task_type, rules), adapter).validate(graph)

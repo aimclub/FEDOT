@@ -3,19 +3,22 @@ from copy import deepcopy
 from random import choice, randint
 from typing import Any, List, Optional, Tuple
 
-from fedot.core.composer.constraint import constraint_function
+from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.pipelines.validation import GraphValidator
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 MAX_ITERS = 1000
 
 
-def random_graph(params, requirements, max_depth=None) -> OptGraph:
+def random_graph(validator: GraphValidator,
+                 requirements: ComposerRequirements,
+                 max_depth: Optional[int] = None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
     is_correct_graph = False
     graph = None
     n_iter = 0
-    requirements = modify_requirements(requirements)
+    requirements = adjust_requirements(requirements)
 
     while not is_correct_graph:
         graph = OptGraph()
@@ -24,25 +27,23 @@ def random_graph(params, requirements, max_depth=None) -> OptGraph:
                                       'params': DEFAULT_PARAMS_STUB})
         graph.add_node(graph_root)
         graph_growth(graph, graph_root, requirements, max_depth)
-        is_correct_graph = constraint_function(graph, params)
+        is_correct_graph = validator(graph)
         n_iter += 1
         if n_iter > MAX_ITERS:
-            warnings.warn(f'Random_graph generation failed for {n_iter} iterations.')
-            raise ValueError(f'Random_graph generation failed. Cannot find valid graph'
-                             f' with current params {params} and requirements {requirements}')
-
+            raise ValueError(f'Could not generate random graph for {n_iter} '
+                             f'iterations with requirements {requirements}')
     return graph
 
 
-def modify_requirements(requirements):
+def adjust_requirements(requirements):
     """Function modify requirements if necessary.
     Example: Graph with only one primary node should consist of only one primary node
     without duplication, because this causes errors. Therefore minimum and maximum arity
     become equal to one.
     """
+    requirements = deepcopy(requirements)
     if len(requirements.primary) == 1 and requirements.max_arity > 1:
         requirements.min_arity = requirements.max_arity = 1
-
     return requirements
 
 

@@ -6,8 +6,9 @@ from typing import Union
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import validate
+from fedot.core.pipelines.validation import validate_pipeline, GraphValidator
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.pipeline_run_config import PipelineRunConfig
@@ -49,6 +50,8 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
     config = \
         PipelineRunConfig().load_from_file(config_file)
 
+    validator = GraphValidator.for_task(config.task.task_type, PipelineAdapter(), logger)
+
     pipeline = pipeline_from_json(config.pipeline_template)
 
     train_data = _load_data(config)
@@ -57,9 +60,7 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
     if config.train_data_idx not in [None, []]:
         train_data = train_data.subset_indices(config.train_data_idx)
 
-    try:
-        validate(pipeline, task=config.task)
-    except ValueError:
+    if not validator(pipeline):
         logger.error('Pipeline not valid')
         return False
 

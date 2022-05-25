@@ -12,7 +12,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import validate
+from fedot.core.pipelines.validation import validate_pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.sa_requirements import ReplacementAnalysisMetaParams, SensitivityAnalysisRequirements
@@ -214,7 +214,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         node_to_delete = pipeline_sample.nodes[node_index_to_delete]
         pipeline_sample.delete_node(node_to_delete)
         try:
-            validate(pipeline_sample)
+            validate_pipeline(pipeline_sample)
         except ValueError as ex:
             self.log.message(f'Can not delete node. Deletion of this node leads to {ex}')
             return None

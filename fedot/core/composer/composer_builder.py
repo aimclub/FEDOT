@@ -14,7 +14,7 @@ from fedot.core.optimisers.gp_comp.operators.regularization import Regularizatio
 from fedot.core.optimisers.opt_history import log_to_history, OptHistory
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import common_rules, ts_rules
+from fedot.core.pipelines.validation import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (
     MetricsEnum,
@@ -115,14 +115,9 @@ class ComposerBuilder:
         return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
-        if self.task.task_type is TaskTypesEnum.ts_forecasting:
-            graph_constraint_rules = common_rules + ts_rules
-        else:
-            graph_constraint_rules = common_rules
-
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         advisor=PipelineChangeAdvisor(self.task),
-                                                        rules_for_constraint=graph_constraint_rules)
+                                                        rules_for_constraint=rules_by_task(self.task.task_type))
 
         if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg
