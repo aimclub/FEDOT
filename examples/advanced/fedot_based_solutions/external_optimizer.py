@@ -31,9 +31,7 @@ class RandomSearchOptimizer(GraphOptimiser):
                              MutationTypesEnum.single_drop,
                              MutationTypesEnum.single_add]
 
-    def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+    def optimise(self, objective_evaluator: ObjectiveEvaluate, show_progress: bool = True):
 
         timer = OptimisationTimer(log=self.log, timeout=self.requirements.timeout)
         evaluator = EvaluationDispatcher(objective_evaluator, self.graph_generation_params.adapter,

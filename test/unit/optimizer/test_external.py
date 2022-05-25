@@ -6,7 +6,8 @@ from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters, \
+    OptimisationCallback, do_nothing_callback
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.objective.objective import Objective
@@ -32,9 +33,7 @@ class StaticOptimizer(GraphOptimiser):
         self.change_types = []
         self.node_name = kwargs.get('node_name')
 
-    def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: Optional[Callable] = None,
-                 show_progress: bool = True):
+    def optimise(self, objective_evaluator: ObjectiveEvaluate, show_progress: bool = True):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('logit'))

@@ -67,3 +67,5 @@ def test_ensure_wrapped_in_sequence():
     for case in cases:
         for container_type in container_types:
             assert isinstance(ensure_wrapped_in_sequence(case, container_type), container_type)
+
+    assert ensure_wrapped_in_sequence(None) is None

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Callable, Optional, Tuple, Union, List, Iterable
+from typing import Any, Optional, Tuple, Union, List, Iterable
 
 import numpy as np
 from tqdm import tqdm
@@ -18,8 +18,9 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.optimisers.gp_comp.generation_keeper import GenerationKeeper
+from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
@@ -188,31 +189,36 @@ class EvoGraphOptimiser(GraphOptimiser):
                                     collect_intermediate_metrics=self.requirements.collect_intermediate_metric,
                                     log=self.log)
 
+    def _next_population(self, next_population: PopulationT):
+        self.generations.append(next_population)
+        self.optimisation_callback(next_population, self.generations)
+        clean_operators_history(next_population)
+        self.population = next_population
+        self._operators_prob_update()
+
+        self.log.info(f'Generation num: {self.generations.generation_num}')
+        self.log.info(f'Best individuals: {str(self.generations)}')
+        self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
+        self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
+
+    def _operators_prob_update(self):
+        """Extension point of the algorithm to adaptively modify parameters on each iteration."""
+        pass
+
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
-                 on_next_iteration_callback: Optional[Callable] = None,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
         evaluator = self._get_evaluator(objective_evaluator)
 
-        if on_next_iteration_callback is None:
-            on_next_iteration_callback = self.default_on_next_iteration_callback
-
-        with self.timer as t:
-            pbar = tqdm(total=self.requirements.num_of_generations,
-                        desc='Generations', unit='gen', initial=1,
-                        disable=self.log.verbosity_level == -1) if show_progress else None
+        with self.timer, tqdm(total=self.requirements.num_of_generations,
+                              desc='Generations', unit='gen', initial=1,
+                              disable=not show_progress or self.log.verbosity_level == -1):
 
             pop_size = self._pop_size.initial
-            self.population = evaluator(self._init_population(pop_size))
-            self.generations.append(self.population)
-
-            on_next_iteration_callback(self.population, self.generations.best_individuals)
-            self.log_info_about_best()
+            self._next_population(evaluator(self._init_population(pop_size)))
 
             while not self.stop_optimisation():
-                self.log.info(f'Generation num: {self.generations.generation_num}')
-                self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
-                pop_size = self._pop_size.next(pop_size)
+                pop_size = self._pop_size.next(self.population)
                 self.log.info(f'Next pop size: {pop_size}')
 
                 # TODO: subst to mutation params
@@ -225,17 +231,20 @@ class EvoGraphOptimiser(GraphOptimiser):
                                            evaluator,
                                            self.graph_generation_params)
 
-                num_of_parents = num_of_parents_in_crossover(pop_size)
+                # TODO: collapse this selection & reprodue for 1 and for many
+                if len(self.population) == 1:
+                    new_population = list(self.reproduce(self.population[0]))
+                else:
+                    num_of_parents = num_of_parents_in_crossover(pop_size)
 
-                selected_individuals = selection(types=self.parameters.selection_types,
-                                                 population=individuals_to_select,
-                                                 pop_size=num_of_parents,
-                                                 params=self.graph_generation_params)
+                    selected_individuals = selection(types=self.parameters.selection_types,
+                                                     population=individuals_to_select,
+                                                     pop_size=num_of_parents,
+                                                     params=self.graph_generation_params)
 
-                new_population = []
-
-                for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
-                    new_population += self.reproduce(ind_1, ind_2)
+                    new_population = []
+                    for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
+                        new_population += self.reproduce(ind_1, ind_2)
 
                 new_population = evaluator(new_population)
 
@@ -252,20 +261,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                 # Add best individuals from the previous generation
                 if with_elitism:
                     new_population.extend(self.generations.best_individuals)
+
                 # Then update generation
-                self.generations.append(new_population)
-                self.population = new_population
-
-                on_next_iteration_callback(self.population, self.generations.best_individuals)
-                self.log.info(f'spent time: {round(t.minutes_from_start, 1)} min')
-                self.log_info_about_best()
-
-                clean_operators_history(self.population)
-
-                if pbar:
-                    pbar.update(1)
-            if pbar:
-                pbar.close()
+                self._next_population(new_population)
 
         best = self.generations.best_individuals
         return self.to_outputs(best)
@@ -282,9 +280,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             return False
         else:
             return pop_size >= self._min_population_size_with_elitism
-
-    def log_info_about_best(self):
-        self.log.info(str(self.generations))
 
     def max_depth_recount(self):
         if self.generations.stagnation_duration >= self.parameters.depth_increase_step and \
