@@ -29,7 +29,7 @@ class ComposerBuilder:
         self.task: Task = task
 
         self.optimiser_cls: Type[GraphOptimiser] = EvoGraphOptimiser
-        self.optimiser_parameters: GraphOptimiserParameters = GPGraphOptimiserParameters()
+        self.optimiser_parameters: GPGraphOptimiserParameters = GPGraphOptimiserParameters()
         self.optimizer_external_parameters: dict = {}
 
         self.composer_cls: Type[Composer] = GPComposer
@@ -105,13 +105,13 @@ class ComposerBuilder:
                                                         advisor=PipelineChangeAdvisor(self.task),
                                                         rules_for_constraint=graph_constraint_rules)
 
-        # if len(self.metrics) > 1:
-        if self.optimiser_parameters.multi_objective:
+        if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg
+            self.optimiser_parameters.multi_objective = True
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
-            self.log.info("Regularisation is not supported for multi-objective optimisation.")
         else:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
+            self.optimiser_parameters.multi_objective = False
             self.metrics = self.metrics + self._get_default_complexity_metrics()
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective, log=self.log)
