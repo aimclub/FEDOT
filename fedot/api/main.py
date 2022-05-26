@@ -165,7 +165,7 @@ class Fedot:
                 self.api_composer.obtain_model(**self.params.api_params)
 
         # Final fit for obtained pipeline on full dataset
-        if self.history is not None:
+        if self.history and not self.history.is_empty():
             self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
             self.params.api_params['logger'].message('Final pipeline was fitted')
         else:
