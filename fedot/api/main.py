@@ -1,6 +1,6 @@
 from copy import deepcopy
 from inspect import signature
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Collection
 
 import numpy as np
 import pandas as pd
@@ -127,8 +127,10 @@ class Fedot:
         self.prediction: Optional[OutputData] = None
         self.train_data: Optional[InputData] = None
         self.test_data: Optional[InputData] = None
+
+        # Outputs
         self.current_pipeline: Optional[Pipeline] = None
-        self.best_models: Optional[HallOfFame] = None
+        self.best_models: Collection[Pipeline] = ()
         self.history: Optional[OptHistory] = None
 
     def fit(self,
@@ -159,8 +161,8 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
-            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
-                **self.params.api_params)
+            self.current_pipeline, self.best_models, self.history = \
+                self.api_composer.obtain_model(**self.params.api_params)
 
         # Final fit for obtained pipeline on full dataset
         if self.history is not None:
@@ -272,7 +274,8 @@ class Fedot:
 
     def plot_pareto(self):
         metric_names = self.params.metric_to_compose
-        PipelineEvolutionVisualiser().visualise_pareto(archive=self.best_models,
+        best_candidates = self.history.archive_history[-1]
+        PipelineEvolutionVisualiser().visualise_pareto(front=best_candidates,
                                                        objectives_names=metric_names,
                                                        show=True)
 

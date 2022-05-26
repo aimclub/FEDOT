@@ -2,11 +2,7 @@ import datetime
 import gc
 import traceback
 from collections.abc import Sequence
-from copy import copy
-from typing import Callable, Dict, List, Optional, Type, Union, Tuple, Collection, Any
-
-import numpy as np
-from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
+from typing import Callable, List, Optional, Union, Tuple, Collection
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
@@ -165,7 +161,7 @@ class ApiComposer:
         return optimiser_parameters
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
-                            preset: str) -> Tuple[Pipeline, HallOfFame, OptHistory]:
+                            preset: str) -> Tuple[Pipeline, Collection[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
         log = api_params['logger']
         task = api_params['task']
@@ -227,36 +223,35 @@ class ApiComposer:
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 log.message(f'Pipeline composition started.')
-                pipeline_gp_composed = gp_composer.compose_pipeline(data=train_data)
-                # TODO (gkirgizov): remove such access to internals; btw it's the only usage of optimiser.archive
-                best_candidates = gp_composer.optimiser.generations.archive
+                best_pipelines = gp_composer.compose_pipeline(data=train_data)
+                # TODO (gkirgizov): provide best models
+                best_pipeline_candidates = []
         else:
             # Use initial pipeline as final solution
             log.message(f'Timeout is too small for composing and is skipped '
                         f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.')
-            pipeline_gp_composed = fitted_initial_pipeline
-            best_candidates = [pipeline_gp_composed]
+            best_pipelines = fitted_initial_pipeline
+            best_pipeline_candidates = [fitted_initial_pipeline]
+
+        best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
 
         # Workaround for logger missing after adapting/restoring
-        for pipeline in best_candidates:
+        for pipeline in best_pipeline_candidates:
             pipeline.log = log
-        # Tune only the best pipeline
-        if isinstance(pipeline_gp_composed, Sequence):
-            pipeline_gp_composed = pipeline_gp_composed[0]
 
         if with_tuning:
             timeout_for_tuning = self.timer.determine_resources_for_tuning(init_pipeline_fit_time)
-            pipeline_gp_composed = self.tune_final_pipeline(task, train_data,
-                                                            tuning_params['tuner_metric'],
-                                                            composer_requirements,
-                                                            pipeline_gp_composed,
-                                                            timeout_for_tuning,
-                                                            log)
-
-        log.message('Model generation finished')
+            self.tune_final_pipeline(task, train_data,
+                                     tuning_params['tuner_metric'],
+                                     composer_requirements,
+                                     best_pipeline,
+                                     timeout_for_tuning,
+                                     log)
         # enforce memory cleaning
         gc.collect()
-        return pipeline_gp_composed, best_candidates, gp_composer.history
+
+        log.message('Model generation finished')
+        return best_pipeline, best_pipeline_candidates, gp_composer.history
 
     def _have_time_for_composing(self, init_pipeline_fit_time: datetime.timedelta, pop_size: int) -> bool:
         timeout_not_set = self.timer.datetime_composing is None
