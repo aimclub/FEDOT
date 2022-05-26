@@ -161,7 +161,7 @@ class ApiComposer:
         return optimiser_parameters
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
-                            preset: str) -> Tuple[Pipeline, Collection[Pipeline], OptHistory]:
+                            preset: str) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
         log = api_params['logger']
         task = api_params['task']
@@ -224,8 +224,7 @@ class ApiComposer:
             with self.timer.launch_composing():
                 log.message(f'Pipeline composition started.')
                 best_pipelines = gp_composer.compose_pipeline(data=train_data)
-                # TODO (gkirgizov): provide best models
-                best_pipeline_candidates = []
+                best_pipeline_candidates = gp_composer.best_models
         else:
             # Use initial pipeline as final solution
             log.message(f'Timeout is too small for composing and is skipped '

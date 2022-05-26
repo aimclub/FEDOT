@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Sequence, Union, Collection, Tuple
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -68,6 +68,7 @@ class GPComposer(Composer):
         self.optimiser: GraphOptimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
         self.history: Optional[OptHistory] = history
+        self.best_models: Collection[Pipeline] = ()
 
         self.objective_builder = DataObjectiveBuilder(optimiser.objective,
                                                       composer_requirements.max_pipeline_fit_time,
@@ -75,7 +76,7 @@ class GPComposer(Composer):
                                                       composer_requirements.validation_blocks,
                                                       cache, logger)
 
-    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
+    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary
         data.shuffle()
 
@@ -94,14 +95,16 @@ class GPComposer(Composer):
         # Finally, run optimization process
         opt_result = self.optimiser.optimise(objective_function)
 
-        best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
+        best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
-        return best_pipeline
+        return best_model
 
-    def _convert_opt_results_to_pipeline(self, opt_result: Union[OptGraph, List[OptGraph]]) -> Pipeline:
-        return [self.optimiser.graph_generation_params.adapter.restore(graph)
-                for graph in opt_result] if isinstance(opt_result, list) \
-            else self.optimiser.graph_generation_params.adapter.restore(opt_result)
+    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Pipeline, Sequence[Pipeline]]:
+        adapter = self.optimiser.graph_generation_params.adapter
+        multi_objective = self.optimiser.objective.is_multi_objective
+        best_pipelines = [adapter.restore(graph) for graph in opt_result]
+        chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]
+        return chosen_best_pipeline, best_pipelines
 
     @staticmethod
     def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):

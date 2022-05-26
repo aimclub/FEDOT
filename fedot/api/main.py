@@ -1,6 +1,6 @@
 from copy import deepcopy
 from inspect import signature
-from typing import List, Optional, Tuple, Union, Collection
+from typing import List, Optional, Tuple, Union, Collection, Sequence
 
 import numpy as np
 import pandas as pd
@@ -130,7 +130,7 @@ class Fedot:
 
         # Outputs
         self.current_pipeline: Optional[Pipeline] = None
-        self.best_models: Collection[Pipeline] = ()
+        self.best_models: Sequence[Pipeline] = ()
         self.history: Optional[OptHistory] = None
 
     def fit(self,
