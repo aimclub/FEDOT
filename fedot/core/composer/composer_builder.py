@@ -7,10 +7,8 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComp
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.gp_comp.param_free_gp_optimiser import EvoGraphParameterFreeOptimiser
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -90,11 +88,6 @@ class ComposerBuilder:
         return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
-        optimiser_type = self.optimiser_cls
-        if (optimiser_type is EvoGraphOptimiser and
-                self.optimiser_parameters.genetic_scheme_type is GeneticSchemeTypesEnum.parameter_free):
-            optimiser_type = EvoGraphParameterFreeOptimiser
-
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         advisor=PipelineChangeAdvisor())
 
@@ -116,13 +109,13 @@ class ComposerBuilder:
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective, log=self.log)
 
-        optimiser = optimiser_type(objective=objective,
-                                   initial_graph=self.initial_pipelines,
-                                   requirements=self.composer_requirements,
-                                   graph_generation_params=graph_generation_params,
-                                   parameters=self.optimiser_parameters,
-                                   log=self.log,
-                                   **self.optimizer_external_parameters)
+        optimiser = self.optimiser_cls(objective=objective,
+                                       initial_graph=self.initial_pipelines,
+                                       requirements=self.composer_requirements,
+                                       graph_generation_params=graph_generation_params,
+                                       parameters=self.optimiser_parameters,
+                                       log=self.log,
+                                       **self.optimizer_external_parameters)
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
