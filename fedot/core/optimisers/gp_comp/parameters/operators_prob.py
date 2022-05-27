@@ -42,4 +42,3 @@ def init_adaptive_operators_prob(genetic_scheme_type: GeneticSchemeTypesEnum,
     else:
         operators_prob = ConstParameter((requirements.mutation_prob, requirements.crossover_prob))
     return operators_prob
-

@@ -83,29 +83,3 @@ def init_adaptive_pop_size(genetic_scheme_type: GeneticSchemeTypesEnum,
     else:
         raise ValueError(f"Unknown genetic type scheme {genetic_scheme_type}")
     return pop_size
-
-
-def init_adaptive_pop_size(genetic_scheme_type: GeneticSchemeTypesEnum,
-                           requirements: PipelineComposerRequirements,
-                           improvement_watcher: ImprovementWatcher) -> PopulationSize:
-    if genetic_scheme_type == GeneticSchemeTypesEnum.steady_state:
-        pop_size = ConstRatePopulationSize(
-            pop_size=requirements.pop_size,
-            offspring_rate=1.0,
-            max_pop_size=requirements.max_pop_size,
-        )
-    elif genetic_scheme_type == GeneticSchemeTypesEnum.generational:
-        pop_size = ConstRatePopulationSize(
-            pop_size=requirements.pop_size,
-            offspring_rate=requirements.offspring_rate,
-            max_pop_size=requirements.max_pop_size,
-        )
-    elif genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
-        pop_size_progression = SequenceIterator(sequence_func=fibonacci_sequence,
-                                                start_value=requirements.pop_size,
-                                                min_sequence_value=1,
-                                                max_sequence_value=requirements.max_pop_size)
-        pop_size = AdaptivePopulationSize(improvement_watcher, pop_size_progression)
-    else:
-        raise ValueError(f"Unknown genetic type scheme {genetic_scheme_type}")
-    return pop_size
