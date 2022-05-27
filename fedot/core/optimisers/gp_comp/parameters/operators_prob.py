@@ -10,6 +10,8 @@ VariationOperatorProb = AdaptiveParameter[Tuple[float, float]]
 
 
 class AdaptiveVariationProb(VariationOperatorProb):
+    """Adaptive parameter for variation operators.
+    Specifies mutation and crossover probabilities."""
 
     def __init__(self, mutation_prob: float = 0.5, crossover_prob: float = 0.5):
         self._mutation_prob_param = AdaptiveMutationProb(mutation_prob)
@@ -37,6 +39,7 @@ class AdaptiveVariationProb(VariationOperatorProb):
 
 def init_adaptive_operators_prob(genetic_scheme_type: GeneticSchemeTypesEnum,
                                  requirements: PipelineComposerRequirements) -> VariationOperatorProb:
+    """Returns static or adaptive parameter for mutation & crossover probabilities depending on genetic type scheme."""
     if genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
         operators_prob = AdaptiveVariationProb()
     else:
