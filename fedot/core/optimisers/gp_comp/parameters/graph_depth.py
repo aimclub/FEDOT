@@ -3,7 +3,12 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.parameters.parameter import AdaptiveParameter
 
 
-class GraphDepth(AdaptiveParameter[int]):
+class AdaptiveGraphDepth(AdaptiveParameter[int]):
+    """Adaptive graph depth parameter. Max allowed graph depth changes
+     during optimisation depending on observed improvements in the population.
+     If there are no improvements, then graph depth is incremented.
+     If there is an improvement, then graph depth remains the same.
+     Can also play a role of static value if :param adaptive: is False."""
 
     def __init__(self, improvements: ImprovementWatcher,
                  start_depth: int = 1, max_depth: int = 10, max_stagnated_generations: int = 1,

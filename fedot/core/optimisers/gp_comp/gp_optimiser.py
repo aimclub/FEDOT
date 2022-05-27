@@ -20,7 +20,7 @@ from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTyp
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.gp_comp.parameters.graph_depth import GraphDepth
+from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
 from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, init_adaptive_pop_size
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
@@ -127,11 +127,11 @@ class EvoGraphOptimiser(GraphOptimiser):
         self._min_population_size_with_elitism = 5
 
         start_depth = requirements.start_depth or requirements.max_depth
-        self._graph_depth = GraphDepth(self.generations,
-                                       start_depth=start_depth,
-                                       max_depth=requirements.max_depth,
-                                       max_stagnated_generations=parameters.depth_increase_step,
-                                       adaptive=parameters.with_auto_depth_configuration)
+        self._graph_depth = AdaptiveGraphDepth(self.generations,
+                                               start_depth=start_depth,
+                                               max_depth=requirements.max_depth,
+                                               max_stagnated_generations=parameters.depth_increase_step,
+                                               adaptive=parameters.with_auto_depth_configuration)
         self.max_depth = self._graph_depth.initial
 
         # Define adaptive parameters
