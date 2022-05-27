@@ -143,7 +143,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
 
     def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
-        builder = InitialPopulationBuilder(self.graph_generation_params)
+        builder = InitialPopulationBuilder(self.graph_generation_params, self.log)
         if not self.initial_graph:
             random_graph_sampler = partial(random_graph, self.graph_generation_params, self.requirements, max_depth)
             builder.with_custom_sampler(random_graph_sampler)
@@ -155,7 +155,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 return self._mutate(ind, max_depth, custom_requirements=initial_req)
 
             initial_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
-            builder.with_initial_individuals(initial_graphs).with_mutated_inds(mutate_operator)
+            builder.with_initial_graphs(initial_graphs).with_mutation(mutate_operator)
 
         return builder.build(pop_size)
 
