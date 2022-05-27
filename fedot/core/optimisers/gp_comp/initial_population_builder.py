@@ -28,22 +28,25 @@ class InitialPopulationBuilder:
         self.log = log
 
     def with_mutation(self, mutation_operator: Operator[Individual]):
+        """Enables mutation of sampled graphs with provided operator."""
         self.mutation_operator = mutation_operator
         return self
 
     def with_initial_graphs(self, initial_graphs: Sequence[OptGraph]):
+        """Use initial graphs as a sampling population."""
         if initial_graphs:
             self.initial_graphs = initial_graphs
             self.graph_sampler = lambda: np.random.choice(self.initial_graphs)
         return self
 
     def with_custom_sampler(self, sampler: GraphSampler):
+        """Use custom graph sampler for sampling graphs."""
         self.graph_sampler = sampler
         return self
 
     def build(self, pop_size: int) -> PopulationT:
         if self.graph_sampler is None:
-            raise ValueError("Provide sampler of initial individuals")
+            raise ValueError("Can not generate initial graphs, provide graph sampler!")
 
         population = []
         population.extend(Individual(graph) for graph in self.initial_graphs)
