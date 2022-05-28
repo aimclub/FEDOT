@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Any, Dict, Optional, Union
+from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
@@ -17,6 +17,7 @@ class Individual:
         self.metadata: Dict[str, Any] = metadata or {}
         self.fitness: Fitness = null_fitness()
         self.uid = str(uuid4())
+        self.positional_id = ''
 
     def __eq__(self, other: 'Individual'):
         return self.uid == other.uid

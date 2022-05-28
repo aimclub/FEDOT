@@ -144,10 +144,8 @@ class SingleObjFitness(Fitness):
         return is_metric_worse(self._values, other._values)  # lexicographic comparison
 
     def __str__(self) -> str:
-        if len(self._values) == 1:
-            return str(self._values[0])
-        else:
-            return str(self._values)
+        # For single objective return only the primary value
+        return str(round(self.value, 4))
 
 
 def null_fitness() -> SingleObjFitness:
