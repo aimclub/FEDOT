@@ -30,6 +30,7 @@ joblib >= 0.17.*
 requests >= 2.*
 tqdm
 typing >= 3.7.*
+protobuf~=3.19.0
 
 # Tests
 pytest >= 6.2.*
