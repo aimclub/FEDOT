@@ -33,6 +33,8 @@ class SingletonMeta(type):
 
 class LogManager(metaclass=SingletonMeta):
     __logger_dict = {}
+    # stores the flag of error notification for each log file (e.g. permission error).
+    __errors_for_log_files = {}
 
     def __init__(self):
         pass
@@ -56,7 +58,12 @@ class LogManager(metaclass=SingletonMeta):
             file_handler.setLevel(logging.DEBUG)
             file_handler.setFormatter(formatter)
             self.__logger_dict[logger_name].addHandler(file_handler)
-        except PermissionError:
+            self.__errors_for_log_files[log_file] = False
+        except PermissionError as ex:
+            if (log_file not in self.__errors_for_log_files or
+                    not self.__errors_for_log_files[log_file]):
+                self.__errors_for_log_files[log_file] = True
+                print(f'Logger problem: Can not log to {log_file} because of {ex}')
             # if log_file is unavailable
             pass
         self.__logger_dict[logger_name].setLevel(logging.DEBUG)
