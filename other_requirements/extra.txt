@@ -11,3 +11,6 @@ Pillow >= 8.2.*
 # Texts
 gensim >= 4.1.2
 nltk >= 3.5
+
+# Misc
+protobuf~=3.19.0
