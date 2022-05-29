@@ -60,12 +60,12 @@ class LogManager(metaclass=SingletonMeta):
             self.__logger_dict[logger_name].addHandler(file_handler)
             self.__errors_for_log_files[log_file] = False
         except PermissionError as ex:
-            if (log_file not in self.__errors_for_log_files or
-                    not self.__errors_for_log_files[log_file]):
+            # if log_file is unavailable
+            if not self.__errors_for_log_files.get(log_file, False):
                 self.__errors_for_log_files[log_file] = True
                 print(f'Logger problem: Can not log to {log_file} because of {ex}')
-            # if log_file is unavailable
-            pass
+        else:
+            self.__errors_for_log_files[log_file] = False
         self.__logger_dict[logger_name].setLevel(logging.DEBUG)
         self.__logger_dict[logger_name].addHandler(console_handler)
 
