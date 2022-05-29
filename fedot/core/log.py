@@ -58,7 +58,6 @@ class LogManager(metaclass=SingletonMeta):
             file_handler.setLevel(logging.DEBUG)
             file_handler.setFormatter(formatter)
             self.__logger_dict[logger_name].addHandler(file_handler)
-            self.__errors_for_log_files[log_file] = False
         except PermissionError as ex:
             # if log_file is unavailable
             if not self.__errors_for_log_files.get(log_file, False):
