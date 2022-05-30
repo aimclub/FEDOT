@@ -1,0 +1,34 @@
+{
+	"total_pipeline_operations": [
+		"h2o_class"
+	],
+	"depth": 1,
+	"nodes": [
+		{
+			"operation_id": 0,
+			"operation_type": "h2o_class",
+			"operation_name": "H2OSerializationWrapper",
+			"custom_params": {
+				"timeout": 20,
+				"seed": 42,
+				"max_models": 3
+			},
+			"params": {
+				"timeout": 20,
+				"seed": 42,
+				"max_models": 3
+			},
+			"nodes_from": [],
+			"fitted_operation_path": [
+				"fitted_operations",
+				"h2o_0"
+			],
+			"rating": null
+		}
+	],
+	"preprocessing": [
+		"preprocessing",
+		"data_preprocessor.pkl"
+	],
+	"descriptive_id": "/n_h2o_class_{'timeout': 20, 'seed': 42, 'max_models': 3}"
+}
