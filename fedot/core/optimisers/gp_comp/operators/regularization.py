@@ -3,8 +3,8 @@ from typing import Any, List, Optional
 
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
-from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -16,7 +16,7 @@ class RegularizationTypesEnum(Enum):
 
 
 def regularized_population(reg_type: RegularizationTypesEnum, population: PopulationT,
-                           evaluator: EvaluationDispatcher,
+                           evaluator: EvaluationOperator,
                            params: GraphGenerationParams,
                            size: Optional[int] = None) -> PopulationT:
     if reg_type is RegularizationTypesEnum.decremental:
@@ -28,7 +28,7 @@ def regularized_population(reg_type: RegularizationTypesEnum, population: Popula
 
 
 def decremental_regularization(population: PopulationT,
-                               evaluator: EvaluationDispatcher,
+                               evaluator: EvaluationOperator,
                                params: GraphGenerationParams,
                                size: Optional[int] = None) -> PopulationT:
     size = size or len(population)

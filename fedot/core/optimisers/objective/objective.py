@@ -6,8 +6,11 @@ from fedot.core.log import Log, default_log
 from fedot.core.optimisers.fitness import *
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
 
+
 G = TypeVar('G', bound=Graph, covariant=True)
-ObjectiveFunction = Callable[[G], Fitness]
+R = TypeVar('R', contravariant=True)
+GraphFunction = Callable[[G], R]
+ObjectiveFunction = GraphFunction[G, Fitness]
 
 
 class Objective:

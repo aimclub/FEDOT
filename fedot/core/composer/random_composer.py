@@ -84,13 +84,13 @@ class RandomSearchOptimiser(GraphOptimiser):
         self._iter_num = iter_num
         super().__init__(objective)
 
-    def optimise(self, objective_evaluator: ObjectiveFunction, show_progress: bool = True) -> Pipeline:
+    def optimise(self, objective: ObjectiveFunction, show_progress: bool = True) -> Pipeline:
         best_metric_value = 1000
         best_set = None
         history = []
         for i in range(self._iter_num):
             new_pipeline = self._factory()
-            new_metric_value = objective_evaluator(new_pipeline).value
+            new_metric_value = objective(new_pipeline).value
             new_metric_value = round(new_metric_value, 3)
             if new_metric_value < best_metric_value:
                 best_metric_value = new_metric_value

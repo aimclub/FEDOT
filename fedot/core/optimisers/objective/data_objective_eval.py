@@ -115,6 +115,3 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                                                    validation_blocks=self._validation_blocks)
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
-
-    def cleanup(self, graph: Pipeline):
-        graph.unfit()

@@ -7,9 +7,9 @@ from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate, ObjectiveFunction, GraphFunction
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], None]
@@ -95,12 +95,17 @@ class GraphOptimiser:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective_evaluator: ObjectiveEvaluate,
+    def optimise(self, objective: ObjectiveFunction,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
-        :param objective_evaluator: Defines specific Objective and graph evaluation policy.
+        :param objective: objective function that specifies optimization target
         :param show_progress: print output the describes the progress during iterations
         :return: best graph (or list of graph for multi-objective case)
         """
+        pass
+
+    def set_evaluation_callback(self, callback: Optional[GraphFunction]):
+        """Set or reset (with None) post-evaluation callback
+        that's called on each graph after its evaluation."""
         pass

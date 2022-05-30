@@ -15,7 +15,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
+from fedot.core.optimisers.gp_comp.operators.evaluation import MultiprocessingDispatcher, ObjectiveEvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -30,8 +30,7 @@ from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
 
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
@@ -106,6 +105,11 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.population = None
         self.generations = GenerationKeeper(self.objective)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
+        self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
+                                                         timer=self.timer,
+                                                         n_jobs=requirements.n_jobs,
+                                                         graph_cleanup_fn=Pipeline.unfit,
+                                                         log=log)
 
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
@@ -159,14 +163,6 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         return builder.build(pop_size)
 
-    def _get_evaluator(self, objective_evaluator: ObjectiveEvaluate) -> EvaluationDispatcher:
-        return EvaluationDispatcher(objective_evaluator,
-                                    graph_adapter=self.graph_generation_params.adapter,
-                                    timer=self.timer,
-                                    n_jobs=self.requirements.n_jobs,
-                                    collect_intermediate_metrics=self.requirements.collect_intermediate_metric,
-                                    log=self.log)
-
     def _next_population(self, next_population: PopulationT):
         self.generations.append(next_population)
         self.optimisation_callback(next_population, self.generations)
@@ -184,10 +180,15 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.requirements.mutation_prob, self.requirements.crossover_prob = \
                 self._operators_prob.next(self.population)
 
-    def optimise(self, objective_evaluator: ObjectiveEvaluate,
+    def set_evaluation_callback(self, callback: Optional[GraphFunction]):
+        # Redirect callback to evaluation dispatcher
+        self.eval_dispatcher.set_evaluation_callback(callback)
+
+    def optimise(self, objective: ObjectiveFunction,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
 
-        evaluator = self._get_evaluator(objective_evaluator)
+        # eval_dispatcher defines how to evaluate objective on the whole population
+        evaluator = self.eval_dispatcher.dispatch(objective)
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
