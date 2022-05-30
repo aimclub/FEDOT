@@ -105,7 +105,7 @@ class GPComposer(Composer):
         # Keep history of optimization
         self._history.clean_results()
         history_callback = partial(log_to_history, self._history)
-        self.optimiser.optimisation_callback = history_callback
+        self.optimiser.set_optimisation_callback(history_callback)
 
         # Define objective function
         objective_evaluator = self.objective_builder.build(data)

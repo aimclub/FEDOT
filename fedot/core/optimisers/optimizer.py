@@ -12,7 +12,7 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate, ObjectiveFunction, GraphFunction
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
-OptimisationCallback = Callable[[PopulationT, GenerationKeeper], None]
+OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
 
 
 def do_nothing_callback(*args, **kwargs):
@@ -87,8 +87,7 @@ class GraphOptimiser:
 
         self.initial_graph = ensure_wrapped_in_sequence(initial_graph)
 
-        # optimisation: callback function that runs on each iteration
-        self.optimisation_callback: OptimisationCallback = do_nothing_callback
+        self._optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property
     def objective(self) -> Objective:
@@ -104,6 +103,11 @@ class GraphOptimiser:
         :return: best graph (or list of graph for multi-objective case)
         """
         pass
+
+    def set_optimisation_callback(self, callback: Optional[OptimisationCallback]):
+        """Set optimisation callback that must run on each iteration.
+        Reset the callback if None is passed."""
+        self._optimisation_callback = callback or do_nothing_callback
 
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         """Set or reset (with None) post-evaluation callback

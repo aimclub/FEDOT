@@ -165,7 +165,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _next_population(self, next_population: PopulationT):
         self.generations.append(next_population)
-        self.optimisation_callback(next_population, self.generations)
+        self._optimisation_callback(next_population, self.generations)
         clean_operators_history(next_population)
         self.population = next_population
         self._operators_prob_update()
