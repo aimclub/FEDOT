@@ -235,19 +235,24 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             return pop_size >= self._min_population_size_with_elitism
 
-    def _inheritance(self, new_population: PopulationT, pop_size: int) -> PopulationT:
+    def _inheritance(self, offspring: PopulationT, pop_size: int) -> PopulationT:
+        """Gather next population given new offspring, previous population and elite individuals.
+        :param offspring: offspring of current population.
+        :param pop_size: size of the next population.
+        :return: next population."""
+
         elite_inds = self.generations.best_individuals if self.with_elitism(pop_size) else ()
         num_of_new_individuals = pop_size - len(elite_inds)
 
         # TODO: from inheritance together with elitism we can get duplicate inds!
-        new_population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
-                                     self.population,
-                                     new_population, num_of_new_individuals,
-                                     graph_params=self.graph_generation_params)
+        offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
+                                self.population,
+                                offspring, num_of_new_individuals,
+                                graph_params=self.graph_generation_params)
 
         # Add best individuals from the previous generation
-        new_population.extend(elite_inds)
-        return new_population
+        offspring.extend(elite_inds)
+        return offspring
 
     def _mutate(self, ind: Individual,
                 max_depth: Optional[int] = None,
