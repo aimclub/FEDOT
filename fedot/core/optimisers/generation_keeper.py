@@ -14,6 +14,11 @@ class ImprovementWatcher(ABC):
     """Interface that allows to check if optimization progresses or stagnates."""
 
     @property
+    def stagnation_duration(self) -> int:
+        """Returns number of generations for which not any metrics has improved."""
+        raise NotImplementedError()
+
+    @property
     @abstractmethod
     def is_any_improved(self) -> bool:
         """Check if any of the metrics has improved."""

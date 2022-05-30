@@ -1,8 +1,9 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, List, Optional, Union, Sequence
 
 import pytest
 
 from fedot.api.main import Fedot
+from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -22,14 +23,15 @@ class StaticOptimizer(GraphOptimiser):
     Dummy optimizer for testing
     """
 
-    def __init__(self, initial_graph: Union[Any, List[Any]],
+    def __init__(self,
                  objective: Objective,
-                 requirements: Any,
-                 graph_generation_params: GraphGenerationParams,
-                 parameters: GraphOptimiserParameters = None,
+                 initial_graph: Union[Graph, Sequence[Graph]] = (),
+                 requirements: Optional[Any] = None,
+                 graph_generation_params: Optional[GraphGenerationParams] = None,
+                 parameters: Optional[GraphOptimiserParameters] = None,
                  log: Optional[Log] = None,
                  **kwargs):
-        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
         self.change_types = []
         self.node_name = kwargs.get('node_name')
 

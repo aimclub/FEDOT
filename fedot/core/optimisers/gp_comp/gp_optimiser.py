@@ -1,12 +1,10 @@
 from copy import deepcopy
 from functools import partial
 from itertools import zip_longest
-from typing import Any, Optional, Tuple, Union, List, Iterable
+from typing import Any, Optional, Union, List, Iterable, Sequence, Tuple
 
-import numpy as np
 from tqdm import tqdm
 
-from fedot.core.composer.constraint import constraint_function
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
@@ -15,23 +13,25 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
     random_graph
 )
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.evaluation import EvaluationDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, ConstRatePopulationSize
+from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
+from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
+from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, init_adaptive_pop_size
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection, crossover_parents_selection
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
-
-MAX_NUM_OF_GENERATED_INDS = 10000
 
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
@@ -93,36 +93,18 @@ class EvoGraphOptimiser(GraphOptimiser):
     Multi-objective evolutionary graph optimiser named GPComp
     """
 
-    def __init__(self, initial_graph: Union[Any, List[Any]],
+    def __init__(self,
                  objective: Objective,
+                 initial_graph: Union[Pipeline, Sequence[Pipeline]],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None,
                  log: Optional[Log] = None):
-        super().__init__(initial_graph, objective, requirements, graph_generation_params, parameters, log)
-
-        self.graph_generation_params = graph_generation_params
-        self.requirements = requirements
-        self._min_population_size_with_elitism = 3
-
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
         self.parameters = parameters or GPGraphOptimiserParameters()
-
-        self.max_depth = requirements.start_depth \
-            if self.parameters.with_auto_depth_configuration and requirements.start_depth \
-            else requirements.max_depth
-        generation_depth = requirements.start_depth or self.max_depth
-        self.graph_generation_function = partial(random_graph, params=self.graph_generation_params,
-                                                 requirements=self.requirements, max_depth=generation_depth)
-
-        is_steady_state = self.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.steady_state
-        self._pop_size: PopulationSize = ConstRatePopulationSize(
-            pop_size=requirements.pop_size or 10,
-            offspring_rate=1.0 if is_steady_state else requirements.offspring_rate
-        )
 
         self.population = None
         self.generations = GenerationKeeper(self.objective)
-
         self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
 
         # stopping_after_n_generation may be None, so use some obvious max number
@@ -140,46 +122,42 @@ class EvoGraphOptimiser(GraphOptimiser):
                 'Optimisation finished: Early stopping criteria was satisfied'
             )
 
-    def _create_randomized_pop(self, individuals: List[Individual], pop_size: int) -> List[Individual]:
-        """
-        Fill first population with mutated variants of the initial_graphs
-        :param individuals: Initial assumption for first population
-        :return: list of individuals
-        """
-        initial_req = deepcopy(self.requirements)
-        initial_req.mutation_prob = 1
+        # Define parameters
 
-        randomized_pop = []
-        n_iter = pop_size * 10
-        while n_iter > 0:
-            initial_individual = np.random.choice(individuals)
-            n_iter -= 1
-            new_ind = mutation(types=self.parameters.mutation_types,
-                               params=self.graph_generation_params,
-                               ind=initial_individual,
-                               requirements=initial_req,
-                               max_depth=self.max_depth, log=self.log)
-            if new_ind not in randomized_pop:
-                # to suppress duplicated
-                randomized_pop.append(new_ind)
+        self._min_population_size_with_elitism = 5
 
-            if len(randomized_pop) == pop_size - len(individuals):
-                break
+        start_depth = requirements.start_depth or requirements.max_depth
+        self._graph_depth = AdaptiveGraphDepth(self.generations,
+                                               start_depth=start_depth,
+                                               max_depth=requirements.max_depth,
+                                               max_stagnated_generations=parameters.depth_increase_step,
+                                               adaptive=parameters.with_auto_depth_configuration)
+        self.max_depth = self._graph_depth.initial
 
-        # add initial graph to population
-        for initial in individuals:
-            randomized_pop.append(initial)
+        # Define adaptive parameters
 
-        return randomized_pop
+        self._pop_size: PopulationSize = \
+            init_adaptive_pop_size(parameters.genetic_scheme_type, requirements, self.generations)
 
-    def _init_population(self, pop_size: int):
-        if self.initial_graph:
-            initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
-                                   self.initial_graph]
-            new_population = self._create_randomized_pop(initial_individuals, pop_size)
+        self._operators_prob = \
+            init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
+
+    def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
+        builder = InitialPopulationBuilder(self.graph_generation_params, self.log)
+        if not self.initial_graph:
+            random_graph_sampler = partial(random_graph, self.graph_generation_params, self.requirements, max_depth)
+            builder.with_custom_sampler(random_graph_sampler)
         else:
-            new_population = self._make_population(pop_size)
-        return new_population
+            initial_req = deepcopy(self.requirements)
+            initial_req.mutation_prob = 1
+
+            def mutate_operator(ind: Individual):
+                return self._mutate(ind, max_depth, custom_requirements=initial_req)
+
+            initial_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graph]
+            builder.with_initial_graphs(initial_graphs).with_mutation(mutate_operator)
+
+        return builder.build(pop_size)
 
     def _get_evaluator(self, objective_evaluator: ObjectiveEvaluate) -> EvaluationDispatcher:
         return EvaluationDispatcher(objective_evaluator,
@@ -198,12 +176,13 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.log.info(f'Generation num: {self.generations.generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
-        self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.generations.stagnation_duration}')
+        self.log.info(f'no improvements for {self.generations.stagnation_duration} iterations')
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
 
     def _operators_prob_update(self):
-        """Extension point of the algorithm to adaptively modify parameters on each iteration."""
-        pass
+        if not self.generations.is_any_improved:
+            self.requirements.mutation_prob, self.requirements.crossover_prob = \
+                self._operators_prob.next(self.population)
 
     def optimise(self, objective_evaluator: ObjectiveEvaluate,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
@@ -215,54 +194,29 @@ class EvoGraphOptimiser(GraphOptimiser):
                               disable=not show_progress or self.log.verbosity_level == -1):
 
             pop_size = self._pop_size.initial
-            self._next_population(evaluator(self._init_population(pop_size)))
+            self._next_population(evaluator(self._init_population(pop_size, self._graph_depth.initial)))
 
             while not self.stop_optimisation():
                 pop_size = self._pop_size.next(self.population)
-                self.log.info(f'Next pop size: {pop_size}')
+                self.max_depth = self._graph_depth.next()
+                self.log.info(f'Next population size: {pop_size}; max graph depth: {self.max_depth}')
 
-                # TODO: subst to mutation params
-                if self.parameters.with_auto_depth_configuration and self.generations.generation_num > 0:
-                    self.max_depth_recount()
+                individuals_to_select = regularized_population(self.parameters.regularization_type,
+                                                               self.population,
+                                                               evaluator,
+                                                               self.graph_generation_params)
 
-                individuals_to_select = \
-                    regularized_population(self.parameters.regularization_type,
-                                           self.population,
-                                           evaluator,
-                                           self.graph_generation_params)
+                selected_individuals = selection(types=self.parameters.selection_types,
+                                                 population=individuals_to_select,
+                                                 pop_size=pop_size,
+                                                 params=self.graph_generation_params)
+                new_population = self._reproduce(selected_individuals)
 
-                # TODO: collapse this selection & reprodue for 1 and for many
-                if len(self.population) == 1:
-                    new_population = list(self.reproduce(self.population[0]))
-                else:
-                    num_of_parents = num_of_parents_in_crossover(pop_size)
-
-                    selected_individuals = selection(types=self.parameters.selection_types,
-                                                     population=individuals_to_select,
-                                                     pop_size=num_of_parents,
-                                                     params=self.graph_generation_params)
-
-                    new_population = []
-                    for ind_1, ind_2 in zip_longest(selected_individuals[::2], selected_individuals[1::2]):
-                        new_population += self.reproduce(ind_1, ind_2)
-
+                new_population = list(map(self._mutate, new_population))
                 new_population = evaluator(new_population)
 
-                with_elitism = self.with_elitism(pop_size)
-                num_of_new_individuals = pop_size
-                if with_elitism:
-                    num_of_new_individuals -= len(self.generations.best_individuals)
+                new_population = self._inheritance(new_population, pop_size)
 
-                new_population = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
-                                             self.population,
-                                             new_population, num_of_new_individuals,
-                                             graph_params=self.graph_generation_params)
-
-                # Add best individuals from the previous generation
-                if with_elitism:
-                    new_population.extend(self.generations.best_individuals)
-
-                # Then update generation
                 self._next_population(new_population)
 
         best = self.generations.best_individuals
@@ -281,50 +235,46 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             return pop_size >= self._min_population_size_with_elitism
 
-    def max_depth_recount(self):
-        if self.generations.stagnation_duration >= self.parameters.depth_increase_step and \
-                self.max_depth + 1 <= self.requirements.max_depth:
-            self.max_depth += 1
+    def _inheritance(self, offspring: PopulationT, pop_size: int) -> PopulationT:
+        """Gather next population given new offspring, previous population and elite individuals.
+        :param offspring: offspring of current population.
+        :param pop_size: size of the next population.
+        :return: next population."""
 
-    def reproduce(self,
-                  selected_individual_first: Individual,
-                  selected_individual_second: Optional[Individual] = None) -> Tuple[Any]:
+        elite_inds = self.generations.best_individuals if self.with_elitism(pop_size) else ()
+        num_of_new_individuals = pop_size - len(elite_inds)
 
-        selected_individual_first.parent_operators = []
+        # TODO: from inheritance together with elitism we can get duplicate inds!
+        offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
+                                self.population,
+                                offspring, num_of_new_individuals,
+                                graph_params=self.graph_generation_params)
 
-        if selected_individual_second:
-            selected_individual_second.parent_operators = []
-            new_inds = crossover(self.parameters.crossover_types,
-                                 selected_individual_first,
-                                 selected_individual_second,
-                                 crossover_prob=self.requirements.crossover_prob,
-                                 max_depth=self.max_depth, log=self.log,
-                                 params=self.graph_generation_params)
-        else:
-            new_inds = [selected_individual_first]
+        # Add best individuals from the previous generation
+        offspring.extend(elite_inds)
+        return offspring
 
-        new_inds = [mutation(types=self.parameters.mutation_types,
-                             params=self.graph_generation_params,
-                             ind=new_ind, requirements=self.requirements,
-                             max_depth=self.max_depth, log=self.log) for new_ind in new_inds]
-        for ind in new_inds:
-            ind.fitness = None
+    def _mutate(self, ind: Individual,
+                max_depth: Optional[int] = None,
+                custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
+        max_depth = max_depth or self.max_depth
+        requirements = custom_requirements or self.requirements
+        return mutation(types=self.parameters.mutation_types,
+                        params=self.graph_generation_params,
+                        ind=ind, requirements=requirements,
+                        max_depth=max_depth, log=self.log)
 
-        return new_inds
+    def _reproduce(self, population: PopulationT) -> PopulationT:
+        if len(population) == 1:
+            return population
+        new_population = []
+        for ind_1, ind_2 in crossover_parents_selection(population):
+            new_population += self._crossover_pair(ind_1, ind_2)
+        return new_population
 
-    def _make_population(self, pop_size: int) -> List[Any]:
-        pop = []
-        iter_number = 0
-        while len(pop) < pop_size:
-            iter_number += 1
-            graph = self.graph_generation_function()
-            if constraint_function(graph, self.graph_generation_params):
-                pop.append(Individual(graph))
-
-            if iter_number > MAX_NUM_OF_GENERATED_INDS:
-                self.log.debug(
-                    f'More than {MAX_NUM_OF_GENERATED_INDS} generated in population making function. '
-                    f'Process is stopped')
-                break
-
-        return pop
+    def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
+        return crossover(self.parameters.crossover_types,
+                         individual1, individual2,
+                         crossover_prob=self.requirements.crossover_prob,
+                         max_depth=self.max_depth, log=self.log,
+                         params=self.graph_generation_params)

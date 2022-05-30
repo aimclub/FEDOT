@@ -1,6 +1,6 @@
 import math
 from random import choice
-from typing import Any, List, TYPE_CHECKING
+from typing import Any, List, TYPE_CHECKING, Sequence, Iterable, Tuple
 
 from deap import tools
 
@@ -98,3 +98,7 @@ def nsga2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
 def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
     chosen = tools.selSPEA2(individuals, pop_size)
     return chosen
+
+
+def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
+    return zip(population[::2], population[1::2])

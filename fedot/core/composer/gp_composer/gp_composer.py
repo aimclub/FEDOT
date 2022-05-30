@@ -30,7 +30,8 @@ class PipelineComposerRequirements(ComposerRequirements):
     """
     Dataclass is for defining the requirements for composition process of genetic programming composer
 
-    :attribute pop_size: population size
+    :attribute pop_size: initial population size; if unspecified, default value is used.
+    :attribute max_pop_size: maximum population size; optional, if unspecified, then population size is unbound.
     :attribute num_of_generations: maximal number of evolutionary algorithm generations
     :attribute crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
     :attribute mutation_prob: mutation probability
@@ -40,11 +41,12 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute n_jobs: num of n_jobs
     :attribute collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
     """
-    pop_size: Optional[int] = 20
-    num_of_generations: Optional[int] = 20
-    offspring_rate: Optional[float] = 0.5
-    crossover_prob: Optional[float] = 0.8
-    mutation_prob: Optional[float] = 0.8
+    pop_size: int = 20
+    max_pop_size: Optional[int] = 55
+    num_of_generations: int = 20
+    offspring_rate: float = 0.5
+    crossover_prob: float = 0.8
+    mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
     start_depth: int = None
     validation_blocks: int = None
