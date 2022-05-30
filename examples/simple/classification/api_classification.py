@@ -10,14 +10,14 @@ def run_classification_example(timeout: float = None):
 
     problem = 'classification'
 
-    # baseline_model = Fedot(problem=problem, timeout=timeout)
-    # baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
-    #
-    # baseline_model.predict(features=test_data_path)
-    # print(baseline_model.get_metrics())
+    baseline_model = Fedot(problem=problem, timeout=timeout)
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=1,
-                       composer_params={'max_pipeline_fit_time': timedelta(minutes=1)})
+    baseline_model.predict(features=test_data_path)
+    print(baseline_model.get_metrics())
+
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=-1,
+                       composer_params={'max_pipeline_fit_time': 1})
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
@@ -26,4 +26,4 @@ def run_classification_example(timeout: float = None):
 
 
 if __name__ == '__main__':
-    run_classification_example(timeout=1)
+    run_classification_example(timeout=5)

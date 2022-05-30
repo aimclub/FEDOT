@@ -74,7 +74,7 @@ class Pipeline(Graph):
         self.fit(input_data, use_fitted=False)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations=False,
-                             time: timedelta = timedelta(minutes=3)):
+                             time: int = 3):
         """
         Run training process with time limit. Create
 
@@ -83,7 +83,7 @@ class Pipeline(Graph):
         default True
         :param time: time constraint for operation fitting process (seconds)
         """
-        time = int(time.total_seconds())
+        time = int(timedelta(minutes=time).total_seconds())
         process_state_dict = {}
         fitted_operations = []
         try:
