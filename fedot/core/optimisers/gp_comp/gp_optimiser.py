@@ -1,7 +1,6 @@
 from copy import deepcopy
 from functools import partial
-from itertools import zip_longest
-from typing import Any, Optional, Union, List, Iterable, Sequence, Tuple
+from typing import Any, Optional, Union, List, Iterable, Sequence
 
 from tqdm import tqdm
 
@@ -9,13 +8,12 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,
-    num_of_parents_in_crossover,
     random_graph
 )
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.evaluation import MultiprocessingDispatcher, ObjectiveEvaluationDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation

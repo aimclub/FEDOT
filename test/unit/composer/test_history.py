@@ -16,7 +16,7 @@ from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

@@ -1,6 +1,7 @@
 import gc
 import multiprocessing
 import timeit
+from abc import ABC, abstractmethod
 from contextlib import closing
 from random import choice
 
@@ -9,8 +10,8 @@ from typing import Dict, Optional
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
+from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.gp_comp.operators.operator import *
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.remote.remote_evaluator import RemoteEvaluator

@@ -15,7 +15,7 @@ from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations, mutation, \
     reduce_mutation, single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
