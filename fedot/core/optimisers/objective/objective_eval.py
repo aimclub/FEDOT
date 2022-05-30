@@ -27,11 +27,6 @@ class ObjectiveEvaluate(ABC, Generic[G]):
         self._objective = objective
         self._objective_kwargs = objective_kwargs
 
-    @property
-    def objective(self) -> Objective:
-        """Returns underlying objective."""
-        return self._objective
-
     def __call__(self, graph: G) -> Fitness:
         """Provides functional interface for ObjectiveEvaluate."""
         return self.evaluate(graph)

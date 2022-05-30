@@ -44,10 +44,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._cache = cache
         self._log = log or default_log(__name__)
 
-    @property
-    def objective(self) -> Objective:
-        return self._objective
-
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
         #  when adapting and restoring it to/from OptGraph.
