@@ -49,6 +49,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     crossover_prob: float = 0.8
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
+    max_pipeline_fit_time: int = None
     start_depth: int = None
     validation_blocks: int = None
     n_jobs: int = 1
