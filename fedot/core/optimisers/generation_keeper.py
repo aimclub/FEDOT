@@ -4,7 +4,7 @@ from typing import Sequence, Type, Iterable, Dict
 import numpy as np
 from deap.tools import HallOfFame, ParetoFront
 
-from fedot.core.optimisers.fitness import is_worse
+from fedot.core.optimisers.fitness import is_metric_worse
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
@@ -120,7 +120,7 @@ class GenerationKeeper(ImprovementWatcher):
             previous_worst = np.max(previous_metric_archive.get(metric, np.inf))
             current_worst = np.max(current_metric_archive.get(metric, np.inf))
             # archive metric has improved if metric of its worst individual has improved
-            if is_worse(previous_worst, current_worst):
+            if is_metric_worse(previous_worst, current_worst):
                 self._metrics_improvement[metric] = True
 
         self._stagnation_counter = 0 if self.is_any_improved else self._stagnation_counter + 1

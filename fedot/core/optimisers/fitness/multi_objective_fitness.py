@@ -4,7 +4,7 @@ from numbers import Real
 from typing import Sequence, Union
 from operator import mul, truediv
 
-from fedot.core.optimisers.fitness.fitness import Fitness, is_worse
+from fedot.core.optimisers.fitness.fitness import Fitness, is_metric_worse
 
 
 class MultiObjFitness(Fitness):
@@ -82,9 +82,9 @@ class MultiObjFitness(Fitness):
         """
         not_equal = False
         for self_wvalue, other_wvalue in zip(self.wvalues[selector], other.wvalues[selector]):
-            if is_worse(other_wvalue, self_wvalue):
+            if is_metric_worse(other_wvalue, self_wvalue):
                 not_equal = True
-            elif is_worse(self_wvalue, other_wvalue):
+            elif is_metric_worse(self_wvalue, other_wvalue):
                 return False
         return not_equal
 

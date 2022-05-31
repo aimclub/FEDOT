@@ -126,7 +126,7 @@ class SingleObjFitness(Fitness):
             # valid self is NOT worse than invalid other
             return False
         # if both are valid then compare normally
-        return is_worse(self._values, other._values)  # lexicographic comparison
+        return is_metric_worse(self._values, other._values)  # lexicographic comparison
 
     def __str__(self) -> str:
         if len(self._values) == 1:
@@ -140,5 +140,10 @@ def null_fitness() -> SingleObjFitness:
     return SingleObjFitness(primary_value=None)
 
 
-def is_worse(left_value, right_value) -> bool:
-    return left_value > right_value
+def is_metric_worse(left_value, right_value) -> bool:
+    if isinstance(left_value, Fitness):
+        # Fitness object already handles metric comparison in the right way
+        return left_value < right_value
+    else:
+        # Less is better -- minimisation task on raw metric values
+        return left_value > right_value
