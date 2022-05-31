@@ -101,12 +101,10 @@ class GraphOptimizer:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective: ObjectiveFunction,
-                 show_progress: bool = True) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
         """
         Method for running of optimization using specified algorithm.
         :param objective: objective function that specifies optimization target
-        :param show_progress: print output the describes the progress during iterations
         :return: sequence of the best graphs
         """
         pass
