@@ -111,13 +111,14 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         adapted_graph = self._graph_adapter.restore(graph)
 
         ind.fitness = self._objective_eval(adapted_graph)
-        ind.graph = self._graph_adapter.adapt(adapted_graph)
 
         if self._post_eval_callback:
             self._post_eval_callback(adapted_graph)
         if self._cleanup:
             self._cleanup(adapted_graph)
         gc.collect()
+
+        ind.graph = self._graph_adapter.adapt(adapted_graph)
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time

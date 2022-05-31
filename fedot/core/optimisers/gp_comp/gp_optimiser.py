@@ -106,7 +106,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,
                                                          n_jobs=requirements.n_jobs,
-                                                         graph_cleanup_fn=Pipeline.unfit,
+                                                         graph_cleanup_fn=_unfit_pipeline,
                                                          log=log)
 
         # stopping_after_n_generation may be None, so use some obvious max number
@@ -277,3 +277,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                          crossover_prob=self.requirements.crossover_prob,
                          max_depth=self.max_depth, log=self.log,
                          params=self.graph_generation_params)
+
+
+def _unfit_pipeline(graph: Any):
+    if isinstance(graph, Pipeline):
+        graph.unfit()
