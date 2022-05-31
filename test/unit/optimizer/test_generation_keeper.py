@@ -31,15 +31,15 @@ def generation_keeper(init_population=None, multi_objective=True):
 
 def population1():
     return create_population([
-        MultiObjFitness([2, 4]),
-        MultiObjFitness([3, 2]),
+        MultiObjFitness([2, 4], weights=-1),
+        MultiObjFitness([3, 2], weights=-1),
     ])
 
 
 def population2():
     return create_population([
-        MultiObjFitness([1, 5]),
-        MultiObjFitness([3, 3]),
+        MultiObjFitness([1, 5], weights=-1),
+        MultiObjFitness([3, 3], weights=-1),
     ])
 
 
