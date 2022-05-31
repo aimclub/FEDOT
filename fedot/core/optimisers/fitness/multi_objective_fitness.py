@@ -1,16 +1,10 @@
 #    This code is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
 import sys
-from numbers import Number
-
+from numbers import Real
 from typing import Sequence, Union
 from operator import mul, truediv
 
-from typing import Sequence
-from operator import mul, truediv
-
-import numpy as np
-
-from fedot.core.optimisers.fitness.fitness import Fitness
+from fedot.core.optimisers.fitness.fitness import Fitness, is_worse
 
 
 class MultiObjFitness(Fitness):
@@ -23,8 +17,7 @@ class MultiObjFitness(Fitness):
     :param wvalues: Allows to provide values by giving already weighted values.
     If provided, then :param values: is ignored. This is used by deserialization.
 
-    Fitnesses may be compared using the ``>``, ``<``, ``>=``, ``<=``, ``==``,
-    ``!=``. The comparison of those operators is made lexicographically.
+    Comparison between Fitnesses is made lexicographically.
     Maximization and minimization are taken care off by a multiplication
     between the :attr:`weights` and the fitness :attr:`values`. The comparison
     can be made between fitnesses of different size, if the fitnesses are
@@ -32,14 +25,14 @@ class MultiObjFitness(Fitness):
     shorter.
     """
 
-    def __init__(self, values: Sequence[Number] = (),
-                 weights: Union[Sequence[Number], Number] = 1,
-                 *, wvalues: Sequence[Number] = None):
+    def __init__(self, values: Sequence[Real] = (),
+                 weights: Union[Sequence[Real], Real] = 1,
+                 *, wvalues: Sequence[Real] = None):
         if wvalues is not None:
             # This branch is mainly for deserialization from .wvalues attribute
             values = tuple(map(truediv, wvalues, weights))
 
-        if isinstance(weights, Number):
+        if isinstance(weights, Real):
             # Single value provided or default 1.0 weights
             weights = (weights,) * len(values)
         elif isinstance(weights, Sequence):
@@ -90,9 +83,9 @@ class MultiObjFitness(Fitness):
         """
         not_equal = False
         for self_wvalue, other_wvalue in zip(self.wvalues[selector], other.wvalues[selector]):
-            if self_wvalue > other_wvalue:
+            if is_worse(other_wvalue, self_wvalue):
                 not_equal = True
-            elif self_wvalue < other_wvalue:
+            elif is_worse(self_wvalue, other_wvalue):
                 return False
         return not_equal
 
@@ -105,7 +98,7 @@ class MultiObjFitness(Fitness):
         return hash(self.wvalues)
 
     def __lt__(self, other):
-        return self.wvalues < other.wvalues
+        return self.wvalues > other.wvalues
 
     def __eq__(self, other):
         return (isinstance(other, self.__class__) and

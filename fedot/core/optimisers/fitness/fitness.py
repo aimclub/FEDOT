@@ -8,8 +8,12 @@ from fedot.core.utilities.data_structures import Comparable
 
 class Fitness(Comparable):
     """Abstracts comparable fitness values that can be in invalid state.
-    Fitness comparison handles invalid fitness: invalid fitness is never
-    less than any other fitness. Fitness implementations must ensure this contract."""
+
+    Importantly, Fitness comparison is semantic: `more-than` means `better-than`.
+    Fitness can be compared using standard operators ``>``, ``<``, ``>=``, etc.
+    Fitness comparison handles invalid fitness: invalid fitness is never better
+    than any other fitness. Fitness implementations must ensure this contract.
+    """
 
     @property
     def value(self) -> Optional[float]:
@@ -39,12 +43,13 @@ class Fitness(Comparable):
 
     def dominates(self, other: 'Fitness', selector: Any = None) -> bool:
         """Implementation-specific test for fitness domination.
-        By default behaves same as less-than operator for valid fitness.
+        By the default behaves same as less-than operator for valid fitness.
+        Less means worse; so the better fitness is a dominating one.
 
         :param other: another fitness for dominates test.
         :param selector: optionally specifies which objectives of the fitness to use.
         """
-        return self < other
+        return self > other
 
     def reset(self):
         del self.values
@@ -111,13 +116,17 @@ class SingleObjFitness(Fitness):
         return super().__hash__()
 
     def __lt__(self, other: 'SingleObjFitness') -> bool:
-        # NB: in the case of both invalid the other takes precedence
+        """'Less-than' for fitness means 'worse-than'.
+        NB: in the case of both invalid the other takes precedence
+        """
         if not self.valid:
+            # invalid self is worse
             return True
         elif not other.valid:
+            # valid self is NOT worse than invalid other
             return False
-        # both are valid
-        return self._values < other._values  # lexicographic comparison
+        # if both are valid then compare normally
+        return is_worse(self._values, other._values)  # lexicographic comparison
 
     def __str__(self) -> str:
         if len(self._values) == 1:
@@ -129,3 +138,7 @@ class SingleObjFitness(Fitness):
 def null_fitness() -> SingleObjFitness:
     """Alias for creating default-initialised single-value fitness."""
     return SingleObjFitness(primary_value=None)
+
+
+def is_worse(left_value, right_value) -> bool:
+    return left_value > right_value

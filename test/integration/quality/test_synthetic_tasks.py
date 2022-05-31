@@ -96,4 +96,4 @@ def test_synthetic_regression_automl():
 
     auto_model.current_pipeline.fit(train_data)
 
-    assert min(auto_model.history.historical_fitness[-1]) < 0.01
+    assert max(auto_model.history.historical_fitness[-1]) < 0.01
