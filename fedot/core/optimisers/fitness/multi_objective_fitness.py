@@ -44,7 +44,7 @@ class MultiObjFitness(Fitness):
         self.values = values
 
     def getValues(self):
-        return tuple(map(truediv, self.wvalues, self.weights))
+        return self.wvalues
 
     def setValues(self, values):
         if values is None:
@@ -68,8 +68,7 @@ class MultiObjFitness(Fitness):
     values = property(getValues, setValues, delValues,
                       ("Fitness values. Use directly ``individual.fitness.values = values`` "
                        "in order to set the fitness and ``del individual.fitness.values`` "
-                       "in order to clear (invalidate) the fitness. The (unweighted) fitness "
-                       "can be directly accessed via ``individual.fitness.values``."))
+                       "in order to clear (invalidate) the fitness."))
 
     def dominates(self, other: 'MultiObjFitness', selector=slice(None)):
         """Return true if each objective of *self* is not strictly worse than
