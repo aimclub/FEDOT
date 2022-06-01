@@ -64,13 +64,13 @@ def test_all_historical_quality():
     pop_size = 4
     generations_quantity = 3
     history = generate_history(generations_quantity, pop_size)
-    eval_fitness = [[-0.9, 0.8], [-0.8, 0.6], [-0.2, 0.4], [-0.9, 0.9]]
+    eval_fitness = [[0.9, 0.8], [0.8, 0.6], [0.2, 0.4], [0.9, 0.9]]
+    weights = (-1, 1)
     for pop_num, population in enumerate(history.individuals):
         if pop_num != 0:
-            eval_fitness = [[fit[0] - 0.5, fit[1]] for fit in eval_fitness]
+            eval_fitness = [[fit[0] + 0.5, fit[1]] for fit in eval_fitness]
         for pipeline_num, pipeline in enumerate(population):
-            fitness = MultiObjFitness(values=eval_fitness[pipeline_num],
-                                      weights=tuple([-1 for _ in range(len(eval_fitness[pipeline_num]))]))
+            fitness = MultiObjFitness(values=eval_fitness[pipeline_num], weights=weights)
             pipeline.fitness = fitness
     all_quality = history.all_historical_quality
     assert all_quality[0] == -0.9 and all_quality[4] == -1.4 and all_quality[5] == -1.3 and all_quality[10] == -1.2
