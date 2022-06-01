@@ -23,16 +23,26 @@ class Fitness(Comparable):
     @property
     @abstractmethod
     def values(self) -> Sequence[float]:
+        """Return individual metric values.
+        Returned values are already weighted, if weights are used."""
         raise NotImplementedError()
 
     @values.setter
     @abstractmethod
     def values(self, new_values: Optional[Sequence[float]]):
+        """Assign individual metric values. Accepts unweighted values."""
         raise NotImplementedError()
 
     @values.deleter
     @abstractmethod
     def values(self):
+        """Clear internal metric values."""
+        raise NotImplementedError()
+
+    @property
+    @abstractmethod
+    def weights(self) -> Sequence[float]:
+        """Return weights used for weighting individual metrics."""
         raise NotImplementedError()
 
     @property
@@ -106,6 +116,11 @@ class SingleObjFitness(Fitness):
     @values.deleter
     def values(self):
         self._values = (None,)
+
+    @property
+    def weights(self) -> Sequence[float]:
+        # Return default weights
+        return (1.,) * len(self.values)
 
     @property
     def valid(self) -> bool:

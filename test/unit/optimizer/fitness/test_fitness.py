@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 from itertools import product
 
+import numpy as np
 import pytest
 
 from fedot.core.optimisers.fitness.fitness import *
@@ -47,7 +48,7 @@ def test_fitness_values_property(fitness):
 
     if len(fitness_values) > 0:
         assert fitness.valid
-    assert fitness.values == fitness_values
+    assert np.array_equal(fitness.values, np.multiply(fitness_values, fitness.weights))
 
 
 @pytest.mark.parametrize('fitness', get_fitness_objects())
@@ -114,7 +115,7 @@ def test_fitness_serialization(fitness):
     reserialized = json.loads(dumped, cls=Serializer)
 
     assert fitness.__class__ == reserialized.__class__
-    assert fitness.values == reserialized.values
+    assert np.array_equal(fitness.values, reserialized.values)
     assert fitness.valid == reserialized.valid
     if fitness.valid:
         assert fitness == reserialized

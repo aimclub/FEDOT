@@ -4,6 +4,8 @@ from numbers import Real
 from typing import Sequence, Union
 from operator import mul, truediv
 
+import numpy as np
+
 from fedot.core.optimisers.fitness.fitness import Fitness, is_metric_worse
 
 
@@ -30,7 +32,7 @@ class MultiObjFitness(Fitness):
                  *, wvalues: Sequence[Real] = None):
         if wvalues is not None:
             # This branch is mainly for deserialization from .wvalues attribute
-            values = tuple(map(truediv, wvalues, weights))
+            values = tuple(np.true_divide(wvalues, weights))
 
         if isinstance(weights, Real):
             # Single value provided or default 1.0 weights
@@ -40,8 +42,12 @@ class MultiObjFitness(Fitness):
         else:
             raise TypeError("Attribute weights of %r must be a sequence or a number." % self.__class__)
 
-        self.weights = weights
+        self._weights = weights
         self.values = values
+
+    @property
+    def weights(self) -> Sequence[Real]:
+        return self._weights
 
     def getValues(self):
         return self.wvalues
