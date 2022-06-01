@@ -82,7 +82,7 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
 
     while len(chosen) < pop_size and n_iter < pop_size * 10:
         group = random_selection(individuals, group_size)
-        best = min(group, key=lambda ind: ind.fitness)
+        best = max(group, key=lambda ind: ind.fitness)
         if best.uid not in (c.uid for c in chosen):
             chosen.append(best)
         n_iter += 1

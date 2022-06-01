@@ -149,9 +149,9 @@ def test_filter_duplicates():
 
     population = [Individual(adapter.adapt(c)) for c in [pipeline_first(), pipeline_second(),
                                                          pipeline_third(), pipeline_fourth()]]
-    archive_items_fitness = ((-0.80001, 0.25), (-0.7, 0.1), (-0.9, 0.7))
-    population_fitness = ((-0.8, 0.25), (-0.59, 0.25), (-0.9, 0.7), (-0.7, 0.1))
-    weights = tuple([-1 for _ in range(len(population_fitness[0]))])
+    archive_items_fitness = ((0.80001, 0.25), (0.7, 0.1), (0.9, 0.7))
+    population_fitness = ((0.8, 0.25), (0.59, 0.25), (0.9, 0.7), (0.7, 0.1))
+    weights = (-1, 1)
     for ind_num in range(len(archive_items)):
         archive_items[ind_num].fitness = MultiObjFitness(values=archive_items_fitness[ind_num], weights=weights)
     for ind_num in range(len(population)):

@@ -2,6 +2,7 @@ import json
 from copy import deepcopy
 from itertools import product
 
+import numpy as np
 import pytest
 
 from fedot.core.optimisers.fitness.fitness import *
@@ -47,7 +48,7 @@ def test_fitness_values_property(fitness):
 
     if len(fitness_values) > 0:
         assert fitness.valid
-    assert fitness.values == fitness_values
+    assert np.array_equal(fitness.values, np.multiply(fitness_values, fitness.weights))
 
 
 @pytest.mark.parametrize('fitness', get_fitness_objects())
@@ -84,26 +85,28 @@ def test_fitness_equality(fitness_objects):
 def test_fitness_compare_prioritised_invalid():
     assert SingleObjFitness(None, 10) < SingleObjFitness(1, 20)
     assert SingleObjFitness(1, 10) > SingleObjFitness(None, 20)
-    # right-side operand takes precedence in ambigious case
+    # right-side operand takes precedence in ambiguous case
     assert SingleObjFitness(None, 123) < SingleObjFitness(None)
 
 
 def test_fitness_compare_prioritised():
-    assert SingleObjFitness(1, 10) < SingleObjFitness(1, 20)
-    assert SingleObjFitness(1, 10, 100) < SingleObjFitness(1, 10, 101.)
-    assert SingleObjFitness(0, 20) < SingleObjFitness(1, 10)
+    # we minimise fitness, so lesser values are better ones
+    assert SingleObjFitness(1, 10) > SingleObjFitness(1, 20)
+    assert SingleObjFitness(1, 10, 100) > SingleObjFitness(1, 10, 101.)
+    assert SingleObjFitness(0, 20) > SingleObjFitness(1, 10)
 
 
 def test_fitness_multiobj_dominates():
-    assert MultiObjFitness([2.]).dominates(MultiObjFitness([1.]))
-    assert MultiObjFitness([2., 2., 2.]).dominates(MultiObjFitness([1., 1., 1.]))
-    assert MultiObjFitness([1., 2., 3.]).dominates(MultiObjFitness([1., 1., 3.]))
+    # we minimise fitness, so lesser values are better ones
+    assert MultiObjFitness([1.]).dominates(MultiObjFitness([2.]))
+    assert MultiObjFitness([1., 1., 1.]).dominates(MultiObjFitness([2., 2., 2.]))
+    assert MultiObjFitness([1., 1., 3.]).dominates(MultiObjFitness([1., 2., 3.]))
 
-    assert MultiObjFitness([1.], weights=[2.]).dominates(MultiObjFitness([1.]))
-    assert MultiObjFitness([1., 1., 1.], weights=2.).dominates(MultiObjFitness([1., 1., 1.]))
+    assert MultiObjFitness([1.]).dominates(MultiObjFitness([1.], weights=[2.]))
+    assert MultiObjFitness([1., 1., 1.]).dominates(MultiObjFitness([1., 1., 1.], weights=2.))
 
     assert not MultiObjFitness([1., 1., 1.]).dominates(MultiObjFitness([1., 1., 1.]))
-    assert not MultiObjFitness([1., 2., 1.]).dominates(MultiObjFitness([1., 1., 2.]))
+    assert not MultiObjFitness([1., 1., 2.]).dominates(MultiObjFitness([1., 2., 1.]))
 
 
 @pytest.mark.parametrize('fitness', get_fitness_objects())
@@ -112,7 +115,7 @@ def test_fitness_serialization(fitness):
     reserialized = json.loads(dumped, cls=Serializer)
 
     assert fitness.__class__ == reserialized.__class__
-    assert fitness.values == reserialized.values
+    assert np.array_equal(fitness.values, reserialized.values)
     assert fitness.valid == reserialized.valid
     if fitness.valid:
         assert fitness == reserialized
