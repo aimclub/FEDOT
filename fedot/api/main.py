@@ -112,11 +112,10 @@ class Fedot:
                            'predict preprocessing': [],
                            'predict full time': [],
                            'pipeline structure': []})
-        if self.use_default_preprocessors:
-            self.file_name = 'default_preprocessors.csv'
-        else:
-            self.file_name = 'no_default_preprocessors.csv'
-        df.to_csv(self.file_name, index=False)
+        import os
+        cur_file_name = os.getenv('preproc_caching_save_pth', 'without_cache')
+        print(f'pipeline saving to {cur_file_name}')
+        df.to_csv(f'{cur_file_name}.csv', index=False)
 
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'preset': preset, 'timeout': timeout,

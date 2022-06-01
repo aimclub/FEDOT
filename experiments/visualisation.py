@@ -1,7 +1,8 @@
 import os
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
 
 
@@ -15,27 +16,37 @@ def calculate_proportion(preprocessing_time: np.ndarray, full_time: np.ndarray):
     print(f'Mean ratio: {np.mean(ratios):.2f} %')
 
 
-def display_plots(dir: str):
+def display_plots(dir: str, name1: str, name2: str, title: str):
     """ Display some plots after experiments """
     dir = os.path.abspath(dir)
-    df_1 = pd.read_csv(os.path.join(dir, 'default_preprocessors.csv'))
-    df_2 = pd.read_csv(os.path.join(dir, 'no_default_preprocessors.csv'))
+    df_1 = pd.read_csv(os.path.join(dir, f'{name1}.csv'))
+    delim = 'using_cache'
+    df_1[delim] = 1.
+    df_2 = pd.read_csv(os.path.join(dir, f'{name2}.csv'))
+    df_2[delim] = 0.
     df = pd.concat([df_1, df_2])
     df['Fit preprocessing ratio, %'] = (df['fit preprocessing'] / df['fit full time']) * 100
-    df['pipeline structure'][df['pipeline structure'] != 'no preprocessing operations'] = 'preprocessing in the pipeline'
+    df['Predict preprocessing ratio, %'] = (df['predict preprocessing'] / df['predict full time']) * 100
 
-    df_1 = df[df['pipeline structure'] == 'no preprocessing operations']
-    mean_preprocessing_default = np.mean(np.array(df_1['Fit preprocessing ratio, %']))
-    print(f'Default preprocessing {mean_preprocessing_default:.2f}')
+    for flag in [1., 0.]:
+        cur_df = df[df[delim] == flag]
+        mean_fit_preprocessing = np.mean(np.array(cur_df['Fit preprocessing ratio, %']))
+        mean_predict_preprocessing = np.mean(np.array(cur_df['Predict preprocessing ratio, %']))
+        print(
+            f'Cache={bool(flag)},\n\t mean fitting time={mean_fit_preprocessing:.2f}, mean predicting time={mean_predict_preprocessing}')
 
-    df_2 = df[df['pipeline structure'] == 'preprocessing in the pipeline']
-    mean_preprocessing_in_pipeline = np.mean(np.array(df_2['Fit preprocessing ratio, %']))
-    print(f'Preprocessing in the pipeline {mean_preprocessing_in_pipeline:.2f}')
-
-    sns.boxplot(x="pipeline structure", y="Fit preprocessing ratio, %", data=df,
-                palette='Blues')
+    df[delim] = df[delim].astype(bool)
+    sns.boxplot(x=delim, y="Fit preprocessing ratio, %", data=df,
+                palette='Blues').set(title=title)
+    # sns.boxplot(x=delim, y="Predict preprocessing ratio, %", data=df,
+    #            palette='Blues').set(title=title)
     plt.show()
 
 
 if __name__ == '__main__':
-    display_plots('.')
+    ext = '_clean'
+    if ext == '':
+        title = '1 cat col + 20% of gaps, 20k dataset'
+    elif ext == '_clean':
+        title = 'no cats, no gaps, 20k dataset'
+    display_plots('.', f'with_cache{ext}', f'without_cache{ext}', title)

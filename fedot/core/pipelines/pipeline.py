@@ -1,4 +1,5 @@
 import datetime
+
 from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, List, Optional, Tuple, Union
@@ -194,7 +195,7 @@ class Pipeline(Graph):
         self.df['fit full time'] = [self.fit_all_time]
 
         ops = []
-        print(self.nodes)
+        print('structure in fit: ', self.nodes)
         for node in self.nodes:
             if node.operation.operation_type == 'simple_imputation' and 'simple_imputation' not in ops:
                 ops.append('simple_imputation')
@@ -278,7 +279,10 @@ class Pipeline(Graph):
         self.df['predict preprocessing'] = [self.predict_preprocessing_time]
         self.df['predict full time'] = [self.predict_all_time]
 
-        file_path = 'D:/ITMO/FEDOT_correct/experiments/default_preprocessors.csv'
+        import os
+        cur_save_file = os.getenv('preproc_caching_save_pth', 'without_cache')
+
+        file_path = f'C:/Users/Sergei/Desktop/Sergei-docs/FEDOT_AutoML/FEDOT/experiments/{cur_save_file}.csv'
         self.df.to_csv(file_path, mode='a', header=False, index=False)
         return result
 

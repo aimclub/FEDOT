@@ -1,10 +1,13 @@
 import numpy as np
+import pandas as pd
 
+from examples.advanced.pipelines_caching import PreprocessingCacheMock
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
+from fedot.preprocessing.cache import PreprocessingCache
 
 
 def generate_gaps_and_categories(input_data: InputData):
@@ -26,7 +29,7 @@ def generate_gaps_and_categories(input_data: InputData):
         current_column = features[:, column_id]
 
         number_of_gaps = round(len(current_column) * (gap_percentage / 100))
-        random_indices = list(set(np.random.random_integers(0, len(current_column)-1, number_of_gaps)))
+        random_indices = list(set(np.random.random_integers(0, len(current_column) - 1, number_of_gaps)))
         current_column[random_indices] = np.nan
         frames.append(current_column.reshape(-1, 1))
 
@@ -35,26 +38,21 @@ def generate_gaps_and_categories(input_data: InputData):
     return input_data
 
 
-def run_regression_example():
-    data_path = f'{fedot_project_root()}/cases/data/cal_housing.csv'
-
-    data = InputData.from_csv(data_path,
-                              index_col=None,
-                              task=Task(TaskTypesEnum.regression),
-                              target_columns='medianHouseValue')
-    data = generate_gaps_and_categories(data)
-    train, test = train_test_data_setup(data)
-    problem = 'regression'
+def run_example_with(train, test, problem: str):
+    if os.getenv('use_preproc_caching') == '':
+        PreprocessingCache.add_preprocessor.__code__ = PreprocessingCacheMock.add_preprocessor.__code__
+        PreprocessingCache.try_find_preprocessor.__code__ = PreprocessingCacheMock.try_find_preprocessor.__code__
 
     composer_params = {'history_folder': 'custom_history_folder', 'cv_folds': None}
     auto_model = Fedot(problem=problem, seed=42, composer_params=composer_params,
                        preset='auto',
-                       timeout=10,
-                       verbose_level=1,
+                       timeout=3,
+                       verbose_level=0,
                        use_default_preprocessors=True)
 
     auto_model.fit(features=train, target='target')
-    auto_model.history.save('saved_regression_history.json')
+    if auto_model.history is not None:
+        auto_model.history.save('saved_regression_history.json')
     prediction = auto_model.predict(features=test)
     print(auto_model.get_metrics())
     auto_model.plot_prediction()
@@ -63,4 +61,30 @@ def run_regression_example():
 
 
 if __name__ == '__main__':
-    run_regression_example()
+    import os
+
+    os.environ['preproc_caching_save_pth'] = 'with_cache_clean'
+    os.environ['use_preproc_caching'] = '1'
+    problem = 'classification'
+
+    if problem == 'classification':
+        train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+        test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+
+        train = pd.read_csv(train_data_path)
+        test = pd.read_csv(test_data_path)
+        cat_columns = [
+            'NumberOfTime30.59DaysPastDueNotWorse', 'NumberOfTimes90DaysLate',
+            'NumberRealEstateLoansOrLines', 'NumberOfTime60.89DaysPastDueNotWorse', 'NumberOfDependents']
+        train = train.drop(columns=cat_columns).dropna()
+        test = test.drop(columns=cat_columns).dropna()
+    elif problem == 'regression':
+        data_path = f'{fedot_project_root()}/cases/data/cal_housing.csv'
+
+        data = InputData.from_csv(data_path,
+                                  index_col=None,
+                                  task=Task(TaskTypesEnum.regression),
+                                  target_columns='medianHouseValue')
+        data = generate_gaps_and_categories(data)
+        train, test = train_test_data_setup(data)
+    run_example_with(train, test, problem)
