@@ -1,34 +1,27 @@
 from copy import deepcopy
 from functools import partial
-from typing import Any, Optional, Union, List, Iterable, Sequence
-
-from tqdm import tqdm
+from typing import Any, Iterable, List, Optional, Sequence, Union
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.gp_operators import (
-    clean_operators_history,
-    random_graph
-)
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, crossover_parents_selection, selection
 from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
 from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, init_adaptive_pop_size
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection, crossover_parents_selection
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utilities.grouped_condition import GroupedCondition
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
+from tqdm import tqdm
 
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
@@ -190,8 +183,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.verbosity_level == -1):
-
+                              disable=not show_progress or self.log.verbosity_level <= 0):
             pop_size = self._pop_size.initial
             self._next_population(evaluator(self._init_population(pop_size, self._graph_depth.initial)))
 

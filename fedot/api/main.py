@@ -4,8 +4,8 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from deap.tools import HallOfFame
 
+from deap.tools import HallOfFame
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
@@ -25,6 +25,7 @@ from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
+from fedot.preprocessing.cache import PreprocessingCache
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
@@ -126,6 +127,10 @@ class Fedot:
 
         # Initialize ApiComposer's parameters via ApiParams
         self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
+
+        # Initializes preprocessing singleton cache
+        preprocessing_cache = PreprocessingCache(self.params.log)
+        preprocessing_cache.reset()
 
         # Get metrics for optimization
         metric_name = self.params.api_params['metric_name']

@@ -1,10 +1,10 @@
-from copy import deepcopy
 import datetime
-import pandas as pd
+from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, List, Optional, Tuple, Union
 
 import func_timeout
+import pandas as pd
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.dag.graph import Graph
@@ -20,6 +20,7 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.preprocessing.cache import PreprocessingCache
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -154,10 +155,13 @@ class Pipeline(Graph):
 
         _replace_n_jobs_in_nodes(self, n_jobs)
 
+        preprocessing_cache = PreprocessingCache()
+
         if not use_fitted:
             self.unfit(mode='all', unfit_preprocessor=True)
         else:
             self.unfit(mode='data_operations', unfit_preprocessor=False)
+        self.preprocessor = preprocessing_cache.try_find_preprocessor(self, input_data)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
@@ -172,6 +176,7 @@ class Pipeline(Graph):
                                                                       data=copied_input_data)
         self.fit_preprocessing_time = datetime.datetime.now() - start_preprocessing_fit
         self.fit_preprocessing_time = self.fit_preprocessing_time.total_seconds()
+        preprocessing_cache.add_preprocessor(self, input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
