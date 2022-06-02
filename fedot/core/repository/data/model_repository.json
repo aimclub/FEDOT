@@ -425,6 +425,16 @@
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
+    "ts_naive_average": {
+      "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged"
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
+    },
     "svc": {
       "meta": "custom_class",
       "tags": [

@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     TsSmoothingImplementation, SparseLaggedTransformationImplementation, CutImplementation, \
     NumericalDerivativeFilterImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
-    RepeatLastValueImplementation
+    RepeatLastValueImplementation, NaiveAverageForecastImplementation
 from fedot.core.operations.evaluation.operation_implementations.models. \
     ts_implementations.statsmodels import AutoRegImplementation, GLMImplementation, ExpSmoothingImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.arima import \
@@ -39,7 +39,8 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'clstm': CLSTMImplementation,
         'polyfit': PolyfitImplementation,
         'glm': GLMImplementation,
-        'locf': RepeatLastValueImplementation
+        'locf': RepeatLastValueImplementation,
+        'ts_naive_average': NaiveAverageForecastImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

@@ -220,8 +220,17 @@ def ts_stl_arima_pipeline():
     return pipeline
 
 
-def ts_naive_forecast_pipeline():
-    pipeline = Pipeline(PrimaryNode("locf"))
+def ts_locf_forecast_pipeline():
+    locf_node = PrimaryNode("locf")
+    lagged_node = PrimaryNode("lagged")
+    pipeline = Pipeline(SecondaryNode("ridge", nodes_from=[locf_node, lagged_node]))
+    return pipeline
+
+
+def ts_naive_average_pipeline():
+    naive_average_node = PrimaryNode("ts_naive_average")
+    lagged_node = PrimaryNode("lagged")
+    pipeline = Pipeline(SecondaryNode("ridge", nodes_from=[naive_average_node, lagged_node]))
     return pipeline
 
 
