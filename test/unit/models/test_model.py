@@ -14,6 +14,8 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     PCAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
     LDAImplementation
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
+    NaiveAverageForecastImplementation, RepeatLastValueImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
@@ -23,6 +25,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from test.unit.common_tests import is_predict_ignores_target
+from test.unit.data_operations.test_time_series_operations import synthetic_univariate_ts
 from test.unit.tasks.test_forecasting import get_ts_data, get_ts_data_with_dt_idx
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
@@ -321,3 +324,35 @@ def test_pca_model_fit_with_wide_table():
 
     params, changed_hyperparams = pca_model.get_params()
     assert changed_hyperparams[0] == 'n_components'
+
+
+def test_ts_naive_average_forecast_correctly():
+    """ Check if forecasted time series has correct indices """
+    train_input, predict_input, _ = synthetic_univariate_ts()
+
+    model = NaiveAverageForecastImplementation(part_for_averaging=1.0)
+    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
+    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+
+    # Check correctness during pipeline fit stage
+    assert (10, 4) == fit_forecast.target.shape
+    assert np.array_equal(fit_forecast.idx, np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+    assert np.isclose(fit_forecast.predict[0, 0], 0)
+
+    # Pipeline predict stage
+    assert np.array_equal(predict_forecast.predict, np.array([[65, 65, 65, 65]]))
+
+
+def test_locf_forecast_correctly():
+    """ Testing naive LOCF model """
+    train_input, predict_input, _ = synthetic_univariate_ts()
+    model = RepeatLastValueImplementation(part_for_repeat=0.2)
+
+    model.fit(train_input)
+    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
+    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+
+    assert (8, 4) == fit_forecast.target.shape
+    assert np.array_equal(fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))
+    # Repeated pattern (3 elements to repeat and 4 forecast horizon)
+    assert np.array_equal(predict_forecast.predict, np.array([[110, 120, 130, 110]]))

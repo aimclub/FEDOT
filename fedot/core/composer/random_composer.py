@@ -14,23 +14,21 @@ from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
 class RandomSearchComposer(Composer):
-    def __init__(self, optimiser: 'RandomSearchOptimiser',
-                 composer_requirements: ComposerRequirements,
-                 metrics: Optional[Callable] = None):
+    def __init__(self,
+                 optimiser: 'RandomSearchOptimiser',
+                 composer_requirements: ComposerRequirements):
         super().__init__(optimiser, composer_requirements)
         self.optimiser = optimiser
-        self._metrics = metrics
 
     def compose_pipeline(self, data: InputData) -> Pipeline:
         train_data = data
         test_data = data
 
-        # custom objective evaluator
-        def objective_eval(pipeline: Pipeline) -> Fitness:
+        def prepared_objective(pipeline: Pipeline) -> Fitness:
             pipeline.fit(train_data)
             return self.optimiser.objective(pipeline, reference_data=test_data)
 
-        best_pipeline = self.optimiser.optimise(objective_eval)
+        best_pipeline = self.optimiser.optimise(prepared_objective)
         return best_pipeline
 
 
@@ -84,13 +82,13 @@ class RandomSearchOptimiser(GraphOptimiser):
         self._iter_num = iter_num
         super().__init__(objective)
 
-    def optimise(self, objective_evaluator: ObjectiveFunction, show_progress: bool = True) -> Pipeline:
+    def optimise(self, objective: ObjectiveFunction, show_progress: bool = True) -> Pipeline:
         best_metric_value = 1000
         best_set = None
         history = []
         for i in range(self._iter_num):
             new_pipeline = self._factory()
-            new_metric_value = objective_evaluator(new_pipeline).value
+            new_metric_value = objective(new_pipeline).value
             new_metric_value = round(new_metric_value, 3)
             if new_metric_value < best_metric_value:
                 best_metric_value = new_metric_value

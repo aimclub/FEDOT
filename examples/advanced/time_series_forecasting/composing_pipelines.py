@@ -14,6 +14,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -149,20 +150,21 @@ def visualise(plot_info: List[dict]):
     plt.show()
 
 
-def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str) -> dict:
+def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str, color: str = 'black') -> dict:
     """
     Return plot_info for border vertical line that divides train and test part of data
 
     :param idx: idx for vertical line
     :param predict: predictions
     :param time_series: full time series with test_data
-    :param label: label for legend
+    :param label: label for a legend
+    :parma color: color of a line
     """
     return {'idx': [idx, idx],
             'series': [min(np.concatenate([np.ravel(time_series), predict])),
                        max(np.concatenate([np.ravel(time_series), predict]))],
             'label': label,
-            'color': 'black'}
+            'color': color}
 
 
 if __name__ == '__main__':

@@ -27,11 +27,6 @@ class ObjectiveEvaluate(ABC, Generic[G]):
         self._objective = objective
         self._objective_kwargs = objective_kwargs
 
-    @property
-    def objective(self) -> Objective:
-        """Returns underlying objective."""
-        return self._objective
-
     def __call__(self, graph: G) -> Fitness:
         """Provides functional interface for ObjectiveEvaluate."""
         return self.evaluate(graph)
@@ -42,8 +37,4 @@ class ObjectiveEvaluate(ABC, Generic[G]):
 
     def evaluate_intermediate_metrics(self, graph: G):
         """Compute intermediate metrics for each graph node and store it there."""
-        pass
-
-    def cleanup(self, graph: G):
-        """Clean resources after graph evaluation, if necessary."""
         pass

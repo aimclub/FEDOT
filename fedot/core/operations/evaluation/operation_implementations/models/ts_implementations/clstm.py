@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
     prepare_target,
-    ts_to_table
+    ts_to_table, transform_features_and_target_into_lagged
 )
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
@@ -220,15 +220,11 @@ class CLSTMImplementation(ModelImplementation):
         """
         forecast_length = input_data.task.task_params.forecast_length
         features_scaled, target_scaled = self._fit_transform_scaler(input_data)
-        new_idx, lagged_table = ts_to_table(idx=input_data.idx,
-                                            time_series=features_scaled,
-                                            window_size=self.window_size)
-
-        final_idx, features_columns, final_target = prepare_target(all_idx=input_data.idx,
-                                                                   idx=new_idx,
-                                                                   features_columns=lagged_table,
-                                                                   target=target_scaled,
-                                                                   forecast_length=forecast_length)
+        input_data.features = features_scaled
+        input_data.target = target_scaled
+        final_idx, features_columns, final_target = transform_features_and_target_into_lagged(input_data,
+                                                                                              forecast_length,
+                                                                                              self.window_size)
         x = torch.from_numpy(features_columns.copy()).float()
         y = torch.from_numpy(final_target.copy()).float()
         return DataLoader(TensorDataset(x, y), batch_size=self.batch_size), forecast_length

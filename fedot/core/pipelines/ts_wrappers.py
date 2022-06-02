@@ -97,9 +97,6 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     task = input_data.task
     exception_if_not_ts_task(task)
 
-    # Is there need to fit on supplemented time-series
-    force_refit = is_force_refit_needed(pipeline)
-
     if isinstance(input_data, InputData):
         time_series = np.array(input_data.features)
         pre_history_ts = time_series[:-horizon]
@@ -143,16 +140,7 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     final_forecast = []
     for _, border in zip(range(0, number_of_iterations), intervals):
 
-        # add fit by flag
-        if force_refit:
-            # change index for fitting
-            predict_idx = data.idx
-            data.idx = np.arange(0, len(data.features))
-            # change target for fitting
-            data.target = data.features
-            pipeline.fit_from_scratch(data)
-            # change index for predict
-            data.idx = predict_idx
+
 
         iter_predict = pipeline.predict(input_data=data)
         iter_predict = np.ravel(np.array(iter_predict.predict))
@@ -340,13 +328,3 @@ def generate_ids(source_input, output_data, expand: bool):
         indices_range = np.arange(clipped_starting_values + 1,
                                   len(source_idx) + 1)
     return indices_range
-
-
-def is_force_refit_needed(pipeline) -> bool:
-    """ Determine if force refit needed for current pipeline based on nodes tags """
-    is_needed = False
-    for node in pipeline.nodes:
-        if 'in_sample_refit' in node.tags:
-            return True
-
-    return is_needed

@@ -1,7 +1,7 @@
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Tuple, Dict
+from typing import Any, Dict, List, Optional, Tuple, Union
 
-from networkx import set_node_attributes, graph_edit_distance
+from networkx import graph_edit_distance, set_node_attributes
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -185,6 +185,12 @@ class GraphOperator:
             'length': self._graph.length,
             'nodes': self._graph.nodes,
         })
+
+    @property
+    def descriptive_id(self) -> str:
+        root_list = ensure_wrapped_in_sequence(self.root_node())
+        full_desc_id = ''.join([r.descriptive_id for r in root_list])
+        return full_desc_id
 
     def graph_depth(self) -> int:
         if not self._graph.nodes:

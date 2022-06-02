@@ -52,12 +52,24 @@ def test_individual_graph_type_is_optgraph():
             assert type(history.individuals[gen][ind].graph) == OptGraph
 
 
-def test_prepare_for_visualisation():
+def test_prepare_for_visualisation(capsys):
     generations_quantity = 2
     pop_size = 10
     history = generate_history(generations_quantity, pop_size)
     assert len(history.historical_pipelines) == pop_size * generations_quantity
     assert len(history.all_historical_fitness) == pop_size * generations_quantity
+
+    history.print_leaderboard()
+    captured = capsys.readouterr()
+    assert 'n_lda_default_params' in captured.out
+    assert 'Position' in captured.out
+
+    dumped_history = history.save()
+    loaded_history = OptHistory.load(dumped_history)
+    loaded_history.print_leaderboard()
+    captured = capsys.readouterr()
+    assert 'n_lda_default_params' in captured.out
+    assert 'Position' in captured.out
 
 
 def test_all_historical_quality():

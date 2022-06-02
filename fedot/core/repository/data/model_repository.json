@@ -170,7 +170,6 @@
         "simple",
         "interpretable",
         "non_lagged",
-        "in_sample_refit",
         "linear"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
@@ -182,8 +181,8 @@
         "simple",
         "interpretable",
         "non_lagged",
-        "in_sample_refit",
-        "linear"
+        "linear",
+        "new_data_refit"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -388,8 +387,8 @@
         "simple",
         "interpretable",
         "non_lagged",
-        "in_sample_refit",
-        "linear"
+        "linear",
+        "new_data_refit"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -413,6 +412,26 @@
         "interpretable",
         "non_lagged",
         "non_linear"
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
+    },
+    "locf": {
+      "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged"
+      ],
+	  "input_type": "[DataTypesEnum.ts]"
+    },
+    "ts_naive_average": {
+      "meta": "ts_model",
+      "presets": ["fast_train", "ts"],
+      "tags": [
+        "simple",
+        "interpretable",
+        "non_lagged"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },

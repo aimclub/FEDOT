@@ -175,6 +175,10 @@ class OptGraph:
         return roots
 
     @property
+    def descriptive_id(self):
+        return self.operator.descriptive_id
+
+    @property
     def length(self) -> int:
         return len(self.nodes)
 

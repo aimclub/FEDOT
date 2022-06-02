@@ -1,18 +1,19 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Callable, List, Optional, Union, Sequence)
+from typing import (Any, Callable, List, Optional, Sequence, Union)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate, ObjectiveFunction, GraphFunction
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
-OptimisationCallback = Callable[[PopulationT, GenerationKeeper], None]
+OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
 
 
 def do_nothing_callback(*args, **kwargs):
@@ -72,12 +73,11 @@ class GraphOptimiser:
 
     def __init__(self,
                  objective: Objective,
-                 initial_graph: Union[Graph, Sequence[Graph]] = (),
+                 initial_graph: Optional[Union[Graph, Sequence[Graph]]] = None,
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimiserParameters] = None,
                  log: Optional[Log] = None):
-
         self.log = log or default_log(self.__class__.__name__)
 
         self._objective = objective
@@ -85,22 +85,34 @@ class GraphOptimiser:
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.parameters = parameters or GraphOptimiserParameters()
 
-        self.initial_graph = ensure_wrapped_in_sequence(initial_graph)
+        initial_graph = initial_graph or ()
+        initial_graph = ensure_wrapped_in_sequence(initial_graph)
+        self.initial_individuals = \
+            [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graph]
 
-        # optimisation: callback function that runs on each iteration
-        self.optimisation_callback: OptimisationCallback = do_nothing_callback
+        self._optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property
     def objective(self) -> Objective:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective_evaluator: ObjectiveEvaluate,
+    def optimise(self, objective: ObjectiveFunction,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
         """
         Method for running of optimization using specified algorithm.
-        :param objective_evaluator: Defines specific Objective and graph evaluation policy.
+        :param objective: objective function that specifies optimization target
         :param show_progress: print output the describes the progress during iterations
         :return: best graph (or list of graph for multi-objective case)
         """
+        pass
+
+    def set_optimisation_callback(self, callback: Optional[OptimisationCallback]):
+        """Set optimisation callback that must run on each iteration.
+        Reset the callback if None is passed."""
+        self._optimisation_callback = callback or do_nothing_callback
+
+    def set_evaluation_callback(self, callback: Optional[GraphFunction]):
+        """Set or reset (with None) post-evaluation callback
+        that's called on each graph after its evaluation."""
         pass
