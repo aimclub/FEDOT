@@ -40,8 +40,8 @@ class ARIMAImplementation(ModelImplementation):
         p = int(self.params.get('p'))
         d = int(self.params.get('d'))
         q = int(self.params.get('q'))
-        params = {'order': (p, d, q)}
-        self.arima = ARIMA(transformed_ts, **params).fit()
+        self.params = {'order': (p, d, q)}
+        self.arima = ARIMA(transformed_ts, **self.params).fit()
 
         return self.arima
 
@@ -91,8 +91,11 @@ class ARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1]
+            if old_idx[0] - self.actual_ts_len > 1:
+                old_params = self.arima.params
+                self.arima = ARIMA(input_data.features, **self.params).fit(start_params=old_params)
+            start_id = self.actual_ts_len
+            end_id = start_id + parameters.forecast_length - 1
             predicted = self.arima.predict(start=start_id,
                                            end=end_id)
 
@@ -102,11 +105,7 @@ class ARIMAImplementation(ModelImplementation):
             # Undo shift operation
             predict = self._inverse_shift(predicted)
             # Convert one-dim array as column
-            predict = np.array(predict).reshape(1, -1)
-            new_idx = np.arange(start_id, end_id + 1)
-
-            # Update idx
-            input_data.idx = new_idx
+            predict = np.array(predicted).reshape(1, -1)
         # Update idx and features
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -239,8 +238,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1]
+            old_params = self.model.params
+            self.model = ARIMA(input_data.features, **self.params)
+            self.model = self.model.filter(old_params)
+            start_id = self.actual_ts_len
+            end_id = start_id + parameters.forecast_length - 1
             predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
 
             # Convert one-dim array as column

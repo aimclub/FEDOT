@@ -280,7 +280,7 @@ class ExpSmoothingImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            start_id = old_idx[-1] - forecast_length + 2
+            start_id = old_idx[-1] - forecast_length + 1
             end_id = old_idx[-1] + 1
             predictions = self.model.predict(start=start_id,
                                              end=end_id)
