@@ -36,6 +36,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
     :attribute mutation_prob: mutation probability
     :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
+    :attribute max_pipeline_fit_time: time constraint for operation fitting (minutes)
     :attribute start_depth: start value of tree depth
     :attribute validation_blocks: number of validation blocks for time series validation
     :attribute n_jobs: num of n_jobs
@@ -48,6 +49,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     crossover_prob: float = 0.8
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
+    max_pipeline_fit_time: int = None
     start_depth: int = None
     validation_blocks: int = None
     n_jobs: int = 1

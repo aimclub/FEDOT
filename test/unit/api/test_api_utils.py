@@ -42,6 +42,7 @@ def test_compose_fedot_model_with_tuning():
                                                                               validation_blocks=None,
                                                                               cv_folds=None,
                                                                               genetic_scheme=None,
+                                                                              max_pipeline_fit_time=None,
                                                                               collect_intermediate_metric=False),
                                                          tuning_params=dict(with_tuning=True,
                                                                             tuner_metric=None),

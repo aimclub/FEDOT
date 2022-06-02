@@ -66,6 +66,7 @@ class Fedot:
             'available_operations' - list of model names to use
             'with_tuning' - allow hyperparameters tuning for the model
             'cv_folds' - number of folds for cross-validation
+            'max_pipeline_fit_time' - time constraint for operation fitting (minutes)
             'validation_blocks' - number of validation blocks for time series forecasting
             'initial_assumption' - initial assumption for composer
             'genetic_scheme' - name of the genetic scheme

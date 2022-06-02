@@ -217,6 +217,8 @@ class ApiComposer:
                                                              max_arity=composer_params['max_arity'],
                                                              max_depth=composer_params['max_depth'],
                                                              pop_size=composer_params['pop_size'],
+                                                             max_pipeline_fit_time=composer_params[
+                                                                 'max_pipeline_fit_time'],
                                                              num_of_generations=composer_params['num_of_generations'],
                                                              cv_folds=composer_params['cv_folds'],
                                                              validation_blocks=composer_params['validation_blocks'],
@@ -422,7 +424,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
                                 stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
-                                collect_intermediate_metric=False)
+                                collect_intermediate_metric=False, max_pipeline_fit_time=None)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 
