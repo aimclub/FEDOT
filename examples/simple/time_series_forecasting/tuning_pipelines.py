@@ -91,4 +91,4 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
 
 if __name__ == '__main__':
-    run_experiment('australia', ts_ar_pipeline(), len_forecast=50, tuning=True)
+    run_experiment('australia', ts_naive_forecast_pipeline(), len_forecast=50, tuning=True)

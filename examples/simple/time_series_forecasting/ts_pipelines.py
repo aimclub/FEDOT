@@ -220,6 +220,11 @@ def ts_stl_arima_pipeline():
     return pipeline
 
 
+def ts_naive_forecast_pipeline():
+    pipeline = Pipeline(PrimaryNode("locf"))
+    return pipeline
+
+
 def clstm_pipeline():
     """
     Return pipeline with the following structure:
