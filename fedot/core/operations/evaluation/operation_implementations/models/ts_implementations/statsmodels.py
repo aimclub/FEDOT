@@ -9,6 +9,7 @@ from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
+from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -160,6 +161,7 @@ class AutoRegImplementation(ModelImplementation):
         self.params = params
         self.actual_ts_len = None
         self.autoreg = None
+        self.train_len = None
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -173,6 +175,7 @@ class AutoRegImplementation(ModelImplementation):
         lag_2 = int(self.params.get('lag_2'))
         params = {'lags': [lag_1, lag_2]}
         self.autoreg = AutoReg(source_ts, **params).fit()
+        self.train_len = input_data.idx.shape[0]
 
         return self.autoreg
 
@@ -186,19 +189,19 @@ class AutoRegImplementation(ModelImplementation):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
-        old_idx = input_data.idx
+        idx = input_data.idx
         target = input_data.target
 
         if is_fit_pipeline_stage:
-            predicted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
+            predicted = self.autoreg.predict(start=idx[0], end=idx[-1])
             # adding nan to target as in predicted
             nan_mask = np.isnan(predicted)
             target = target.astype(float)
             target[nan_mask] = np.nan
-            _, predict = ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=idx,
                                      time_series=predicted,
                                      window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
 
@@ -207,15 +210,14 @@ class AutoRegImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1]
+            # If we use old model to new data
+            if idx[0] - self.train_len > 1:
+                self._update(input_data)
+            start_id = self.train_len
+            end_id = start_id+parameters.forecast_length-1
             predicted = self.autoreg.predict(start=start_id,
                                              end=end_id)
             predict = np.array(predicted).reshape(1, -1)
-            new_idx = np.arange(start_id, end_id + 1)
-
-            # Update idx
-            input_data.idx = new_idx
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -224,6 +226,11 @@ class AutoRegImplementation(ModelImplementation):
 
     def get_params(self):
         return self.params
+
+    def _update(self, input_data: InputData):
+        """ Method to update x samples inside a model (used when we want to use old model to a new data) """
+        self.autoreg.model.endog = input_data.features[-self.train_len:]
+        self.autoreg.model._setup_regressors()
 
 
 class ExpSmoothingImplementation(ModelImplementation):

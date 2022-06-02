@@ -71,4 +71,4 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
 
 
 if __name__ == '__main__':
-    run_multistep("australia", ts_glm_ridge_pipeline(), step_forecast=10)
+    run_multistep("australia", ts_ar_pipeline(), step_forecast=10)
