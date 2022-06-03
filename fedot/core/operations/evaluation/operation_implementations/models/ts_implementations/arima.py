@@ -55,7 +55,7 @@ class ARIMAImplementation(ModelImplementation):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
-        old_idx = input_data.idx
+        idx = input_data.idx
         target = input_data.target
 
         # For training pipeline get fitted data
@@ -77,11 +77,11 @@ class ARIMAImplementation(ModelImplementation):
 
                 fitted_values = np.array(first_elements)
 
-            _, predict = ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=idx,
                                      time_series=fitted_values,
                                      window_size=forecast_length)
 
-            new_idx, target_columns = ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
 
@@ -91,9 +91,11 @@ class ARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
-            if old_idx[0] - self.actual_ts_len > 1:
+            if idx[0] - self.actual_ts_len > 1:
+                transformed_ts = self._apply_boxcox(input_data.features)
                 old_params = self.arima.params
-                self.arima = ARIMA(input_data.features, **self.params).fit(start_params=old_params)
+                self.arima = ARIMA(transformed_ts, **self.params).fit()
+                self.actual_ts_len = len(input_data.features)
             start_id = self.actual_ts_len
             end_id = start_id + parameters.forecast_length - 1
             predicted = self.arima.predict(start=start_id,
@@ -105,7 +107,7 @@ class ARIMAImplementation(ModelImplementation):
             # Undo shift operation
             predict = self._inverse_shift(predicted)
             # Convert one-dim array as column
-            predict = np.array(predicted).reshape(1, -1)
+            predict = np.array(predict).reshape(1, -1)
         # Update idx and features
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -194,8 +196,8 @@ class STLForecastARIMAImplementation(ModelImplementation):
         d = int(self.params.get('d'))
         q = int(self.params.get('q'))
         period = int(self.params.get('period'))
-        params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
-        self.model = STLForecast(source_ts, ARIMA, **params).fit()
+        self.params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
+        self.model = STLForecast(source_ts, ARIMA, **self.params).fit()
 
         return self.model
 
@@ -208,12 +210,12 @@ class STLForecastARIMAImplementation(ModelImplementation):
         """
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
-        old_idx = input_data.idx
+        idx = input_data.idx
         target = input_data.target
 
         # For training pipeline get fitted data
         if is_fit_pipeline_stage:
-            fitted_values = self.model.get_prediction(start=old_idx[0], end=old_idx[-1]).predicted_mean
+            fitted_values = self.model.get_prediction(start=idx[0], end=idx[-1]).predicted_mean
             diff = int(self.actual_ts_len) - len(fitted_values)
             # If first elements skipped
             if diff != 0:
@@ -224,11 +226,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
                 fitted_values = np.array(first_elements)
 
-            _, predict = ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=idx,
                                      time_series=fitted_values,
                                      window_size=forecast_length)
 
-            new_idx, target_columns = ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
 
@@ -238,9 +240,9 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
-            old_params = self.model.params
-            self.model = ARIMA(input_data.features, **self.params)
-            self.model = self.model.filter(old_params)
+            if idx[0] - self.actual_ts_len > 1:
+                self.model = STLForecast(input_data.features, ARIMA, **self.params).fit()
+                self.actual_ts_len = len(input_data.features)
             start_id = self.actual_ts_len
             end_id = start_id + parameters.forecast_length - 1
             predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean

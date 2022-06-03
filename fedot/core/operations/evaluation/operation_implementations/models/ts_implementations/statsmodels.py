@@ -261,17 +261,17 @@ class ExpSmoothingImplementation(ModelImplementation):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
-        old_idx = input_data.idx
+        idx = input_data.idx
         target = input_data.target
 
         if is_fit_pipeline_stage:
             # Indexing for statsmodels is different
-            predictions = self.model.predict(start=old_idx[0] + 1,
-                                             end=old_idx[-1] + 1)
-            _, predict = ts_to_table(idx=old_idx,
+            predictions = self.model.predict(start=idx[0],
+                                             end=idx[-1])
+            _, predict = ts_to_table(idx=idx,
                                      time_series=predictions,
                                      window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
 
@@ -280,8 +280,8 @@ class ExpSmoothingImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1] + 1
+            start_id = idx[0]
+            end_id = idx[-1]
             predictions = self.model.predict(start=start_id,
                                              end=end_id)
             predict = predictions
