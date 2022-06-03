@@ -77,11 +77,15 @@ class NaiveAverageForecastImplementation(ModelImplementation):
             elements_to_take = 2
 
         if is_fit_pipeline_stage:
-            pass
+            parts = split_rolling_slices(input_data)
+            parts = parts[:, :elements_to_take]
+
+            mean_values_for_chunks = np.nanmean(parts, axis=1)
+            forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
         else:
             # Prepare single forecast
             mean_value = np.nanmean(input_data.features[-elements_to_take:])
-            forecast = np.array([mean_value] * forecast_length)
+            forecast = np.array([mean_value] * forecast_length).reshape((1, -1))
 
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,
@@ -90,3 +94,25 @@ class NaiveAverageForecastImplementation(ModelImplementation):
 
     def get_params(self):
         return {'part_for_averaging': self.part_for_averaging}
+
+
+def split_rolling_slices(input_data: InputData):
+    """ Prepare slices for features series.
+    Example of result for time series [0, 1, 2, 3]:
+    [[0, nan, nan, nan],
+     [0,   1, nan, nan],
+     [0,   1,   2, nan],
+     [0,   1,   2,   3]]
+    """
+    # Generate two triangle matrices with nan and zeros
+    dummy_tril_with_zeros = np.tril(np.full(len(input_data.features), 1), k=0)
+    final_matrix = np.tril(np.full(len(input_data.features), 1), k=0)
+    final_matrix = np.array(final_matrix, dtype=float)
+    final_matrix[final_matrix == 0] = np.nan
+
+    actual_tril = np.tril(input_data.features, k=0)
+    actual_tril = np.array(actual_tril, dtype=float)
+    final_matrix[dummy_tril_with_zeros != 0] = actual_tril[dummy_tril_with_zeros != 0]
+    final_matrix = np.fliplr(final_matrix)
+    return final_matrix
+
