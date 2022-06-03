@@ -73,16 +73,17 @@ class GPComposer(Composer):
                  cache: Optional[OperationsCache] = None):
 
         super().__init__(optimiser, composer_requirements, initial_pipelines, logger)
+        self.composer_requirements = composer_requirements
 
         self.optimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
 
         self._history = OptHistory(self.optimiser.objective, self.optimiser.parameters.history_folder)
-        self.objective_builder = DataObjectiveBuilder(self.optimiser.objective,
-                                                      self.composer_requirements.max_pipeline_fit_time,
-                                                      self.composer_requirements.cv_folds,
-                                                      self.composer_requirements.validation_blocks,
-                                                      self.cache, self.log)
+        self.objective_builder = DataObjectiveBuilder(optimiser.objective,
+                                                      composer_requirements.max_pipeline_fit_time,
+                                                      composer_requirements.cv_folds,
+                                                      composer_requirements.validation_blocks,
+                                                      cache, logger)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
         self.optimiser.graph_generation_params.advisor.task = data.task
@@ -99,12 +100,21 @@ class GPComposer(Composer):
         # shuffle data if necessary
         data.shuffle()
 
+        # Keep history of optimization
         self._history.clean_results()
         history_callback = partial(log_to_history, self._history)
-        self.optimiser.optimisation_callback = history_callback
+        self.optimiser.set_optimisation_callback(history_callback)
 
+        # Define objective function
         objective_evaluator = self.objective_builder.build(data)
-        opt_result = self.optimiser.optimise(objective_evaluator)
+        objective_function = objective_evaluator.evaluate
+
+        # Define callback for computing intermediate metrics if needed
+        if self.composer_requirements.collect_intermediate_metric:
+            self.optimiser.set_evaluation_callback(objective_evaluator.evaluate_intermediate_metrics)
+
+        # Finally, run optimization process
+        opt_result = self.optimiser.optimise(objective_function)
 
         best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')

@@ -44,10 +44,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._cache = cache
         self._log = log or default_log(__name__)
 
-    @property
-    def objective(self) -> Objective:
-        return self._objective
-
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
         #  when adapting and restoring it to/from OptGraph.
@@ -115,6 +111,3 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                                                    validation_blocks=self._validation_blocks)
             # saving only the most important first metric
             node.metadata.metric = intermediate_fitness.values[0]
-
-    def cleanup(self, graph: Pipeline):
-        graph.unfit()

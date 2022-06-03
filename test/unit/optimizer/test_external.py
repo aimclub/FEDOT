@@ -11,8 +11,7 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
     OptimisationCallback, do_nothing_callback
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.objective.objective import Objective, ObjectiveFunction
 from test.unit.models.test_model import classification_dataset
 
 _ = classification_dataset  # to avoid auto-removing of import
@@ -35,7 +34,7 @@ class StaticOptimizer(GraphOptimiser):
         self.change_types = []
         self.node_name = kwargs.get('node_name')
 
-    def optimise(self, objective_evaluator: ObjectiveEvaluate, show_progress: bool = True):
+    def optimise(self, objective: ObjectiveFunction, show_progress: bool = True):
         if self.node_name:
             return OptGraph(OptNode(self.node_name))
         return OptGraph(OptNode('logit'))

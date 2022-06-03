@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Sequence
+from typing import TypeVar, Generic, Sequence, Callable
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 
@@ -23,3 +23,6 @@ class Operator(ABC, Generic[T]):
     @abstractmethod
     def __call__(self, operand: T) -> T:
         pass
+
+
+EvaluationOperator = Callable[[PopulationT], PopulationT]
