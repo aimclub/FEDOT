@@ -72,17 +72,12 @@ class NaiveAverageForecastImplementation(ModelImplementation):
     def predict(self, input_data: InputData, is_fit_pipeline_stage: bool):
         """ Get desired part of time series for averaging and calculate mean value """
         forecast_length = input_data.task.task_params.forecast_length
-        elements_to_take = round(len(input_data.features) * self.part_for_averaging)
-        if elements_to_take < 2:
-            elements_to_take = 2
-
         if is_fit_pipeline_stage:
             parts = split_rolling_slices(input_data)
-            parts = parts[:, :elements_to_take]
-
-            mean_values_for_chunks = np.nanmean(parts, axis=1)
+            mean_values_for_chunks = self.average_by_axis(parts)
             forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
         else:
+            elements_to_take = self._how_many_elements_use_for_averaging(input_data.features)
             # Prepare single forecast
             mean_value = np.nanmean(input_data.features[-elements_to_take:])
             forecast = np.array([mean_value] * forecast_length).reshape((1, -1))
@@ -94,6 +89,24 @@ class NaiveAverageForecastImplementation(ModelImplementation):
 
     def get_params(self):
         return {'part_for_averaging': self.part_for_averaging}
+
+    def average_by_axis(self, parts: np.array):
+        """ Perform averaging for each column using last part of it """
+        mean_values_for_chunks = np.apply_along_axis(self._average, 1, parts)
+        return mean_values_for_chunks
+
+    def _average(self, row: np.array):
+        row = row[np.logical_not(np.isnan(row))]
+        if len(row) == 1:
+            return row
+
+        elements_to_take = self._how_many_elements_use_for_averaging(row)
+        return np.mean(row[-elements_to_take:])
+
+    def _how_many_elements_use_for_averaging(self, time_series: np.array):
+        elements_to_take = round(len(time_series) * self.part_for_averaging)
+        elements_to_take = fix_elements_number(elements_to_take)
+        return elements_to_take
 
 
 def split_rolling_slices(input_data: InputData):
@@ -113,6 +126,10 @@ def split_rolling_slices(input_data: InputData):
     actual_tril = np.tril(input_data.features, k=0)
     actual_tril = np.array(actual_tril, dtype=float)
     final_matrix[dummy_tril_with_zeros != 0] = actual_tril[dummy_tril_with_zeros != 0]
-    final_matrix = np.fliplr(final_matrix)
     return final_matrix
 
+
+def fix_elements_number(elements_to_take: int):
+    if elements_to_take < 2:
+        return 2
+    return elements_to_take
