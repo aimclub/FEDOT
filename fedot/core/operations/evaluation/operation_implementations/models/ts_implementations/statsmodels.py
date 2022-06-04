@@ -210,7 +210,7 @@ class AutoRegImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            # If we use old model to new data
+            # in case in(out) sample forecasting
             if idx[0] - self.train_len > 1:
                 self._update(input_data)
             start_id = self.train_len

@@ -40,8 +40,9 @@ class ARIMAImplementation(ModelImplementation):
         p = int(self.params.get('p'))
         d = int(self.params.get('d'))
         q = int(self.params.get('q'))
-        self.params = {'order': (p, d, q)}
-        self.arima = ARIMA(transformed_ts, **self.params).fit()
+        params = {'order': (p, d, q)}
+
+        self.arima = ARIMA(transformed_ts, **params).fit()
 
         return self.arima
 
@@ -91,11 +92,9 @@ class ARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
+            # in case in(out) sample forecasting
             if idx[0] - self.actual_ts_len > 1:
-                transformed_ts = self._apply_boxcox(input_data.features)
-                old_params = self.arima.params
-                self.arima = ARIMA(transformed_ts, **self.params).fit()
-                self.actual_ts_len = len(input_data.features)
+                self.arima = self.fit(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + parameters.forecast_length - 1
             predicted = self.arima.predict(start=start_id,
@@ -240,9 +239,9 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
+            # in case in(out) sample forecasting
             if idx[0] - self.actual_ts_len > 1:
-                self.model = STLForecast(input_data.features, ARIMA, **self.params).fit()
-                self.actual_ts_len = len(input_data.features)
+                self.model = self.fit(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + parameters.forecast_length - 1
             predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
