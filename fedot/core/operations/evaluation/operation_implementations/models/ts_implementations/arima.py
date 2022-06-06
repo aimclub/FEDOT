@@ -7,6 +7,7 @@ from scipy.special import boxcox, inv_boxcox
 from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.arima.model import ARIMA
 
+from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -93,7 +94,7 @@ class ARIMAImplementation(ModelImplementation):
         # For predict stage we can make prediction
         else:
             # in case in(out) sample forecasting
-            self._refit_on_new_data_if_needed(idx, input_data)
+            self._refit_on_new_data_if_needed(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
             predicted = self.arima.predict(start=start_id,
@@ -113,8 +114,8 @@ class ARIMAImplementation(ModelImplementation):
 
         return output_data
 
-    def _refit_on_new_data_if_needed(self, idx, input_data):
-        if idx[0] - self.actual_ts_len > 1:
+    def _refit_on_new_data_if_needed(self, input_data: InputData):
+        if input_data.idx[0] - self.actual_ts_len > 0:
             self.model = self.fit(input_data)
             self.log.info("Arima refitted for an insample forecasting")
 
@@ -244,7 +245,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
         # For predict stage we can make prediction
         else:
             # in case in(out) sample forecasting
-            self._refit_on_new_data_if_needed(idx, input_data)
+            self._refit_on_new_data_if_needed(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
             predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
@@ -262,8 +263,9 @@ class STLForecastARIMAImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def _refit_on_new_data_if_needed(self, idx, input_data):
-        if idx[0] - self.actual_ts_len > 1:
+    def _refit_on_new_data_if_needed(self, input_data: InputData):
+        """ Refit model if use new test data"""
+        if input_data.idx[0] - self.actual_ts_len > 0:
             self.model = self.fit(input_data)
             self.log.info("STL arima refitted for an insample forecasting")
 

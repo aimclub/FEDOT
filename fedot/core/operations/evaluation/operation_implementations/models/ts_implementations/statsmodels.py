@@ -159,7 +159,6 @@ class AutoRegImplementation(ModelImplementation):
     def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.params = params
-        self.actual_ts_len = None
         self.autoreg = None
         self.actual_ts_len = None
 
@@ -211,8 +210,7 @@ class AutoRegImplementation(ModelImplementation):
 
         else:
             # in case in(out) sample forecasting
-            if idx[0] - self.actual_ts_len > 1:
-                self._change_train_data(input_data)
+            self._change_train_data_if_needed(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
             predicted = self.autoreg.predict(start=start_id,
@@ -227,10 +225,15 @@ class AutoRegImplementation(ModelImplementation):
     def get_params(self):
         return self.params
 
-    def _change_train_data(self, input_data: InputData):
-        """ Method to update x samples inside a model (used when we want to use old model to a new data) """
-        self.autoreg.model.endog = input_data.features[-self.actual_ts_len:]
-        self.autoreg.model._setup_regressors()
+    def _change_train_data_if_needed(self, input_data: InputData):
+        """
+        Method to update x samples inside a model (used when we want to use old model to a new data)
+
+        :param input_data: new input_data
+        """
+        if input_data.idx[0] - self.actual_ts_len > 0:
+            self.autoreg.model.endog = input_data.features[-self.actual_ts_len:]
+            self.autoreg.model._setup_regressors()
 
 
 class ExpSmoothingImplementation(ModelImplementation):
