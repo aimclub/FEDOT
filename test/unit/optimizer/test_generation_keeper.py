@@ -1,14 +1,13 @@
 from typing import Sequence
 
+from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
-
-from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ComplexityMetricsEnum
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, RegressionMetricsEnum
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 def create_individual(fitness: Fitness = None) -> Individual:
@@ -48,13 +47,13 @@ def test_archive_no_improvement():
     assert archive.stagnation_duration == 0
     assert archive.is_any_improved
     assert archive.is_quality_improved and archive.is_complexity_improved
-    assert archive.generation_num == 0
+    assert archive.generation_num == 1
 
     archive.append(population1())
     assert archive.stagnation_duration == 1
     assert not archive.is_any_improved
     assert not archive.is_quality_improved and not archive.is_complexity_improved
-    assert archive.generation_num == 1
+    assert archive.generation_num == 2
 
 
 def test_archive_multiobj_one_improvement():
@@ -68,7 +67,7 @@ def test_archive_multiobj_one_improvement():
 
     assert archive.stagnation_duration == 0
     assert archive.is_any_improved
-    assert archive.generation_num == 1
+    assert archive.generation_num == 2
     # plus one non-dominated individual
     # minus one strongly dominated individual (substituted by better one)
     assert len(archive.best_individuals) == previous_size + 1

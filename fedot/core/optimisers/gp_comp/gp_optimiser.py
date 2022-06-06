@@ -117,7 +117,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
                 'Optimisation stopped: Time limit is reached'
             ).add_condition(
-                lambda: self.generations.generation_num >= requirements.num_of_generations,
+                lambda: self.generations.generation_num >= requirements.num_of_generations + 1,
                 'Optimisation stopped: Max number of generations reached'
             ).add_condition(
                 lambda: self.generations.stagnation_duration >= max_stagnation_length,
