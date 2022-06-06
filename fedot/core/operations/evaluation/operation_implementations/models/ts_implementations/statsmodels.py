@@ -161,7 +161,7 @@ class AutoRegImplementation(ModelImplementation):
         self.params = params
         self.actual_ts_len = None
         self.autoreg = None
-        self.train_len = None
+        self.actual_ts_len = None
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -175,7 +175,7 @@ class AutoRegImplementation(ModelImplementation):
         lag_2 = int(self.params.get('lag_2'))
         params = {'lags': [lag_1, lag_2]}
         self.autoreg = AutoReg(source_ts, **params).fit()
-        self.train_len = input_data.idx.shape[0]
+        self.actual_ts_len = input_data.idx.shape[0]
 
         return self.autoreg
 
@@ -211,10 +211,10 @@ class AutoRegImplementation(ModelImplementation):
 
         else:
             # in case in(out) sample forecasting
-            if idx[0] - self.train_len > 1:
-                self._update(input_data)
-            start_id = self.train_len
-            end_id = start_id+parameters.forecast_length-1
+            if idx[0] - self.actual_ts_len > 1:
+                self._change_train_data(input_data)
+            start_id = self.actual_ts_len
+            end_id = start_id + forecast_length - 1
             predicted = self.autoreg.predict(start=start_id,
                                              end=end_id)
             predict = np.array(predicted).reshape(1, -1)
@@ -227,9 +227,9 @@ class AutoRegImplementation(ModelImplementation):
     def get_params(self):
         return self.params
 
-    def _update(self, input_data: InputData):
+    def _change_train_data(self, input_data: InputData):
         """ Method to update x samples inside a model (used when we want to use old model to a new data) """
-        self.autoreg.model.endog = input_data.features[-self.train_len:]
+        self.autoreg.model.endog = input_data.features[-self.actual_ts_len:]
         self.autoreg.model._setup_regressors()
 
 

@@ -93,10 +93,9 @@ class ARIMAImplementation(ModelImplementation):
         # For predict stage we can make prediction
         else:
             # in case in(out) sample forecasting
-            if idx[0] - self.actual_ts_len > 1:
-                self.arima = self.fit(input_data)
+            self._refit_on_new_data_if_needed(idx, input_data)
             start_id = self.actual_ts_len
-            end_id = start_id + parameters.forecast_length - 1
+            end_id = start_id + forecast_length - 1
             predicted = self.arima.predict(start=start_id,
                                            end=end_id)
 
@@ -113,6 +112,11 @@ class ARIMAImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
 
         return output_data
+
+    def _refit_on_new_data_if_needed(self, idx, input_data):
+        if idx[0] - self.actual_ts_len > 1:
+            self.model = self.fit(input_data)
+            self.log.info("Arima refitted for an insample forecasting")
 
     def get_params(self):
         return self.params
@@ -195,8 +199,8 @@ class STLForecastARIMAImplementation(ModelImplementation):
         d = int(self.params.get('d'))
         q = int(self.params.get('q'))
         period = int(self.params.get('period'))
-        self.params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
-        self.model = STLForecast(source_ts, ARIMA, **self.params).fit()
+        params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
+        self.model = STLForecast(source_ts, ARIMA, **params).fit()
 
         return self.model
 
@@ -240,10 +244,9 @@ class STLForecastARIMAImplementation(ModelImplementation):
         # For predict stage we can make prediction
         else:
             # in case in(out) sample forecasting
-            if idx[0] - self.actual_ts_len > 1:
-                self.model = self.fit(input_data)
+            self._refit_on_new_data_if_needed(idx, input_data)
             start_id = self.actual_ts_len
-            end_id = start_id + parameters.forecast_length - 1
+            end_id = start_id + forecast_length - 1
             predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
 
             # Convert one-dim array as column
@@ -258,6 +261,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data
+
+    def _refit_on_new_data_if_needed(self, idx, input_data):
+        if idx[0] - self.actual_ts_len > 1:
+            self.model = self.fit(input_data)
+            self.log.info("STL arima refitted for an insample forecasting")
 
     def get_params(self):
         return self.params

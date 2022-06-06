@@ -199,6 +199,28 @@ def ts_ar_pipeline():
     return pipeline
 
 
+def ts_arima_pipeline():
+    """
+    Return pipeline with the following structure:
+    arima -> final forecast
+
+    """
+    node_arima = PrimaryNode("arima")
+    pipeline = Pipeline(node_arima)
+    return pipeline
+
+
+def ts_stl_arima_pipeline():
+    """
+    Return pipeline with the following structure:
+    arima -> final forecast
+
+    """
+    node_stl_arima = PrimaryNode("stl_arima")
+    pipeline = Pipeline(node_stl_arima)
+    return pipeline
+
+
 def clstm_pipeline():
     """
     Return pipeline with the following structure:
