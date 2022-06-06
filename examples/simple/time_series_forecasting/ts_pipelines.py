@@ -213,7 +213,7 @@ def ts_arima_pipeline():
 def ts_stl_arima_pipeline():
     """
     Return pipeline with the following structure:
-    arima -> final forecast
+    stl_arima -> final forecast
 
     """
     node_stl_arima = PrimaryNode("stl_arima")
