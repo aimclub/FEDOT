@@ -78,7 +78,12 @@ class NaiveAverageForecastImplementation(ModelImplementation):
             forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
             forecast = forecast[:-forecast_length, :]
 
-            # Update indices - there is no forecast for first element
+            # Update target
+            _, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,
+                                                window_size=forecast_length, is_lag=True)
+            input_data.target = transformed_target[1:, :]
+
+            # Update indices - there is no forecast for first element and skip last out of boundaries predictions
             last_threshold = forecast_length - 1
             new_idx = input_data.idx[1: -last_threshold]
             input_data.idx = new_idx
