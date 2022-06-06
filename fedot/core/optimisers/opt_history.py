@@ -252,18 +252,18 @@ class OptHistory:
         separator = ' | '
         print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
         for ind_num, individual in enumerate(top_individuals):
-            fitness = str(individual.fitness.values)
+            fitness = str(individual.fitness)
             print(separator.join([f'{ind_num:>3}, '
-                                  f'{fitness:>6}, '
+                                  f'{fitness:>8}, '
                                   f'{individual.positional_id:>8}, '
                                   f'{individual.graph.descriptive_id}']))
 
         # add info about initial assumptions (stored as zero generation)
         for i, individual in enumerate(self.individuals[0]):
             ind = f'I{i}'
-            fitness = str(individual.fitness.values)
+            fitness = str(individual.fitness)
             print(separator.join([f'{ind:>3}'
-                                  f'{fitness:>6}',
+                                  f'{fitness:>8}',
                                   f'-',
                                   f'{individual.graph.descriptive_id}']))
 
