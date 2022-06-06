@@ -76,6 +76,12 @@ class NaiveAverageForecastImplementation(ModelImplementation):
             parts = split_rolling_slices(input_data)
             mean_values_for_chunks = self.average_by_axis(parts)
             forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
+            forecast = forecast[:-forecast_length, :]
+
+            # Update indices - there is no forecast for first element
+            last_threshold = forecast_length - 1
+            new_idx = input_data.idx[1: -last_threshold]
+            input_data.idx = new_idx
         else:
             elements_to_take = self._how_many_elements_use_for_averaging(input_data.features)
             # Prepare single forecast

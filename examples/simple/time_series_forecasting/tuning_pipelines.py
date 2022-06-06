@@ -42,11 +42,6 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
                             target=time_series,
                             task=task,
                             data_type=DataTypesEnum.ts)
-    # train_input = InputData(idx=np.array([0, 1, 2, 3, 4]),
-    #                         features=np.array([0, 1, 2, 3, 4]),
-    #                         target=np.array([0, 1, 2, 3, 4]),
-    #                         task=task,
-    #                         data_type=DataTypesEnum.ts)
     train_data, test_data = train_test_data_setup(train_input)
     test_target = np.ravel(test_data.target)
 
