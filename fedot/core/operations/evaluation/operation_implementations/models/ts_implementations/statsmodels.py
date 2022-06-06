@@ -231,7 +231,7 @@ class AutoRegImplementation(ModelImplementation):
 
         :param input_data: new input_data
         """
-        if input_data.idx[0] - self.actual_ts_len > 0:
+        if input_data.idx[0] > self.actual_ts_len:
             self.autoreg.model.endog = input_data.features[-self.actual_ts_len:]
             self.autoreg.model._setup_regressors()
 

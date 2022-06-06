@@ -115,7 +115,7 @@ class ARIMAImplementation(ModelImplementation):
         return output_data
 
     def _refit_on_new_data_if_needed(self, input_data: InputData):
-        if input_data.idx[0] - self.actual_ts_len > 0:
+        if input_data.idx[0] > self.actual_ts_len:
             self.model = self.fit(input_data)
             self.log.info("Arima refitted for an insample forecasting")
 
@@ -265,7 +265,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
 
     def _refit_on_new_data_if_needed(self, input_data: InputData):
         """ Refit model if use new test data"""
-        if input_data.idx[0] - self.actual_ts_len > 0:
+        if input_data.idx[0] > self.actual_ts_len:
             self.model = self.fit(input_data)
             self.log.info("STL arima refitted for an insample forecasting")
 
