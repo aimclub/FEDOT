@@ -6,7 +6,7 @@ from typing import Optional
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
-    prepare_target
+    prepare_target, transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -30,16 +30,9 @@ class RepeatLastValueImplementation(ModelImplementation):
 
         if is_fit_pipeline_stage:
             # Transform the predicted time series into a table
-            old_idx = input_data.idx
-            new_idx, transformed_cols = ts_to_table(idx=old_idx,
-                                                    time_series=input_data.features,
-                                                    window_size=1,
-                                                    is_lag=True)
-            new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
-                                                                   idx=new_idx,
-                                                                   features_columns=transformed_cols,
-                                                                   target=input_data.target,
-                                                                   forecast_length=forecast_length)
+            new_idx, transformed_cols, new_target = transform_features_and_target_into_lagged(input_data,
+                                                                                              forecast_length,
+                                                                                              window_size=1)
             input_data.idx = new_idx
             input_data.target = new_target
             forecast = np.repeat(transformed_cols, forecast_length, axis=1)
