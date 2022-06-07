@@ -19,7 +19,6 @@ class RepeatLastValueImplementation(ModelImplementation):
 
     def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
-        self.params = {}
 
     def fit(self, input_data):
         """ Such a simple approach does not support fit method """
@@ -55,7 +54,7 @@ class RepeatLastValueImplementation(ModelImplementation):
         return output_data
 
     def get_params(self):
-        return self.params
+        return {}
 
 
 class NaiveAverageForecastImplementation(ModelImplementation):
@@ -128,15 +127,11 @@ def split_rolling_slices(input_data: InputData):
      [0,   1,   2, nan],
      [0,   1,   2,   3]]
     """
-    # Generate two triangle matrices with nan and zeros
-    dummy_tril_with_zeros = np.tril(np.full(len(input_data.features), 1), k=0)
-    final_matrix = np.tril(np.full(len(input_data.features), 1), k=0)
+    nan_mask = np.triu(np.ones_like(input_data.features, dtype=bool), k=1)
+    final_matrix = np.tril(input_data.features, k=0)
     final_matrix = np.array(final_matrix, dtype=float)
-    final_matrix[final_matrix == 0] = np.nan
+    final_matrix[nan_mask] = np.nan
 
-    actual_tril = np.tril(input_data.features, k=0)
-    actual_tril = np.array(actual_tril, dtype=float)
-    final_matrix[dummy_tril_with_zeros != 0] = actual_tril[dummy_tril_with_zeros != 0]
     return final_matrix
 
 
