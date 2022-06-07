@@ -6,7 +6,7 @@ from typing import Optional
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
-    prepare_target, transform_features_and_target_into_lagged
+    transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -19,10 +19,27 @@ class RepeatLastValueImplementation(ModelImplementation):
 
     def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
+        # Which part of time series will be used for repeating. Vary from 0.01 to 0.5
+        # If -1 - repeat only last value
+        self.part_for_repeat = params['part_for_repeat']
+        self.elements_to_repeat = None
 
     def fit(self, input_data):
-        """ Such a simple approach does not support fit method """
-        pass
+        """ Determine how many elements to repeat during forecasting """
+        if self.part_for_repeat == -1:
+            self.elements_to_repeat = 1
+            return self
+
+        elements_to_repeat = round(len(input_data.features) * self.part_for_repeat)
+        if elements_to_repeat < 1:
+            # Minimum number of elements is one
+            self.elements_to_repeat = 1
+        else:
+            self.elements_to_repeat = elements_to_repeat
+
+        if self.elements_to_repeat > input_data.task.task_params.forecast_length:
+            self.elements_to_repeat = input_data.task.task_params.forecast_length
+        return self
 
     def predict(self, input_data: InputData, is_fit_pipeline_stage: bool):
         input_data = copy(input_data)
@@ -32,22 +49,34 @@ class RepeatLastValueImplementation(ModelImplementation):
             # Transform the predicted time series into a table
             new_idx, transformed_cols, new_target = transform_features_and_target_into_lagged(input_data,
                                                                                               forecast_length,
-                                                                                              window_size=1)
+                                                                                              window_size=self.elements_to_repeat)
             input_data.idx = new_idx
             input_data.target = new_target
-            forecast = np.repeat(transformed_cols, forecast_length, axis=1)
+            forecast = self._generate_repeated_forecast(transformed_cols, forecast_length)
         else:
             # Get last known value from history
-            last_observation = input_data.features[-1]
-            forecast = np.array([last_observation] * forecast_length).reshape((1, -1))
+            last_observations = input_data.features[-self.elements_to_repeat:].reshape(1, -1)
+            forecast = self._generate_repeated_forecast(last_observations, forecast_length)
 
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,
                                               data_type=DataTypesEnum.table)
         return output_data
 
+    def _generate_repeated_forecast(self, transformed_cols: np.array, forecast_length: int):
+        if self.elements_to_repeat == 1:
+            return np.repeat(transformed_cols, forecast_length, axis=1)
+        elif self.elements_to_repeat < forecast_length:
+            # Generate pattern
+            repeat_number = int(forecast_length / self.elements_to_repeat) + 1
+            forecast = np.tile(transformed_cols, repeat_number)
+            return forecast[:, :forecast_length]
+        else:
+            # Number of elements to repeat equal to forecast horizon
+            return transformed_cols
+
     def get_params(self):
-        return {}
+        return {'part_for_repeat': self.part_for_repeat}
 
 
 class NaiveAverageForecastImplementation(ModelImplementation):

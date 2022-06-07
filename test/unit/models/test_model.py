@@ -15,7 +15,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.models.discriminant_analysis import \
     LDAImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.naive import \
-    NaiveAverageForecastImplementation
+    NaiveAverageForecastImplementation, RepeatLastValueImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
@@ -341,3 +341,18 @@ def test_ts_naive_average_forecast_correctly():
 
     # Pipeline predict stage
     assert np.array_equal(predict_forecast.predict, np.array([[65, 65, 65, 65]]))
+
+
+def test_locf_forecast_correctly():
+    """ Testing naive LOCF model """
+    train_input, predict_input, _ = synthetic_univariate_ts()
+    model = RepeatLastValueImplementation(part_for_repeat=0.2)
+
+    model.fit(train_input)
+    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
+    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+
+    assert (8, 4) == fit_forecast.target.shape
+    assert np.array_equal(fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))
+    # Repeated pattern (3 elements to repeat and 4 forecast horizon)
+    assert np.array_equal(predict_forecast.predict, np.array([[110, 120, 130, 110]]))
