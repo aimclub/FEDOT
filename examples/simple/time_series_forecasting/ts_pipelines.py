@@ -1,3 +1,5 @@
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
@@ -242,7 +244,7 @@ def clstm_pipeline():
     clstm_params = {'window_size': 29, 'hidden_size': 50, 'learning_rate': 0.004,
                     'cnn1_kernel_size': 5, 'cnn1_output_size': 32,
                     'cnn2_kernel_size': 4, 'cnn2_output_size': 32,
-                    'batch_size': 64, 'num_epochs': 3}
+                    'batch_size': 64, 'num_epochs': 3, 'teacher_forcing': 0.8}
 
     pip_builder = PipelineBuilder() \
         .add_sequence('lagged', 'ridge', branch_idx=0) \
