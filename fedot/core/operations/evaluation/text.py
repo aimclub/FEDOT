@@ -3,16 +3,10 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.utilities.requirements_notificator import warn_requirement
-
-try:
-    from gensim.models import Word2Vec
-except ModuleNotFoundError:
-    warn_requirement('gensim')
-    Word2Vec = None
-
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.models. \
+    text_pretrained import PretrainedEmbeddingsImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.text_preprocessing import (
     TextCleanImplementation
 )
@@ -127,7 +121,7 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
 
 class GensimTextVectorizeStrategy(EvaluationStrategy):
     __operations_by_types = {
-        'word2vec': Word2Vec
+        'word2vec_pretrained': PretrainedEmbeddingsImplementation
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -136,28 +130,32 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        features_list = self._convert_to_one_dim(train_data.features)
+        """ Class doesn't support fit operation
 
-        vectorizer = self.vectorizer(features_list)
+        :param train_data: data with features, target and ids to process
+        """
+        if self.params:
+            vectorizer = self.vectorizer(**self.params_for_fit)
+        else:
+            vectorizer = self.vectorizer()
 
+        vectorizer.fit(train_data)
         return vectorizer
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
 
-        features_list = self._convert_to_one_dim(predict_data.features)
-        embeddings_trained = self.vectorizer([text.split() for text in features_list]).wv
-        predicted = np.stack([self.vectorize_sum(text, embeddings_trained) for text in features_list])
-
+        prediction = trained_operation.transform(predict_data,
+                                                 is_fit_pipeline_stage)
         # Convert prediction to output (if it is required)
-        converted = self._convert_to_output(predicted, predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
         return converted
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
         else:
-            raise ValueError(f'Impossible to obtain TextVectorize strategy for {operation_type}')
+            raise ValueError(f'Impossible to obtain text vectorization strategy for {operation_type}')
 
     @staticmethod
     def _convert_to_one_dim(array_with_text):
@@ -173,19 +171,3 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
     @property
     def implementation_info(self) -> str:
         return str(self._convert_to_operation(self.operation_type))
-
-    def vectorize_sum(self, text: str, embeddings):
-        """ Method converts text to a sum of token vectors
-
-        :param text: str with text data
-        :param embeddings: gensim.word2vec trained embeddings
-        :return features: one-dimensional np.array with numbers
-        """
-        embedding_dim = embeddings.vectors.shape[1]
-        features = np.zeros([embedding_dim], dtype='float32')
-
-        for word in text.split():
-            if word in embeddings:
-                features += embeddings[f'{word}']
-
-        return features

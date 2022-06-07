@@ -420,6 +420,12 @@
         "non_linear"
       ]
     },
+    "word2vec_pretrained": {
+      "meta": "text_classification_gensim",
+      "tags": [
+        "non-default", "text"
+      ]
+    },
     "xgboost": {
       "meta": "sklearn_class",
       "presets": ["*tree"],
