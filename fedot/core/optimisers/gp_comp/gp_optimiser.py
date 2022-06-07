@@ -185,7 +185,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def assign_positional_ids(self, pop: PopulationT):
         for ind_id, ind in enumerate(pop):
-            ind.positional_id = f'g{self.generations.generation_num}-i{ind_id}'
+            ind.pop_num = self.generations.generation_num
+            ind.ind_num = ind_id
 
     def optimise(self, objective: ObjectiveFunction,
                  show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:

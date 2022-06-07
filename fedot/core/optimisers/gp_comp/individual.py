@@ -17,7 +17,16 @@ class Individual:
         self.metadata: Dict[str, Any] = metadata or {}
         self.fitness: Fitness = null_fitness()
         self.uid = str(uuid4())
-        self.positional_id = ''
+        self.pop_num = None
+        self.ind_num = None
+
+    @property
+    def positional_id(self) -> str:
+        """
+        Identified for location of individual in history of population-based optimisation
+        :return: string representation of population number and number of individual in population
+        """
+        return f'g{self.pop_num}-i{self.ind_num}'
 
     def __eq__(self, other: 'Individual'):
         return self.uid == other.uid
