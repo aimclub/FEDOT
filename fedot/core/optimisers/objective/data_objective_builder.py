@@ -8,11 +8,11 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
+from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
-from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
 from ...constants import default_data_split_ratio_by_task
 
 
@@ -46,6 +46,10 @@ class DataObjectiveBuilder:
                                                        cache=self.cache, log=self.log)
         return objective_evaluate
 
+    @staticmethod
+    def _data_producer(train_data: InputData, test_data: InputData):
+        yield train_data, test_data
+
     def _build_holdout_producer(self, data: InputData) -> DataSource:
         """Build trivial data producer for hold-out validation
         that always returns same data split. Equivalent to 1-fold validation."""
@@ -54,12 +58,10 @@ class DataObjectiveBuilder:
         split_ratio = default_data_split_ratio_by_task[data.task.task_type]
         train_data, test_data = train_test_data_setup(data, split_ratio)
 
-        def data_producer(): yield train_data, test_data
-
         if RemoteEvaluator().use_remote:
             init_data_for_remote_execution(train_data)
 
-        return data_producer
+        return partial(self._data_producer, train_data, test_data)
 
     def _build_kfolds_producer(self, data: InputData) -> DataSource:
         if isinstance(data, MultiModalData):

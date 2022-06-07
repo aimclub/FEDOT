@@ -3,7 +3,7 @@ import os
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union, Dict, Any
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import joblib
@@ -268,8 +268,7 @@ class PipelineTemplate:
             pipeline.preprocessor = joblib.load(tmp_path)
             os.remove(tmp_path)
 
-    def roll_pipeline_structure(self, operation_object: ['OperationTemplate',
-                                                         'AtomizedModelTemplate'],
+    def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
         """
         The function recursively traverses all disjoint operations

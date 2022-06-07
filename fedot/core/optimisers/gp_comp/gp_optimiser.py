@@ -4,6 +4,7 @@ from typing import Any, Iterable, List, Optional, Sequence, Union
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
+from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import clean_operators_history, random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -21,6 +22,8 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.utilities.grouped_condition import GroupedCondition
 from tqdm import tqdm
 
 

@@ -1,5 +1,4 @@
 import datetime
-
 from copy import deepcopy
 from datetime import timedelta
 from typing import Callable, List, Optional, Tuple, Union
@@ -158,11 +157,11 @@ class Pipeline(Graph):
 
         preprocessing_cache = PreprocessingCache()
 
-        if not use_fitted:
-            self.unfit(mode='all', unfit_preprocessor=True)
-        else:
+        if use_fitted:
             self.unfit(mode='data_operations', unfit_preprocessor=False)
-        self.preprocessor = preprocessing_cache.try_find_preprocessor(self, input_data)
+            self.preprocessor = preprocessing_cache.try_find_preprocessor(self, input_data)
+        else:
+            self.unfit(mode='all', unfit_preprocessor=True)
 
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)

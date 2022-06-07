@@ -10,6 +10,13 @@ if TYPE_CHECKING:
 
 
 class PreprocessingCache(metaclass=SingletonMeta):
+    """
+    Stores/loads preprocessors for pipelines to decrease time for fitting preprocessor.
+
+    :param log: optional Log object to record messages
+    :param db_path: optional str db file name
+    """
+
     def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None):
         self.log = log or default_log(__name__)
         self._db = PreprocessingCacheDB(db_path)
@@ -34,9 +41,8 @@ class PreprocessingCache(metaclass=SingletonMeta):
 
 def _get_pipeline_structural_id(pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]) -> str:
     pipeline_id = pipeline.root_node.descriptive_id
-    # if isinstance(input_data, InputData):
-    #     data_id = ''.join(str(input_data.features[[0, -1]]))
-    # else:
-    #     data_id = ''.join([str(x.features[[0, -1]]) for x in input_data.values()])
-    # return f'{pipeline_id}_{data_id}'  # re.sub(f'[{string.punctuation}]+', '', pipeline.root_node.descriptive_id)
-    return pipeline_id
+    if isinstance(input_data, InputData):
+        data_id = ''.join(str(input_data.features[[0, -1]]))
+    else:
+        data_id = ''.join([str(x.features[[0, -1]]) for x in input_data.values()])
+    return f'{pipeline_id}_{data_id}'

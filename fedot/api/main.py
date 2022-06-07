@@ -4,8 +4,8 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-
 from deap.tools import HallOfFame
+
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser

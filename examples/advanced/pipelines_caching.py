@@ -5,7 +5,7 @@ from collections import defaultdict
 from functools import reduce
 from statistics import mean
 from timeit import repeat
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 import pandas as pd
 from matplotlib import colors, pyplot as plt
@@ -81,7 +81,42 @@ class PreprocessingCacheMock(metaclass=SingletonMeta):
         return pipeline.preprocessor
 
     def add_preprocessor(self, pipeline: 'Pipeline', input_data):
-        ...
+        pass
+
+
+def _run(timeouts: List[int], train_data: pd.DataFrame, test_data: pd.DataFrame, base_fedot_params: dict,
+         use_cache: bool = False):
+    times = []
+    pipelines_count = []
+    for timeout in timeouts:
+        c_pipelines = 0.
+        time = 0.
+        mean_range = 1
+        cache_effectiveness = collections.Counter()
+        for _ in range(mean_range):
+            train_data_tmp = train_data.copy()
+            test_data_tmp = test_data.copy()
+
+            start_time = timeit.default_timer()
+            auto_model = Fedot(**base_fedot_params, timeout=timeout, use_cache=use_cache)
+            auto_model.fit(features=train_data_tmp)
+            auto_model.predict_proba(features=test_data_tmp)
+            c_pipelines += _count_pipelines(auto_model.history)
+            time += (timeit.default_timer() - start_time) / 60
+            cache_effectiveness += auto_model.api_composer.cache.effectiveness_ratio if use_cache else {}
+
+        time /= mean_range
+        c_pipelines /= mean_range
+        times.append(time)
+        pipelines_count.append(c_pipelines)
+        cache_effectiveness = {k: v / mean_range for k, v in cache_effectiveness.items()}
+
+        print((
+            f'\tTimeout: {timeout}'
+            f', number of pipelines: {c_pipelines}, elapsed time: {time:.3f}'
+            f', cache effectiveness: {cache_effectiveness}'
+        ))
+    return times, pipelines_count
 
 
 def use_cache_check(n_jobs: int = 1, test_preprocessing: bool = False):
@@ -100,9 +135,6 @@ def use_cache_check(n_jobs: int = 1, test_preprocessing: bool = False):
     plot_labels = {False: 'without cache', True: 'with cache'}
     composer_params = {'with_tuning': False}
     preset = 'fast_train'
-    if test_preprocessing:
-        preset = 'best_quality'
-        composer_params.update({'pop_size': 6, 'num_of_generations': 5})
     base_fedot_params = {
         'problem': problem, 'seed': 42,
         'composer_params': composer_params, 'preset': preset,
@@ -117,34 +149,9 @@ def use_cache_check(n_jobs: int = 1, test_preprocessing: bool = False):
             PreprocessingCache.add_preprocessor.__code__ = PreprocessingCacheMock.add_preprocessor.__code__
         print(f'Using cache: {use_cache}')
         basic_cache_usage = use_cache if not test_preprocessing else False
-        for timeout in timeouts:
-            c_pipelines = 0.
-            time = 0.
-            mean_range = 3
-            cache_effectiveness = collections.Counter()
-            for i in range(mean_range):
-                train_data_tmp = train_data.copy()
-                test_data_tmp = test_data.copy()
-
-                start_time = timeit.default_timer()
-                auto_model = Fedot(**base_fedot_params, timeout=timeout, use_cache=basic_cache_usage)
-                auto_model.fit(features=train_data_tmp, target='target')
-                auto_model.predict_proba(features=test_data_tmp)
-                c_pipelines += _count_pipelines(auto_model.history)
-                time += (timeit.default_timer() - start_time) / 60
-                cache_effectiveness += auto_model.api_composer.cache.effectiveness_ratio if basic_cache_usage else {}
-
-            time /= mean_range
-            c_pipelines /= mean_range
-            times[use_cache].append(time)
-            pipelines_count[use_cache].append(c_pipelines)
-            cache_effectiveness = {k: v / mean_range for k, v in cache_effectiveness.items()}
-
-            print((
-                f'\tTimeout: {timeout}'
-                f', number of pipelines: {c_pipelines}, elapsed time: {time:.3f}'
-                f', cache effectiveness: {cache_effectiveness}'
-            ))
+        _times, _pipelines_count = _run(timeouts, train_data, test_data, base_fedot_params, basic_cache_usage)
+        times[use_cache] = _times
+        pipelines_count[use_cache] = _pipelines_count
         if test_preprocessing and not use_cache:
             PreprocessingCache.try_find_preprocessor.__code__ = preproc_orig_find
             PreprocessingCache.add_preprocessor.__code__ = preproc_orig_add
@@ -168,8 +175,6 @@ def compare_one_process_to_many(n_jobs: int = -1, test_preprocessing: bool = Fal
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
     plot_labels = {1: 'one process', n_jobs: f'{n_jobs} processes'}
     composer_params = {'with_tuning': False}
-    if test_preprocessing:
-        composer_params.update({'cv_folds': None, 'pop_size': 10})
     base_fedot_params = {
         'problem': problem, 'seed': 42,
         'composer_params': composer_params, 'preset': 'fast_train',
@@ -184,34 +189,10 @@ def compare_one_process_to_many(n_jobs: int = -1, test_preprocessing: bool = Fal
             PreprocessingCache.add_preprocessor.__code__ = PreprocessingCacheMock.add_preprocessor.__code__
         print(f'Processes used: {_n_jobs}')
         basic_cache_usage = True if not test_preprocessing else False
-        for timeout in timeouts:
-            c_pipelines = 0.
-            time = 0.
-            mean_range = 3
-            cache_effectiveness = collections.Counter()
-            for i in range(mean_range):
-                train_data_tmp = train_data.copy()
-                test_data_tmp = test_data.copy()
-
-                start_time = timeit.default_timer()
-                auto_model = Fedot(**base_fedot_params, use_cache=basic_cache_usage, timeout=timeout, n_jobs=_n_jobs)
-                auto_model.fit(features=train_data_tmp, target='target')
-                auto_model.predict_proba(test_data_tmp)
-                c_pipelines += _count_pipelines(auto_model.history)
-                time += (timeit.default_timer() - start_time) / 60
-                cache_effectiveness += auto_model.api_composer.cache.effectiveness_ratio
-
-            time /= mean_range
-            c_pipelines //= mean_range
-            times[_n_jobs].append(time)
-            pipelines_count[_n_jobs].append(c_pipelines)
-            cache_effectiveness = {k: v / mean_range for k, v in cache_effectiveness.items()}
-
-            print((
-                f'\tTimeout: {timeout}'
-                f', number of pipelines: {c_pipelines}, elapsed time: {time:.3f}'
-                f', cache effectiveness: {cache_effectiveness}'
-            ))
+        base_fedot_params['n_jobs'] = _n_jobs
+        _times, _pipelines_count = _run(timeouts, train_data, test_data, base_fedot_params, basic_cache_usage)
+        times[_n_jobs] = _times
+        pipelines_count[_n_jobs] = _pipelines_count
         if test_preprocessing:
             PreprocessingCache.try_find_preprocessor.__code__ = preproc_orig_find
             PreprocessingCache.add_preprocessor.__code__ = preproc_orig_add
@@ -224,8 +205,8 @@ if __name__ == "__main__":
     examples_dct = defaultdict(lambda: (lambda: print('Wrong example number option'),))
     examples_dct.update({
         1: (dummy_time_check,),
-        2: (use_cache_check, 1, False),
-        3: (compare_one_process_to_many, -1, False)
+        2: (use_cache_check, 1, True),
+        3: (compare_one_process_to_many, -1, True)
     })
     benchmark_number = 2
     func, *args = examples_dct[benchmark_number]

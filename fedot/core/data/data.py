@@ -380,7 +380,7 @@ class InputData(Data):
             pipeline.last_idx_int = copied_data.idx[-1]
             pipeline.last_idx_dt = last_idx_time
             pipeline.period = last_idx_time - pre_last_time
-        elif type(copied_data.idx[0]) not in [int, np.int32, np.int64]:
+        elif not isinstance(copied_data.idx[0], (int, np.int32, np.int64)):
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)
             copied_data.idx = np.array(range(len(copied_data.idx)))
             pipeline.last_idx_int = copied_data.idx[-1]
@@ -395,7 +395,7 @@ class InputData(Data):
         if is_timestamp or is_numpy_datetime:
             copied_data.supplementary_data.non_int_idx = copy(self.idx)
             copied_data.idx = self._resolve_non_int_idx(pipeline)
-        elif type(copied_data.idx[0]) not in [int, np.int32, np.int64]:
+        elif not isinstance(copied_data.idx[0], (int, np.int32, np.int64)):
             # note, that string indexes do not have an order and always we think that indexes we want to predict go
             # immediately after the train indexes
             copied_data.supplementary_data.non_int_idx = copy(copied_data.idx)

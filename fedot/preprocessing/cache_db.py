@@ -11,6 +11,13 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 class PreprocessingCacheDB:
+    """
+    Database for PreprocessingCache class.
+    Includes low-level idea of caching pipeline preprocessor using sqlite3.
+
+    :param db_path: str db file path
+    """
+
     def __init__(self, db_path: Optional[str] = None):
         self._db_suffix = '.preprocessing_db'
         self._preproc_table = 'preprocessors'

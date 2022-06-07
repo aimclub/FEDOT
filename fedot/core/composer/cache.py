@@ -1,6 +1,5 @@
 import re
 import string
-
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Union
 
@@ -26,7 +25,7 @@ class OperationsCache(metaclass=SingletonMeta):
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
     :param log: optional Log object to record messages
-    :param db_path: optional str determining a file name for caching pipelines
+    :param db_path: optional str db file path
     """
 
     def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None):
