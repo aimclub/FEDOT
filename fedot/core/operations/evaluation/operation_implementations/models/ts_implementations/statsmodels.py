@@ -9,6 +9,7 @@ from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
+from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -158,8 +159,8 @@ class AutoRegImplementation(ModelImplementation):
     def __init__(self, log: Optional[Log] = None, **params):
         super().__init__(log)
         self.params = params
-        self.actual_ts_len = None
         self.autoreg = None
+        self.actual_ts_len = None
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -173,6 +174,7 @@ class AutoRegImplementation(ModelImplementation):
         lag_2 = int(self.params.get('lag_2'))
         params = {'lags': [lag_1, lag_2]}
         self.autoreg = AutoReg(source_ts, **params).fit()
+        self.actual_ts_len = input_data.idx.shape[0]
 
         return self.autoreg
 
@@ -186,19 +188,19 @@ class AutoRegImplementation(ModelImplementation):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
-        old_idx = input_data.idx
+        idx = input_data.idx
         target = input_data.target
 
         if is_fit_pipeline_stage:
-            predicted = self.autoreg.predict(start=old_idx[0], end=old_idx[-1])
+            predicted = self.autoreg.predict(start=idx[0], end=idx[-1])
             # adding nan to target as in predicted
             nan_mask = np.isnan(predicted)
             target = target.astype(float)
             target[nan_mask] = np.nan
-            _, predict = ts_to_table(idx=old_idx,
+            _, predict = ts_to_table(idx=idx,
                                      time_series=predicted,
                                      window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
 
@@ -207,15 +209,13 @@ class AutoRegImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1]
+            # in case in(out) sample forecasting
+            self.handle_new_data(input_data)
+            start_id = self.actual_ts_len
+            end_id = start_id + forecast_length - 1
             predicted = self.autoreg.predict(start=start_id,
                                              end=end_id)
             predict = np.array(predicted).reshape(1, -1)
-            new_idx = np.arange(start_id, end_id + 1)
-
-            # Update idx
-            input_data.idx = new_idx
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -224,6 +224,16 @@ class AutoRegImplementation(ModelImplementation):
 
     def get_params(self):
         return self.params
+
+    def handle_new_data(self, input_data: InputData):
+        """
+        Method to update x samples inside a model (used when we want to use old model to a new data)
+
+        :param input_data: new input_data
+        """
+        if input_data.idx[0] > self.actual_ts_len:
+            self.autoreg.model.endog = input_data.features[-self.actual_ts_len:]
+            self.autoreg.model._setup_regressors()
 
 
 class ExpSmoothingImplementation(ModelImplementation):
@@ -254,17 +264,17 @@ class ExpSmoothingImplementation(ModelImplementation):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
-        old_idx = input_data.idx
+        idx = input_data.idx
         target = input_data.target
 
         if is_fit_pipeline_stage:
             # Indexing for statsmodels is different
-            predictions = self.model.predict(start=old_idx[0] + 1,
-                                             end=old_idx[-1] + 1)
-            _, predict = ts_to_table(idx=old_idx,
+            predictions = self.model.predict(start=idx[0],
+                                             end=idx[-1])
+            _, predict = ts_to_table(idx=idx,
                                      time_series=predictions,
                                      window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=old_idx,
+            new_idx, target_columns = ts_to_table(idx=idx,
                                                   time_series=target,
                                                   window_size=forecast_length)
 
@@ -273,8 +283,8 @@ class ExpSmoothingImplementation(ModelImplementation):
             input_data.target = target_columns
 
         else:
-            start_id = old_idx[-1] - forecast_length + 2
-            end_id = old_idx[-1] + 1
+            start_id = idx[0]
+            end_id = idx[-1]
             predictions = self.model.predict(start=start_id,
                                              end=end_id)
             predict = predictions
