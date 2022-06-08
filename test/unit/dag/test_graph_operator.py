@@ -119,7 +119,7 @@ def test_known_distances():
     pipeline_knn = PipelineBuilder().add_node('scaling').add_node('knn').to_pipeline()  # scaling -> knn
     pipeline_linear = PipelineBuilder().add_node('scaling').add_node('linear').to_pipeline()  # scaling -> linear
     pipeline_knn_alternate_params = PipelineBuilder().add_node('scaling').\
-        add_node('knn', params={'mectric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
+        add_node('knn', params={'metric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
 
     assert pipeline_knn.operator.distance_to(pipeline_knn) == 0  # the same pipeline
     assert pipeline_knn.operator.distance_to(pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge

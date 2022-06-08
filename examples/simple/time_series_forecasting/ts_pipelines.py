@@ -1,5 +1,6 @@
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
 def ts_ets_pipeline():
@@ -205,8 +206,7 @@ def ts_arima_pipeline():
     arima -> final forecast
 
     """
-    node_arima = PrimaryNode("arima")
-    pipeline = Pipeline(node_arima)
+    pipeline = PipelineBuilder().add_node("arima").to_pipeline()
     return pipeline
 
 
@@ -216,8 +216,7 @@ def ts_stl_arima_pipeline():
     stl_arima -> final forecast
 
     """
-    node_stl_arima = PrimaryNode("stl_arima")
-    pipeline = Pipeline(node_stl_arima)
+    pipeline = PipelineBuilder().add_node("stl_arima").to_pipeline()
     return pipeline
 
 
