@@ -50,7 +50,8 @@ def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
 
     # Configure AutoML
     task_parameters = TsForecastingParams(forecast_length=forecast_horizon)
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=50)
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=50,
+                  composer_params={'cv_fols': None, 'validation_blocks': None})
     target_series = train_df[train_df['label'] == target_column]
     obtained_pipeline = model.fit(features=train_data,
                                   target=np.array(target_series['value']))
@@ -64,4 +65,4 @@ def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
 
 
 if __name__ == '__main__':
-    launch_fedot_forecasting(number_of_series_to_use=5)
+    launch_fedot_forecasting(number_of_series_to_use=20)

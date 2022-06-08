@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
 
-MAX_DEPTH = 100
+MAX_DEPTH = 500
 
 
 class NodeOperator:
