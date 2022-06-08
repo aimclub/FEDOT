@@ -1,13 +1,20 @@
-import numpy as np
-from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
+import os
 
+import numpy as np
+import pandas as pd
+from sklearn.metrics import mean_absolute_percentage_error
+
+from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.ts_wrappers import fitted_values
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast, in_sample_fitted_values
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import fedot_project_root
 
 
 def prepare_ts_for_in_sample(forecast_length: int, horizon: int):
@@ -85,25 +92,48 @@ def test_out_of_sample_ts_forecast_correct():
 
 
 def test_in_sample_ts_forecast_correct():
-    simple_length = 2
-    multi_length = 10
-    train_input, predict_input = prepare_ts_for_in_sample(simple_length, multi_length)
+    forecast_length = 80
+    one_step_length = 20
+    time_series = pd.read_csv(os.path.join(fedot_project_root(), 'test', 'data', 'short_time_series.csv'))['wind_speed']
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=forecast_length))
 
-    pipeline = get_simple_short_lagged_pipeline()
-    pipeline.fit(train_input)
+    idx = np.arange(len(time_series.values))
+    time_series = time_series.values
+    full_series = InputData(idx=idx,
+                            features=time_series,
+                            target=time_series,
+                            task=task,
+                            data_type=DataTypesEnum.ts)
 
-    multi_predicted = in_sample_ts_forecast(pipeline=pipeline,
-                                            input_data=predict_input,
-                                            horizon=multi_length)
+    train_data, test_data = train_test_data_setup(full_series)
+    train_data.task = Task(TaskTypesEnum.ts_forecasting,
+                           TsForecastingParams(forecast_length=one_step_length))
+    full_series.task = Task(TaskTypesEnum.ts_forecasting,
+                            TsForecastingParams(forecast_length=one_step_length))
 
-    # Take validation part of time series
-    time_series = np.array(train_input.features)
-    validation_part = time_series[-multi_length:]
+    pipelines = [PipelineBuilder().add_node('arima').to_pipeline(),
+                 PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline()]
+    for pipeline in pipelines:
+        pipeline.fit(train_data)
 
-    metric = mean_absolute_error(validation_part, multi_predicted)
-    is_forecast_correct = True
+        predict = in_sample_ts_forecast(pipeline=pipeline,
+                                        input_data=full_series,
+                                        horizon=forecast_length)
 
-    assert is_forecast_correct
+        plot_info = [{'idx': idx,
+                      'series': time_series,
+                      'label': 'Actual time series'},
+                     {'idx': np.arange(test_data.idx[0], test_data.idx[0] + predict.shape[0]),
+                      'series': predict,
+                      'label': 'Forecast'}
+                     ]
+
+        # plot lines
+        visualise(plot_info)
+
+        assert mean_absolute_percentage_error(y_true=test_data.target,
+                                              y_pred=predict) < 1
 
 
 def test_in_sample_ts_models_forecast_correct():
