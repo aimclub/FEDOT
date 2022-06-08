@@ -7,8 +7,6 @@ from random import choice
 
 from typing import Dict, Optional
 
-from functools import partial
-
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
