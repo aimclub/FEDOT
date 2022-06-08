@@ -9,6 +9,7 @@ from examples.simple.time_series_forecasting.ts_pipelines import *
 from examples.simple.time_series_forecasting.tuning_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.pipeline import Pipeline
 
 from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast
 from fedot.core.repository.dataset_types import DataTypesEnum

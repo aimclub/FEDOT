@@ -131,5 +131,11 @@
   "pca": {
     "svd_solver": "full",
     "n_components": "mle"
+  },
+  "ts_naive_average": {
+    "part_for_averaging": 1.0
+  },
+  "locf": {
+    "part_for_repeat": -1
   }
 }
