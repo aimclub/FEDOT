@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 
 class SelectionTypesEnum(Enum):
     tournament = 'tournament'
-    nsga2 = 'nsga2'
     spea2 = 'spea2'
 
 
@@ -28,7 +27,6 @@ def selection(types: List[SelectionTypesEnum], population: List[Individual], pop
     """
     selection_by_type = {
         SelectionTypesEnum.tournament: tournament_selection,
-        SelectionTypesEnum.nsga2: nsga2_selection,
         SelectionTypesEnum.spea2: spea2_selection
     }
 
@@ -87,11 +85,6 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
             chosen.append(best)
         n_iter += 1
 
-    return chosen
-
-
-def nsga2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
-    chosen = tools.selNSGA2(individuals, pop_size)
     return chosen
 
 
