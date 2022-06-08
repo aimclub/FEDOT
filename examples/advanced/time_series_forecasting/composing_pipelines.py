@@ -149,21 +149,20 @@ def visualise(plot_info: List[dict]):
     plt.show()
 
 
-def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str, color: str = 'black') -> dict:
+def get_border_line_info(idx: Any, predict: np.array, time_series: np.array, label: str) -> dict:
     """
     Return plot_info for border vertical line that divides train and test part of data
 
     :param idx: idx for vertical line
     :param predict: predictions
     :param time_series: full time series with test_data
-    :param label: label for a legend
-    :parma color: color of a line
+    :param label: label for legend
     """
     return {'idx': [idx, idx],
             'series': [min(np.concatenate([np.ravel(time_series), predict])),
                        max(np.concatenate([np.ravel(time_series), predict]))],
             'label': label,
-            'color': color}
+            'color': 'black'}
 
 
 if __name__ == '__main__':

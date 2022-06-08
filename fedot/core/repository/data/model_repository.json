@@ -170,6 +170,7 @@
         "simple",
         "interpretable",
         "non_lagged",
+        "in_sample_refit",
         "linear"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
@@ -181,8 +182,8 @@
         "simple",
         "interpretable",
         "non_lagged",
-        "linear",
-        "new_data_refit"
+        "in_sample_refit",
+        "linear"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
@@ -387,8 +388,8 @@
         "simple",
         "interpretable",
         "non_lagged",
-        "linear",
-        "new_data_refit"
+        "in_sample_refit",
+        "linear"
       ],
 	  "input_type": "[DataTypesEnum.ts]"
     },
