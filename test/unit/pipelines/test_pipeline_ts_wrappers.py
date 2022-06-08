@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_percentage_error
 
-from examples.advanced.time_series_forecasting.composing_pipelines import visualise
+
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -120,17 +120,6 @@ def test_in_sample_ts_forecast_correct():
         predict = in_sample_ts_forecast(pipeline=pipeline,
                                         input_data=full_series,
                                         horizon=forecast_length)
-
-        plot_info = [{'idx': idx,
-                      'series': time_series,
-                      'label': 'Actual time series'},
-                     {'idx': np.arange(test_data.idx[0], test_data.idx[0] + predict.shape[0]),
-                      'series': predict,
-                      'label': 'Forecast'}
-                     ]
-
-        # plot lines
-        visualise(plot_info)
 
         assert mean_absolute_percentage_error(y_true=test_data.target,
                                               y_pred=predict) < 1
