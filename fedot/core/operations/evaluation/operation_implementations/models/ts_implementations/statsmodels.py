@@ -210,7 +210,7 @@ class AutoRegImplementation(ModelImplementation):
 
         else:
             # in case in(out) sample forecasting
-            self._change_train_data_if_needed(input_data)
+            self.handle_new_data(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
             predicted = self.autoreg.predict(start=start_id,
@@ -225,7 +225,7 @@ class AutoRegImplementation(ModelImplementation):
     def get_params(self):
         return self.params
 
-    def _change_train_data_if_needed(self, input_data: InputData):
+    def handle_new_data(self, input_data: InputData):
         """
         Method to update x samples inside a model (used when we want to use old model to a new data)
 

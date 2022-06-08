@@ -93,8 +93,7 @@ class ARIMAImplementation(ModelImplementation):
 
         # For predict stage we can make prediction
         else:
-            # in case in(out) sample forecasting
-            self._refit_on_new_data_if_needed(input_data)
+            self.handle_new_data(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
             predicted = self.arima.predict(start=start_id,
@@ -114,10 +113,15 @@ class ARIMAImplementation(ModelImplementation):
 
         return output_data
 
-    def _refit_on_new_data_if_needed(self, input_data: InputData):
+    def handle_new_data(self, input_data: InputData):
+        """
+        Method to update x samples inside a model (used when we want to use old model to a new data)
+
+        :param input_data: new input_data
+        """
         if input_data.idx[0] > self.actual_ts_len:
-            self.model = self.fit(input_data)
-            self.log.info("Arima refitted for an insample forecasting")
+            self.arima = self.fit(input_data)
+            self.log.info("Arima refitted for handling a new data")
 
     def get_params(self):
         return self.params
@@ -245,7 +249,7 @@ class STLForecastARIMAImplementation(ModelImplementation):
         # For predict stage we can make prediction
         else:
             # in case in(out) sample forecasting
-            self._refit_on_new_data_if_needed(input_data)
+            self.handle_new_data(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
             predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
@@ -263,11 +267,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def _refit_on_new_data_if_needed(self, input_data: InputData):
+    def handle_new_data(self, input_data: InputData):
         """ Refit model if use new test data"""
         if input_data.idx[0] > self.actual_ts_len:
             self.model = self.fit(input_data)
-            self.log.info("STL arima refitted for an insample forecasting")
+            self.log.info("STL Arima refitted for handling a new data")
 
     def get_params(self):
         return self.params
