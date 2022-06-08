@@ -245,9 +245,7 @@ class OptHistory:
 
         sorted_individuals = sorted(sorted_individuals_by_position,
                                     key=lambda ind: ind.fitness, reverse=True)
-        top_individuals = \
-            [list(ind)[0] for _, ind in itertools.groupby(sorted_individuals,
-                                                          key=lambda ind: ind.graph.descriptive_id)][:top_n]
+        top_individuals = list({ind.graph.descriptive_id: ind for ind in sorted_individuals}.values())[:top_n]
 
         separator = ' | '
         print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
