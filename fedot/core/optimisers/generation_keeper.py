@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Type, Iterable, Dict
+from typing import Dict, Iterable, Sequence, Type
 
 import numpy as np
 from deap.tools import HallOfFame, ParetoFront
@@ -7,8 +7,8 @@ from deap.tools import HallOfFame, ParetoFront
 from fedot.core.optimisers.fitness import is_metric_worse
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.repository.quality_metrics_repository import MetricsEnum, QualityMetricsEnum, ComplexityMetricsEnum
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, QualityMetricsEnum
 
 
 class ImprovementWatcher(ABC):
@@ -57,7 +57,7 @@ class GenerationKeeper(ImprovementWatcher):
                  objective: Objective,
                  keep_n_best: int = 1,
                  initial_generation: PopulationT = None):
-        self._generation_num = -1  # -1 means state before initial generation is added
+        self._generation_num = 0  # 0 means state before initial generation is added
         self._stagnation_counter = 0  # Initialized in non-stagnated state
         self._metrics_improvement = {metric_id: False for metric_id in objective.metrics}
         self.archive = ParetoFront() if objective.is_multi_objective else HallOfFame(maxsize=keep_n_best)

@@ -36,6 +36,9 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     predict = automl.predict(test_file_path)
     metrics = automl.get_metrics()
 
+    if automl.history:
+        automl.history.print_leaderboard()
+
     if is_visualise:
         automl.current_pipeline.show()
 
