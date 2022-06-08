@@ -64,7 +64,8 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                   'series': predict,
                   'label': 'Forecast'},
                  get_border_line_info(np.arange(test_data.idx[0] + 1)[-1], predict, time_series, 'train|test'),
-                 get_border_line_info(np.arange(test_data.idx[-1] + 1)[-1], predict, time_series, 'End of test', 'gray')]
+                 get_border_line_info(np.arange(test_data.idx[-1] + 1)[-1], predict, time_series, 'End of test',
+                                      'gray')]
 
     # plot lines
     visualise(plot_info)
