@@ -1,8 +1,6 @@
 import math
-from random import choice, random
+from random import choice, randint
 from typing import Any, List, TYPE_CHECKING, Sequence, Iterable, Tuple
-
-from deap import tools
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -90,6 +88,19 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
 
 # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
 def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
+    """
+    Apply SPEA-II selection operator on the *individuals*. Usually, the
+    size of *individuals* will be larger than *n* because any individual
+    present in *individuals* will appear in the returned list at most once.
+    Having the size of *individuals* equals to *n* will have no effect other
+    than sorting the population according to a strength Pareto scheme. The
+    list returned contains references to the input *individuals*.
+
+    :param individuals: A list of individuals to select from.
+    :param pop_size: The number of individuals to select.
+    :returns: A list of selected individuals
+    """
+
     N = len(individuals)
     L = len(individuals[0].fitness.values)
     K = math.sqrt(N)
@@ -214,7 +225,7 @@ def _randomized_select(array, begin, end, i):
 
 
 def _randomized_partition(array, begin, end):
-    i = random.randint(begin, end)
+    i = randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
