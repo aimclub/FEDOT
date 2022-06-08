@@ -49,7 +49,7 @@ class RepeatLastValueImplementation(ModelImplementation):
             # Transform the predicted time series into a table
             new_idx, transformed_cols, new_target = transform_features_and_target_into_lagged(input_data,
                                                                                               forecast_length,
-                                                                                              window_size=self.elements_to_repeat)
+                                                                                              self.elements_to_repeat)
             input_data.idx = new_idx
             input_data.target = new_target
             forecast = self._generate_repeated_forecast(transformed_cols, forecast_length)
