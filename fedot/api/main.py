@@ -274,6 +274,9 @@ class Fedot:
 
     def plot_pareto(self):
         metric_names = self.params.metric_to_compose
+        # archive_history stores archives of the best models.
+        # Each archive is sorted from the best to the worst model,
+        # so the best_candidates is sorted too.
         best_candidates = self.history.archive_history[-1]
         PipelineEvolutionVisualiser().visualise_pareto(front=best_candidates,
                                                        objectives_names=metric_names,
@@ -373,11 +376,6 @@ class Fedot:
         self.train_data = self.data_processor.define_data(features=self.train_data, is_predict=False)
         self.test_data = self.data_processor.define_data(features=self.test_data, is_predict=True)
         self.predict(self.test_data)
-
-    def update_params(self, timeout, num_of_generations, initial_assumption):
-        # TODO: remove, unnecessary method
-        if initial_assumption is not None:
-            self.params.api_params['initial_assumption'] = initial_assumption
 
     def explain(self, features: FeaturesType = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':

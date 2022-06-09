@@ -1,8 +1,7 @@
 import datetime
 import gc
 import traceback
-from collections.abc import Sequence
-from typing import Callable, List, Optional, Union, Tuple, Collection
+from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
@@ -18,11 +17,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.archive import HallOfFame
-from fedot.core.optimisers.gp_comp.gp_optimiser import (
-    EvoGraphOptimiser,
-    GeneticSchemeTypesEnum,
-    GPGraphOptimiserParameters
-)
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import OptHistory
@@ -102,25 +97,19 @@ class ApiComposer:
             self.cache.reset()
 
     @staticmethod
-    def _set_available_operations(task: Task, preset: str,
-                                  available_operations: Optional[Sequence[str]]) -> Sequence[str]:
-        if not available_operations:
-            if preset == 'auto':
-                available_operations = get_operations_for_task(task, mode='model')
-            else:
-                available_operations = OperationsPreset(task, preset).filter_operations_by_preset()
-        return available_operations
-
-    @staticmethod
     def _init_composer_requirements(api_params: dict,
                                     composer_params: dict,
                                     datetime_composing: Optional[datetime.timedelta],
-                                    available_operations: Sequence[str]) -> PipelineComposerRequirements:
+                                    preset: str) -> PipelineComposerRequirements:
 
+        task = api_params['task']
+
+        # define available operations
+        available_operations = composer_params.get('available_operations',
+                                                   OperationsPreset(task, preset).filter_operations_by_preset())
         primary_operations, secondary_operations = \
-            ApiComposer.divide_operations(available_operations, api_params['task'])
+            ApiComposer.divide_operations(available_operations, task)
 
-        # the choice and initialisation of the GP composer
         composer_requirements = PipelineComposerRequirements(primary=primary_operations,
                                                              secondary=secondary_operations,
                                                              max_arity=composer_params['max_arity'],
@@ -184,7 +173,6 @@ class ApiComposer:
             initial_assumption = assumptions_builder.build()
         elif isinstance(initial_assumption, Pipeline):
             initial_assumption = [initial_assumption]
-
         fitted_initial_pipeline, init_pipeline_fit_time = \
             fit_and_check_correctness(initial_assumption[0], train_data,
                                       logger=log, cache=self.cache, n_jobs=api_params['n_jobs'])
@@ -194,9 +182,9 @@ class ApiComposer:
             preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, timeout)
             self.preset_name = preset
             log.info(f"Preset was changed to {preset}")
-        available_operations = self._set_available_operations(task, preset, available_operations)
+
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
-                                                                 self.timer.datetime_composing, available_operations)
+                                                                 self.timer.datetime_composing, preset)
 
         # Get optimiser, its parameters, and composer
 

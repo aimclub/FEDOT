@@ -39,9 +39,13 @@ class OperationsPreset:
         """ Filter operations by preset, remove "heavy" operations and save
         appropriate ones
         """
+        preset_name = self.preset_name
+        if 'auto' in preset_name:
+            available_operations = get_operations_for_task(self.task, mode='model')
+            return available_operations
+
         # TODO remove workaround
         # Use best_quality preset but exclude several operations
-        preset_name = self.preset_name
         if 'stable' in self.preset_name:
             # Use best_quality preset but exclude several operations
             preset_name = BEST_QUALITY_PRESET_NAME
