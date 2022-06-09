@@ -145,6 +145,23 @@ def data_with_text_features():
                             supplementary_data=SupplementaryData(was_preprocessed=False))
 
     return train_input
+
+
+def data_with_missed_text_features():
+    """ Generate tabular data with text features """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array(['',
+                         'that can be stated,',
+                         'is not the eternal',
+                         np.nan],
+                        dtype=object)
+
+    target = np.array([[0], [1], [0], [1]])
+    train_input = InputData(idx=[0, 1, 2, 3], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.text,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
 # TODO: @andreygetmanov (test data with image features)
 
 
@@ -180,12 +197,13 @@ def test_categorical_target_processed_correctly():
 
 def test_text_features_processed_correctly():
     """ Check if dataset with text features preprocessing was performed correctly when API launch using. """
-    classification_data = data_with_text_features()
-    train_data, test_data = train_test_data_setup(classification_data)
+    funcs = [data_with_text_features, data_with_missed_text_features]
 
-    fedot_model = Fedot(problem='classification')
-    fedot_model.fit(train_data, predefined_model='auto')
-    predicted = fedot_model.predict(test_data)
-
-    assert fedot_model.current_pipeline is not None
-    assert predicted[0] == 0
+    # Check for all datasets
+    for data_generator in funcs:
+        input_data = data_generator()
+        fedot_model = Fedot(problem='classification')
+        fedot_model.fit(input_data, predefined_model='auto')
+        predicted = fedot_model.predict(input_data)
+        assert fedot_model.current_pipeline is not None
+        assert len(predicted) > 0

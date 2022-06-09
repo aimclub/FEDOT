@@ -53,7 +53,6 @@ class PreprocessingBuilder:
         return self
 
     def with_text_vectorizer(self):
-        # TODO @andreygetmanov (change to pretrained vectors)
         self._builder.add_node('tfidf')
         return self
 
