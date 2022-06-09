@@ -6,8 +6,6 @@ from fedot.api.main import Fedot
 from sklearn.metrics import f1_score as f1
 
 from cases.dataset_preparation import unpack_archived_data
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
@@ -71,62 +69,16 @@ def prepare_multi_modal_data(files_path: str, task: Task, images_size: tuple = (
     return data
 
 
-def generate_initial_pipeline_and_data(data: Union[InputData, MultiModalData],
-                                       with_split=True) -> tuple:
-    """
-    Generates initial pipeline for data from 3 different sources (table, images and text)
-    Each source is the primary node for its subpipeline
-
-    :param data: multimodal data (from 3 different sources: table, text, image)
-    :param with_split: if True, splits the sample on train/test
-    :return: pipeline object, 2 multimodal data objects (fit and predict)
-    """
-
-    # image
-    ds_image = PrimaryNode('data_source_img')
-    image_node = SecondaryNode('cnn', nodes_from=[ds_image])
-    image_node.custom_params = {'architecture_type': 'simplified',
-                                'epochs': 2,
-                                'batch_size': 16,
-                                'optimizer_parameters': {'loss': "binary_crossentropy",
-                                                         'optimizer': "adam",
-                                                         'metrics': 'categorical_crossentropy'}
-                                }
-
-    # table
-    ds_table = PrimaryNode('data_source_table')
-    numeric_node = SecondaryNode('scaling', nodes_from=[ds_table])
-
-    # text
-    ds_text = PrimaryNode('data_source_text')
-    node_text_clean = SecondaryNode('text_clean', nodes_from=[ds_text])
-    text_node = SecondaryNode('tfidf', nodes_from=[node_text_clean])
-    text_node.custom_params = {'ngram_range': (1, 3), 'min_df': 0.001, 'max_df': 0.9}
-
-    # combining all sources together
-    logit_node = SecondaryNode('logit', nodes_from=[numeric_node, text_node, image_node])
-    logit_node.custom_params = {'max_iter': 100000, 'random_state': 42}
-    pipeline = Pipeline(logit_node)
-
-    # train/test ratio
-    ratio = 0.6
-    if with_split:
-        fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=ratio)
-    else:
-        fit_data, predict_data = data, data
-
-    return pipeline, fit_data, predict_data
-
-
 def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
     task = Task(TaskTypesEnum.classification)
     images_size = (224, 224)
 
     data = prepare_multi_modal_data(files_path, task, images_size)
 
-    initial_pipeline, fit_data, predict_data = generate_initial_pipeline_and_data(data, with_split=True)
+    fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.6)
 
-    automl_model = Fedot(problem='classification', timeout=5)
+    # tuner on image data is not implemented yet, timeout increase can cause unstable work
+    automl_model = Fedot(problem='classification', timeout=0.1)
     pipeline = automl_model.fit(features=fit_data,
                                 target=fit_data.target)
 
