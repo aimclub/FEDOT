@@ -795,3 +795,24 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
         updated_target = ts_target
 
     return updated_idx, updated_features, updated_target
+
+
+def transform_features_and_target_into_lagged(input_data: InputData, forecast_length: int,
+                                              window_size: int):
+    """
+    Perform lagged transformation firstly on features and secondly on target array
+
+    :param input_data: dataclass with features
+    :param forecast_length: forecast horizon
+    :param window_size: window size for features transformation
+    """
+    new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
+                                            time_series=input_data.features,
+                                            window_size=window_size,
+                                            is_lag=True)
+    new_idx, transformed_cols, new_target = prepare_target(all_idx=input_data.idx,
+                                                           idx=new_idx,
+                                                           features_columns=transformed_cols,
+                                                           target=input_data.target,
+                                                           forecast_length=forecast_length)
+    return new_idx, transformed_cols, new_target

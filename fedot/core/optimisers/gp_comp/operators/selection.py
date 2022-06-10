@@ -2,10 +2,10 @@ import math
 from random import choice
 from typing import Any, List, TYPE_CHECKING, Sequence, Iterable, Tuple
 
-from deap import tools
-
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+from fedot.deap import selNSGA2, selSPEA2
+
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -91,12 +91,12 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
 
 
 def nsga2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
-    chosen = tools.selNSGA2(individuals, pop_size)
+    chosen = selNSGA2(individuals, pop_size)
     return chosen
 
 
 def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
-    chosen = tools.selSPEA2(individuals, pop_size)
+    chosen = selSPEA2(individuals, pop_size)
     return chosen
 
 

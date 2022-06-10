@@ -110,6 +110,9 @@ class MultiObjFitness(Fitness):
                 self.valid and other.valid and
                 self.allclose(self.wvalues, other.wvalues))
 
+    def __str__(self):
+        return str(tuple(round(wval, 4) for wval in self.wvalues))
+
     def _check_length(self, values, weights=None):
         if weights is None:
             weights = self.weights

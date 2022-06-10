@@ -4,7 +4,6 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from deap.tools import HallOfFame
 
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
@@ -28,6 +27,7 @@ from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
 from fedot.remote.remote_evaluator import RemoteEvaluator
 from fedot.utilities.project_import_export import export_project_to_zip, import_project_from_zip
+from fedot.deap import HallOfFame
 
 NOT_FITTED_ERR_MSG = 'Model not fitted yet'
 

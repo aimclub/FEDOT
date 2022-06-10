@@ -5,6 +5,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from examples.simple.time_series_forecasting.ts_pipelines import *
@@ -91,4 +92,4 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
 
 if __name__ == '__main__':
-    run_experiment('australia', ts_ar_pipeline(), len_forecast=50, tuning=True)
+    run_experiment('australia', ts_locf_ridge_pipeline(), len_forecast=50, tuning=True)

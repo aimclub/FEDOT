@@ -5,19 +5,18 @@ import os
 import shutil
 import warnings
 from copy import deepcopy
-from typing import Any, List, Optional, Union, Sequence
+from typing import Any, List, Optional, Sequence, Union
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.serializers import Serializer
 from fedot.core.optimisers.objective import Objective
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
-
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
+from fedot.core.serializers import Serializer
 from fedot.core.utils import default_fedot_data_dir
+from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
 
 
 class OptHistory:
@@ -112,7 +111,8 @@ class OptHistory:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, plot_type: Optional[Union[PlotTypesEnum, str]] = PlotTypesEnum.fitness_box, save_path: Optional[str] = None,
+    def show(self, plot_type: Optional[Union[PlotTypesEnum, str]] = PlotTypesEnum.fitness_box,
+             save_path: Optional[str] = None,
              pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
         """ Visualizes fitness values or operations used across generations.
 
@@ -231,6 +231,37 @@ class OptHistory:
             else:
                 return os.path.join(default_fedot_data_dir(), self.save_folder)
         return None
+
+    def print_leaderboard(self, top_n: int = 10):
+        """
+        Prints ordered description of best solutions in history
+        :param top_n: number of solutions to print
+        """
+        all_individuals = itertools.chain(*self.individuals)
+
+        sorted_individuals_by_position = \
+            sorted(all_individuals,
+                   key=lambda ind: ind.positional_id)
+
+        sorted_individuals = sorted(sorted_individuals_by_position,
+                                    key=lambda ind: ind.fitness, reverse=True)
+        top_individuals = list({ind.graph.descriptive_id: ind for ind in sorted_individuals}.values())[:top_n]
+
+        separator = ' | '
+        print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
+        for ind_num, individual in enumerate(top_individuals):
+            print(separator.join([f'{ind_num:>3}, '
+                                  f'{str(individual.fitness):>8}, '
+                                  f'{individual.positional_id:>8}, '
+                                  f'{individual.graph.descriptive_id}']))
+
+        # add info about initial assumptions (stored as zero generation)
+        for i, individual in enumerate(self.individuals[0]):
+            ind = f'I{i}'
+            print(separator.join([f'{ind:>3}'
+                                  f'{str(individual.fitness):>8}',
+                                  f'-',
+                                  f'{individual.graph.descriptive_id}']))
 
 
 def log_to_history(history: OptHistory, population: PopulationT, generations: GenerationKeeper):

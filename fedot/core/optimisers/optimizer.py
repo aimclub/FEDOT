@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Callable, List, Optional, Union, Sequence)
+from typing import (Any, Callable, List, Optional, Sequence, Union)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
@@ -77,7 +77,6 @@ class GraphOptimiser:
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimiserParameters] = None,
                  log: Optional[Log] = None):
-
         self.log = log or default_log(self.__class__.__name__)
 
         self._objective = objective
@@ -85,7 +84,7 @@ class GraphOptimiser:
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.parameters = parameters or GraphOptimiserParameters()
 
-        self.initial_graph = ensure_wrapped_in_sequence(initial_graph)
+        self.initial_graphs = ensure_wrapped_in_sequence(initial_graph)
 
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
 

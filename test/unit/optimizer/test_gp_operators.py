@@ -2,7 +2,6 @@ import datetime
 import os
 
 import numpy as np
-from deap import tools
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
@@ -16,8 +15,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations, mutation, \
-    reduce_mutation, single_drop_mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations
+from fedot.core.optimisers.gp_comp.operators.mutation import mutation, reduce_mutation, single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -29,11 +28,13 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.deap import ParetoFront
+
 from test.unit.composer.test_composer import to_numerical
-from test.unit.pipelines.test_node_cache import pipeline_fifth, pipeline_first, pipeline_fourth, pipeline_second, \
-    pipeline_third
-from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
+from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_regression import get_synthetic_regression_data
+from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.test_logger import release_log
 
 
@@ -143,7 +144,7 @@ def test_evaluate_individuals():
 
 
 def test_filter_duplicates():
-    archive = tools.ParetoFront()
+    archive = ParetoFront()
     archive_items = [pipeline_first(), pipeline_second(), pipeline_third()]
     adapter = PipelineAdapter()
 

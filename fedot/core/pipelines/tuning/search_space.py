@@ -289,7 +289,9 @@ class SearchSpace:
             'lda': {
                 'solver': (hp.choice, [['svd', 'lsqr', 'eigen']]),
                 'shrinkage': (hp.uniform, [0.1, 0.9])
-            }
+            },
+            'ts_naive_average': {'part_for_averaging': (hp.uniform, [0.1, 1])},
+            'locf': {'part_for_repeat': (hp.uniform, [0.01, 0.5])}
         }
 
         if self.custom_search_space is not None:
