@@ -4,7 +4,6 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-from deap.tools import HallOfFame
 
 from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
 from fedot.api.api_utils.api_data import ApiDataProcessor
@@ -17,6 +16,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.individuals_containers import HallOfFame
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository

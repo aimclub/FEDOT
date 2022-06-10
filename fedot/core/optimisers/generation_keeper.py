@@ -2,9 +2,9 @@ from abc import ABC, abstractmethod
 from typing import Dict, Iterable, Sequence, Type
 
 import numpy as np
-from deap.tools import HallOfFame, ParetoFront
 
 from fedot.core.optimisers.fitness import is_metric_worse
+from fedot.core.optimisers.individuals_containers import HallOfFame, ParetoFront
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective.objective import Objective

@@ -5,6 +5,7 @@ from typing import Any, List, TYPE_CHECKING, Sequence, Iterable, Tuple
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
+
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
 
@@ -101,12 +102,12 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
     :returns: A list of selected individuals
     """
 
-    N = len(individuals)
-    L = len(individuals[0].fitness.values)
-    K = math.sqrt(N)
-    strength_fits = [0] * N
-    fits = [0] * N
-    dominating_inds = [list() for i in range(N)]
+    inds_len = len(individuals)
+    fitness_len = len(individuals[0].fitness.values)
+    inds_len_sqrt = math.sqrt(inds_len)
+    strength_fits = [0] * inds_len
+    fits = [0] * inds_len
+    dominating_inds = [list() for _ in range(inds_len)]
 
     for i, ind_i in enumerate(individuals):
         for j, ind_j in enumerate(individuals[i + 1:], i + 1):
@@ -117,41 +118,41 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
                 strength_fits[j] += 1
                 dominating_inds[i].append(j)
 
-    for i in range(N):
+    for i in range(inds_len):
         for j in dominating_inds[i]:
             fits[i] += strength_fits[j]
 
     # Choose all non-dominated individuals
-    chosen_indices = [i for i in range(N) if fits[i] < 1]
+    chosen_indices = [i for i in range(inds_len) if fits[i] < 1]
 
     if len(chosen_indices) < pop_size:  # The archive is too small
-        for i in range(N):
-            distances = [0.0] * N
-            for j in range(i + 1, N):
+        for i in range(inds_len):
+            distances = [0.0] * inds_len
+            for j in range(i + 1, inds_len):
                 dist = 0.0
-                for l in range(L):
+                for l in range(fitness_len):
                     val = individuals[i].fitness.values[l] - \
                           individuals[j].fitness.values[l]
                     dist += val * val
                 distances[j] = dist
-            kth_dist = _randomized_select(distances, 0, N - 1, K)
+            kth_dist = _randomized_select(distances, 0, inds_len - 1, inds_len_sqrt)
             density = 1.0 / (kth_dist + 2.0)
             fits[i] += density
 
-        next_indices = [(fits[i], i) for i in range(N)
-                        if not i in chosen_indices]
+        next_indices = [(fits[i], i) for i in range(inds_len)
+                        if i not in chosen_indices]
         next_indices.sort()
         # print next_indices
         chosen_indices += [i for _, i in next_indices[:pop_size - len(chosen_indices)]]
 
     elif len(chosen_indices) > pop_size:  # The archive is too large
-        N = len(chosen_indices)
-        distances = [[0.0] * N for i in range(N)]
-        sorted_indices = [[0] * N for i in range(N)]
-        for i in range(N):
-            for j in range(i + 1, N):
+        inds_len = len(chosen_indices)
+        distances = [[0.0] * inds_len for i in range(inds_len)]
+        sorted_indices = [[0] * inds_len for i in range(inds_len)]
+        for i in range(inds_len):
+            for j in range(i + 1, inds_len):
                 dist = 0.0
-                for l in range(L):
+                for l in range(fitness_len):
                     val = individuals[chosen_indices[i]].fitness.values[l] - \
                           individuals[chosen_indices[j]].fitness.values[l]
                     dist += val * val
@@ -160,20 +161,20 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
             distances[i][i] = -1
 
         # Insert sort is faster than quick sort for short arrays
-        for i in range(N):
-            for j in range(1, N):
+        for i in range(inds_len):
+            for j in range(1, inds_len):
                 l = j
                 while l > 0 and distances[i][j] < distances[i][sorted_indices[i][l - 1]]:
                     sorted_indices[i][l] = sorted_indices[i][l - 1]
                     l -= 1
                 sorted_indices[i][l] = j
 
-        size = N
+        size = inds_len
         to_remove = []
         while size > pop_size:
             # Search for minimal distance
             min_pos = 0
-            for i in range(1, N):
+            for i in range(1, inds_len):
                 for j in range(1, size):
                     dist_i_sorted_j = distances[i][sorted_indices[i][j]]
                     dist_min_sorted_j = distances[min_pos][sorted_indices[min_pos][j]]
@@ -185,7 +186,7 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
                         break
 
             # Remove minimal distance from sorted_indices
-            for i in range(N):
+            for i in range(inds_len):
                 distances[i][min_pos] = float("inf")
                 distances[min_pos][i] = float("inf")
 
@@ -209,7 +210,7 @@ def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tu
 
 
 # Auxiliary algorithmic functions for spea2_selection
-# This code is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
+# This code is a part of DEAP library (Library URL: https://github.com/DEAP/deap).
 def _randomized_select(array, begin, end, i):
     """Allows to select the ith smallest element from array without sorting it.
     Runtime is expected to be O(n).
