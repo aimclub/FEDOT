@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_percentage_error
 
-
+from examples.advanced.time_series_forecasting.composing_pipelines import visualise
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -93,8 +93,9 @@ def test_out_of_sample_ts_forecast_correct():
 
 def test_in_sample_ts_forecast_correct():
     forecast_length = 80
-    one_step_length = 20
-    time_series = pd.read_csv(os.path.join(fedot_project_root(), 'test', 'data', 'short_time_series.csv'))['wind_speed']
+    one_step_length = 40
+    time_series = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'stackoverflow.csv'))[
+        'value']
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
 
