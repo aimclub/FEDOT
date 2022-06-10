@@ -91,14 +91,20 @@ def test_out_of_sample_ts_forecast_correct():
     assert len(multi_predicted) == multi_length
 
 
-def test_in_sample_ts_forecast_correct():
+def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
+    """
+    Test for checking if AR and ARIMA works correctly in insample forecasting task
+    """
+    # horizon
     forecast_length = 80
+    # one-step horizon
     one_step_length = 40
     time_series = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'stackoverflow.csv'))[
         'value']
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
 
+    # generate train/test data
     idx = np.arange(len(time_series.values))
     time_series = time_series.values
     full_series = InputData(idx=idx,
@@ -108,6 +114,7 @@ def test_in_sample_ts_forecast_correct():
                             data_type=DataTypesEnum.ts)
 
     train_data, test_data = train_test_data_setup(full_series)
+    # we train our model only for length = 50 elements
     train_data.task = Task(TaskTypesEnum.ts_forecasting,
                            TsForecastingParams(forecast_length=one_step_length))
     full_series.task = Task(TaskTypesEnum.ts_forecasting,
@@ -117,7 +124,7 @@ def test_in_sample_ts_forecast_correct():
                  PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline()]
     for pipeline in pipelines:
         pipeline.fit(train_data)
-
+        # making insample forecast
         predict = in_sample_ts_forecast(pipeline=pipeline,
                                         input_data=full_series,
                                         horizon=forecast_length)
