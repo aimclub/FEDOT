@@ -545,7 +545,7 @@ class HallOfFame:
                            update the hall of fame with.
         """
         for ind in population:
-            if len(self) == 0 and self.maxsize !=0:
+            if len(self) == 0 and self.maxsize != 0:
                 # Working on an empty hall of fame is problematic for the loop
                 self.insert(population[0])
                 continue
