@@ -4,7 +4,6 @@ import traceback
 from typing import Callable, Dict, List, Optional, Type, Union, Tuple
 
 import numpy as np
-from deap.tools import HallOfFame
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -35,6 +34,7 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
+from fedot.deap import HallOfFame
 
 
 class ApiComposer:
