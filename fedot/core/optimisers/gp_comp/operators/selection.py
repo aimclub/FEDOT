@@ -130,9 +130,9 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
             distances = [0.0] * inds_len
             for j in range(i + 1, inds_len):
                 dist = 0.0
-                for l in range(fitness_len):
-                    val = individuals[i].fitness.values[l] - \
-                          individuals[j].fitness.values[l]
+                for idx in range(fitness_len):
+                    val = individuals[i].fitness.values[idx] - \
+                          individuals[j].fitness.values[idx]
                     dist += val * val
                 distances[j] = dist
             kth_dist = _randomized_select(distances, 0, inds_len - 1, inds_len_sqrt)
@@ -152,9 +152,9 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
         for i in range(inds_len):
             for j in range(i + 1, inds_len):
                 dist = 0.0
-                for l in range(fitness_len):
-                    val = individuals[chosen_indices[i]].fitness.values[l] - \
-                          individuals[chosen_indices[j]].fitness.values[l]
+                for idx in range(fitness_len):
+                    val = individuals[chosen_indices[i]].fitness.values[idx] - \
+                          individuals[chosen_indices[j]].fitness.values[idx]
                     dist += val * val
                 distances[i][j] = dist
                 distances[j][i] = dist
@@ -163,11 +163,11 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
         # Insert sort is faster than quick sort for short arrays
         for i in range(inds_len):
             for j in range(1, inds_len):
-                l = j
-                while l > 0 and distances[i][j] < distances[i][sorted_indices[i][l - 1]]:
-                    sorted_indices[i][l] = sorted_indices[i][l - 1]
-                    l -= 1
-                sorted_indices[i][l] = j
+                idx = j
+                while idx > 0 and distances[i][j] < distances[i][sorted_indices[i][idx - 1]]:
+                    sorted_indices[i][idx] = sorted_indices[i][idx - 1]
+                    idx -= 1
+                sorted_indices[i][idx] = j
 
         size = inds_len
         to_remove = []
