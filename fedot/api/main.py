@@ -16,7 +16,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.individuals_containers import HallOfFame
+from fedot.core.optimisers.archive import HallOfFame
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository

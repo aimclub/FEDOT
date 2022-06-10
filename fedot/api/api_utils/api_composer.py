@@ -19,7 +19,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
-from fedot.core.optimisers.individuals_containers import HallOfFame
+from fedot.core.optimisers.archive import HallOfFame
 from fedot.core.optimisers.gp_comp.gp_optimiser import (
     EvoGraphOptimiser,
     GeneticSchemeTypesEnum,

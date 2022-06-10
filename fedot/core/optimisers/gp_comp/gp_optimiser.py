@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import Log
-from fedot.core.optimisers.generation_keeper import GenerationKeeper
+from fedot.core.optimisers.archive.generation_keeper import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import (
     clean_operators_history,

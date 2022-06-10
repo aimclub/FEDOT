@@ -27,7 +27,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from fedot.core.optimisers.individuals_containers import ParetoFront
+from fedot.core.optimisers.archive.individuals_containers import ParetoFront
 from fedot.core.optimisers.objective.objective import Objective
 
 from test.unit.composer.test_composer import to_numerical
