@@ -2,6 +2,10 @@
 from copy import deepcopy
 from bisect import bisect_right
 from operator import eq
+from typing import Callable, Optional
+
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 
 
 class HallOfFame:
@@ -27,15 +31,13 @@ class HallOfFame:
     iterate on it forward and backward and to get an item or a slice from it.
     """
 
-    # -------------------------------------------------------------------------------------- #
-    def __init__(self, maxsize, similar=eq):
+    def __init__(self, maxsize: Optional[int], similar: Callable = eq):
         self.maxsize = maxsize
         self.keys = list()
         self.items = list()
         self.similar = similar
 
-    # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def update(self, population: PopulationT):
         """
         Update the hall of fame with the *population* by replacing the
         worst individuals in it by the best individuals present in
@@ -61,8 +63,7 @@ class HallOfFame:
                         self.remove(-1)
                     self.insert(ind)
 
-    # -------------------------------------------------------------------------------------- #
-    def insert(self, item):
+    def insert(self, item: Individual):
         """
         Insert a new individual in the hall of fame using the
         :func:`~bisect.bisect_right` function. The inserted individual is
@@ -80,8 +81,7 @@ class HallOfFame:
         self.items.insert(len(self) - i, item)
         self.keys.insert(i, item.fitness)
 
-    # -------------------------------------------------------------------------------------- #
-    def remove(self, index):
+    def remove(self, index: int):
         """
         Remove the specified *index* from the hall of fame.
 
@@ -90,34 +90,27 @@ class HallOfFame:
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
 
-    # -------------------------------------------------------------------------------------- #
     def clear(self):
         """Clear the hall of fame."""
         del self.items[:]
         del self.keys[:]
 
-    # -------------------------------------------------------------------------------------- #
     def __len__(self):
         return len(self.items)
 
-    # -------------------------------------------------------------------------------------- #
     def __getitem__(self, i):
         return self.items[i]
 
-    # -------------------------------------------------------------------------------------- #
     def __iter__(self):
         return iter(self.items)
 
-    # -------------------------------------------------------------------------------------- #
     def __reversed__(self):
         return reversed(self.items)
 
-    # -------------------------------------------------------------------------------------- #
     def __str__(self):
         return str(self.items)
 
 
-# ====================================================================================== #
 class ParetoFront(HallOfFame):
     """
     The Pareto front hall of fame contains all the non-dominated individuals
@@ -138,12 +131,10 @@ class ParetoFront(HallOfFame):
     it is sorted lexicographically at every moment.
     """
 
-    # -------------------------------------------------------------------------------------- #
-    def __init__(self, similar=eq):
+    def __init__(self, similar: Callable = eq):
         HallOfFame.__init__(self, None, similar)
 
-    # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def update(self, population: PopulationT):
         """
         Update the Pareto front hall of fame with the *population* by adding
         the individuals from the population that are not dominated by the hall

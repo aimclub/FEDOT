@@ -9,7 +9,7 @@ PopulationT = Sequence[Individual]  # TODO: provisional
 
 
 class Operator(ABC, Generic[T]):
-    """Base abstract functional interface for genetic operators.
+    """ Base abstract functional interface for genetic operators.
     Specific signatures are:
     - Evaluation: Population -> Population
     - Selection: Population -> Population
