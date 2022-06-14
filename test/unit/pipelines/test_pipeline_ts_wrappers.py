@@ -99,7 +99,8 @@ def test_not_simple_in_sample_ts_forecast_correct_for_ar_and_arima():
     forecast_length = 80
     # one-step horizon
     one_step_length = 40
-    time_series = pd.read_csv(os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'stackoverflow.csv'))[
+    path = os.path.join(fedot_project_root(), 'examples', 'data', 'ts', 'stackoverflow.csv')
+    time_series = pd.read_csv(path)[
         'value']
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
