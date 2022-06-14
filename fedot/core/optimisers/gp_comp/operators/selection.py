@@ -1,6 +1,6 @@
 import math
 from random import choice, randint
-from typing import Any, List, TYPE_CHECKING, Sequence, Iterable, Tuple
+from typing import List, TYPE_CHECKING, Iterable, Tuple
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -16,7 +16,7 @@ class SelectionTypesEnum(Enum):
 
 
 def selection(types: List[SelectionTypesEnum], population: List[Individual], pop_size: int,
-              params: 'GraphGenerationParams') -> List[Any]:
+              params: 'GraphGenerationParams') -> List[Individual]:
     """
     Selection of individuals based on specified type of selection
     :param types: The set of selection types
@@ -37,8 +37,8 @@ def selection(types: List[SelectionTypesEnum], population: List[Individual], pop
         raise ValueError(f'Required selection not found: {selection_type}')
 
 
-def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any], pop_size: int,
-                          graph_params: 'GraphGenerationParams') -> List[Any]:
+def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Individual], pop_size: int,
+                          graph_params: 'GraphGenerationParams') -> List[Individual]:
     if pop_size == len(individuals):
         chosen = individuals
     else:
@@ -56,7 +56,7 @@ def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Any
     return chosen
 
 
-def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
+def random_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
     chosen = []
     n_iter = 0
     while len(chosen) < pop_size and n_iter < pop_size * 10:
@@ -70,7 +70,7 @@ def random_selection(individuals: List[Any], pop_size: int) -> List[int]:
     return chosen
 
 
-def tournament_selection(individuals: List[Any], pop_size: int, fraction: float = 0.1) -> List[Any]:
+def tournament_selection(individuals: List[Individual], pop_size: int, fraction: float = 0.1) -> List[Individual]:
     group_size = math.ceil(len(individuals) * fraction)
     min_group_size = 2 if len(individuals) > 1 else 1
     group_size = max(group_size, min_group_size)
@@ -88,7 +88,7 @@ def tournament_selection(individuals: List[Any], pop_size: int, fraction: float 
 
 
 # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
-def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
+def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
     """
     Apply SPEA-II selection operator on the *individuals*. Usually, the
     size of *individuals* will be larger than *n* because any individual
@@ -205,13 +205,13 @@ def spea2_selection(individuals: List[Any], pop_size: int) -> List[Any]:
     return [individuals[i] for i in chosen_indices]
 
 
-def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
+def crossover_parents_selection(population: List[Individual]) -> Iterable[Tuple[Individual, Individual]]:
     return zip(population[::2], population[1::2])
 
 
 # Auxiliary algorithmic functions for spea2_selection
 # This code is a part of DEAP library (Library URL: https://github.com/DEAP/deap).
-def _randomized_select(array, begin, end, i):
+def _randomized_select(array: List[float], begin: int, end: int, i: float) -> float:
     """Allows to select the ith smallest element from array without sorting it.
     Runtime is expected to be O(n).
     """
@@ -225,13 +225,13 @@ def _randomized_select(array, begin, end, i):
         return _randomized_select(array, q + 1, end, i - k)
 
 
-def _randomized_partition(array, begin, end):
+def _randomized_partition(array: List[float], begin: int, end: int) -> int:
     i = randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
 
-def _partition(array, begin, end):
+def _partition(array: List[float], begin: int, end: int) -> int:
     x = array[begin]
     i = begin - 1
     j = end + 1
