@@ -234,7 +234,7 @@ class GraphOperator:
         if not self._graph.nodes:
             return []
         roots = [node for node in self._graph.nodes
-                 if not any(self._graph.node_children(node))]
+                 if not any(self.node_children(node))]
         if len(roots) == 1:
             return roots[0]
         return roots
