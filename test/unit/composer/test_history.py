@@ -1,5 +1,6 @@
 import os
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -7,17 +8,20 @@ import pytest
 from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.fitness import SingleObjFitness
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.operations.model import Model
+from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -25,7 +29,6 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
     RegressionMetricsEnum, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.validation.test_table_cv import get_classification_data
@@ -177,3 +180,22 @@ def test_cv_generator_works_stable(cv_generator, data):
 
     for i in range(len(idx_first)):
         assert np.all(idx_first[i] == idx_second[i])
+
+
+def test_history_backward_compatibility():
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    history = OptHistory.load(test_history_path)
+    # Pre-computing properties
+    all_historical_fitness = history.all_historical_fitness
+    historical_fitness = history.historical_fitness
+    historical_pipelines = history.historical_pipelines
+    # Assert that properties are not empty
+    assert all_historical_fitness
+    assert historical_fitness
+    assert historical_pipelines
+    # Assert that all history pipelines have fitness
+    assert len(historical_pipelines) == len(all_historical_fitness)
+    assert np.shape(history.individuals) == np.shape(historical_fitness)
+    # Assert that fitness and objective are valid
+    assert all(isinstance(ind.fitness, SingleObjFitness) for gen in history.individuals for ind in gen)
+    assert isinstance(history._objective, Objective)

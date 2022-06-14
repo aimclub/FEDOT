@@ -7,6 +7,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
@@ -72,7 +73,7 @@ class GraphOptimiser:
 
     def __init__(self,
                  objective: Objective,
-                 initial_graph: Union[Graph, Sequence[Graph]] = (),
+                 initial_graph: Optional[Union[Graph, Sequence[Graph]]] = None,
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimiserParameters] = None,
@@ -84,7 +85,10 @@ class GraphOptimiser:
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.parameters = parameters or GraphOptimiserParameters()
 
-        self.initial_graphs = ensure_wrapped_in_sequence(initial_graph)
+        initial_graph = initial_graph or ()
+        initial_graph = ensure_wrapped_in_sequence(initial_graph)
+        self.initial_individuals = \
+            [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graph]
 
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
 

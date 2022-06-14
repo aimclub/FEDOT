@@ -5,10 +5,14 @@ import os
 import shutil
 import warnings
 from copy import deepcopy
+from pathlib import Path
 from typing import Any, List, Optional, Sequence, Union
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
+# ParentOperator is needed for backward compatibility with older optimization histories.
+# This is a temporary solution until the issue #699 (https://github.com/nccr-itmo/FEDOT/issues/699) is closed.
+from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator  # noqa
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective
@@ -93,16 +97,25 @@ class OptHistory:
     def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
         if json_file_path is None:
             return json.dumps(self, indent=4, cls=Serializer)
-        with open(json_file_path, mode='w') as json_fp:
-            json.dump(self, json_fp, indent=4, cls=Serializer)
+        with open(json_file_path, mode='w') as json_file:
+            json.dump(self, json_file, indent=4, cls=Serializer)
 
     @staticmethod
     def load(json_str_or_file_path: Union[str, os.PathLike] = None) -> 'OptHistory':
-        try:
+        def load_as_file_path():
+            with open(json_str_or_file_path, mode='r') as json_file:
+                return json.load(json_file, cls=Serializer)
+
+        def load_as_json_str():
             return json.loads(json_str_or_file_path, cls=Serializer)
-        except json.JSONDecodeError as exc:
-            with open(json_str_or_file_path, mode='r') as json_fp:
-                return json.load(json_fp, cls=Serializer)
+
+        if isinstance(json_str_or_file_path, os.PathLike):
+            return load_as_file_path()
+
+        try:
+            return load_as_json_str()
+        except json.JSONDecodeError:
+            return load_as_file_path()
 
     def clean_results(self, path: Optional[str] = None):
         if not path and self.save_folder is not None:
