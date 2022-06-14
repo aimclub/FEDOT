@@ -44,12 +44,18 @@ def test_multiprocessing_dispatcher_without_timelimit_without_multiprocessing():
     assert len(pipelines) == len(evaluated_population), "Not all pipelines was evaluated"
 
 
-def test_multiprocessing_with_multiprocessing():
+def test_multiprocessing_dispatcher_with_multiprocessing():
     adapter = PipelineAdapter()
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
 
     evaluator = MultiprocessingDispatcher(adapter, n_jobs=-1).dispatch(prepared_objective)
+    evaluated_population = evaluator(population)
+    fitness = list(map(lambda x: x.fitness, evaluated_population))
+    assert all(x.valid for x in fitness), "At least one fitness value is invalid"
+    assert len(pipelines) == len(evaluated_population), "Not all pipelines was evaluated"
+
+    evaluator = MultiprocessingDispatcher(adapter, n_jobs=1).dispatch(prepared_objective)
     evaluated_population = evaluator(population)
     fitness = list(map(lambda x: x.fitness, evaluated_population))
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
@@ -78,7 +84,7 @@ def test_multiprocessing_dispatcher_with_timelimit():
     assert len(pipelines) == len(evaluated_population), "Not all pipelines was evaluated"
 
 
-def test_multiprocessing_with_invalid_objective():
+def test_multiprocessing_dispatcher_with_invalid_objective():
     adapter = PipelineAdapter()
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
@@ -88,7 +94,7 @@ def test_multiprocessing_with_invalid_objective():
         evaluator(population)
 
 
-def test_multiprocessing_with_objective_throwing_exception():
+def test_multiprocessing_dispatcher_with_objective_throwing_exception():
     adapter = PipelineAdapter()
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
