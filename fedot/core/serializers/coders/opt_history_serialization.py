@@ -2,10 +2,9 @@ import operator
 from functools import reduce
 from typing import Any, Dict, List, Type
 
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
-
-if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.individual import Individual
 
 from . import any_from_json
 
