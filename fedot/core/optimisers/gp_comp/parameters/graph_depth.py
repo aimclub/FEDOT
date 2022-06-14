@@ -1,4 +1,4 @@
-from fedot.core.optimisers.generation_keeper import ImprovementWatcher
+from fedot.core.optimisers.archive.generation_keeper import ImprovementWatcher
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.parameters.parameter import AdaptiveParameter
 

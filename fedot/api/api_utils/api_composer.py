@@ -4,7 +4,6 @@ import traceback
 from typing import Callable, Dict, List, Optional, Type, Union, Tuple
 
 import numpy as np
-from deap.tools import HallOfFame
 from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -20,6 +19,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
+from fedot.core.optimisers.archive import HallOfFame
 from fedot.core.optimisers.gp_comp.gp_optimiser import (
     EvoGraphOptimiser,
     GeneticSchemeTypesEnum,

@@ -221,7 +221,7 @@ def test_multi_objective_composer(data_fixture, request):
                                        crossover_prob=0.4, mutation_prob=0.5)
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
-                                                      selection_types=[SelectionTypesEnum.nsga2])
+                                                      selection_types=[SelectionTypesEnum.spea2])
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         metrics).with_optimiser(parameters=optimiser_parameters)
     composer = builder.build()
