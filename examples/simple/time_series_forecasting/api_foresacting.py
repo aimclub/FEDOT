@@ -9,6 +9,10 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
+import logging
+logging.raiseExceptions = False
+
+
 datasets = {
     'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
     'beer': f'{fedot_project_root()}/examples/data/ts/beer.csv',
@@ -39,7 +43,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                   task_params=task.task_params,
                   timeout=timeout,
                   preset='fast_train',
-                  n_jobs=-1)
+                  composer_params={'cv_folds': None, 'validation_blocks': 1},
+                  n_jobs=1)
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
@@ -57,4 +62,4 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
 
 
 if __name__ == '__main__':
-    run_ts_forecasting_example(dataset='stackoverflow', horizon=30, timeout=0.5)
+    run_ts_forecasting_example(dataset='stackoverflow', horizon=5, timeout=0.5)
