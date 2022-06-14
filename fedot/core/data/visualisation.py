@@ -90,8 +90,10 @@ def plot_roc_auc(data: InputData, prediction: OutputData):
         plt.plot(fpr, tpr, 'b', label='AUC = %0.2f' % roc_auc)
         plt.legend(loc=F'best')
     else:
-        for cls in range(data.num_classes):
-            fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict[:, cls], pos_label=cls)
+        unique_labels = np.unique(data.target)
+        for cls in range(len(unique_labels)):
+            fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict[:, cls],
+                                                   pos_label=unique_labels[cls])
             roc_auc = ROCAUC.auc(fpr, tpr)
             plt.plot(fpr, tpr, label=f'label-{cls} AUC = %0.2f' % roc_auc)
             plt.legend(loc=F'best')
