@@ -8,7 +8,7 @@ from copy import deepcopy
 from typing import Any, List, Optional, Sequence, Union
 
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.generation_keeper import GenerationKeeper
+from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective
