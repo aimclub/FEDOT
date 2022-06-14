@@ -75,3 +75,4 @@ def test_pipeline_objective_evaluate_with_timelimit(classification_dataset):
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, time_constraint=timelimit, log=log)
     fitness = objective_eval(pipeline)
     assert fitness.valid
+
