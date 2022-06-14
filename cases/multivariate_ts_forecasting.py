@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -38,7 +39,8 @@ def plot_results(full_df: pd.DataFrame, target_column: int, forecast: np.array,
 def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
                              number_of_series_to_use: int = 25):
     """ Example how to launch FEDOT AutmoML for multivariate forecasting """
-    df = pd.read_csv('./data/multivariate_ssh.csv', parse_dates=['datetime'])
+    path_to_file = os.path.join(os.path.curdir, 'data', 'multivariate_ssh.csv')
+    df = pd.read_csv(path_to_file, parse_dates=['datetime'])
     train_df, test_df = train_test_split(df, forecast_horizon)
 
     # Prepare train data in a form of dictionary {'time series label': numpy array}
@@ -50,7 +52,7 @@ def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
 
     # Configure AutoML
     task_parameters = TsForecastingParams(forecast_length=forecast_horizon)
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=50,
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=30,
                   composer_params={'cv_fols': None, 'validation_blocks': None})
     target_series = train_df[train_df['label'] == target_column]
     obtained_pipeline = model.fit(features=train_data,
@@ -65,4 +67,4 @@ def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
 
 
 if __name__ == '__main__':
-    launch_fedot_forecasting(number_of_series_to_use=20)
+    launch_fedot_forecasting(number_of_series_to_use=30)
