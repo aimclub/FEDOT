@@ -43,7 +43,7 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
                   task_params=task.task_params,
                   timeout=timeout,
                   preset='fast_train',
-                  composer_params={'cv_folds': None, 'validation_blocks': 2},
+                  composer_params={'cv_folds': 2, 'validation_blocks': None},
                   n_jobs=1)
 
     # run AutoML model design in the same way

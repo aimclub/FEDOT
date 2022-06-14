@@ -72,7 +72,8 @@ class DataObjectiveBuilder:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
             if self.validation_blocks is None:
-                default_validation_blocks = 3
+                default_validation_blocks = 2
+                self.validation_blocks = default_validation_blocks
                 self.log.info(f'For ts cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
             cv_generator = partial(ts_cv_generator, data,

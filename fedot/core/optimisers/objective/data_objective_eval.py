@@ -54,8 +54,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            # TODO remove after PR
-            print(f'Current fold: {fold_id}')
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
             except Exception as ex:
