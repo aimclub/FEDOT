@@ -33,11 +33,12 @@ class DataObjectiveBuilder:
         self.cache = cache
         self.log = log or default_log(self.__class__.__name__)
 
-    def build(self, data: InputData) -> ObjectiveEvaluate:
+    def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
+        """ Compose evaluator object with desired parameters """
         if self.cv_folds is not None:
-            data_producer = self._build_kfolds_producer(data)
+            data_producer = self._build_kfolds_producer(data, **kwargs)
         else:
-            data_producer = self._build_holdout_producer(data)
+            data_producer = self._build_holdout_producer(data, **kwargs)
 
         objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective,
                                                        data_producer=data_producer,
@@ -46,13 +47,16 @@ class DataObjectiveBuilder:
                                                        cache=self.cache, log=self.log)
         return objective_evaluate
 
-    def _build_holdout_producer(self, data: InputData) -> DataSource:
-        """Build trivial data producer for hold-out validation
-        that always returns same data split. Equivalent to 1-fold validation."""
+    def _build_holdout_producer(self, data: InputData, **kwargs) -> DataSource:
+        """
+        Build trivial data producer for hold-out validation
+        that always returns same data split. Equivalent to 1-fold validation.
+        """
 
         self.log.info("Hold out validation for graph composing was applied.")
         split_ratio = default_data_split_ratio_by_task[data.task.task_type]
-        train_data, test_data = train_test_data_setup(data, split_ratio)
+        train_data, test_data = train_test_data_setup(data, split_ratio,
+                                                      **{'validation_blocks': kwargs.get('validation_blocks')})
 
         def data_producer(): yield train_data, test_data
 
@@ -61,7 +65,7 @@ class DataObjectiveBuilder:
 
         return data_producer
 
-    def _build_kfolds_producer(self, data: InputData) -> DataSource:
+    def _build_kfolds_producer(self, data: InputData, **kwargs) -> DataSource:
         if isinstance(data, MultiModalData):
             raise NotImplementedError('Cross-validation is not supported for multi-modal data')
         if data.task.task_type is TaskTypesEnum.ts_forecasting:
