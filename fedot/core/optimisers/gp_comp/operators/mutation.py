@@ -12,6 +12,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import ParentOperator
 from fedot.core.utils import DEFAULT_PARAMS_STUB, ComparableEnum as Enum
+from itertools import permutations
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -129,6 +130,9 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
 
         is_correct_graph = constraint_function(new_graph, params)
         if is_correct_graph:
+            # for i in pop:
+            #     if check_iequv(Individual(new_graph), i):
+            #         break
             new_individual = Individual(new_graph)
             if add_to_history:
                 new_individual = Individual(new_graph)
@@ -390,3 +394,52 @@ mutation_by_type = {
     MutationTypesEnum.single_change: single_change_mutation,
 
 }
+
+
+def check_iequv(ind1, ind2):
+
+    ## skeletons and immoralities
+    (ske1, immor1) = get_skeleton_immor(ind1)
+    (ske2, immor2) = get_skeleton_immor(ind2)
+
+    ## comparison. 
+    if len(ske1) != len(ske2) or len(immor1) != len(immor2):
+        return False
+
+    ## Note that the edges are undirected so we need to check both ordering
+    for (n1, n2) in immor1:
+        if (n1, n2) not in immor2 and (n2, n1) not in immor2:
+            return False
+    for (n1, n2) in ske1:
+        if (n1, n2) not in ske2 and (n2, n1) not in ske2:
+            return False
+    return True
+
+
+def get_skeleton_immor(ind):
+    ## skeleton: a list of edges (undirected)
+    skeleton = get_skeleton(ind)
+    ## find immoralities
+    immoral = set()
+    for n in ind.graph.nodes:
+        if n.nodes_from != None and len(n.nodes_from) > 1:
+            perm = list(permutations(n.nodes_from, 2))
+            for (per1, per2) in perm:
+                p1 = per1.content["name"]
+                p2 = per2.content["name"]
+                if ((p1, p2) not in skeleton and (p2, p1) not in skeleton 
+                    and (p1, p2) not in immoral and (p2, p1) not in immoral):
+                    immoral.add((p1, p2))
+
+    return (skeleton, immoral)    
+
+def get_skeleton(ind):
+    skeleton = set()
+    edges = ind.graph.operator.get_all_edges()
+    for e in edges:
+        skeleton.add((e[0].content["name"], e[1].content["name"]))
+        skeleton.add((e[1].content["name"], e[0].content["name"]))
+    return skeleton
+
+
+

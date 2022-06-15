@@ -28,6 +28,7 @@ from functools import partial
 from sklearn import preprocessing
 import seaborn as sns
 from pyitlib import discrete_random_variable as drv
+from statistics import mean
 
  
 import bamt.Preprocessors as pp
@@ -54,7 +55,7 @@ import matplotlib.pyplot as plt
 from fpdf import FPDF
 from math import log10, ceil
 from datetime import timedelta
-from random import randint
+from random import randint, sample
 from pomegranate import *
 import networkx as nx
 
@@ -101,6 +102,7 @@ def custom_metric_LL(graph: CustomGraphModel, data: pd.DataFrame):
     for i in nodes:
         unique = unique_values[i]
         for j in new_struct[dir_of_vertices[i]]:
+            # надо бы исправить как в формуле (unique - 1)* ...
             unique = unique * unique_values[dir_of_vertices_rev[j]]
         Dim += unique
     score = LL - log10(len(data)/2)*Dim
@@ -440,6 +442,190 @@ def metric_for_structure_cmi_new(struc, data: pd.DataFrame):
     score = cmi(struct, nodes)
     
     return [score]  
+
+
+
+
+def custom_metric_DJS(graph: CustomGraphModel, data: pd.DataFrame):
+
+    encoder = preprocessing.LabelEncoder()
+    discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+    p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
+    discretized_data, est = p.apply(data)
+    N = len(data)
+   
+
+    final_bn = []
+    if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+        final_bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+        final_bn = Nets.DiscreteBN()
+    elif 'cont' in p.info['types'].values():
+        final_bn = Nets.ContinuousBN(use_mixture=False)
+    
+    final_bn.add_nodes(p.info)
+    structure = opt_graph_to_bamt(graph)
+    final_bn.set_structure(edges=structure)
+    final_bn.get_info()
+    final_bn.fit_parameters(data)
+    sample = final_bn.sample(N) 
+    
+    score_list = []
+    for i in sample.columns:
+        sample[i] = sample[i].astype(str).astype(int)
+        score_list.append(float(drv.divergence_jensenshannon(data[i].values,sample[i].values)))
+
+    mean_score = mean(score_list)
+    return [-mean_score]
+
+
+
+############## Попытка K2
+# import numpy as np
+# import copy
+# import math
+
+# from functools import reduce
+
+
+
+# def alpha(df, i, parents): 
+#     parents = np.sort(parents)
+#     states = list(map(list, itertools.product([0, 1], repeat=len(parents)+1)))
+#     states_mod = [["".join(map(str,sublist[:len(sublist)-1]))]+[str(sublist[-1])] for sublist in states]
+#     gpd_values = pd.DataFrame()
+  
+#     if len(parents):
+#         label_parents = ''.join(parents)
+#         df_to_group = pd.DataFrame(columns = [label_parents, df.columns[i]],
+#                                     data = np.transpose(
+#                                         [df.astype(str)[parents].apply(lambda x: "".join(x), axis=1).values,
+#                                         [str(item) for item in df[df.columns[i]]]]))
+
+        
+#         gpd_values = df_to_group.groupby(by=
+#                                          [df_to_group[label_parents],
+#                                           df.columns[i]]).size()
+
+#         gpd_values = gpd_values.reset_index(name='size')
+
+#         for state in states_mod:
+#             if not state in gpd_values[[label_parents, df.columns[i]]].values.tolist() :
+#                 gpd_values.loc[len(gpd_values)] = state+[0]
+#                 gpd_values.sort_values(by=[label_parents, df.columns[i]], inplace=True)
+#         gpd_values.reset_index(inplace=True)
+#         gpd_values = gpd_values['size']
+    
+#     else:
+#         gpd_values = df.groupby(df.columns[i]).size().values
+#     return gpd_values
+
+# def get_N(df, i, parents):
+#     parents = np.sort(parents)
+#     states = list(map(list, itertools.product([0, 1], repeat=len(parents))))
+#     gpd_values = None
+#     N = []
+#     if len(parents):
+#         cols_to_group = ([index for index in parents])
+#         cols_to_group.insert(0,df.columns[i])
+#         N = df[cols_to_group].groupby(cols_to_group[1:]).size()
+#         N = N.reset_index(name='size')
+    
+#         for state in states:
+#             if not state in N[cols_to_group[1:]].values.tolist() :
+#                 N.loc[len(N)] = state+[0]
+#                 N.sort_values(by=cols_to_group[1:], inplace=True)
+#         N.reset_index(inplace = True)
+#         N = N['size']
+#     else:
+#         N = df.groupby(by=df.columns[i]).size().values.sum()
+#     return N
+
+# def f_ch(df, x_i, pi):
+#     '''
+#         Cooper-Herskovits metric score
+#         You can substitue factorial evaluations by log sum evaluations when working with large data
+#     '''
+#     prod = 1
+# #     prod = 0
+#     r_i = len(df[df.columns[x_i]].unique())
+#     alfa = alpha(df, x_i, pi)
+#     q_i = reduce(lambda x, y: x*y, [len(pd.unique(df[pai].values)) for pai in pi]) if pi  else 0
+#     Nij = get_N(df, x_i, pi)
+
+#     if pi:
+#         for j in np.arange(0,q_i):
+#             prod *= math.factorial(r_i - 1)/math.factorial(Nij[j] + r_i - 1)
+# #             prod += math.log(math.factorial(r_i - 1)) - math.log(math.factorial(Nij[j] + r_i - 1))
+#             for i in np.arange(0,r_i):
+#                 prod *= math.factorial(alfa[2*j + i])
+# #             prod += math.log(math.factorial(alfa[2*j + i]))
+#     else:
+#         prod *= math.factorial(r_i - 1)/math.factorial(Nij + r_i - 1)
+# #         prod += math.log(math.factorial(r_i - 1)) - math.log(math.factorial(Nij + r_i - 1))
+#         for i in np.arange(0, r_i):
+# #             prod += math.log(math.factorial(alfa[i]))
+#             prod *= math.factorial(alfa[i])
+#     return prod
+
+# def k2(df_cases, tree_ogn,  c=1):
+    
+#     '''K2 algorithm implementation
+    
+#         df_cases: The dataframe of cases referrring the bayesian network, the columns are all the nodes 
+#         of the K2 pre-order         
+#         tree_ogn: A dictionary with the pre-order, 
+#             format required is {'node':[ 'parent_1', 'parent_2', ... 'parent_n'],
+#                                 'node2': ['parent_1', 'parent_2', ... 'parent_n'],
+#                                 'node_n: [['parent_1', 'parent_2', ... 'parent_n']]'}
+#         c: A factor for used in the evaluation of MDL score metric. Default = 1, (Optional)
+    
+#         '''
+#     tree = copy.deepcopy(tree_ogn)
+#     dict_p = {}
+  
+#     sigma = 0
+#     parents = [[] for node in df_cases.columns]
+   
+#     count = 0
+#     for xi, col in enumerate(df_cases.columns):
+#         df = df_cases.copy()
+
+#         pold = f_ch(df_cases, xi, parents[xi])
+        
+# #         using mdl as the metric score
+# #         pold = f_mdl(df_cases, xi, parents[xi], c)
+    
+#         tree_xi = []
+#         if tree:
+#               tree_xi = tree[col]
+    
+#         f_ances = []
+#         while (True):
+#             test_parents = [parents[xi]+[ances] for ances in tree_xi] if tree_xi else []
+#             f_ances = [f_ch(df, xi,parent) for parent in test_parents] if test_parents else [f_ch(df, xi, test_parents)]
+            
+#             #using mdl as the score metric
+#             #f_ances = [f_mdl(df, xi,parent,c) for parent in test_parents] if test_parents else [f_mdl(df, xi, test_parents,c)]
+#             j_max = np.argmax(f_ances)
+
+#             sigma = f_ances[j_max]> pold
+        
+#             if sigma:
+#                 parents[xi] = parents[xi] + [no for no in [tree_xi[j_max]] if no not in parents[xi]]
+#                 pold = f_ances[j_max]
+  
+#             if tree_xi:
+#                 del tree_xi[j_max]
+      
+#             if(not sigma) or  (not tree_xi):
+#                 break
+        
+#     for i,parent in enumerate(parents):
+#         dict_p[df_cases.columns[i]] = parent
+#     return dict_p
+
+
 
 def opt_graph_to_bamt(graph: CustomGraphModel):
     graph_nx, labels = graph_structure_as_nx_graph(graph)
@@ -943,8 +1129,6 @@ def run_example():
 
 
 
-    
-    #initial[0].show()
     for node in initial[0].nodes: 
         parents = []
         for n in bn.nodes:
@@ -957,7 +1141,68 @@ def run_example():
                 
     BAMT_network = deepcopy(initial[0])
     structure_BAMT = opt_graph_to_bamt(BAMT_network)
-    Score_BAMT = round(metric(BAMT_network, data=discretized_data)[0],3)
+    Score_BAMT = round(metric(BAMT_network, data=discretized_data)[0],6)
+
+
+
+
+    true_bn = []
+    if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+        true_bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+        true_bn = Nets.DiscreteBN()
+    elif 'cont' in p.info['types'].values():
+        true_bn = Nets.ContinuousBN(use_mixture=False)  
+
+    true_bn.add_nodes(p.info)
+    true_bn.set_structure(edges=true_net)
+
+    true_fdt = CustomGraphModel(nodes=[CustomGraphNode(nodes_from=[],
+                                                      content={'name': v}) for v in vertices])
+
+    for node in true_fdt.nodes: 
+        parents = []
+        for n in true_bn.nodes:
+            if str(node) == str(n):
+                parents = n.cont_parents + n.disc_parents
+                break
+        for n2 in true_fdt.nodes:
+            if str(n2) in parents:
+                node.nodes_from.append(n2)
+    
+    print('пустой', custom_metric_DJS(init,discretized_data))
+    print('bamt', custom_metric_DJS(BAMT_network,discretized_data))
+    print('true', custom_metric_DJS(true_fdt,discretized_data))
+    print('всё')
+
+
+
+
+
+
+
+
+
+
+
+
+
+#################### для K2
+#     graph_dict={}
+#     for i in vertices:
+#         pars = BAMT_network.nodes[dir_of_vertices[i]].nodes_from
+#         if pars == [] or pars == None:
+#             graph_dict[i] = []
+#         else:
+#             pars_name = [p.content['name'] for p in pars]
+#             graph_dict[i] = pars_name
+
+# print(graph_dict)
+#     print(k2(discretized_data, graph_dict))
+
+
+
+
 
                 # OF=round(metric(initial[0], method=met, data=discretized_data)[0],2)
                 # print(met, '=', OF)
@@ -977,98 +1222,52 @@ def run_example():
     # pop_size=100
     # list_of_time=[]
     # start_time = time.perf_counter()
+
+# Если мало узлов, не смотри на эквивлентность
     print('Создание начальной популяции')
-    # генерация рандомных индивидов, соответствующих правилам
-    initial=[]
-    if len(vertices)<5:
-    # без учета эквивалентности в популяции
-        for i in range(0, pop_size):
-            rand = randint(1, 2*len(vertices))
-            g=deepcopy(init)
-            for _ in range(rand):
-                g=deepcopy(custom_mutation_add(g))
-            initial.append(g)
-    else:
-    # с учетом эквивалентности в популяции (нет БС одного класса эквивалентности в популяции)
-        for i in range(0, pop_size):
-            rand = randint(1, 2*len(vertices))
-            fl1 = False
-            while not fl1:
-                try:
-                    fl1 = False
-                    g=deepcopy(init)
-                    for _ in range(rand):
-                        g=deepcopy(custom_mutation_add(g))
-                    mylist = []
-                    for rule_func in rules:
-                        mylist.append(rule_func(g))
-                    fl1=all(mylist)
-                    if fl1 and len(initial) != 0:
-                        for i in initial:
-                            if check_iequv(g, i):
-                                fl1 = False
-                                break
-                except:
-                    pass
-            initial.append(g)
+    def create_population(pop_size, initial = []):
+   
+        # генерация рандомных индивидов, соответствующих правилам
+        if len(vertices)<5:
+        # без учета эквивалентности в популяции
+            for i in range(0, pop_size):
+                rand = randint(1, 2*len(vertices))
+                g=deepcopy(init)
+                for _ in range(rand):
+                    g=deepcopy(custom_mutation_add(g))
+                initial.append(g)
+        else:
+        # с учетом эквивалентности в популяции (нет БС одного класса эквивалентности в популяции)
+            for i in range(0, pop_size):
+                rand = randint(1, 2*len(vertices))
+                fl1 = False
+                while not fl1:
+                    try:
+                        fl1 = False
+                        g=deepcopy(init)
+                        for _ in range(rand):
+                            g=deepcopy(custom_mutation_add(g))
+                        mylist = []
+                        for rule_func in rules:
+                            mylist.append(rule_func(g))
+                        fl1=all(mylist)
+                        if fl1 and len(initial) != 0:
+                            for i in initial:
+                                if check_iequv(g, i):
+                                    fl1 = False
+                                    break
+                    except:
+                        pass
+                initial.append(g)
+            
+        return initial
 
-
-
+    initial = []
+    initial = create_population(pop_size, initial) 
 
     print('Конец создания начальной популяции')
 
  
-        # for (ind1, ind2) in permutations(self.population, 2):
-        #     res = self.check_iequv(ind1, ind2)
-    # elapsed_time = time.perf_counter() - start_time 
-    # list_of_time.append(elapsed_time)
-    # print(list_of_time)
-    
-    # list_of_time=[]
-    # start_time = time.perf_counter()
-
-    # number_nodes = len(vertices)
-    # DAG_list=[]
-    # init=initial[0]
-    # while len(DAG_list)<pop_size-1:
-    #     is_all = True
-    #     DAG = []
-    #     G=nx.gnp_random_graph(number_nodes,0.5,directed=True)
-    #     DAG = nx.DiGraph([(u,v) for (u,v) in G.edges() if u<v])
-    #     DAG_list.append(DAG)
-
-    # li=list(map(lambda x: x.edges(), DAG_list))
-
-    # initial = []
-    # for i in range(pop_size-1):
-    #     init_r = deepcopy(init)
-    #     for pair in li[i]:
-    #         init_r.nodes[pair[0]].nodes_from.append(init_r.nodes[pair[1]])
-    #     initial.append(init_r)
-    
-    # elapsed_time = time.perf_counter() - start_time 
-    # list_of_time.append(elapsed_time)
-    # print(list_of_time)
-
-    # li_new = []
-    # for (pair1, pair2) in li[0]:
-    #     v1 = dir_of_vertices_rev[pair1]
-    #     v2 = dir_of_vertices_rev[pair2]
-    #     li_new.append([v1, v2])
-    # print(li_new)
-
-    # for node in initial[0].nodes: 
-    #     parents = []
-    #     for pair in li_new:
-    #         if str(node) == pair[0]:
-    #             parents.append(pair[1])
-    #     for n2 in initial[0].nodes:
-    #         if str(n2) in parents:
-    #             node.nodes_from.append(n2)
-        
-
-
-
     def child_dict(net: list):
         res_dict = dict()
         for e0, e1 in net:
@@ -1097,13 +1296,15 @@ def run_example():
         true_len = len(true_net)
         shd = pred_len + true_len - corr_undir - corr_dir
         return {
-        # 'AP': round(corr_undir/pred_len, decimal), 
-        # 'AR': round(corr_undir/true_len, decimal), 
-        # 'AHP': round(corr_dir/pred_len, decimal), 
-        # 'AHR': round(corr_dir/true_len, decimal), 
+        'AP': round(corr_undir/pred_len, decimal), 
+        'AR': round(corr_undir/true_len, decimal), 
+        'AHP': round(corr_dir/pred_len, decimal), 
+        'AHR': round(corr_dir/true_len, decimal), 
         'SHD': shd}
 
     
+    def for_pdf(t1, t2):
+        return pdf.multi_cell(150, 5, txt = t1 + " = " + str(t2))
 
     print('Вход')
 
@@ -1132,6 +1333,8 @@ def run_example():
         optimiser_parameters.custom = discretized_data
         if nich:
             optimiser_parameters.niching = []
+        else:
+            optimiser_parameters.niching = False
         optimiser = EvoGraphOptimiser(
             graph_generation_params=graph_generation_params,
             metrics=[],
@@ -1148,43 +1351,49 @@ def run_example():
         while l_n <=10 and elapsed_time < j and it < max_numb_nich:
             it+=1
             res_opt = optimiser.optimise(partial(metric, data=discretized_data))
-            score = round(metric(res_opt, data=discretized_data)[0],2)
+            score = round(metric(res_opt, data=discretized_data)[0],6)
 
             
 
             if nich:
                 optimiser_parameters.niching = optimiser_parameters.niching + [score]
 
-                optimized_graph = res_opt
-                optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
-                optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
-                structure = opt_graph_to_bamt(optimized_network)
-                optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png')) 
-                OF=round(metric(optimized_network, data=discretized_data)[0],2)
-                Score_true = round(metric_str(true_net, data=discretized_data)[0],3)
-                SHD=precision_recall(structure, true_net)['SHD']
-                SHD_BAMT=precision_recall(structure_BAMT, true_net)['SHD']    
-                
-                pdf.add_page()
-                pdf.set_font("Arial", size = 14)
-                pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')
-                pdf.cell(150, 5, txt = "pop_size = " + str(requirements.pop_size), ln = 1)
-                pdf.cell(150, 5, txt = "mutation_prob = " + str(requirements.mutation_prob), ln = 1)
-                pdf.cell(150, 5, txt = "crossover_prob = " + str(requirements.crossover_prob), ln = 1)            
-                pdf.cell(150, 5, txt = "genetic_scheme_type = " + str(optimiser_parameters.genetic_scheme_type), ln = 1)
-                pdf.cell(150, 5, txt = "selection_types = " + str(optimiser_parameters.selection_types), ln = 1)
-                pdf.multi_cell(180, 5, txt = "mutation_types = " + str(optimiser_parameters.mutation_types))
-                pdf.multi_cell(180, 5, txt = "crossover_types = " + str(optimiser_parameters.crossover_types))
-                pdf.cell(150, 5, txt = "stopping_after_n_generation = " + str(optimiser_parameters.stopping_after_n_generation), ln = 1)
-                pdf.cell(150, 5, txt = "actual_generation_num = " + str(optimiser.generation_num), ln = 1)     
-                pdf.cell(150, 5, txt = "timout = " + str(j), ln = 1)          
-                pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png',w=165, h=165)
-                pdf.multi_cell(180, 5, txt = str(structure))
-                pdf.multi_cell(180, 5, txt = 'SHD = '+str(SHD))
-                pdf.multi_cell(180, 5, txt = 'SHD_BAMT = '+str(SHD_BAMT))
-                pdf.multi_cell(180, 5, txt = 'Score true = ' + str(Score_true))
-                pdf.multi_cell(180, 5, txt = 'Score BAMT = ' + str(Score_BAMT))
-                pdf.multi_cell(180, 5, txt = 'time = ' + str(elapsed_time))
+            optimized_graph = res_opt
+            optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
+            optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+            structure = opt_graph_to_bamt(optimized_network)
+            optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png')) 
+            OF=round(metric(optimized_network, data=discretized_data)[0],6)
+            # Score_true = round(metric_str(true_net, data=discretized_data)[0],3)
+            SHD=precision_recall(structure, true_net)['SHD']
+            SHD_BAMT=precision_recall(structure_BAMT, true_net)['SHD']    
+            
+            pdf.add_page()
+            pdf.set_font("Arial", size = 14)
+            pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')
+            for_pdf('pop_size', requirements.pop_size)
+            for_pdf('mutation_prob', requirements.mutation_prob)
+            for_pdf('crossover_prob', requirements.crossover_prob)
+            for_pdf('genetic_scheme_type', optimiser_parameters.genetic_scheme_type.name)
+            for_pdf('selection_types', optimiser_parameters.selection_types[0].name)
+            for_pdf('mutation_types', [i.__name__ for i in optimiser_parameters.mutation_types])
+            for_pdf('crossover_types', [i.__name__ for i in optimiser_parameters.crossover_types])
+            for_pdf('stopping_after_n_generation', optimiser_parameters.stopping_after_n_generation)
+            for_pdf('actual_generation_num', optimiser.generation_num)
+            for_pdf('timout', j)         
+            pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png',w=165, h=165)
+            for_pdf('structure', structure)
+            for_pdf('SHD', SHD)
+            for_pdf('GA',precision_recall(structure, true_net))
+            for_pdf('BAMT',precision_recall(structure_BAMT, true_net))
+            # for_pdf('SHD BAMT', SHD_BAMT)
+            # for_pdf('Score true', Score_true)
+            # for_pdf('Score BAMT', Score_BAMT)
+            # for_pdf('time', elapsed_time)
+            # for_pdf('micro', micro)
+            # if nich:
+            #     for_pdf('niching', optimiser_parameters.niching)
+            #     for_pdf('min nich', min(optimiser_parameters.niching))   
 
             
             print('_______________________________________________________________')
@@ -1196,31 +1405,8 @@ def run_example():
             initial=[]            
             initial.append(res_opt)
 
-            
-            for i in range(0, pop_size-1):
-                rand = randint(1, 2*len(vertices))
-                fl1 = False
-                while not fl1:
-                    try:
-                        fl1 = False
-                        g=deepcopy(init)
-                        for _ in range(rand):
-                            g=deepcopy(custom_mutation_add(g))
-                        mylist = []
-                        for rule_func in rules:
-                            mylist.append(rule_func(g))
-                        fl1=all(mylist)
-                        if fl1 and len(initial) != 0:
-                            # check=[]
-                            for i in initial:
-                                if check_iequv(g, i):
-                                    fl1 = False
-                                    break
-                    except:
-                        pass
-                initial.append(g)
-            
-            
+            initial = deepcopy(create_population(pop_size-1, initial)) 
+         
             optimiser = EvoGraphOptimiser(
                 graph_generation_params=graph_generation_params,
                 metrics=[],
@@ -1243,12 +1429,12 @@ def run_example():
         optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
         structure = opt_graph_to_bamt(optimized_network)
         optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png')) 
-        OF=round(metric(optimized_network, data=discretized_data)[0],2)
+        OF=round(metric(optimized_network, data=discretized_data)[0],6)
         exp.append(OF)
         print(OF)
         print('Score BAMT = ', Score_BAMT)
-        Score_true = round(metric_str(true_net, data=discretized_data)[0],3)
-        print('Score true = ', Score_true)
+        # Score_true = round(metric_str(true_net, data=discretized_data)[0],3)
+        # print('Score true = ', Score_true)
         print('niching', optimiser_parameters.niching)     
             
     else:
@@ -1298,12 +1484,12 @@ def run_example():
         structure = opt_graph_to_bamt(optimized_network)
         # optimized_graph.show()
         optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png')) 
-        OF=round(metric(optimized_network, data=discretized_data)[0],3)
+        OF=round(metric(optimized_network, data=discretized_data)[0],6)
         exp.append(OF)
         print(OF)
         print('Score BAMT = ', Score_BAMT)
-        Score_true = round(metric_str(true_net, data=discretized_data)[0],3)
-        print('Score true = ', Score_true)
+        # Score_true = round(metric_str(true_net, data=discretized_data)[0],3)
+        # print('Score true = ', Score_true)
         print('time ', elapsed_time)
         
         
@@ -1344,47 +1530,45 @@ def run_example():
         return result
 #######################################
 
+    optimized_graph.show()
     SHD=precision_recall(structure, true_net)['SHD']
     print('GA_SHD = ', SHD)
  
     SHD_BAMT=precision_recall(structure_BAMT, true_net)['SHD']
     print('BAMT_SHD = ', SHD_BAMT)
 
+    print('For GA', precision_recall(structure, true_net))
+    print('For BAMT', precision_recall(structure_BAMT, true_net))    
+
 
     pdf.add_page()
     pdf.set_font("Arial", size = 14)
-    
-    pdf.cell(150, 5, txt = str(OF),
-            ln = 1, align = 'C')
-    pdf.cell(150, 5, txt = "pop_size = " + str(requirements.pop_size),
-            ln = 1)
-    pdf.cell(150, 5, txt = "mutation_prob = " + str(requirements.mutation_prob),
-            ln = 1)
-    pdf.cell(150, 5, txt = "crossover_prob = " + str(requirements.crossover_prob),
-            ln = 1)            
-    pdf.cell(150, 5, txt = "genetic_scheme_type = " + str(optimiser_parameters.genetic_scheme_type),
-            ln = 1)
-    pdf.cell(150, 5, txt = "selection_types = " + str(optimiser_parameters.selection_types),
-            ln = 1)
-    pdf.multi_cell(180, 5, txt = "mutation_types = " + str(optimiser_parameters.mutation_types))
-    pdf.multi_cell(180, 5, txt = "crossover_types = " + str(optimiser_parameters.crossover_types))
-    pdf.cell(150, 5, txt = "stopping_after_n_generation = " + str(optimiser_parameters.stopping_after_n_generation),
-            ln = 1)
-    pdf.cell(150, 5, txt = "actual_generation_num = " + str(optimiser.generation_num),
-            ln = 1)     
-    pdf.cell(150, 5, txt = "timout = " + str(j),
-            ln = 1)          
+    pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')
+    for_pdf('pop_size', requirements.pop_size)
+    for_pdf('mutation_prob', requirements.mutation_prob)
+    for_pdf('crossover_prob', requirements.crossover_prob)
+    for_pdf('genetic_scheme_type', optimiser_parameters.genetic_scheme_type.name)
+    for_pdf('selection_types', optimiser_parameters.selection_types[0].name)
+    for_pdf('mutation_types', [i.__name__ for i in optimiser_parameters.mutation_types])
+    for_pdf('crossover_types', [i.__name__ for i in optimiser_parameters.crossover_types])
+    for_pdf('stopping_after_n_generation', optimiser_parameters.stopping_after_n_generation)
+    for_pdf('actual_generation_num', optimiser.generation_num)
+    for_pdf('timout', j)
     pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png',w=165, h=165)
-    pdf.multi_cell(180, 5, txt = str(structure))
-    pdf.multi_cell(180, 5, txt = 'SHD = '+str(SHD))
-    pdf.multi_cell(180, 5, txt = 'SHD_BAMT = '+str(SHD_BAMT))
-    pdf.multi_cell(180, 5, txt = 'Score true = ' + str(Score_true))
-    pdf.multi_cell(180, 5, txt = 'Score BAMT = ' + str(Score_BAMT))
-    pdf.multi_cell(180, 5, txt = 'time = ' + str(elapsed_time))
-    pdf.multi_cell(180, 5, txt = 'niching = ' + str(optimiser_parameters.niching))
+    for_pdf('structure', structure)
+    for_pdf('SHD', SHD)
+    for_pdf('SHD BAMT', SHD_BAMT)
+    # for_pdf('Score true', Score_true)
+    for_pdf('Score BAMT', Score_BAMT)
+    for_pdf('time', elapsed_time)
+    for_pdf('micro', micro)
+    for_pdf('nich', nich)
     if nich:
-        pdf.multi_cell(180, 5, txt = 'min nich = ' + str(min(optimiser_parameters.niching)))
- 
+        for_pdf('niching', optimiser_parameters.niching)
+        for_pdf('min nich', min(optimiser_parameters.niching))    
+
+    for_pdf('GA',precision_recall(structure, true_net))
+    for_pdf('BAMT',precision_recall(structure_BAMT, true_net))
  
  # ТАБЛИЦА ###############
     # pdf.add_page()    
@@ -1412,14 +1596,14 @@ if __name__ == '__main__':
     # nodes = list(data.columns)
     #files = ['asia', 'sachs', 'magic-niab', 'ecoli70', 'child']
     # ['earthquake','healthcare','sangiovese']
-    # [asia_bnln, sprinkler_bnln, sachs_bnln, alarm_bnln, andes_bnln]
-    files = ['sprinkler_bnln']
+    # [asia_bnln, sachs_bnln, sprinkler_bnln, alarm_bnln, andes_bnln]
+    files = ['asia']
+    micro = True    
     nich = False
-    micro = False
-    pop_size=40
+    pop_size = 40
     n_generation = 100
-    crossover_probability=0.8
-    mutation_probability=0.9
+    crossover_probability = 0.8
+    mutation_probability = 0.9
     crossover_fun = [custom_crossover_parents4]
     mutation_fun = [custom_mutation_add, custom_mutation_delete, custom_mutation_reverse]
     max_numb_nich = 10
@@ -1448,9 +1632,7 @@ if __name__ == '__main__':
             e0 = l.split()[0]
             e1 = l.split()[1].split('\n')[0]
             true_net.append((e0, e1))
-#         true_net = [("Asia","Tuberculosis"), ("Tuberculosis","Either"), ("Smoking","LungCancer"),
-# ("Smoking","Bronchitis"), ("LungCancer","Either"), ("Bronchitis","Dyspnoea"), 
-# ("Either","ChestXRay"), ("Either","Dyspnoea")]
+
         # pdf = FPDF()  
         
         # for j in [1, 2]+list(range(5, 40, 5)):
@@ -1465,7 +1647,7 @@ if __name__ == '__main__':
                 for exper in [1]:                    
                     exp=[]    
                     
-                    for count in range(5):
+                    for count in range(1):
                         time_m=j
 
                         # metric = custom_metric_cmi_new
@@ -1474,8 +1656,9 @@ if __name__ == '__main__':
                         # metric = custom_metric_cmi
                         # metric_str = metric_for_structure_cmi
 
-                        metric = custom_metric_LL
-                        metric_str = metric_for_structure_LL
+                        # metric = custom_metric_LL
+                        # metric_str = metric_for_structure_LL
+                        metric = custom_metric_DJS
                         
                         pdf = FPDF()  
                         structure = run_example()
@@ -1491,12 +1674,3 @@ if __name__ == '__main__':
         except Exception as ex:
             print(ex)
 
-
-
-
-
-    # for i, met in zip(range(1,4), ['K2','BDeu','Bic']):
-    #     pdf = FPDF()
-    #     for j in range(0):
-    #         structure = run_example()
-    #     pdf.output("New_custom_metric_asia.pdf")

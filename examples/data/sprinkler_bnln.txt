@@ -1,0 +1,4 @@
+Cloudy Sprinkler
+Cloudy Rain
+Sprinkler Wet_Grass
+Rain Wet_Grass

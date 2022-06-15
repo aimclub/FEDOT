@@ -1,0 +1,17 @@
+Erk Akt
+PKA Erk
+PKA Akt
+PKA Mek
+PKA Jnk
+PKA Raf
+PKA P38
+Mek Erk
+PKC PKA
+PKC Mek
+PKC Jnk
+PKC Raf
+PKC P38
+Raf Mek
+PIP3 PIP2
+Plcg PIP3
+Plcg PIP2

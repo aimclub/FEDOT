@@ -8,6 +8,9 @@ import numpy as np
 from deap.tools import ParetoFront
 from tqdm import tqdm
 
+import time
+import csv
+from itertools import permutations
 from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.archive import SimpleArchive
@@ -21,7 +24,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import (
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, check_iequv, mutation
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, selection
 from fedot.core.optimisers.graph import OptGraph
@@ -29,9 +32,63 @@ from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParame
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.utils.population_utils import is_equal_archive, is_equal_fitness
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+import pandas as pd
 
 MAX_NUM_OF_GENERATED_INDS = 10000
 MIN_POPULATION_SIZE_WITH_ELITISM = 2
+
+
+def child_dict(net: list):
+    res_dict = dict()
+    for e0, e1 in net:
+        if e1 in res_dict:
+            res_dict[e1].append(e0)
+        else:
+            res_dict[e1] = [e0]
+    return res_dict
+
+def precision_recall(pred, true_net: list, decimal = 2):
+
+    edges= pred.graph.operator.get_all_edges()
+    struct = []
+    for s in edges:
+        struct.append((s[0].content['name'], s[1].content['name']))
+
+    # graph_nx, labels = graph_structure_as_nx_graph(pred)    
+    # struct = []
+    # for pair in graph_nx.edges():
+    #     l1 = str(labels[pair[0]])
+    #     l2 = str(labels[pair[1]])
+    #     struct.append([l1, l2])
+    
+    pred_net = deepcopy(struct)
+
+    pred_dict = child_dict(pred_net)
+    true_dict = child_dict(true_net)
+    corr_undir = 0
+    corr_dir = 0
+    for e0, e1 in pred_net:
+        flag = True
+        if e1 in true_dict:
+            if e0 in true_dict[e1]:
+                corr_undir += 1
+                corr_dir += 1
+                flag = False
+        if (e0 in true_dict) and flag:
+            if e1 in true_dict[e0]:
+                corr_undir += 1
+    pred_len = len(pred_net)
+    true_len = len(true_net)
+    shd = pred_len + true_len - corr_undir - corr_dir
+    return {
+    #     'AP': round(corr_undir/pred_len, decimal), 
+    # 'AR': round(corr_undir/true_len, decimal), 
+    # 'AHP': round(corr_dir/pred_len, decimal), 
+    # 'AHR': round(corr_dir/true_len, decimal), 
+    'SHD': shd}
+
+true_net = [('asia', 'tub'), ('tub', 'either'), ('smoke', 'lung'), ('smoke', 'bronc'), ('lung', 'either'), ('bronc', 'dysp'), ('either', 'xray'), ('either', 'dysp')]
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
     """
@@ -133,10 +190,18 @@ class EvoGraphOptimiser(GraphOptimiser):
         :param initial_graphs: Initial assumption for first population
         :return: list of individuals
         """
+
+        
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
         randomized_pop = []
-        n_iter = self.requirements.pop_size * 10
+        n_iter = self.requirements.pop_size * 10    
+
+        if self.requirements.pop_size == len(initial_graphs):
+            for initial_graph in initial_graphs:
+                randomized_pop.append(Individual(deepcopy(initial_graph)))            
+            return randomized_pop
+
         while n_iter > 0:
             initial_graph = np.random.choice(initial_graphs)
             n_iter -= 1
@@ -187,10 +252,25 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self._init_population()
 # моё        
-#        for i in self.population:
-#            i.graph.show()
+        # print('Начальная популяция')
+        # for i in self.population:
+        #     print(i.graph.operator.get_all_edges())
        
         # pdf = FPDF()
+        # for (ind1, ind2) in permutations(self.population, 2):
+        #     res = self.check_iequv(ind1, ind2)
+        #     if res:
+        #         print('1I-equivalent')
+        #         ind1.graph.show()
+        #         ind2.graph.show()
+            
+
+
+        exp_score=[]
+        exp_shd=[]
+        
+
+
         num_of_new_individuals = self.offspring_size(offspring_rate)
 
         with OptimisationTimer(log=self.log, timeout=self.requirements.timeout) as t:
@@ -200,6 +280,11 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.population = self._evaluate_individuals(self.population, objective_function,
                                                          timer=t,
                                                          n_jobs=self.requirements.n_jobs)
+
+            if self.parameters.niching:
+                for ind in self.population:
+                    if round(ind.fitness,6) in self.parameters.niching:
+                        ind.fitness = 1000000
 
             if self.archive is not None:
                 self.archive.update(self.population)
@@ -213,11 +298,14 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 if self._is_stopping_criteria_triggered():
                     break
-
                 self.log.info(f'Generation num: {self.generation_num}')
 
                 self.num_of_gens_without_improvements = self.update_stagnation_counter()
                 self.log.info(f'max_depth: {self.max_depth}, no improvements: {self.num_of_gens_without_improvements}')
+
+                # если популяция сошлась - выйти
+                if len({i.fitness for i in self.population})==1:
+                    break
 
                 if self.parameters.with_auto_depth_configuration and self.generation_num != 0:
                     self.max_depth_recount()
@@ -242,21 +330,91 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                  params=self.graph_generation_params)
 
                 new_population = []
-
+                
+                # self.prev_best = deepcopy(self.best_individual) 
+                # print('был лучшим')
+                # self.prev_best.graph.show()                
                 for parent_num in range(0, len(selected_individuals), 2):
+                    # print('Родители')
+                    # print(selected_individuals[parent_num].graph.operator.get_all_edges())
+                    # print(selected_individuals[parent_num+1].graph.operator.get_all_edges())
                     new_population += self.reproduce(selected_individuals[parent_num],
                                                      selected_individuals[parent_num + 1])
 
+                # print('Дети')
+                # for i in new_population:
+                #     print(i.graph.operator.get_all_edges())
+                
+                # ПРОВЕРКА НА ЭКВИВАЛЕНТНОСТЬ И ИСПРАВЛЕНИЕ
+                # new_pop = deepcopy(new_population) + deepcopy(self.population)
+                # for i in range(len(new_population)):
+                #     stop = False
+                #     while not stop:
+                #         for j in range(i, len(new_pop)):
+                #             if i == j:
+                #                 continue
+                #             if check_iequv(new_population[i], new_pop[j]):
+                #                 new_population[i] = mutation(types=self.parameters.mutation_types,
+                #                    params=self.graph_generation_params,
+                #                    ind=new_population[i], requirements=self.requirements,
+                #                    max_depth=self.max_depth, log=self.log)
+                #                 break
+                #             if j == len(new_pop)-1:
+                #                 stop = True
+
+                # for (ind1, ind2) in permutations(new_population, 2):
+                #     res = self.check_iequv(ind1, ind2)
+                #     if res:
+                #         print('2I-equivalent')
+                #         ind1.graph.show()
+                #         ind2.graph.show()
+
+
+                # for (ind1, ind2) in permutations(new_population+self.population, 2):
+                #     res = self.check_iequv(ind1, ind2)
+                #     if res:
+                #         print('2I-equivalent')
+                #         ind1.graph.show()
+                #         ind2.graph.show()
+                      
                 new_population = self._evaluate_individuals(new_population, objective_function,
                                                             timer=t,
                                                             n_jobs=self.requirements.n_jobs)
 
+                # for (ind1, ind2) in permutations(self.population, 2):
+                #     res = self.check_iequv(ind1, ind2)
+                #     if res:
+                #         print('2I-equivalent')
+                #         ind1.graph.show()
+                #         ind2.graph.show()                     
                 
+                if self.parameters.niching:
+                    for ind in new_population:
+                        if round(ind.fitness,6) in self.parameters.niching:
+                            ind.fitness = 1000000
+
+
                 self.prev_best = deepcopy(self.best_individual) 
+                # print('был лучшим')
+                # self.prev_best.graph.show()
+                   
+                print(round(self.prev_best.fitness,6))
+                print(precision_recall(self.prev_best, true_net)['SHD'])
+#ВАЖНО            
+                # exp_score.append(round(self.prev_best.fitness,3))
+                # print(exp_score[-1])
+                # exp_shd.append(precision_recall(self.prev_best, true_net)['SHD'])
+                # print(exp_shd[-1])
+                # print(self.prev_best.graph.operator.get_all_edges())
+                
+                # print('shd', exp_shd[-1])
+            
             #     pdf.add_page()
             #     pdf.set_font("Arial", size = 14)
-            #     pdf.cell(150, 5, txt = 'metric = ' + str(self.prev_best.fitness),
+            #     pdf.cell(150, 5, txt = 'metric = ' + str(exp_score[-1]),
             # ln = 1, align = 'C')
+            #     pdf.cell(150, 5, txt = 'SHD = ' + str(exp_shd[-1]),
+            # ln = 1, align = 'C')            
             #     self.prev_best.graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png'))
             #     pdf.cell(150, 5, txt = 'generation_num = ' + str(self.generation_num),
             # ln = 1, align = 'C')
@@ -272,8 +430,25 @@ class EvoGraphOptimiser(GraphOptimiser):
                                               new_population, self.num_of_inds_in_next_pop,
                                               graph_params=self.graph_generation_params)
 
+               
+                # for (ind1, ind2) in permutations(self.population, 2):
+                #     res = self.check_iequv(ind1, ind2)
+                #     if res:
+                #         print('2I-equivalent')
+                #         ind1.graph.show()
+                #         ind2.graph.show()  
+                
+
+
                 if not self.parameters.multi_objective and self.with_elitism:
                     self.population.append(self.prev_best)
+
+
+                # values = set(map(lambda x:x.fitness, self.population))
+                # newlist = [[y for y in self.population if y.fitness==x] for x in values]
+                # self.population = [i[0] for i in newlist]
+                # print(len(self.population))
+        
 
                 if self.archive is not None:
                     self.archive.update(self.population)
@@ -299,18 +474,32 @@ class EvoGraphOptimiser(GraphOptimiser):
             self.log.info('Result:')
             self.log_info_about_best()
         
+#ВАЖНО
+        # exp_score.append(round(best.fitness,3))
+        # print(exp_score[-1])
+        # exp_shd.append(precision_recall(best, true_net)['SHD'])
+        # print(exp_shd[-1])
+        # textfile = open("10ScoreSHD_F_"+"earthquake"+str(time.time())+".txt", "w")
+        # textfile.write(str(exp_score))
+        # textfile.write('\n')
+        # textfile.write(str(exp_shd))
+        # textfile.close()     
+
+        # print(exp)
         output = [ind.graph for ind in best] if isinstance(best, list) else best.graph
         
          
     #     pdf.add_page()
     #     pdf.set_font("Arial", size = 14)
-    #     pdf.cell(150, 5, txt = 'metric = ' + str(best.fitness),
+    #     pdf.cell(150, 5, txt = 'metric = ' + str(exp_score[-1]),
     # ln = 1, align = 'C')
+    #     pdf.cell(150, 5, txt = 'SHD = ' + str(exp_shd[-1]),
+    # ln = 1, align = 'C')    
     #     best.graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png'))
     #     pdf.cell(150, 5, txt = 'generation_num = ' + str(self.generation_num),
     # ln = 1, align = 'C')
     #     pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/R' + str(self.generation_num) + '.png', w=165, h=165)
-    #     pdf.output("Experiment_c4"+'asia'+".pdf")
+    #     pdf.output("ExpAAAAAAAAA"+'cancer'+str(time.time())+".pdf")
         return output
 
     @property
@@ -331,6 +520,55 @@ class EvoGraphOptimiser(GraphOptimiser):
     def num_of_inds_in_next_pop(self):
         return self.requirements.pop_size - 1 if self.with_elitism and not self.parameters.multi_objective \
             else self.requirements.pop_size
+
+    # @property
+    def check_iequv(self, ind1, ind2):
+
+        ## skeletons and immoralities
+        (ske1, immor1) = self.get_skeleton_immor(ind1)
+        (ske2, immor2) = self.get_skeleton_immor(ind2)
+
+        ## comparison. 
+        if len(ske1) != len(ske2) or len(immor1) != len(immor2):
+            return False
+
+        ## Note that the edges are undirected so we need to check both ordering
+        for (n1, n2) in immor1:
+            if (n1, n2) not in immor2 and (n2, n1) not in immor2:
+                return False
+        for (n1, n2) in ske1:
+            if (n1, n2) not in ske2 and (n2, n1) not in ske2:
+                return False
+        return True
+
+
+    def get_skeleton_immor(self, ind):
+        ## skeleton: a list of edges (undirected)
+        skeleton = self.get_skeleton(ind)
+        ## find immoralities
+        immoral = set()
+        for n in ind.graph.nodes:
+            if n.nodes_from != None and len(n.nodes_from) > 1:
+                perm = list(permutations(n.nodes_from, 2))
+                for (per1, per2) in perm:
+                    p1 = per1.content["name"]
+                    p2 = per2.content["name"]
+                    if ((p1, p2) not in skeleton and (p2, p1) not in skeleton 
+                        and (p1, p2) not in immoral and (p2, p1) not in immoral):
+                        immoral.add((p1, p2))
+
+        return (skeleton, immoral)    
+    
+    def get_skeleton(self, ind):
+        skeleton = set()
+        edges = ind.graph.operator.get_all_edges()
+        for e in edges:
+            skeleton.add((e[0].content["name"], e[1].content["name"]))
+            skeleton.add((e[1].content["name"], e[0].content["name"]))
+        return skeleton
+
+
+
 
     def update_stagnation_counter(self) -> int:
         value = 0
@@ -369,16 +607,82 @@ class EvoGraphOptimiser(GraphOptimiser):
             best_ind = inds_to_analyze[best_candidate_id]
         return best_ind
 
+    # было
+    # def simpler_equivalents_of_best_ind(self, best_ind: Any, inds: List[Any] = None) -> dict:
+    #     individuals = self.population if inds is None else inds
+
+    #     sort_inds = np.argsort([ind.fitness for ind in individuals])[1:]
+    #     simpler_equivalents = {}
+    #     for i in sort_inds:
+    #         is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
+    #         has_less_num_of_operations_than_best = individuals[i].graph.length < best_ind.graph.length
+    #         if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
+    #             simpler_equivalents[i] = len(individuals[i].graph.nodes)
+    #     return simpler_equivalents
+
+
+    # 
+    # 
+    # 
+    # for pair in struct:
+    #     i=dir_of_vertices[pair[1]]
+    #     j=dir_of_vertices[pair[0]]
+    #     new_struct[i].append(j)    
+    # Dim = 0
+    # for i in nodes:
+    #     unique = unique_values[i]
+    #     for j in new_struct[dir_of_vertices[i]]:
+    #         unique = unique * unique_values[dir_of_vertices_rev[j]]
+    #     Dim += unique
+    # has_less_num_of_parameters_than_best
+
     def simpler_equivalents_of_best_ind(self, best_ind: Any, inds: List[Any] = None) -> dict:
+
+
+        def number_of_parameters(graph):
+            data = self.parameters.custom
+            vertices = list(data.columns)
+            dir_of_vertices={vertices[i]:i for i in range(len(vertices))}  
+            dir_of_vertices_rev={i:vertices[i] for i in range(len(vertices))}
+            unique_values = {vertices[i]:len(pd.unique(data[vertices[i]])) for i in range(len(vertices))}
+
+            nodes = data.columns.to_list()
+            graph_nx, labels = graph_structure_as_nx_graph(graph)            
+
+            struct = []
+            for pair in graph_nx.edges():
+                l1 = str(labels[pair[0]])
+                l2 = str(labels[pair[1]])
+                struct.append([l1, l2])
+            
+            new_struct=[ [] for _ in range(len(vertices))]
+            for pair in struct:
+                i=dir_of_vertices[pair[1]]
+                j=dir_of_vertices[pair[0]]
+                new_struct[i].append(j)            
+
+            Dim = 0
+            for i in nodes:
+                unique = unique_values[i]
+                for j in new_struct[dir_of_vertices[i]]:
+                    unique = unique * unique_values[dir_of_vertices_rev[j]]
+                Dim += unique
+            
+            return Dim
+
         individuals = self.population if inds is None else inds
 
         sort_inds = np.argsort([ind.fitness for ind in individuals])[1:]
         simpler_equivalents = {}
         for i in sort_inds:
             is_fitness_equals_to_best = is_equal_fitness(best_ind.fitness, individuals[i].fitness)
-            has_less_num_of_operations_than_best = individuals[i].graph.length < best_ind.graph.length
-            if is_fitness_equals_to_best and has_less_num_of_operations_than_best:
-                simpler_equivalents[i] = len(individuals[i].graph.nodes)
+
+            num_params_ind_i = number_of_parameters(individuals[i].graph)
+            num_params_best_ind = number_of_parameters(best_ind.graph)
+
+            has_less_num_of_parameters_than_best =  num_params_ind_i < num_params_best_ind
+            if is_fitness_equals_to_best and has_less_num_of_parameters_than_best:
+                simpler_equivalents[i] = num_params_ind_i
         return simpler_equivalents
 
     def reproduce(self, selected_individual_first, selected_individual_second=None) -> Tuple[Any]:
@@ -392,10 +696,25 @@ class EvoGraphOptimiser(GraphOptimiser):
         else:
             new_inds = [selected_individual_first]
 
+        # print('После кроссовера')
+        # print(new_inds[0].graph.operator.get_all_edges())
+        # print(new_inds[1].graph.operator.get_all_edges())
+
+        # new_inds1=deepcopy(new_inds)
+
+        # for (ind1, ind2) in permutations([selected_individual_first, selected_individual_second, new_inds[0], new_inds[1]], 2):
+        #     res = self.check_iequv(ind1, ind2)
+        #     if res:
+        #         print('2I-equivalent')
+        #         ind1.graph.show()
+        #         ind2.graph.show()   
+
         new_inds = tuple([mutation(types=self.parameters.mutation_types,
                                    params=self.graph_generation_params,
                                    ind=new_ind, requirements=self.requirements,
                                    max_depth=self.max_depth, log=self.log) for new_ind in new_inds])
+
+        
         for ind in new_inds:
             ind.fitness = None
         return new_inds

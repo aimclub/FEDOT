@@ -1,3 +1,4 @@
+from ast import excepthandler
 from datetime import datetime
 from lib2to3.pytree import type_repr
 from re import I
@@ -10,7 +11,7 @@ parentdir = 'C:\\Users\\Worker1\\Documents\\FEDOT'
 sys.path.insert(0, parentdir)
 
 import time
-
+from itertools import permutations
 
 from fedot.core.dag.graph import Graph
 from joblib import PrintTime
@@ -24,6 +25,8 @@ import random
 from functools import partial
 from sklearn import preprocessing
 import seaborn as sns
+from pyitlib import discrete_random_variable as drv
+
  
 import bamt.Preprocessors as pp
 from bamt.Builders import StructureBuilder
@@ -66,7 +69,7 @@ class CustomGraphNode(OptNode):
         return self.content["name"]
  
 
-def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
+def custom_metric_LL(graph: CustomGraphModel, data: pd.DataFrame):
     score = 0
     nodes = data.columns.to_list()
     graph_nx, labels = graph_structure_as_nx_graph(graph)
@@ -100,6 +103,191 @@ def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
         Dim += unique
     score = LL - log10(len(data)/2)*Dim
     return [-score]
+
+def metric_for_structure_LL(struc, data: pd.DataFrame):
+    score = 0
+    nodes = data.columns.to_list()
+    data_values=data.values
+    struct = struc
+    
+    new_struct=[ [] for _ in range(len(vertices))]
+    for pair in struct:
+        i=dir_of_vertices[pair[1]]
+        j=dir_of_vertices[pair[0]]
+        new_struct[i].append(j)
+    
+    new_struct=tuple(map(lambda x: tuple(x), new_struct))
+    model = BayesianNetwork.from_structure(data_values, new_struct)
+    model.fit(data_values)
+    model.bake()
+    L=model.log_probability(data_values)
+    LL=L.sum()
+    Dim = 0
+    for i in nodes:
+        unique = unique_values[i]
+        for j in new_struct[dir_of_vertices[i]]:
+            unique = unique * unique_values[dir_of_vertices_rev[j]]
+        Dim += unique
+    score = LL - log10(len(data)/2)*Dim
+    return [-score]    
+
+
+
+def custom_metric_pass(graph: CustomGraphModel, data: pd.DataFrame):
+
+    encoder = preprocessing.LabelEncoder()
+    discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+    p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
+    discretized_data, est = p.apply(data)
+    
+   
+
+
+    final_bn = []
+    if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+        final_bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+        final_bn = Nets.DiscreteBN()
+    elif 'cont' in p.info['types'].values():
+        final_bn = Nets.ContinuousBN(use_mixture=False)
+    
+    final_bn.add_nodes(p.info)
+    structure = opt_graph_to_bamt(graph)
+    # print(structure)
+  
+
+    final_bn.set_structure(edges=structure)
+    final_bn.fit_parameters(data)
+
+    prediction = dict()
+    for c in vertices:
+        test = data.drop(columns=[c])
+        pred = final_bn.predict(test,5)
+        prediction.update(pred)    
+
+
+    result = dict()
+    for key, value in prediction.items():
+        if node_type[key]=="disc":
+            res=1 - round(accuracy_score(data[key], value),2)
+        elif node_type[key]=="cont":
+            res=(round(mean_squared_error(data[key], value, squared=False),2)) / (data[key].max() - data[key].min())
+        result[key]=res
+    score = sum(result.values())
+    return [score]
+
+def metric_for_structure_pass(struc, data: pd.DataFrame):
+
+    encoder = preprocessing.LabelEncoder()
+    discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+    p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
+    discretized_data, est = p.apply(data)
+    
+   
+
+
+    final_bn = []
+    if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+        final_bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+        final_bn = Nets.DiscreteBN()
+    elif 'cont' in p.info['types'].values():
+        final_bn = Nets.ContinuousBN(use_mixture=False)
+    
+    final_bn.add_nodes(p.info)
+    structure = struc
+    # print(structure)
+  
+
+    final_bn.set_structure(edges=structure)
+    final_bn.fit_parameters(data)
+
+    prediction = dict()
+    for c in vertices:
+        test = data.drop(columns=[c])
+        pred = final_bn.predict(test,5)
+        prediction.update(pred)    
+
+
+    result = dict()
+    for key, value in prediction.items():
+        if node_type[key]=="disc":
+            res=1 - round(accuracy_score(data[key], value),2)
+        elif node_type[key]=="cont":
+            res=(round(mean_squared_error(data[key], value, squared=False),2)) / (data[key].max() - data[key].min())
+        result[key]=res
+    score = sum(result.values())
+    return [score]
+
+
+
+def custom_metric_mi(graph: CustomGraphModel, data: pd.DataFrame):
+    score = 0
+    nodes = data.columns.to_list()
+    graph_nx, labels = graph_structure_as_nx_graph(graph)
+    data_values=data.values
+    struct = []
+    for pair in graph_nx.edges():
+        l1 = str(labels[pair[0]])
+        l2 = str(labels[pair[1]])
+        struct.append([l1, l2])
+    
+    new_struct=[ [] for _ in range(len(vertices))]
+    for pair in struct:
+        i=dir_of_vertices[pair[1]]
+        j=dir_of_vertices[pair[0]]
+        new_struct[i].append(j)
+    
+    new_struct=tuple(map(lambda x: tuple(x), new_struct))    
+    
+    
+    def mi(struct, vertices):
+        MI = 0
+        for i in vertices:
+            if i in list(itertools.chain(*struct)):
+                arcs = [j for j in struct if j[0]==i or j[1]==i]
+                for a in arcs:
+                    MI += drv.information_mutual(discretized_data[a[0]].values, discretized_data[a[1]].values)
+            else: 
+                MI += drv.information_mutual(discretized_data[i].values, discretized_data[i].values)
+        return(MI)
+
+    score = mi(struct, nodes)
+    return [score]
+
+def metric_for_structure_mi(struc, data: pd.DataFrame):
+    score = 0
+    nodes = data.columns.to_list()
+    data_values=data.values
+    struct = struc
+
+    new_struct=[ [] for _ in range(len(vertices))]
+    for pair in struct:
+        i=dir_of_vertices[pair[1]]
+        j=dir_of_vertices[pair[0]]
+        new_struct[i].append(j)
+    
+    new_struct=tuple(map(lambda x: tuple(x), new_struct))    
+    
+    def mi(struct, vertices):
+        MI = 0
+        for i in vertices:
+            if i in list(itertools.chain(*struct)):
+                arcs = [j for j in struct if j[0]==i or j[1]==i]
+                for a in arcs:
+                    MI += drv.information_mutual(discretized_data[a[0]].values, discretized_data[a[1]].values)
+            else: 
+                MI += drv.information_mutual(discretized_data[i].values, discretized_data[i].values)
+        return(MI)
+
+    score = mi(struct, nodes)
+    
+    return [score]    
+
+
+
+
+
 
 def opt_graph_to_bamt(graph: CustomGraphModel):
     graph_nx, labels = graph_structure_as_nx_graph(graph)
@@ -323,8 +511,11 @@ def custom_crossover_parents3(graph_first, graph_second, max_depth):
     return new_graph_first, new_graph_second
 
 def custom_crossover_parents4(graph_first: OptGraph, graph_second: OptGraph, max_depth):
+    # print('Родители')
+    # graph_first.show()
+    # graph_second.show()
 
-    num_cros = 1
+    num_cros = 100
     try:
         for _ in range(num_cros):
             def find_node(graph: OptGraph, node):
@@ -349,26 +540,45 @@ def custom_crossover_parents4(graph_first: OptGraph, graph_second: OptGraph, max
                 new_graph_second.operator.disconnect_nodes(pair[0], pair[1], False)  
             
 
+            old_edges1 = new_graph_first.operator.get_all_edges()
+            old_edges2 = new_graph_second.operator.get_all_edges()
+
             new_edges_2 = [[find_node(new_graph_second, i[0]), find_node(new_graph_second, i[1])] for i in choice_edges_1]
             new_edges_1 = [[find_node(new_graph_first, i[0]), find_node(new_graph_first, i[1])] for i in choice_edges_2] 
             for pair in new_edges_1:
-                new_graph_first.operator.connect_nodes(pair[0], pair[1])
+                if pair not in old_edges1:
+                    new_graph_first.operator.connect_nodes(pair[0], pair[1])
             for pair in new_edges_2:
-                new_graph_second.operator.connect_nodes(pair[0], pair[1])                        
+                if pair not in old_edges2:
+                    new_graph_second.operator.connect_nodes(pair[0], pair[1])                                             
+            
+            if old_edges1 != new_graph_first.operator.get_all_edges() or old_edges2 != new_graph_second.operator.get_all_edges():
+                break
+
+            
             # flatten_edges = list(itertools.chain(*edges))
             # nodes_with_parent_or_child=list(set(flatten_edges))
 
             # new_graph_first.show()
-            # new_graph_second.show()       
+            # new_graph_second.show()
+            # print('Дети') 
+            # new_graph_first.show()      
+            # new_graph_second.show()
 
+        if old_edges1 == new_graph_first.operator.get_all_edges():
+            new_graph_first = deepcopy(graph_first)
+        if old_edges2 == new_graph_second.operator.get_all_edges():
+            new_graph_second = deepcopy(graph_second)
     except Exception as ex:
         print(ex)
     return new_graph_first, new_graph_second
 
 def custom_mutation_add(graph: OptGraph, **kwargs):
-    num_mut = 10
+    num_mut = 100
+    m=0
     try:
         for _ in range(num_mut):
+            m+=1
             rid = random.choice(range(len(graph.nodes)))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
@@ -379,18 +589,20 @@ def custom_mutation_add(graph: OptGraph, **kwargs):
             if nodes_not_cycling:
                 graph.operator.connect_nodes(random_node, other_random_node)
                 break
-                
-
 
     except Exception as ex:
         graph.log.warn(f'Incorrect connection: {ex}')
+    # if m==20:
+    #     print('10 раз попытался сделать добавление ребра')
     return graph
  
 
 def custom_mutation_delete(graph: OptGraph, **kwargs):
-    num_mut = 10
+    num_mut = 100
+    m=0
     try:
         for _ in range(num_mut):
+            m+=1
             rid = random.choice(range(len(graph.nodes)))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
@@ -399,13 +611,17 @@ def custom_mutation_delete(graph: OptGraph, **kwargs):
                 break
     except Exception as ex:
         print(ex)
+    # if m==20:
+    #     print('10 раз попытался сделать удаление ребра')    
     return graph
 
 
 def custom_mutation_reverse(graph: OptGraph, **kwargs):
-    num_mut = 10
+    num_mut = 100
+    m=0
     try:
         for _ in range(num_mut):
+            m+=1
             rid = random.choice(range(len(graph.nodes)))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
@@ -414,8 +630,54 @@ def custom_mutation_reverse(graph: OptGraph, **kwargs):
                 break         
     except Exception as ex:
         print(ex)
+    # if m==20:
+    #     print('10 раз попытался сделать реверс ребра')     
     return graph
 
+def check_iequv(ind1, ind2):
+
+        ## skeletons and immoralities
+        (ske1, immor1) = get_skeleton_immor(ind1)
+        (ske2, immor2) = get_skeleton_immor(ind2)
+
+        ## comparison. 
+        if len(ske1) != len(ske2) or len(immor1) != len(immor2):
+            return False
+
+        ## Note that the edges are undirected so we need to check both ordering
+        for (n1, n2) in immor1:
+            if (n1, n2) not in immor2 and (n2, n1) not in immor2:
+                return False
+        for (n1, n2) in ske1:
+            if (n1, n2) not in ske2 and (n2, n1) not in ske2:
+                return False
+        return True
+
+
+def get_skeleton_immor(ind):
+    ## skeleton: a list of edges (undirected)
+    skeleton = get_skeleton(ind)
+    ## find immoralities
+    immoral = set()
+    for n in ind.nodes:
+        if n.nodes_from != None and len(n.nodes_from) > 1:
+            perm = list(permutations(n.nodes_from, 2))
+            for (per1, per2) in perm:
+                p1 = per1.content["name"]
+                p2 = per2.content["name"]
+                if ((p1, p2) not in skeleton and (p2, p1) not in skeleton 
+                    and (p1, p2) not in immoral and (p2, p1) not in immoral):
+                    immoral.add((p1, p2))
+
+    return (skeleton, immoral)    
+
+def get_skeleton(ind):
+    skeleton = set()
+    edges = ind.operator.get_all_edges()
+    for e in edges:
+        skeleton.add((e[0].content["name"], e[1].content["name"]))
+        skeleton.add((e[1].content["name"], e[0].content["name"]))
+    return skeleton
 
 
 def run_example():
@@ -426,34 +688,60 @@ def run_example():
     dir_of_vertices={vertices[i]:i for i in range(len(vertices))}    
     global dir_of_vertices_rev
     dir_of_vertices_rev={i:vertices[i] for i in range(len(vertices))}    
+    
+    # data = pd.read_csv('examples/data/'+'asia'+'.csv')
+    # data.drop(['Unnamed: 0'], axis=1, inplace=True)
+    #     # print(data.isna().sum())
+    # data.dropna(inplace=True)
+    # data.reset_index(inplace=True, drop=True)
+    
+
     encoder = preprocessing.LabelEncoder()
     discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+    # global p
     p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
+    global discretized_data
     discretized_data, est = p.apply(data)
+
+    for i in discretized_data.columns:
+        if discretized_data[i].dtype.name == 'int64':
+            discretized_data = discretized_data.astype({i:'int32'})  
+    
     global unique_values
     unique_values = {vertices[i]:len(pd.unique(discretized_data[vertices[i]])) for i in range(len(vertices))}
     global node_type
     node_type = p.info['types'] 
+    global types
     types=list(node_type.values())
 
-    if 'cont' in types and 'disc' in types:
+    if 'cont' in types and ('disc' in types or 'disc_num' in types):
         bn = Nets.HybridBN(has_logit=False, use_mixture=False)
         rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates, _has_disc_parents]
-    elif 'disc' in types:
+    elif 'disc' in types or 'disc_num' in types:
         bn = Nets.DiscreteBN()
         rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
     elif 'cont' in types:
-        bn = Nets.ContinuousBN()
+        bn = Nets.ContinuousBN(use_mixture=False)
         rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
+    # struct = [('asia', 'xray'), ('tub', 'bronc'), ('smoke', 'asia'), ('lung', 'either'), ('lung', 'xray'), ('bronc', 'dysp'), ('either', 'smoke'), ('xray', 'tub'), ('xray', 'dysp')]
+
+    # bn = Nets.DiscreteBN()
     bn.add_nodes(p.info)
+    # bn.set_structure(edges=struct)
+    # bn.fit_parameters(data)
+    # for c in data.columns:
+    #     print(c)
+    #     test = data.drop(columns=[c])
+    #     bn.predict(test)
+        
     bn.add_edges(discretized_data, scoring_function=('K2', K2Score))
 
     #rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates, _has_disc_parents]
     initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=[],
                                                       content={'name': v}) for v in vertices])]
 
-
+    init=deepcopy(initial[0])
     # custom_mutation_add(initial[0]).show()
     # [initial=custom_mutation_add(initial[0]) for _ in range(10)]
     
@@ -462,24 +750,28 @@ def run_example():
 
     
     #initial[0].show()
-    # for node in initial[0].nodes: 
-    #     parents = []
-    #     for n in bn.nodes:
-    #         if str(node) == str(n):
-    #             parents = n.cont_parents + n.disc_parents
-    #             break
-    #     for n2 in initial[0].nodes:
-    #         if str(n2) in parents:
-    #             node.nodes_from.append(n2)
+    for node in initial[0].nodes: 
+        parents = []
+        for n in bn.nodes:
+            if str(node) == str(n):
+                parents = n.cont_parents + n.disc_parents
+                break
+        for n2 in initial[0].nodes:
+            if str(n2) in parents:
+                node.nodes_from.append(n2)
                 
 
+    Score_BAMT = round(metric(initial[0], data=discretized_data)[0],3)
 
-                # OF=round(custom_metric(initial[0], method=met, data=discretized_data)[0],2)
+
+                # OF=round(metric(initial[0], method=met, data=discretized_data)[0],2)
                 # print(met, '=', OF)
                 # initial[0].show()
     
-    OF_init=(round(custom_metric(initial[0], data=discretized_data)[0],2))
-    initial[0].show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V_init' + str(j) + '.png'))
+    # OF_init=(round(metric(initial[0], data=data)[0],2))
+    # print(OF_init)
+    # initial[0].show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V_init' + str(j) + '.png'))
+    
     global dir_of_nodes
     dir_of_nodes={initial[0].nodes[i].content['name']:i for i in range(len(initial[0].nodes))} 
 
@@ -488,28 +780,49 @@ def run_example():
     
 
     # pop_size=100
-
     # list_of_time=[]
     # start_time = time.perf_counter()
 
-    init=initial[0]
+    # генерация рандомных индивидов, соответствующих правилам
     initial=[]
-    for i in range(0, pop_size-1):
+    for i in range(0, pop_size):
         rand = randint(1, 2*len(vertices))
-        g=deepcopy(init)
-        for _ in range(rand):
-            g=deepcopy(custom_mutation_add(g))
+        fl1 = False
+        # fl2 = False
+        while not fl1:
+            try:
+                fl1 = False
+                # fl2 = False
+                g=deepcopy(init)
+                for _ in range(rand):
+                    g=deepcopy(custom_mutation_add(g))
+                mylist = []
+                for rule_func in rules:
+                    mylist.append(rule_func(g))
+                fl1=all(mylist)
+                if fl1 and len(initial) != 0:
+                    # check=[]
+                    for i in initial:
+                        if check_iequv(g, i):
+                            fl1 = False
+                            break
+                    #     check.append()
+                    # fl2 = all(check)
+            except:
+                pass
         initial.append(g)
-    
+
+
+
+ 
+        # for (ind1, ind2) in permutations(self.population, 2):
+        #     res = self.check_iequv(ind1, ind2)
     # elapsed_time = time.perf_counter() - start_time 
     # list_of_time.append(elapsed_time)
     # print(list_of_time)
-    # print(1)
     
     # list_of_time=[]
     # start_time = time.perf_counter()
-
-
 
     # number_nodes = len(vertices)
     # DAG_list=[]
@@ -530,12 +843,9 @@ def run_example():
     #         init_r.nodes[pair[0]].nodes_from.append(init_r.nodes[pair[1]])
     #     initial.append(init_r)
     
-
-
     # elapsed_time = time.perf_counter() - start_time 
     # list_of_time.append(elapsed_time)
     # print(list_of_time)
-
 
     # li_new = []
     # for (pair1, pair2) in li[0]:
@@ -554,41 +864,152 @@ def run_example():
     #             node.nodes_from.append(n2)
         
 
-    requirements = PipelineComposerRequirements(
-        primary=vertices,
-        secondary=vertices, max_arity=100,
-        max_depth=100, pop_size=pop_size, num_of_generations=10000,
-        crossover_prob=0.8, mutation_prob=0.9, timeout=timedelta(minutes=time_m))
+    # requirements = PipelineComposerRequirements(
+    #     primary=vertices,
+    #     secondary=vertices, max_arity=100,
+    #     max_depth=100, pop_size=pop_size, num_of_generations=n_generation,
+    #     crossover_prob=0.8, mutation_prob=0.9,
+    #     timeout=timedelta(minutes=time_m)
+    #     )
  
-    optimiser_parameters = GPGraphOptimiserParameters(
-        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
-        selection_types=[SelectionTypesEnum.tournament],
-        mutation_types=[custom_mutation_add, custom_mutation_delete, custom_mutation_reverse],
-        crossover_types=[custom_crossover_parents4],
-        # crossover_types=[custom_crossover_parents1, custom_crossover_parents],
-        regularization_type=RegularizationTypesEnum.none,
-        # если улучшение не происходит в течении ... поколений -> выход
-        stopping_after_n_generation=10000
-    )
+    # optimiser_parameters = GPGraphOptimiserParameters(
+    #     # genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+    #     genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+    #     selection_types=[SelectionTypesEnum.tournament],
+    #     # selection_types=[SelectionTypesEnum.tournament_selection_for_MGA],
+    #     mutation_types=[custom_mutation_add, custom_mutation_delete, custom_mutation_reverse],
+    #     crossover_types=[custom_crossover_parents4],
+    #     # crossover_types=[custom_crossover_parents1, custom_crossover_parents],
+    #     regularization_type=RegularizationTypesEnum.none,
+    #     # если улучшение не происходит в течении ... поколений -> выход
+    #     stopping_after_n_generation=n_generation
+    # )
 
-    graph_generation_params = GraphGenerationParams(
-        adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
-        rules_for_constraint=rules)
+    # graph_generation_params = GraphGenerationParams(
+    #     adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
+    #     rules_for_constraint=rules)
 
-    optimiser = EvoGraphOptimiser(
-        graph_generation_params=graph_generation_params,
-        metrics=[],
-        parameters=optimiser_parameters,
-        requirements=requirements, initial_graph=initial,
-        log=default_log(logger_name='Bayesian', verbose_level=1))
+    # optimiser_parameters.custom = discretized_data
+    # optimiser = EvoGraphOptimiser(
+    #     graph_generation_params=graph_generation_params,
+    #     metrics=[],
+    #     parameters=optimiser_parameters,
+    #     requirements=requirements, initial_graph=initial,
+    #     log=default_log(logger_name='Bayesian', verbose_level=1))
 
 
-    optimized_graph = optimiser.optimise(partial(custom_metric, data=discretized_data))
-    optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
-    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
-    structure = opt_graph_to_bamt(optimized_network)
-    optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(j) + '.png')) 
-    OF=round(custom_metric(optimized_network, data=discretized_data)[0],2)
+    if micro:
+        start_time = time.perf_counter()
+
+        requirements = PipelineComposerRequirements(
+            primary=vertices,
+            secondary=vertices, max_arity=100,
+            max_depth=100, pop_size=pop_size, num_of_generations=n_generation,
+            crossover_prob=1, mutation_prob=0
+            )
+    
+        optimiser_parameters = GPGraphOptimiserParameters(
+            genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+            selection_types=[SelectionTypesEnum.tournament],
+            mutation_types=[custom_mutation_add, custom_mutation_delete, custom_mutation_reverse],
+            crossover_types=[custom_crossover_parents4],
+            regularization_type=RegularizationTypesEnum.none,
+            stopping_after_n_generation=5
+        )
+
+        graph_generation_params = GraphGenerationParams(
+            adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
+            rules_for_constraint=rules)
+
+        optimiser_parameters.custom = discretized_data
+        optimiser = EvoGraphOptimiser(
+            graph_generation_params=graph_generation_params,
+            metrics=[],
+            parameters=optimiser_parameters,
+            requirements=requirements, initial_graph=initial,
+            log=default_log(logger_name='Bayesian', verbose_level=1))
+
+        for g in optimiser.initial_graph:
+            print(round(metric(g, data=discretized_data)[0],2))   
+
+        elapsed_time =(time.perf_counter() - start_time)/60
+        while elapsed_time < j:
+            res_opt = optimiser.optimise(partial(metric, data=discretized_data))
+            print(round(metric(res_opt, data=discretized_data)[0],2))
+            print('___________________')
+
+            initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=[],
+                                                      content={'name': v}) for v in vertices])]
+            init=deepcopy(initial[0])
+            initial=[]            
+            initial.append(res_opt)
+            
+            for i in range(0, pop_size-1):
+                rand = randint(1, 2*len(vertices))
+                fl1 = False
+                while not fl1:
+                    try:
+                        fl1 = False
+                        g=deepcopy(init)
+                        for _ in range(rand):
+                            g=deepcopy(custom_mutation_add(g))
+                        mylist = []
+                        for rule_func in rules:
+                            mylist.append(rule_func(g))
+                        fl1=all(mylist)
+                        if fl1 and len(initial) != 0:
+                            # check=[]
+                            for i in initial:
+                                if check_iequv(g, i):
+                                    fl1 = False
+                                    break
+                    except:
+                        pass
+                initial.append(g)
+            
+            
+            optimiser = EvoGraphOptimiser(
+                graph_generation_params=graph_generation_params,
+                metrics=[],
+                parameters=optimiser_parameters,
+                requirements=requirements, initial_graph=initial,
+                log=default_log(logger_name='Bayesian', verbose_level=1))      
+
+            for g in optimiser.initial_graph:
+                print(round(metric(g, data=discretized_data)[0],2))
+
+            elapsed_time =(time.perf_counter() - start_time)/60
+            
+        optimized_graph = res_opt
+        optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
+        optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+        structure = opt_graph_to_bamt(optimized_network)
+        optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(j) + '.png')) 
+        OF=round(metric(optimized_network, data=discretized_data)[0],2)
+        exp.append(OF)
+        print(OF)
+        print('Score BAMT = ', Score_BAMT)
+        Score_true = round(metric_for_structure_LL(true_net, data=discretized_data)[0],3)
+        print('Score true = ', Score_true)
+             
+            
+    else:
+        start_time = time.perf_counter()
+        optimized_graph = optimiser.optimise(partial(metric, data=discretized_data))
+        elapsed_time =(time.perf_counter() - start_time)/60   
+        optimized_graph.show()
+        optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
+        optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+        structure = opt_graph_to_bamt(optimized_network)
+        optimized_graph.show(path=('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png')) 
+        OF=round(metric(optimized_network, data=discretized_data)[0],3)
+        exp.append(OF)
+        print(OF)
+        print('Score BAMT = ', Score_BAMT)
+        Score_true = round(metric_for_structure_LL(true_net, data=discretized_data)[0],3)
+        print('Score true = ', Score_true)
+        
+        
   
 
     #final_bn = Nets.DiscreteBN()
@@ -620,6 +1041,8 @@ def run_example():
     #     elif node_type[key]=="cont":
     #         res=round(mean_squared_error(data[key], value, squared=False),2)
     #     result[key]=res
+
+
 
 
     def child_dict(net: list):
@@ -657,10 +1080,11 @@ def run_example():
 
     
     SHD=precision_recall(structure, true_net)['SHD']
-
-    # structure_init = opt_graph_to_bamt(initial[0])
-    # SHD_init=[]
-    # SHD_init=precision_recall(structure_init, true_net)['SHD']
+    print('GA_SHD = ', SHD)
+    structure_init = bn.edges #opt_graph_to_bamt(initial[0])
+    SHD_init=[]
+    SHD_init=precision_recall(structure_init, true_net)['SHD']
+    print('BAMT_SHD = ', SHD_init)
 
     pdf.add_page()
     pdf.set_font("Arial", size = 14)
@@ -685,9 +1109,12 @@ def run_example():
             ln = 1)     
     pdf.cell(150, 5, txt = "timout = " + str(j),
             ln = 1)          
-    pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(j) + '.png',w=165, h=165)
+    pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V' + str(count) + '.png',w=165, h=165)
     pdf.multi_cell(180, 5, txt = str(structure))
     pdf.multi_cell(180, 5, txt = 'SHD = '+str(SHD))
+    pdf.multi_cell(180, 5, txt = 'SHD_BAMT = '+str(SHD_init))
+    # pdf.multi_cell(180, 5, txt = 'Score true = ' + str(Score_true))
+    pdf.multi_cell(180, 5, txt = 'Score BAMT = ' + str(Score_BAMT))
 
     # pdf.add_page()
     # pdf.set_font("Arial", size = 14)
@@ -696,7 +1123,7 @@ def run_example():
     # pdf.cell(150, 5, txt = str(OF_init),
     #         ln = 1, align = 'C')
     # pdf.image('C:/Users/Worker1/Documents/FEDOT/examples/V_init' + str(j) + '.png',w=165, h=165)
-    # pdf.multi_cell(180, 5, txt = str(structure_init))
+    # pdf.multi_cell(180, 5, txt = str(bn.edges))
     # pdf.multi_cell(180, 5, txt = 'SHD = '+str(SHD_init))
 
     # for heading, row in result.items():
@@ -710,14 +1137,24 @@ if __name__ == '__main__':
     # data.drop(['Unnamed: 0'], axis=1, inplace=True)
     # nodes = list(data.columns)
     #files = ['asia', 'sachs', 'magic-niab', 'ecoli70', 'child']
-    pop_size=100
-    files = ['child']
+    # ['earthquake','healthcare','sangiovese']
+
+    pop_size=40
+    files = ['sashs']
+    micro = False
     for file in files:
         data = pd.read_csv('examples/data/'+file+'.csv')
-        data.drop(['Unnamed: 0'], axis=1, inplace=True)
+        if file!='credit_card_anomaly' and file!='custom_encoded' and file!='10nodes_cont':
+            data.drop(['Unnamed: 0'], axis=1, inplace=True)
+            
         # print(data.isna().sum())
         data.dropna(inplace=True)
         data.reset_index(inplace=True, drop=True)
+
+        if file == 'mehra-complete':
+            for i in data.columns:
+                if data[i].dtype.name == 'int64':
+                    data = data.astype({i:'float64'})    
         
         with open('examples/data/'+file+'.txt') as f:
             lines = f.readlines()
@@ -726,7 +1163,7 @@ if __name__ == '__main__':
             e0 = l.split()[0]
             e1 = l.split()[1].split('\n')[0]
             true_net.append((e0, e1))
-
+        # print(true_net)
         # pdf = FPDF()  
         
         # for j in [1, 2]+list(range(5, 40, 5)):
@@ -736,11 +1173,23 @@ if __name__ == '__main__':
             # structure = run_example()
             # pdf.output("f_Experiment_empty_"+file + str(j) + ".pdf")
         try:
-            for j in [1, 2]+list(range(5, 20, 5)):
-                pdf = FPDF()
-                time_m=j
-                structure = run_example()
-                pdf.output("123Experiment_random_init_"+file+str(j)+".pdf")
+            for j in [600]:
+                # for exper in range(5,100,5):
+                for exper in [100]:                    
+                    pdf = FPDF()
+                    exp=[]    
+                    n_generation = exper
+                    for count in range(1):
+                        time_m=j
+                        metric = custom_metric_LL
+                        # metric = custom_metric
+                        structure = run_example()
+                    
+                        # textfile = open("main_exp_file"+str(exper)+".txt", "w")
+                        # textfile.write(str(exp))
+                        # textfile.close()  
+                    
+                    pdf.output("10ScoreSHD"+file+"_"+str(exper)+".pdf")
         except Exception as ex:
             print(ex)
             pdf.output(str(time.time())+".pdf")
