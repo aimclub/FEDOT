@@ -16,8 +16,9 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, OneFoldInputDataSplit
-from test.unit.models.test_model import classification_dataset
 from test.unit.validation.test_table_cv import sample_pipeline
+from test.unit.models.test_model import classification_dataset
+
 
 _ = classification_dataset
 
