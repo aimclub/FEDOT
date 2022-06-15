@@ -82,7 +82,7 @@ def _split_multi_time_series(data: InputData, task, *args, **kwargs):
     return train_data, test_data
 
 
-def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False):
+def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False, **kwargs):
     """ Split any data into train and test parts
 
     :param data: InputData object to split
@@ -120,7 +120,7 @@ def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False
     return train_data, test_data
 
 
-def _split_table(data: InputData, task, split_ratio, with_shuffle=False):
+def _split_table(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
     """ Split table data into train and test parts
 
     :param data: InputData object to split
@@ -131,7 +131,7 @@ def _split_table(data: InputData, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.table, split_ratio, with_shuffle)
 
 
-def _split_image(data: InputData, task, split_ratio, with_shuffle=False):
+def _split_image(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
     """ Split image data into train and test parts
 
     :param data: InputData object to split
@@ -143,7 +143,7 @@ def _split_image(data: InputData, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
 
 
-def _split_text(data: InputData, task, split_ratio, with_shuffle=False):
+def _split_text(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
     """ Split text data into train and test parts
 
     :param data: InputData object to split
