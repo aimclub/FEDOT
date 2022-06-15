@@ -36,7 +36,7 @@ class DataObjectiveBuilder:
     def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
         """ Compose evaluator object with desired parameters """
         if self.cv_folds is not None:
-            data_producer = self._build_kfolds_producer(data, **kwargs)
+            data_producer = self._build_kfolds_producer(data)
         else:
             data_producer = self._build_holdout_producer(data, **kwargs)
 
@@ -65,7 +65,7 @@ class DataObjectiveBuilder:
 
         return data_producer
 
-    def _build_kfolds_producer(self, data: InputData, **kwargs) -> DataSource:
+    def _build_kfolds_producer(self, data: InputData) -> DataSource:
         if isinstance(data, MultiModalData):
             raise NotImplementedError('Cross-validation is not supported for multi-modal data')
         if data.task.task_type is TaskTypesEnum.ts_forecasting:

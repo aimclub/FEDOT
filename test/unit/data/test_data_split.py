@@ -5,7 +5,9 @@ from typing import Callable
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective import DataObjectiveBuilder, Objective
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import split_data
 
@@ -88,3 +90,28 @@ def test_advanced_time_series_splitting():
     # For in sample validation it is required to have all length of time series
     assert len(test_data.features) == 10
     assert np.allclose(test_data.target, np.array([6, 7, 8, 9]))
+
+
+def test_data_splitting_perform_correctly_during_build():
+    """
+    Check if data splitting perform correctly through Objective Builder - Objective Evaluate
+    Case: in-sample validation during cross validation for time series forecasting
+    """
+    output_by_fold = {0: {'train_features_size': (2,), 'test_features_size': (6,), 'test_target_size': (6,)},
+                      1: {'train_features_size': (6,), 'test_features_size': (10,), 'test_target_size': (10,)}}
+
+    metric_function = RegressionMetricsEnum.MAE
+    objective_builder = DataObjectiveBuilder(objective=Objective([metric_function]), cv_folds=2)
+
+    time_series = get_ts_data_to_forecast_two_elements()
+    evaluator = objective_builder.build(time_series, validation_blocks=2)
+
+    # Imitate evaluation process
+    for fold_id, (train_data, test_data) in enumerate(evaluator._data_producer()):
+
+        expected_output = output_by_fold[fold_id]
+        assert train_data.features.shape == expected_output['train_features_size']
+        assert test_data.features.shape == expected_output['test_features_size']
+        assert test_data.target.shape == expected_output['test_target_size']
+
+
