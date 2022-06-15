@@ -5,6 +5,7 @@ from typing import Callable
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.objective import DataObjectiveBuilder, Objective
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
@@ -92,7 +93,7 @@ def test_advanced_time_series_splitting():
     assert np.allclose(test_data.target, np.array([6, 7, 8, 9]))
 
 
-def test_data_splitting_perform_correctly_during_build():
+def test_data_splitting_perform_correctly_after_build():
     """
     Check if data splitting perform correctly through Objective Builder - Objective Evaluate
     Case: in-sample validation during cross validation for time series forecasting
@@ -115,3 +116,15 @@ def test_data_splitting_perform_correctly_during_build():
         assert test_data.target.shape == expected_output['test_target_size']
 
 
+def test_multivariate_time_series_splitting_correct():
+    """ Check if in-sample for multivariate time series work correctly """
+    multivar_ts = MultiModalData({'series_1': get_ts_data_to_forecast_two_elements(),
+                                  'series_2': get_ts_data_to_forecast_two_elements()})
+
+    train_data, test_data = train_test_data_setup(multivar_ts, validation_blocks=2)
+    for series_id, train_series_data in train_data.items():
+        assert len(train_series_data.features) == len(train_series_data.target) == 6
+
+    for series_id, test_series_data in test_data.items():
+        assert len(test_series_data.features) == 10
+        assert np.allclose(test_series_data.target, np.array([6, 7, 8, 9]))

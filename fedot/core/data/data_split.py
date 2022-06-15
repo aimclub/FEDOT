@@ -193,12 +193,12 @@ def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
 
 
 def _train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
-                                       shuffle_flag=False) -> Tuple[MultiModalData, MultiModalData]:
+                                       shuffle_flag=False, **kwargs) -> Tuple[MultiModalData, MultiModalData]:
     train_data = MultiModalData()
     test_data = MultiModalData()
     for node in data.keys():
         data_part = data[node]
-        train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag)
+        train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag, **kwargs)
         train_data[node] = train_data_part
         test_data[node] = test_data_part
 
@@ -221,7 +221,7 @@ def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.
     if isinstance(data, InputData):
         train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag, **kwargs)
     elif isinstance(data, MultiModalData):
-        train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag)
+        train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag, **kwargs)
     else:
         raise ValueError(f'Dataset {type(data)} is not supported')
 
