@@ -223,7 +223,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                  params=self.graph_generation_params)
                 new_population = self._reproduce(selected_individuals)
 
-                new_population = list(map(self._mutate, new_population))
+                new_population = list(map(
+                    lambda individual: self._mutate(individual, valid_ancestors=selected_individuals), new_population
+                ))
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
@@ -265,15 +267,16 @@ class EvoGraphOptimiser(GraphOptimiser):
         offspring.extend(elite_inds)
         return offspring
 
-    def _mutate(self, ind: Individual,
+    def _mutate(self, individual: Individual,
                 max_depth: Optional[int] = None,
-                custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
+                custom_requirements: Optional[PipelineComposerRequirements] = None,
+                valid_ancestors: Optional[List[Individual]] = None) -> Individual:
         max_depth = max_depth or self.max_depth
         requirements = custom_requirements or self.requirements
         return mutation(types=self.parameters.mutation_types,
                         params=self.graph_generation_params,
-                        ind=ind, requirements=requirements,
-                        max_depth=max_depth, log=self.log)
+                        individual=individual, requirements=requirements,
+                        max_depth=max_depth, log=self.log, valid_ancestors=valid_ancestors)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:

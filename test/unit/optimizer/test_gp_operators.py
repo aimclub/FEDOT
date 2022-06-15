@@ -228,7 +228,7 @@ def test_intermediate_add_mutation_for_linear_graph():
     for _ in range(100):
         graph_after_mutation = mutation(types=[MutationTypesEnum.single_add],
                                         params=graph_params,
-                                        ind=Individual(linear_two_nodes),
+                                        individual=Individual(linear_two_nodes),
                                         requirements=composer_requirements,
                                         log=default_log(__name__), max_depth=3).graph
         if not successful_mutation_inner:
@@ -258,7 +258,7 @@ def test_parent_add_mutation_for_linear_graph():
     for _ in range(200):  # since add mutations has a lot of variations
         graph_after_mutation = mutation(types=[MutationTypesEnum.single_add],
                                         params=graph_params,
-                                        ind=Individual(linear_one_node),
+                                        individual=Individual(linear_one_node),
                                         requirements=composer_requirements,
                                         log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_outer:
@@ -289,7 +289,7 @@ def test_edge_mutation_for_graph():
     for _ in range(100):
         graph_after_mutation = mutation(types=[MutationTypesEnum.single_edge],
                                         params=graph_params,
-                                        ind=Individual(graph_without_edge),
+                                        individual=Individual(graph_without_edge),
                                         requirements=composer_requirements,
                                         log=default_log(__name__), max_depth=graph_with_edge.depth).graph
         if not successful_mutation_edge:
@@ -317,7 +317,7 @@ def test_replace_mutation_for_linear_graph():
     for _ in range(100):
         graph_after_mutation = mutation(types=[MutationTypesEnum.single_change],
                                         params=graph_params,
-                                        ind=Individual(linear_two_nodes),
+                                        individual=Individual(linear_two_nodes),
                                         requirements=composer_requirements,
                                         log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_replace:
@@ -346,7 +346,7 @@ def test_drop_mutation_for_linear_graph():
     for _ in range(100):
         graph_after_mutation = mutation(types=[MutationTypesEnum.single_drop],
                                         params=graph_params,
-                                        ind=Individual(linear_two_nodes),
+                                        individual=Individual(linear_two_nodes),
                                         requirements=composer_requirements,
                                         log=default_log(__name__), max_depth=2).graph
         if not successful_mutation_drop:
@@ -386,7 +386,7 @@ def test_boosting_mutation_for_linear_graph():
         if not successful_mutation_boosting:
             graph_after_mutation = mutation(types=[boosting_mutation],
                                             params=graph_params,
-                                            ind=Individual(linear_one_node),
+                                            individual=Individual(linear_one_node),
                                             requirements=composer_requirements,
                                             log=default_log(__name__), max_depth=2).graph
             successful_mutation_boosting = \
@@ -437,7 +437,7 @@ def test_boosting_mutation_for_non_lagged_ts_model():
         if not successful_mutation_boosting:
             graph_after_mutation = mutation(types=[boosting_mutation],
                                             params=graph_params,
-                                            ind=Individual(linear_two_nodes),
+                                            individual=Individual(linear_two_nodes),
                                             requirements=composer_requirements,
                                             log=default_log(__name__), max_depth=2).graph
             successful_mutation_boosting = \

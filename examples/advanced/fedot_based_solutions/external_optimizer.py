@@ -44,7 +44,7 @@ class RandomMutationSearchOptimizer(GraphOptimiser):
 
         with timer as t:
             while not t.is_time_limit_reached(num_iter):
-                new = mutation(types=self.change_types, ind=best, params=self.graph_generation_params,
+                new = mutation(types=self.change_types, individual=best, params=self.graph_generation_params,
                                requirements=self.requirements, log=self.log)
                 evaluator([new])
                 if new.fitness < best.fitness:

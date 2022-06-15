@@ -72,7 +72,7 @@ def test_ancestor_for_mutation():
 
     mutation_result = mutation(types=[MutationTypesEnum.simple],
                                params=graph_params,
-                               ind=parent_ind,
+                               individual=parent_ind,
                                requirements=composer_requirements,
                                log=default_log(__name__), max_depth=2)
 

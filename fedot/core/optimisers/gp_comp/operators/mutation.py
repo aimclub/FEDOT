@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import TYPE_CHECKING, Any, Callable, List, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 import numpy as np
 
@@ -113,14 +113,21 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
 
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
-             ind: Individual, requirements, log: Log,
-             max_depth: int = None) -> Any:
+             individual: Individual, requirements: 'PipelineComposerRequirements', log: Log,
+             max_depth: Optional[int] = None, valid_ancestors: Optional[List[Individual]] = None) -> Any:
     """ Function apply mutation operator to graph """
+    def get_previous_valid_ancestors():
+        for parent_operator in reversed(individual.parent_operators):
+            if all(parent_individual in valid_ancestors for parent_individual in parent_operator.parent_individuals):
+                return parent_operator.parent_individuals
+
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
+    valid_ancestors = valid_ancestors or [individual]
+    parent_individuals = [individual] if individual in valid_ancestors else get_previous_valid_ancestors()
 
     for _ in range(MAX_NUM_OF_ATTEMPTS):
-        new_graph = deepcopy(ind.graph)
+        new_graph = deepcopy(individual.graph)
         num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
 
         new_graph, mutation_names = _adapt_and_apply_mutations(new_graph=new_graph, mutation_prob=mutation_prob,
@@ -131,18 +138,18 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
         is_correct_graph = constraint_function(new_graph, params)
         if is_correct_graph:
             new_individual = Individual(new_graph)
-            new_individual.parent_operators = deepcopy(ind.parent_operators)
+            new_individual.parent_operators = deepcopy(individual.parent_operators)
             for mutation_name in mutation_names:
                 new_individual.parent_operators.append(
                     ParentOperator(operator_type='mutation',
                                    operator_name=str(mutation_name),
-                                   parent_individuals=[ind]))
+                                   parent_individuals=parent_individuals))
             return new_individual
 
     log.debug('Number of mutation attempts exceeded. '
               'Please check composer requirements for correctness.')
 
-    return deepcopy(ind)
+    return deepcopy(individual)
 
 
 def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
