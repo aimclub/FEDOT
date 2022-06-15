@@ -91,40 +91,6 @@
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting]"
     },
-    "text_classification_sklearn": {
-      "description": "Text classification",
-      "forbidden_node_types": [
-        "secondary"
-      ],
-      "input_type": "[DataTypesEnum.text]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "fedot.core.operations.evaluation.text",
-        "SkLearnTextVectorizeStrategy"
-      ],
-      "tags": [
-        "nlp",
-        "non-default"
-      ],
-      "tasks": "[TaskTypesEnum.classification]"
-    },
-     "text_classification_gensim": {
-      "description": "Text classification",
-      "forbidden_node_types": [
-        "secondary"
-      ],
-      "input_type": "[DataTypesEnum.text]",
-      "output_type": "[DataTypesEnum.table]",
-      "strategies": [
-        "fedot.core.operations.evaluation.text",
-        "GensimTextVectorizeStrategy"
-      ],
-      "tags": [
-        "nlp",
-        "non-default"
-      ],
-      "tasks": "[TaskTypesEnum.classification]"
-    },
     "ts_model": {
       "description": "Implementations of the time series models",
       "input_type": "[DataTypesEnum.ts, DataTypesEnum.multi_ts]",
@@ -215,12 +181,6 @@
         "boosting", "non_multi", "non-default", "non_linear"
       ]
     },
-    "cntvect": {
-      "meta": "text_classification_sklearn",
-      "tags": [
-        "non-default", "text"
-      ]
-    },
     "dt": {
       "meta": "sklearn_class",
       "presets": ["fast_train", "*tree"],
@@ -250,7 +210,8 @@
     },
     "kmeans": {
       "meta": "sklearn_clust",
-      "presets": ["fast_train"]
+      "presets": ["fast_train"],
+      "tags": ["linear"]
     },
     "knn": {
       "meta": "custom_class",
@@ -419,6 +380,7 @@
       "meta": "ts_model",
       "presets": ["fast_train", "ts"],
       "tags": [
+        "non_linear",
         "simple",
         "interpretable",
         "non_lagged"
@@ -429,6 +391,7 @@
       "meta": "ts_model",
       "presets": ["fast_train", "ts"],
       "tags": [
+        "non_linear",
         "simple",
         "interpretable",
         "non_lagged"
@@ -450,25 +413,12 @@
         "non_linear"
       ]
     },
-    "tfidf": {
-      "meta": "text_classification_sklearn",
-      "tags": [
-        "non-default",
-        "text"
-      ]
-    },
     "treg": {
       "meta": "sklearn_regr",
       "presets": ["*tree"],
       "tags": [
         "tree",
         "non_linear"
-      ]
-    },
-    "word2vec": {
-      "meta": "text_classification_gensim",
-      "tags": [
-        "non-default", "text"
       ]
     },
     "xgboost": {

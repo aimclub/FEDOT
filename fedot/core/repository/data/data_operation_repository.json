@@ -94,6 +94,40 @@
 				"non-default"
 			],
 			"description": "Preprocessing operations for text classification"
+		},
+		"text_preprocessing_sklearn": {
+			"description": "Text preprocessing sklearn",
+			"forbidden_node_types": "[]",
+			"input_type": "[DataTypesEnum.text]",
+			"output_type": "[DataTypesEnum.table]",
+			"strategies": [
+				"fedot.core.operations.evaluation.text",
+				"SkLearnTextVectorizeStrategy"
+			],
+			"tags": [
+				"text",
+				"nlp",
+				"non-default"
+			],
+			"tasks": "[TaskTypesEnum.classification]"
+		},
+		"text_classification_gensim": {
+			"description": "Text classification",
+			"forbidden_node_types": [
+				"secondary"
+			],
+			"input_type": "[DataTypesEnum.text]",
+			"output_type": "[DataTypesEnum.table]",
+			"strategies": [
+				"fedot.core.operations.evaluation.text",
+				"GensimTextVectorizeStrategy"
+			],
+			"tags": [
+				"text",
+				"nlp",
+				"non-default"
+			],
+			"tasks": "[TaskTypesEnum.classification]"
 		}
 	},
 	"operations": {
@@ -290,6 +324,18 @@
 		"text_clean": {
 			"meta": "text_preprocessing",
 			"tags": ["non_applicable_for_ts"]
+		},
+		"cntvect": {
+			"meta": "text_preprocessing_sklearn",
+			"tags": ["non-default"]
+		},
+		"tfidf": {
+			"meta": "text_preprocessing_sklearn",
+			"tags": ["non-default"]
+		},
+		"word2vec": {
+			"meta": "text_classification_gensim",
+			"tags": ["non-default"]
 		},
 		"decompose": {
 		  "meta": "regression_preprocessing",

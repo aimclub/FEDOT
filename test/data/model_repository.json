@@ -176,10 +176,6 @@
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian", "non-default"]
 	},
-    "tfidf": {
-      "meta": "text_classification",
-	  "tags": ["text", "non-default"]
-    },
     "custom": {
 		"meta": "custom_model",
 		"tags": ["all_purpose", "non-default"]

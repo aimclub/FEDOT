@@ -53,11 +53,11 @@ class OperationTypesRepository:
 
     __initialized_repositories__ = {}
 
-    DEFAULT_MODEL_TAGS = ['linear', 'non_linear']
+    DEFAULT_MODEL_TAGS = ['linear', 'non_linear', 'all_purpose']
     DEFAULT_DATA_OPERATION_TAGS = [
         'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
         'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
-        'imbalanced'
+        'imbalanced', 'all_purpose'
     ]
 
     __repository_dict__ = {
@@ -328,7 +328,7 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
     if (tags_model or tags_data) and repos_tags:
         raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
 
-    node_name = opt_node.content['name'] if isinstance(opt_node, OptNode) else opt_node
+    node_name = str(opt_node) if isinstance(opt_node, OptNode) else opt_node
 
     repos_tags = repos_tags or {
         OperationTypesRepository('model'): tags_model,
