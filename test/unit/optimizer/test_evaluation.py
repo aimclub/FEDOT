@@ -32,7 +32,7 @@ def throwing_exception_objective(pipeline: Pipeline) -> Fitness:
     return SingleObjFitness(x)
 
 
-def test_multiprocessing_dispatcher_without_timelimit_without_multiprocessing():
+def test_multiprocessing_dispatcher_without_timeout_without_multiprocessing():
     adapter = PipelineAdapter()
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
@@ -62,7 +62,7 @@ def test_multiprocessing_dispatcher_with_multiprocessing():
     assert len(pipelines) == len(evaluated_population), "Not all pipelines was evaluated"
 
 
-def test_multiprocessing_dispatcher_with_timelimit():
+def test_multiprocessing_dispatcher_with_timeout():
     adapter = PipelineAdapter()
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]

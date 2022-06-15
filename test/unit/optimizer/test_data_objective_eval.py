@@ -24,9 +24,8 @@ def empty_pipeline():
     return Pipeline()
 
 
-def throwing_exception_metric(graph: Graph, **kwargs) -> Real:
-    x = 1 / 0
-    return x
+def throwing_exception_metric(*args, **kwargs):
+    raise Exception
 
 
 def empty_datasource():
@@ -80,7 +79,7 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     assert fitness.valid
 
 
-def test_pipeline_objective_evaluate_with_timelimit(classification_dataset):
+def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset):
     pipeline = sample_pipeline()
     log = default_log(__name__)
 
