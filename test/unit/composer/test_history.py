@@ -120,10 +120,15 @@ def test_operators_in_history():
 
     assert auto_model.history is not None
     assert len(auto_model.history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
-
-    # test history dumps
+    # Assert that all parent operators have parent_individuals from actual history
+    history_individuals = set()
+    for generation in auto_model.history.individuals:
+        for individual in generation:
+            assert all(ind.uid in history_individuals for parent_operator in individual.parent_operators
+                       for ind in parent_operator.parent_individuals)
+            history_individuals.add(individual.uid)
+    # Test history dumps
     dumped_history = auto_model.history.save()
-
     assert dumped_history is not None
 
 
