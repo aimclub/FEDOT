@@ -1,17 +1,15 @@
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 
+from networkx import graph_edit_distance, set_node_attributes
+
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
-from networkx import graph_edit_distance, set_node_attributes
-
-if TYPE_CHECKING:
-    from fedot.core.dag.graph import Graph
-    from fedot.core.optimisers.graph import OptGraph
 
 
-class GraphOperator:
+class GraphOperator(Graph):
     """_summary_
 
     :param graph: object used as the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
@@ -19,10 +17,12 @@ class GraphOperator:
     :param nodes_postproc_func: nodes postprocessor after their modification
     """
 
-    def __init__(self, graph: Optional[Union['Graph', 'OptGraph']] = None,
-                 nodes_postproc_func: Optional[Callable[[List[GraphNode]], None]] = None):
-        self._graph = graph
-        self._postproc_nodes = nodes_postproc_func or (lambda: ...)
+    def __init__(self, nodes: Sequence[GraphNode] = (),
+                 postproc_nodes: Optional[Callable[[Sequence[GraphNode]], Any]] = None):
+        self._nodes = []
+        for node in nodes:
+            self.add_node(node)
+        self._postproc_nodes = postproc_nodes or (lambda x: None)
 
     def delete_node(self, node: GraphNode):
         """Removes provided ``node`` from the bounded graph structure.
@@ -31,7 +31,7 @@ class GraphOperator:
         :param node: node of the graph to be deleted
         """
         node_children_cached = self.node_children(node)
-        self_root_node_cached = self._graph.root_node
+        self_root_node_cached = self.root_node
 
         for node_child in self.node_children(node):
             node_child.nodes_from.remove(node)
@@ -39,9 +39,9 @@ class GraphOperator:
         if node.nodes_from and len(node_children_cached) == 1:
             for node_from in node.nodes_from:
                 node_children_cached[0].nodes_from.append(node_from)
-        self._graph.nodes.clear()
+        self._nodes.clear()
         self.add_node(self_root_node_cached)
-        self._postproc_nodes()
+        self._postproc_nodes(self._nodes)
 
     def delete_subtree(self, subtree: GraphNode):
         """Deletes given node with all the parents it has, making deletion of the subtree.
@@ -51,9 +51,9 @@ class GraphOperator:
             and their connections amongst the remaining graph nodes
         """
         subtree_nodes = subtree.ordered_subnodes_hierarchy()
-        self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)
+        self._nodes = remove_items(self._nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
-        for subtree in self._graph.nodes:
+        for subtree in self._nodes:
             subtree.nodes_from = remove_items(subtree.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
@@ -70,10 +70,10 @@ class GraphOperator:
             else:
                 # just assign old sources as sources for the new node
                 new_node.nodes_from = old_node.nodes_from
-        self._graph.nodes.remove(old_node)
-        self._graph.nodes.append(new_node)
+        self._nodes.remove(old_node)
+        self._nodes.append(new_node)
         self.sort_nodes()
-        self._postproc_nodes()
+        self._postproc_nodes(self._nodes)
 
     def update_subtree(self, old_subtree: GraphNode, new_subtree: GraphNode):
         """Changes ``old_subtree`` subtree to ``new_subtree``
@@ -87,15 +87,15 @@ class GraphOperator:
         self.add_node(new_subtree)
         self.sort_nodes()
 
-    def add_node(self, new_node: GraphNode):
+    def add_node(self, node: GraphNode):
         """Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
 
         :param new_node: new node object to add
         """
-        if new_node not in self._graph.nodes:
-            self._graph.nodes.append(new_node)
-            if new_node.nodes_from:
-                for new_parent_node in new_node.nodes_from:
+        if node not in self._nodes:
+            self._nodes.append(node)
+            if node.nodes_from:
+                for new_parent_node in node.nodes_from:
                     self.add_node(new_parent_node)
 
     def distance_to_root_level(self, node: GraphNode) -> int:
@@ -143,7 +143,7 @@ class GraphOperator:
                         nodes.extend(get_nodes(child, current_height + 1))
             return nodes
 
-        nodes = get_nodes(self._graph.root_node, current_height=0)
+        nodes = get_nodes(self.root_node, current_height=0)
         return nodes
 
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
@@ -159,17 +159,17 @@ class GraphOperator:
 
     def sort_nodes(self):
         """ Layer by layer sorting """
-        if not isinstance(self._graph.root_node, list):
-            self._graph._nodes = self._graph.root_node.ordered_subnodes_hierarchy()
+        if not isinstance(self.root_node, Sequence):
+            self._nodes = self.root_node.ordered_subnodes_hierarchy()
 
-    def node_children(self, node: GraphNode) -> List[GraphNode]:
-        """Gets all the ``node`` children
+    def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
+        """Returns all children of the ``node``
 
         :param node: for getting children from
 
         :return: children of the ``node``
         """
-        return [other_node for other_node in self._graph.nodes
+        return [other_node for other_node in self._nodes
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
 
@@ -199,7 +199,7 @@ class GraphOperator:
         """
 
         if not self.node_children(node):
-            self._graph.nodes.remove(node)
+            self._nodes.remove(node)
             if node.nodes_from:
                 for node in node.nodes_from:
                     self._clean_up_leftovers(node)
@@ -213,8 +213,9 @@ class GraphOperator:
         :param clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
         """
 
-        if ((node_child.nodes_from is None or node_parent not in node_child.nodes_from) or
-                (node_parent not in self._graph.nodes or node_child not in self._graph.nodes)):
+        if node_child.nodes_from is None or node_parent not in node_child.nodes_from:
+            return
+        elif node_parent not in self._nodes or node_child not in self._nodes:
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
@@ -224,46 +225,40 @@ class GraphOperator:
         if clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
 
-        self._postproc_nodes()
+        self._postproc_nodes(self._nodes)
 
+    @property
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
         """Gets the final layer node(s) of the graph
 
         :return: the final layer node(s)
         """
-        if not self._graph.nodes:
+        if not self._nodes:
             return []
-        roots = [node for node in self._graph.nodes
+        roots = [node for node in self._nodes
                  if not any(self.node_children(node))]
         if len(roots) == 1:
             return roots[0]
         return roots
 
-    def is_graph_equal(self, other_graph: Union['Graph', 'OptGraph']) -> bool:
+    @property
+    def nodes(self) -> Sequence[GraphNode]:
+        return self._nodes
+
+    def __eq__(self, other_graph: Graph) -> bool:
         """Compares this graph with the ``other_graph``
 
         :param other_graph: another graph
 
         :return: is it equal to ``other_graph`` in terms of the graphs
         """
-        if all(isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
-            return set(rn.descriptive_id for rn in self._graph.root_node) == \
+        if all(isinstance(rn, list) for rn in [self.root_node, other_graph.root_node]):
+            return set(rn.descriptive_id for rn in self.root_node) == \
                    set(rn.descriptive_id for rn in other_graph.root_node)
-        elif all(not isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
-            return self._graph.root_node.descriptive_id == other_graph.root_node.descriptive_id
+        elif all(not isinstance(rn, list) for rn in [self.root_node, other_graph.root_node]):
+            return self.root_node.descriptive_id == other_graph.root_node.descriptive_id
         else:
             return False
-
-    def graph_description(self) -> str:
-        """Returns graph description
-
-        :return: text graph representation
-        """
-        return str({
-            'depth': self._graph.depth,
-            'length': self._graph.length,
-            'nodes': self._graph.nodes,
-        })
 
     @property
     def descriptive_id(self) -> str:
@@ -272,16 +267,17 @@ class GraphOperator:
         :return: text description of the content in the node and its parameters
         :rtype: str
         """
-        root_list = ensure_wrapped_in_sequence(self.root_node())
-        full_desc_id = ''.join(r.descriptive_id for r in root_list)
+        root_list = ensure_wrapped_in_sequence(self.root_node)
+        full_desc_id = ''.join([r.descriptive_id for r in root_list])
         return full_desc_id
 
-    def graph_depth(self) -> int:
+    @property
+    def depth(self) -> int:
         """Gets this graph depth from its sink-node to its source-node
 
         :return: length of a path from the root node to the farthest primary node
         """
-        if not self._graph.nodes:
+        if not self._nodes:
             return 0
 
         def _depth_recursive(node: GraphNode) -> int:
@@ -298,7 +294,7 @@ class GraphOperator:
             else:
                 return 1 + max(_depth_recursive(next_node) for next_node in node.nodes_from)
 
-        root = ensure_wrapped_in_sequence(self.root_node())
+        root = ensure_wrapped_in_sequence(self.root_node)
         return max(_depth_recursive(n) for n in root)
 
     def get_nodes_degrees(self) -> List[int]:
@@ -319,13 +315,14 @@ class GraphOperator:
         """
 
         edges = []
-        for node in self._graph.nodes:
+        for node in self._nodes:
             if node.nodes_from:
                 for parent_node in node.nodes_from:
                     edges.append((parent_node, node))
         return edges
 
-def get_distance_between(graph_1: 'Graph', graph_2: 'Graph') -> int:
+
+def get_distance_between(graph_1: Graph, graph_2: Graph) -> int:
     """
     Gets edit distance from ``graph_1`` graph to the ``graph_2``
 

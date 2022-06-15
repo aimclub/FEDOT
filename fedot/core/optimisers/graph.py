@@ -1,10 +1,8 @@
-import os
-
+from os import PathLike
 from copy import deepcopy
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
@@ -121,23 +119,13 @@ class OptGraph:
     :param nodes: optimization graph nodes object(s)
     """
 
-    def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
+    def __init__(self, nodes: Union[OptNode, List[OptNode]] = ()):
         self.log = default_log(self)
-
-        self._nodes = []
-        self._operator = GraphOperator(self, self._empty_postproc)
-
-        if nodes:
-            for node in ensure_wrapped_in_sequence(nodes):
-                self.add_node(node)
-
-    @copy_doc(Graph._empty_postproc)
-    def _empty_postproc(self, nodes: Optional[List[OptNode]] = None):
-        pass
+        self._operator = GraphOperator(ensure_wrapped_in_sequence(nodes))
 
     @property
     def nodes(self):
-        return self._nodes
+        return self._operator.nodes
 
     @property
     def _node_adapter(self):
@@ -149,7 +137,8 @@ class OptGraph:
 
     @node_ops_adaptation
     def add_node(self, new_node: OptNode):
-        """Adds new node to the OptGraph
+        """
+        Add new node to the OptGraph
 
         :param new_node: new OptNode object
         """
@@ -168,16 +157,6 @@ class OptGraph:
                                    self._node_adapter.restore(new_node))
 
     @node_ops_adaptation
-    def delete_node(self, node: OptNode):
-        """
-        Delete chosen node redirecting all its parents to the child.
-
-        :param node: OptNode object to delete
-        """
-
-        self._operator.delete_node(self._node_adapter.restore(node))
-
-    @node_ops_adaptation
     def update_subtree(self, old_subroot: OptNode, new_subroot: OptNode):
         """
         Replace the subtrees with old and new nodes as subroots
@@ -187,6 +166,16 @@ class OptGraph:
         """
         self._operator.update_subtree(self._node_adapter.restore(old_subroot),
                                       self._node_adapter.restore(new_subroot))
+
+    @node_ops_adaptation
+    def delete_node(self, node: OptNode):
+        """
+        Delete chosen node redirecting all its parents to the child.
+
+        :param node: OptNode object to delete
+        """
+
+        self._operator.delete_node(self._node_adapter.restore(node))
 
     @node_ops_adaptation
     def delete_subtree(self, subroot: OptNode):
@@ -234,26 +223,17 @@ class OptGraph:
         return self._operator.get_edges()
 
     @copy_doc(Graph.show)
-    def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
+    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
              node_color: Optional[NodeColorType] = None, dpi: int = 300,
              node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
         GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale,
                                     font_size_scale, edge_curvature_scale)
 
-    @copy_doc(Graph.__eq__)
-    def __eq__(self, other_graph: 'OptGraph') -> bool:
-        """
-        Compares this graph with the ``other_graph``
+    def __eq__(self, other) -> bool:
+        return self._operator.__eq__(other)
 
-        :param other_graph: another graph
-
-        :return: is it equal to ``other_graph`` in terms of the graphs
-        """
-        return self._operator.is_graph_equal(other_graph)
-
-    @copy_doc(GraphOperator.graph_description)
     def __str__(self):
-        return self._operator.graph_description()
+        return str(self._operator.graph_description)
 
     @copy_doc(Graph.__repr__)
     def __repr__(self):
@@ -261,7 +241,7 @@ class OptGraph:
 
     @property
     def root_node(self):
-        roots = self._operator.root_node()
+        roots = self._operator.root_node
         return roots
 
     @property
@@ -277,7 +257,7 @@ class OptGraph:
     @property
     @copy_doc(Graph.depth)
     def depth(self) -> int:
-        return self._operator.graph_depth()
+        return self.operator.depth
 
     def __copy__(self):
         cls = self.__class__

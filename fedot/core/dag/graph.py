@@ -1,95 +1,135 @@
-import os
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from os import PathLike
+from abc import ABC, abstractmethod
+from typing import Any, Tuple, Dict, Sequence, Union, TypeVar, Generic, Optional
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import GraphOperator
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.utils import copy_doc
 from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
 
-if TYPE_CHECKING:
-    from fedot.core.dag.graph_node import GraphNode
+NodeType = TypeVar('NodeType', bound=GraphNode, covariant=False, contravariant=False)
 
 
-
-class Graph:
-    """Base class used for the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
-
-    :param nodes: pipeline nodes
+class Graph(ABC):
+    """
+    Defines abstract graph interface that's required by graph optimisation process.
     """
 
-    def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
-        self._nodes: List['GraphNode'] = []
-        self._operator = GraphOperator(self, self._empty_postproc)
-
-        if nodes:
-            for node in ensure_wrapped_in_sequence(nodes):
-                self.add_node(node)
-
-    def _empty_postproc(self,
-                        nodes: Optional[List['GraphNode']] = None):  # TODO: maybe it should return nodes as is instead?
-        """Doesn't do any postprocessing to the provided ``nodes``
-
-        :param nodes: not obligatory
+    @abstractmethod
+    def add_node(self, new_node: GraphNode):
         """
-        pass
+        Add new node to the Pipeline
 
-    @property
-    def nodes(self):
-        return self._nodes
+        :param new_node: new GraphNode object
+        """
+        raise NotImplementedError()
 
-    @copy_doc(GraphOperator.add_node)
-    def add_node(self, new_node: 'GraphNode'):
-        self._operator.add_node(new_node)
+    @abstractmethod
+    def update_node(self, old_node: GraphNode, new_node: GraphNode):
+        """
+        Replace old_node with new one.
 
-    @copy_doc(GraphOperator.update_node)
-    def update_node(self, old_node: 'GraphNode', new_node: 'GraphNode'):
-        self._operator.update_node(old_node, new_node)
+        :param old_node: 'GraphNode' object to replace
+        :param new_node: 'GraphNode' new object
+        """
+        raise NotImplementedError()
 
-    @copy_doc(GraphOperator.delete_node)
-    def delete_node(self, node: 'GraphNode'):
-        self._operator.delete_node(node)
+    @abstractmethod
+    def update_subtree(self, old_subroot: GraphNode, new_subroot: GraphNode):
+        """
+        Replace the subtrees with old and new nodes as subroots
 
-    @copy_doc(GraphOperator.update_subtree)
-    def update_subtree(self, old_subtree: 'GraphNode', new_subtree: 'GraphNode'):
-        self._operator.update_subtree(old_subtree, new_subtree)
+        :param old_subroot: 'GraphNode' object to replace
+        :param new_subroot: 'GraphNode' new object
+        """
+        raise NotImplementedError()
 
-    @copy_doc(GraphOperator.delete_subtree)
-    def delete_subtree(self, subtree: 'GraphNode'):
-        self._operator.delete_subtree(subtree)
+    @abstractmethod
+    def delete_node(self, node: GraphNode):
+        """
+        Delete chosen node redirecting all its parents to the child.
 
+        :param node: 'GraphNode' object to delete
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def delete_subtree(self, subroot: GraphNode):
+        """
+        Delete the subtree with node as subroot.
+
+        :param subroot:
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def distance_to_root_level(self, node: GraphNode) -> int:
         """ Returns distance to root level """
-        return self._operator.distance_to_root_level(node=node)
+        raise NotImplementedError()
 
-    def nodes_from_layer(self, layer_number: int) -> List[Any]:
+    @abstractmethod
+    def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
         """ Returns all nodes from specified layer """
-        return self._operator.nodes_from_layer(layer_number=layer_number)
+        raise NotImplementedError()
 
-    def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
+    @abstractmethod
+    def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
         """ Returns all node's children """
-        return self._operator.node_children(node=node)
+        raise NotImplementedError()
 
+    @abstractmethod
     def connect_nodes(self, node_parent: GraphNode, node_child: GraphNode):
         """ Add an edge from node_parent to node_child """
-        self._operator.connect_nodes(parent=node_parent, child=node_child)
+        raise NotImplementedError()
 
+    @abstractmethod
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
-                         clean_up_leftovers: bool = True):
+                         is_clean_up_leftovers: bool = True):
         """ Delete an edge from node_parent to node_child """
-        self._operator.disconnect_nodes(node_parent=node_parent, node_child=node_child,
-                                        clean_up_leftovers=clean_up_leftovers)
+        raise NotImplementedError()
 
+    @abstractmethod
     def get_nodes_degrees(self):
-        """ Nodes degree as the number of edges the node has:
-         k = k(in) + k(out) """
-        return self._operator.get_nodes_degrees()
+        """ Nodes degree as the number of edges the node has: k = k(in) + k(out) """
+        raise NotImplementedError()
 
+    @abstractmethod
     def get_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
         """ Returns all available edges in a given graph """
-        return self._operator.get_edges()
+        raise NotImplementedError()
 
-    def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
+    @abstractmethod
+    def __eq__(self, other) -> bool:
+        raise NotImplementedError()
+
+    def __str__(self):
+        return str(self.graph_description)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __len__(self):
+        return self.length
+
+    @property
+    def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
+        raise NotImplementedError()
+
+    @property
+    def nodes(self) -> Sequence[GraphNode]:
+        raise NotImplementedError()
+
+    @property
+    def descriptive_id(self):
+        raise NotImplementedError()
+
+    @property
+    def length(self) -> int:
+        return len(self.nodes)
+
+    @property
+    def depth(self) -> int:
+        raise NotImplementedError()
+
+    def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
              node_color: Optional[NodeColorType] = None, dpi: int = 300,
              node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
         """Visualizes graph or saves its picture to the specified ``path``
@@ -105,55 +145,91 @@ class Graph:
         GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
                                     edge_curvature_scale)
 
-    def __eq__(self, other_graph: 'Graph') -> bool:
-        """Compares this graph with the ``other_graph``
+    @property
+    def graph_description(self) -> Dict:
+        return {
+            'depth': self.depth,
+            'length': self.length,
+            'nodes': self.nodes,
+        }
 
-        :param other_graph: another graph
 
-        :return: is it equal to ``other_graph`` in terms of the graphs
-        """
-        return self._operator.is_graph_equal(other_graph)
+class GraphDelegate(Graph):
+    """
+    Graph that delegates calls to another Graph implementation.
 
-    @copy_doc(GraphOperator.graph_description)
-    def __str__(self) -> str:
-        return self._operator.graph_description()
+    The class purpose is for cleaner code organisation:
+    - avoid inheriting from specific Graph implementations
+    - hide Graph implementation details from inheritors.
 
-    def __repr__(self) -> str:
-        """Does the same as :meth:`__str__`
+    :param delegate: Graph implementation to delegate to.
+    """
 
-        :return: text graph representation
-        """
-        return self.__str__()
+    def __init__(self, delegate: Graph):
+        self.operator = delegate
+
+    def add_node(self, new_node: GraphNode):
+        self.operator.add_node(new_node)
+
+    def update_node(self, old_node: GraphNode, new_node: GraphNode):
+        self.operator.update_node(old_node, new_node)
+
+    def update_subtree(self, old_subroot: GraphNode, new_subroot: GraphNode):
+        self.operator.update_subtree(old_subroot, new_subroot)
+
+    def delete_node(self, node: GraphNode):
+        self.operator.delete_node(node)
+
+    def delete_subtree(self, subroot: GraphNode):
+        self.operator.delete_subtree(subroot)
+
+    def distance_to_root_level(self, node: GraphNode) -> int:
+        return self.operator.distance_to_root_level(node=node)
+
+    def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
+        return self.operator.nodes_from_layer(layer_number=layer_number)
+
+    def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
+        return self.operator.node_children(node=node)
+
+    def connect_nodes(self, node_parent: GraphNode, node_child: GraphNode):
+        self.operator.connect_nodes(node_parent, node_child)
+
+    def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
+                         is_clean_up_leftovers: bool = True):
+        self.operator.disconnect_nodes(node_parent, node_child, is_clean_up_leftovers)
+
+    def get_nodes_degrees(self):
+        return self.operator.get_nodes_degrees()
+
+    def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
+        return self.operator.get_edges()
+
+    def __eq__(self, other) -> bool:
+        return self.operator.__eq__(other)
+
+    def __str__(self):
+        return self.operator.__str__()
+
+    def __repr__(self):
+        return self.operator.__repr__()
 
     @property
-    def root_node(self) -> Union['GraphNode', List['GraphNode']]:
-        """Finds all the sink-nodes of the graph
+    def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
+        return self.operator.root_node
 
-        :return: the final predictors-nodes
-        :rtype: :class:`~fedot.core.dag.graph_node.GraphNode`
-            | List[:class:`~fedot.core.dag.graph_node.GraphNode`]
-        """
-        roots = self._operator.root_node()
-        return roots
+    @property
+    def nodes(self) -> Sequence[GraphNode]:
+        return self.operator.nodes
 
     @property
     def descriptive_id(self):
-        return self._operator.descriptive_id
+        return self.operator.descriptive_id
 
     @property
     def length(self) -> int:
-        """Returns size of the graph
-
-        :return: number of nodes in the graph
-        :rtype: int
-        """
-        return len(self.nodes)
+        return self.operator.length
 
     @property
     def depth(self) -> int:
-        """Returns depth of the graph starting from the farthest root node
-
-        :return: depth of the graph
-        :rtype: int
-        """
-        return self._operator.graph_depth()
+        return self.operator.depth
