@@ -1,8 +1,14 @@
+import numpy as np
+
+from fedot.core.composer.metrics import ROCAUC
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.visualisation.graph_viz import hierarchy_pos
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
@@ -91,3 +97,19 @@ def test_extract_objectives():
     all_objectives = visualiser.extract_objectives(individuals=individuals_history, transform_from_minimization=True)
     assert all_objectives[0][0] > 0 and all_objectives[0][2] > 0
     assert all_objectives[1][0] > 0 and all_objectives[1][2] > 0
+
+
+def test_roc_auc_multiclass_correct():
+    data = InputData(features=[[1, 2], [2, 3], [3, 4], [4, 1]], target=np.array([['x'], ['y'], ['z'], ['x']]),
+                     idx=np.arange(4),
+                     task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+    prediction = OutputData(features=[[1, 2], [2, 3], [3, 4], [4, 1]], predict=np.array([[0.4, 0.3, 0.3],
+                                                                                         [0.2, 0.5, 0.3],
+                                                                                         [0.1, 0.2, 0.7],
+                                                                                         [0.8, 0.1, 0.1]]),
+                            idx=np.arange(4), task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+    for cls in range(data.num_classes):
+        fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict[:, cls],
+                                               pos_label=data.class_labels[cls])
+        roc_auc = ROCAUC.auc(fpr, tpr)
+        assert roc_auc
