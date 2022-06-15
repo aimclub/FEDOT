@@ -220,9 +220,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                  params=self.graph_generation_params)
                 new_population = self._reproduce(selected_individuals)
 
-                new_population = list(map(
-                    lambda individual: self._mutate(individual, valid_parents=selected_individuals), new_population
-                ))
+                new_population = list(map(partial(self._mutate, valid_parents=selected_individuals), new_population))
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
