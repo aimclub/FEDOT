@@ -139,7 +139,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
-class Dispatcher(ObjectiveEvaluationDispatcher):
+class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population.
 
     Usage: call `dispatch(objective_function)` to get evaluation function.

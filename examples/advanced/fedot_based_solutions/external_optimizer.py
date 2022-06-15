@@ -4,7 +4,7 @@ from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
@@ -35,7 +35,7 @@ class RandomMutationSearchOptimizer(GraphOptimiser):
     def optimise(self, objective: ObjectiveFunction, show_progress: bool = True):
 
         timer = OptimisationTimer(log=self.log, timeout=self.requirements.timeout)
-        dispatcher = MultiprocessingDispatcher(self.graph_generation_params.adapter, timer, log=self.log, n_jobs=1)
+        dispatcher = SimpleDispatcher(self.graph_generation_params.adapter, timer)
         evaluator = dispatcher.dispatch(objective)
 
         num_iter = 0
