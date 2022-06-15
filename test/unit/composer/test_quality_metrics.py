@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from sklearn.datasets import load_breast_cancer
 
-from fedot.core.composer.metrics import QualityMetric
-from fedot.core.data.data import InputData
+from fedot.core.composer.metrics import QualityMetric, ROCAUC
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -104,3 +104,18 @@ def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
     results, new_test = QualityMetric()._simple_prediction(simple_pipeline, test)
     number_elements = len(new_test.target)
     assert source_shape[0] * source_shape[1] == number_elements
+
+def test_roc_auc_multiclass_correct():
+    data = InputData(features=[[1, 2], [2, 3], [3, 4], [4, 1]], target=np.array([['x'], ['y'], ['z'], ['x']]),
+                     idx=np.arange(4),
+                     task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+    prediction = OutputData(features=[[1, 2], [2, 3], [3, 4], [4, 1]], predict=np.array([[0.4, 0.3, 0.3],
+                                                                                         [0.2, 0.5, 0.3],
+                                                                                         [0.1, 0.2, 0.7],
+                                                                                         [0.8, 0.1, 0.1]]),
+                            idx=np.arange(4), task=Task(TaskTypesEnum.classification), data_type=DataTypesEnum.table)
+    for i in range(data.num_classes):
+        fpr, tpr, threshold = ROCAUC.roc_curve(data.target, prediction.predict[:, i],
+                                               pos_label=data.class_labels[i])
+        roc_auc = ROCAUC.auc(fpr, tpr)
+        assert roc_auc
