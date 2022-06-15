@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+from cases.multi_ts_level_forecasting import initial_pipeline, prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
@@ -25,28 +26,6 @@ def calculate_metrics(target, predicted):
     rmse = mean_squared_error(target, predicted, squared=True)
     mae = mean_absolute_error(target, predicted)
     return rmse, mae
-
-
-def initial_pipeline():
-    """
-        Return pipeline with the following structure:
-        lagged - ridge \
-                        -> ridge -> final forecast
-        lagged - ridge /
-    """
-    node_lagged_1 = PrimaryNode("lagged")
-    node_lagged_1.custom_params = {'window_size': 50}
-
-    node_smoth = PrimaryNode("smoothing")
-    node_lagged_2 = SecondaryNode("lagged", nodes_from=[node_smoth])
-    node_lagged_2.custom_params = {'window_size': 30}
-
-    node_ridge = SecondaryNode("ridge", nodes_from=[node_lagged_1])
-    node_lasso = SecondaryNode("lasso", nodes_from=[node_lagged_2])
-
-    node_final = SecondaryNode("ridge", nodes_from=[node_ridge, node_lasso])
-    pipeline = Pipeline(node_final)
-    return pipeline
 
 
 def get_available_operations():
@@ -79,26 +58,6 @@ def compose_pipeline(pipeline, train_data, task):
     obtained_pipeline = composer.compose_pipeline(data=train_data)
     obtained_pipeline.show()
     return obtained_pipeline
-
-
-def prepare_data(forecast_length, multi_ts):
-    columns_to_use = ['61_91', '56_86', '61_86', '66_86']
-    target_column = '61_91'
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
-    file_path = os.path.join(str(fedot_project_root()), 'cases/data/arctic/topaz_multi_ts.csv')
-    if multi_ts:
-        data = InputData.from_csv_multi_time_series(
-            file_path=file_path,
-            task=task,
-            columns_to_use=columns_to_use)
-    else:
-        data = InputData.from_csv_time_series(
-            file_path=file_path,
-            task=task,
-            target_column=target_column)
-    train_data, test_data = train_test_data_setup(data)
-    return train_data, test_data, task
 
 
 def run_multiple_ts_forecasting(forecast_length, multi_ts):

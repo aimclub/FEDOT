@@ -285,28 +285,29 @@ def single_drop_mutation(graph: Any, params, *args, **kwargs):
     """
     Drop single node from graph
     """
-    node_to_del = choice(graph.nodes)
-    node_name = node_to_del.content['name']
-    removal_type = params.advisor.can_be_removed(str(node_name))
-    if removal_type == RemoveType.with_direct_children:
-        # TODO refactor workaround with data_source
-        nodes_to_delete = \
-            [n for n in graph.nodes if str(node_name) in n.descriptive_id and
-             n.descriptive_id.count('data_source') == 1]
-        for child_node in nodes_to_delete:
-            graph.delete_node(child_node)
-        graph.delete_node(node_to_del)
-    elif removal_type == RemoveType.with_parents:
-        graph.delete_subtree(node_to_del)
-    elif removal_type != RemoveType.forbidden:
-        graph.delete_node(node_to_del)
-        if node_to_del.nodes_from:
-            childs = graph.operator.node_children(node_to_del)
-            for child in childs:
-                if child.nodes_from:
-                    child.nodes_from.extend(node_to_del.nodes_from)
-                else:
-                    child.nodes_from = node_to_del.nodes_from
+    if graph.nodes:
+        node_to_del = choice(graph.nodes)
+        node_name = node_to_del.content['name']
+        removal_type = params.advisor.can_be_removed(str(node_name))
+        if removal_type == RemoveType.with_direct_children:
+            # TODO refactor workaround with data_source
+            nodes_to_delete = \
+                [n for n in graph.nodes if str(node_name) in n.descriptive_id and
+                 n.descriptive_id.count('data_source') == 1]
+            for child_node in nodes_to_delete:
+                graph.delete_node(child_node)
+            graph.delete_node(node_to_del)
+        elif removal_type == RemoveType.with_parents:
+            graph.delete_subtree(node_to_del)
+        elif removal_type != RemoveType.forbidden:
+            graph.delete_node(node_to_del)
+            if node_to_del.nodes_from:
+                childs = graph.operator.node_children(node_to_del)
+                for child in childs:
+                    if child.nodes_from:
+                        child.nodes_from.extend(node_to_del.nodes_from)
+                    else:
+                        child.nodes_from = node_to_del.nodes_from
     return graph
 
 
