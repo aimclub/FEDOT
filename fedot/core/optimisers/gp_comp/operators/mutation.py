@@ -114,17 +114,17 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
              individual: Individual, requirements: 'PipelineComposerRequirements', log: Log,
-             max_depth: Optional[int] = None, valid_ancestors: Optional[List[Individual]] = None) -> Any:
+             max_depth: Optional[int] = None, valid_parents: Optional[List[Individual]] = None) -> Any:
     """ Function apply mutation operator to graph """
     def get_previous_valid_ancestors():
         for parent_operator in reversed(individual.parent_operators):
-            if all(parent_individual in valid_ancestors for parent_individual in parent_operator.parent_individuals):
+            if all(parent_individual in valid_parents for parent_individual in parent_operator.parent_individuals):
                 return parent_operator.parent_individuals
 
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
-    valid_ancestors = valid_ancestors or [individual]
-    parent_individuals = [individual] if individual in valid_ancestors else get_previous_valid_ancestors()
+    valid_parents = valid_parents or [individual]
+    parent_individuals = [individual] if individual in valid_parents else get_previous_valid_ancestors()
 
     for _ in range(MAX_NUM_OF_ATTEMPTS):
         new_graph = deepcopy(individual.graph)
