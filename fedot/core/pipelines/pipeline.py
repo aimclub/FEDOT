@@ -1,12 +1,12 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union, Sequence
 
 import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph import Graph, GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData, OutputData
@@ -25,32 +25,29 @@ from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_f
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-class Pipeline(Graph, Serializable):
+class Pipeline(GraphDelegate, Serializable):
     """
     Base class used for composite model structure definition
 
     :param nodes: Node object(s)
     """
 
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
+    def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
         self.computation_time = None
         self.log = default_log(self)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor()
-        super().__init__(nodes)
-        self._operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
+        operator = GraphOperator(nodes, self._graph_nodes_to_pipeline_nodes)
+        super().__init__(operator)
 
-    def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
+    def _graph_nodes_to_pipeline_nodes(self, nodes: Sequence[Node]):
         """
         Method to update nodes type after performing some action on the pipeline
             via GraphOperator, if any of them are of GraphNode type
 
         :param nodes: Node object(s)
         """
-
-        if not nodes:
-            nodes = self.nodes
 
         for node in nodes:
             if not isinstance(node, GraphNode):
@@ -59,12 +56,12 @@ class Pipeline(Graph, Serializable):
                 self.update_node(old_node=node,
                                  new_node=SecondaryNode(nodes_from=node.nodes_from,
                                                         content=node.content))
-            elif not node.nodes_from:
-                if not self.node_children(node) and node != self.root_node:
-                    self.nodes.remove(node)
-                elif not isinstance(node, PrimaryNode):
-                    self.update_node(old_node=node,
-                                     new_node=PrimaryNode(content=node.content))
+            # TODO: avoid internal access use operator.delete_node
+            elif not node.nodes_from and not self.node_children(node) and node != self.root_node:
+                self.operator.nodes.remove(node)
+            elif not node.nodes_from and not isinstance(node, PrimaryNode):
+                self.update_node(old_node=node,
+                                 new_node=PrimaryNode(content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
@@ -300,7 +297,7 @@ class Pipeline(Graph, Serializable):
         :param source: where to load the pipeline from
         :param dict_fitted_operations: dictionary of the fitted operations
         """
-        self._nodes = []
+        self.nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
