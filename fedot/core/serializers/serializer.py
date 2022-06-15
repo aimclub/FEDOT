@@ -45,6 +45,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 graph_from_json,
                 graph_node_to_json,
                 graph_to_json,
+                individual_from_json,
                 operation_to_json,
                 opt_history_from_json,
                 parent_operator_to_json,
@@ -56,9 +57,9 @@ class Serializer(JSONEncoder, JSONDecoder):
             _from_json = Serializer._from_json
             basic_serialization = {_to_json: any_to_json, _from_json: any_from_json}
             Serializer.CODERS_BY_TYPE = {
-                Individual: basic_serialization,
                 Objective: basic_serialization,
                 Fitness: basic_serialization,
+                Individual: {_to_json: any_to_json, _from_json: individual_from_json},
                 GraphNode: {_to_json: graph_node_to_json, _from_json: any_from_json},
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},

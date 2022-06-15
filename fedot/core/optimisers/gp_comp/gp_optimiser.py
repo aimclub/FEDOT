@@ -146,7 +146,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
         builder = InitialPopulationBuilder(self.graph_generation_params, self.log)
-        if not self.initial_graphs:
+        if not self.initial_individuals:
             random_graph_sampler = partial(random_graph, self.graph_generation_params, self.requirements, max_depth)
             builder.with_custom_sampler(random_graph_sampler)
         else:
@@ -156,8 +156,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             def mutate_operator(ind: Individual):
                 return self._mutate(ind, max_depth, custom_requirements=initial_req)
 
-            initial_graphs = [self.graph_generation_params.adapter.adapt(g) for g in self.initial_graphs]
-            builder.with_initial_graphs(initial_graphs).with_mutation(mutate_operator)
+            builder.with_initial_individuals(self.initial_individuals).with_mutation(mutate_operator)
 
         return builder.build(pop_size)
 
@@ -199,10 +198,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                               disable=not show_progress or self.log.verbosity_level == -1):
 
             # Adding of initial assumptions to history as zero generation
-            if self.initial_graphs:
-                initial_individuals = [Individual(self.graph_generation_params.adapter.adapt(g)) for g in
-                                       self.initial_graphs]
-                self._next_population(evaluator(initial_individuals))
+            if self.initial_individuals:
+                self._next_population(evaluator(self.initial_individuals))
 
             pop_size = self._pop_size.initial
             self._next_population(evaluator(self._init_population(pop_size, self._graph_depth.initial)))

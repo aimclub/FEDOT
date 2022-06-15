@@ -1,7 +1,7 @@
 from typing import Sequence
 
-from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
 from fedot.core.optimisers.archive import GenerationKeeper
+from fedot.core.optimisers.fitness import Fitness, MultiObjFitness, null_fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
