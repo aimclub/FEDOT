@@ -105,6 +105,7 @@ def test_data_preparation_for_multi_target_correct(multi_target_data_setup):
     number_elements = len(new_test.target)
     assert source_shape[0] * source_shape[1] == number_elements
 
+
 def test_roc_auc_multiclass_correct():
     data = InputData(features=[[1, 2], [2, 3], [3, 4], [4, 1]], target=np.array([['x'], ['y'], ['z'], ['x']]),
                      idx=np.arange(4),
