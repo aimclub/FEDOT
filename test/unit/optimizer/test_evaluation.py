@@ -4,7 +4,7 @@ import pytest
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import Fitness, null_fitness, SingleObjFitness
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher, SimpleDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -100,5 +100,59 @@ def test_multiprocessing_dispatcher_with_objective_throwing_exception():
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
 
     evaluator = MultiprocessingDispatcher(adapter).dispatch(throwing_exception_objective)
+    with pytest.raises(ZeroDivisionError):
+        evaluator(population)
+
+
+def test_simple_dispatcher_without_timelimit():
+    adapter = PipelineAdapter()
+    pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
+    population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
+
+    evaluator = SimpleDispatcher(adapter).dispatch(prepared_objective)
+    evaluated_population = evaluator(population)
+    fitness = list(map(lambda x: x.fitness, evaluated_population))
+    assert all(x.valid for x in fitness), "At least one fitness value is invalid"
+    assert len(pipelines) == len(evaluated_population), "Not all pipelines was evaluated"
+
+
+def test_simple_dispatcher_with_timelimit():
+    adapter = PipelineAdapter()
+    pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
+    population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
+
+    timeout = datetime.timedelta(minutes=0.001)
+    with OptimisationTimer(timeout=timeout) as t:
+        evaluator = SimpleDispatcher(adapter, timer=t).dispatch(prepared_objective)
+        evaluated_population = evaluator(population)
+    fitness = list(map(lambda x: x.fitness, evaluated_population))
+    assert all(x.valid for x in fitness), "At least one fitness value is invalid"
+    assert len(evaluated_population) < len(population), "Not all pipelines should be evaluated (not enough time)"
+
+    timeout = datetime.timedelta(minutes=5)
+    with OptimisationTimer(timeout=timeout) as t:
+        evaluator = SimpleDispatcher(adapter, timer=t).dispatch(prepared_objective)
+        evaluated_population = evaluator(population)
+    fitness = list(map(lambda x: x.fitness, evaluated_population))
+    assert all(x.valid for x in fitness), "At least one fitness value is invalid"
+    assert len(pipelines) == len(evaluated_population), "Not all pipelines was evaluated"
+
+
+def test_simple_dispatcher_with_invalid_objective():
+    adapter = PipelineAdapter()
+    pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
+    population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
+
+    evaluator = SimpleDispatcher(adapter).dispatch(invalid_objective)
+    with pytest.raises(AttributeError):
+        evaluator(population)
+
+
+def test_simple_dispatcher_with_objective_throwing_exception():
+    adapter = PipelineAdapter()
+    pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
+    population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
+
+    evaluator = SimpleDispatcher(adapter).dispatch(throwing_exception_objective)
     with pytest.raises(ZeroDivisionError):
         evaluator(population)

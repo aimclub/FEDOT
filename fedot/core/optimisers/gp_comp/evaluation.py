@@ -158,7 +158,14 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         """Return handler to this object that hides all details
         and allows only to evaluate population with provided objective."""
         self._objective_eval = objective
-        return partial(map, self.evaluate_single)
+        return self.evaluate_population
+
+    def evaluate_population(self, individuals: PopulationT) -> PopulationT:
+        mapped_evals = list(map(self.evaluate_single, individuals))
+        evaluated_population = list(filter(None, mapped_evals))
+        if not evaluated_population and individuals:
+            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+        return evaluated_population
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
         if with_time_limit and self.timer.is_time_limit_reached():
