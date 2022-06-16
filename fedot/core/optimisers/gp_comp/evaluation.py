@@ -143,6 +143,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     Usage: call `dispatch(objective_function)` to get evaluation function.
 
     :param graph_adapter: adapter for mapping between OptGraph and Graph.
+    :param timer: timer to set timeout for evaluation of population
     """
 
     def __init__(self,
