@@ -4,15 +4,14 @@ import numpy as np
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 
 
-def prepare_data(forecast_length, multi_ts):
+def prepare_data(forecast_length, is_multi_ts):
     """
     Function to form InputData from file with time-series
     """
@@ -21,7 +20,7 @@ def prepare_data(forecast_length, multi_ts):
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
     file_path = os.path.join(str(fedot_project_root()), 'cases/data/arctic/topaz_multi_ts.csv')
-    if multi_ts:
+    if is_multi_ts:
         data = InputData.from_csv_multi_time_series(
             file_path=file_path,
             task=task,
@@ -38,27 +37,19 @@ def prepare_data(forecast_length, multi_ts):
 def initial_pipeline():
     """
         Return pipeline with the following structure:
-        lagged - ridge \
-                        -> ridge -> final forecast
-        lagged - ridge /
+                    lagged - ridge \
+                                     -> ridge -> final forecast
+        smoothing - lagged - ridge /
     """
-    node_lagged_1 = PrimaryNode("lagged")
-    node_lagged_1.custom_params = {'window_size': 50}
-
-    node_smoth = PrimaryNode("smoothing")
-    node_lagged_2 = SecondaryNode("lagged", nodes_from=[node_smoth])
-    node_lagged_2.custom_params = {'window_size': 30}
-
-    node_ridge = SecondaryNode("ridge", nodes_from=[node_lagged_1])
-    node_lasso = SecondaryNode("lasso", nodes_from=[node_lagged_2])
-
-    node_final = SecondaryNode("ridge", nodes_from=[node_ridge, node_lasso])
-    pipeline = Pipeline(node_final)
+    pip_builder = PipelineBuilder() \
+        .add_sequence(('lagged', {'window_size': 50}), 'ridge', branch_idx=0) \
+        .add_sequence('smoothing', ('lagged', {'window_size': 30}), 'ridge', branch_idx=1).join_branches('ridge')
+    pipeline = pip_builder.to_pipeline()
     return pipeline
 
 
-def visualize_result(train, test, target, forecast, multi_ts):
-    if multi_ts:
+def visualize_result(train, test, target, forecast, is_multi_ts):
+    if is_multi_ts:
         history = np.ravel(train.target[:, 0])
     else:
         history = np.ravel(train.target)
@@ -71,18 +62,17 @@ def visualize_result(train, test, target, forecast, multi_ts):
     plt.show()
 
 
-def run_multi_ts_forecast(forecast_length, multi_ts):
+def run_multi_ts_forecast(forecast_length, is_multi_ts):
     """
-    Function for run experiment with use multi_ts data type (multi_ts=True) for train set extension
-    Or run experiment on one time-series (multi_ts=False)
+    Function for run experiment with use multi_ts data type (is_multi_ts=True) for train set extension
+    Or run experiment on one time-series (is_multi_ts=False)
     """
-    train_data, test_data, task = prepare_data(forecast_length, multi_ts)
+    train_data, test_data, task = prepare_data(forecast_length, is_multi_ts)
     # init model for the time series forecasting
     init_pipeline = initial_pipeline()
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=5,
-                  initial_assumption=init_pipeline,
                   n_jobs=1,
                   composer_params={
                       'max_depth': 5,
@@ -91,6 +81,7 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
                       'max_arity': 4,
                       'cv_folds': None,
                       'validation_blocks': None,
+                      'initial_assumption': init_pipeline,
                       'available_operations': ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
                                                'ridge', 'lasso', 'linear', 'cut']
                   })
@@ -103,7 +94,7 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
     target = np.ravel(test_data.target)
 
     # visualize results
-    visualize_result(train_data, test_data, target, forecast, multi_ts)
+    visualize_result(train_data, test_data, target, forecast, is_multi_ts)
 
     print(f'MAE: {mean_absolute_error(target, forecast)}')
     print(f'RMSE: {mean_squared_error(target, forecast)}')
@@ -114,5 +105,5 @@ def run_multi_ts_forecast(forecast_length, multi_ts):
 
 if __name__ == '__main__':
     forecast_length = 60
-    run_multi_ts_forecast(forecast_length, multi_ts=True)
-    run_multi_ts_forecast(forecast_length, multi_ts=False)
+    run_multi_ts_forecast(forecast_length, is_multi_ts=True)
+    run_multi_ts_forecast(forecast_length, is_multi_ts=False)

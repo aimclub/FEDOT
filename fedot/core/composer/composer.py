@@ -46,6 +46,10 @@ class ComposerRequirements:
         if self.cv_folds is not None and self.cv_folds <= 1:
             raise ValueError(f'Number of folds for KFold cross validation must be 2 or more.')
 
+    @property
+    def custom_initial_assumption(self):
+        return bool(list(set(self.primary + self.secondary)))
+
 
 class Composer(ABC):
     """
