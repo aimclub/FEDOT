@@ -202,6 +202,6 @@ def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilde
         raise ValueError("Expected Graph only with nodes of type 'Node'")
 
     # Need all root_nodes, hence GraphOperator (Pipeline.root_node returns just a single node or throws)
-    root_nodes = GraphOperator(rhs_tmp_graph).root_node()
+    root_nodes = GraphOperator.root_nodes(rhs_tmp_graph)
     merged_builder = PipelineBuilder(root_nodes) if isinstance(root_nodes, Node) else PipelineBuilder(*root_nodes)
     return merged_builder
