@@ -53,7 +53,7 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
 
     # Create builder for composer and set composer params
     builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser(parameters=optimiser_parameters)
+        metric_function).with_optimiser_params(parameters=optimiser_parameters)
 
     # Create GP-based composer
     composer = builder.build()

@@ -13,6 +13,8 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
+from fedot.core.optimisers.fitness import Fitness
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -221,29 +223,31 @@ class PipelineEvolutionVisualiser:
         plt.clf()
         plt.close('all')
 
-    def visualise_pareto(self, archive: Sequence[Any],
+    def visualise_pareto(self, front: Sequence[Individual],
                          objectives_numbers: Tuple[int, int] = (0, 1),
                          objectives_names: Sequence[str] = ('ROC-AUC', 'Complexity'),
                          file_name: str = 'result_pareto.png', show: bool = False, save: bool = True,
                          folder: str = f'../../tmp/pareto',
-                         generation_num: int = None, individuals: List[Any] = None, minmax_x: List[float] = None,
+                         generation_num: int = None,
+                         individuals: Sequence[Individual] = None,
+                         minmax_x: List[float] = None,
                          minmax_y: List[float] = None):
 
         pareto_obj_first, pareto_obj_second = [], []
-        for i in range(len(archive)):
-            fit_first = archive[i].fitness.values[objectives_numbers[0]]
+        for ind in front:
+            fit_first = ind.fitness.values[objectives_numbers[0]]
             pareto_obj_first.append(abs(fit_first))
-            fit_second = archive[i].fitness.values[objectives_numbers[1]]
+            fit_second = ind.fitness.values[objectives_numbers[1]]
             pareto_obj_second.append(abs(fit_second))
 
         fig, ax = plt.subplots()
 
         if individuals is not None:
             obj_first, obj_second = [], []
-            for i in range(len(individuals)):
-                fit_first = individuals[i].fitness.values[objectives_numbers[0]]
+            for ind in individuals:
+                fit_first = ind.fitness.values[objectives_numbers[0]]
                 obj_first.append(abs(fit_first))
-                fit_second = individuals[i].fitness.values[objectives_numbers[1]]
+                fit_second = ind.fitness.values[objectives_numbers[1]]
                 obj_second.append(abs(fit_second))
             ax.scatter(obj_first, obj_second, c='green')
 

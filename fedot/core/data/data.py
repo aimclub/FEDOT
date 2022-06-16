@@ -305,8 +305,13 @@ class InputData(Data):
 
     @property
     def num_classes(self) -> Optional[int]:
+        unique_values = self.class_labels
+        return len(unique_values) if unique_values is not None else None
+
+    @property
+    def class_labels(self) -> Optional[int]:
         if self.task.task_type == TaskTypesEnum.classification and self.target is not None:
-            return len(np.unique(self.target))
+            return np.unique(self.target)
         else:
             return None
 

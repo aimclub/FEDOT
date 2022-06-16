@@ -1,5 +1,6 @@
 import datetime
 from contextlib import contextmanager
+from typing import Optional
 
 from fedot.core.constants import COMPOSING_TUNING_PROPORTION
 
@@ -68,7 +69,7 @@ class ApiTime:
         return timeout_for_tuning
 
     @property
-    def datetime_composing(self):
+    def datetime_composing(self) -> Optional[datetime.timedelta]:
         if self.timeout_for_composing is None:
             return None
         return datetime.timedelta(minutes=self.timeout_for_composing)

@@ -106,8 +106,8 @@ def run_custom_example(timeout: datetime.timedelta = None):
         log=default_log(logger_name='Bayesian', verbose_level=1))
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
-    optimized_graph = optimiser.optimise(objective_eval)
-    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+    optimized_graphs = optimiser.optimise(objective_eval)
+    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
     optimized_network.show()
 

@@ -103,7 +103,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=task). \
-        with_optimiser(parameters=optimiser_parameters). \
+        with_optimiser_params(parameters=optimiser_parameters). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipelines([pipeline])
     composer = builder.build()

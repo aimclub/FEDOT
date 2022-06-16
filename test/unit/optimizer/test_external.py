@@ -32,12 +32,11 @@ class StaticOptimizer(GraphOptimiser):
                  **kwargs):
         super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
         self.change_types = []
-        self.node_name = kwargs.get('node_name')
+        self.node_name = kwargs.get('node_name') or 'logit'
 
     def optimise(self, objective: ObjectiveFunction, show_progress: bool = True):
-        if self.node_name:
-            return OptGraph(OptNode(self.node_name))
-        return OptGraph(OptNode('logit'))
+        graph = OptGraph(OptNode(self.node_name))
+        return [graph]
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])
