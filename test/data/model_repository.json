@@ -178,7 +178,7 @@
 	},
     "custom": {
 		"meta": "custom_model",
-		"tags": ["all_purpose", "non-default"]
+		"tags": ["custom_model", "all_purpose", "non-default"]
 	},
 	"xgboost": {
       "meta": "sklearn_class",

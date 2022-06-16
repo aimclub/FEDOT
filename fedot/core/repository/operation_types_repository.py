@@ -52,12 +52,11 @@ class OperationTypesRepository:
     its descriptions and metadata"""
 
     __initialized_repositories__ = {}
-
-    DEFAULT_MODEL_TAGS = ['linear', 'non_linear', 'all_purpose']
+    # The later the tag, the higher its priority in case of intersection
+    DEFAULT_MODEL_TAGS = ['linear', 'non_linear', 'custom_model', 'tree', 'boosting', 'ts_model', 'deep']
     DEFAULT_DATA_OPERATION_TAGS = [
         'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
-        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
-        'imbalanced', 'all_purpose'
+        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced'
     ]
 
     __repository_dict__ = {
