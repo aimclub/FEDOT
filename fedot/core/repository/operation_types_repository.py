@@ -298,7 +298,7 @@ class OperationTypesRepository:
         """ Finds the first suitable tag for the operation in the repository.
 
         :param operation: name of the operation.
-        :param tags_to_find: list of suitable tags.
+        :param tags_to_find: list of suitable tags. The later the tag, the higher its priority in case of intersection.
         :return: first suitable tag or None.
         """
         tags_to_find = tags_to_find or self.default_tags
@@ -306,7 +306,7 @@ class OperationTypesRepository:
         info = self.operation_info_by_id(operation)
         if info is None:
             return None
-        for tag in tags_to_find:
+        for tag in reversed(tags_to_find):
             if tag in info.tags:
                 return tag
         return None
@@ -319,7 +319,9 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
 
     :param opt_node: OptNode or its name.
     :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+        The later the tag, the higher its priority in case of intersection.
     :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+        The later the tag, the higher its priority in case of intersection.
     :param repos_tags: dictionary mapping OperationTypesRepository with suitable tags. Can be used only if no tags_model
         and tags_data specified.
     :return: first suitable tag or None.

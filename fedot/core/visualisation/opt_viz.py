@@ -402,7 +402,9 @@ class PipelineEvolutionVisualiser:
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+            The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+            The later the tag, the higher its priority in case of intersection.
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
@@ -455,7 +457,9 @@ class PipelineEvolutionVisualiser:
         :param history: OptHistory.
         :param save_path: path to save the visualization.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+            The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+            The later the tag, the higher its priority in case of intersection.
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         :param show_fitness_color: if False, the bar colors will not correspond to fitness.
