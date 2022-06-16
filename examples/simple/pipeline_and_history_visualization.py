@@ -14,7 +14,7 @@ def run_pipeline_and_history_visualization(with_pipeline_visualization=True):
 
     history.show('fitness_box', pct_best=0.5)
     history.show('operations_kde')
-    history.show('operations_animated_bar', save_path='example_animation.gif', show_fitness=False)
+    history.show('operations_animated_bar', save_path='example_animation.gif', show_fitness=True)
     if with_pipeline_visualization:
         pipeline.show()
 
