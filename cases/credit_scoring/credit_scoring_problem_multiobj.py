@@ -67,7 +67,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
 
     # Create builder for composer and set composer params
     builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metrics).with_optimiser(parameters=optimiser_parameters)
+        metrics).with_optimiser_params(parameters=optimiser_parameters)
 
     # Create GP-based composer
     composer = builder.build()

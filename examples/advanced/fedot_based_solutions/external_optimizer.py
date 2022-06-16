@@ -51,7 +51,7 @@ class RandomMutationSearchOptimizer(GraphOptimiser):
                     best = new
                 num_iter += 1
 
-        return best.graph
+        return [best.graph]
 
 
 def run_with_random_search_composer():

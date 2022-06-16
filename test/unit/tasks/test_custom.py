@@ -72,9 +72,8 @@ def test_custom_graph_opt():
         requirements=requirements, initial_graph=None)
 
     objective_eval = ObjectiveEvaluate(objective)
-    optimized_graph = optimiser.optimise(objective_eval)
-
-    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+    optimized_graphs = optimiser.optimise(objective_eval)
+    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
     assert optimized_network is not None
     assert isinstance(optimized_network, CustomModel)

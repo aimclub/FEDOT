@@ -1,6 +1,6 @@
 from copy import deepcopy
 from inspect import signature
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Collection, Sequence
 
 import numpy as np
 import pandas as pd
@@ -127,8 +127,10 @@ class Fedot:
         self.prediction: Optional[OutputData] = None
         self.train_data: Optional[InputData] = None
         self.test_data: Optional[InputData] = None
+
+        # Outputs
         self.current_pipeline: Optional[Pipeline] = None
-        self.best_models: Optional[HallOfFame] = None
+        self.best_models: Sequence[Pipeline] = ()
         self.history: Optional[OptHistory] = None
 
     def fit(self,
@@ -159,11 +161,11 @@ class Fedot:
             # Fit predefined model and return it without composing
             self.current_pipeline = self._process_predefined_model(predefined_model)
         else:
-            self.current_pipeline, self.best_models, self.history = self.api_composer.obtain_model(
-                **self.params.api_params)
+            self.current_pipeline, self.best_models, self.history = \
+                self.api_composer.obtain_model(**self.params.api_params)
 
         # Final fit for obtained pipeline on full dataset
-        if self.history is not None:
+        if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
             self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
             self.params.api_params['logger'].message('Final pipeline was fitted')
         else:
@@ -272,7 +274,11 @@ class Fedot:
 
     def plot_pareto(self):
         metric_names = self.params.metric_to_compose
-        PipelineEvolutionVisualiser().visualise_pareto(archive=self.best_models,
+        # archive_history stores archives of the best models.
+        # Each archive is sorted from the best to the worst model,
+        # so the best_candidates is sorted too.
+        best_candidates = self.history.archive_history[-1]
+        PipelineEvolutionVisualiser().visualise_pareto(front=best_candidates,
                                                        objectives_names=metric_names,
                                                        show=True)
 
@@ -370,10 +376,6 @@ class Fedot:
         self.train_data = self.data_processor.define_data(features=self.train_data, is_predict=False)
         self.test_data = self.data_processor.define_data(features=self.test_data, is_predict=True)
         self.predict(self.test_data)
-
-    def update_params(self, timeout, num_of_generations, initial_assumption):
-        if initial_assumption is not None:
-            self.params.api_params['initial_assumption'] = initial_assumption
 
     def explain(self, features: FeaturesType = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':

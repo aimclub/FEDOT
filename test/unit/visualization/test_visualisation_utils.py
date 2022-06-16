@@ -3,6 +3,7 @@ from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
+
 from fedot.core.visualisation.graph_viz import hierarchy_pos
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
