@@ -30,7 +30,7 @@ def prepare_builder_with_custom_params(return_all: bool):
 
     builder_with_custom_params = ComposerBuilder(task=task).with_requirements(
         composer_requirements).with_metrics(
-        metric_function).with_optimiser(parameters=optimiser_parameters)
+        metric_function).with_optimiser_params(parameters=optimiser_parameters)
 
     if return_all:
         return builder_with_custom_params, scheme_type, metric_function, task

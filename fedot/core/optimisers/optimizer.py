@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Callable, List, Optional, Sequence, Union)
+from typing import (Any, Callable, List, Optional, Union, Sequence, Collection)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
@@ -38,7 +38,6 @@ class GraphOptimiserParameters:
         self.with_auto_depth_configuration = with_auto_depth_configuration
         self.depth_increase_step = depth_increase_step
         self.multi_objective = multi_objective
-        self.history_folder = history_folder
         self.stopping_after_n_generation = stopping_after_n_generation
 
 
@@ -98,12 +97,12 @@ class GraphOptimiser:
 
     @abstractmethod
     def optimise(self, objective: ObjectiveFunction,
-                 show_progress: bool = True) -> Union[OptGraph, List[OptGraph]]:
+                 show_progress: bool = True) -> Sequence[OptGraph]:
         """
         Method for running of optimization using specified algorithm.
         :param objective: objective function that specifies optimization target
         :param show_progress: print output the describes the progress during iterations
-        :return: best graph (or list of graph for multi-objective case)
+        :return: sequence of the best graphs
         """
         pass
 

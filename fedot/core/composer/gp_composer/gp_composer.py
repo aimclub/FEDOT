@@ -1,8 +1,5 @@
-import platform
 from dataclasses import dataclass
-from functools import partial
-from multiprocessing import set_start_method
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Sequence, Union, Collection, Tuple
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
@@ -12,17 +9,9 @@ from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
-from fedot.core.optimisers.opt_history import OptHistory, log_to_history
+from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import common_rules, ts_rules
-from fedot.core.repository.tasks import TaskTypesEnum
-
-
-def set_multiprocess_start_method():
-    system = platform.system()
-    if system == 'Linux':
-        set_start_method("spawn", force=True)
 
 
 @dataclass
@@ -69,41 +58,31 @@ class GPComposer(Composer):
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
+                 history: Optional[OptHistory] = None,
                  logger: Optional[Log] = None,
                  cache: Optional[OperationsCache] = None):
 
         super().__init__(optimiser, composer_requirements, initial_pipelines, logger)
         self.composer_requirements = composer_requirements
 
-        self.optimiser = optimiser
+        self.optimiser: GraphOptimiser = optimiser
         self.cache: Optional[OperationsCache] = cache
+        self.history: Optional[OptHistory] = history
+        self.best_models: Collection[Pipeline] = ()
 
-        self._history = OptHistory(self.optimiser.objective, self.optimiser.parameters.history_folder)
         self.objective_builder = DataObjectiveBuilder(optimiser.objective,
                                                       composer_requirements.max_pipeline_fit_time,
                                                       composer_requirements.cv_folds,
                                                       composer_requirements.validation_blocks,
                                                       cache, logger)
 
-    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
-        self.optimiser.graph_generation_params.advisor.task = data.task
-
-        # TODO: move this late-init logic to the point before optimiser is constructed
-        if data.task.task_type is TaskTypesEnum.ts_forecasting:
-            self.optimiser.graph_generation_params.rules_for_constraint = ts_rules + common_rules
-        else:
-            self.optimiser.graph_generation_params.rules_for_constraint = common_rules
-
-        if self.composer_requirements.max_pipeline_fit_time:
-            set_multiprocess_start_method()
-
+    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary
         data.shuffle()
 
         # Keep history of optimization
-        self._history.clean_results()
-        history_callback = partial(log_to_history, self._history)
-        self.optimiser.set_optimisation_callback(history_callback)
+        if self.history:
+            self.history.clean_results()
 
         # Define objective function
         objective_evaluator = self.objective_builder.build(data)
@@ -116,19 +95,17 @@ class GPComposer(Composer):
         # Finally, run optimization process
         opt_result = self.optimiser.optimise(objective_function)
 
-        best_pipeline = self._convert_opt_results_to_pipeline(opt_result)
+        best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
-        return best_pipeline
+        return best_model
 
-    def _convert_opt_results_to_pipeline(self, opt_result: Union[OptGraph, List[OptGraph]]) -> Pipeline:
-        return [self.optimiser.graph_generation_params.adapter.restore(graph)
-                for graph in opt_result] if isinstance(opt_result, list) \
-            else self.optimiser.graph_generation_params.adapter.restore(opt_result)
+    def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Pipeline, Sequence[Pipeline]]:
+        adapter = self.optimiser.graph_generation_params.adapter
+        multi_objective = self.optimiser.objective.is_multi_objective
+        best_pipelines = [adapter.restore(graph) for graph in opt_result]
+        chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]
+        return chosen_best_pipeline, best_pipelines
 
     @staticmethod
     def tune_pipeline(pipeline: Pipeline, data: InputData, time_limit):
         raise NotImplementedError()
-
-    @property
-    def history(self):
-        return self._history

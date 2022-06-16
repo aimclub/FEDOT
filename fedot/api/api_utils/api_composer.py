@@ -1,14 +1,11 @@
 import datetime
 import gc
 import traceback
-from typing import Callable, Dict, List, Optional, Type, Union, Tuple
-
-import numpy as np
-from sklearn.metrics import mean_squared_error, roc_auc_score as roc_auc
+from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.presets import update_builder
+from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -20,19 +17,13 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.optimisers.archive import HallOfFame
-from fedot.core.optimisers.gp_comp.gp_optimiser import (
-    EvoGraphOptimiser,
-    GeneticSchemeTypesEnum,
-    GPGraphOptimiserParameters
-)
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsRepository
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
@@ -41,8 +32,6 @@ class ApiComposer:
 
     def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
-        self.optimiser = EvoGraphOptimiser
-        self.optimizer_external_parameters = None
         self.cache: Optional[OperationsCache] = None
         self.preset_name = None
         self.timer = None
@@ -75,63 +64,6 @@ class ApiComposer:
         # Start composing - pipeline structure search
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict, preset)
 
-    def get_gp_composer_builder(self, task: Task,
-                                metric_function,
-                                preset: str,
-                                full_minutes_timeout: int,
-                                composer_requirements: PipelineComposerRequirements,
-                                optimiser: Type[GraphOptimiser],
-                                optimizer_parameters: GraphOptimiserParameters,
-                                data: Union[InputData, MultiModalData],
-                                logger: Log,
-                                initial_assumption: Union[Pipeline, List[Pipeline]] = None,
-                                optimizer_external_parameters: Optional[Dict] = None):
-        """
-        Return GPComposerBuilder with parameters and if it is necessary
-        initial_assumption in it
-
-        :param task: task for solving
-        :param metric_function: function for individuals evaluating
-        :param preset: name of using preset
-        :param full_minutes_timeout: number of minutes for all AutoML
-        :param composer_requirements: params for composer
-        :param optimiser: optimiser for composer
-        :param optimizer_parameters: params for optimizer
-        :param data: data for evaluating
-        :param logger: log object
-        :param initial_assumption: list of initial pipelines
-        :param optimizer_external_parameters: eternal parameters for optimizer
-        """
-
-        # TODO: make it cleaner after jetbrains will solve https://youtrack.jetbrains.com/issue/PY-28496 in the future
-        builder = ComposerBuilder(task=task) \
-            .with_requirements(composer_requirements) \
-            .with_optimiser(optimiser, optimizer_parameters, optimizer_external_parameters) \
-            .with_metrics(metric_function) \
-            .with_logger(logger) \
-            .with_cache(self.cache)
-
-        if initial_assumption is None:
-            initial_pipelines = AssumptionsBuilder.get(task, data).build()
-        elif isinstance(initial_assumption, Pipeline):
-            initial_pipelines = [initial_assumption]
-        else:
-            if not isinstance(initial_assumption, list):
-                prefix = 'Incorrect type of initial_assumption'
-                raise ValueError(f'{prefix}: List[Pipeline] or Pipeline needed, but has {type(initial_assumption)}')
-            initial_pipelines = initial_assumption
-        # Check initial assumption
-        fitted_pipeline, fit_time = fit_and_check_correctness(initial_pipelines[0], data, logger=logger,
-                                                              cache=self.cache,
-                                                              n_jobs=composer_requirements.n_jobs)
-        builder = builder.with_initial_pipelines(initial_pipelines)
-
-        # Update builder and preset if required
-        builder, new_preset = update_builder(builder, composer_requirements, fit_time, full_minutes_timeout, preset)
-        # Store information about preset
-        self.preset_name = new_preset
-        return builder, fitted_pipeline, fit_time
-
     @staticmethod
     def divide_operations(available_operations, task):
         """ Function divide operations for primary and secondary """
@@ -158,60 +90,26 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    @staticmethod
-    def _set_initial_assumption(api_params: dict, composer_params: dict):
-        """ Generates and sets an initial assumption, if not given, from the given available operations
-        Also, since it is impossible to form a valid pipeline for the time series problem without 'lagged' operation,
-        if it is not in the list of available ones, it is added """
-
-        if api_params['task'].task_type is TaskTypesEnum.ts_forecasting and \
-                'lagged' not in composer_params['available_operations']:
-            composer_params['available_operations'].append('lagged')
-
-        if not api_params['initial_assumption']:
-            is_input = isinstance(api_params['train_data'], InputData)
-            if is_input and api_params['train_data'].data_type == DataTypesEnum.multi_ts:
-                # It is needed to use data operations also for multi_ts data
-                repository_name = 'all'
-            else:
-                repository_name = 'model'
-            assumptions_builder = AssumptionsBuilder(task=api_params['task'],
-                                                     data=api_params['train_data'],
-                                                     repository_name=repository_name) \
-                .get(api_params['task'], api_params['train_data']) \
-                .with_logger(api_params['logger']) \
-                .from_operations(composer_params['available_operations'])
-            api_params['initial_assumption'] = assumptions_builder.build()
-
     def init_cache(self, use_cache: bool):
         if use_cache:
             self.cache = OperationsCache()
             #  in case of previously generated singleton cache
             self.cache.reset()
 
-    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
-                            preset: str) -> Tuple[Pipeline, HallOfFame, OptHistory]:
-        """ Function for composing FEDOT pipeline model """
-        # Initialize timer for all AutoMl operations
-        self.timer = ApiTime(time_for_automl=api_params['timeout'],
-                             with_tuning=tuning_params['with_tuning'])
+    @staticmethod
+    def _init_composer_requirements(api_params: dict,
+                                    composer_params: dict,
+                                    datetime_composing: Optional[datetime.timedelta],
+                                    preset: str) -> PipelineComposerRequirements:
 
-        metric_function = self.obtain_metric(api_params['task'], composer_params['composer_metric'])
+        task = api_params['task']
 
-        if not composer_params['available_operations']:
-            composer_params['available_operations'] = get_operations_for_task(api_params['task'], mode='model')
-        else:
-            self._set_initial_assumption(api_params=api_params, composer_params=composer_params)
+        # define available operations
+        available_operations = composer_params.get('available_operations',
+                                                   OperationsPreset(task, preset).filter_operations_by_preset())
+        primary_operations, secondary_operations = \
+            ApiComposer.divide_operations(available_operations, task)
 
-        api_params['logger'].message('AutoML started. Parameters tuning: {}. ''Set of candidate models: {}. '
-                                     'Time limit: {} min'.format(tuning_params['with_tuning'],
-                                                                 composer_params['available_operations'],
-                                                                 api_params['timeout']))
-
-        primary_operations, secondary_operations = self.divide_operations(composer_params['available_operations'],
-                                                                          api_params['task'])
-
-        # the choice and initialisation of the GP composer
         composer_requirements = PipelineComposerRequirements(primary=primary_operations,
                                                              secondary=secondary_operations,
                                                              max_arity=composer_params['max_arity'],
@@ -222,13 +120,16 @@ class ApiComposer:
                                                              num_of_generations=composer_params['num_of_generations'],
                                                              cv_folds=composer_params['cv_folds'],
                                                              validation_blocks=composer_params['validation_blocks'],
-                                                             timeout=self.timer.datetime_composing,
+                                                             timeout=datetime_composing,
                                                              n_jobs=api_params['n_jobs'],
                                                              collect_intermediate_metric=composer_params[
                                                                  'collect_intermediate_metric'])
+        return composer_requirements
+
+    @staticmethod
+    def _init_optimiser_params(task: Task, composer_params: dict) -> GPGraphOptimiserParameters:
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
@@ -236,152 +137,153 @@ class ApiComposer:
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
                      MutationTypesEnum.single_add]
-
         # TODO remove workaround after validation fix
-        if api_params['task'].task_type is not TaskTypesEnum.ts_forecasting:
+        if task.task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
-        optimizer_parameters = GPGraphOptimiserParameters(
+        optimiser_parameters = GPGraphOptimiserParameters(
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=mutations,
             crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
-            history_folder=composer_params.get('history_folder'),
             stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
-        if 'optimizer' in composer_params:
-            self.optimiser = composer_params['optimizer']
-        if 'optimizer_external_params' in composer_params:
-            self.optimizer_external_parameters = composer_params['optimizer_external_params']
+        return optimiser_parameters
 
-        builder, fitted_initial_pipeline, init_pipeline_fit_time = \
-            self.get_gp_composer_builder(task=api_params['task'],
-                                         metric_function=metric_function,
-                                         preset=preset,
-                                         full_minutes_timeout=api_params['timeout'],
-                                         composer_requirements=composer_requirements,
-                                         optimiser=self.optimiser,
-                                         optimizer_parameters=optimizer_parameters,
-                                         optimizer_external_parameters=self.optimizer_external_parameters,
-                                         data=api_params['train_data'],
-                                         initial_assumption=api_params['initial_assumption'],
-                                         logger=api_params['logger'])
-        gp_composer: Optional[GPComposer] = None
-        timeout_were_set = self.timer.datetime_composing is not None
-        if timeout_were_set and init_pipeline_fit_time >= self.timer.datetime_composing / composer_params['pop_size']:
-            api_params['logger'].message(f'Timeout is too small for composing '
-                                         f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.,'
-                                         ' so it is skipped.')
-            # Use initial pipeline as final solution
-            pipeline_gp_composed = fitted_initial_pipeline
-        else:
+    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
+                            preset: str) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+        """ Function for composing FEDOT pipeline model """
+        log = api_params['logger']
+        task = api_params['task']
+        train_data = api_params['train_data']
+        timeout = api_params['timeout']
+        with_tuning = tuning_params['with_tuning']
+
+        # Initialize timer for all AutoMl operations
+        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
+
+        # Set initial assumption and check correctness
+
+        available_operations = composer_params['available_operations']
+        initial_assumption = api_params['initial_assumption']
+        if initial_assumption is None:
+            assumptions_builder = AssumptionsBuilder \
+                .get(task, train_data) \
+                .from_operations(available_operations) \
+                .with_logger(log)
+            initial_assumption = assumptions_builder.build()
+        elif isinstance(initial_assumption, Pipeline):
+            initial_assumption = [initial_assumption]
+        fitted_initial_pipeline, init_pipeline_fit_time = \
+            fit_and_check_correctness(initial_assumption[0], train_data,
+                                      logger=log, cache=self.cache, n_jobs=api_params['n_jobs'])
+        log.message(f'Initial pipeline was fitted for {init_pipeline_fit_time.total_seconds()} sec.')
+
+        if not preset or preset == 'auto':
+            preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, timeout)
+            self.preset_name = preset
+            log.info(f"Preset was changed to {preset}")
+
+        composer_requirements = self._init_composer_requirements(api_params, composer_params,
+                                                                 self.timer.datetime_composing, preset)
+
+        # Get optimiser, its parameters, and composer
+
+        metric_function = self.obtain_metric(task, composer_params['composer_metric'])
+
+        log.message(f"AutoML configured."
+                    f" Parameters tuning: {with_tuning}."
+                    f" Time limit: {timeout} min."
+                    f" Set of candidate models: {available_operations}.")
+
+        builder = ComposerBuilder(task=task) \
+            .with_requirements(composer_requirements) \
+            .with_initial_pipelines(initial_assumption) \
+            .with_optimiser(composer_params.get('optimizer')) \
+            .with_optimiser_params(parameters=self._init_optimiser_params(task, composer_params),
+                                   external_parameters=composer_params.get('optimizer_external_params')) \
+            .with_metrics(metric_function) \
+            .with_history(composer_params.get('history_folder')) \
+            .with_logger(log) \
+            .with_cache(self.cache)
+        gp_composer: GPComposer = builder.build()
+
+        if self._have_time_for_composing(init_pipeline_fit_time, composer_params['pop_size']):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
-                gp_composer = builder.build()
-                api_params['logger'].message(f'Pipeline composition started. Initial pipeline was fitted '
-                                             f'for fit_time {init_pipeline_fit_time.total_seconds()} sec.')
-                pipeline_gp_composed = gp_composer.compose_pipeline(data=api_params['train_data'])
-
-        if isinstance(pipeline_gp_composed, list):
-            for pipeline in pipeline_gp_composed:
-                pipeline.log = api_params['logger']
-            pipeline_gp_composed = pipeline_gp_composed[0]
-            # TODO: remove such access to internals
-            best_candidates = gp_composer.optimiser.generations.archive
+                log.message(f'Pipeline composition started.')
+                best_pipelines = gp_composer.compose_pipeline(data=train_data)
+                best_pipeline_candidates = gp_composer.best_models
         else:
-            best_candidates = [pipeline_gp_composed]
-            pipeline_gp_composed.log = api_params['logger']
+            # Use initial pipeline as final solution
+            log.message(f'Timeout is too small for composing and is skipped '
+                        f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.')
+            best_pipelines = fitted_initial_pipeline
+            best_pipeline_candidates = [fitted_initial_pipeline]
 
-        # Tune only the best pipeline
-        pipeline_gp_composed = self.tune_final_pipeline(api_params=api_params, tuning_params=tuning_params,
-                                                        composer_requirements=composer_requirements,
-                                                        pipeline_gp_composed=pipeline_gp_composed,
-                                                        timer=self.timer,
-                                                        init_pipeline_fit_time=init_pipeline_fit_time)
+        best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
 
-        api_params['logger'].message('Model generation finished')
+        # Workaround for logger missing after adapting/restoring
+        for pipeline in best_pipeline_candidates:
+            pipeline.log = log
 
-        if gp_composer is not None:
-            history = gp_composer.history
-        else:
-            history = None
-
+        if with_tuning:
+            timeout_for_tuning = self.timer.determine_resources_for_tuning(init_pipeline_fit_time)
+            self.tune_final_pipeline(task, train_data,
+                                     tuning_params['tuner_metric'],
+                                     composer_requirements,
+                                     best_pipeline,
+                                     timeout_for_tuning,
+                                     log)
         # enforce memory cleaning
         gc.collect()
-        return pipeline_gp_composed, best_candidates, history
 
-    def tuner_metric_by_name(self, train_data: InputData, task: Task):
-        """ Function allow to obtain metric for tuner by its name
+        log.message('Model generation finished')
+        return best_pipeline, best_pipeline_candidates, gp_composer.history
 
-        :param train_data: InputData for train
-        :param task: task to solve
+    def _have_time_for_composing(self, init_pipeline_fit_time: datetime.timedelta, pop_size: int) -> bool:
+        timeout_not_set = self.timer.datetime_composing is None
+        return timeout_not_set or init_pipeline_fit_time < self.timer.datetime_composing / pop_size
 
-        :return tuner_loss: loss function for tuner
-        :return loss_params: parameters for tuner loss (can be None in some cases)
-        """
-        loss_params_dict = {roc_auc: {'multi_class': 'ovr', 'average': 'macro'},
-                            mean_squared_error: {'squared': False}}
-
-        if task.task_type is TaskTypesEnum.regression or task.task_type is TaskTypesEnum.ts_forecasting:
-            loss_function = mean_squared_error
-            loss_params = {'squared': False}
-        elif task.task_type is TaskTypesEnum.classification:
-            # Default metric for time classification
-            amount_of_classes = len(np.unique(np.array(train_data.target)))
-            loss_function = roc_auc
-            if amount_of_classes == 2:
-                loss_params = None
-            else:
-                loss_params = loss_params_dict[loss_function]
-        else:
-            raise NotImplementedError(f'Metric for "{task.task_type}" is not supported')
-
-        if loss_function is None:
-            raise ValueError(f'Incorrect tuner metric {loss_function}')
-
-        return loss_function, loss_params
-
-    def tune_final_pipeline(self, api_params, tuning_params,
-                            composer_requirements, pipeline_gp_composed,
-                            timer: ApiTime, init_pipeline_fit_time):
+    def tune_final_pipeline(self, task: Task,
+                            train_data: InputData,
+                            tuner_metric: Optional[MetricType],
+                            composer_requirements: PipelineComposerRequirements,
+                            pipeline_gp_composed: Pipeline,
+                            timeout_for_tuning: int,
+                            log: Log):
         """ Launch tuning procedure for obtained pipeline by composer """
-        if not tuning_params['with_tuning']:
-            # Return source pipeline
-            return pipeline_gp_composed
-
-        timeout_for_tuning = timer.determine_resources_for_tuning(init_pipeline_fit_time)
 
         if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
-            api_params['logger'].info(f'Time for pipeline composing was {str(timer.composing_spend_time)}.\n'
-                                      f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
-                                      f'to tune the hyperparameters.')
-            api_params['logger'].info('Composed pipeline returned without tuning.')
+            log.info(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
+                     f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
+                     f'to tune the hyperparameters.')
+            log.info('Composed pipeline returned without tuning.')
         else:
-            if tuning_params['tuner_metric'] is None:
+            if tuner_metric is None:
                 # Default metric for tuner
-                tune_metrics = TunerMetricByTask(api_params['task'].task_type)
-                tuner_loss, loss_params = tune_metrics.get_metric_and_params(api_params['train_data'])
-                api_params['logger'].message(f'Tuner metric is None, '
-                                             f'{tuner_loss.__name__} was set as default')
+                tune_metrics = TunerMetricByTask(task.task_type)
+                tuner_loss, loss_params = tune_metrics.get_metric_and_params(train_data)
+                log.message(f'Tuner metric is None, {tuner_loss.__name__} is set as default')
             else:
                 # Get metric and parameters by name
-                tuner_loss, loss_params = self.tuner_metric_by_name(train_data=api_params['train_data'],
-                                                                    task=api_params['task'])
+                loss_params = None
+                tuner_loss = MetricsRepository().metric_by_id(tuner_metric, default_callable=tuner_metric)
 
             # Tune all nodes in the pipeline
-            with timer.launch_tuning():
-                api_params['logger'].message('Hyperparameters tuning started')
+            with self.timer.launch_tuning():
+                log.message('Hyperparameters tuning started')
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
                 pipeline_gp_composed = pipeline_gp_composed. \
                     fine_tune_all_nodes(loss_function=tuner_loss,
                                         loss_params=loss_params,
-                                        input_data=api_params['train_data'],
+                                        input_data=train_data,
                                         iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
                                         timeout=timeout_for_tuning,
                                         cv_folds=folds,
                                         validation_blocks=vb_number)
-                api_params['logger'].message('Hyperparameters tuning finished')
+                log.message('Hyperparameters tuning finished')
         return pipeline_gp_composed
 
 

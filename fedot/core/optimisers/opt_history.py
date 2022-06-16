@@ -34,6 +34,9 @@ class OptHistory:
         self.archive_history: List[List[Individual]] = []
         self.save_folder: Optional[str] = save_folder
 
+    def is_empty(self) -> bool:
+        return not self.individuals
+
     def add_to_history(self, individuals: List[Individual]):
         new_inds = deepcopy(individuals)
         self.individuals.append(new_inds)

@@ -263,7 +263,7 @@ def test_multiobj_for_api():
 
     assert len(prediction) == len(test_data.target)
     assert metric['f1'] > 0
-    assert model.best_models is not None
+    assert model.best_models is not None and len(model.best_models) > 0
 
 
 def test_categorical_preprocessing_unidata():

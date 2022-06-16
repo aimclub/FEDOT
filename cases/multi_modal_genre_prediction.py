@@ -42,9 +42,13 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
     logger = default_log('FEDOT logger', verbose_level=4)
 
     # the multi modal template (with data sources) is passed as initial assumption for composer
-    builder = ComposerBuilder(task=task).with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_optimiser(parameters=optimiser_parameters).with_logger(logger=logger). \
-        with_initial_pipelines([initial_pipeline]).with_cache('multi_modal_opt.cache')
+    builder = ComposerBuilder(task=task) \
+        .with_requirements(composer_requirements) \
+        .with_metrics(metric_function) \
+        .with_optimiser_params(parameters=optimiser_parameters) \
+        .with_logger(logger=logger) \
+        .with_initial_pipelines([initial_pipeline]) \
+        .with_cache('multi_modal_opt.cache')
 
     # Create GP-based composer
     composer = builder.build()
