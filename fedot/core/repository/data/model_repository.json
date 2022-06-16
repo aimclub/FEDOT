@@ -446,6 +446,7 @@
     "custom": {
 		"meta": "custom_model",
 		"tags": [
+          "custom_model",
           "all_purpose",
           "non-default"
         ]
