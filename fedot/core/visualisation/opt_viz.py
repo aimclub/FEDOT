@@ -6,7 +6,7 @@ from glob import glob
 from os import remove
 from pathlib import Path
 from time import time
-from typing import Any, List, Optional, Sequence, Tuple
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -349,6 +349,18 @@ class PipelineEvolutionVisualiser:
 
         return df_history
 
+    @staticmethod
+    def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
+        if not save_path:
+            figure.show()
+        else:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
+            figure.savefig(save_path, dpi=300)
+            print(f'The figure was saved to "{save_path}".')
+            plt.close()
+
     def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
                               pct_best: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
@@ -383,17 +395,9 @@ class PipelineEvolutionVisualiser:
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
         ax.yaxis.grid(True)
 
-        if not save_path:
-            plt.show()
-        else:
-            save_path = Path(save_path)
-            if not save_path.is_absolute():
-                save_path = Path(os.getcwd(), save_path)
-            fig.savefig(save_path, dpi=300)
-            print(f'The figure was saved to "{save_path}".')
-            plt.close()
+        self.__show_or_save_figure(fig, save_path)
 
-    def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[str] = None,
+    def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
                                  pct_best: Optional[float] = None):
         """ Visualizes operations used across generations in the form of KDE.
@@ -436,19 +440,10 @@ class PipelineEvolutionVisualiser:
         ax = plt.gca()
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
-        # ax.legend()
-        # plt.tight_layout()
 
-        if save_path:
-            save_path = Path(save_path)
-            if not save_path.is_absolute():
-                save_path = Path(os.getcwd(), save_path)
+        self.__show_or_save_figure(fig, save_path)
 
-            fig.savefig(save_path, dpi=300)
-            print(f'The figure was saved to "{save_path}".')
-            plt.close()
-
-    def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: str,
+    def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
                                           tags_model: Optional[List[str]] = None,
                                           tags_data: Optional[List[str]] = None,
                                           pct_best: Optional[float] = None, show_fitness_color: bool = True):

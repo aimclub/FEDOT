@@ -125,7 +125,7 @@ class OptHistory:
             os.mkdir(path)
 
     def show(self, plot_type: Optional[Union[PlotTypesEnum, str]] = PlotTypesEnum.fitness_box,
-             save_path: Optional[str] = None,
+             save_path: Optional[Union[os.PathLike, str]] = None,
              pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
         """ Visualizes fitness values or operations used across generations.
 
@@ -152,6 +152,8 @@ class OptHistory:
                 raise ValueError(msg_if_not)
             warnings.warn(msg_if_not, stacklevel=3)
             return False
+
+        print('Visualizing optimization history... It may take some time, depending on the history size.')
 
         if isinstance(plot_type, str):
             try:
