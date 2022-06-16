@@ -95,3 +95,13 @@ def test_operation_types_repository_repr():
     repository = OperationTypesRepository().assign_repo('model', 'model_repository.json')
 
     assert repository.__repr__() == 'OperationTypesRepository for model_repository.json'
+
+
+def test_repositories_tags_consistency():
+    errors_found = []
+    for repository in (OperationTypesRepository('model'), OperationTypesRepository('data_operation')):
+        for operation in repository.operations:
+            if repository.get_first_suitable_operation_tag(operation.id) is None:
+                errors_found.append(f'{operation.id} in {repository} has no proper default tags!')
+
+    assert not errors_found, '\n'.join(errors_found)

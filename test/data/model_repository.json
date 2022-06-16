@@ -70,7 +70,7 @@
 		"input_type": "[DataTypesEnum.ts, DataTypesEnum.table, DataTypesEnum.text]",
 		"output_type": "[DataTypesEnum.table]",
 		"strategies": ["fedot.core.operations.evaluation.custom","CustomModelStrategy"],
-		"tags": ["all_purpose", "non-default"],
+		"tags": ["non-default"],
 		"tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
 	}
   },
@@ -176,13 +176,9 @@
 	  "meta": "sklearn_class",
 	  "tags": ["bayesian", "non-default"]
 	},
-    "tfidf": {
-      "meta": "text_classification",
-	  "tags": ["text", "non-default"]
-    },
     "custom": {
 		"meta": "custom_model",
-		"tags": ["all_purpose", "non-default"]
+		"tags": ["non-default"]
 	},
 	"xgboost": {
       "meta": "sklearn_class",
