@@ -56,7 +56,8 @@ class OperationTypesRepository:
     DEFAULT_MODEL_TAGS = ['linear', 'non_linear', 'custom_model', 'tree', 'boosting', 'ts_model', 'deep']
     DEFAULT_DATA_OPERATION_TAGS = [
         'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
-        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced'
+        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced',
+        'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts'
     ]
 
     __repository_dict__ = {
