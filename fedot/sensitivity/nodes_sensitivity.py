@@ -112,7 +112,7 @@ class NodesAnalysis:
             self.log.info(f'Pipeline Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
-        nodes_degrees = GraphOperator(self.pipeline).get_nodes_degrees()
+        nodes_degrees = self.pipeline.operator.get_nodes_degrees()  # pipeline.operator is GraphOperator
         gathered_results = self._extract_result_values(results)
         for index, result in enumerate(gathered_results):
             fig, ax = plt.subplots(figsize=(15, 10))
