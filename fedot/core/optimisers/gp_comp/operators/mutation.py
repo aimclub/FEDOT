@@ -294,7 +294,7 @@ def single_drop_mutation(graph: Any, params, *args, **kwargs):
         # TODO refactor workaround with data_source
         nodes_to_delete = \
             [n for n in graph.nodes if str(node_name) in n.descriptive_id and
-                 n.descriptive_id.count('data_source') == 1]
+             n.descriptive_id.count('data_source') == 1]
         for child_node in nodes_to_delete:
             graph.delete_node(child_node)
         graph.delete_node(node_to_del)
