@@ -130,7 +130,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                                                                requirements=requirements, params=params,
                                                                max_depth=max_depth)
 
-        is_correct_graph = params.validator(new_graph)
+        is_correct_graph = params.verifier(new_graph)
         if is_correct_graph:
             new_individual = Individual(new_graph)
             new_individual.parent_operators = deepcopy(ind.parent_operators)
@@ -336,7 +336,7 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             max_depth = node_from_graph.distance_to_primary_level
         else:
             max_depth = max_depth - graph.operator.distance_to_root_level(node_from_graph)
-        new_subtree = random_graph(params.validator, requirements, max_depth).root_node
+        new_subtree = random_graph(params.verifier, requirements, max_depth).root_node
     graph.update_subtree(node_from_graph, new_subtree)
     return graph
 

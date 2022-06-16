@@ -5,13 +5,13 @@ from typing import Any, List, Optional, Tuple
 
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.validation import GraphValidator
+from fedot.core.pipelines.verification import GraphVerifier
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 MAX_ITERS = 1000
 
 
-def random_graph(validator: GraphValidator,
+def random_graph(verifier: GraphVerifier,
                  requirements: ComposerRequirements,
                  max_depth: Optional[int] = None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
@@ -27,7 +27,7 @@ def random_graph(validator: GraphValidator,
                                       'params': DEFAULT_PARAMS_STUB})
         graph.add_node(graph_root)
         graph_growth(graph, graph_root, requirements, max_depth)
-        is_correct_graph = validator(graph)
+        is_correct_graph = verifier(graph)
         n_iter += 1
         if n_iter > MAX_ITERS:
             raise ValueError(f'Could not generate random graph for {n_iter} '

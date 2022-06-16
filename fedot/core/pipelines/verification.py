@@ -11,7 +11,7 @@ from fedot.core.dag.validation_rules import (
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import DirectAdapter, BaseOptimizationAdapter, PipelineAdapter
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.pipelines.validation_rules import (
+from fedot.core.pipelines.verification_rules import (
     has_correct_data_connections,
     has_correct_data_sources,
     has_correct_operation_positions,
@@ -48,10 +48,11 @@ class_rules = [has_no_conflicts_during_multitask,
 
 
 # Validation rule can either return False or raise a ValueError to signal a failed check
-ValidateRuleType = Callable[..., bool]
+VerifierRuleType = Callable[..., bool]
 
 
-def rules_by_task(task_type: Optional[TaskTypesEnum], rules: Sequence[ValidateRuleType] = ()) -> Sequence[ValidateRuleType]:
+def rules_by_task(task_type: Optional[TaskTypesEnum],
+                  rules: Sequence[VerifierRuleType] = ()) -> Sequence[VerifierRuleType]:
     tmp_rules = []
 
     tmp_rules.extend(rules or common_rules)
@@ -64,9 +65,9 @@ def rules_by_task(task_type: Optional[TaskTypesEnum], rules: Sequence[ValidateRu
     return tmp_rules
 
 
-class GraphValidator:
+class GraphVerifier:
     def __init__(self,
-                 rules: Sequence[ValidateRuleType] = (),
+                 rules: Sequence[VerifierRuleType] = (),
                  adapter: Optional[BaseOptimizationAdapter] = None,
                  log: Optional[Log] = None):
         self._rules = rules
@@ -77,12 +78,12 @@ class GraphValidator:
     def for_task(task_type: Optional[TaskTypesEnum] = None,
                  adapter: Optional[BaseOptimizationAdapter] = None,
                  log: Optional[Log] = None):
-        return GraphValidator(rules_by_task(task_type), adapter, log)
+        return GraphVerifier(rules_by_task(task_type), adapter, log)
 
     def __call__(self, graph: Union[Graph, OptGraph]) -> bool:
-        return self.validate(graph)
+        return self.verify(graph)
 
-    def validate(self, graph: Union[Graph, OptGraph]) -> bool:
+    def verify(self, graph: Union[Graph, OptGraph]) -> bool:
         restored_graph: Graph = self._adapter.restore(graph)
         # Check if all rules pass
         for rule in self._rules:
@@ -96,8 +97,10 @@ class GraphValidator:
         return True
 
 
-def validate_pipeline(graph: Union[Graph, OptGraph], rules: List[Callable] = None, task_type: Optional[TaskTypesEnum] = None):
+def verify_pipeline(graph: Union[Graph, OptGraph],
+                    rules: List[Callable] = None,
+                    task_type: Optional[TaskTypesEnum] = None):
     """Method for validation of graphs with default rules.
-    NB: It is preserved for simplicity, use GraphValidator instead."""
+    NB: It is preserved for simplicity, use graph checker instead."""
     adapter = PipelineAdapter()
-    return GraphValidator(rules_by_task(task_type, rules), adapter).validate(graph)
+    return GraphVerifier(rules_by_task(task_type, rules), adapter).verify(graph)

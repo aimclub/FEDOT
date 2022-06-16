@@ -24,7 +24,7 @@ from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.validation import GraphValidator
+from fedot.core.pipelines.verification import GraphVerifier
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
@@ -323,8 +323,8 @@ def test_gp_composer_random_graph_generation_looping():
     task = Task(TaskTypesEnum.regression)
 
     adapter = PipelineAdapter()
-    validator = GraphValidator.for_task(task.task_type, adapter)
-    params = GraphGenerationParams(adapter, validator, PipelineChangeAdvisor(task=task))
+    verifier = GraphVerifier.for_task(task.task_type, adapter)
+    params = GraphGenerationParams(adapter, verifier, PipelineChangeAdvisor(task=task))
 
     requirements = PipelineComposerRequirements(
         primary=['simple_imputation'],
@@ -342,13 +342,13 @@ def test_gp_composer_random_graph_generation_looping():
         mutation_strength=MutationStrengthEnum.mean
     )
 
-    graph = random_graph(validator, requirements, max_depth=None)
+    graph = random_graph(verifier, requirements, max_depth=None)
     nodes_name = list(map(str, graph.nodes))
 
     for primary_node in requirements.primary:
         assert primary_node in nodes_name
         assert nodes_name.count(primary_node) == 1
-    assert validator(graph) is True
+    assert verifier(graph) is True
 
 
 def test_gp_composer_early_stopping():

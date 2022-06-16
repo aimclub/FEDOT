@@ -11,7 +11,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
-from fedot.core.pipelines.validation import GraphValidator, ValidateRuleType
+from fedot.core.pipelines.verification import GraphVerifier, VerifierRuleType
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
@@ -52,14 +52,14 @@ class GraphGenerationParams:
     :param advisor: class of task-specific advices for graph changes
     """
     adapter: BaseOptimizationAdapter
-    validator: GraphValidator
+    verifier: GraphVerifier
     advisor: DefaultChangeAdvisor
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
-                 rules_for_constraint: Sequence[ValidateRuleType] = (),
+                 rules_for_constraint: Sequence[VerifierRuleType] = (),
                  advisor: Optional[DefaultChangeAdvisor] = None):
         self.adapter = adapter or DirectAdapter()
-        self.validator = GraphValidator(rules_for_constraint, self.adapter)
+        self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
 
 

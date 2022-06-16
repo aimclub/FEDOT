@@ -60,7 +60,7 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                         for graph_id, graph in enumerate(new_graphs):
                             new_graphs[graph_id] = params.adapter.adapt(graph)
 
-                    are_correct = all(params.validator(new_graph) for new_graph in new_graphs)
+                    are_correct = all(params.verifier(new_graph) for new_graph in new_graphs)
 
                     if are_correct:
                         operator = ParentOperator(operator_type='crossover',

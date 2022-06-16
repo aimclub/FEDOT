@@ -5,7 +5,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.validation import GraphValidator
+from fedot.core.pipelines.verification import GraphVerifier
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -16,10 +16,10 @@ class RegularizationTypesEnum(Enum):
 
 def regularized_population(reg_type: RegularizationTypesEnum, population: PopulationT,
                            evaluator: EvaluationOperator,
-                           validator: GraphValidator,
+                           verifier: GraphVerifier,
                            size: Optional[int] = None) -> PopulationT:
     if reg_type is RegularizationTypesEnum.decremental:
-        return decremental_regularization(population, evaluator, validator, size)
+        return decremental_regularization(population, evaluator, verifier, size)
     elif reg_type is RegularizationTypesEnum.none:
         return population
     else:
@@ -28,7 +28,7 @@ def regularized_population(reg_type: RegularizationTypesEnum, population: Popula
 
 def decremental_regularization(population: PopulationT,
                                evaluator: EvaluationOperator,
-                               validator: GraphValidator,
+                               verifier: GraphVerifier,
                                size: Optional[int] = None) -> PopulationT:
     size = size or len(population)
     additional_inds = []
@@ -47,7 +47,7 @@ def decremental_regularization(population: PopulationT,
         additional_inds.extend(subtree_inds)
         prev_nodes_ids.update(subtree.graph.root_node.descriptive_id for subtree in subtree_inds)
 
-    additional_inds = [ind for ind in additional_inds if validator(ind.graph)]
+    additional_inds = [ind for ind in additional_inds if verifier(ind.graph)]
 
     evaluator(additional_inds)
     additional_inds.extend(population)
