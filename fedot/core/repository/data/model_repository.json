@@ -113,7 +113,6 @@
         "CustomModelStrategy"
       ],
       "tags": [
-        "all_purpose",
         "non-default"
       ],
       "tasks": "[TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting, TaskTypesEnum.classification, TaskTypesEnum.clustering]"
@@ -447,7 +446,6 @@
 		"meta": "custom_model",
 		"tags": [
           "custom_model",
-          "all_purpose",
           "non-default"
         ]
 	}
