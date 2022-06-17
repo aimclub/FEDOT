@@ -1,5 +1,6 @@
 import os
 from functools import partial
+from itertools import chain
 from pathlib import Path
 
 import numpy as np
@@ -197,12 +198,12 @@ def test_history_backward_compatibility():
     # Assert that fitness, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for gen in history.individuals for ind in gen)
     assert all(isinstance(parent_individual, Individual)
-               for gen in history.individuals for ind in gen for op in ind.parent_operators
+               for ind in chain.from_iterable(history.individuals) for op in ind.parent_operators
                for parent_individual in op.parent_individuals)
     assert isinstance(history._objective, Objective)
 
 
-def test_history_serialized_correctly(tmp_path):
+def test_history_correct_serialization(tmp_path):
     test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
     test_history_save_path = Path(tmp_path, 'test_history_exported.json')
 
@@ -212,6 +213,4 @@ def test_history_serialized_correctly(tmp_path):
 
     assert np.shape(history_1.individuals) == np.shape(history_2.individuals)
     assert np.shape(history_1.archive_history) == np.shape(history_2.archive_history)
-    for gen_num, gen in enumerate(history_1.individuals):
-        for ind_num in range(len(gen)):
-            assert history_1.individuals[gen_num][ind_num] == history_2.individuals[gen_num][ind_num]
+    assert history_1.individuals == history_2.individuals
