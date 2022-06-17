@@ -6,7 +6,8 @@ import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.dag.graph import Graph, GraphDelegate
+from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData, OutputData

@@ -92,7 +92,7 @@ class Graph(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
+    def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         """ Returns all available edges in a given graph """
         raise NotImplementedError()
 
@@ -115,6 +115,10 @@ class Graph(ABC):
 
     @property
     def nodes(self) -> Sequence[GraphNode]:
+        raise NotImplementedError()
+
+    @nodes.setter
+    def nodes(self, new_nodes: Sequence[GraphNode]):
         raise NotImplementedError()
 
     @property

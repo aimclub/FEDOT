@@ -4,7 +4,9 @@ import random
 import numpy as np
 
 from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters, \
@@ -23,7 +25,11 @@ random.seed(1)
 np.random.seed(1)
 
 
-class CustomModel(Graph):
+class CustomModel(GraphDelegate):
+
+    def __init__(self):
+        super().__init__(GraphOperator())
+
     def evaluate(self):
         return 0
 
