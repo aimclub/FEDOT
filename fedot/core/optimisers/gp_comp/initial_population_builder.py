@@ -6,7 +6,8 @@ from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import Operator, PopulationT
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.pipelines.verification import GraphVerifier
+from fedot.core.dag.graph_verifier import GraphVerifier
+
 GraphSampler = Callable[[], OptGraph]
 IndividualSampler = Callable[[], Individual]
 

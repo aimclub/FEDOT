@@ -1,15 +1,15 @@
 from typing import Callable, List, Sequence, Optional, Union
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.validation_rules import (
-    DEFAULT_DAG_RULES,
+from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
+from fedot.core.dag.verification_rules import (
     has_no_cycle,
     has_no_isolated_nodes,
     has_no_self_cycled_nodes,
     has_one_root
 )
-from fedot.core.log import Log, default_log
-from fedot.core.optimisers.adapters import DirectAdapter, BaseOptimizationAdapter, PipelineAdapter
+from fedot.core.log import Log
+from fedot.core.optimisers.adapters import PipelineAdapter, BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.verification_rules import (
     has_correct_data_connections,
@@ -47,8 +47,10 @@ class_rules = [has_no_conflicts_during_multitask,
                has_no_conflicts_after_class_decompose]
 
 
-# Validation rule can either return False or raise a ValueError to signal a failed check
-VerifierRuleType = Callable[..., bool]
+def verifier_for_task(task_type: Optional[TaskTypesEnum] = None,
+                      adapter: Optional[BaseOptimizationAdapter] = None,
+                      log: Optional[Log] = None):
+    return GraphVerifier(rules_by_task(task_type), adapter, log)
 
 
 def rules_by_task(task_type: Optional[TaskTypesEnum],
@@ -63,38 +65,6 @@ def rules_by_task(task_type: Optional[TaskTypesEnum],
         tmp_rules.extend(class_rules)
 
     return tmp_rules
-
-
-class GraphVerifier:
-    def __init__(self,
-                 rules: Sequence[VerifierRuleType] = (),
-                 adapter: Optional[BaseOptimizationAdapter] = None,
-                 log: Optional[Log] = None):
-        self._rules = rules
-        self._adapter = adapter or DirectAdapter()
-        self._log = log or default_log(self.__class__.__name__)
-
-    @staticmethod
-    def for_task(task_type: Optional[TaskTypesEnum] = None,
-                 adapter: Optional[BaseOptimizationAdapter] = None,
-                 log: Optional[Log] = None):
-        return GraphVerifier(rules_by_task(task_type), adapter, log)
-
-    def __call__(self, graph: Union[Graph, OptGraph]) -> bool:
-        return self.verify(graph)
-
-    def verify(self, graph: Union[Graph, OptGraph]) -> bool:
-        restored_graph: Graph = self._adapter.restore(graph)
-        # Check if all rules pass
-        for rule in self._rules:
-            try:
-                if rule(restored_graph) is False:
-                    return False
-            except ValueError as err:
-                self._log.info(f'Graph validation failed with error <{err}> '
-                               f'for rule={rule} on graph={restored_graph.root_node.descriptive_id}.')
-                return False
-        return True
 
 
 def verify_pipeline(graph: Union[Graph, OptGraph],

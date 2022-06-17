@@ -5,7 +5,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.verification import GraphVerifier
+from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 

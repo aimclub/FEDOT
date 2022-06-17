@@ -5,7 +5,7 @@ from typing import Any, List, Optional, Tuple
 
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.verification import GraphVerifier
+from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 MAX_ITERS = 1000

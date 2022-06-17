@@ -1,6 +1,6 @@
 import pytest
 
-from fedot.core.dag.validation_rules import has_no_cycle, has_no_isolated_components, has_no_isolated_nodes, \
+from fedot.core.dag.verification_rules import has_no_cycle, has_no_isolated_components, has_no_isolated_nodes, \
     has_no_self_cycled_nodes
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

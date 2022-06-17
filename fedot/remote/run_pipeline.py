@@ -8,7 +8,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.verification import verify_pipeline, GraphVerifier
+from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.remote.pipeline_run_config import PipelineRunConfig
@@ -50,7 +50,7 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
     config = \
         PipelineRunConfig().load_from_file(config_file)
 
-    verifier = GraphVerifier.for_task(config.task.task_type, PipelineAdapter(), logger)
+    verifier = verifier_for_task(config.task.task_type, PipelineAdapter(), logger)
 
     pipeline = pipeline_from_json(config.pipeline_template)
 

@@ -1,7 +1,8 @@
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.verification import common_rules, GraphVerifier
+from fedot.core.pipelines.verification import common_rules
+from fedot.core.dag.graph_verifier import GraphVerifier
 
 
 def get_nodes():

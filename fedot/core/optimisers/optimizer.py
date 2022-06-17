@@ -11,7 +11,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
-from fedot.core.pipelines.verification import GraphVerifier, VerifierRuleType
+from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]

@@ -24,7 +24,7 @@ from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.verification import GraphVerifier
+from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
@@ -323,7 +323,7 @@ def test_gp_composer_random_graph_generation_looping():
     task = Task(TaskTypesEnum.regression)
 
     adapter = PipelineAdapter()
-    verifier = GraphVerifier.for_task(task.task_type, adapter)
+    verifier = verifier_for_task(task.task_type, adapter)
     params = GraphGenerationParams(adapter, verifier, PipelineChangeAdvisor(task=task))
 
     requirements = PipelineComposerRequirements(

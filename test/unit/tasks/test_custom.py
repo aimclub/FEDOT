@@ -7,7 +7,7 @@ import pytest
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.validation_rules import has_no_self_cycled_nodes
+from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
     GeneticSchemeTypesEnum
