@@ -146,7 +146,7 @@ def test_api_composer_divide_operations():
 
 
 def test_api_composer_available_operations():
-    """ """
+    """ Checks if available_operations goes through all fitting process"""
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=1))
     train_data, _, _ = get_dataset(task_type='ts_forecasting')
@@ -158,5 +158,4 @@ def test_api_composer_available_operations():
                                    'pop_size': 500}
                   )
     model.fit(train_data)
-    assert model.history is None
     assert model.params.api_params['available_operations'] == available_operations
