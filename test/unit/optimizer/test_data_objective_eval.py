@@ -6,6 +6,7 @@ import pytest
 from fedot.core.data.data import InputData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.log import default_log
+from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -29,13 +30,14 @@ def throwing_exception_metric(*args, **kwargs):
 
 
 def actual_fitness(data_split, pipeline, metric):
+    metric_values = []
     for (train_input, test_input) in data_split():
-        pipeline.fit(train_input)
+        pipeline.fit(train_input, use_fitted=False)
 
-        # predicted = pipeline.predict(test_input)
         metric_function = MetricsRepository().metric_by_id(metric, default_callable=metric)
-        metric_value = metric_function(pipeline=pipeline, reference_data=test_input)
-    return metric_value
+        metric_values.append(metric_function(pipeline=pipeline, reference_data=test_input))
+    mean_metric = np.mean(metric_values, axis=0)
+    return SingleObjFitness(mean_metric)
 
 
 def empty_datasource():
@@ -60,10 +62,10 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
         objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, log=log)
         fitness = objective_eval(pipeline)
         act_fitness = actual_fitness(data_split, sample_pipeline(), metric)
-        print(fitness.value, act_fitness)
+        print(metric.name, abs(fitness.value - act_fitness.value))
         assert fitness.valid
         assert fitness.value is not None
-        assert abs(fitness.value - act_fitness) < 0.016
+        assert np.isclose(fitness.value, act_fitness.value, atol=0.016)
 
 
 def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset):
@@ -83,7 +85,7 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     log = default_log(__name__)
 
     cv_fold = partial(tabular_cv_generator, classification_dataset, folds=3)
-    metric = ClassificationMetricsEnum.ROCAUC_penalty
+    metric = ClassificationMetricsEnum.logloss
 
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), cv_fold, log=log)
     fitness = objective_eval(pipeline)
