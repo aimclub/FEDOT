@@ -10,6 +10,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
+from .data_objective_advisor import DataObjectiveAdvisor
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
 from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
@@ -31,6 +32,7 @@ class DataObjectiveBuilder:
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.cache = cache
+        self.advisor = DataObjectiveAdvisor()
         self.log = log or default_log(self.__class__.__name__)
 
     def build(self, data: InputData) -> ObjectiveEvaluate:
@@ -78,5 +80,6 @@ class DataObjectiveBuilder:
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
             cv_generator = partial(tabular_cv_generator, data,
-                                   self.cv_folds)
+                                   self.cv_folds,
+                                   self.advisor.propose_kfold(data))
         return cv_generator

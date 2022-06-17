@@ -1,7 +1,8 @@
-from typing import Iterator, Optional, Tuple
+from typing import Iterator, Optional, Tuple, Type
 
 import numpy as np
 from sklearn.model_selection import KFold, TimeSeriesSplit
+from sklearn.model_selection._split import _BaseKFold
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -74,21 +75,22 @@ class TsInputDataSplit(TimeSeriesSplit):
             yield train_data, validation_data
 
 
-def tabular_cv_generator(data: InputData, folds: int) -> Iterator[Tuple[InputData, InputData]]:
+def tabular_cv_generator(data: InputData,
+                         folds: int,
+                         split_method: Type[_BaseKFold] = KFold) -> Iterator[Tuple[InputData, InputData]]:
     """ The function for splitting data into a train and test samples
         in the InputData format for KFolds cross validation. The function
         return a generator of tuples, consisting of a pair of train, test.
 
     :param data: InputData for train and test splitting
     :param folds: number of folds
-    :param validation_blocks: number of validation block per each fold (unused)
-    :param log: log object
+    :param split_method: method to split data (f.e. stratify KFold)
 
     :return Iterator[InputData, InputData]: return split train/test data
     """
-    kf = KFold(n_splits=folds)
+    kf = split_method(n_splits=folds)
 
-    for train_idxs, test_idxs in kf.split(data.features):
+    for train_idxs, test_idxs in kf.split(data.features, data.target):
         train_features, train_target = _table_data_by_index(train_idxs, data)
         test_features, test_target = _table_data_by_index(test_idxs, data)
 
