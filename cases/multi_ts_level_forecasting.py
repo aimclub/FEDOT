@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -34,20 +35,6 @@ def prepare_data(forecast_length, is_multi_ts):
     return train_data, test_data, task
 
 
-def initial_pipeline():
-    """
-        Return pipeline with the following structure:
-                    lagged - ridge \
-                                     -> ridge -> final forecast
-        smoothing - lagged - ridge /
-    """
-    pip_builder = PipelineBuilder() \
-        .add_sequence(('lagged', {'window_size': 50}), 'ridge', branch_idx=0) \
-        .add_sequence('smoothing', ('lagged', {'window_size': 30}), 'ridge', branch_idx=1).join_branches('ridge')
-    pipeline = pip_builder.to_pipeline()
-    return pipeline
-
-
 def visualize_result(train, test, target, forecast, is_multi_ts):
     if is_multi_ts:
         history = np.ravel(train.target[:, 0])
@@ -69,7 +56,7 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
     """
     train_data, test_data, task = prepare_data(forecast_length, is_multi_ts)
     # init model for the time series forecasting
-    init_pipeline = initial_pipeline()
+    init_pipeline = ts_complex_ridge_smoothing_pipeline()
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=5,

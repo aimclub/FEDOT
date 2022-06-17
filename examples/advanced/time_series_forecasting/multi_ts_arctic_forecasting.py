@@ -1,25 +1,18 @@
 import datetime
-import os
 from copy import deepcopy
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
-from cases.multi_ts_level_forecasting import initial_pipeline, prepare_data
+from cases.multi_ts_level_forecasting import prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
 
 
 def calculate_metrics(target, predicted):
@@ -60,11 +53,11 @@ def compose_pipeline(pipeline, train_data, task):
     return obtained_pipeline
 
 
-def run_multiple_ts_forecasting(forecast_length, multi_ts):
+def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     # separate data on test/train
-    train_data, test_data, task = prepare_data(forecast_length, multi_ts=multi_ts)
+    train_data, test_data, task = prepare_data(forecast_length, is_multi_ts=is_multi_ts)
     # pipeline initialization
-    pipeline = initial_pipeline()
+    pipeline = ts_complex_ridge_smoothing_pipeline()
     # pipeline fit and predict
     pipeline.fit(train_data)
     prediction_before = np.ravel(np.array(pipeline.predict(test_data).predict))
@@ -94,7 +87,7 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
     rmse_tuning, mae_tuning = calculate_metrics(np.ravel(test_data.target), predict_after_tuning)
 
     # visualization of results
-    if multi_ts:
+    if is_multi_ts:
         history = np.ravel(train_data.target[:, 0])
     else:
         history = np.ravel(train_data.target)
@@ -117,4 +110,4 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
 
 
 if __name__ == '__main__':
-    run_multiple_ts_forecasting(forecast_length=60, multi_ts=True)
+    run_multiple_ts_forecasting(forecast_length=60, is_multi_ts=True)
