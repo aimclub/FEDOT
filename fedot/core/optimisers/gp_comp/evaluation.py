@@ -137,6 +137,49 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
+class SimpleDispatcher(ObjectiveEvaluationDispatcher):
+    """Evaluates objective function on population.
+
+    Usage: call `dispatch(objective_function)` to get evaluation function.
+
+    :param graph_adapter: adapter for mapping between OptGraph and Graph.
+    :param timer: timer to set timeout for evaluation of population
+    """
+
+    def __init__(self,
+                 graph_adapter: BaseOptimizationAdapter,
+                 timer: Timer = None):
+        self._objective_eval = None
+        self._graph_adapter = graph_adapter
+        self.timer = timer or get_forever_timer()
+
+    def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
+        """Return handler to this object that hides all details
+        and allows only to evaluate population with provided objective."""
+        self._objective_eval = objective
+        return self.evaluate_population
+
+    def evaluate_population(self, individuals: PopulationT) -> PopulationT:
+        mapped_evals = list(map(self.evaluate_single, individuals))
+        evaluated_population = list(filter(None, mapped_evals))
+        if not evaluated_population and individuals:
+            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+        return evaluated_population
+
+    def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
+        if with_time_limit and self.timer.is_time_limit_reached():
+            return None
+        start_time = timeit.default_timer()
+
+        graph = ind.graph
+        adapted_graph = self._graph_adapter.restore(graph)
+        ind.fitness = self._objective_eval(adapted_graph)
+        ind.graph = self._graph_adapter.adapt(adapted_graph)
+        end_time = timeit.default_timer()
+        ind.metadata['computation_time_in_seconds'] = end_time - start_time
+        return ind if ind.fitness.valid else None
+
+
 def determine_n_jobs(n_jobs=-1, logger=None):
     if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
         n_jobs = multiprocessing.cpu_count()
