@@ -120,6 +120,14 @@ def test_pipeline_builder_merge_empty():
     assert len(merge_pipeline_builders(PipelineBuilder(), PipelineBuilder()).heads) == 0
 
 
+def test_pipeline_builder_merge_single_node():
+    builder_a = PipelineBuilder().add_sequence('operation_a')
+    builder_b = PipelineBuilder().add_sequence('operation_f')
+    builder_ab = PipelineBuilder().add_sequence('operation_a', 'operation_f')
+
+    assert builders_same(builder_ab, merge_pipeline_builders(builder_a, builder_b))
+
+
 def test_pipeline_builder_merge_duplicate():
     builder_one_to_one = PipelineBuilder().add_sequence('operation_a', 'operation_f')
 
