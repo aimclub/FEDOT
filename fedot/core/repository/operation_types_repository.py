@@ -52,12 +52,12 @@ class OperationTypesRepository:
     its descriptions and metadata"""
 
     __initialized_repositories__ = {}
-
-    DEFAULT_MODEL_TAGS = ['linear', 'non_linear']
+    # The later the tag, the higher its priority in case of intersection
+    DEFAULT_MODEL_TAGS = ['linear', 'non_linear', 'custom_model', 'tree', 'boosting', 'ts_model', 'deep']
     DEFAULT_DATA_OPERATION_TAGS = [
         'data_source', 'feature_scaling', 'imputation', 'feature_reduction', 'feature_engineering', 'encoding',
-        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose',
-        'imbalanced'
+        'filtering', 'feature_selection', 'ts_to_table', 'smoothing', 'ts_to_ts', 'text', 'decompose', 'imbalanced',
+        'data_source_img', 'data_source_text', 'data_source_table', 'data_source_ts'
     ]
 
     __repository_dict__ = {
@@ -299,7 +299,7 @@ class OperationTypesRepository:
         """ Finds the first suitable tag for the operation in the repository.
 
         :param operation: name of the operation.
-        :param tags_to_find: list of suitable tags.
+        :param tags_to_find: list of suitable tags. The later the tag, the higher its priority in case of intersection.
         :return: first suitable tag or None.
         """
         tags_to_find = tags_to_find or self.default_tags
@@ -307,7 +307,7 @@ class OperationTypesRepository:
         info = self.operation_info_by_id(operation)
         if info is None:
             return None
-        for tag in tags_to_find:
+        for tag in reversed(tags_to_find):
             if tag in info.tags:
                 return tag
         return None
@@ -320,7 +320,9 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
 
     :param opt_node: OptNode or its name.
     :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
+        The later the tag, the higher its priority in case of intersection.
     :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
+        The later the tag, the higher its priority in case of intersection.
     :param repos_tags: dictionary mapping OperationTypesRepository with suitable tags. Can be used only if no tags_model
         and tags_data specified.
     :return: first suitable tag or None.
@@ -328,7 +330,7 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
     if (tags_model or tags_data) and repos_tags:
         raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
 
-    node_name = opt_node.content['name'] if isinstance(opt_node, OptNode) else opt_node
+    node_name = str(opt_node) if isinstance(opt_node, OptNode) else opt_node
 
     repos_tags = repos_tags or {
         OperationTypesRepository('model'): tags_model,
