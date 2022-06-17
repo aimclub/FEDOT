@@ -84,7 +84,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if self.ops_filter.satisfies(candidate_builder.to_pipeline()):
+            if self.ops_filter.satisfies(candidate_builder.to_pipeline(), self.data_type):
                 valid_builders.append(candidate_builder)
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 
