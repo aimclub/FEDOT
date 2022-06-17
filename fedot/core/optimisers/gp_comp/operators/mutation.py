@@ -185,7 +185,7 @@ class Mutation(Operator):
 
             nodes_not_cycling = (target_node.descriptive_id not in
                                  [n.descriptive_id for n in source_node.ordered_subnodes_hierarchy()])
-            if nodes_not_cycling and (target_node.nodes_from is None or source_node not in target_node.nodes_from):
+            if nodes_not_cycling and (source_node not in target_node.nodes_from):
                 graph.connect_nodes(source_node, target_node)
                 break
 
