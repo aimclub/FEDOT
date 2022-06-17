@@ -1,6 +1,6 @@
 import math
 from random import choice, randint
-from typing import List, TYPE_CHECKING, Iterable, Tuple
+from typing import List, TYPE_CHECKING, Iterable, Tuple, Sequence
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -205,7 +205,7 @@ def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Indivi
     return [individuals[i] for i in chosen_indices]
 
 
-def crossover_parents_selection(population: List[Individual]) -> Iterable[Tuple[Individual, Individual]]:
+def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
     return zip(population[::2], population[1::2])
 
 

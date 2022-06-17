@@ -216,7 +216,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                  params=self.graph_generation_params)
                 new_population = self._reproduce(selected_individuals)
 
-                new_population = list(map(self._mutate, new_population))
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
@@ -267,6 +266,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         new_population = []
         for ind_1, ind_2 in crossover_parents_selection(population):
             new_population += self._crossover_pair(ind_1, ind_2)
+        new_population = list(map(self._mutate, new_population))
         return new_population
 
     def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
