@@ -3,6 +3,7 @@ from uuid import uuid4
 
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.utilities.data_structures import UniqueList
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class GraphNode:
@@ -18,13 +19,13 @@ class GraphNode:
 
     def __init__(self, content: Union[dict, str],
                  nodes_from: Optional[List['GraphNode']] = None):
-        self._nodes_from = None
-        if nodes_from is not None:
-            self._nodes_from = UniqueList(nodes_from)
         # Wrap string into dict if it is necessary
         if isinstance(content, str):
             content = {'name': content}
+        content.setdefault('params', DEFAULT_PARAMS_STUB)
+
         self.content = content
+        self._nodes_from = UniqueList(nodes_from or ())
         self._operator = NodeOperator(self)
         self.uid = str(uuid4())
 
