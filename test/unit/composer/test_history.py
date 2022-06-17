@@ -120,13 +120,6 @@ def test_operators_in_history():
 
     assert auto_model.history is not None
     assert len(auto_model.history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
-    # Assert that all parent operators have parent_individuals from actual history
-    history_individuals = set()
-    for generation in auto_model.history.individuals:
-        for individual in generation:
-            assert all(ind.uid in history_individuals for parent_operator in individual.parent_operators
-                       for ind in parent_operator.parent_individuals)
-            history_individuals.add(individual.uid)
     # Test history dumps
     dumped_history = auto_model.history.save()
     assert dumped_history is not None
@@ -201,6 +194,24 @@ def test_history_backward_compatibility():
     # Assert that all history pipelines have fitness
     assert len(historical_pipelines) == len(all_historical_fitness)
     assert np.shape(history.individuals) == np.shape(historical_fitness)
-    # Assert that fitness and objective are valid
+    # Assert that fitness, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for gen in history.individuals for ind in gen)
+    assert all(isinstance(parent_individual, Individual)
+               for gen in history.individuals for ind in gen for op in ind.parent_operators
+               for parent_individual in op.parent_individuals)
     assert isinstance(history._objective, Objective)
+
+
+def test_history_serialized_correctly(tmp_path):
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_save_path = Path(tmp_path, 'test_history_exported.json')
+
+    history_1 = OptHistory.load(test_history_path)
+    history_1.save(test_history_save_path)
+    history_2 = OptHistory.load(test_history_save_path)
+
+    assert np.shape(history_1.individuals) == np.shape(history_2.individuals)
+    assert np.shape(history_1.archive_history) == np.shape(history_2.archive_history)
+    for gen_num, gen in enumerate(history_1.individuals):
+        for ind_num in range(len(gen)):
+            assert history_1.individuals[gen_num][ind_num] == history_2.individuals[gen_num][ind_num]
