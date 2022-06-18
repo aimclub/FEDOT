@@ -1,3 +1,4 @@
+import itertools
 import os
 from functools import partial
 from itertools import chain
@@ -196,7 +197,7 @@ def test_history_backward_compatibility():
     assert len(historical_pipelines) == len(all_historical_fitness)
     assert np.shape(history.individuals) == np.shape(historical_fitness)
     # Assert that fitness, parent_individuals, and objective are valid
-    assert all(isinstance(ind.fitness, SingleObjFitness) for gen in history.individuals for ind in gen)
+    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain.from_iterable(history.individuals))
     assert all(isinstance(parent_individual, Individual)
                for ind in chain.from_iterable(history.individuals) for op in ind.parent_operators
                for parent_individual in op.parent_individuals)
@@ -205,12 +206,11 @@ def test_history_backward_compatibility():
 
 def test_history_correct_serialization(tmp_path):
     test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
-    test_history_save_path = Path(tmp_path, 'test_history_exported.json')
+    test_history_save_path = Path(tmp_path, 'test_history_saved.json')
 
     history_1 = OptHistory.load(test_history_path)
     history_1.save(test_history_save_path)
     history_2 = OptHistory.load(test_history_save_path)
 
-    assert np.shape(history_1.individuals) == np.shape(history_2.individuals)
-    assert np.shape(history_1.archive_history) == np.shape(history_2.archive_history)
     assert history_1.individuals == history_2.individuals
+    assert history_1.save() == history_2.save()
