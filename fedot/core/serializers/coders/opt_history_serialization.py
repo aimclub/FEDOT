@@ -6,6 +6,11 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history import OptHistory
 from . import any_from_json, any_to_json
 
+MISSING_INDIVIDUAL_ARGS = {
+    'graph': OptGraph(),
+    'metadata': {'MISSING_INDIVIDUAL': 'This individual could not be restored during `OptHistory.load()`'}
+}
+
 
 def _get_individuals_pool_from_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
     uid_to_individual_map = {ind.uid: ind for ind in chain.from_iterable(generations_list)}
@@ -35,7 +40,16 @@ def opt_history_to_json(obj: OptHistory) -> Dict[str, Any]:
 
 def _get_individuals_from_uid_list(uid_list: List[Union[str, Individual]],
                                    uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
-    return [uid_to_individual_map.get(uid, Individual(OptGraph())) if isinstance(uid, str) else uid for uid in uid_list]
+
+    def missing_individual(uid: str):
+        ind = Individual(**MISSING_INDIVIDUAL_ARGS)
+        ind.uid = uid
+        return ind
+
+    def uid_to_individual_mapper(uid: Union[str, Individual]):
+        return uid_to_individual_map.get(uid, missing_individual(uid)) if isinstance(uid, str) else uid
+
+    return list(map(uid_to_individual_mapper, uid_list))
 
 
 def _deserialize_generations_list(generations_list: List[List[Union[str, Individual]]],
