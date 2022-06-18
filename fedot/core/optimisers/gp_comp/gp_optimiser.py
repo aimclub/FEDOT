@@ -262,10 +262,11 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
-            return population
-        new_population = []
-        for ind_1, ind_2 in crossover_parents_selection(population):
-            new_population += self._crossover_pair(ind_1, ind_2)
+            new_population = population
+        else:
+            new_population = []
+            for ind_1, ind_2 in crossover_parents_selection(population):
+                new_population += self._crossover_pair(ind_1, ind_2)
         new_population = list(map(self._mutate, new_population))
         return new_population
 
