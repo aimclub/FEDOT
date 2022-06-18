@@ -1,6 +1,6 @@
 import math
 from random import choice, randint
-from typing import List, TYPE_CHECKING, Iterable, Tuple, Sequence
+from typing import TYPE_CHECKING, List, Iterable, Sequence, Tuple
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum

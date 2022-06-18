@@ -26,7 +26,7 @@ def _get_individuals_pool_from_generations_list(generations_list: List[List[Indi
     return individuals_pool
 
 
-def _serialize_generations_list(generations_list: List[List[Individual]]):
+def _serialize_generations_list(generations_list: List[List[Individual]]) -> List[List[Individual]]:
     return [[individual.uid for individual in generation] for generation in generations_list]
 
 
@@ -41,13 +41,13 @@ def opt_history_to_json(obj: OptHistory) -> Dict[str, Any]:
 def _get_individuals_from_uid_list(uid_list: List[Union[str, Individual]],
                                    uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
 
-    def missing_individual(uid: str):
-        ind = Individual(**MISSING_INDIVIDUAL_ARGS)
-        ind.uid = uid
-        return ind
+    def get_missing_individual(uid: str) -> Individual:
+        individual = Individual(**MISSING_INDIVIDUAL_ARGS)
+        individual.uid = uid
+        return individual
 
-    def uid_to_individual_mapper(uid: Union[str, Individual]):
-        return uid_to_individual_map.get(uid, missing_individual(uid)) if isinstance(uid, str) else uid
+    def uid_to_individual_mapper(uid: Union[str, Individual]) -> Individual:
+        return uid_to_individual_map.get(uid, get_missing_individual(uid)) if isinstance(uid, str) else uid
 
     return list(map(uid_to_individual_mapper, uid_list))
 
