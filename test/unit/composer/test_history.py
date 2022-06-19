@@ -39,7 +39,7 @@ from test.unit.validation.test_table_cv import get_classification_data
 def scaling_logit_rf_pipeline():
     node_first = PrimaryNode('scaling')
     node_second = SecondaryNode('logit', nodes_from=[node_first])
-    node_third = SecondaryNode('bernb',  nodes_from=[node_second])
+    node_third = SecondaryNode('bernb', nodes_from=[node_second])
     return Pipeline(node_third)
 
 
@@ -120,6 +120,10 @@ def test_operators_in_history():
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
+    history_1 = auto_model.history
+    history_2 = OptHistory.load(history_1.save())
+
+    assert history_1.save() == history_2.save()
     assert auto_model.history is not None
     assert len(auto_model.history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
     # Test history dumps
@@ -204,13 +208,11 @@ def test_history_backward_compatibility():
     assert isinstance(history._objective, Objective)
 
 
-def test_history_correct_serialization(tmp_path):
+def test_history_correct_serialization():
     test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
-    test_history_save_path = Path(tmp_path, 'test_history_saved.json')
 
     history_1 = OptHistory.load(test_history_path)
-    history_1.save(test_history_save_path)
-    history_2 = OptHistory.load(test_history_save_path)
+    history_2 = OptHistory.load(history_1.save())
 
     assert history_1.individuals == history_2.individuals
     assert history_1.save() == history_2.save()
