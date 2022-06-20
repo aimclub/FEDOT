@@ -197,7 +197,8 @@ def determine_n_jobs(n_jobs=-1, logger=None):
 def _restrict_n_jobs_in_nodes(graph: OptGraph):
     """ Function to prevent memory overflow due to many processes running in time"""
     for node in graph.nodes:
-        if 'n_jobs' in node.content['params']:
-            node.content['params']['n_jobs'] = 1
-        if 'num_threads' in node.content['params']:
-            node.content['params']['num_threads'] = 1
+        params = node.content.get('params', {})
+        if 'n_jobs' in params:
+            params['n_jobs'] = 1
+        if 'num_threads' in params:
+            params['num_threads'] = 1
