@@ -40,12 +40,13 @@ class Node(GraphNode):
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
             default_params = get_default_params(operation.operation_type)
-            if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
+            passed_params = passed_content.get('params', DEFAULT_PARAMS_STUB)
+            if passed_params == DEFAULT_PARAMS_STUB and default_params is not None:
                 # Replace 'default_params' with params from json file
                 default_params = get_default_params(operation.operation_type)
             else:
                 # Store passed
-                default_params = passed_content['params']
+                default_params = passed_params
 
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
