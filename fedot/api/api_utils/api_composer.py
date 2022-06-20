@@ -3,7 +3,7 @@ import gc
 import traceback
 from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
 
-from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.assumptions.assumptions_advisor import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
 from fedot.api.time import ApiTime
@@ -157,26 +157,19 @@ class ApiComposer:
         train_data = api_params['train_data']
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
+        available_operations = composer_params['available_operations']
+        self._initialize_timer(timeout, with_tuning)
 
-        # Initialize timer for all AutoMl operations
-        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
+        assumption_handler = AssumptionsHandler(log, train_data)
 
         # Set initial assumption and check correctness
-
-        available_operations = composer_params['available_operations']
-        initial_assumption = api_params['initial_assumption']
-        if initial_assumption is None:
-            assumptions_builder = AssumptionsBuilder \
-                .get(task, train_data) \
-                .from_operations(available_operations) \
-                .with_logger(log)
-            initial_assumption = assumptions_builder.build()
-        elif isinstance(initial_assumption, Pipeline):
-            initial_assumption = [initial_assumption]
+        initial_assumption = assumption_handler.propose_assumptions(api_params['initial_assumption'],
+                                                                    available_operations)
         fitted_initial_pipeline, init_pipeline_fit_time = \
-            fit_and_check_correctness(initial_assumption[0], train_data,
-                                      logger=log, cache=self.cache, n_jobs=api_params['n_jobs'])
-        log.message(f'Initial pipeline was fitted for {init_pipeline_fit_time.total_seconds()} sec.')
+            assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0], train_data,
+                                                                    logger=log, cache=self.cache,
+                                                                    n_jobs=api_params['n_jobs'])
+
 
         if not preset or preset == 'auto':
             preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, timeout)
@@ -286,32 +279,14 @@ class ApiComposer:
                 log.message('Hyperparameters tuning finished')
         return pipeline_gp_composed
 
+    def _initialize_timer(self, timeout: int, with_tuning: bool):
+        """
+        Initialize timer for all AutoMl operations
 
-def fit_and_check_correctness(pipeline: Pipeline,
-                              data: Union[InputData, MultiModalData],
-                              logger: Log, cache: Optional[OperationsCache] = None, n_jobs=1):
-    """ Test is initial pipeline can be fitted on presented data and give predictions """
-    try:
-        _, data_test = train_test_data_setup(data)
-        start_init_fit = datetime.datetime.now()
-
-        logger.message('Initial pipeline fitting started')
-
-        pipeline.fit(data, n_jobs=n_jobs)
-        if cache is not None:
-            cache.save_pipeline(pipeline)
-        pipeline.predict(data_test)
-
-        fit_time = datetime.datetime.now() - start_init_fit
-        logger.message('Initial pipeline was fitted successfully')
-    except Exception as ex:
-        fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
-        advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
-
-        logger.info(fit_failed_info)
-        print(traceback.format_exc())
-        raise ValueError(advice_info)
-    return pipeline, fit_time
+        :param timeout: timeout in minutes
+        :param with_tuning: should we consider time for tuning
+        """
+        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
 
 def _divide_parameters(common_dict: dict) -> List[dict]:

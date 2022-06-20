@@ -15,15 +15,14 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
 class AssumptionsBuilder:
 
-    def __init__(self, task: Task, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
+    def __init__(self, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
         self.logger = default_log('FEDOT logger')
         self.data = data
-        self.task = task
         self.repo = OperationTypesRepository(repository_name)
-        self.assumptions_generator = TaskAssumptions.for_task(task, self.repo)
+        self.assumptions_generator = TaskAssumptions.for_task(self.data.task, self.repo)
 
     @staticmethod
-    def get(task: Task, data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
+    def get(data: Union[InputData, MultiModalData], repository_name: Optional[str] = None):
         if not repository_name:
             if data.data_type == DataTypesEnum.multi_ts:
                 # It is needed to use data operations also for multi_ts data
@@ -37,7 +36,7 @@ class AssumptionsBuilder:
             cls = MultiModalAssumptionsBuilder
         else:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
-        return cls(task, data, repository_name=repository_name)
+        return cls(data, repository_name=repository_name)
 
     def with_logger(self, logger: Log):
         raise NotImplementedError('abstract')
@@ -56,14 +55,14 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     UNSUITABLE_AVAILABLE_OPERATIONS_MSG = "Unable to construct an initial assumption from the passed " \
                                           "available operations, default initial assumption will be used"
 
-    def __init__(self, task: Task, data: Union[InputData, MultiModalData],
+    def __init__(self, data: Union[InputData, MultiModalData],
                  data_type: DataTypesEnum = None, repository_name: str = "model"):
         """ Construct builder from task and data.
         :param task: task for the pipeline
         :param data: data that will be passed to the pipeline
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
-        super().__init__(task, data, repository_name)
+        super().__init__(data, repository_name)
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
@@ -73,8 +72,8 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]]):
         if available_operations:
-            _check_available_operations(self.task.task_type, available_operations)
-            operations_for_the_task, _ = self.repo.suitable_operation(self.task.task_type, self.data_type)
+            _check_available_operations(self.data.task.task_type, available_operations)
+            operations_for_the_task, _ = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
             operations_to_choose_from = set(operations_for_the_task).intersection(available_operations)
             if operations_to_choose_from:
                 self.ops_filter = WhitelistOperationsFilter(available_operations, operations_to_choose_from)
@@ -89,7 +88,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         """ Return a list of valid builders satisfying internal
         OperationsFilter or a single fallback builder. """
         preprocessing = \
-            PreprocessingBuilder.builder_for_data(self.task.task_type, self.data, initial_node)
+            PreprocessingBuilder.builder_for_data(self.data.task.task_type, self.data, initial_node)
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
@@ -99,12 +98,12 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
 
 class MultiModalAssumptionsBuilder(AssumptionsBuilder):
-    def __init__(self, task: Task, data: MultiModalData, repository_name: str = "model"):
-        super().__init__(task, data, repository_name)
+    def __init__(self, data: MultiModalData, repository_name: str = "model"):
+        super().__init__(data, repository_name)
         _subbuilders = []
         for data_type, (data_source_name, values) in zip(data.data_type, data.items()):
             # TODO: can have specific Builder for each particular data column, eg construct InputData
-            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(task, data, data_type)))
+            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(data, data_type)))
         self._subbuilders = tuple(_subbuilders)
 
     def with_logger(self, logger: Log):
