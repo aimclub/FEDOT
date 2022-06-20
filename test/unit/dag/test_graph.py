@@ -199,14 +199,31 @@ def test_update_subtree_with_duplicated_edges():
     assert find_same_node(graph.root_node.nodes_from, updated_node)
 
 
-def test_graph_copy():
-    graph = GraphImpl(GraphNode(content='n1'))
+@pytest.mark.parametrize('graph', [GraphImpl(GraphNode(content='n1')),
+                                   GraphDelegate(GraphImpl(GraphNode(content='n1')))])
+def test_graph_copy(graph: Graph):
     graph_copy = copy(graph)
+
     assert id(graph) != id(graph_copy)
+    assert graph.root_node.descriptive_id == graph_copy.root_node.descriptive_id
+
+    _modify_graph_copy(graph_copy)
+
+    assert graph.root_node.descriptive_id == graph_copy.root_node.descriptive_id
 
 
-def test_graph_deepcopy():
-    graph = GraphImpl(GraphNode(content='n1'))
+@pytest.mark.parametrize('graph', [GraphImpl(GraphNode(content='n1')),
+                                   GraphDelegate(GraphImpl(GraphNode(content='n1')))])
+def test_graph_deepcopy(graph: Graph):
     graph_copy = deepcopy(graph)
-    graph.nodes[0] = GraphNode(content='n11')
-    assert graph != graph_copy
+
+    assert id(graph) != id(graph_copy)
+    assert graph.root_node.descriptive_id == graph_copy.root_node.descriptive_id
+
+    _modify_graph_copy(graph_copy)
+
+    assert graph.root_node.descriptive_id != graph_copy.root_node.descriptive_id
+
+
+def _modify_graph_copy(graph: Graph):
+    graph.root_node.content['name'] = 'n2'
