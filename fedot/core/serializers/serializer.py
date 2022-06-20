@@ -44,7 +44,6 @@ class Serializer(JSONEncoder, JSONDecoder):
                 enum_to_json,
                 graph_from_json,
                 graph_node_to_json,
-                graph_to_json,
                 individual_from_json,
                 operation_to_json,
                 opt_history_from_json,
