@@ -8,7 +8,7 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class DataObjectiveAdvisor:
-    def __init__(self, threshold: int = 0.5):
+    def __init__(self, threshold: float = 0.5):
         """
         Advisor for DataObjectiveBuilder for choice some parameters based on input_data
 
@@ -29,11 +29,12 @@ class DataObjectiveAdvisor:
 
     def check_imbalance(self, input_data: InputData) -> bool:
         """
-        Checks data for imbalance - if probability of any class lower than uniform in threshold times it returns true
+        Checks data for imbalance - if probability of any class lower than uniform probability in threshold times it
+        returns true
         :param input_data: data to analyse
 
         """
         _, counts = np.unique(input_data.target, return_counts=True)
         probabilities = counts / input_data.target.shape[0]
         uniform_probability = 1 / input_data.num_classes
-        return np.any((uniform_probability - probabilities) / uniform_probability > self.threshold)
+        return np.any(np.abs(uniform_probability - probabilities) / uniform_probability > self.threshold)
