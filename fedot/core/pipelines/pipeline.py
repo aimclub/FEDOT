@@ -6,7 +6,6 @@ import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
@@ -42,27 +41,9 @@ class Pipeline(GraphDelegate, Serializable):
         operator = GraphOperator(nodes, self._graph_nodes_to_pipeline_nodes)
         super().__init__(operator)
 
-    def _graph_nodes_to_pipeline_nodes(self, nodes: Sequence[Node]):
-        """
-        Method to update nodes type after performing some action on the pipeline
-            via GraphOperator, if any of them are of GraphNode type
-
-        :param nodes: Node object(s)
-        """
-
-        for node in nodes:
-            if not isinstance(node, GraphNode):
-                continue
-            if node.nodes_from and not isinstance(node, SecondaryNode):
-                self.update_node(old_node=node,
-                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
-                                                        content=node.content))
-            # TODO: avoid internal access use operator.delete_node
-            elif not node.nodes_from and not self.node_children(node) and node != self.root_node:
-                self.operator.nodes.remove(node)
-            elif not node.nodes_from and not isinstance(node, PrimaryNode):
-                self.update_node(old_node=node,
-                                 new_node=PrimaryNode(content=node.content))
+        # forward declaration for capture in the node postprocessing function
+        operator = GraphOperator(nodes, _graph_nodes_to_pipeline_nodes)
+        super().__init__(operator)
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
@@ -424,3 +405,27 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)
+
+
+def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node]):
+    """
+    Method to update nodes type after performing some action on the pipeline
+        via GraphOperator, if any of them are of GraphNode type
+
+    :param nodes: Node object(s)
+    """
+
+    for node in nodes:
+        if not isinstance(node, GraphNode):
+            continue
+        if node.nodes_from and not isinstance(node, SecondaryNode):
+            operator.update_node(old_node=node,
+                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
+                                                        content=node.content))
+        # TODO: avoid internal access use operator.delete_node
+        elif not node.nodes_from and not operator.node_children(node) and node != operator.root_node:
+            operator.nodes.remove(node)
+        elif not node.nodes_from and not isinstance(node, PrimaryNode):
+            operator.update_node(old_node=node,
+                                 new_node=PrimaryNode(nodes_from=node.nodes_from,
+                                                      content=node.content))
