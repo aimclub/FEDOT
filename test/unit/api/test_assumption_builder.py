@@ -150,12 +150,12 @@ def impl_test_assumptions_builder_suitable_available_operations(
     available_operations = get_suitable_operations_for_task(task.task_type, data_type)
     assert available_operations
 
-    default_builder = AssumptionsBuilder.get(task, train_input).with_logger(logger)
+    default_builder = AssumptionsBuilder.get(train_input).with_logger(logger)
     baseline_pipeline = default_builder.build()[0]
     baseline_operation = baseline_pipeline.root_node.operation.operation_type
     available_operations.remove(baseline_operation)
 
-    checked_builder = AssumptionsBuilder.get(task, train_input).with_logger(logger) \
+    checked_builder = AssumptionsBuilder.get(train_input).with_logger(logger) \
         .from_operations(available_operations)
     checked_pipeline = checked_builder.build()[0]
 
