@@ -31,17 +31,10 @@ def prepare_ts_for_in_sample(forecast_length: int, horizon: int):
     task = Task(TaskTypesEnum.ts_forecasting,
                 TsForecastingParams(forecast_length=forecast_length))
 
-    # To avoid data leak
-    ts_train = ts[:-horizon]
-    train_input = InputData(idx=np.arange(0, len(ts_train)), features=ts_train,
-                            target=ts_train, task=task, data_type=DataTypesEnum.ts)
-
-    start_forecast = len(ts_train)
-    end_forecast = start_forecast + forecast_length
-    predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
-                              features=ts, target=None, task=task,
-                              data_type=DataTypesEnum.ts)
-
+    input_data = InputData(idx=np.arange(0, len(ts)), features=ts,
+                           target=ts, task=task, data_type=DataTypesEnum.ts)
+    train_input, predict_input = train_test_data_setup(input_data,
+                                                       **{'validation_blocks': round(horizon / forecast_length)})
     return train_input, predict_input
 
 

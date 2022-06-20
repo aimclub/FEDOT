@@ -85,7 +85,8 @@ class GPComposer(Composer):
             self.history.clean_results()
 
         # Define objective function
-        objective_evaluator = self.objective_builder.build(data)
+        validation_blocks = self.composer_requirements.validation_blocks
+        objective_evaluator = self.objective_builder.build(data, validation_blocks=validation_blocks)
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
