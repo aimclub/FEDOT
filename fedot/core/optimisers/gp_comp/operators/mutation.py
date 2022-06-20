@@ -104,9 +104,12 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
                 mutation_func = mutation_type
             else:
                 mutation_func = mutation_by_type[mutation_type]
+            graph_copy = deepcopy(new_graph)
             new_graph = mutation_func(new_graph, requirements=requirements,
                                       params=params,
                                       max_depth=max_depth)
+            if not new_graph.nodes:
+                return graph_copy
         elif mutation_type is not MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
     return new_graph

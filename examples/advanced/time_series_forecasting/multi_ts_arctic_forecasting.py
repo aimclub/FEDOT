@@ -1,52 +1,24 @@
 import datetime
-import os
 from copy import deepcopy
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+from cases.multi_ts_level_forecasting import prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root
 
 
 def calculate_metrics(target, predicted):
     rmse = mean_squared_error(target, predicted, squared=True)
     mae = mean_absolute_error(target, predicted)
     return rmse, mae
-
-
-def initial_pipeline():
-    """
-        Return pipeline with the following structure:
-        lagged - ridge \
-                        -> ridge -> final forecast
-        lagged - ridge /
-    """
-    node_lagged_1 = PrimaryNode("lagged")
-    node_lagged_1.custom_params = {'window_size': 50}
-
-    node_smoth = PrimaryNode("smoothing")
-    node_lagged_2 = SecondaryNode("lagged", nodes_from=[node_smoth])
-    node_lagged_2.custom_params = {'window_size': 30}
-
-    node_ridge = SecondaryNode("ridge", nodes_from=[node_lagged_1])
-    node_lasso = SecondaryNode("lasso", nodes_from=[node_lagged_2])
-
-    node_final = SecondaryNode("ridge", nodes_from=[node_ridge, node_lasso])
-    pipeline = Pipeline(node_final)
-    return pipeline
 
 
 def get_available_operations():
@@ -81,31 +53,11 @@ def compose_pipeline(pipeline, train_data, task):
     return obtained_pipeline
 
 
-def prepare_data(forecast_length, multi_ts):
-    columns_to_use = ['61_91', '56_86', '61_86', '66_86']
-    target_column = '61_91'
-    task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
-    file_path = os.path.join(str(fedot_project_root()), 'cases/data/arctic/topaz_multi_ts.csv')
-    if multi_ts:
-        data = InputData.from_csv_multi_time_series(
-            file_path=file_path,
-            task=task,
-            columns_to_use=columns_to_use)
-    else:
-        data = InputData.from_csv_time_series(
-            file_path=file_path,
-            task=task,
-            target_column=target_column)
-    train_data, test_data = train_test_data_setup(data)
-    return train_data, test_data, task
-
-
-def run_multiple_ts_forecasting(forecast_length, multi_ts):
+def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     # separate data on test/train
-    train_data, test_data, task = prepare_data(forecast_length, multi_ts=multi_ts)
+    train_data, test_data, task = prepare_data(forecast_length, is_multi_ts=is_multi_ts)
     # pipeline initialization
-    pipeline = initial_pipeline()
+    pipeline = ts_complex_ridge_smoothing_pipeline()
     # pipeline fit and predict
     pipeline.fit(train_data)
     prediction_before = np.ravel(np.array(pipeline.predict(test_data).predict))
@@ -135,7 +87,7 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
     rmse_tuning, mae_tuning = calculate_metrics(np.ravel(test_data.target), predict_after_tuning)
 
     # visualization of results
-    if multi_ts:
+    if is_multi_ts:
         history = np.ravel(train_data.target[:, 0])
     else:
         history = np.ravel(train_data.target)
@@ -158,4 +110,4 @@ def run_multiple_ts_forecasting(forecast_length, multi_ts):
 
 
 if __name__ == '__main__':
-    run_multiple_ts_forecasting(forecast_length=60, multi_ts=True)
+    run_multiple_ts_forecasting(forecast_length=60, is_multi_ts=True)
