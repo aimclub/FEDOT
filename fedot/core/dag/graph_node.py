@@ -22,7 +22,6 @@ class GraphNode:
         # Wrap string into dict if it is necessary
         if isinstance(content, str):
             content = {'name': content}
-        content.setdefault('params', DEFAULT_PARAMS_STUB)
 
         self.content = content
         self._nodes_from = UniqueList(nodes_from or ())
