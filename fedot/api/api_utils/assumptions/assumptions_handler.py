@@ -4,6 +4,7 @@ import traceback
 from typing import Union, List, Optional
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
@@ -15,15 +16,15 @@ from fedot.core.pipelines.pipeline import Pipeline
 
 class AssumptionsHandler:
     def __init__(self, log: Log,
-                 train_data: InputData):
+                 data: InputData):
         """
         Class for handling operations related with assumptions
 
         :param log: log object
-        :param train_data: data for pipelines
+        :param data: data for pipelines
         """
         self.log = log
-        self.train_data = train_data
+        self.data = data
 
     def propose_assumptions(self,
                             initial_assumption: Union[List[Pipeline], Pipeline, None],
@@ -37,7 +38,7 @@ class AssumptionsHandler:
 
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
-                .get(self.train_data) \
+                .get(self.data) \
                 .from_operations(available_operations) \
                 .with_logger(self.log)
             initial_assumption = assumptions_builder.build()
@@ -48,14 +49,19 @@ class AssumptionsHandler:
     def fit_assumption_and_check_correctness(self,
                                              pipeline: Pipeline,
                                              timer: ApiTime,
-                                             data: Union[InputData, MultiModalData],
-                                             cache: Optional[OperationsCache] = None, n_jobs=1):
-        """ Test is initial pipeline can be fitted on presented data and give predictions """
+                                             cache: Optional[OperationsCache] = None) -> [Pipeline, datetime.timedelta]:
+        """
+        Check is initial pipeline can be fitted on a presented data
+
+        :param pipeline: pipeline for checking
+        :param timer: ApiTime object fot handling time
+        :param cache: cache object
+        """
         try:
             with timer.launch_assumption_fit():
-                _, data_test = train_test_data_setup(data)
+                data_train, data_test = train_test_data_setup(self.data)
                 self.log.message('Initial pipeline fitting started')
-                pipeline.fit(data, n_jobs=n_jobs)
+                pipeline.fit(data_train)
                 if cache is not None:
                     cache.save_pipeline(pipeline)
                 pipeline.predict(data_test)
@@ -68,7 +74,12 @@ class AssumptionsHandler:
     def _raise_evaluating_exception(self, ex: Exception):
         fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
         advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
-
         self.log.info(fit_failed_info)
         print(traceback.format_exc())
         raise ValueError(advice_info)
+
+    def propose_preset(self, preset: Union[str, None], assumption_fit_time: datetime.timedelta, timeout: int):
+        if not preset or preset == 'auto':
+            preset = change_preset_based_on_initial_fit(assumption_fit_time, timeout)
+            self.log.info(f"Preset was changed to {preset}")
+        return preset

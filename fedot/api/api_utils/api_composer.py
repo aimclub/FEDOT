@@ -3,7 +3,7 @@ import gc
 import traceback
 from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
 
-from fedot.api.api_utils.assumptions.assumptions_advisor import AssumptionsHandler
+from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
 from fedot.api.time import ApiTime
@@ -165,16 +165,12 @@ class ApiComposer:
         # Set initial assumption and check correctness
         initial_assumption = assumption_handler.propose_assumptions(api_params['initial_assumption'],
                                                                     available_operations)
-        fitted_initial_pipeline, init_pipeline_fit_time = \
-            assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0], train_data,
-                                                                    logger=log, cache=self.cache,
-                                                                    n_jobs=api_params['n_jobs'])
+        fitted_assumption, assumption_fit_time = \
+            assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                                                                    self.timer,
+                                                                    self.cache)
 
-
-        if not preset or preset == 'auto':
-            preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, timeout)
-            self.preset_name = preset
-            log.info(f"Preset was changed to {preset}")
+        self.preset_name = assumption_handler.propose_preset(preset, assumption_fit_time, timeout)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
                                                                  self.timer.datetime_composing, preset)
@@ -200,7 +196,7 @@ class ApiComposer:
             .with_cache(self.cache)
         gp_composer: GPComposer = builder.build()
 
-        if self._have_time_for_composing(init_pipeline_fit_time, composer_params['pop_size']):
+        if self._have_time_for_composing(assumption_fit_time, composer_params['pop_size']):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 log.message(f'Pipeline composition started.')
@@ -209,9 +205,9 @@ class ApiComposer:
         else:
             # Use initial pipeline as final solution
             log.message(f'Timeout is too small for composing and is skipped '
-                        f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.')
-            best_pipelines = fitted_initial_pipeline
-            best_pipeline_candidates = [fitted_initial_pipeline]
+                        f'because fit_time is {assumption_fit_time.total_seconds()} sec.')
+            best_pipelines = fitted_assumption
+            best_pipeline_candidates = [fitted_assumption]
 
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
 
@@ -220,7 +216,7 @@ class ApiComposer:
             pipeline.log = log
 
         if with_tuning:
-            timeout_for_tuning = self.timer.determine_resources_for_tuning(init_pipeline_fit_time)
+            timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
                                      tuning_params['tuner_metric'],
                                      composer_requirements,
