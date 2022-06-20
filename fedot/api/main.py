@@ -1,3 +1,4 @@
+import traceback
 from copy import deepcopy
 from inspect import signature
 from typing import List, Optional, Tuple, Union, Collection, Sequence
@@ -13,8 +14,10 @@ from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -425,6 +428,7 @@ class Fedot:
             n_jobs=self.params.api_params['n_jobs']
         )
 
+    # TODO refactor predefined models - make a separated module
     def _process_predefined_model(self, predefined_model):
         """ Fit and return predefined model """
 
@@ -432,7 +436,7 @@ class Fedot:
             pipelines = [predefined_model]
         elif predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = AssumptionsBuilder.get(self.params.api_params['task'], self.train_data).build()
+            pipelines = AssumptionsBuilder.get(self.train_data).build()
         elif isinstance(predefined_model, str):
             model = PrimaryNode(predefined_model)
             pipelines = [Pipeline(model)]
@@ -441,8 +445,31 @@ class Fedot:
 
         final_pipeline = pipelines[0]
         # Perform fitting
-        final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
-                                                      logger=self.params.api_params['logger'],
-                                                      cache=self.api_composer.cache,
-                                                      n_jobs=self.params.api_params['n_jobs'])
+        final_pipeline = check_final_pipeline(final_pipeline, data=self.train_data)
         return final_pipeline
+
+
+def check_final_pipeline(
+        pipeline: Pipeline,
+        data: Union[InputData, MultiModalData],
+        log: Log = None) -> []:
+    """
+    Check is final pipeline can be fitted on a presented data
+
+
+    :param pipeline: pipeline for checking
+    :param data: data for fitting
+    :param log: log object
+    """
+    log = log or default_log(__name__)
+    try:
+        _, data_test = train_test_data_setup(data)
+        pipeline.fit(data)
+        pipeline.predict(data_test)
+    except Exception as ex:
+        fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
+        advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
+        log.info(fit_failed_info)
+        print(traceback.format_exc())
+        raise ValueError(advice_info)
+    return pipeline

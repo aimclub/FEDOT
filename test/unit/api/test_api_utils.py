@@ -102,7 +102,7 @@ def test_the_formation_of_initial_assumption():
     available_operations = ['dt']
 
     initial_assumptions = AssumptionsBuilder \
-        .get(Task(TaskTypesEnum.classification), train_input) \
+        .get(train_input) \
         .with_logger(logger) \
         .from_operations(available_operations) \
         .build()
@@ -120,7 +120,7 @@ def test_init_assumption_with_inappropriate_available_operations():
     available_operations = ['linear', 'xgboost', 'lagged']
 
     initial_assumptions = AssumptionsBuilder \
-        .get(Task(TaskTypesEnum.classification), train_input) \
+        .get(train_input) \
         .with_logger(logger) \
         .from_operations(available_operations) \
         .build()

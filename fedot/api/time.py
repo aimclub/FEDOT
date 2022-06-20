@@ -62,14 +62,13 @@ class ApiTime:
         yield
         self.assumption_fit_spend_time = datetime.datetime.now() - self.starting_time_for_assumption_fit
 
-    def determine_resources_for_tuning(self, init_pipeline_fit_time: datetime.timedelta):
+    def determine_resources_for_tuning(self):
         """
         Based on time spend for composing and initial pipeline fit determine
         how much time and how many iterations are needed for tuning
 
-        :param init_pipeline_fit_time: time to fit stand-alone pipeline
         """
-        all_spended_time = self.composing_spend_time + init_pipeline_fit_time
+        all_spended_time = self.composing_spend_time + self.assumption_fit_spend_time
 
         if self.time_for_automl is not None:
             all_timeout = float(self.time_for_automl)
