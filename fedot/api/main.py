@@ -452,7 +452,7 @@ class Fedot:
 def check_final_pipeline(
         pipeline: Pipeline,
         data: Union[InputData, MultiModalData],
-        log: Log = None) -> []:
+        log: Log = None) -> [Pipeline]:
     """
     Check is final pipeline can be fitted on a presented data
 
