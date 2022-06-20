@@ -6,10 +6,10 @@ from networkx import graph_edit_distance, set_node_attributes
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
+from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items, Copyable
 
 
-class GraphOperator(Graph):
+class GraphOperator(Graph, Copyable):
     """_summary_
 
     :param graph: object used as the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition

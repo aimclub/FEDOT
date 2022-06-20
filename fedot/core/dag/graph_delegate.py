@@ -1,11 +1,13 @@
+from copy import copy
 from typing import Union, Sequence, List, Callable
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.utilities.data_structures import Copyable
 
 
-class GraphDelegate(Graph):
+class GraphDelegate(Graph, Copyable):
     """
     Graph that delegates calls to another Graph implementation.
 
@@ -70,3 +72,9 @@ class GraphDelegate(Graph):
     @property
     def depth(self) -> int:
         return self.operator.depth
+
+    def __copy__(self):
+        """Delegates copy to underlying graph operator."""
+        result = Copyable.__copy__(self)
+        result.operator = copy(self.operator)
+        return result
