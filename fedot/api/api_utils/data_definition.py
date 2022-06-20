@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from functools import partial
 from typing import Union
 
 import numpy as np
@@ -45,11 +44,11 @@ class StrategyDefineData(ABC):
 
 
 class FedotStrategy(StrategyDefineData):
-    def define_data(self, features: InputData,
+    def define_data(self, features: Union[InputData, MultiModalData],
                     ml_task: Task,
                     target: str = None,
-                    is_predict: bool = False) -> InputData:
-        # InputData format for input data
+                    is_predict: bool = False) -> Union[InputData, MultiModalData]:
+        # InputData or MultiModalData format for input data
         data = deepcopy(features)
         data.task = ml_task
         return data
@@ -144,6 +143,7 @@ class MultimodalStrategy(StrategyDefineData):
                     target: str = None,
                     is_predict: bool = False,
                     idx=None) -> MultiModalData:
+        # dict of NumPy arrays or InputData sources as input data
 
         # change data type to InputData
         for source in features:

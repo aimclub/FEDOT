@@ -15,7 +15,6 @@ from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -89,21 +88,24 @@ def load_categorical_unimodal():
 
 def load_categorical_multidata():
     task = Task(TaskTypesEnum.classification)
-    images_size = (128, 128)
 
-    files_path = os.path.join('test', 'data', 'multi_modal')
-    path = os.path.join(str(fedot_project_root()), files_path)
+    # Create features table
+    features_first = np.array([[0, '  a'], [1, ' a '], [2, '  b'], [3, np.nan], [4, '  a'],
+                               [5, '  b'], [6, 'b  '], [7, '  c'], [8, ' c ']], dtype=object)
+    features_second = np.array([[10, '  a'], [11, ' a '], [12, '  b'], [13, ' a '], [14, '  a'],
+                                [15, '  b'], [16, 'b  '], [17, '  c'], [18, ' c ']], dtype=object)
+    # TODO @andreygetmanov (fails if target = ['true', 'false', ...])
+    target = np.array([1, 0, 1, 0, 0, 0, 0, 1, 1])
 
-    train_num, _, train_img, _, train_text, _ = \
-        prepare_multi_modal_data(path, task, images_size, with_split=False)
+    input_first = InputData(idx=np.arange(0, 9), features=features_first,
+                            target=target, task=task, data_type=DataTypesEnum.table)
+    input_second = InputData(idx=np.arange(0, 9), features=features_second,
+                             target=target, task=task, data_type=DataTypesEnum.table)
 
-    fit_data = MultiModalData({
-        'data_source_img': train_img,
-        'data_source_table': train_num,
-        'data_source_text': train_text
-    })
+    fit_data = {'first': input_first,
+                'second': input_second}
 
-    return fit_data
+    return fit_data, target
 
 
 def data_with_binary_features_and_categorical_target():
@@ -337,6 +339,23 @@ def test_multivariate_ts():
     fedot.fit(features=historical_data, target=target_history)
     forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
     assert forecast is not None
+
+
+def test_dict_multimodal_input_for_api():
+
+    data, target = load_categorical_multidata()
+
+    model = Fedot(problem='classification', **default_params)
+
+    model.fit(features=data, target=target)
+
+    prediction = model.predict(features=data)
+
+    assert len(prediction) == len(target)
+
+    metrics = model.get_metrics(metric_names='f1')
+
+    assert metrics['f1'] > 0
 
 
 def test_unshuffled_data():
