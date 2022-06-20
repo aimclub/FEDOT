@@ -1,7 +1,9 @@
+import pytest
+from copy import deepcopy
 from functools import partial
 
 import numpy as np
-import pytest
+
 
 from fedot.core.data.data import InputData
 from fedot.core.data.supplementary_data import SupplementaryData
@@ -9,16 +11,30 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, OneFoldInputDataSplit
 from test.unit.models.test_model import classification_dataset
-from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth, \
-    pipeline_fifth
-from test.unit.validation.test_table_cv import sample_pipeline, get_classification_data
+from test.unit.validation.test_table_cv import sample_pipeline
 
 _ = classification_dataset
+
+
+def pipeline_first_test():
+    pipeline = PipelineBuilder().add_node('rf').add_node('rf').to_pipeline()
+    return pipeline
+
+
+def pipeline_second_test():
+    pipeline = PipelineBuilder().add_node('knn').add_node('knn').to_pipeline()
+    return pipeline
+
+
+def pipeline_third_test():
+    pipeline = PipelineBuilder().add_node('xgboost').to_pipeline()
+    return pipeline
 
 
 def empty_pipeline():
@@ -31,11 +47,10 @@ def throwing_exception_metric(*args, **kwargs):
 
 def actual_fitness(data_split, pipeline, metric):
     metric_values = []
-    for (train_input, test_input) in data_split():
-        pipeline.fit(train_input, use_fitted=False)
-
+    for (train_data, test_data) in data_split():
+        pipeline.fit(train_data)
         metric_function = MetricsRepository().metric_by_id(metric, default_callable=metric)
-        metric_values.append(metric_function(pipeline=pipeline, reference_data=test_input))
+        metric_values.append(metric_function(pipeline=pipeline, reference_data=test_data))
     mean_metric = np.mean(metric_values, axis=0)
     return SingleObjFitness(mean_metric)
 
@@ -52,20 +67,20 @@ def empty_datasource():
 
 @pytest.mark.parametrize(
     'pipeline',
-    [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth(), pipeline_fifth()]
+    [pipeline_first_test(), pipeline_second_test(), pipeline_third_test()]
 )
 def test_pipeline_objective_evaluate_with_different_metrics(classification_dataset, pipeline):
     log = default_log(__name__)
-
-    data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
     for metric in ClassificationMetricsEnum:
+        one_fold_split = OneFoldInputDataSplit()
+        data_split = partial(one_fold_split.input_split, input_data=classification_dataset)
+        check_pipeline = deepcopy(pipeline)
         objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, log=log)
         fitness = objective_eval(pipeline)
-        act_fitness = actual_fitness(data_split, sample_pipeline(), metric)
-        print(metric.name, abs(fitness.value - act_fitness.value))
+        act_fitness = actual_fitness(data_split, check_pipeline, metric)
         assert fitness.valid
         assert fitness.value is not None
-        assert np.isclose(fitness.value, act_fitness.value, atol=0.016)
+        assert np.isclose(fitness.value, act_fitness.value, atol=1e-8), metric.name
 
 
 def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset):
