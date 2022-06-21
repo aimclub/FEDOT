@@ -4,6 +4,7 @@ from functools import partial
 
 import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
+from sklearn.model_selection import KFold, StratifiedKFold
 
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
@@ -11,13 +12,14 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
+from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, DataObjectiveBuilder
 from fedot.core.validation.split import tabular_cv_generator
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from test.unit.api.test_api_cli_params import project_root_path
@@ -52,6 +54,21 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 
     assert all_metrics_correct
+
+
+def test_kfold_advisor_works_correct_in_balanced_case():
+    data = get_classification_data()
+    advisor = DataObjectiveAdvisor()
+    split_type = advisor.propose_kfold(data)
+    assert split_type == KFold
+
+
+def test_kfold_advisor_works_correct_in_imbalanced_case():
+    data = get_classification_data()
+    data.target[:-int(len(data.target)*0.1)] = 0
+    advisor = DataObjectiveAdvisor()
+    split_type = advisor.propose_kfold(data)
+    assert split_type == StratifiedKFold
 
 
 def test_cv_min_kfolds_raise():
