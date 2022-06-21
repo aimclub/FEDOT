@@ -1,17 +1,17 @@
-from typing import Callable, List
+from typing import Callable, List, Sequence, Optional, Union
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.validation_rules import (
-    DEFAULT_DAG_RULES,
+from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
+from fedot.core.dag.verification_rules import (
     has_no_cycle,
     has_no_isolated_nodes,
     has_no_self_cycled_nodes,
     has_one_root
 )
-from fedot.core.optimisers.adapters import DirectAdapter
+from fedot.core.log import Log
+from fedot.core.optimisers.adapters import PipelineAdapter, BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.pipelines.validation_rules import (
+from fedot.core.pipelines.verification_rules import (
     has_correct_data_connections,
     has_correct_data_sources,
     has_correct_operation_positions,
@@ -47,35 +47,30 @@ class_rules = [has_no_conflicts_during_multitask,
                has_no_conflicts_after_class_decompose]
 
 
-def validate(graph: Graph, rules: List[Callable] = None, task=None):
-    """ The graph is checked for compliance with the requirements
+def verifier_for_task(task_type: Optional[TaskTypesEnum] = None,
+                      adapter: Optional[BaseOptimizationAdapter] = None,
+                      log: Optional[Log] = None):
+    return GraphVerifier(rules_by_task(task_type), adapter, log)
 
-    :param graph: graph object
-    :param rules: rules to check
-    :param task: task which such a graph is solving
-    """
+
+def rules_by_task(task_type: Optional[TaskTypesEnum],
+                  rules: Sequence[VerifierRuleType] = ()) -> Sequence[VerifierRuleType]:
     tmp_rules = []
-    if rules is None or not rules:
-        tmp_rules.extend(common_rules)
-    else:
-        tmp_rules.extend(rules)
 
-    # Add specific rules if needed
-    if task:
-        if task.task_type is TaskTypesEnum.ts_forecasting:
-            tmp_rules.extend(ts_rules)
-        elif task.task_type is TaskTypesEnum.classification:
-            tmp_rules.extend(class_rules)
+    tmp_rules.extend(rules or common_rules)
 
-    # Check if all rules passes
+    if task_type is TaskTypesEnum.ts_forecasting:
+        tmp_rules.extend(ts_rules)
+    elif task_type is TaskTypesEnum.classification:
+        tmp_rules.extend(class_rules)
 
-    for rule_func in tmp_rules:
-        _rule_check(graph, rule_func)
-    return True
+    return tmp_rules
 
-def _rule_check(graph, rule_func):
-    """ Perform graph check by rule """
-    if rule_func in DEFAULT_DAG_RULES and isinstance(graph, OptGraph):
-        graph = DirectAdapter(base_graph_class=Graph,
-                              base_node_class=GraphNode).restore(graph)
-    rule_func(graph)
+
+def verify_pipeline(graph: Union[Graph, OptGraph],
+                    rules: List[Callable] = None,
+                    task_type: Optional[TaskTypesEnum] = None):
+    """Method for validation of graphs with default rules.
+    NB: It is preserved for simplicity, use graph checker instead."""
+    adapter = PipelineAdapter()
+    return GraphVerifier(rules_by_task(task_type, rules), adapter).verify(graph)

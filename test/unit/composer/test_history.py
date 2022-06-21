@@ -9,7 +9,7 @@ from fedot.api.main import Fedot
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.validation_rules import DEFAULT_DAG_RULES
+from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter

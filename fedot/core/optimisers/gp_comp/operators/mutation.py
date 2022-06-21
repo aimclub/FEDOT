@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Callable, List, Union
 import numpy as np
 
 from fedot.core.composer.advisor import RemoveType
-from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
@@ -131,7 +130,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                                                                requirements=requirements, params=params,
                                                                max_depth=max_depth)
 
-        is_correct_graph = constraint_function(new_graph, params)
+        is_correct_graph = params.verifier(new_graph)
         if is_correct_graph:
             new_individual = Individual(new_graph)
             new_individual.parent_operators = deepcopy(ind.parent_operators)
@@ -337,8 +336,7 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             max_depth = node_from_graph.distance_to_primary_level
         else:
             max_depth = max_depth - graph.operator.distance_to_root_level(node_from_graph)
-        new_subtree = random_graph(params=params, requirements=requirements,
-                                   max_depth=max_depth).root_node
+        new_subtree = random_graph(params.verifier, requirements, max_depth).root_node
     graph.update_subtree(node_from_graph, new_subtree)
     return graph
 
