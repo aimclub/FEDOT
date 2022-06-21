@@ -138,7 +138,6 @@ class Pipeline(Graph):
         :param n_jobs: number of threads for nodes fitting
 
         """
-
         _replace_n_jobs_in_nodes(self, n_jobs)
 
         if not use_fitted:

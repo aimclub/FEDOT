@@ -105,6 +105,7 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), cv_fold, log=log)
     fitness = objective_eval(pipeline)
     assert fitness.valid
+    assert fitness.value is not None
 
 
 def test_pipeline_objective_evaluate_with_empty_datasource(classification_dataset):
@@ -135,6 +136,7 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, time_constraint=time_constraint, log=log)
     fitness = objective_eval(pipeline)
     assert fitness.valid
+    assert fitness.value is not None
 
 
 @pytest.mark.parametrize(

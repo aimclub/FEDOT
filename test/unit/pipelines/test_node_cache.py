@@ -115,17 +115,7 @@ def pipeline_second():
     return pipeline
 
 
-def pipeline_third():
-    #    QDA
-    #  |     \
-    # RF     RF
-    pipeline = Pipeline()
-    new_node = SecondaryNode('qda')
-    for model_type in ('rf', 'rf'):
-        new_node.nodes_from.append(PrimaryNode(model_type))
-    pipeline.add_node(new_node)
-    [pipeline.add_node(node_from) for node_from in new_node.nodes_from]
-    return pipeline
+
 
 
 def pipeline_fourth():
