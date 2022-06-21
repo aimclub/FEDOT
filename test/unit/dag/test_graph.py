@@ -5,7 +5,7 @@ import numpy as np
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from test.unit.dag.test_graph_utils import find_same_node
+from test.unit.dag.test_graph_utils import *
 from test.unit.pipelines.test_pipeline_tuning import classification_dataset
 
 seed(1)
@@ -137,6 +137,26 @@ def test_delete_subtree_with_duplicated_edges():
     assert not find_same_node(graph.nodes, bad_primary_node)
     assert not find_same_node(graph.root_node.nodes_from, bad_secondary_node)
     assert not find_same_node(graph.root_node.nodes_from, bad_primary_node)
+
+
+def test_update_node_without_predecessors():
+    primary_node_1 = GraphNode('l1n1')
+    primary_node_2 = GraphNode('l1n2')
+
+    nodes_from = [primary_node_1, primary_node_2]
+    old_secondary_node_1 = GraphNode('l2n1', nodes_from=nodes_from)
+
+    final_node = GraphNode('l3n1', nodes_from=[old_secondary_node_1])
+    graph = Graph([final_node])
+
+    new_secondary_node = GraphNode('l2new')
+    graph.update_node(old_secondary_node_1, new_secondary_node)
+
+    new_node = find_same_node(graph.nodes, new_secondary_node)
+    assert new_node is not None
+    assert not find_same_node(graph.nodes, old_secondary_node_1)
+    assert find_same_node(graph.root_node.nodes_from, new_secondary_node), "node children were not updated"
+    assert nodes_same(old_secondary_node_1.nodes_from, new_node.nodes_from), "node parents were not updated"
 
 
 def test_update_node_with_duplicated_edges():
