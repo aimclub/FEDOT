@@ -160,23 +160,22 @@ class ApiComposer:
         available_operations = composer_params['available_operations']
         self._initialize_timer(timeout, with_tuning)
 
+        # Work with initial assumptions
         assumption_handler = AssumptionsHandler(log, train_data)
 
         # Set initial assumption and check correctness
         initial_assumption = assumption_handler.propose_assumptions(api_params['initial_assumption'],
                                                                     available_operations)
-        fitted_assumption, assumption_fit_time = \
-            assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
-                                                                    self.timer,
-                                                                    self.cache)
-
-        self.preset_name = assumption_handler.propose_preset(preset, assumption_fit_time, timeout)
+        fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                                                                                    self.timer,
+                                                                                    self.cache)
+        assumption_fit_time = self.timer.assumption_fit_spend_time
+        self.preset_name = assumption_handler.propose_preset(preset, self.timer, timeout)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
-                                                                 self.timer.datetime_composing, preset)
+                                                                 self.timer.datetime_composing, self.preset_name)
 
         # Get optimiser, its parameters, and composer
-
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])
 
         log.message(f"AutoML configured."
@@ -196,7 +195,7 @@ class ApiComposer:
             .with_cache(self.cache)
         gp_composer: GPComposer = builder.build()
 
-        if self._have_time_for_composing(assumption_fit_time, composer_params['pop_size']):
+        if self.timer.have_time_for_composing(composer_params['pop_size']):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 log.message(f'Pipeline composition started.')
@@ -228,10 +227,6 @@ class ApiComposer:
 
         log.message('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
-
-    def _have_time_for_composing(self, init_pipeline_fit_time: datetime.timedelta, pop_size: int) -> bool:
-        timeout_not_set = self.timer.datetime_composing is None
-        return timeout_not_set or init_pipeline_fit_time < self.timer.datetime_composing / pop_size
 
     def tune_final_pipeline(self, task: Task,
                             train_data: InputData,

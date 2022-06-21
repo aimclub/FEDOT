@@ -68,7 +68,7 @@ class AssumptionsHandler:
         except Exception as ex:
             self._raise_evaluating_exception(ex)
         self.log.message(f'Initial pipeline was fitted for {timer.assumption_fit_spend_time.total_seconds()} sec.')
-        return pipeline, timer.assumption_fit_spend_time
+        return pipeline
 
     def _raise_evaluating_exception(self, ex: Exception):
         fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
@@ -77,16 +77,16 @@ class AssumptionsHandler:
         print(traceback.format_exc())
         raise ValueError(advice_info)
 
-    def propose_preset(self, preset: Union[str, None], assumption_fit_time: datetime.timedelta, timeout: int) -> str:
+    def propose_preset(self, preset: Union[str, None], timer: ApiTime, timeout: int) -> str:
         """
         Proposes the most suitable preset for current data
 
         :param preset: predefined preset
-        :param assumption_fit_time: time needed to fit initial assumption
+        :param timer: ApiTime object
         :param timeout: timeout from api
 
         """
         if not preset or preset == 'auto':
-            preset = change_preset_based_on_initial_fit(assumption_fit_time, timeout)
+            preset = change_preset_based_on_initial_fit(timer, timeout)
             self.log.info(f"Preset was changed to {preset}")
         return preset

@@ -2,7 +2,7 @@ import datetime
 from contextlib import contextmanager
 from typing import Optional
 
-from fedot.core.constants import COMPOSING_TUNING_PROPORTION
+from fedot.core.constants import COMPOSING_TUNING_PROPORTION, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 
 
 class ApiTime:
@@ -19,15 +19,15 @@ class ApiTime:
         self.__define_timeouts_for_stages()
 
         # Time for composing
-        self.starting_time_for_composing = None
+        self._starting_time_for_composing = None
         self.composing_spend_time = datetime.timedelta(minutes=0)
 
         # Time for tuning
-        self.starting_time_for_tuning = None
+        self._starting_time_for_tuning = None
         self.tuning_spend_time = datetime.timedelta(minutes=0)
 
         # Time for assumption fit
-        self.starting_time_for_assumption_fit = None
+        self._starting_time_for_assumption_fit = None
         self.assumption_fit_spend_time = datetime.timedelta(minutes=0)
 
     def __define_timeouts_for_stages(self):
@@ -41,26 +41,34 @@ class ApiTime:
             else:
                 self.timeout_for_composing = self.time_for_automl
 
+    def have_time_for_composing(self, pop_size: int) -> bool:
+        timeout_not_set = self.datetime_composing is None
+        return timeout_not_set or self.assumption_fit_spend_time < self.datetime_composing / pop_size
+
+    def can_use_the_best_quality(self, full_minutes_timeout: int):
+        supposed_time = (self.assumption_fit_spend_time.total_seconds() / 60) * MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+        return supposed_time <= full_minutes_timeout
+
     @contextmanager
     def launch_composing(self):
         """ Wrap composing process with timer """
-        self.starting_time_for_composing = datetime.datetime.now()
+        self._starting_time_for_composing = datetime.datetime.now()
         yield
-        self.composing_spend_time = datetime.datetime.now() - self.starting_time_for_composing
+        self.composing_spend_time = datetime.datetime.now() - self._starting_time_for_composing
 
     @contextmanager
     def launch_tuning(self):
         """ Wrap tuning process with timer """
-        self.starting_time_for_tuning = datetime.datetime.now()
+        self._starting_time_for_tuning = datetime.datetime.now()
         yield
-        self.tuning_spend_time = datetime.datetime.now() - self.starting_time_for_tuning
+        self.tuning_spend_time = datetime.datetime.now() - self._starting_time_for_tuning
 
     @contextmanager
     def launch_assumption_fit(self):
         """ Wrap assumption fit process with timer """
-        self.starting_time_for_assumption_fit = datetime.datetime.now()
+        self._starting_time_for_assumption_fit = datetime.datetime.now()
         yield
-        self.assumption_fit_spend_time = datetime.datetime.now() - self.starting_time_for_assumption_fit
+        self.assumption_fit_spend_time = datetime.datetime.now() - self._starting_time_for_assumption_fit
 
     def determine_resources_for_tuning(self):
         """
