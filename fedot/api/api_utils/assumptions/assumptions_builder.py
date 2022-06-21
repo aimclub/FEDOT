@@ -8,7 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 
@@ -58,7 +58,6 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
     def __init__(self, data: Union[InputData, MultiModalData],
                  data_type: DataTypesEnum = None, repository_name: str = "model"):
         """ Construct builder from task and data.
-        :param task: task for the pipeline
         :param data: data that will be passed to the pipeline
         :param data_type: allows specifying data_type of particular column for MultiModalData case
         """
