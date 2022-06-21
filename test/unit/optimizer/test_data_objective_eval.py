@@ -102,7 +102,7 @@ def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     cv_fold = partial(tabular_cv_generator, classification_dataset, folds=3)
     metric = ClassificationMetricsEnum.logloss
 
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), cv_fold, log=log)
+    objective_eval = PipelineObjectiveEvaluate(Objective(metric), cv_fold)
     fitness = objective_eval(pipeline)
     assert fitness.valid
     assert fitness.value is not None
