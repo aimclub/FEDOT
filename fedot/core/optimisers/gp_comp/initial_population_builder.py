@@ -19,7 +19,7 @@ class InitialPopulationBuilder:
 
     _max_generation_attempts = 1000
 
-    def __init__(self, verifier: GraphVerifier, log: Log):
+    def __init__(self, verifier: GraphVerifier):
         self.verifier = verifier
         self.mutation_operator: Callable[[Individual], Individual] = lambda ind: ind
         self.individual_sampler: Optional[IndividualSampler] = None

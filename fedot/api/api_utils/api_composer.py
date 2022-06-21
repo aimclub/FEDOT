@@ -179,7 +179,7 @@ class ApiComposer:
         # Get optimiser, its parameters, and composer
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])
 
-        log.message(f"AutoML configured."
+        log.info(f"AutoML configured."
                     f" Parameters tuning: {with_tuning}."
                     f" Time limit: {timeout} min."
                     f" Set of candidate models: {available_operations}.")
@@ -204,7 +204,7 @@ class ApiComposer:
                 best_pipeline_candidates = gp_composer.best_models
         else:
             # Use initial pipeline as final solution
-            log.message(f'Timeout is too small for composing and is skipped '
+            log.info(f'Timeout is too small for composing and is skipped '
                         f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
@@ -226,7 +226,7 @@ class ApiComposer:
         # enforce memory cleaning
         gc.collect()
 
-        log.message('Model generation finished')
+        log.info('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
 
     def tune_final_pipeline(self, task: Task,

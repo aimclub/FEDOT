@@ -28,7 +28,7 @@ def will_crossover_be_applied(graph_first, graph_second, crossover_prob, crossov
 
 def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
               ind_first: Individual, ind_second: Individual,
-              max_depth: int, log: Union[Log, LoggerAdapter],
+              max_depth: int, log: LoggerAdapter,
               crossover_prob: float = 0.8, params: 'GraphGenerationParams' = None) -> Any:
     crossover_type = choice(types)
     is_custom_crossover = isinstance(crossover_type, Callable)

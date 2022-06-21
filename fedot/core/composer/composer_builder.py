@@ -115,7 +115,7 @@ class ComposerBuilder:
         return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
-        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
+        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
                                                         advisor=PipelineChangeAdvisor(self.task),
                                                         rules_for_constraint=rules_by_task(self.task.task_type))
 

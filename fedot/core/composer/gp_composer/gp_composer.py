@@ -72,7 +72,7 @@ class GPComposer(Composer):
                                                       composer_requirements.max_pipeline_fit_time,
                                                       composer_requirements.cv_folds,
                                                       composer_requirements.validation_blocks,
-                                                      cache, logger)
+                                                      cache)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary

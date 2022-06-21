@@ -4,6 +4,7 @@ from typing import Any, Iterable, List, Optional, Sequence, Union
 
 from tqdm import tqdm
 
+from fedot.core.log import default_log
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -97,12 +98,11 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         self.population = None
         self.generations = GenerationKeeper(self.objective)
-        self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
+        self.timer = OptimisationTimer(timeout=self.requirements.timeout)
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,
                                                          n_jobs=requirements.n_jobs,
-                                                         graph_cleanup_fn=_unfit_pipeline,
-                                                         log=log)
+                                                         graph_cleanup_fn=_unfit_pipeline)
 
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
@@ -140,7 +140,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
         verifier = self.graph_generation_params.verifier
-        builder = InitialPopulationBuilder(verifier, self.log)
+        builder = InitialPopulationBuilder(verifier)
 
         if not self.initial_individuals:
             random_graph_sampler = partial(random_graph, verifier, self.requirements, max_depth)
@@ -274,7 +274,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                          individual1, individual2,
                          crossover_prob=self.requirements.crossover_prob,
                          max_depth=self.max_depth,
-                         params=self.graph_generation_params)
+                         params=self.graph_generation_params,
+                         log=default_log())
 
 
 def _unfit_pipeline(graph: Any):
