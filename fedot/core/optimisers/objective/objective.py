@@ -2,7 +2,7 @@ from numbers import Real
 from typing import Any, Optional, Union, Iterable, Callable, Sequence, TypeVar
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.fitness import *
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
 
@@ -21,7 +21,7 @@ class Objective:
                  is_multi_objective: bool = False):
         self.metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
         self.is_multi_objective = is_multi_objective
-        self._log = default_log(str(self.__class__))
+        self._log = default_log(self.__class__.__name__)
 
     def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []

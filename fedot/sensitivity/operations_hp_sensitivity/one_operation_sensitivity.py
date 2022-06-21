@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
@@ -26,8 +26,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
     def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
-                 requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None):
+                 requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
         super().__init__(pipeline, train_data, test_data, path_to_save)
 
         requirements = SensitivityAnalysisRequirements() if requirements is None else requirements

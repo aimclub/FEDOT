@@ -2,7 +2,7 @@ from typing import List, Iterable, Union
 
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.data.merge.supplementary_data_merger import SupplementaryDataMerger
-from fedot.core.log import Log, default_log, LoggerAdapter
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.data.array_utilities import *
 from fedot.core.utilities.data_structures import are_same_length
@@ -35,7 +35,7 @@ class DataMerger:
         self.main_output = DataMerger.find_main_output(outputs)
 
     @staticmethod
-    def get(outputs: List['OutputData']) -> 'DataMerger':
+    def get(outputs: List['OutputData'], log: LoggerAdapter = None) -> 'DataMerger':
         """ Construct appropriate data merger for the outputs. """
 
         # Ensure outputs can be merged

@@ -35,18 +35,24 @@ class SingletonMeta(type):
 
 
 class Log(metaclass=SingletonMeta):
+    """ Log object to store logger singleton and log adaters
+    :param logger_name: name of the logger
+    :param config_json_file: json file from which to collect the logger if specified
+    :param output_verbosity_level: verbosity level of logger
+    :param log_file: file to write logs in """
+
     __log_adapters = {}
 
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
-                 verbosity_level: int = 10,
+                 output_verbosity_level: int = logging.DEBUG,
                  log_file: str = None):
         if not log_file:
             self.log_file = os.path.join(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
-        self.logger = self.get_logger(name=logger_name, config_file=config_json_file,
-                                      verbosity_level=verbosity_level)
+        self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
+                                       verbosity_level=output_verbosity_level)
 
     def get_adapter(self, prefix: str) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
@@ -57,7 +63,7 @@ class Log(metaclass=SingletonMeta):
                                                         {'class_name': prefix})
         return self.__log_adapters[prefix]
 
-    def get_logger(self, name, config_file: str, verbosity_level: int) -> logging.Logger:
+    def _get_logger(self, name, config_file: str, verbosity_level: int) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger(name)
         if config_file != 'default':
@@ -100,18 +106,18 @@ class Log(metaclass=SingletonMeta):
         for handler in self.handlers:
             handler.close()
 
-    def __str__(self):
-        return f'Log object for {self.logger.name} module'
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __getstate__(self):
+    def getstate(self):
         """ Define the attributes to be pickled via deepcopy or pickle
         :return: dict: state """
         state = dict(self.__dict__)
         del state['logger']
         return state
+
+    def __str__(self):
+        return f'LoggerAdapter object for {self.logger.name} module'
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class LoggerAdapter(logging.LoggerAdapter):
@@ -121,19 +127,19 @@ class LoggerAdapter(logging.LoggerAdapter):
     def __init__(self, logger, extra):
         super().__init__(logger=logger, extra=extra)
         self.setLevel(logger.level)
+        self.verbosity_level = logger.level
 
     def process(self, msg, kwargs):
         return '%s - %s' % (self.extra['class_name'], msg), kwargs
 
     def __str__(self):
-        return f'Log object for {self.extra["class_name"]} module'
+        return f'LoggerAdapter object for {self.extra["class_name"]} module'
 
     def __repr__(self):
         return self.__str__()
 
 
-def default_log(prefix: str = 'default',
-                verbose_level: int = 10) -> logging.LoggerAdapter:
+def default_log(prefix: str = 'default', verbose_level: int = logging.DEBUG) -> logging.LoggerAdapter:
     """
     Default logger
     :param prefix: adapter prefix to add it to log messages.
@@ -143,6 +149,6 @@ def default_log(prefix: str = 'default',
 
     log = Log(logger_name='default',
               config_json_file='default',
-              verbosity_level=verbose_level)
+              output_verbosity_level=verbose_level)
 
     return log.get_adapter(prefix=prefix)

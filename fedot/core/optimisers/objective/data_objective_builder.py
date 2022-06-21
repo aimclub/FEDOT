@@ -6,7 +6,7 @@ from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
@@ -19,11 +19,8 @@ from ...constants import default_data_split_ratio_by_task
 
 class DataObjectiveBuilder:
 
-    def __init__(self,
-                 objective: Objective,
-                 max_pipeline_fit_time: Optional[timedelta] = None,
-                 cv_folds: Optional[int] = None,
-                 validation_blocks: Optional[int] = None,
+    def __init__(self, objective: Objective, max_pipeline_fit_time: Optional[timedelta] = None,
+                 cv_folds: Optional[int] = None, validation_blocks: Optional[int] = None,
                  cache: Optional[OperationsCache] = None):
 
         self.objective = objective
@@ -41,11 +38,9 @@ class DataObjectiveBuilder:
         else:
             data_producer = self._build_holdout_producer(data, **kwargs)
 
-        objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective,
-                                                       data_producer=data_producer,
+        objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective, data_producer=data_producer,
                                                        time_constraint=self.max_pipeline_fit_time,
-                                                       validation_blocks=self.validation_blocks,
-                                                       cache=self.cache)
+                                                       validation_blocks=self.validation_blocks, cache=self.cache)
         return objective_evaluate
 
     def _build_holdout_producer(self, data: InputData, **kwargs) -> DataSource:

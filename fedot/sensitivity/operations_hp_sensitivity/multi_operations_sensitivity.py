@@ -6,7 +6,7 @@ import numpy as np
 
 from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem

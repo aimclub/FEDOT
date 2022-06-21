@@ -1,6 +1,6 @@
 from typing import Optional, List, Callable, Tuple, Iterable
 
-from fedot.core.log import default_log, Log
+from fedot.core.log import default_log
 
 ConditionType = Callable[[], bool]
 ConditionEntryType = Tuple[ConditionType, Optional[str]]

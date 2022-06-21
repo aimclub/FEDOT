@@ -1,10 +1,10 @@
 from copy import copy
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 
-from fedot.core.log import Log, default_log, LoggerAdapter
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 NAME_CLASS_STR = "<class 'str'>"
@@ -452,7 +452,7 @@ def find_mixed_types_columns(columns_info: dict):
     return columns_with_mixed_types
 
 
-def apply_type_transformation(table: np.array, column_types: list, log: Union[Log, LoggerAdapter]):
+def apply_type_transformation(table: np.array, column_types: list, log: LoggerAdapter):
     """
     Apply transformation for columns in dataset into desired type. Perform
     transformation on predict stage when column types were already determined

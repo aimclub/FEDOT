@@ -3,7 +3,7 @@ from typing import List, Union, Optional
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
-from fedot.core.log import Log, default_log, LoggerAdapter
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -38,7 +38,7 @@ class AssumptionsBuilder:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
         return cls(data, repository_name=repository_name)
 
-    def with_logger(self, logger: Union[Log, LoggerAdapter]):
+    def with_logger(self, logger: LoggerAdapter):
         raise NotImplementedError('abstract')
 
     def from_operations(self, available_ops: List[str]):
@@ -65,7 +65,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
-    def with_logger(self, logger: Union[Log, LoggerAdapter]):
+    def with_logger(self, logger: LoggerAdapter):
         self.logger = logger
         return self
 
@@ -105,7 +105,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
             _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(data, data_type)))
         self._subbuilders = tuple(_subbuilders)
 
-    def with_logger(self, logger: Union[Log, LoggerAdapter]):
+    def with_logger(self, logger: LoggerAdapter):
         self.logger = logger
         for _, subbuilder in self._subbuilders:
             subbuilder.with_logger(logger)

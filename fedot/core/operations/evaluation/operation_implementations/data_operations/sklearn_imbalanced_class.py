@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.utils import resample
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )

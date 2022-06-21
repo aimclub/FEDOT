@@ -9,7 +9,7 @@ from typing import Callable, ClassVar, Optional
 import numpy as np
 
 from fedot.core.data.data import data_type_is_ts
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -206,7 +206,7 @@ class HyperoptTuner(ABC):
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.validation_blocks = 3
 
-            preds, test_target = cv_time_series_predictions(pipeline, data,
+            preds, test_target = cv_time_series_predictions(pipeline, data, log=self.log,
                                                             cv_folds=self.cv_folds,
                                                             validation_blocks=self.validation_blocks)
         return preds, test_target

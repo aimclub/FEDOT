@@ -102,8 +102,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,
-        requirements=requirements, initial_graph=initial,
-        log=default_log(logger_name='Bayesian', verbose_level=1))
+        requirements=requirements, initial_graph=initial)
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graphs = optimiser.optimise(objective_eval)

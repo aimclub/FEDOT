@@ -12,7 +12,7 @@ except ModuleNotFoundError:
     tf = None
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from sklearn import preprocessing
 
@@ -80,7 +80,7 @@ def fit_cnn(train_data: InputData,
             epochs: int = 10,
             batch_size: int = 128,
             optimizer_params: dict = None,
-            logger: Optional[Log] = None):
+            logger: Optional[LoggerAdapter] = None):
     x_train, y_train = train_data.features, train_data.target
     transformed_x_train, transform_flag = check_input_array(x_train)
 
@@ -107,7 +107,7 @@ def fit_cnn(train_data: InputData,
     if logger is None:
         logger = default_log(__name__)
 
-    if logger.logger.level < 4:
+    if logger.verbosity_level < 4:
         verbose = 0
     else:
         verbose = 2

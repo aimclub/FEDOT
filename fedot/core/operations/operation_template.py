@@ -6,7 +6,7 @@ from typing import Optional
 import joblib
 import numpy as np
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.pipelines.node import Node
 
 

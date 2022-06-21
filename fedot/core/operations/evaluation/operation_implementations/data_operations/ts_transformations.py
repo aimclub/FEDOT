@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Optional, Union
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -7,7 +7,7 @@ from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import TruncatedSVD
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log, LoggerAdapter
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -633,7 +633,7 @@ class CutImplementation(DataOperationImplementation):
 
 
 def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int,
-                                   window_size_minimum: int, log: Union[Log, LoggerAdapter]):
+                                   window_size_minimum: int, log: LoggerAdapter):
     """ Method check if the length of the time series is not enough for
     lagged transformation - clip it
 
@@ -641,7 +641,7 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     :param window_size: size of sliding window, which defines lag
     :param forecast_length: forecast length
     :param window_size_minimum: minimum moving window size
-    :param log: log or log adapter for saving messages
+    :param log: logger for saving messages
     """
     prefix = "Warning: window size of lagged transformation was changed"
     was_changed = False

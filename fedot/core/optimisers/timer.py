@@ -2,7 +2,7 @@ import datetime
 from abc import ABC
 from typing import Optional
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 
 
 class Timer(ABC):

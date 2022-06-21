@@ -1,7 +1,7 @@
 from typing import List, Optional, Type, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
@@ -52,14 +52,15 @@ class PipelineSensitivityAnalysis:
                                             approaches=nodes_analyze_approaches,
                                             requirements=requirements,
                                             nodes_to_analyze=nodes_to_analyze,
-                                            path_to_save=path_to_save)
+                                            path_to_save=path_to_save, log=log)
 
         self._pipeline_analyze = PipelineAnalysis(pipeline=pipeline,
                                                   train_data=train_data,
                                                   test_data=test_data,
                                                   approaches=pipeline_analyze_approaches,
                                                   requirements=requirements,
-                                                  path_to_save=path_to_save)
+                                                  path_to_save=path_to_save,
+                                                  log=log)
 
     def analyze(self):
         """

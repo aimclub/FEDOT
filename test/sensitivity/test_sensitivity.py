@@ -236,8 +236,8 @@ def test_one_operation_analyze_analyze():
     requirements = SensitivityAnalysisRequirements(hyperparams_analysis_samples_size=1)
 
     # when
-    result = OneOperationHPAnalyze(pipeline=pipeline, train_data=train_data, requirements=requirements,
-                                   test_data=test_data, path_to_save=result_dir). \
+    result = OneOperationHPAnalyze(pipeline=pipeline, train_data=train_data, test_data=test_data,
+                                   requirements=requirements, path_to_save=result_dir). \
         analyze(node=node_to_analyze)
 
     assert type(result) is dict
@@ -312,8 +312,7 @@ def test_pipeline_non_structure_analyze_init():
                                               train_data=train_data,
                                               test_data=test_data,
                                               approaches=approaches,
-                                              path_to_save=result_dir,
-                                              log=test_log_object)
+                                              path_to_save=result_dir)
 
     # then
     assert type(non_structure_analyzer) is PipelineAnalysis

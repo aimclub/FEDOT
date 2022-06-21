@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
@@ -34,8 +34,7 @@ class NodesAnalysis:
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None,
-                 nodes_to_analyze: List[Node] = None):
+                 path_to_save=None, nodes_to_analyze: List[Node] = None):
 
         self.pipeline = pipeline
         self.train_data = train_data

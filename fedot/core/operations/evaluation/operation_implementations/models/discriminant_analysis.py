@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 
-from fedot.core.log import Log
+from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 

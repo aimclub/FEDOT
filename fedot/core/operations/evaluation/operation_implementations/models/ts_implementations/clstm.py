@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
+from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
     prepare_target,
     ts_to_table, transform_features_and_target_into_lagged

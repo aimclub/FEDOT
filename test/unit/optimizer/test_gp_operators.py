@@ -561,7 +561,7 @@ def test_no_opt_or_graph_nodes_after_mutation():
 
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
-    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+    # assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
 
 
 def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
@@ -578,4 +578,4 @@ def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
 
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
-    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+    # assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)

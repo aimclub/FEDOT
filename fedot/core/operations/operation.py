@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Optional, Union
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.warnings_processor import suppress_stdout
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
 from fedot.core.repository.operation_types_repository import OperationMetaInfo

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Union
 
 from fedot.core.composer.cache_db import OperationsCacheDB
-from fedot.core.log import Log, SingletonMeta, default_log
+from fedot.core.log import LoggerAdapter, SingletonMeta, default_log
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence

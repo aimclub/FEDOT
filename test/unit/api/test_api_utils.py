@@ -101,7 +101,7 @@ def test_the_formation_of_initial_assumption():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log('FEDOT logger', verbose_level=4)
+    logger = default_log('FEDOT logger')
     available_operations = ['dt']
 
     initial_assumptions = AssumptionsBuilder \

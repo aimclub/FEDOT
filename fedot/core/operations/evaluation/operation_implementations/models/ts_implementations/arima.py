@@ -8,7 +8,7 @@ from statsmodels.tsa.api import STLForecast
 from statsmodels.tsa.arima.model import ARIMA
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
+from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum

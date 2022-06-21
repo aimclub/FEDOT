@@ -5,7 +5,7 @@ import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.fitness import Fitness
@@ -25,15 +25,11 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param cache: Cache manager for fitted models, optional
+    :param cache: Cache manager for fitted models, optional.
     """
 
-    def __init__(self,
-                 objective: Objective,
-                 data_producer: DataSource,
-                 time_constraint: Optional[timedelta] = None,
-                 validation_blocks: Optional[int] = None,
-                 cache: Optional[OperationsCache] = None):
+    def __init__(self, objective: Objective, data_producer: DataSource, time_constraint: Optional[timedelta] = None,
+                 validation_blocks: Optional[int] = None, cache: Optional[OperationsCache] = None):
         super().__init__(objective)
         self._data_producer = data_producer
         self._time_constraint = time_constraint

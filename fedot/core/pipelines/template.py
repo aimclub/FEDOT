@@ -9,7 +9,7 @@ from uuid import uuid4
 import joblib
 import numpy as np
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
@@ -35,7 +35,6 @@ class PipelineTemplate:
     allowing user to upload a pipeline to JSON format and import it from JSON.
 
     :params pipeline: Pipeline object to export or empty Pipeline to import
-    :params log: Union[Log, LoggerAdapter] object to record messages
     """
 
     def __init__(self, pipeline: 'Pipeline' = None):

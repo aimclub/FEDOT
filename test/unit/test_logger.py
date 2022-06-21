@@ -4,9 +4,9 @@ import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log, SingletonMeta
+from fedot.core.log import Log, default_log, SingletonMeta, DEFAULT_LOG_PATH
 from fedot.core.operations.model import Model
-from fedot.core.utils import DEFAULT_PARAMS_STUB, default_fedot_data_dir
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @pytest.fixture()
@@ -52,6 +52,7 @@ def test_logger_from_config_file_setup_correctly(data_fixture, request):
 def test_logger_write_logs_correctly():
     SingletonMeta._instances = {}
     test_file_path = str(os.path.dirname(__file__))
+    test_log = default_log('test_log')
 
     # Model data preparation
     file = os.path.join('../data', 'advanced_classification.csv')
@@ -64,10 +65,8 @@ def test_logger_write_logs_correctly():
     except Exception:
         print('Captured error')
 
-    default_log_path = os.path.join(default_fedot_data_dir(), 'log.log')
-
-    if os.path.exists(default_log_path):
-        with open(default_log_path, 'r') as file:
+    if os.path.exists(DEFAULT_LOG_PATH):
+        with open(DEFAULT_LOG_PATH, 'r') as file:
             content = file.readlines()
 
     # Is there a required message in the logs
@@ -86,18 +85,16 @@ def test_logger_from_config_file_raise_exception(data_fixture, request):
 
 
 def test_logger_str():
-    SingletonMeta._instances = {}
     test_default_log = default_log('default_test_logger_for_str')
 
-    expected_str_value = "Log object for default_test_logger_for_str module"
+    expected_str_value = "LoggerAdapter object for default_test_logger_for_str module"
 
     assert str(test_default_log) == expected_str_value
 
 
 def test_logger_repr():
-    SingletonMeta._instances = {}
     test_default_log = default_log('default_test_logger_for_repr')
 
-    expected_repr_value = "Log object for default_test_logger_for_repr module"
+    expected_repr_value = "LoggerAdapter object for default_test_logger_for_repr module"
 
     assert repr(test_default_log) == expected_repr_value
