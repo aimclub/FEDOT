@@ -134,7 +134,7 @@ class CsvStrategy(StrategyDefineData):
 class MultimodalStrategy(StrategyDefineData):
     source_name_by_type = {'table': 'data_source_table',
                            'ts': 'data_source_ts',
-                           'multi_ts': 'data_source_multi_ts',
+                           'multi_ts': 'data_source_ts',
                            'text': 'data_source_text',
                            'image': 'data_source_image'}
 

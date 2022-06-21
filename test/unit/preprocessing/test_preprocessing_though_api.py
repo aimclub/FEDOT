@@ -5,6 +5,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import NAME_CLASS_STR
 
@@ -205,5 +206,9 @@ def test_text_features_processed_correctly():
         fedot_model = Fedot(problem='classification')
         fedot_model.fit(input_data, predefined_model='auto')
         predicted = fedot_model.predict(input_data)
+
+        # Check if there is a text node in pipeline
+        node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
+        assert any('text' in current_tags for current_tags in node_tags)
         assert fedot_model.current_pipeline is not None
         assert len(predicted) > 0
