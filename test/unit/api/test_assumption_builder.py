@@ -16,7 +16,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 from fedot.preprocessing.data_types import TableTypesCorrector
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.pipelines.test_pipeline_builder import pipelines_same
+from test.unit.dag.test_graph_utils import graphs_same
 
 from test.unit.data_operations.test_data_operations_implementations \
     import get_time_series, get_small_regression_dataset
@@ -160,6 +160,6 @@ def impl_test_assumptions_builder_suitable_available_operations(
     checked_pipeline = checked_builder.build()[0]
 
     # check that results differ
-    assert not pipelines_same(baseline_pipeline, checked_pipeline)
+    assert not graphs_same(baseline_pipeline, checked_pipeline)
     # check expected structure of pipeline
     assert pipeline_contains_any(checked_pipeline, *available_operations)

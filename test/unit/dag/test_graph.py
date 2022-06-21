@@ -2,10 +2,10 @@ from copy import copy, deepcopy
 from random import seed
 
 import numpy as np
-from typing import List, Optional
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
+from test.unit.dag.test_graph_utils import find_same_node
 from test.unit.pipelines.test_pipeline_tuning import classification_dataset
 
 seed(1)
@@ -185,7 +185,3 @@ def test_graph_deepcopy():
     graph_copy = deepcopy(graph)
     graph.nodes[0] = GraphNode(content='n11')
     assert graph != graph_copy
-
-
-def find_same_node(nodes: List[GraphNode], target: GraphNode) -> Optional[GraphNode]:
-    return next(filter(lambda n: n.descriptive_id == target.descriptive_id, nodes), None)
