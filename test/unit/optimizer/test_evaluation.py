@@ -41,11 +41,12 @@ def throwing_exception_objective(*args, **kwargs):
 
 @pytest.mark.parametrize(
     'dispatcher',
-    [MultiprocessingDispatcher(PipelineAdapter()),
+    [SimpleDispatcher(PipelineAdapter()),
+     MultiprocessingDispatcher(PipelineAdapter()),
      MultiprocessingDispatcher(PipelineAdapter(), n_jobs=-1),
      MultiprocessingDispatcher(PipelineAdapter(), n_jobs=1)]
 )
-def test_multiprocessing_dispatcher_with_and_without_multiprocessing(set_up_tests, dispatcher):
+def test_dispatchers_with_and_without_multiprocessing(set_up_tests, dispatcher):
     _, population = set_up_tests
 
     evaluator = dispatcher.dispatch(prepared_objective)
@@ -53,6 +54,24 @@ def test_multiprocessing_dispatcher_with_and_without_multiprocessing(set_up_test
     fitness = [x.fitness for x in evaluated_population]
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
     assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
+
+
+@pytest.mark.parametrize(
+    'objective',
+    [invalid_objective,
+     throwing_exception_objective]
+)
+@pytest.mark.parametrize(
+    'dispatcher',
+    [MultiprocessingDispatcher(PipelineAdapter()),
+     SimpleDispatcher(PipelineAdapter())]
+)
+def test_dispatchers_with_faulty_objectives(set_up_tests, objective, dispatcher):
+    adapter, population = set_up_tests
+
+    evaluator = dispatcher.dispatch(objective)
+    with pytest.raises(Exception):
+        evaluator(population)
 
 
 def test_multiprocessing_dispatcher_with_timeout(set_up_tests):
@@ -75,40 +94,15 @@ def test_multiprocessing_dispatcher_with_timeout(set_up_tests):
     assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
 
 
-def test_multiprocessing_dispatcher_with_invalid_objective(set_up_tests):
-    adapter, population = set_up_tests
-
-    evaluator = MultiprocessingDispatcher(adapter).dispatch(invalid_objective)
-    with pytest.raises(AttributeError):
-        evaluator(population)
-
-
-def test_multiprocessing_dispatcher_with_objective_throwing_exception(set_up_tests):
-    adapter, population = set_up_tests
-
-    evaluator = MultiprocessingDispatcher(adapter).dispatch(throwing_exception_objective)
-    with pytest.raises(Exception):
-        evaluator(population)
-
-
-def test_simple_dispatcher_without_timeout(set_up_tests):
-    adapter, population = set_up_tests
-
-    evaluator = SimpleDispatcher(adapter).dispatch(prepared_objective)
-    evaluated_population = evaluator(population)
-    fitness = [x.fitness for x in evaluated_population]
-    assert all(x.valid for x in fitness), "At least one fitness value is invalid"
-    assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
-
-
 def test_simple_dispatcher_with_timeout(set_up_tests):
     adapter, population = set_up_tests
 
-    timeout = datetime.timedelta(minutes=0.001)
+    timeout = datetime.timedelta(microseconds=1)
     with OptimisationTimer(timeout=timeout) as t:
         evaluator = SimpleDispatcher(adapter, timer=t).dispatch(prepared_objective)
         evaluated_population = evaluator(population)
     fitness = [x.fitness for x in evaluated_population]
+    print(fitness)
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
     assert len(evaluated_population) < len(population), "Not all pipelines should be evaluated (not enough time)"
 
@@ -119,19 +113,3 @@ def test_simple_dispatcher_with_timeout(set_up_tests):
     fitness = [x.fitness for x in evaluated_population]
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
     assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
-
-
-def test_simple_dispatcher_with_invalid_objective(set_up_tests):
-    adapter, population = set_up_tests
-
-    evaluator = SimpleDispatcher(adapter).dispatch(invalid_objective)
-    with pytest.raises(AttributeError):
-        evaluator(population)
-
-
-def test_simple_dispatcher_with_objective_throwing_exception(set_up_tests):
-    adapter, population = set_up_tests
-
-    evaluator = SimpleDispatcher(adapter).dispatch(throwing_exception_objective)
-    with pytest.raises(Exception):
-        evaluator(population)
