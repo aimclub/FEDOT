@@ -97,7 +97,7 @@ def test_multiprocessing_dispatcher_with_timeout(set_up_tests):
 def test_simple_dispatcher_with_timeout(set_up_tests):
     adapter, population = set_up_tests
 
-    timeout = datetime.timedelta(microseconds=1)
+    timeout = datetime.timedelta(milliseconds=400)
     with OptimisationTimer(timeout=timeout) as t:
         evaluator = SimpleDispatcher(adapter, timer=t).dispatch(prepared_objective)
         evaluated_population = evaluator(population)
