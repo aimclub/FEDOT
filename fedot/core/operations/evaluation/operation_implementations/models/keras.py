@@ -107,10 +107,10 @@ def fit_cnn(train_data: InputData,
     if logger is None:
         logger = default_log(__name__)
 
-    if logger.verbosity_level < 4:
+    if logger.verbosity_level < 40:
         verbose = 0
     else:
-        verbose = 2
+        verbose = 20
 
     if epochs is None:
         logger.warn('The number of training epochs was not set. The selected number of epochs is 10.')
