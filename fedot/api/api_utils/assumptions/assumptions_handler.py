@@ -9,7 +9,6 @@ from fedot.api.time import ApiTime
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -33,7 +32,7 @@ class AssumptionsHandler:
         Method to propose  initial assumptions if needed
 
         :param initial_assumption: initial assumption given by user
-        :param available_operations:
+        :param available_operations: list of available operations defined by user
         """
 
         if initial_assumption is None:
@@ -85,7 +84,7 @@ class AssumptionsHandler:
         :param preset: predefined preset
         :param assumption_fit_time: time needed to fit initial assumption
         :param timeout: timeout from api
-        :return:
+
         """
         if not preset or preset == 'auto':
             preset = change_preset_based_on_initial_fit(assumption_fit_time, timeout)

@@ -1,6 +1,6 @@
 from functools import partial
 from multiprocessing import set_start_method
-from sys import platform
+import platform
 from typing import Optional, Union, List, Dict, Sequence, Type, Iterable
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
