@@ -44,7 +44,7 @@ class DataPreprocessor:
     encoding is applied if there is no encoder in the structure of the pipeline etc.
     """
 
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         # There was performed encoding for string target column or not
         self.target_encoders = {}
         self.features_encoders = {}
@@ -58,7 +58,7 @@ class DataPreprocessor:
         self.structure_analysis = PipelineStructureExplorer()
         self.main_target_source_name = None
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     def _init_supplementary_preprocessors(self, data: Union[InputData, MultiModalData]):
         """ Initialize helpers for preprocessor

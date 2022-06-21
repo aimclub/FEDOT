@@ -27,7 +27,6 @@ class MultiTimesAnalyze:
     :param approaches: methods applied to nodes to modify
         the pipeline or analyze certain operations.\
     Defaults: NodeDeletionAnalyze.
-    :param log: log: Log object to record messages
     """
 
     default_mta_meta_params = MTAMetaParams(10e-3, 1.1)
@@ -35,8 +34,7 @@ class MultiTimesAnalyze:
     def __init__(self, pipeline: Pipeline, train_data: InputData,
                  test_data: InputData, valid_data: InputData,
                  case_name: str, path_to_save: str = None,
-                 approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
-                 log: Optional[Log] = None):
+                 approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None):
         self.pipeline = pipeline
         self.original_pipeline_len = self.pipeline.length
         self.train_data = train_data
@@ -48,7 +46,7 @@ class MultiTimesAnalyze:
                  'sensitivity', 'mta_analysis', f'{case_name}') \
                 if path_to_save is None else path_to_save
         self.approaches = [NodeDeletionAnalyze] if approaches is None else approaches
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self.__class__.__name__)
 
     def analyze(self, is_visualize=False, meta_params: MTAMetaParams = None) -> float:
         """
@@ -73,7 +71,7 @@ class MultiTimesAnalyze:
         iteration_index = 1
         worst_node_score = meta_params.worst_node_score
         while worst_node_score > 1.0 + meta_params.delta and len(self.pipeline.nodes) > 2:
-            self.log.message('new iteration of MTA deletion analysis')
+            self.log.info('new iteration of MTA deletion analysis')
             iteration_result_path = join(self.path_to_save, f'iter_{iteration_index}')
             pipeline_analysis_result = self._pipeline_analysis(result_path=iteration_result_path,
                                                                is_visualize=is_visualize)
@@ -88,7 +86,7 @@ class MultiTimesAnalyze:
 
             iteration_index += 1
 
-        self.log.message('finish MTA')
+        self.log.info('finish MTA')
         return self._length_reduction_ratio(total_nodes_deleted)
 
     def _length_reduction_ratio(self, number_of_deleted_nodes: int):
@@ -103,13 +101,13 @@ class MultiTimesAnalyze:
 
         self.pipeline.fit_from_scratch(self.train_data)
 
-        self.log.message('Start Pipeline Analysis')
+        self.log.info('Start Pipeline Analysis')
 
         pipeline_analysis_result = NodesAnalysis(pipeline=self.pipeline, train_data=self.train_data,
                                                  test_data=self.test_data,
                                                  path_to_save=result_path,
                                                  approaches=self.approaches).analyze()
-        self.log.message("End Pipeline Analysis")
+        self.log.info("End Pipeline Analysis")
 
         return pipeline_analysis_result
 

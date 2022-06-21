@@ -35,7 +35,6 @@ class HyperoptTuner(ABC):
     def __init__(self, pipeline, task,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = None):
         self.pipeline = pipeline
@@ -53,7 +52,7 @@ class HyperoptTuner(ABC):
         self.search_space = search_space
         self.algo = algo
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,
@@ -207,7 +206,7 @@ class HyperoptTuner(ABC):
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.validation_blocks = 3
 
-            preds, test_target = cv_time_series_predictions(pipeline, data, log=self.log,
+            preds, test_target = cv_time_series_predictions(pipeline, data,
                                                             cv_folds=self.cv_folds,
                                                             validation_blocks=self.validation_blocks)
         return preds, test_target

@@ -111,8 +111,7 @@ class Fedot:
         self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
-                                               log=self.params.api_params['logger'])
+        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -161,15 +160,15 @@ class Fedot:
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-                self.params.api_params['logger'].message('Final pipeline was fitted')
+                self.params.api_params['logger'].info('Final pipeline was fitted')
             else:
-                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
+                self.params.api_params['logger'].info('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
+        self.params.api_params['logger'].info(f'Final pipeline: {str(self.current_pipeline)}')
 
         return self.current_pipeline
 

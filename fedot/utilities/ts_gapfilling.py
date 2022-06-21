@@ -35,9 +35,9 @@ class SimpleGapFiller:
     :param gap_value: value, which identify gap elements in array
     """
 
-    def __init__(self, gap_value: float = -100.0, log: Optional[Log] = None):
+    def __init__(self, gap_value: float = -100.0):
         self.gap_value = gap_value
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     @series_has_gaps_check
     def linear_interpolation(self, input_data: np.array):
@@ -218,8 +218,8 @@ class ModelGapFiller(SimpleGapFiller):
     :param pipeline: TsForecastingPipeline object for filling in the gaps
     """
 
-    def __init__(self, gap_value, pipeline, log: Optional[Log] = None):
-        super().__init__(gap_value, log)
+    def __init__(self, gap_value, pipeline):
+        super().__init__(gap_value)
         self.pipeline = pipeline
 
         # At least 6 elements needed to train pipeline with lagged transformation

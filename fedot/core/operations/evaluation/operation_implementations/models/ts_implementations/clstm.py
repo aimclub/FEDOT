@@ -32,8 +32,8 @@ except ModuleNotFoundError:
 
 
 class CLSTMImplementation(ModelImplementation):
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.params = params
         self.epochs = params.get("num_epochs")
         self.batch_size = params.get("batch_size")

@@ -25,12 +25,11 @@ class OperationsCache(metaclass=SingletonMeta):
     """
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
-    :param log: optional Log object to record messages
     :param db_path: optional str determining a file name for caching pipelines
     """
 
-    def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None):
-        self.log = log or default_log(__name__)
+    def __init__(self, db_path: Optional[str] = None):
+        self.log = default_log(self.__class__.__name__)
         self._db = OperationsCacheDB(db_path)
 
     @property

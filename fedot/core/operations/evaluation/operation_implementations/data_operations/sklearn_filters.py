@@ -24,7 +24,7 @@ class FilterImplementation(DataOperationImplementation):
         self.inner_model = None
         self.operation = None
 
-        self.log = default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     def fit(self, input_data: InputData):
         """ Method for fit filter
@@ -139,7 +139,7 @@ class IsolationForestRegImplementation(DataOperationImplementation):
 
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.log = default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
         if not params:
             # Default parameters

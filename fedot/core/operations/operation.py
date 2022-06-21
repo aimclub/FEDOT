@@ -16,17 +16,16 @@ class Operation:
     (or statistical) models or data operations
 
     :param operation_type: name of the operation
-    :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Optional[Log] = None, **kwargs):
+    def __init__(self, operation_type: str, **kwargs):
         self.operation_type = operation_type
 
         self._eval_strategy = None
         self.operations_repo = None
         self.fitted_operation = None
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')

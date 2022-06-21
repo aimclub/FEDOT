@@ -29,13 +29,12 @@ class NodesAnalysis:
     Default: [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
     :param nodes_to_analyze: nodes to analyze. Default: all nodes
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param log: log: Log object to record messages
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[NodeAnalyzeApproach]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None,
+                 path_to_save=None,
                  nodes_to_analyze: List[Node] = None):
 
         self.pipeline = pipeline
@@ -45,12 +44,12 @@ class NodesAnalysis:
         self.requirements = \
             SensitivityAnalysisRequirements() if requirements is None else requirements
         self.metric = self.requirements.metric
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self.__class__.__name__)
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
 
         if not nodes_to_analyze:
-            self.log.message('Nodes to analyze are not defined. All nodes will be analyzed.')
+            self.log.info('Nodes to analyze are not defined. All nodes will be analyzed.')
             self.nodes_to_analyze = self.pipeline.nodes
         else:
             self.nodes_to_analyze = nodes_to_analyze
@@ -91,7 +90,7 @@ class NodesAnalysis:
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(result, indent=4))
 
-        self.log.message(f'Pipeline Sensitivity Analysis results were saved to {result_file}')
+        self.log.info(f'Pipeline Sensitivity Analysis results were saved to {result_file}')
 
     def _visualize_result_per_approach(self, results: dict, types: list):
         gathered_results = self._extract_result_values(results)
@@ -111,7 +110,7 @@ class NodesAnalysis:
                              f'{self.approaches[index].__name__}.jpg')
 
             plt.savefig(file_path)
-            self.log.message(f'Pipeline Sensitivity Analysis visualized results were saved to {file_path}')
+            self.log.info(f'Pipeline Sensitivity Analysis visualized results were saved to {file_path}')
 
     def _visualize_degree_correlation(self, results: dict):
         nodes_degrees = GraphOperator(self.pipeline).get_nodes_degrees()
@@ -123,7 +122,7 @@ class NodesAnalysis:
             file_path = join(self.path_to_save,
                              f'{self.approaches[index].__name__}_cor.jpg')
             plt.savefig(file_path)
-            self.log.message(f'Nodes degree correlation visualized results were saved to {file_path}')
+            self.log.info(f'Nodes degree correlation visualized results were saved to {file_path}')
 
     def _extract_result_values(self, results):
         gathered_results = []

@@ -3,7 +3,7 @@ from copy import deepcopy
 from typing import Any, Type, Generic, TypeVar, Optional, Dict
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.log import default_log, Log
+from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -17,9 +17,8 @@ AdapteeNodeType = TypeVar('AdapteeNodeType')
 class BaseOptimizationAdapter(Generic[AdapteeType, AdapteeNodeType]):
     def __init__(self,
                  base_graph_class: Type[AdapteeType],
-                 base_node_class: Type[AdapteeNodeType],
-                 log: Optional[Log] = None):
-        self._log = log or default_log('adapter_logger')
+                 base_node_class: Type[AdapteeNodeType]):
+        self._log = default_log(self.__class__.__name__)
         self._base_graph_class = base_graph_class
         self._base_node_class = base_node_class
 
@@ -50,9 +49,8 @@ class DirectAdapter(BaseOptimizationAdapter[AdapteeType, AdapteeNodeType]):
 
     def __init__(self,
                  base_graph_class: Type[AdapteeType] = None,
-                 base_node_class: Type[AdapteeNodeType] = None,
-                 log: Log = None):
-        super().__init__(base_graph_class or OptGraph, base_node_class or OptNode, log)
+                 base_node_class: Type[AdapteeNodeType] = None):
+        super().__init__(base_graph_class or OptGraph, base_node_class or OptNode)
 
     def _adapt(self, adaptee: AdapteeType) -> OptGraph:
         opt_graph = deepcopy(adaptee)
@@ -73,8 +71,8 @@ class DirectAdapter(BaseOptimizationAdapter[AdapteeType, AdapteeNodeType]):
 class PipelineAdapter(BaseOptimizationAdapter[Pipeline, Node]):
     """ Optimization adapter for Pipeline class """
 
-    def __init__(self, log: Optional[Log] = None):
-        super().__init__(base_graph_class=Pipeline, base_node_class=Node, log=log)
+    def __init__(self):
+        super().__init__(base_graph_class=Pipeline, base_node_class=Node)
 
     def _transform_to_opt_node(self, node, *args, **params):
         # Prepare content for nodes

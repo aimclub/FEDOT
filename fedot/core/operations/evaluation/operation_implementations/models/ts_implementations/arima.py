@@ -17,8 +17,8 @@ from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 class ARIMAImplementation(ModelImplementation):
 
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.params = params
         self.arima = None
         self.lambda_value = None
@@ -178,8 +178,8 @@ class ARIMAImplementation(ModelImplementation):
 
 
 class STLForecastARIMAImplementation(ModelImplementation):
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         self.params = params
         self.model = None
         self.lambda_param = None

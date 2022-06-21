@@ -3,7 +3,7 @@ from typing import List, Union, Optional
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.api.api_utils.assumptions.task_assumptions import TaskAssumptions
-from fedot.core.log import Log, default_log
+from fedot.core.log import Log, default_log, LoggerAdapter
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -38,7 +38,7 @@ class AssumptionsBuilder:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
         return cls(data, repository_name=repository_name)
 
-    def with_logger(self, logger: Log):
+    def with_logger(self, logger: Union[Log, LoggerAdapter]):
         raise NotImplementedError('abstract')
 
     def from_operations(self, available_ops: List[str]):
@@ -65,7 +65,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
-    def with_logger(self, logger: Log):
+    def with_logger(self, logger: Union[Log, LoggerAdapter]):
         self.logger = logger
         return self
 
@@ -80,7 +80,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
                 # Don't filter pipelines as we're not able to create
                 # fallback pipelines without operations_to_choose_from.
                 # So, leave default dumb ops_filter.
-                self.logger.message(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
+                self.logger.info(self.UNSUITABLE_AVAILABLE_OPERATIONS_MSG)
         return self
 
     def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
@@ -105,7 +105,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
             _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(data, data_type)))
         self._subbuilders = tuple(_subbuilders)
 
-    def with_logger(self, logger: Log):
+    def with_logger(self, logger: Union[Log, LoggerAdapter]):
         self.logger = logger
         for _, subbuilder in self._subbuilders:
             subbuilder.with_logger(logger)
@@ -113,7 +113,7 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
 
     # TODO: in principle, each data column in MultiModalData can have its own available_ops
     def from_operations(self, available_ops: List[str]):
-        self.logger.message("Available operations are not taken into account when "
+        self.logger.info("Available operations are not taken into account when "
                             "forming the initial assumption for multi-modal data")
         return self
 

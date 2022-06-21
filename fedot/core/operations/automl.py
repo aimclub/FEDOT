@@ -10,9 +10,8 @@ class AutoML(Model):
     Class with fit/predict methods defining the automl strategy for the task
 
     :param operation_type: name of the model
-    :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Optional[Log] = None):
-        super().__init__(operation_type=operation_type, log=log)
+    def __init__(self, operation_type: str):
+        super().__init__(operation_type=operation_type)
         self.operations_repo = OperationTypesRepository('automl')

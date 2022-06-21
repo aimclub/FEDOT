@@ -17,13 +17,11 @@ class PipelineTuner(HyperoptTuner):
     def __init__(self, pipeline, task,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
         super().__init__(pipeline=pipeline, task=task,
                          iterations=iterations, early_stopping_rounds=early_stopping_rounds,
                          timeout=timeout,
-                         log=log,
                          search_space=search_space,
                          algo=algo)
 

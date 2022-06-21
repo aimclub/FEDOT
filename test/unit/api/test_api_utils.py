@@ -46,7 +46,9 @@ def test_compose_fedot_model_with_tuning():
                                                                               preset='fast_train',
                                                                               initial_assumption=None),
                                                          tuning_params=dict(with_tuning=True,
-                                                                            tuner_metric=None),
+                                                                            tuner_metric=None))
+    # TODO make assert more specific
+    assert 'Composed pipeline returned without tuning.' in str(logs)
                                                          )
     expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
     logs.check_present(expected, order_matters=False)

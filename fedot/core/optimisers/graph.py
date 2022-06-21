@@ -34,12 +34,10 @@ class OptNode:
     """
 
     def __init__(self, content: Union[str, dict],
-                 nodes_from: Optional[List['OptNode']] = None,
-                 log: Optional[Log] = None
-                 ):
+                 nodes_from: Optional[List['OptNode']] = None):
         default_dict = {'params': DEFAULT_PARAMS_STUB}
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
         if isinstance(content, str):
             content = {'name': content}
@@ -85,12 +83,10 @@ class OptGraph:
     Base class used for optimized structure
 
     :param nodes: OptNode object(s)
-    :param log: Log object to record messages
     """
 
-    def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None,
-                 log: Optional[Log] = None):
-        self.log = log or default_log(__name__)
+    def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
+        self.log = default_log(self.__class__.__name__)
 
         self.nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)

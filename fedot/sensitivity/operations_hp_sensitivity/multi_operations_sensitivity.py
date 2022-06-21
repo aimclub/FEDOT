@@ -27,12 +27,11 @@ class MultiOperationsHPAnalyze:
     See SensitivityAnalysisRequirements class documentation.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity/
     Default: False
-    :param log: log: Log object to record messages
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None):
+                 path_to_save=None):
         self._pipeline = pipeline
         self._train_data = train_data
         self._test_data = test_data
@@ -46,7 +45,7 @@ class MultiOperationsHPAnalyze:
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sensitivity') \
                 if path_to_save is None else path_to_save
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self.__class__.__name__)
 
     def analyze(self) -> dict:
         """
@@ -62,16 +61,16 @@ class MultiOperationsHPAnalyze:
         self.problem = MultiOperationsProblem(self.operation_types)
 
         # sample
-        self.log.message('Making hyperparameters samples')
+        self.log.info('Making hyperparameters samples')
         samples = self.sample(self.requirements.sample_size)
         response_matrix = self._get_response_matrix(samples)
 
-        self.log.message('Start hyperparameters sensitivity analysis')
+        self.log.info('Start hyperparameters sensitivity analysis')
         indices = self.analyze_method(self.problem.dictionary, samples, response_matrix)
         converted_to_json_indices = self.convert_results_to_json(problem=self.problem,
                                                                  si=indices)
 
-        self.log.message('Finish hyperparameters sensitivity analysis')
+        self.log.info('Finish hyperparameters sensitivity analysis')
 
         return converted_to_json_indices
 

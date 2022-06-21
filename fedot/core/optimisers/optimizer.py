@@ -75,7 +75,6 @@ class GraphOptimiser:
     :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
     :param parameters: parameters for specific implementation of graph optimiser
-    :param log: optional parameter for log object
     """
 
     def __init__(self,
@@ -83,9 +82,8 @@ class GraphOptimiser:
                  initial_graph: Optional[Union[Graph, Sequence[Graph]]] = None,
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimiserParameters] = None,
-                 log: Optional[Log] = None):
-        self.log = log or default_log(self.__class__.__name__)
+                 parameters: Optional[GraphOptimiserParameters] = None):
+        self.log = default_log(self.__class__.__name__)
 
         self._objective = objective
         self.requirements = requirements

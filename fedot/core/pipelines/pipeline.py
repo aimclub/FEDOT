@@ -28,17 +28,15 @@ class Pipeline(Graph):
     Base class used for composite model structure definition
 
     :param nodes: Node object(s)
-    :param log: Log object to record messages
     """
 
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Optional[Log] = None):
+    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
         self.computation_time = None
         self.template = None
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
         # Define data preprocessor
-        self.preprocessor = DataPreprocessor(self.log)
+        self.preprocessor = DataPreprocessor()
         super().__init__(nodes)
         self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
 
@@ -112,7 +110,7 @@ class Pipeline(Graph):
         :param fitted_operations: this list is used for saving fitted operations of pipeline nodes
         """
 
-        with Timer(log=self.log) as t:
+        with Timer() as t:
             computation_time_update = not use_fitted_operations or not self.root_node.fitted_operation or \
                                       self.computation_time is None
             train_predicted = self.root_node.fit(input_data=input_data)
@@ -184,7 +182,7 @@ class Pipeline(Graph):
                 node.unfit()
 
         if unfit_preprocessor:
-            self.preprocessor = DataPreprocessor(self.log)
+            self.preprocessor = DataPreprocessor()
 
     def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
         return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
@@ -265,7 +263,7 @@ class Pipeline(Graph):
         :param datetime_in_path flag for addition of the datetime stamp to saving path
         :return: json containing a composite operation description
         """
-        self.template = PipelineTemplate(self, self.log)
+        self.template = PipelineTemplate(self)
         json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node,
                                                                             datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
@@ -278,7 +276,7 @@ class Pipeline(Graph):
         :param dict_fitted_operations dictionary of the fitted operations
         """
         self.nodes = []
-        self.template = PipelineTemplate(self, self.log)
+        self.template = PipelineTemplate(self)
         self.template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other) -> bool:

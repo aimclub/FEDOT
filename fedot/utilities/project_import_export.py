@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, Tuple, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import Log, default_log, LoggerAdapter
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
@@ -90,7 +90,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     return pipeline, train_data, test_data, opt_history
 
 
-def _check_zip_path(zip_path: Path, log: Log) -> Path:
+def _check_zip_path(zip_path: Path, log: Union[Log, LoggerAdapter]) -> Path:
     """Check 'zip_path' for correctness."""
 
     zip_path = zip_path.with_suffix('.zip')

@@ -24,8 +24,7 @@ class DataObjectiveBuilder:
                  max_pipeline_fit_time: Optional[timedelta] = None,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
-                 cache: Optional[OperationsCache] = None,
-                 log: Log = None):
+                 cache: Optional[OperationsCache] = None):
 
         self.objective = objective
         self.max_pipeline_fit_time = max_pipeline_fit_time
@@ -33,7 +32,7 @@ class DataObjectiveBuilder:
         self.validation_blocks = validation_blocks
         self.cache = cache
         self.advisor = DataObjectiveAdvisor()
-        self.log = log or default_log(self.__class__.__name__)
+        self.log = default_log(self.__class__.__name__)
 
     def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
         """ Compose evaluator object with desired parameters """
@@ -46,7 +45,7 @@ class DataObjectiveBuilder:
                                                        data_producer=data_producer,
                                                        time_constraint=self.max_pipeline_fit_time,
                                                        validation_blocks=self.validation_blocks,
-                                                       cache=self.cache, log=self.log)
+                                                       cache=self.cache)
         return objective_evaluate
 
     def _build_holdout_producer(self, data: InputData, **kwargs) -> DataSource:

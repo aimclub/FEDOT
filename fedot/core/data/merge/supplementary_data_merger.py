@@ -2,16 +2,16 @@ from typing import List, Dict
 
 from fedot.core.data.data import OutputData
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.preprocessing.data_types import TableTypesCorrector
 
 
 class SupplementaryDataMerger:
-    def __init__(self, outputs: List['OutputData'], main_output: 'OutputData', log: Log = None):
+    def __init__(self, outputs: List['OutputData'], main_output: 'OutputData'):
         self.outputs = outputs
         self.main_output = main_output
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     def merge(self) -> SupplementaryData:
         return SupplementaryData(

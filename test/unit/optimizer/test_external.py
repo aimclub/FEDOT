@@ -28,9 +28,8 @@ class StaticOptimizer(GraphOptimiser):
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimiserParameters] = None,
-                 log: Optional[Log] = None,
                  **kwargs):
-        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters)
         self.change_types = []
         self.node_name = kwargs.get('node_name') or 'logit'
 

@@ -18,11 +18,10 @@ class Objective:
     on Graphs and keeps information about metrics used."""
 
     def __init__(self, metrics: Union[MetricType, Iterable[MetricType]],
-                 is_multi_objective: bool = False,
-                 log: Optional[Log] = None):
+                 is_multi_objective: bool = False):
         self.metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
         self.is_multi_objective = is_multi_objective
-        self._log = log or default_log(str(self.__class__))
+        self._log = default_log(str(self.__class__))
 
     def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []

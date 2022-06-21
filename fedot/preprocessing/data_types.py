@@ -1,10 +1,10 @@
 from copy import copy
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import Log, default_log, LoggerAdapter
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 NAME_CLASS_STR = "<class 'str'>"
@@ -22,7 +22,7 @@ class TableTypesCorrector:
     Class for checking types in input data. Also perform conversion for columns with types conflicts
     """
 
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         # Maximum allowed unique categories in categorical table (if more - transform it into float)
         self.categorical_max_classes_th = MAX_CATEGORIES_TH
         # Threshold to convert numerical into categorical column
@@ -50,7 +50,7 @@ class TableTypesCorrector:
         # Lists with column types for converting calculated on source input data
         self.features_types = None
         self.target_types = None
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
@@ -452,7 +452,7 @@ def find_mixed_types_columns(columns_info: dict):
     return columns_with_mixed_types
 
 
-def apply_type_transformation(table: np.array, column_types: list, log: Log):
+def apply_type_transformation(table: np.array, column_types: list, log: Union[Log, LoggerAdapter]):
     """
     Apply transformation for columns in dataset into desired type. Perform
     transformation on predict stage when column types were already determined

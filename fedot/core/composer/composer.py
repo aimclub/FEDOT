@@ -53,17 +53,15 @@ class Composer(ABC):
     :param optimiser: optimiser generated in ComposerBuilder
     :param composer_requirements: requirements for composition process
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
-    :param logger: optional parameter for log oject
     """
 
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: ComposerRequirements,
-                 initial_pipelines: Optional[Sequence[Pipeline]] = None,
-                 logger: Log = None):
+                 initial_pipelines: Optional[Sequence[Pipeline]] = None):
         self.composer_requirements = composer_requirements
         self.initial_pipelines = initial_pipelines
         self.optimiser = optimiser
-        self.log = logger or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     @abstractmethod
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:

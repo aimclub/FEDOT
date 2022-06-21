@@ -42,17 +42,15 @@ class EvaluationStrategy:
     the certain sklearn or any other operation with fit/predict methods.
     :param operation_type: str type of the operation defined in operation repository
     :param dict params: hyperparameters to fit the operation with
-    :param Log log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None,
-                 log: Optional[Log] = None):
+    def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.params_for_fit = params
         self.operation_id = operation_type
 
         self.output_mode = False
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
 
     @property
     def operation_type(self):

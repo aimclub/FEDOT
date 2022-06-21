@@ -24,18 +24,17 @@ class NodeAnalysis:
     :param approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\
     Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param log: log: Log object to record messages
     """
 
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
                  approaches_requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None):
+                 path_to_save=None):
 
         self.approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze] if approaches is None else approaches
 
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self.__class__.__name__)
 
         self.approaches_requirements = \
             SensitivityAnalysisRequirements() if approaches_requirements is None else approaches_requirements
@@ -115,7 +114,7 @@ class NodeAnalysis:
         with open(result_file, 'w', encoding='utf-8') as file:
             file.write(json.dumps(results, indent=4))
 
-        self.log.message(f'Node Sensitivity analysis results were saved to {result_file}')
+        self.log.info(f'Node Sensitivity analysis results were saved to {result_file}')
 
 
 class NodeAnalyzeApproach(ABC):
@@ -126,12 +125,11 @@ class NodeAnalyzeApproach(ABC):
     :param train_data: data used for Pipeline training
     :param test_data: data used for Pipeline validation
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
-    :param log: log: Log object to record messages
     """
 
     def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None):
+                 path_to_save=None):
         self._pipeline = pipeline
         self._train_data = train_data
         self._test_data = test_data
@@ -141,7 +139,7 @@ class NodeAnalyzeApproach(ABC):
 
         self._path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self.__class__.__name__)
 
         if not exists(self._path_to_save):
             makedirs(self._path_to_save)
@@ -216,7 +214,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         try:
             verify_pipeline(pipeline_sample)
         except ValueError as ex:
-            self.log.message(f'Can not delete node. Deletion of this node leads to {ex}')
+            self.log.info(f'Can not delete node. Deletion of this node leads to {ex}')
             return None
 
         return pipeline_sample
@@ -337,7 +335,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         file_name = f'{self._pipeline.nodes[node_id].operation.operation_type}_id_{node_id}_replacement.jpg'
         result_file = join(self._path_to_save, file_name)
         plt.savefig(result_file)
-        self.log.message(f'NodeReplacementAnalysis for '
+        self.log.info(f'NodeReplacementAnalysis for '
                          f'{original_operation_type}(index:{node_id}) was saved to {result_file}')
 
     def __str__(self):

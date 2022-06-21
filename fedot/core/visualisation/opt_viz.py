@@ -46,17 +46,17 @@ class PlotTypesEnum(Enum):
 
 class PipelineEvolutionVisualiser:
 
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
         self.pipelines_imgs = []
         self.convergence_imgs = []
         self.best_pipelines_imgs = []
         self.merged_imgs = []
-        self.graph_visualizer = GraphVisualiser(log=log)
+        self.graph_visualizer = GraphVisualiser()
 
     def _visualise_pipelines(self, pipelines, fitnesses):
         fitnesses = deepcopy(fitnesses)

@@ -51,7 +51,6 @@ class GPComposer(Composer):
     :param optimiser: optimiser generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
-    :param logger: optional Log object for logging.
     :param cache: optional cache for Operations.
     """
 
@@ -59,10 +58,9 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  history: Optional[OptHistory] = None,
-                 logger: Optional[Log] = None,
                  cache: Optional[OperationsCache] = None):
 
-        super().__init__(optimiser, composer_requirements, initial_pipelines, logger)
+        super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
 
         self.optimiser: GraphOptimiser = optimiser

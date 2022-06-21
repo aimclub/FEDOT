@@ -7,7 +7,7 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
-from fedot.core.log import Log
+from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
@@ -46,7 +46,7 @@ class ComposerBuilder:
         self.initial_pipelines: Optional[Sequence[Pipeline]] = None
         self._keep_history = False
         self._history_folder: Optional[str] = None
-        self.log: Optional[Log] = None
+        self.log: Optional[LoggerAdapter] = None
         self.cache: Optional[OperationsCache] = None
         self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
@@ -128,14 +128,13 @@ class ComposerBuilder:
             self.optimiser_parameters.multi_objective = False
             self.metrics = self.metrics + self._get_default_complexity_metrics()
 
-        objective = Objective(self.metrics, self.optimiser_parameters.multi_objective, log=self.log)
+        objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
 
         optimiser = self.optimiser_cls(objective=objective,
                                        initial_graph=self.initial_pipelines,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=graph_generation_params,
                                        parameters=self.optimiser_parameters,
-                                       log=self.log,
                                        **self.optimizer_external_parameters)
         history = None
         if self._keep_history:
@@ -148,7 +147,6 @@ class ComposerBuilder:
                                      self.composer_requirements,
                                      self.initial_pipelines,
                                      history,
-                                     self.log,
                                      self.cache)
 
         return composer

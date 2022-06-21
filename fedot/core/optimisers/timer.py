@@ -6,9 +6,9 @@ from fedot.core.log import Log, default_log
 
 
 class Timer(ABC):
-    def __init__(self, timeout: datetime.timedelta = None, log: Optional[Log] = None):
+    def __init__(self, timeout: datetime.timedelta = None):
         self.process_terminated = False
-        self.log = log or default_log(__name__)
+        self.log = default_log(self.__class__.__name__)
         self.timeout = timeout
 
     def __enter__(self):
@@ -43,8 +43,8 @@ class Timer(ABC):
 
 
 class OptimisationTimer(Timer):
-    def __init__(self, timeout: datetime.timedelta = None, log: Optional[Log] = None):
-        super().__init__(timeout=timeout, log=log)
+    def __init__(self, timeout: datetime.timedelta = None):
+        super().__init__(timeout=timeout)
         self.init_time = 0
 
     def _is_next_iteration_possible(self, time_constraint: float, iteration_num: int = None) -> bool:

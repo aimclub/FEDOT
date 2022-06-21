@@ -5,7 +5,6 @@ from typing import Any, Iterable, List, Optional, Sequence, Union
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.log import Log
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import (
@@ -92,9 +91,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                  initial_graph: Union[Pipeline, Sequence[Pipeline]],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional[GPGraphOptimiserParameters] = None,
-                 log: Optional[Log] = None):
-        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
+                 parameters: Optional[GPGraphOptimiserParameters] = None):
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
 
         self.population = None
@@ -109,7 +107,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimisation = \
-            GroupedCondition(self.log).add_condition(
+            GroupedCondition().add_condition(
                 lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
                 'Optimisation stopped: Time limit is reached'
             ).add_condition(
@@ -275,7 +273,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         return crossover(self.parameters.crossover_types,
                          individual1, individual2,
                          crossover_prob=self.requirements.crossover_prob,
-                         max_depth=self.max_depth, log=self.log,
+                         max_depth=self.max_depth,
                          params=self.graph_generation_params)
 
 

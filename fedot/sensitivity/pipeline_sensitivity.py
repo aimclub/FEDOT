@@ -25,13 +25,12 @@ class PipelineAnalysis:
     See SensitivityAnalysisRequirements class documentation.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity/pipeline_sa
     Default: False
-    :param log: log: Log object to record messages
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
                  approaches: Optional[List[Type[MultiOperationsHPAnalyze]]] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None):
+                 path_to_save=None):
         self.pipeline = pipeline
         self.train_data = train_data
         self.test_data = test_data
@@ -41,7 +40,7 @@ class PipelineAnalysis:
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sa') if path_to_save is None else path_to_save
 
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self.__class__.__name__)
 
     def analyze(self) -> dict:
         """

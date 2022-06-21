@@ -25,8 +25,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param cache: Cache manager for fitted models, optional.
-    :param log: Logger.
+    :param cache: Cache manager for fitted models, optional
     """
 
     def __init__(self,
@@ -34,14 +33,13 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  data_producer: DataSource,
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
-                 cache: Optional[OperationsCache] = None,
-                 log: Log = None):
+                 cache: Optional[OperationsCache] = None):
         super().__init__(objective)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
         self._cache = cache
-        self._log = log or default_log(__name__)
+        self._log = default_log(self.__class__.__name__)
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost

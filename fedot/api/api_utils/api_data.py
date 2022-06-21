@@ -26,9 +26,9 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task, log: Optional[Log] = None):
+    def __init__(self, task: Task):
         self.task = task
-        self.preprocessor = DataPreprocessor(log)
+        self.preprocessor = DataPreprocessor()
 
         # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encode'
         # to encode features using label encoder). Parameters for transformation provided also

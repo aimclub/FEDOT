@@ -107,7 +107,7 @@ def fit_cnn(train_data: InputData,
     if logger is None:
         logger = default_log(__name__)
 
-    if logger.verbosity_level < 4:
+    if logger.logger.level < 4:
         verbose = 0
     else:
         verbose = 2
@@ -153,8 +153,8 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         self.params = {'image_shape': (28, 28, 1),
                        'num_classes': 2,
                        'log': default_log(__name__),

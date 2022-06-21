@@ -10,8 +10,8 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 
 class DiscriminantAnalysisImplementation(ModelImplementation):
 
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         self.params = params
         self.model = None
 

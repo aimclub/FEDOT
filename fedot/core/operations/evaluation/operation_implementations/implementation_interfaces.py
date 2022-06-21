@@ -175,8 +175,8 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, log: Optional[Log] = None):
-        self.log = log or default_log(__name__)
+    def __init__(self):
+        self.log = default_log(self.__class__.__name__)
 
     @abstractmethod
     def fit(self, input_data):

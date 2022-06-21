@@ -90,7 +90,7 @@ def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset)
     data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
-    objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, log=log)
+    objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split)
     with pytest.raises(AttributeError):
         objective_eval(pipeline)
 
