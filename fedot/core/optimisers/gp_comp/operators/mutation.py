@@ -10,6 +10,7 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.pipelines.pipeline_node_factory import PipelineNodeFactory
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
@@ -19,6 +20,7 @@ if TYPE_CHECKING:
 MAX_NUM_OF_ATTEMPTS = 100
 MAX_MUT_CYCLES = 5
 STATIC_MUTATION_PROBABILITY = 0.7
+node_factory = PipelineNodeFactory()
 
 
 class MutationTypesEnum(Enum):
@@ -156,18 +158,13 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
     """
 
     def replace_node_to_random_recursive(node: Any) -> Any:
-        if node.nodes_from:
-            if random() < node_mutation_probability:
-                secondary_node = OptNode(content={'name': choice(requirements.secondary),
-                                                  'params': DEFAULT_PARAMS_STUB})
-                graph.update_node(node, secondary_node)
-            for child in node.nodes_from:
-                replace_node_to_random_recursive(child)
-        else:
-            if random() < node_mutation_probability:
-                primary_node = OptNode(content={'name': choice(requirements.primary),
-                                                'params': DEFAULT_PARAMS_STUB})
-                graph.update_node(node, primary_node)
+        if random() < node_mutation_probability:
+            new_node = node_factory.change_node(node, requirements)
+            if not new_node:
+                graph.update_node(node, new_node)
+            if node.nodes_from:
+                for child in node.nodes_from:
+                    replace_node_to_random_recursive(child)
 
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
                                                   node=graph.root_node)
@@ -199,13 +196,9 @@ def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
 
 def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
     # add between node and parent
-    candidates = params.advisor.propose_parent(str(node_to_mutate.content['name']),
-                                               [str(n.content['name']) for n in node_to_mutate.nodes_from],
-                                               requirements.secondary)
-    if len(candidates) == 0:
+    new_node = node_factory.get_intermediate_node(node_to_mutate, requirements, params.advisor)
+    if not new_node:
         return graph
-    new_node = OptNode(content={'name': choice(candidates),
-                                'params': DEFAULT_PARAMS_STUB})
     new_node.nodes_from = node_to_mutate.nodes_from
     node_to_mutate.nodes_from = [new_node]
     graph.nodes.append(new_node)
@@ -214,15 +207,14 @@ def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
 
 def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     # add as separate parent
-    candidates = params.advisor.propose_parent(str(node_to_mutate.content['name']), None,
-                                               requirements.primary)
-    if len(candidates) == 0:
-        return graph
     for iter_num in range(randint(1, 3)):
-        if iter_num == len(candidates):
+        """?????"""
+        # if iter_num == len(candidates):
+        #     break
+        new_node = node_factory.get_parent_node(node_to_mutate, requirements, params.advisor)
+        if not new_node:
+            # there is no possible mutations
             break
-        new_node = OptNode(content={'name': choice(candidates),
-                                    'params': DEFAULT_PARAMS_STUB})
         if node_to_mutate.nodes_from:
             node_to_mutate.nodes_from.append(new_node)
         else:
@@ -231,10 +223,11 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     return graph
 
 
-def _add_as_child(graph: Any, requirements, node_to_mutate):
+def _add_as_child(graph: Any, requirements, params, node_to_mutate):
     # add as child
-    new_node = OptNode(content={'name': choice(requirements.secondary),
-                                'params': DEFAULT_PARAMS_STUB})
+    new_node = node_factory.get_child_node(requirements)
+    if not new_node:
+        return graph
     new_node.nodes_from = [node_to_mutate]
     graph.operator.actualise_old_node_children(node_to_mutate, new_node)
     graph.nodes.append(new_node)
@@ -266,20 +259,12 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     Change node between two sequential existing modes
     """
     node = choice(graph.nodes)
-    nodes_from = node.nodes_from
-    candidates = requirements.secondary if node.nodes_from else requirements.primary
-    if params.advisor:
-        candidates = params.advisor.propose_change(current_operation_id=str(node.content['name']),
-                                                   possible_operations=candidates)
-
-    if len(candidates) == 0:
+    new_node = node_factory.change_intermediate_node(node, requirements, params.advisor)
+    if not new_node:
         return graph
-
-    node_new = OptNode(content={'name': choice(candidates),
-                                'params': DEFAULT_PARAMS_STUB})
-    node_new.nodes_from = nodes_from
-    graph.nodes = [node_new if n == node else n for n in graph.nodes]
-    graph.operator.actualise_old_node_children(node, node_new)
+    new_node.nodes_from = node.nodes_from
+    graph.nodes = [new_node if n == node else n for n in graph.nodes]
+    graph.operator.actualise_old_node_children(node, new_node)
     return graph
 
 
@@ -329,8 +314,7 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             randint(0, 1) and \
             not graph.operator.distance_to_root_level(node_from_graph) < max_depth
     if is_primary_node_selected:
-        new_subtree = OptNode(content={'name': choice(requirements.primary),
-                                       'params': DEFAULT_PARAMS_STUB})
+        new_subtree = node_factory.get_primary_node(requirements)
     else:
         if local_growth:
             max_depth = node_from_graph.distance_to_primary_level
@@ -373,8 +357,7 @@ def reduce_mutation(graph: OptGraph, requirements, **kwargs) -> OptGraph:
     if is_possible_to_delete:
         graph.delete_subtree(node_to_del)
     else:
-        primary_node = OptNode(content={'name': choice(requirements.primary),
-                                        'params': DEFAULT_PARAMS_STUB})
+        primary_node = node_factory.get_primary_node(requirements)
         graph.update_subtree(node_to_del, primary_node)
     return graph
 
