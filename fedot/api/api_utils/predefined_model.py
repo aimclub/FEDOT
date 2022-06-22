@@ -15,7 +15,7 @@ class PredefinedModel:
         self.data = data
         self.log = log
         self.pipeline = self._get_pipeline()
-        
+
     def _get_pipeline(self):
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
@@ -40,4 +40,3 @@ class PredefinedModel:
             print(traceback.format_exc())
             raise ValueError(advice_info)
         return self.pipeline
-
