@@ -169,12 +169,12 @@ class Fedot:
             self.current_pipeline, self.best_models, self.history = \
                 self.api_composer.obtain_model(**self.params.api_params)
 
-        # Final fit for obtained pipeline on full dataset
-        if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-            self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-            self.params.api_params['logger'].message('Final pipeline was fitted')
-        else:
-            self.params.api_params['logger'].message('Already fitted initial pipeline is used')
+            # Final fit for obtained pipeline on full dataset
+            if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
+                self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+                self.params.api_params['logger'].message('Final pipeline was fitted')
+            else:
+                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
@@ -430,7 +430,3 @@ class Fedot:
             use_fitted=self.current_pipeline.fit_from_cache(self.api_composer.cache),
             n_jobs=self.params.api_params['n_jobs']
         )
-
-    # TODO refactor predefined models - make a separated module
-    def _process_predefined_model(self, predefined_model):
-        """ Fit and return predefined model """

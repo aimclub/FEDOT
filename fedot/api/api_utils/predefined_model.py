@@ -14,9 +14,9 @@ class PredefinedModel:
         self.predefined_model = predefined_model
         self.data = data
         self.log = log
-        self.pipeline = self.get_pipeline()
+        self.pipeline = self._get_pipeline()
         
-    def get_pipeline(self):
+    def _get_pipeline(self):
         if isinstance(self.predefined_model, Pipeline):
             pipelines = self.predefined_model
         elif self.predefined_model == 'auto':
