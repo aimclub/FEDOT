@@ -44,3 +44,4 @@ class PipelineOptNodeFactory(OptNodeFactory):
             return None
         return OptNode(content={'name': choice(candidates),
                                 'params': DEFAULT_PARAMS_STUB})
+
