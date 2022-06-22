@@ -159,8 +159,7 @@ def simple_mutation(graph: Any, requirements, **kwargs) -> Any:
         if node.nodes_from:
             if random() < node_mutation_probability:
                 secondary_node = OptNode(content={'name': choice(requirements.secondary),
-                                                  'params': DEFAULT_PARAMS_STUB},
-                                         nodes_from=node.nodes_from)
+                                                  'params': DEFAULT_PARAMS_STUB})
                 graph.update_node(node, secondary_node)
             for child in node.nodes_from:
                 replace_node_to_random_recursive(child)
@@ -232,7 +231,7 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     return graph
 
 
-def _add_as_child(graph: Any, requirements, params, node_to_mutate):
+def _add_as_child(graph: Any, requirements, node_to_mutate):
     # add as child
     new_node = OptNode(content={'name': choice(requirements.secondary),
                                 'params': DEFAULT_PARAMS_STUB})
