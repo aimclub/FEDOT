@@ -169,7 +169,6 @@ class ApiComposer:
         fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                                     self.timer,
                                                                                     self.cache)
-        assumption_fit_time = self.timer.assumption_fit_spend_time
         self.preset_name = assumption_handler.propose_preset(preset, self.timer, timeout)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
@@ -204,7 +203,7 @@ class ApiComposer:
         else:
             # Use initial pipeline as final solution
             log.message(f'Timeout is too small for composing and is skipped '
-                        f'because fit_time is {assumption_fit_time.total_seconds()} sec.')
+                        f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
 
