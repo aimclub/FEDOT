@@ -13,8 +13,10 @@ from typing import List, Optional
 import pandas as pd
 
 from fedot.api.main import Fedot
+from fedot.core.data.data import InputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.repository.tasks import TsForecastingParams
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from matplotlib import colors, pyplot as plt
 
@@ -80,7 +82,7 @@ def _run(timeouts: List[int], train_data: pd.DataFrame, test_data: pd.DataFrame,
     for timeout in timeouts:
         c_pipelines = 0.
         time = 0.
-        mean_range = 1
+        mean_range = 3
         cache_effectiveness = collections.Counter()
         for _ in range(mean_range):
             train_data_tmp = train_data.copy()
@@ -110,18 +112,10 @@ def _run(timeouts: List[int], train_data: pd.DataFrame, test_data: pd.DataFrame,
     return times, pipelines_count
 
 
-def use_cache_check(n_jobs: int = 1, test_preprocessing: bool = False):
+def use_cache_check(problem: str, train_data, test_data, n_jobs: int = 1, test_preprocessing: bool = False):
     """
     Performs experiment to show how caching pipelines operations helps in fitting FEDOT model
     """
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
-
-    problem = 'classification'
-
-    train_data = pd.read_csv(train_data_path)[:4000]
-    test_data = pd.read_csv(test_data_path)[:4000]
-
     pipelines_count, times = [{False: [], True: []} for _ in range(2)]
     plot_labels = {False: 'without cache', True: 'with cache'}
     composer_params = {'with_tuning': False}
@@ -131,8 +125,8 @@ def use_cache_check(n_jobs: int = 1, test_preprocessing: bool = False):
         'composer_params': composer_params, 'preset': preset,
         'verbose_level': logging.NOTSET, 'n_jobs': n_jobs
     }
-    timeouts = [1, 2, 3, 4, 5]
-    for use_cache in [False, True]:
+    timeouts = [1, 2, 3]  # , 4, 5]
+    for use_cache in [True, False]:
         print(f'Using cache: {use_cache}')
         use_pipelines_cache = use_cache if not test_preprocessing else False
         use_preprocessing_cache = False if not test_preprocessing else use_cache
@@ -143,19 +137,12 @@ def use_cache_check(n_jobs: int = 1, test_preprocessing: bool = False):
     _show_performance_plot(f'Cache performance with n_jobs={n_jobs}', timeouts, pipelines_count, times, plot_labels)
 
 
-def compare_one_process_to_many(n_jobs: int = -1, test_preprocessing: bool = False):
+def compare_one_process_to_many(problem: str, train_data, test_data, n_jobs: int = -1,
+                                test_preprocessing: bool = False):
     """
     Performs experiment to show how one-process FEDOT cacher compares to the multiprocessed
     """
     assert n_jobs != 1, 'This test uses multiprocessing, so you should have > 1 processors'
-    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
-
-    problem = 'classification'
-
-    train_data = pd.read_csv(train_data_path)[:4000]
-    test_data = pd.read_csv(test_data_path)[:4000]
-
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
     plot_labels = {1: 'one process', n_jobs: f'{n_jobs} processes'}
     composer_params = {'with_tuning': False}
@@ -179,12 +166,25 @@ def compare_one_process_to_many(n_jobs: int = -1, test_preprocessing: bool = Fal
 
 
 if __name__ == "__main__":
+    problem = 'regression'
+    if problem == 'classification':
+        train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+        test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
+        train_data = pd.read_csv(train_data_path)[:4000]
+        test_data = pd.read_csv(test_data_path)[:4000]
+    elif problem == 'regression':
+        data_path = f'{fedot_project_root()}/cases/data/cholesterol/cholesterol.csv'
+        data = InputData.from_csv(data_path,
+                                  task=Task(TaskTypesEnum.regression))
+        train_data, test_data = train_test_data_setup(data)
+
     examples_dct = defaultdict(lambda: (lambda: print('Wrong example number option'),))
     examples_dct.update({
         1: (dummy_time_check,),
-        2: (use_cache_check, 1, True),
-        3: (compare_one_process_to_many, -1, True)
+        2: (use_cache_check, problem, train_data, test_data, 1, True),
+        3: (compare_one_process_to_many, problem, train_data, test_data, -1, True)
     })
     benchmark_number = 2
     func, *args = examples_dct[benchmark_number]
+
     func(*args)
