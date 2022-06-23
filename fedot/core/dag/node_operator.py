@@ -1,6 +1,8 @@
 from copy import copy
 from typing import TYPE_CHECKING, List, Optional, Union
 
+from fedot.core.utils import DEFAULT_PARAMS_STUB
+
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
     from fedot.core.optimisers.graph import OptNode
@@ -68,15 +70,16 @@ def _descriptive_id_recursive(current_node: Union['GraphNode', 'OptNode'],
 
     :return: text description of the content in the node and its parameters
     """
-    if isinstance(current_node.content['name'], str):
+    node_operation = current_node.content['name']
+    params = current_node.content.get('params')
+    if isinstance(node_operation, str):
         # If there is a string: name of operation (as in json repository)
-        node_label = current_node.content['name']
-        if current_node.content.get('params'):
-            node_label = f'n_{node_label}_{current_node.content["params"]}'
+        node_label = str(node_operation)
+        if params and params != DEFAULT_PARAMS_STUB:
+            node_label = f'n_{node_label}_{params}'
     else:
         # If instance of Operation is placed in 'name'
-        operation_params = current_node.content.get('params')
-        node_label = current_node.content['name'].description(operation_params)
+        node_label = node_operation.description(params)
 
     full_path = ''
     if current_node in visited_nodes:
