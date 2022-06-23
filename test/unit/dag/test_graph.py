@@ -3,6 +3,9 @@ from random import seed
 
 import numpy as np
 
+import pytest
+
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from test.unit.dag.test_graph_utils import *
@@ -149,7 +152,7 @@ def test_update_node_without_predecessors():
     old_secondary_node_1 = GraphNode('l2n1', nodes_from=nodes_from)
 
     final_node = GraphNode('l3n1', nodes_from=[old_secondary_node_1])
-    graph = Graph([final_node])
+    graph = GraphImpl([final_node])
 
     new_secondary_node = GraphNode('l2new')
     graph.update_node(old_secondary_node_1, new_secondary_node)
