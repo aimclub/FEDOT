@@ -1,6 +1,6 @@
 from os import PathLike
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Dict, Sequence, Union, TypeVar, Generic, Optional
+from typing import Any, Tuple, Dict, List, Sequence, Union, TypeVar, Generic, Optional
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
@@ -100,38 +100,29 @@ class Graph(ABC):
     def __eq__(self, other) -> bool:
         raise NotImplementedError()
 
-    def __str__(self):
-        return str(self.graph_description)
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __len__(self):
-        return self.length
-
     @property
+    @abstractmethod
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
         raise NotImplementedError()
 
     @property
-    def nodes(self) -> Sequence[GraphNode]:
+    @abstractmethod
+    def nodes(self) -> List[GraphNode]:
         raise NotImplementedError()
 
     @nodes.setter
-    def nodes(self, new_nodes: Sequence[GraphNode]):
+    @abstractmethod
+    def nodes(self, new_nodes: List[GraphNode]):
         raise NotImplementedError()
 
     @property
-    def descriptive_id(self):
+    @abstractmethod
+    def depth(self) -> int:
         raise NotImplementedError()
 
     @property
     def length(self) -> int:
         return len(self.nodes)
-
-    @property
-    def depth(self) -> int:
-        raise NotImplementedError()
 
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
              node_color: Optional[NodeColorType] = None, dpi: int = 300,
@@ -156,6 +147,19 @@ class Graph(ABC):
             'length': self.length,
             'nodes': self.nodes,
         }
+
+    @property
+    def descriptive_id(self) -> str:
+        return self.root_node.descriptive_id
+
+    def __str__(self):
+        return str(self.graph_description)
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __len__(self):
+        return self.length
 
 
 class GraphDelegate(Graph):
