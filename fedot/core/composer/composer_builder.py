@@ -117,10 +117,9 @@ class ComposerBuilder:
 
     def build(self) -> Composer:
         graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
+                                                        advisor=PipelineChangeAdvisor(self.task),
                                                         rules_for_constraint=rules_by_task(self.task.task_type),
-                                                        node_factory=PipelineOptNodeFactory(
-                                                            requirements=self.composer_requirements,
-                                                            advisor=PipelineChangeAdvisor(self.task)))
+                                                        node_factory=PipelineOptNodeFactory())
 
         if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg
