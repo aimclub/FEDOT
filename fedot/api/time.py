@@ -41,8 +41,9 @@ class ApiTime:
 
     def have_time_for_the_best_quality(self):
         timeout_not_set = self.timedelta_automl is None
-        return timeout_not_set or self.assumption_fit_spend_time <= self.timedelta_automl \
-               / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+        if timeout_not_set:
+            return True
+        return self.assumption_fit_spend_time <= self.timedelta_automl / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 
     @contextmanager
     def launch_composing(self):
