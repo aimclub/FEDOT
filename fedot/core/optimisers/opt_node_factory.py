@@ -6,7 +6,7 @@ from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
 
 
-class NodeFactory(ABC):
+class OptNodeFactory(ABC):
     @abstractmethod
     def change_node(self,
                     node: OptNode,

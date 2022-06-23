@@ -17,6 +17,7 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 
 random.seed(1)
 np.random.seed(1)
@@ -62,7 +63,8 @@ def test_custom_graph_opt():
 
     graph_generation_params = GraphGenerationParams(
         adapter=DirectAdapter(CustomModel, CustomNode),
-        rules_for_constraint=rules)
+        rules_for_constraint=rules,
+        node_factory=PipelineOptNodeFactory())
 
     objective = Objective(custom_metric)
     optimiser = EvoGraphOptimiser(

@@ -2,11 +2,11 @@ from random import choice
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.optimisers.opt_node_factory import NodeFactory
+from fedot.core.optimisers.opt_node_factory import OptNodeFactory
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
-class PipelineOptNodeFactory(NodeFactory):
+class PipelineOptNodeFactory(OptNodeFactory):
     def change_node(self,
                     node: OptNode,
                     requirements,
