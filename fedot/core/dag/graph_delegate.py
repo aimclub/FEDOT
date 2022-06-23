@@ -47,12 +47,6 @@ class GraphDelegate(Graph, Copyable):
     def __eq__(self, other) -> bool:
         return self.operator.__eq__(other)
 
-    def __str__(self):
-        return self.operator.__str__()
-
-    def __repr__(self):
-        return self.operator.__repr__()
-
     @property
     def root_node(self) -> Union['GraphNode', Sequence['GraphNode']]:
         return self.operator.root_node
@@ -66,12 +60,22 @@ class GraphDelegate(Graph, Copyable):
         self.operator.nodes = new_nodes
 
     @property
+    def depth(self) -> int:
+        return self.operator.depth
+
+    @property
     def length(self) -> int:
         return self.operator.length
 
     @property
-    def depth(self) -> int:
-        return self.operator.depth
+    def descriptive_id(self) -> str:
+        return self.operator.descriptive_id
+
+    def __str__(self):
+        return self.operator.__str__()
+
+    def __repr__(self):
+        return self.operator.__repr__()
 
     def __copy__(self):
         """Delegates copy to underlying graph operator."""
