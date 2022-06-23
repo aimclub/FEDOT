@@ -9,10 +9,9 @@ from fedot.core.composer.advisor import RemoveType
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.pipeline_node_factory import PipelineNodeFactory
+from fedot.core.optimisers.graph import OptGraph
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -20,7 +19,7 @@ if TYPE_CHECKING:
 MAX_NUM_OF_ATTEMPTS = 100
 MAX_MUT_CYCLES = 5
 STATIC_MUTATION_PROBABILITY = 0.7
-node_factory = PipelineNodeFactory()
+node_factory = PipelineOptNodeFactory()
 
 
 class MutationTypesEnum(Enum):
@@ -196,7 +195,7 @@ def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
 
 def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
     # add between node and parent
-    new_node = node_factory.get_intermediate_node(node_to_mutate, requirements, params.advisor)
+    new_node = node_factory.get_intermediate_parent_node(node_to_mutate, requirements, params.advisor)
     if not new_node:
         return graph
     new_node.nodes_from = node_to_mutate.nodes_from
@@ -208,10 +207,7 @@ def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
 def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     # add as separate parent
     for iter_num in range(randint(1, 3)):
-        """?????"""
-        # if iter_num == len(candidates):
-        #     break
-        new_node = node_factory.get_parent_node(node_to_mutate, requirements, params.advisor)
+        new_node = node_factory.get_separate_parent_node(node_to_mutate, requirements, params.advisor)
         if not new_node:
             # there is no possible mutations
             break
@@ -259,11 +255,10 @@ def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
     Change node between two sequential existing modes
     """
     node = choice(graph.nodes)
-    new_node = node_factory.change_intermediate_node(node, requirements, params.advisor)
+    new_node = node_factory.change_node(node, requirements, params.advisor)
     if not new_node:
         return graph
-    new_node.nodes_from = node.nodes_from
-    graph.nodes = [new_node if n == node else n for n in graph.nodes]
+    graph.update_node(node, new_node)
     graph.operator.actualise_old_node_children(node, new_node)
     return graph
 
@@ -315,6 +310,8 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             not graph.operator.distance_to_root_level(node_from_graph) < max_depth
     if is_primary_node_selected:
         new_subtree = node_factory.get_primary_node(requirements)
+        if not new_subtree:
+            return graph
     else:
         if local_growth:
             max_depth = node_from_graph.distance_to_primary_level
@@ -358,6 +355,8 @@ def reduce_mutation(graph: OptGraph, requirements, **kwargs) -> OptGraph:
         graph.delete_subtree(node_to_del)
     else:
         primary_node = node_factory.get_primary_node(requirements)
+        if not primary_node:
+            return graph
         graph.update_subtree(node_to_del, primary_node)
     return graph
 
