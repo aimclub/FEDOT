@@ -32,15 +32,7 @@ class MockNode:
 
 class MockGraph:
     def __init__(self, nodes: list = None):
-        self._nodes = nodes if nodes else []
-        self._operator = '_operator'
-
-    @property
-    def nodes(self):
-        return self._nodes
+        self.nodes = nodes if nodes else []
 
     def __eq__(self, other):
-        return (
-            self._operator == other._operator and
-            self.nodes == other.nodes
-        )
+        return self.nodes == other.nodes
