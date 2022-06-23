@@ -1,4 +1,4 @@
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from typing import TYPE_CHECKING, Optional, Tuple, Union
 
 from fedot.core.data.data import InputData
@@ -25,10 +25,16 @@ class PreprocessingCache(metaclass=SingletonMeta):
         self._db = PreprocessingCacheDB(db_path)
 
     @contextmanager
-    def using_cache(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
+    def _using_cache(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
         pipeline.preprocessor = self.try_find_preprocessor(pipeline, input_data)
         yield
         self.add_preprocessor(pipeline, input_data)
+
+    @staticmethod
+    def using_cache(cache: 'PreprocessingCache', pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
+        if cache is None:
+            return nullcontext()
+        return PreprocessingCache._using_cache(cache, pipeline, input_data)
 
     def try_find_preprocessor(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
         try:
