@@ -18,16 +18,10 @@ class ApiTime:
 
         self.__define_timeouts_for_stages()
 
-        # Time for composing
-        self._starting_time_for_composing = None
         self.composing_spend_time = datetime.timedelta(minutes=0)
 
-        # Time for tuning
-        self._starting_time_for_tuning = None
         self.tuning_spend_time = datetime.timedelta(minutes=0)
 
-        # Time for assumption fit
-        self._starting_time_for_assumption_fit = None
         self.assumption_fit_spend_time = datetime.timedelta(minutes=0)
 
     def __define_timeouts_for_stages(self):
@@ -42,33 +36,34 @@ class ApiTime:
                 self.timeout_for_composing = self.time_for_automl
 
     def have_time_for_composing(self, pop_size: int) -> bool:
-        timeout_not_set = self.datetime_composing is None
-        return timeout_not_set or self.assumption_fit_spend_time < self.datetime_composing / pop_size
+        timeout_not_set = self.timedelta_composing is None
+        return timeout_not_set or self.assumption_fit_spend_time < self.timedelta_composing / pop_size
 
-    def can_use_the_best_quality(self, full_minutes_timeout: int):
-        supposed_time = (self.assumption_fit_spend_time.total_seconds() / 60) * MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
-        return supposed_time <= full_minutes_timeout
+    def have_time_for_the_best_quality(self):
+        timeout_not_set = self.timedelta_automl is None
+        return timeout_not_set or self.assumption_fit_spend_time <= self.timedelta_automl \
+               / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 
     @contextmanager
     def launch_composing(self):
         """ Wrap composing process with timer """
-        self._starting_time_for_composing = datetime.datetime.now()
+        starting_time_for_composing = datetime.datetime.now()
         yield
-        self.composing_spend_time = datetime.datetime.now() - self._starting_time_for_composing
+        self.composing_spend_time = datetime.datetime.now() - starting_time_for_composing
 
     @contextmanager
     def launch_tuning(self):
         """ Wrap tuning process with timer """
-        self._starting_time_for_tuning = datetime.datetime.now()
+        starting_time_for_tuning = datetime.datetime.now()
         yield
-        self.tuning_spend_time = datetime.datetime.now() - self._starting_time_for_tuning
+        self.tuning_spend_time = datetime.datetime.now() - starting_time_for_tuning
 
     @contextmanager
     def launch_assumption_fit(self):
         """ Wrap assumption fit process with timer """
-        self._starting_time_for_assumption_fit = datetime.datetime.now()
+        starting_time_for_assumption_fit = datetime.datetime.now()
         yield
-        self.assumption_fit_spend_time = datetime.datetime.now() - self._starting_time_for_assumption_fit
+        self.assumption_fit_spend_time = datetime.datetime.now() - starting_time_for_assumption_fit
 
     def determine_resources_for_tuning(self):
         """
@@ -76,18 +71,24 @@ class ApiTime:
         how much time and how many iterations are needed for tuning
 
         """
-        all_spended_time = self.composing_spend_time + self.assumption_fit_spend_time
+        all_spend_time = self.composing_spend_time + self.assumption_fit_spend_time
 
         if self.time_for_automl is not None:
             all_timeout = float(self.time_for_automl)
             timeout_in_sec = datetime.timedelta(minutes=all_timeout).total_seconds()
-            timeout_for_tuning = timeout_in_sec - all_spended_time.total_seconds()
+            timeout_for_tuning = timeout_in_sec - all_spend_time.total_seconds()
         else:
-            timeout_for_tuning = all_spended_time.total_seconds()
+            timeout_for_tuning = all_spend_time.total_seconds()
         return timeout_for_tuning
 
     @property
-    def datetime_composing(self) -> Optional[datetime.timedelta]:
+    def timedelta_composing(self) -> Optional[datetime.timedelta]:
         if self.timeout_for_composing is None:
             return None
         return datetime.timedelta(minutes=self.timeout_for_composing)
+
+    @property
+    def timedelta_automl(self) -> Optional[datetime.timedelta]:
+        if self.time_for_automl is None:
+            return None
+        return datetime.timedelta(minutes=self.time_for_automl)

@@ -166,13 +166,14 @@ class ApiComposer:
         # Set initial assumption and check correctness
         initial_assumption = assumption_handler.propose_assumptions(api_params['initial_assumption'],
                                                                     available_operations)
-        fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
-                                                                                    self.timer,
-                                                                                    self.cache)
-        self.preset_name = assumption_handler.propose_preset(preset, self.timer, timeout)
+        with self.timer.launch_assumption_fit():
+            fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                                                                                        self.cache)
+        log.message(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+        self.preset_name = assumption_handler.propose_preset(preset, self.timer)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
-                                                                 self.timer.datetime_composing, self.preset_name)
+                                                                 self.timer.timedelta_composing, self.preset_name)
 
         # Get optimiser, its parameters, and composer
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])

@@ -92,20 +92,16 @@ class OperationsPreset:
         return available_operations
 
 
-def change_preset_based_on_initial_fit(timer: ApiTime,
-                                       full_minutes_timeout: Union[int, None]) -> str:
+def change_preset_based_on_initial_fit(timer: ApiTime) -> str:
     """
     If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
-
-    :param timer: ApiTime object
-    :param full_minutes_timeout: minutes for AutoML algorithm
     """
-    if full_minutes_timeout in [-1, None]:
+    if timer.time_for_automl in [-1, None]:
         return BEST_QUALITY_PRESET_NAME
 
     # Change preset to appropriate one
 
-    if timer.can_use_the_best_quality(full_minutes_timeout):
+    if timer.have_time_for_the_best_quality():
         # It is possible to train only few number of pipelines during optimization - use simplified preset
         return BEST_QUALITY_PRESET_NAME
     else:
