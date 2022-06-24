@@ -37,7 +37,7 @@ class SimpleGapFiller:
 
     def __init__(self, gap_value: float = -100.0):
         self.gap_value = gap_value
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     @series_has_gaps_check
     def linear_interpolation(self, input_data: np.array):

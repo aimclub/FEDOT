@@ -7,7 +7,7 @@ from fedot.core.log import default_log
 class Timer(ABC):
     def __init__(self, timeout: datetime.timedelta = None):
         self.process_terminated = False
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
         self.timeout = timeout
 
     def __enter__(self):

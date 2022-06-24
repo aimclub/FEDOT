@@ -29,8 +29,8 @@ class OperationsCache(metaclass=SingletonMeta):
     """
 
     def __init__(self, db_path: Optional[str] = None):
-        self.log = default_log(self.__class__.__name__)
         self._db = OperationsCacheDB(db_path)
+        self.log = default_log(self)
 
     @property
     def effectiveness_ratio(self):

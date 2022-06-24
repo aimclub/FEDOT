@@ -24,7 +24,7 @@ class InitialPopulationBuilder:
         self.mutation_operator: Callable[[Individual], Individual] = lambda ind: ind
         self.individual_sampler: Optional[IndividualSampler] = None
         self.initial_individuals: Sequence[Individual] = ()
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def with_mutation(self, mutation_operator: Operator[Individual]):
         """Enables mutation of sampled graphs with provided operator."""

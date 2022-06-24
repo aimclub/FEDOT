@@ -2,6 +2,7 @@ import random
 from copy import deepcopy
 
 from testfixtures import LogCapture
+import logging
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -28,7 +29,7 @@ def test_compose_fedot_model_with_tuning():
     with LogCapture() as logs:
         _, _, history = api_composer.compose_fedot_model(api_params=dict(train_data=train_input,
                                                                          task=task,
-                                                                         logger=default_log('test_log'),
+                                                                         logger=default_log(prefix='test_log'),
                                                                          timeout=0.1,
                                                                          n_jobs=1,
                                                                          use_cache=False),
@@ -101,7 +102,7 @@ def test_the_formation_of_initial_assumption():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log('FEDOT logger')
+    logger = default_log(prefix='FEDOT logger')
     available_operations = ['dt']
 
     initial_assumptions = AssumptionsBuilder \
@@ -118,7 +119,7 @@ def test_init_assumption_with_inappropriate_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log('FEDOT logger', verbose_level=4)
+    logger = default_log(prefix='FEDOT logger', verbose_level=logging.DEBUG)
     available_operations = ['linear', 'xgboost', 'lagged']
 
     initial_assumptions = AssumptionsBuilder \

@@ -25,7 +25,7 @@ class Operation:
         self.operations_repo = None
         self.fitted_operation = None
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')

@@ -20,7 +20,7 @@ class Objective:
                  is_multi_objective: bool = False):
         self.metrics = tuple(metrics) if isinstance(metrics, Iterable) else (metrics,)
         self.is_multi_objective = is_multi_objective
-        self._log = default_log(self.__class__.__name__)
+        self._log = default_log(self)
 
     def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
         evaluated_metrics = []

@@ -34,7 +34,7 @@ class PipelineSensitivityAnalysis:
                  requirements: SensitivityAnalysisRequirements = None,
                  path_to_save=None):
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         if approaches:
             nodes_analyze_approaches = [approach for approach in approaches

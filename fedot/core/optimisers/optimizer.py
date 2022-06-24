@@ -83,7 +83,7 @@ class GraphOptimiser:
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimiserParameters] = None):
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         self._objective = objective
         self.requirements = requirements

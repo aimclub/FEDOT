@@ -176,7 +176,7 @@ class ModelImplementation(ABC):
     """
 
     def __init__(self):
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     @abstractmethod
     def fit(self, input_data):

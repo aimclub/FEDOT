@@ -14,7 +14,7 @@ class GraphVisualiser:
     def __init__(self):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def visualise(self, pipeline: 'Graph', save_path: Optional[str] = None):
         try:

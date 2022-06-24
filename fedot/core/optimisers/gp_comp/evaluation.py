@@ -56,7 +56,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         self._post_eval_callback = None
 
         self.timer = timer or get_forever_timer()
-        self.logger = default_log(self.__class__.__name__)
+        self.logger = default_log(self)
         self._n_jobs = n_jobs
         self._reset_eval_cache()
 

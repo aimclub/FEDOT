@@ -51,7 +51,7 @@ class PipelineEvolutionVisualiser:
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         if 'composing_history' not in os.listdir(default_data_dir):
             os.mkdir(self.temp_path)
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
         self.pipelines_imgs = []
         self.convergence_imgs = []
         self.best_pipelines_imgs = []

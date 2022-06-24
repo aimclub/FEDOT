@@ -45,7 +45,7 @@ def _load_data(config):
 
 
 def fit_pipeline(config_file: Union[str, bytes]) -> bool:
-    logger = default_log('pipeline_fitting_logger')
+    logger = default_log(prefix='pipeline_fitting_logger')
 
     config = \
         PipelineRunConfig().load_from_file(config_file)

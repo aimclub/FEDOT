@@ -16,7 +16,7 @@ from fedot.core.validation.split import ts_cv_generator
 from fedot.core.validation.tune.time_series import cv_time_series_predictions
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
-log = default_log(__name__)
+log = default_log(prefix=__name__)
 
 
 def configure_experiment():
@@ -28,7 +28,7 @@ def configure_experiment():
     forecast_len = 5
 
     time_series, _ = get_ts_data(n_steps=105, forecast_length=forecast_len)
-    log = default_log(__name__)
+    log = default_log(prefix=__name__)
 
     return log, forecast_len, validation_blocks, time_series
 

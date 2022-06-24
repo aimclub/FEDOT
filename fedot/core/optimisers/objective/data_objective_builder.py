@@ -29,7 +29,7 @@ class DataObjectiveBuilder:
         self.validation_blocks = validation_blocks
         self.cache = cache
         self.advisor = DataObjectiveAdvisor()
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
         """ Compose evaluator object with desired parameters """

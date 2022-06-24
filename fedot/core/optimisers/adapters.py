@@ -17,7 +17,7 @@ class BaseOptimizationAdapter(Generic[AdapteeType, AdapteeNodeType]):
     def __init__(self,
                  base_graph_class: Type[AdapteeType],
                  base_node_class: Type[AdapteeNodeType]):
-        self._log = default_log(self.__class__.__name__)
+        self._log = default_log(self)
         self._base_graph_class = base_graph_class
         self._base_node_class = base_node_class
 

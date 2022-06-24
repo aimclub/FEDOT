@@ -61,7 +61,7 @@ class Node(GraphNode):
         super().__init__(content={'name': operation,
                                   'params': default_params}, nodes_from=nodes_from)
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
 

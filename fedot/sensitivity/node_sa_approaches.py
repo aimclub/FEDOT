@@ -34,7 +34,7 @@ class NodeAnalysis:
 
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         self.approaches_requirements = \
             SensitivityAnalysisRequirements() if approaches_requirements is None else approaches_requirements
@@ -139,7 +139,7 @@ class NodeAnalyzeApproach(ABC):
 
         self._path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         if not exists(self._path_to_save):
             makedirs(self._path_to_save)

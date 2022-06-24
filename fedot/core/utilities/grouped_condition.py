@@ -17,7 +17,7 @@ class GroupedCondition:
     def __init__(self, conditions_reduce: Callable[[Iterable[bool]], bool] = any):
         self._reduce = conditions_reduce
         self._conditions: List[ConditionEntryType] = []
-        self._log = default_log(self.__class__.__name__)
+        self._log = default_log(self)
 
     def add_condition(self, condition: ConditionType, log_msg: Optional[str] = None) -> 'GroupedCondition':
         """Builder-like method for adding conditions."""

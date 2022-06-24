@@ -58,7 +58,7 @@ class DataPreprocessor:
         self.structure_analysis = PipelineStructureExplorer()
         self.main_target_source_name = None
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def _init_supplementary_preprocessors(self, data: Union[InputData, MultiModalData]):
         """ Initialize helpers for preprocessor

@@ -27,7 +27,7 @@ class LaggedImplementation(DataOperationImplementation):
         self.parameters_changed = False
 
         # Define logger object
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -466,7 +466,7 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         self.default_poly_degree = 2
         self.default_order = 1
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         self.poly_degree = int(self.params['poly_degree'])
         self.order = int(self.params['order'])
@@ -584,7 +584,7 @@ class CutImplementation(DataOperationImplementation):
         cut_part = params.get('cut_part')
 
         # Define logger object
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         if 0 < cut_part <= 0.9:
             self.cut_part = cut_part

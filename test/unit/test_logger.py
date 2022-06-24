@@ -40,7 +40,7 @@ def release_log(logger, log_file):
 
 def test_default_logger_setup_correctly():
     expected_logger_info_level = 10
-    test_default_log = default_log('default_test_logger')
+    test_default_log = default_log(prefix='default_test_logger')
 
     assert test_default_log.logger.getEffectiveLevel() == expected_logger_info_level
 
@@ -56,7 +56,7 @@ def test_logger_from_config_file_setup_correctly(data_fixture, request):
 
 def test_logger_write_logs_correctly():
     test_file_path = str(os.path.dirname(__file__))
-    default_log('test_log')
+    default_log(prefix='test_log')
 
     # Model data preparation
     file = os.path.join('../data', 'advanced_classification.csv')
@@ -96,7 +96,7 @@ def test_log_str():
 
 def test_logger_adapter_str():
     prefix = 'default_prefix'
-    test_default_log = default_log(prefix)
+    test_default_log = default_log(prefix=prefix)
 
     assert prefix in str(test_default_log)
 

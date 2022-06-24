@@ -50,7 +50,7 @@ class EvaluationStrategy:
 
         self.output_mode = False
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     @property
     def operation_type(self):

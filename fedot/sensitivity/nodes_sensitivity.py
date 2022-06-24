@@ -43,7 +43,7 @@ class NodesAnalysis:
         self.requirements = \
             SensitivityAnalysisRequirements() if requirements is None else requirements
         self.metric = self.requirements.metric
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
 

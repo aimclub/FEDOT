@@ -46,7 +46,7 @@ class MultiTimesAnalyze:
                  'sensitivity', 'mta_analysis', f'{case_name}') \
                 if path_to_save is None else path_to_save
         self.approaches = [NodeDeletionAnalyze] if approaches is None else approaches
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def analyze(self, is_visualize=False, meta_params: MTAMetaParams = None) -> float:
         """

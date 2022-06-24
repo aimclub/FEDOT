@@ -40,7 +40,7 @@ class PipelineAnalysis:
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'pipeline_sa') if path_to_save is None else path_to_save
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def analyze(self) -> dict:
         """

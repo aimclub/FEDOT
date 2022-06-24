@@ -35,7 +35,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
         self._cache = cache
-        self._log = default_log(self.__class__.__name__)
+        self._log = default_log(self)
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost

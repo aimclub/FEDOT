@@ -16,7 +16,7 @@ class GraphVerifier:
                  adapter: Optional[BaseOptimizationAdapter] = None):
         self._rules = rules
         self._adapter = adapter or DirectAdapter()
-        self._log = default_log(self.__class__.__name__)
+        self._log = default_log(self)
 
     def __call__(self, graph: Union[Graph, OptGraph]) -> bool:
         return self.verify(graph)

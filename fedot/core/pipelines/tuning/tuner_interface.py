@@ -52,7 +52,7 @@ class HyperoptTuner(ABC):
         self.search_space = search_space
         self.algo = algo
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,

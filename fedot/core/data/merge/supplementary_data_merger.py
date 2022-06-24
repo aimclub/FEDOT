@@ -11,7 +11,7 @@ class SupplementaryDataMerger:
     def __init__(self, outputs: List['OutputData'], main_output: 'OutputData'):
         self.outputs = outputs
         self.main_output = main_output
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def merge(self) -> SupplementaryData:
         return SupplementaryData(

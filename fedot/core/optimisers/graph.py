@@ -37,7 +37,7 @@ class OptNode:
                  nodes_from: Optional[List['OptNode']] = None):
         default_dict = {'params': DEFAULT_PARAMS_STUB}
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         if isinstance(content, str):
             content = {'name': content}
@@ -86,7 +86,7 @@ class OptGraph:
     """
 
     def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         self.nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)

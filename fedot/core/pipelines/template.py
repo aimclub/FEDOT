@@ -52,7 +52,7 @@ class PipelineTemplate:
             self.depth = 0
             self.data_preprocessor = None
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
         self._pipeline_to_template(pipeline)
 

@@ -60,7 +60,7 @@ class Composer(ABC):
         self.composer_requirements = composer_requirements
         self.initial_pipelines = initial_pipelines
         self.optimiser = optimiser
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     @abstractmethod
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:

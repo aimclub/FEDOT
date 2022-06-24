@@ -43,7 +43,7 @@ def get_classification_data():
 
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
-    log = default_log(__name__)
+    log = default_log(prefix=__name__)
 
     cv_folds = partial(tabular_cv_generator, classification_dataset, folds=3)
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,

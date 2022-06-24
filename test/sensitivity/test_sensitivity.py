@@ -66,7 +66,7 @@ def test_pipeline_structure_analyze_init_log_defined():
     # given
     pipeline, train_data, test_data, nodes_to_analyze, _ = given_data()
     approaches = [NodeDeletionAnalyze]
-    test_log_object = default_log('test_log_pipeline_sa')
+    test_log_object = default_log(prefix='test_log_pipeline_sa')
 
     # when
     pipeline_analyzer = NodesAnalysis(pipeline=pipeline,
@@ -111,10 +111,9 @@ def test_node_analysis_init_default():
 def test_node_analysis_init_defined_approaches_and_log():
     # given
     approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
-    test_log_object = default_log('test_log_node_sa')
+    test_log_object = default_log(prefix='test_log_node_sa')
 
-    node_analyzer = NodeAnalysis(approaches=approaches,
-                                 log=test_log_object)
+    node_analyzer = NodeAnalysis(approaches=approaches)
 
     # then
     assert isinstance(node_analyzer, NodeAnalysis)
@@ -268,7 +267,7 @@ def test_multi_operations_analyze_analyze(analyze_method):
 def test_pipeline_sensitivity_facade_init():
     # given
     pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
-    test_log_object = default_log('test_log_pipeline_sa')
+    test_log_object = default_log(prefix='test_log_pipeline_sa')
 
     # when
     sensitivity_facade = PipelineSensitivityAnalysis(pipeline=pipeline,
@@ -305,7 +304,7 @@ def test_pipeline_non_structure_analyze_init():
     # given
     pipeline, train_data, test_data, node_index, result_dir = given_data()
     approaches = [MultiOperationsHPAnalyze]
-    test_log_object = default_log('test_log_pipeline_sa')
+    default_log(prefix='test_log_pipeline_sa')
 
     # when
     non_structure_analyzer = PipelineAnalysis(pipeline=pipeline,

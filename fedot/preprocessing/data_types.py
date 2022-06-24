@@ -50,7 +50,7 @@ class TableTypesCorrector:
         # Lists with column types for converting calculated on source input data
         self.features_types = None
         self.target_types = None
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """

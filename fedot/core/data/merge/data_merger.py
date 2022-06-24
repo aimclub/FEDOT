@@ -21,7 +21,7 @@ class DataMerger:
     """
 
     def __init__(self, outputs: List['OutputData'], data_type: DataTypesEnum = None):
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
         self.outputs = outputs
         self.data_type = data_type or DataMerger.get_datatype_for_merge(output.data_type for output in outputs)
 

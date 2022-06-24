@@ -46,7 +46,7 @@ class ComposerBuilder:
         self.initial_pipelines: Optional[Sequence[Pipeline]] = None
         self._keep_history = False
         self._history_folder: Optional[str] = None
-        self.log: Optional[LoggerAdapter] = default_log(self.__class__.__name__)
+        self.log: Optional[LoggerAdapter] = default_log(self)
         self.cache: Optional[OperationsCache] = None
         self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)

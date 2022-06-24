@@ -4,6 +4,7 @@ import pathlib
 
 import logging
 from logging.config import dictConfig
+from logging import FileHandler
 from logging.handlers import RotatingFileHandler
 from threading import RLock
 
@@ -37,7 +38,7 @@ class Log(metaclass=SingletonMeta):
     """ Log object to store logger singleton and log adapters
     :param logger_name: name of the logger
     :param config_json_file: json file from which to collect the logger if specified
-    :param output_verbosity_level: verbosity level of logger
+    :param output_verbosity_level: verbosity level of logger. Verbosity levels are the same as in 'logging'
     :param log_file: file to write logs in """
 
     __log_adapters = {}
@@ -71,14 +72,15 @@ class Log(metaclass=SingletonMeta):
             logger = self._setup_default_logger(logger, verbosity_level)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, verbosity_level: int) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, verbosity_level: int,
+                              max_bytes: int = 0, backup_count: int = 0) -> logging.Logger:
         """ Define console and file handlers for logger """
         console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(asctime)s - %(message)s')
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)
 
-        file_handler = RotatingFileHandler(self.log_file)
+        file_handler = RotatingFileHandler(self.log_file, maxBytes=max_bytes, backupCount=backup_count)
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
@@ -138,16 +140,20 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(prefix: str = 'default', verbose_level: int = logging.DEBUG) -> logging.LoggerAdapter:
+def default_log(class_object=None, prefix: str = 'default', verbose_level: int = logging.DEBUG) -> logging.LoggerAdapter:
     """
     Default logger
+    :param class_object: instance of class
     :param prefix: adapter prefix to add it to log messages.
-    :param verbose_level: level of detailing
+    :param verbose_level: level of detailing. Verbosity levels are the same as in 'logging'
     :return: LoggerAdapter: LoggerAdapter object
     """
 
     log = Log(logger_name='default',
               config_json_file='default',
               output_verbosity_level=verbose_level)
+
+    if class_object:
+        prefix = class_object.__class__.__name__
 
     return log.get_adapter(prefix=prefix)

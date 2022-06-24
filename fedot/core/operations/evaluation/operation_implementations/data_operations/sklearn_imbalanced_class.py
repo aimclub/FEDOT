@@ -36,7 +36,7 @@ class ResampleImplementation(DataOperationImplementation):
         self.n_samples = params.get('n_samples')
         self.parameters_changed = False
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     def fit(self, input_data: Optional[InputData]):
         """ Class doesn't support fit operation

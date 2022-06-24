@@ -21,7 +21,7 @@ class OperationTemplateAbstract(ABC):
         self.operation_type = None
         self.nodes_from = None
 
-        self.log = default_log(self.__class__.__name__)
+        self.log = default_log(self)
 
     @abstractmethod
     def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):
