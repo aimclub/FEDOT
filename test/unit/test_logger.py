@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import pytest
 
@@ -25,6 +26,12 @@ def get_bad_config_file():
         return file
 
 
+@pytest.fixture(autouse=True)
+def singleton_cleanup():
+    SingletonMeta._instances = {}
+    yield
+
+
 def release_log(logger, log_file):
     logger.release_handlers()
     if os.path.exists(log_file):
@@ -32,7 +39,6 @@ def release_log(logger, log_file):
 
 
 def test_default_logger_setup_correctly():
-    SingletonMeta._instances = {}
     expected_logger_info_level = 10
     test_default_log = default_log('default_test_logger')
 
@@ -41,7 +47,6 @@ def test_default_logger_setup_correctly():
 
 @pytest.mark.parametrize('data_fixture', ['get_config_file'])
 def test_logger_from_config_file_setup_correctly(data_fixture, request):
-    SingletonMeta._instances = {}
     expected_logger_error_level = 40
     test_config_file = request.getfixturevalue(data_fixture)
     log = Log('test_logger', config_json_file=test_config_file)
@@ -50,9 +55,8 @@ def test_logger_from_config_file_setup_correctly(data_fixture, request):
 
 
 def test_logger_write_logs_correctly():
-    SingletonMeta._instances = {}
     test_file_path = str(os.path.dirname(__file__))
-    test_log = default_log('test_log')
+    default_log('test_log')
 
     # Model data preparation
     file = os.path.join('../data', 'advanced_classification.csv')
@@ -75,7 +79,6 @@ def test_logger_write_logs_correctly():
 
 @pytest.mark.parametrize('data_fixture', ['get_bad_config_file'])
 def test_logger_from_config_file_raise_exception(data_fixture, request):
-    SingletonMeta._instances = {}
     test_bad_config_file = request.getfixturevalue(data_fixture)
 
     with pytest.raises(Exception) as exc:
@@ -84,17 +87,33 @@ def test_logger_from_config_file_raise_exception(data_fixture, request):
     assert 'Can not open the log config file because of' in str(exc.value)
 
 
-def test_logger_str():
-    test_default_log = default_log('default_test_logger_for_str')
+def test_log_str():
+    logger_name = 'test_logger_name'
+    log = Log(logger_name=logger_name)
 
-    expected_str_value = "LoggerAdapter object for default_test_logger_for_str module"
-
-    assert str(test_default_log) == expected_str_value
+    assert logger_name in str(log)
 
 
-def test_logger_repr():
-    test_default_log = default_log('default_test_logger_for_repr')
+def test_logger_adapter_str():
+    prefix = 'default_prefix'
+    test_default_log = default_log(prefix)
 
-    expected_repr_value = "LoggerAdapter object for default_test_logger_for_repr module"
+    assert prefix in str(test_default_log)
 
-    assert repr(test_default_log) == expected_repr_value
+
+def test_multiple_adapters_with_one_prefix():
+    """ Tests that messages are written correctly to log file if multiple adapters have the same prefix """
+    log_1 = default_log(prefix='prefix_1')
+    log_2 = default_log(prefix='prefix_1')
+
+    info_1 = 'Info from log_1'
+    log_1.info(info_1)
+    info_2 = 'Info from log_2'
+    log_2.info(info_2)
+
+    content = ''
+    if Path(DEFAULT_LOG_PATH).exists():
+        content = Path(DEFAULT_LOG_PATH).read_text()
+
+    assert f'prefix_1 - {info_1}' in content
+    assert f'prefix_1 - {info_2}' in content

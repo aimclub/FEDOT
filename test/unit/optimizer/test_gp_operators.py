@@ -1,5 +1,6 @@
 import datetime
 import os
+from pathlib import Path
 
 import numpy as np
 
@@ -9,7 +10,7 @@ from fedot.core.optimisers.objective.data_objective_builder import DataObjective
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log, DEFAULT_LOG_PATH
+from fedot.core.log import default_log, Log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -31,11 +32,11 @@ from fedot.core.optimisers.archive import ParetoFront
 from fedot.core.optimisers.objective.objective import Objective
 
 from test.unit.composer.test_composer import to_numerical
+from test.unit.test_logger import release_log, singleton_cleanup
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.test_logger import release_log
 
 
 def file_data():
@@ -532,9 +533,9 @@ def test_mutation_with_single_node():
     assert graph == new_graph
 
 
-def test_no_opt_or_graph_nodes_after_mutation():
-    test_file_path = str(os.path.dirname(__file__))
-    test_log = default_log('test_no_opt_or_graph_nodes_after_mutation')
+def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
+    test_file_path = os.path.join(str(os.path.dirname(__file__)), 'log.log')
+    log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
 
     adapter = PipelineAdapter()
     graph = adapter.adapt(generate_pipeline_with_single_node())
@@ -555,27 +556,27 @@ def test_no_opt_or_graph_nodes_after_mutation():
                                params=graph_params,
                                max_depth=2)
 
-    if os.path.exists(DEFAULT_LOG_PATH):
-        with open(DEFAULT_LOG_PATH, 'r') as file:
-            content = file.readlines()
+    if Path(test_file_path).exists():
+        content = Path(test_file_path).read_text()
 
+    release_log(logger=log, log_file=test_file_path)
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
-    # assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
 
 
-def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
-    test_file_path = str(os.path.dirname(__file__))
-    test_log = default_log('test_no_opt_in_complex_graph')
+def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
+    test_file_path = os.path.join(str(os.path.dirname(__file__)), 'log.log')
+    log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
 
     adapter = PipelineAdapter()
     pipeline = generate_so_complex_pipeline()
     adapter.adapt(pipeline)
 
-    if os.path.exists(DEFAULT_LOG_PATH):
-        with open(DEFAULT_LOG_PATH, 'r') as file:
-            content = file.readlines()
+    if Path(test_file_path).exists():
+        content = Path(test_file_path).read_text()
 
+    release_log(logger=log, log_file=test_file_path)
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
-    # assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)

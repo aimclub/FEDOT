@@ -1,6 +1,6 @@
 import json
-import os
 import sys
+import pathlib
 
 import logging
 from logging.config import dictConfig
@@ -10,7 +10,7 @@ from threading import RLock
 from fedot.core.utils import default_fedot_data_dir
 
 
-DEFAULT_LOG_PATH = os.path.join(default_fedot_data_dir(), 'log.log')
+DEFAULT_LOG_PATH = pathlib.Path(default_fedot_data_dir(), 'log.log')
 
 
 class SingletonMeta(type):
@@ -47,7 +47,7 @@ class Log(metaclass=SingletonMeta):
                  output_verbosity_level: int = logging.DEBUG,
                  log_file: str = None):
         if not log_file:
-            self.log_file = os.path.join(default_fedot_data_dir(), 'log.log')
+            self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
@@ -59,7 +59,7 @@ class Log(metaclass=SingletonMeta):
         where the log came from """
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
-                                                        {'class_name': prefix})
+                                                        {'prefix': prefix})
         return self.__log_adapters[prefix]
 
     def _get_logger(self, name, config_file: str, verbosity_level: int) -> logging.Logger:
@@ -113,7 +113,7 @@ class Log(metaclass=SingletonMeta):
         return state
 
     def __str__(self):
-        return f'LoggerAdapter object for {self.logger.name} module'
+        return f'Log object for {self.logger.name} module'
 
     def __repr__(self):
         return self.__str__()
@@ -129,10 +129,10 @@ class LoggerAdapter(logging.LoggerAdapter):
         self.verbosity_level = logger.level
 
     def process(self, msg, kwargs):
-        return '%s - %s' % (self.extra['class_name'], msg), kwargs
+        return '%s - %s' % (self.extra['prefix'], msg), kwargs
 
     def __str__(self):
-        return f'LoggerAdapter object for {self.extra["class_name"]} module'
+        return f'LoggerAdapter object for {self.extra["prefix"]} module'
 
     def __repr__(self):
         return self.__str__()
