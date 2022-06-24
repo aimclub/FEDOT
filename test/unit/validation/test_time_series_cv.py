@@ -154,6 +154,6 @@ def test_api_cv_correct():
                   timeout=timeout,
                   composer_params=composer_params,
                   task_params=task_parameters,
-                  verbose_level=2)
+                  verbose_level=4)
     fedot_model = model.fit(features=time_series)
     assert fedot_model is not None
