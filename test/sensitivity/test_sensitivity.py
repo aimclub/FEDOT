@@ -6,7 +6,6 @@ import pytest
 from cases.data.data_utils import get_scoring_case_data_paths
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.deletion_methods.multi_times_analysis import MultiTimesAnalyze
@@ -66,15 +65,13 @@ def test_pipeline_structure_analyze_init_log_defined():
     # given
     pipeline, train_data, test_data, nodes_to_analyze, _ = given_data()
     approaches = [NodeDeletionAnalyze]
-    test_log_object = default_log(prefix='test_log_pipeline_sa')
 
     # when
     pipeline_analyzer = NodesAnalysis(pipeline=pipeline,
                                       train_data=train_data,
                                       test_data=test_data,
                                       approaches=approaches,
-                                      nodes_to_analyze=[nodes_to_analyze],
-                                      log=test_log_object)
+                                      nodes_to_analyze=[nodes_to_analyze])
 
     assert isinstance(pipeline_analyzer, NodesAnalysis)
 
@@ -108,17 +105,15 @@ def test_node_analysis_init_default():
     assert len(node_analyzer.approaches) == 2
 
 
-def test_node_analysis_init_defined_approaches_and_log():
+def test_node_analysis_init_defined_approaches():
     # given
     approaches = [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
-    test_log_object = default_log(prefix='test_log_node_sa')
 
     node_analyzer = NodeAnalysis(approaches=approaches)
 
     # then
     assert isinstance(node_analyzer, NodeAnalysis)
     assert len(node_analyzer.approaches) == 2
-    assert node_analyzer.log is test_log_object
 
 
 # @patch('fedot.sensitivity.sensitivity_facade.NodeAnalysis.analyze', return_value={'key': 'value'})
@@ -267,15 +262,13 @@ def test_multi_operations_analyze_analyze(analyze_method):
 def test_pipeline_sensitivity_facade_init():
     # given
     pipeline, train_data, test_data, node_to_analyze, result_dir = given_data()
-    test_log_object = default_log(prefix='test_log_pipeline_sa')
 
     # when
     sensitivity_facade = PipelineSensitivityAnalysis(pipeline=pipeline,
                                                      train_data=train_data,
                                                      test_data=test_data,
                                                      nodes_to_analyze=[node_to_analyze],
-                                                     path_to_save=result_dir,
-                                                     log=test_log_object)
+                                                     path_to_save=result_dir)
     # then
     assert type(sensitivity_facade) is PipelineSensitivityAnalysis
 
@@ -304,7 +297,6 @@ def test_pipeline_non_structure_analyze_init():
     # given
     pipeline, train_data, test_data, node_index, result_dir = given_data()
     approaches = [MultiOperationsHPAnalyze]
-    default_log(prefix='test_log_pipeline_sa')
 
     # when
     non_structure_analyzer = PipelineAnalysis(pipeline=pipeline,

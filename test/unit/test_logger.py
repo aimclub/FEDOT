@@ -32,10 +32,11 @@ def singleton_cleanup():
     yield
 
 
-def release_log(logger, log_file):
+def release_log(logger: Log):
+    """ Release logger handlers and delete log file """
     logger.release_handlers()
-    if os.path.exists(log_file):
-        os.remove(log_file)
+    if os.path.exists(logger.log_file):
+        os.remove(logger.log_file)
 
 
 def test_default_logger_setup_correctly():

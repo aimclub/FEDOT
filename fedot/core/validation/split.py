@@ -6,7 +6,7 @@ from sklearn.model_selection._split import _BaseKFold
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 
 
 class OneFoldInputDataSplit:
@@ -114,7 +114,7 @@ def tabular_cv_generator(data: InputData,
 
 
 def ts_cv_generator(data: InputData, folds: int,
-                    validation_blocks: int = 1, log: Optional[Log] = None) -> Iterator[Tuple[InputData, InputData]]:
+                    validation_blocks: int = 1, log: Optional[LoggerAdapter] = None) -> Iterator[Tuple[InputData, InputData]]:
     """ Splitting data for time series cross validation
 
     :param data: source InputData with time series data type

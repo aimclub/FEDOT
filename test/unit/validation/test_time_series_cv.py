@@ -28,9 +28,8 @@ def configure_experiment():
     forecast_len = 5
 
     time_series, _ = get_ts_data(n_steps=105, forecast_length=forecast_len)
-    log = default_log(prefix=__name__)
 
-    return log, forecast_len, validation_blocks, time_series
+    return forecast_len, validation_blocks, time_series
 
 
 def test_ts_cv_generator_correct():
@@ -40,7 +39,7 @@ def test_ts_cv_generator_correct():
     By default, the number of validation blocks for each fold is three
     """
     folds = 2
-    log, forecast_len, validation_blocks, time_series = configure_experiment()
+    forecast_len, validation_blocks, time_series = configure_experiment()
     ts_len = len(time_series.idx)
 
     # The "in-sample validation" is carried out for each fold
@@ -65,7 +64,7 @@ def test_cv_folds_too_large_correct():
     In this case a hold-out validation must be performed
     """
     folds = 50
-    log, forecast_len, validation_blocks, time_series = configure_experiment()
+    forecast_len, validation_blocks, time_series = configure_experiment()
 
     i = 0
     for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
@@ -80,7 +79,7 @@ def test_tuner_cv_correct():
     time series
     """
     folds = 2
-    _, forecast_len, validation_blocks, time_series = configure_experiment()
+    forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
     tuned = simple_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
@@ -96,7 +95,7 @@ def test_tuner_cv_correct():
 def test_cv_ts_predictions_correct():
     folds_len_list = []
     for folds in range(2, 4):
-        _, forecast_len, validation_blocks, time_series = configure_experiment()
+        forecast_len, validation_blocks, time_series = configure_experiment()
 
         simple_pipeline = get_simple_ts_pipeline()
         predictions, target = cv_time_series_predictions(reference_data=time_series,
@@ -112,7 +111,7 @@ def test_composer_cv_correct():
     """ Checks if the composer works correctly when using cross validation for
     time series """
     folds = 2
-    _, forecast_len, validation_blocks, time_series = configure_experiment()
+    forecast_len, validation_blocks, time_series = configure_experiment()
 
     primary_operations, secondary_operations = get_available_operations()
 
@@ -141,7 +140,7 @@ def test_api_cv_correct():
     """ Checks if the composer works correctly when using cross validation for
     time series through api """
     folds = 2
-    _, forecast_len, validation_blocks, time_series = configure_experiment()
+    forecast_len, validation_blocks, time_series = configure_experiment()
     timeout = 0.05
     composer_params = {'max_depth': 2,
                        'max_arity': 2,

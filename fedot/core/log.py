@@ -4,7 +4,6 @@ import pathlib
 
 import logging
 from logging.config import dictConfig
-from logging import FileHandler
 from logging.handlers import RotatingFileHandler
 from threading import RLock
 
@@ -72,15 +71,14 @@ class Log(metaclass=SingletonMeta):
             logger = self._setup_default_logger(logger, verbosity_level)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, verbosity_level: int,
-                              max_bytes: int = 0, backup_count: int = 0) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, verbosity_level: int) -> logging.Logger:
         """ Define console and file handlers for logger """
         console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(asctime)s - %(message)s')
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)
 
-        file_handler = RotatingFileHandler(self.log_file, maxBytes=max_bytes, backupCount=backup_count)
+        file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 

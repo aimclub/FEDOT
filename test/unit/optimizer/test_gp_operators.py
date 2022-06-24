@@ -559,7 +559,7 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     if Path(test_file_path).exists():
         content = Path(test_file_path).read_text()
 
-    release_log(logger=log, log_file=test_file_path)
+    release_log(logger=log)
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
     assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
@@ -576,7 +576,7 @@ def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
     if Path(test_file_path).exists():
         content = Path(test_file_path).read_text()
 
-    release_log(logger=log, log_file=test_file_path)
+    release_log(logger=log)
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
     assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
