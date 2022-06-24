@@ -143,10 +143,11 @@ def test_api_cv_correct():
     folds = 2
     _, forecast_len, validation_blocks, time_series = configure_experiment()
     timeout = 0.05
-    composer_params = {'max_depth': 1,
+    composer_params = {'max_depth': 2,
                        'max_arity': 2,
                        'preset': 'fast_train',
                        'cv_folds': folds,
+                       'num_of_generations': 1,
                        'validation_blocks': validation_blocks}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 
@@ -154,6 +155,6 @@ def test_api_cv_correct():
                   timeout=timeout,
                   composer_params=composer_params,
                   task_params=task_parameters,
-                  verbose_level=2)
+                  verbose_level=4)
     fedot_model = model.fit(features=time_series)
     assert fedot_model is not None

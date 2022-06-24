@@ -3,7 +3,7 @@ import gc
 import traceback
 from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
 
-from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
+from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
 from fedot.api.time import ApiTime
@@ -157,37 +157,25 @@ class ApiComposer:
         train_data = api_params['train_data']
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
-
-        # Initialize timer for all AutoMl operations
+        available_operations = composer_params['available_operations']
         self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
+        # Work with initial assumptions
+        assumption_handler = AssumptionsHandler(log, train_data)
+
         # Set initial assumption and check correctness
-
-        available_operations = composer_params['available_operations']
-        initial_assumption = api_params['initial_assumption']
-        if initial_assumption is None:
-            assumptions_builder = AssumptionsBuilder \
-                .get(task, train_data) \
-                .from_operations(available_operations) \
-                .with_logger(log)
-            initial_assumption = assumptions_builder.build()
-        elif isinstance(initial_assumption, Pipeline):
-            initial_assumption = [initial_assumption]
-        fitted_initial_pipeline, init_pipeline_fit_time = \
-            fit_and_check_correctness(initial_assumption[0], train_data,
-                                      logger=log, cache=self.cache, n_jobs=api_params['n_jobs'])
-        log.message(f'Initial pipeline was fitted for {init_pipeline_fit_time.total_seconds()} sec.')
-
-        if not preset or preset == 'auto':
-            preset = change_preset_based_on_initial_fit(init_pipeline_fit_time, timeout)
-            self.preset_name = preset
-            log.info(f"Preset was changed to {preset}")
+        initial_assumption = assumption_handler.propose_assumptions(api_params['initial_assumption'],
+                                                                    available_operations)
+        with self.timer.launch_assumption_fit():
+            fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                                                                                        self.cache)
+        log.message(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+        self.preset_name = assumption_handler.propose_preset(preset, self.timer)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
-                                                                 self.timer.datetime_composing, preset)
+                                                                 self.timer.timedelta_composing, self.preset_name)
 
         # Get optimiser, its parameters, and composer
-
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])
 
         log.message(f"AutoML configured."
@@ -207,7 +195,7 @@ class ApiComposer:
             .with_cache(self.cache)
         gp_composer: GPComposer = builder.build()
 
-        if self._have_time_for_composing(init_pipeline_fit_time, composer_params['pop_size']):
+        if self.timer.have_time_for_composing(composer_params['pop_size']):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 log.message(f'Pipeline composition started.')
@@ -216,9 +204,9 @@ class ApiComposer:
         else:
             # Use initial pipeline as final solution
             log.message(f'Timeout is too small for composing and is skipped '
-                        f'because fit_time is {init_pipeline_fit_time.total_seconds()} sec.')
-            best_pipelines = fitted_initial_pipeline
-            best_pipeline_candidates = [fitted_initial_pipeline]
+                        f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+            best_pipelines = fitted_assumption
+            best_pipeline_candidates = [fitted_assumption]
 
         best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
 
@@ -227,7 +215,7 @@ class ApiComposer:
             pipeline.log = log
 
         if with_tuning:
-            timeout_for_tuning = self.timer.determine_resources_for_tuning(init_pipeline_fit_time)
+            timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
                                      tuning_params['tuner_metric'],
                                      composer_requirements,
@@ -239,10 +227,6 @@ class ApiComposer:
 
         log.message('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
-
-    def _have_time_for_composing(self, init_pipeline_fit_time: datetime.timedelta, pop_size: int) -> bool:
-        timeout_not_set = self.timer.datetime_composing is None
-        return timeout_not_set or init_pipeline_fit_time < self.timer.datetime_composing / pop_size
 
     def tune_final_pipeline(self, task: Task,
                             train_data: InputData,
@@ -285,33 +269,6 @@ class ApiComposer:
                                         validation_blocks=vb_number)
                 log.message('Hyperparameters tuning finished')
         return pipeline_gp_composed
-
-
-def fit_and_check_correctness(pipeline: Pipeline,
-                              data: Union[InputData, MultiModalData],
-                              logger: Log, cache: Optional[OperationsCache] = None, n_jobs=1):
-    """ Test is initial pipeline can be fitted on presented data and give predictions """
-    try:
-        _, data_test = train_test_data_setup(data)
-        start_init_fit = datetime.datetime.now()
-
-        logger.message('Initial pipeline fitting started')
-
-        pipeline.fit(data, n_jobs=n_jobs)
-        if cache is not None:
-            cache.save_pipeline(pipeline)
-        pipeline.predict(data_test)
-
-        fit_time = datetime.datetime.now() - start_init_fit
-        logger.message('Initial pipeline was fitted successfully')
-    except Exception as ex:
-        fit_failed_info = f'Initial pipeline fit was failed due to: {ex}.'
-        advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
-
-        logger.info(fit_failed_info)
-        print(traceback.format_exc())
-        raise ValueError(advice_info)
-    return pipeline, fit_time
 
 
 def _divide_parameters(common_dict: dict) -> List[dict]:

@@ -45,7 +45,7 @@ class SearchSpace:
             'rf': {
                 'n_estimators': (hp.choice, [[100]]),
                 'criterion': (hp.choice, [["gini", "entropy"]]),
-                'max_features': (hp.uniform, [0.05, 1.01]),
+                'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 10]),
                 'min_samples_leaf': (hp.uniformint, [1, 15]),
                 'bootstrap': (hp.choice, [[True, False]])
@@ -58,7 +58,7 @@ class SearchSpace:
             },
             'rfr': {
                 'n_estimators': (hp.choice, [[100]]),
-                'max_features': (hp.uniform, [0.05, 1.01]),
+                'max_features': (hp.uniform, [0.05, 1.0]),
                 'min_samples_split': (hp.uniformint, [2, 21]),
                 'min_samples_leaf': (hp.uniformint, [1, 21]),
                 'bootstrap': (hp.choice, [[True, False]])
