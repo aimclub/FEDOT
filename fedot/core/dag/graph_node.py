@@ -124,7 +124,7 @@ def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
         # If instance of Operation is placed in 'name'
         node_label = node_operation.description(params)
 
-    full_path = ''
+    full_path_items = []
     if current_node in visited_nodes:
         return 'ID_CYCLED'
     visited_nodes.append(current_node)
@@ -135,6 +135,7 @@ def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
         previous_items.sort()
         previous_items_str = ';'.join(previous_items)
 
-        full_path += f'({previous_items_str})'
-    full_path += f'/{node_label}'
+        full_path_items.append(f'({previous_items_str})')
+    full_path_items.append(f'/{node_label}')
+    full_path = ''.join(full_path_items)
     return full_path
