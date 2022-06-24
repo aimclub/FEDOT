@@ -158,7 +158,7 @@ class ApiComposer:
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
         available_operations = composer_params['available_operations']
-        self._initialize_timer(timeout, with_tuning)
+        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
         # Work with initial assumptions
         assumption_handler = AssumptionsHandler(log, train_data)
@@ -269,15 +269,6 @@ class ApiComposer:
                                         validation_blocks=vb_number)
                 log.message('Hyperparameters tuning finished')
         return pipeline_gp_composed
-
-    def _initialize_timer(self, timeout: int, with_tuning: bool):
-        """
-        Initialize timer for all AutoMl operations
-
-        :param timeout: timeout in minutes
-        :param with_tuning: should we consider time for tuning
-        """
-        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
 
 def _divide_parameters(common_dict: dict) -> List[dict]:
