@@ -142,7 +142,7 @@ def test_api_cv_correct():
     time series through api """
     folds = 2
     _, forecast_len, validation_blocks, time_series = configure_experiment()
-    timeout = 0.05
+    timeout = 0.1
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'preset': 'fast_train',
