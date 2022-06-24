@@ -12,7 +12,6 @@ from fedot.core.optimisers.fitness import Fitness
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
-
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
 
@@ -59,7 +58,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             except Exception as ex:
                 self._log.warn(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
                 continue
-
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
                                                 validation_blocks=self._validation_blocks)
@@ -88,6 +86,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             use_fitted=graph.fit_from_cache(self._cache, fold_id),
             time_constraint=self._time_constraint
         )
+
         if self._cache is not None:
             self._cache.save_pipeline(graph, fold_id)
         return graph
