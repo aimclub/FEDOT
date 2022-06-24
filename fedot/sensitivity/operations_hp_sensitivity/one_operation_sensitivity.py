@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline

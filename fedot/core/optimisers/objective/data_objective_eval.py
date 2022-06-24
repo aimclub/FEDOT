@@ -5,10 +5,10 @@ import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.fitness import Fitness
+from fedot.core.pipelines.pipeline import Pipeline
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 

@@ -5,7 +5,6 @@ import pytest
 from fedot.api.main import Fedot
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters, \
     OptimisationCallback, do_nothing_callback

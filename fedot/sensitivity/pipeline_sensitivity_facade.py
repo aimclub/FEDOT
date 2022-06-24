@@ -1,7 +1,7 @@
-from typing import List, Optional, Type, Union
+from typing import List, Type, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach

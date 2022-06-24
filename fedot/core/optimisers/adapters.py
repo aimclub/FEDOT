@@ -3,12 +3,11 @@ from copy import deepcopy
 from typing import Any, Type, Generic, TypeVar, Optional, Dict
 
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.log import default_log, LoggerAdapter
+from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
-
 
 AdapteeType = TypeVar('AdapteeType')
 AdapteeNodeType = TypeVar('AdapteeNodeType')

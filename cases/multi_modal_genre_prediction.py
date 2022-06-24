@@ -46,7 +46,6 @@ def run_multi_modal_case(files_path, is_visualise=True, timeout=datetime.timedel
         .with_requirements(composer_requirements) \
         .with_metrics(metric_function) \
         .with_optimiser_params(parameters=optimiser_parameters) \
-        .with_logger(logger=logger) \
         .with_initial_pipelines([initial_pipeline]) \
         .with_cache('multi_modal_opt.cache')
 

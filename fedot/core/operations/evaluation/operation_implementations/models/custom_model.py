@@ -1,7 +1,6 @@
 import warnings
 from typing import Callable, Optional
 
-from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum

@@ -2,10 +2,9 @@ from numbers import Real
 from typing import Any, Optional, Union, Iterable, Callable, Sequence, TypeVar
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.optimisers.fitness import *
 from fedot.core.repository.quality_metrics_repository import MetricType, MetricsRepository
-
 
 G = TypeVar('G', bound=Graph, covariant=True)
 R = TypeVar('R', contravariant=True)

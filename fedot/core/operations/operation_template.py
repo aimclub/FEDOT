@@ -1,12 +1,11 @@
 import os
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Optional
 
 import joblib
 import numpy as np
 
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
 
 

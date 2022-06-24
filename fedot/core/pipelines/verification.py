@@ -48,9 +48,8 @@ class_rules = [has_no_conflicts_during_multitask,
 
 
 def verifier_for_task(task_type: Optional[TaskTypesEnum] = None,
-                      adapter: Optional[BaseOptimizationAdapter] = None,
-                      log: Optional[Log] = None):
-    return GraphVerifier(rules_by_task(task_type), adapter, log)
+                      adapter: Optional[BaseOptimizationAdapter] = None):
+    return GraphVerifier(rules_by_task(task_type), adapter)
 
 
 def rules_by_task(task_type: Optional[TaskTypesEnum],

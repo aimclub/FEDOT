@@ -5,7 +5,7 @@ from typing import Optional
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 

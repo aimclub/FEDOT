@@ -1,10 +1,9 @@
 from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar, Optional
+from typing import Callable, ClassVar
 
 from hyperopt import fmin, space_eval, tpe
 
-from fedot.core.log import LoggerAdapter
 from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 

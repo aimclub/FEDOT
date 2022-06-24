@@ -14,7 +14,8 @@ from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
 class RandomSearchComposer(Composer):
-    def __init__(self, optimiser: 'RandomSearchOptimiser', composer_requirements: ComposerRequirements = None):
+    def __init__(self, optimiser: 'RandomSearchOptimiser',
+                 composer_requirements: Optional[ComposerRequirements] = None):
         super().__init__(optimiser, composer_requirements)
         self.optimiser = optimiser
 

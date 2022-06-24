@@ -102,9 +102,9 @@ def test_preprocessing_builder_with_data():
 
 def test_assumptions_builder_for_multimodal_data():
     mm_data, _ = get_single_task_multimodal_tabular_data()
-    logger = default_log('FEDOT logger', verbose_level=4)
+    default_log('FEDOT logger', verbose_level=10)
 
-    mm_builder = MultiModalAssumptionsBuilder(mm_data).with_logger(logger)
+    mm_builder = MultiModalAssumptionsBuilder(mm_data)
     mm_pipeline: Pipeline = mm_builder.build()[0]
 
     assert pipeline_contains_all(mm_pipeline, *mm_data)
@@ -122,8 +122,8 @@ def test_assumptions_builder_unsuitable_available_operations():
     logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['linear', 'xgboost', 'lagged']
 
-    default_builder = UniModalAssumptionsBuilder(train_input).with_logger(logger)
-    checked_builder = UniModalAssumptionsBuilder(train_input).with_logger(logger) \
+    default_builder = UniModalAssumptionsBuilder(train_input)
+    checked_builder = UniModalAssumptionsBuilder(train_input)\
         .from_operations(available_operations)
 
     assert default_builder.build() == checked_builder.build()
@@ -148,12 +148,12 @@ def impl_test_assumptions_builder_suitable_available_operations(
     available_operations = get_suitable_operations_for_task(task.task_type, data_type)
     assert available_operations
 
-    default_builder = AssumptionsBuilder.get(train_input).with_logger(logger)
+    default_builder = AssumptionsBuilder.get(train_input)
     baseline_pipeline = default_builder.build()[0]
     baseline_operation = baseline_pipeline.root_node.operation.operation_type
     available_operations.remove(baseline_operation)
 
-    checked_builder = AssumptionsBuilder.get(train_input).with_logger(logger) \
+    checked_builder = AssumptionsBuilder.get(train_input)\
         .from_operations(available_operations)
     checked_pipeline = checked_builder.build()[0]
 

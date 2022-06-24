@@ -9,7 +9,7 @@ from uuid import uuid4
 import joblib
 import numpy as np
 
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode

@@ -6,7 +6,7 @@ from typing import (List, Optional, Union, Sequence)
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsEnum
@@ -55,7 +55,7 @@ class Composer(ABC):
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
-    def __init__(self, optimiser: GraphOptimiser, composer_requirements: ComposerRequirements,
+    def __init__(self, optimiser: GraphOptimiser, composer_requirements: Optional[ComposerRequirements] = None,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None):
         self.composer_requirements = composer_requirements
         self.initial_pipelines = initial_pipelines

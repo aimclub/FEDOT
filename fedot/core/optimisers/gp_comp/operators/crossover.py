@@ -2,7 +2,7 @@ from copy import deepcopy
 from random import choice, random
 from typing import TYPE_CHECKING, Any, Callable, List, Union
 
-from fedot.core.log import LoggerAdapter, Log
+from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.graph import OptGraph

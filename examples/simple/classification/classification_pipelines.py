@@ -71,7 +71,7 @@ def classification_pipeline_without_balancing():
     return Pipeline(node)
 
 
-def classification_complex_pipeline(log: Optional[LoggerAdapter] = None):
+def classification_complex_pipeline():
     """
     Returns pipeline with the following structure:
 

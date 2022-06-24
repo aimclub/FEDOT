@@ -16,7 +16,6 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import Log, LoggerAdapter
-from fedot.core.optimisers.archive import HallOfFame
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
@@ -170,7 +169,7 @@ class ApiComposer:
         with self.timer.launch_assumption_fit():
             fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                                         self.cache)
-        log.message(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+        log.info(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
         self.preset_name = assumption_handler.propose_preset(preset, self.timer)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
@@ -192,7 +191,6 @@ class ApiComposer:
                                    external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_function) \
             .with_history(composer_params.get('history_folder')) \
-            .with_logger(log) \
             .with_cache(self.cache)
         gp_composer: GPComposer = builder.build()
 

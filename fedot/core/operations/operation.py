@@ -1,10 +1,10 @@
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Union
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.operations.warnings_processor import suppress_stdout
+from fedot.core.log import default_log
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
+from fedot.core.operations.warnings_processor import suppress_stdout
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.utils import DEFAULT_PARAMS_STUB

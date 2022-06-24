@@ -1,6 +1,3 @@
-from typing import Optional
-
-from fedot.core.log import LoggerAdapter
 from fedot.core.operations.model import Model
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 

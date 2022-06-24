@@ -7,7 +7,7 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
-from fedot.core.log import LoggerAdapter
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
@@ -46,7 +46,7 @@ class ComposerBuilder:
         self.initial_pipelines: Optional[Sequence[Pipeline]] = None
         self._keep_history = False
         self._history_folder: Optional[str] = None
-        self.log: Optional[LoggerAdapter] = None
+        self.log: Optional[LoggerAdapter] = default_log(self.__class__.__name__)
         self.cache: Optional[OperationsCache] = None
         self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
@@ -87,10 +87,6 @@ class ComposerBuilder:
     def with_history(self, history_folder: Optional[str] = None):
         self._keep_history = True
         self._history_folder = history_folder
-        return self
-
-    def with_logger(self, logger):
-        self.log = logger
         return self
 
     def with_cache(self, cache: Optional[OperationsCache]):

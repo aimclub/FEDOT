@@ -13,7 +13,7 @@ from fedot.core.data.data_preprocessing import (
     replace_inf_with_nans
 )
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation

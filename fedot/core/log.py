@@ -6,7 +6,6 @@ import logging
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 from threading import RLock
-from typing import Optional
 
 from fedot.core.utils import default_fedot_data_dir
 
@@ -35,7 +34,7 @@ class SingletonMeta(type):
 
 
 class Log(metaclass=SingletonMeta):
-    """ Log object to store logger singleton and log adaters
+    """ Log object to store logger singleton and log adapters
     :param logger_name: name of the logger
     :param config_json_file: json file from which to collect the logger if specified
     :param output_verbosity_level: verbosity level of logger

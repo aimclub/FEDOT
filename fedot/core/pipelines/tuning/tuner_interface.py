@@ -9,7 +9,7 @@ from typing import Callable, ClassVar, Optional
 import numpy as np
 
 from fedot.core.data.data import data_type_is_ts
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum

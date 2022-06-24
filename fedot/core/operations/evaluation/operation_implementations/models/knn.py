@@ -3,7 +3,6 @@ from typing import Callable, Optional
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
-from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 

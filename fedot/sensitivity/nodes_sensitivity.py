@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir

@@ -1,17 +1,17 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Callable, List, Optional, Union, Sequence, Collection)
+from typing import (Any, Callable, Optional, Union, Sequence)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
+from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
-from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
