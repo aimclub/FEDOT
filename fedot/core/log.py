@@ -44,7 +44,7 @@ class Log(metaclass=SingletonMeta):
 
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
-                 output_verbosity_level: int = logging.DEBUG,
+                 output_verbosity_level: int = logging.INFO,
                  log_file: str = None):
         if not log_file:
             self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
@@ -138,7 +138,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', verbose_level: int = logging.DEBUG) -> logging.LoggerAdapter:
+def default_log(class_object=None, prefix: str = 'default', verbose_level: int = logging.INFO) -> logging.LoggerAdapter:
     """
     Default logger
     :param class_object: instance of class

@@ -75,7 +75,7 @@ def test_pipeline_objective_evaluate_with_different_metrics(classification_datas
         one_fold_split = OneFoldInputDataSplit()
         data_split = partial(one_fold_split.input_split, input_data=classification_dataset)
         check_pipeline = deepcopy(pipeline)
-        objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, log=log)
+        objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split)
         fitness = objective_eval(pipeline)
         act_fitness = actual_fitness(data_split, check_pipeline, metric)
         assert fitness.valid
