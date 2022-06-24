@@ -147,6 +147,7 @@ def test_api_cv_correct():
                        'max_arity': 2,
                        'preset': 'fast_train',
                        'cv_folds': folds,
+                       'num_of_generations': 1,
                        'validation_blocks': validation_blocks}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 
