@@ -92,8 +92,8 @@ def _run(timeouts: List[int], train_data: InputData, test_data: InputData, base_
             auto_model = Fedot(**base_fedot_params, timeout=timeout, use_pipelines_cache=use_pipelines_cache,
                                use_preprocessing_cache=use_preprocessing_cache)
             auto_model.fit(features=train_data_tmp)
-            c_pipelines += _count_pipelines(auto_model.history)
             time += (timeit.default_timer() - start_time) / 60
+            c_pipelines += _count_pipelines(auto_model.history)
             if use_pipelines_cache and auto_model.api_composer.pipelines_cache.effectiveness_ratio:
                 cache_effectiveness += auto_model.api_composer.pipelines_cache.effectiveness_ratio
 
