@@ -38,6 +38,6 @@ def test_node_operator_distance_to_primary_level():
     # given
     root = get_nodes()[0]
 
-    distance = root.distance_to_primary_level()
+    distance = root.distance_to_primary_level
 
     assert distance == 2
