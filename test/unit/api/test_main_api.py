@@ -429,8 +429,8 @@ def test_api_params():
 
     correct_final_params = {'problem': 'ts_forecasting', 'n_jobs': 2, 'use_cache': True, 'timeout': 2, 'max_depth': 2,
                             'max_arity': 2, 'pop_size': 2, 'num_of_generations': 2, 'with_tuning': True,
-                            'preset': 'fast_train', 'genetic_scheme'
-                            : GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                            'preset': 'fast_train', 'genetic_scheme': GeneticSchemeTypesEnum.steady_state,
+                            'history_folder': 'history',
                             'stopping_after_n_generation': 2, 'cv_folds': 2, 'validation_blocks': 2,
                             'available_operations': [
                                 'lagged', 'ridge'], 'max_pipeline_fit_time': 2,
