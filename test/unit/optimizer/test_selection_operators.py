@@ -21,7 +21,7 @@ def rand_population_gener_and_eval(pop_size=4):
     models_set = ['knn', 'logit', 'rf']
     requirements = PipelineComposerRequirements(primary=models_set,
                                                 secondary=models_set, max_depth=1)
-    pipeline_gener_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
+    pipeline_gener_params = GraphGenerationParams(adapter=PipelineAdapter())
     random_pipeline_function = partial(random_graph, pipeline_gener_params.verifier, requirements)
     population = []
     while len(population) != pop_size:
@@ -62,7 +62,7 @@ def test_random_selection():
 def test_selection():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
-    graph_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
+    graph_params = GraphGenerationParams(adapter=PipelineAdapter())
 
     selected_individuals = selection(types=[SelectionTypesEnum.tournament],
                                      population=population,
@@ -76,7 +76,7 @@ def test_individuals_selection_random_individuals():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
     types = [SelectionTypesEnum.tournament]
-    graph_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
+    graph_params = GraphGenerationParams(adapter=PipelineAdapter())
     selected_individuals = individuals_selection(types=types,
                                                  individuals=population,
                                                  pop_size=num_of_inds,
@@ -91,7 +91,7 @@ def test_individuals_selection_equality_individuals():
     population = rand_population_gener_and_eval(pop_size=1)
     types = [SelectionTypesEnum.tournament]
     population = [population[0] for _ in range(4)]
-    graph_params = GraphGenerationParams(advisor=PipelineChangeAdvisor(), adapter=PipelineAdapter())
+    graph_params = GraphGenerationParams(adapter=PipelineAdapter())
     selected_individuals = individuals_selection(types=types,
                                                  individuals=population,
                                                  pop_size=num_of_inds, graph_params=graph_params)

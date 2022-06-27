@@ -24,6 +24,7 @@ from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -322,10 +323,6 @@ def test_gp_composer_random_graph_generation_looping():
     """
     task = Task(TaskTypesEnum.regression)
 
-    adapter = PipelineAdapter()
-    verifier = verifier_for_task(task.task_type, adapter)
-    params = GraphGenerationParams(adapter, verifier, PipelineChangeAdvisor(task=task))
-
     requirements = PipelineComposerRequirements(
         primary=['simple_imputation'],
         secondary=['ridge', 'dtreg'],
@@ -341,6 +338,11 @@ def test_gp_composer_random_graph_generation_looping():
         mutation_prob=0.8,
         mutation_strength=MutationStrengthEnum.mean
     )
+
+    adapter = PipelineAdapter()
+    verifier = verifier_for_task(task.task_type, adapter)
+    node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=PipelineChangeAdvisor(task=task))
+    params = GraphGenerationParams(adapter, verifier, node_factory)
 
     graph = random_graph(verifier, requirements, max_depth=None)
     nodes_name = list(map(str, graph.nodes))

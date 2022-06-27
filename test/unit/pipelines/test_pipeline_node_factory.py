@@ -9,15 +9,6 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @pytest.fixture(scope='module')
-def requirements():
-    primary_operations = ['bernb', 'rf', 'qda', 'pca']
-    secondary_operations = ['dt', 'logit', 'rf', 'scaling']
-    requirements = PipelineComposerRequirements(primary=primary_operations,
-                                                secondary=secondary_operations)
-    return requirements
-
-
-@pytest.fixture(scope='module')
 def nodes():
     primary_node = OptNode(content={'name': 'pca',
                                     'params': DEFAULT_PARAMS_STUB})
@@ -32,59 +23,60 @@ def nodes():
 
 @pytest.fixture(scope='module')
 def node_factory():
-    return PipelineOptNodeFactory()
-
-
-@pytest.fixture(scope='module')
-def advisor():
     task = Task(TaskTypesEnum.classification)
-    return PipelineChangeAdvisor(task)
+    advisor = PipelineChangeAdvisor(task)
+    primary_operations = ['bernb', 'rf', 'qda', 'pca', 'normalization']
+    secondary_operations = ['dt', 'logit', 'rf', 'scaling']
+    requirements = PipelineComposerRequirements(primary=primary_operations,
+                                                secondary=secondary_operations)
+    return PipelineOptNodeFactory(requirements=requirements,
+                                  advisor=advisor)
 
 
-def test_change_node(nodes, node_factory, requirements, advisor):
+def test_change_node(nodes, node_factory):
     primary_node, intermediate_node, secondary_node = nodes
-    new_primary_node = node_factory.change_node(primary_node, requirements)
-    new_intermediate_node = node_factory.change_node(intermediate_node, requirements, advisor)
-    new_secondary_node = node_factory.change_node(secondary_node, requirements)
+    new_primary_node = node_factory.change_node(primary_node)
+    new_intermediate_node = node_factory.change_node(intermediate_node)
+    new_secondary_node = node_factory.change_node(secondary_node)
 
     assert new_primary_node is not None
     assert new_secondary_node is not None
     assert new_intermediate_node is not None
-    assert new_primary_node.content['name'] in requirements.primary
-    assert new_intermediate_node.content['name'] in requirements.secondary and \
+    assert new_primary_node.content['name'] in node_factory.requirements.primary
+    assert new_intermediate_node.content['name'] in node_factory.requirements.secondary and \
            new_intermediate_node.content['name'] != intermediate_node.content['name']
-    assert new_secondary_node.content['name'] in requirements.secondary
+    assert new_secondary_node.content['name'] in node_factory.requirements.secondary
 
 
-def test_get_intermediate_parent_node(nodes, node_factory, requirements, advisor):
+def test_get_intermediate_parent_node(nodes, node_factory):
     _, _, secondary_node = nodes
-    new_intermediate_parent_node = node_factory.get_intermediate_parent_node(secondary_node, requirements, advisor)
+    new_intermediate_parent_node = node_factory.get_parent_node(secondary_node, primary=False)
 
     assert new_intermediate_parent_node is not None
-    assert new_intermediate_parent_node.content['name'] in requirements.secondary
+    assert new_intermediate_parent_node.content['name'] in node_factory.requirements.secondary
     assert new_intermediate_parent_node.content['name'] != secondary_node.content['name']
     assert new_intermediate_parent_node.content['name'] \
            not in [str(n.content['name']) for n in secondary_node.nodes_from]
 
 
-def test_get_separate_parent_node(nodes, node_factory, requirements, advisor):
+def test_get_separate_parent_node(nodes, node_factory):
     _, _, secondary_node = nodes
-    new_separate_parent_node = node_factory.get_separate_parent_node(secondary_node, requirements, advisor)
+    new_separate_parent_node = node_factory.get_parent_node(secondary_node, primary=True)
 
     assert new_separate_parent_node is not None
-    assert new_separate_parent_node.content['name'] in requirements.primary
+    assert new_separate_parent_node.content['name'] in node_factory.requirements.primary
     assert new_separate_parent_node.content['name'] != secondary_node.content['name']
 
 
-def test_get_child_node(node_factory, requirements):
-    new_child_node = node_factory.get_child_node(requirements)
+def test_get_child_node(node_factory):
+    new_child_node = node_factory.get_node(primary=False)
 
     assert new_child_node is not None
-    assert new_child_node.content['name'] in requirements.secondary
+    assert new_child_node.content['name'] in node_factory.requirements.secondary
 
 
-def test_get_primary_node(node_factory, requirements):
-    new_primary_node = node_factory.get_primary_node(requirements)
+def test_get_primary_node(node_factory):
+    new_primary_node = node_factory.get_node(primary=True)
 
     assert new_primary_node is not None
-    assert new_primary_node.content['name'] in requirements.primary
+    assert new_primary_node.content['name'] in node_factory.requirements.primary

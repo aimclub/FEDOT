@@ -1,4 +1,5 @@
 from random import choice
+from typing import Optional, Any
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
@@ -7,55 +8,34 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class PipelineOptNodeFactory(OptNodeFactory):
+    def __init__(self, requirements: Optional[Any] = None,
+                 advisor: Optional[PipelineChangeAdvisor] = None):
+        super().__init__(requirements)
+        self.advisor = advisor or PipelineChangeAdvisor()
+
     def change_node(self,
-                    node: OptNode,
-                    requirements,
-                    advisor: PipelineChangeAdvisor = None):
-        candidates = requirements.secondary if node.nodes_from else requirements.primary
-        if advisor:
-            candidates = advisor.propose_change(current_operation_id=str(node.content['name']),
-                                                possible_operations=candidates)
+                    node: OptNode):
+        candidates = self.requirements.secondary if node.nodes_from else self.requirements.primary
+        candidates = self.advisor.propose_change(current_operation_id=str(node.content['name']),
+                                                 possible_operations=candidates)
         return self._return_node(candidates)
 
-    def get_separate_parent_node(self,
-                                 node: OptNode,
-                                 requirements,
-                                 advisor: PipelineChangeAdvisor):
-        return self._get_parent_node(node, requirements, advisor, separate=True)
-
-    def get_intermediate_parent_node(self,
-                                     node: OptNode,
-                                     requirements,
-                                     advisor: PipelineChangeAdvisor):
-        return self._get_parent_node(node, requirements, advisor, separate=False)
-
-    def get_child_node(self,
-                       requirements):
-        return self._get_node(requirements, primary=False)
-
-    def get_primary_node(self,
-                         requirements):
-        return self._get_node(requirements, primary=True)
-
-    def _get_parent_node(self,
-                         node: OptNode,
-                         requirements,
-                         advisor: PipelineChangeAdvisor,
-                         separate: bool):
+    def get_parent_node(self,
+                        node: OptNode,
+                        primary: bool):
         parent_operations_ids = None
-        possible_operations = requirements.primary
-        if not separate:
+        possible_operations = self.requirements.primary
+        if not primary:
             parent_operations_ids = [str(n.content['name']) for n in node.nodes_from]
-            possible_operations = requirements.secondary
-        candidates = advisor.propose_parent(current_operation_id=str(node.content['name']),
-                                            parent_operations_ids=parent_operations_ids,
-                                            possible_operations=possible_operations)
+            possible_operations = self.requirements.secondary
+        candidates = self.advisor.propose_parent(current_operation_id=str(node.content['name']),
+                                                 parent_operations_ids=parent_operations_ids,
+                                                 possible_operations=possible_operations)
         return self._return_node(candidates)
 
-    def _get_node(self,
-                  requirements,
-                  primary: bool):
-        candidates = requirements.primary if primary else requirements.secondary
+    def get_node(self,
+                 primary: bool):
+        candidates = self.requirements.primary if primary else self.requirements.secondary
         return self._return_node(candidates)
 
     @staticmethod

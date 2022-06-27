@@ -116,10 +116,11 @@ class ComposerBuilder:
         return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
-        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                                        advisor=PipelineChangeAdvisor(self.task),
+        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(self.log),
                                                         rules_for_constraint=rules_by_task(self.task.task_type),
-                                                        node_factory=PipelineOptNodeFactory())
+                                                        node_factory=PipelineOptNodeFactory(
+                                                            requirements=self.composer_requirements,
+                                                            advisor=PipelineChangeAdvisor(self.task)))
 
         if len(self.metrics) > 1:
             # TODO add possibility of using regularization in MO alg

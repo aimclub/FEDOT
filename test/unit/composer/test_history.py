@@ -66,14 +66,21 @@ def test_ancestor_for_mutation():
     adapter = PipelineAdapter()
     parent_ind = Individual(adapter.adapt(pipeline))
 
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                         advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.regression)),
-                                         rules_for_constraint=DEFAULT_DAG_RULES,
-                                         node_factory=PipelineOptNodeFactory())
     available_operations = ['linear']
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations, mutation_prob=1)
 
+    node_factory = PipelineOptNodeFactory(requirements=composer_requirements,
+                                          advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.regression)))
+
+    graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
+                                         rules_for_constraint=DEFAULT_DAG_RULES,
+                                         node_factory=node_factory)
+
+    mutation_result = mutation(types=[MutationTypesEnum.simple],
+                               params=graph_params,
+                               ind=parent_ind,
+                               requirements=composer_requirements, max_depth=2)
     mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, ind=parent_ind,
                                requirements=composer_requirements, max_depth=2)
 
@@ -89,9 +96,7 @@ def test_ancestor_for_crossover():
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
     graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                         advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.regression)),
-                                         rules_for_constraint=DEFAULT_DAG_RULES,
-                                         node_factory=PipelineOptNodeFactory())
+                                         rules_for_constraint=DEFAULT_DAG_RULES)
 
     crossover_results = crossover([CrossoverTypesEnum.subtree], parent_ind_first, parent_ind_second, max_depth=3,
                                   crossover_prob=1, params=graph_params)

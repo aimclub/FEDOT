@@ -13,7 +13,7 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
-from fedot.core.optimisers.opt_node_factory import OptNodeFactory
+from fedot.core.optimisers.opt_node_factory import OptNodeFactory, DefaultOptNodeFactory
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
@@ -51,8 +51,7 @@ class GraphGenerationParams:
 
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: collection of constraints
-    :param advisor: class of task-specific advices for graph change
-    :param node_factory: class for generating new OptNodes for mutation
+    :param node_factory: class of generating nodes while mutation
     """
     adapter: BaseOptimizationAdapter
     verifier: GraphVerifier
@@ -61,12 +60,11 @@ class GraphGenerationParams:
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
                  rules_for_constraint: Sequence[VerifierRuleType] = (),
-                 advisor: Optional[DefaultChangeAdvisor] = None,
-                 node_factory: Optional[OptNodeFactory] = None):
+                 node_factory: OptNodeFactory = None):
         self.adapter = adapter or DirectAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
-        self.advisor = advisor or DefaultChangeAdvisor()
-        self.node_factory = node_factory
+        self.node_factory = node_factory or DefaultOptNodeFactory(requirements=dict(primary=[], secondary=[]),
+                                                                  advisor=DefaultChangeAdvisor())
 
 
 class GraphOptimiser:

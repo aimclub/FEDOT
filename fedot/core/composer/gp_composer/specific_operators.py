@@ -36,7 +36,8 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, **kwargs) -> Any
 def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any:
     """ This type of mutation adds the additional 'boosting' cascade to the existing pipeline """
 
-    task_type = params.advisor.task.task_type
+    # TODO: refactor next line to get task_type more obviously
+    task_type = params.node_factory.advisor.task.task_type
     decompose_operations, _ = OperationTypesRepository('data_operation').suitable_operation(
         task_type=task_type, tags=['decompose'])
     decompose_operation = decompose_operations[0]

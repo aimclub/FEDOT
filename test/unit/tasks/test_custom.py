@@ -64,7 +64,7 @@ def test_custom_graph_opt():
     graph_generation_params = GraphGenerationParams(
         adapter=DirectAdapter(CustomModel, CustomNode),
         rules_for_constraint=rules,
-        node_factory=PipelineOptNodeFactory())
+        node_factory=PipelineOptNodeFactory(requirements=requirements))
 
     objective = Objective(custom_metric)
     optimiser = EvoGraphOptimiser(
