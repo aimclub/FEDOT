@@ -64,4 +64,4 @@ class DefaultOptNodeFactory(OptNodeFactory):
     def get_node(self, primary: bool):
         candidates = self.requirements.primary if primary else self.requirements.secondary
         return OptNode(content={'name': choice(candidates),
-                                'params': DEFAULT_PARAMS_STUB}) if candidates else None
+                                'params': DEFAULT_PARAMS_STUB}) if self.requirements else None
