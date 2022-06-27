@@ -59,7 +59,7 @@ def dummy_time_check():
             preset = 'best_quality'
             fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': -1,
                            'timeout': composer_params['timeout'], 'use_cache': use_cache,
-                           'composer_params': composer_params}
+                           **composer_params}
             if task_type == 'ts_forecasting':
                 fedot_input['task_params'] = TsForecastingParams(forecast_length=30)
             train_data, test_data, _ = get_dataset(task_type)
@@ -86,8 +86,10 @@ def use_cache_check():
     plot_labels = {False: 'without cache', True: 'with cache'}
     base_fedot_params = {
         'problem': problem, 'seed': 42,
-        'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
-        'verbose_level': -1
+        'verbose_level': -1,
+        'with_tuning': False,
+        'preset': 'fast_train',
+
     }
     timeouts = [1, 2, 3, 4, 5]
     for use_cache in [False, True]:
@@ -134,9 +136,12 @@ def multiprocessing_check(n_jobs: int = -1):
     pipelines_count, times = [{1: [], n_jobs: []} for _ in range(2)]
     plot_labels = {1: 'one process', n_jobs: f'{n_jobs} processes'}
     base_fedot_params = {
-        'problem': problem, 'seed': 42,
-        'composer_params': {'with_tuning': False}, 'preset': 'fast_train',
-        'verbose_level': -1, 'use_cache': True
+        'problem': problem,
+        'seed': 42,
+        'verbose_level': -1,
+        'use_cache': True,
+        'with_tuning': False,
+        'preset': 'fast_train',
     }
     timeouts = [1, 2, 3, 4, 5]
     for _n_jobs in [1, n_jobs]:

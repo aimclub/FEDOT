@@ -13,10 +13,8 @@ def run_regression_example():
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_folder': 'custom_history_folder'}
-    auto_model = Fedot(problem=problem, seed=42, composer_params=composer_params,
-                       preset='auto',
-                       timeout=2, verbose_level=1)
+    composer_params = {'history_folder': 'custom_history_folder', 'preset': 'auto'}
+    auto_model = Fedot(problem=problem, seed=42, timeout=2, verbose_level=1, **composer_params)
 
     auto_model.fit(features=train, target='target')
     auto_model.history.save('saved_regression_history.json')

@@ -28,12 +28,10 @@ from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 default_params = {
-    'preset': 'fast_train',
     'timeout': 0.1,
-    'composer_params': {
-        'max_depth': 1,
-        'max_arity': 2,
-    }
+    'preset': 'fast_train',
+    'max_depth': 1,
+    'max_arity': 2,
 }
 
 
@@ -127,7 +125,6 @@ def data_with_binary_features_and_categorical_target():
     (TaskTypesEnum.regression, 'dtreg', 'rmse'),
 ])
 def test_api_predict_correct(task_type, predefined_model, metric_name):
-
     task_type = task_type.value
 
     train_data, test_data, _ = get_dataset(task_type)
@@ -250,10 +247,7 @@ def test_multiobj_for_api():
 
     params = {
         **default_params,
-        'composer_params': {
-            **default_params['composer_params'],
-            'composer_metric': ['f1', 'node_num']
-        }
+        'composer_metric': ['f1', 'node_num']
     }
 
     model = Fedot(problem='classification', **params)
@@ -351,11 +345,7 @@ def test_unshuffled_data():
     problem = 'classification'
     params = {
         **default_params,
-        'composer_params': {
-            **default_params['composer_params'],
-            'metric': 'f1'
-        }
-    }
+        'metric': 'f1'}
 
     auto_model = Fedot(problem=problem, seed=42, **params)
     pipeline = auto_model.fit(features=features, target=target)
@@ -369,11 +359,7 @@ def test_custom_history_folder_define_correct():
 
     params = {
         **default_params,
-        'composer_params': {
-            **default_params['composer_params'],
-            'history_folder': custom_path
-        }
-    }
+        'history_folder': custom_path}
 
     model = Fedot(problem='ts_forecasting', **params,
                   task_params=TsForecastingParams(forecast_length=5))

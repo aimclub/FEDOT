@@ -78,8 +78,8 @@ def test_predefined_initial_assumption():
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
     model = Fedot(problem='classification', timeout=1.,
-                  verbose_level=4, composer_params={'available_operations': available_operations,
-                                                    'initial_assumption': initial_pipeline})
+                  verbose_level=4, available_operations=available_operations,
+                  initial_assumption=initial_pipeline)
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,
                                                         target=train_input.target,
@@ -154,8 +154,8 @@ def test_api_composer_available_operations():
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=0.01,
-                  composer_params={'available_operations': available_operations,
-                                   'pop_size': 500}
+                  available_operations=available_operations,
+                  pop_size=500
                   )
     model.fit(train_data)
     assert model.params.api_params['available_operations'] == available_operations

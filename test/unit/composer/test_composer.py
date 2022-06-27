@@ -191,7 +191,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
                                        crossover_prob=0.4, mutation_prob=0.5)
 
     opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification))\
+    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
         .with_metrics(metric_function) \
@@ -266,7 +266,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       with_auto_depth_configuration=True)
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification))\
+    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
         .with_metrics(quality_metric).with_optimiser_params(parameters=optimiser_parameters)
@@ -357,9 +357,9 @@ def test_gp_composer_early_stopping():
     time_limit = datetime.timedelta(minutes=10)
     start = datetime.datetime.now()
     model = Fedot(problem='classification', timeout=1000,
-                  composer_params={'stopping_after_n_generation': 1,
-                                   'pop_size': 2,
-                                   'with_tuning': False},
+                  stopping_after_n_generation=1,
+                  pop_size=2,
+                  with_tuning=False,
                   preset='fast_train')
     model.fit(train_data)
     spent_time = datetime.datetime.now() - start
