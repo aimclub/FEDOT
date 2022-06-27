@@ -110,10 +110,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimisation = \
             GroupedCondition(self.log).add_condition(
-                lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
+                lambda: self.timer.is_time_limit_reached(self.current_generation_num),
                 'Optimisation stopped: Time limit is reached'
             ).add_condition(
-                lambda: self.generations.generation_num >= requirements.num_of_generations + 1,
+                lambda: self.current_generation_num >= requirements.num_of_generations + 1,
                 'Optimisation stopped: Max number of generations reached'
             ).add_condition(
                 lambda: self.generations.stagnation_duration >= max_stagnation_length,
@@ -140,6 +140,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         self._operators_prob = \
             init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
 
+    @property
+    def current_generation_num(self) -> int:
+        return self.generations.generation_num
+
     def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
         builder = InitialPopulationBuilder(self.graph_generation_params, self.log)
         if not self.initial_individuals:
@@ -164,7 +168,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.population = next_population
         self._operators_prob_update()
 
-        self.log.info(f'Generation num: {self.generations.generation_num}')
+        self.log.info(f'Generation num: {self.current_generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
         self.log.info(f'no improvements for {self.generations.stagnation_duration} iterations')
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
@@ -180,7 +184,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def assign_positional_ids(self, pop: PopulationT):
         for ind_id, ind in enumerate(pop):
-            ind.pop_num = self.generations.generation_num
+            ind.pop_num = self.current_generation_num
             ind.ind_num = ind_id
 
     def optimise(self, objective: ObjectiveFunction,
