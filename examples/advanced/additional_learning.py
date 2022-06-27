@@ -6,6 +6,7 @@ from fedot.api.main import Fedot
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.utils import fedot_project_root
 
 
@@ -21,10 +22,7 @@ def run_additional_learning_example():
     problem = 'classification'
 
     auto_model = Fedot(problem=problem, seed=42, timeout=5, preset='best_quality',
-                       initial_assumption=Pipeline(
-                           SecondaryNode('logit',
-                                         nodes_from=[
-                                             PrimaryNode('scaling')])))
+                       initial_assumption=PipelineBuilder().add_node('scaling').add_node('logit').to_pipeline())
 
     auto_model.fit(features=deepcopy(train_data.head(1000)), target='target')
     auto_model.predict_proba(features=deepcopy(test_data))

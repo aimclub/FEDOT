@@ -58,6 +58,8 @@ class Fedot:
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
     :param use_cache: bool indicating if it is needed to use pipeline structures caching
+
+    Keywords arguments:
     :param max_depth: max depth of the pipeline
     :param max_arity: max arity of the pipeline nodes
     :param pop_size: population size for composer
@@ -104,7 +106,7 @@ class Fedot:
         self.params = ApiParams()
 
         # Define parameters, that were set via init in init
-        input_params = {'problem': self.metrics.main_problem,  'timeout': timeout,
+        input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs, 'use_cache': use_cache}
         self.params.initialize_params(input_params)
