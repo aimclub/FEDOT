@@ -47,19 +47,17 @@ class Fedot:
         - regression
         - ts_forecasting
         - clustering
-    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
-        - 'best_quality' - All models that are available for this data type and task are used
-        - 'fast_train' - Models that learn quickly. This includes preprocessing operations
-            (data operations) that only reduce the dimensionality of the data, but cannot increase
-             it. For example, there are no polynomial features and one-hot encoding operations
-        - 'stable' - The most reliable preset in which the most stable operations are included.
-        - 'auto' - Automatically determine which preset should be used.
-        - 'gpu' - Models that use GPU resources for computation.
-        - 'ts' - A special preset with models for time series forecasting task.
-        - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
-        - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
         - None or -1 means infinite time
+    :param task_params:  additional parameters of the task
+    :param seed: value for fixed random seed
+    :param verbose_level: level of the output detailing
+        (-1 - nothing, 0 - errors, 1 - messages,
+        2 - warnings and info, 3-4 - basic and detailed debug)
+    :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
+    instead of oneHot encoder if summary cardinality of categorical features is high.
+    :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
+    :param use_cache: bool indicating if it is needed to use pipeline structures caching
     :param composer_params: parameters of pipeline optimisation
         The possible parameters are:
             'max_depth' - max depth of the pipeline
@@ -76,29 +74,28 @@ class Fedot:
             'history_folder' - name of the folder for composing history
             'metric' - metric for quality calculation during composing
             'collect_intermediate_metric' - save metrics for intermediate (non-root) nodes in pipeline
-    :param task_params:  additional parameters of the task
-    :param seed: value for fixed random seed
-    :param verbose_level: level of the output detailing
-        (-1 - nothing, 0 - errors, 1 - messages,
-        2 - warnings and info, 3-4 - basic and detailed debug)
-    :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
-    instead of oneHot encoder if summary cardinality of categorical features is high.
-    :param initial_assumption: initial assumption for composer
-    :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
-    :param use_cache: bool indicating if it is needed to use pipeline structures caching
+            'preset' - name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
+                - 'best_quality' - All models that are available for this data type and task are used
+                - 'fast_train' - Models that learn quickly. This includes preprocessing operations
+                    (data operations) that only reduce the dimensionality of the data, but cannot increase
+                     it. For example, there are no polynomial features and one-hot encoding operations
+                - 'stable' - The most reliable preset in which the most stable operations are included.
+                - 'auto' - Automatically determine which preset should be used.
+                - 'gpu' - Models that use GPU resources for computation.
+                - 'ts' - A special preset with models for time series forecasting task.
+                - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
+                - '*tree' - A special preset that allows only tree-based algorithms
     """
 
     def __init__(self,
                  problem: str,
-                 preset: str = None,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
-                 composer_params: dict = None,
                  task_params: TaskParams = None,
                  seed=None, verbose_level: int = 0,
                  safe_mode=True,
-                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
                  n_jobs: int = 1,
-                 use_cache: bool = False
+                 use_cache: bool = False,
+                 **composer_params
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -107,10 +104,9 @@ class Fedot:
         self.params = ApiParams()
 
         # Define parameters, that were set via init in init
-        input_params = {'problem': self.metrics.main_problem, 'preset': preset, 'timeout': timeout,
+        input_params = {'problem': self.metrics.main_problem,  'timeout': timeout,
                         'composer_params': composer_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level,
-                        'initial_assumption': initial_assumption, 'n_jobs': n_jobs, 'use_cache': use_cache}
+                        'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs, 'use_cache': use_cache}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's parameters via ApiParams

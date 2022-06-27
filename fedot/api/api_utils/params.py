@@ -20,13 +20,12 @@ class ApiParams:
         self.metric_to_compose = None
         self.task_params = None
         self.metric_name = None
-        self.initial_assumption = None
 
     def initialize_params(self, input_params: Dict[str, Any]):
         """ Merge input_params dictionary with several parameters for AutoML algorithm """
         self.get_initial_params(input_params)
-        preset_operations = OperationsPreset(task=self.task, preset_name=input_params['preset'])
-        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
+        preset_operations = OperationsPreset(task=self.task, preset_name=self.api_params['preset'])
+        self.api_params = preset_operations.composer_params_based_on_preset(api_params=self.api_params)
 
         # Final check for correctness for timeout and generations
         self.api_params = check_timeout_vs_generations(self.api_params)
@@ -72,7 +71,7 @@ class ApiParams:
 
         if self.api_params.get('available_operations') is not None:
             del self.api_params['available_operations']
-        self.api_params = preset_operations.composer_params_based_on_preset(composer_params=self.api_params)
+        self.api_params = preset_operations.composer_params_based_on_preset(api_params=self.api_params)
         param_dict = {
             'task': self.task,
             'logger': self.log,
@@ -92,11 +91,10 @@ class ApiParams:
         if input_params['composer_params'] is None:
             evo_params = default_evo_params
         else:
-            if input_params['preset'] is not None:
-                input_params['composer_params']['preset'] = input_params['preset']
             evo_params = {**default_evo_params, **input_params['composer_params']}
         self.api_params.update(evo_params)
-
+        if 'preset' not in input_params['composer_params']:
+            self.api_params['preset'] = 'auto'
         if input_params['seed'] is not None:
             np.random.seed(input_params['seed'])
             random.seed(input_params['seed'])

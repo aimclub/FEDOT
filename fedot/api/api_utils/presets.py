@@ -21,16 +21,16 @@ class OperationsPreset:
         # Is there a modification in preset or not
         self.modification_using = False
 
-    def composer_params_based_on_preset(self, composer_params: dict) -> dict:
+    def composer_params_based_on_preset(self, api_params: dict) -> dict:
         """ Return composer parameters dictionary with appropriate operations
         based on defined preset
         """
-        updated_params = copy(composer_params)
+        updated_params = copy(api_params)
 
         if self.preset_name is None and 'preset' in updated_params:
             self.preset_name = updated_params['preset']
 
-        if self.preset_name is not None and 'available_operations' not in composer_params:
+        if self.preset_name is not None and 'available_operations' not in api_params:
             available_operations = self.filter_operations_by_preset()
             updated_params['available_operations'] = available_operations
 
