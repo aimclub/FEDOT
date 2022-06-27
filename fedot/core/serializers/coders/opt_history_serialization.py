@@ -14,7 +14,7 @@ MISSING_INDIVIDUAL_ARGS = {
 
 def _get_individuals_pool_from_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
     # Only the 1st individual's entrance contains its parent_operators. We must save this entrance.
-    uid_to_individual_map = {ind.uid: ind for ind in reversed(list(chain.from_iterable(generations_list)))}
+    uid_to_individual_map = {ind.uid: ind for ind in reversed(list(chain(*generations_list)))}
     parents_map = {}
     for individual in uid_to_individual_map.values():
         for parent_operator in individual.parent_operators:
@@ -79,7 +79,7 @@ def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> Op
     else:
         # Older histories has no `individuals_pool`, and all individuals are represented in `individuals` attribute.
         # Let's gather them through all the generations.
-        individuals_pool = list(chain.from_iterable(deserialized.individuals))
+        individuals_pool = list(chain(*deserialized.individuals))
     # Deserialize parents for all pipelines
     uid_to_individual_map = {ind.uid: ind for ind in individuals_pool}
     _deserialize_parent_individuals(individuals_pool, uid_to_individual_map)

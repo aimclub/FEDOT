@@ -8,10 +8,7 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.log import Log
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.gp_operators import (
-    clean_operators_history,
-    random_graph
-)
+from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
@@ -166,7 +163,6 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.assign_positional_ids(next_population)
         self.generations.append(next_population)
         self._optimisation_callback(next_population, self.generations)
-        clean_operators_history(next_population)
         self.population = next_population
         self._operators_prob_update()
 

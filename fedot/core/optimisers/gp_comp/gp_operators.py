@@ -121,8 +121,3 @@ def filter_duplicates(archive, population) -> List[Any]:
         if not has_duplicate_in_pop:
             filtered_archive.append(ind)
     return filtered_archive
-
-
-def clean_operators_history(population):
-    for ind in population:
-        ind.parent_operators = []
