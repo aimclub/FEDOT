@@ -11,7 +11,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from ..api.test_main_api import get_dataset
 from ..tasks.test_classification import get_binary_classification_data
@@ -102,7 +102,7 @@ def test_the_formation_of_initial_assumption():
     available_operations = ['dt']
 
     initial_assumptions = AssumptionsBuilder \
-        .get(Task(TaskTypesEnum.classification), train_input) \
+        .get(train_input) \
         .with_logger(logger) \
         .from_operations(available_operations) \
         .build()
@@ -120,7 +120,7 @@ def test_init_assumption_with_inappropriate_available_operations():
     available_operations = ['linear', 'xgboost', 'lagged']
 
     initial_assumptions = AssumptionsBuilder \
-        .get(Task(TaskTypesEnum.classification), train_input) \
+        .get(train_input) \
         .with_logger(logger) \
         .from_operations(available_operations) \
         .build()
@@ -143,3 +143,19 @@ def test_api_composer_divide_operations():
 
     assert primary == available_operations
     assert secondary == available_operations
+
+
+def test_api_composer_available_operations():
+    """ Checks if available_operations goes through all fitting process"""
+    task = Task(TaskTypesEnum.ts_forecasting,
+                TsForecastingParams(forecast_length=1))
+    train_data, _, _ = get_dataset(task_type='ts_forecasting')
+    available_operations = ['lagged']
+    model = Fedot(problem='ts_forecasting',
+                  task_params=task.task_params,
+                  timeout=0.01,
+                  composer_params={'available_operations': available_operations,
+                                   'pop_size': 500}
+                  )
+    model.fit(train_data)
+    assert model.params.api_params['available_operations'] == available_operations

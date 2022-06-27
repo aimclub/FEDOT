@@ -38,9 +38,13 @@ class GraphOperator:
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
-        if ((new_node.nodes_from is None and old_node.nodes_from is None) or
-                (new_node.nodes_from is not None and old_node.nodes_from is not None)):
-            new_node.nodes_from = old_node.nodes_from
+        if old_node.nodes_from:
+            if new_node.nodes_from:
+                # extend sources of new_node with sources of old node
+                new_node.nodes_from.extend(old_node.nodes_from)
+            else:
+                # just assign old sources as sources for the new node
+                new_node.nodes_from = old_node.nodes_from
         self._graph.nodes.remove(old_node)
         self._graph.nodes.append(new_node)
         self.sort_nodes()
@@ -95,8 +99,8 @@ class GraphOperator:
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
         old_node_offspring = self.node_children(old_node)
         for old_node_child in old_node_offspring:
-            index_of_old_node_in_child_nodes_from = old_node_child.nodes_from.index(old_node)
-            old_node_child.nodes_from[index_of_old_node_in_child_nodes_from] = new_node
+            updated_index = old_node_child.nodes_from.index(old_node)
+            old_node_child.nodes_from[updated_index] = new_node
 
     def sort_nodes(self):
         """layer by layer sorting"""

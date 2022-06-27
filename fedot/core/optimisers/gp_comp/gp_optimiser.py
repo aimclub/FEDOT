@@ -145,9 +145,11 @@ class EvoGraphOptimiser(GraphOptimiser):
         return self.generations.generation_num
 
     def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
-        builder = InitialPopulationBuilder(self.graph_generation_params, self.log)
+        verifier = self.graph_generation_params.verifier
+        builder = InitialPopulationBuilder(verifier, self.log)
+
         if not self.initial_individuals:
-            random_graph_sampler = partial(random_graph, self.graph_generation_params, self.requirements, max_depth)
+            random_graph_sampler = partial(random_graph, verifier, self.requirements, max_depth)
             builder.with_custom_sampler(random_graph_sampler)
         else:
             initial_req = deepcopy(self.requirements)

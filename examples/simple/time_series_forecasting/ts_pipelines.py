@@ -119,7 +119,7 @@ def ts_complex_ridge_smoothing_pipeline():
     Where smoothing - rolling mean
     """
     pip_builder = PipelineBuilder() \
-        .add_sequence('smoothing', 'lagged', 'rigde', branch_idx=0) \
+        .add_sequence('smoothing', 'lagged', 'ridge', branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
     pipeline = pip_builder.to_pipeline()

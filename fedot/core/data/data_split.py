@@ -19,12 +19,21 @@ def _split_time_series(data: InputData, task, *args, **kwargs):
     input_target = data.target
     forecast_length = task.task_params.forecast_length
 
-    # Source time series divide into two parts
-    x_train = input_features[:-forecast_length]
-    x_test = input_features[:-forecast_length]
+    if kwargs.get('validation_blocks') is not None:
+        # It is required to split data for in-sample forecasting
+        forecast_length = forecast_length * kwargs.get('validation_blocks')
+        x_train = input_features[:-forecast_length]
+        x_test = input_features
 
-    y_train = input_target[:-forecast_length]
-    y_test = input_target[-forecast_length:]
+        y_train = input_target[:-forecast_length]
+        y_test = input_target[-forecast_length:]
+    else:
+        # Source time series divide into two parts
+        x_train = input_features[:-forecast_length]
+        x_test = input_features[:-forecast_length]
+
+        y_train = input_target[:-forecast_length]
+        y_test = input_target[-forecast_length:]
 
     idx_train = data.idx[:-forecast_length]
     idx_test = data.idx[-forecast_length:]
@@ -73,7 +82,7 @@ def _split_multi_time_series(data: InputData, task, *args, **kwargs):
     return train_data, test_data
 
 
-def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False):
+def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False, **kwargs):
     """ Split any data into train and test parts
 
     :param data: InputData object to split
@@ -111,7 +120,7 @@ def _split_any(data: InputData, task, data_type, split_ratio, with_shuffle=False
     return train_data, test_data
 
 
-def _split_table(data: InputData, task, split_ratio, with_shuffle=False):
+def _split_table(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
     """ Split table data into train and test parts
 
     :param data: InputData object to split
@@ -122,7 +131,7 @@ def _split_table(data: InputData, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.table, split_ratio, with_shuffle)
 
 
-def _split_image(data: InputData, task, split_ratio, with_shuffle=False):
+def _split_image(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
     """ Split image data into train and test parts
 
     :param data: InputData object to split
@@ -134,7 +143,7 @@ def _split_image(data: InputData, task, split_ratio, with_shuffle=False):
     return _split_any(data, task, DataTypesEnum.image, split_ratio, with_shuffle)
 
 
-def _split_text(data: InputData, task, split_ratio, with_shuffle=False):
+def _split_text(data: InputData, task, split_ratio, with_shuffle=False, **kwargs):
     """ Split text data into train and test parts
 
     :param data: InputData object to split
@@ -147,7 +156,7 @@ def _split_text(data: InputData, task, split_ratio, with_shuffle=False):
 
 
 def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
-                                  shuffle_flag=False) -> Tuple[InputData, InputData]:
+                                  shuffle_flag=False, **kwargs) -> Tuple[InputData, InputData]:
     """ Function for train and test split
 
     :param data: InputData for train and test splitting
@@ -172,7 +181,8 @@ def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
         split_func = split_func_dict.get(data.data_type, _split_table)
 
         train_data, test_data = split_func(data, task, split_ratio,
-                                           with_shuffle=shuffle_flag)
+                                           with_shuffle=shuffle_flag,
+                                           **kwargs)
     else:
         raise ValueError('InputData must be not empty')
 
@@ -183,12 +193,12 @@ def _train_test_single_data_setup(data: InputData, split_ratio=0.8,
 
 
 def _train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
-                                       shuffle_flag=False) -> Tuple[MultiModalData, MultiModalData]:
+                                       shuffle_flag=False, **kwargs) -> Tuple[MultiModalData, MultiModalData]:
     train_data = MultiModalData()
     test_data = MultiModalData()
     for node in data.keys():
         data_part = data[node]
-        train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag)
+        train_data_part, test_data_part = train_test_data_setup(data_part, split_ratio, shuffle_flag, **kwargs)
         train_data[node] = train_data_part
         test_data[node] = test_data_part
 
@@ -196,21 +206,22 @@ def _train_test_multi_modal_data_setup(data: MultiModalData, split_ratio=0.8,
 
 
 def train_test_data_setup(data: Union[InputData, MultiModalData], split_ratio=0.8,
-                          shuffle_flag=False) -> Tuple[Union[InputData, MultiModalData],
-                                                       Union[InputData, MultiModalData]]:
+                          shuffle_flag=False, **kwargs) -> Tuple[Union[InputData, MultiModalData],
+                                                                 Union[InputData, MultiModalData]]:
     """ Function for train and test split for both InputData and MultiModalData
 
     :param data: data for train and test splitting
     :param split_ratio: threshold for partitioning
     :param shuffle_flag: is data needed to be shuffled or not
+    :param kwargs: additional optional parameters such as number of validation blocks
 
     :return train_data: data for train
     :return test_data: data for validation
     """
     if isinstance(data, InputData):
-        train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag)
+        train_data, test_data = _train_test_single_data_setup(data, split_ratio, shuffle_flag, **kwargs)
     elif isinstance(data, MultiModalData):
-        train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag)
+        train_data, test_data = _train_test_multi_modal_data_setup(data, split_ratio, shuffle_flag, **kwargs)
     else:
         raise ValueError(f'Dataset {type(data)} is not supported')
 

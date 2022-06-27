@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 import numpy as np
 
 from fedot.core.composer.advisor import RemoveType
-from fedot.core.composer.constraint import constraint_function
 from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
@@ -104,9 +103,12 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
                 mutation_func = mutation_type
             else:
                 mutation_func = mutation_by_type[mutation_type]
+            graph_copy = deepcopy(new_graph)
             new_graph = mutation_func(new_graph, requirements=requirements,
                                       params=params,
                                       max_depth=max_depth)
+            if not new_graph.nodes:
+                return graph_copy
         elif mutation_type is not MutationTypesEnum.none:
             raise ValueError(f'Required mutation type is not found: {mutation_type}')
     return new_graph
@@ -129,7 +131,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
                                                                requirements=requirements, params=params,
                                                                max_depth=max_depth)
 
-        is_correct_graph = constraint_function(new_graph, params)
+        is_correct_graph = params.verifier(new_graph)
         if is_correct_graph:
             new_individual = Individual(new_graph)
             new_individual.parent_operators = deepcopy(individual.parent_operators)
@@ -335,8 +337,7 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             max_depth = node_from_graph.distance_to_primary_level
         else:
             max_depth = max_depth - graph.operator.distance_to_root_level(node_from_graph)
-        new_subtree = random_graph(params=params, requirements=requirements,
-                                   max_depth=max_depth).root_node
+        new_subtree = random_graph(params.verifier, requirements, max_depth).root_node
     graph.update_subtree(node_from_graph, new_subtree)
     return graph
 

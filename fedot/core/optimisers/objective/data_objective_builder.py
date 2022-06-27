@@ -10,6 +10,7 @@ from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
+from .data_objective_advisor import DataObjectiveAdvisor
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
 from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
@@ -31,13 +32,15 @@ class DataObjectiveBuilder:
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.cache = cache
+        self.advisor = DataObjectiveAdvisor()
         self.log = log or default_log(self.__class__.__name__)
 
-    def build(self, data: InputData) -> ObjectiveEvaluate:
+    def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
+        """ Compose evaluator object with desired parameters """
         if self.cv_folds is not None:
             data_producer = self._build_kfolds_producer(data)
         else:
-            data_producer = self._build_holdout_producer(data)
+            data_producer = self._build_holdout_producer(data, **kwargs)
 
         objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective,
                                                        data_producer=data_producer,
@@ -46,13 +49,16 @@ class DataObjectiveBuilder:
                                                        cache=self.cache, log=self.log)
         return objective_evaluate
 
-    def _build_holdout_producer(self, data: InputData) -> DataSource:
-        """Build trivial data producer for hold-out validation
-        that always returns same data split. Equivalent to 1-fold validation."""
+    def _build_holdout_producer(self, data: InputData, **kwargs) -> DataSource:
+        """
+        Build trivial data producer for hold-out validation
+        that always returns same data split. Equivalent to 1-fold validation.
+        """
 
         self.log.info("Hold out validation for graph composing was applied.")
         split_ratio = default_data_split_ratio_by_task[data.task.task_type]
-        train_data, test_data = train_test_data_setup(data, split_ratio)
+        train_data, test_data = train_test_data_setup(data, split_ratio,
+                                                      **{'validation_blocks': kwargs.get('validation_blocks')})
 
         def data_producer(): yield train_data, test_data
 
@@ -68,7 +74,8 @@ class DataObjectiveBuilder:
             # Perform time series cross validation
             self.log.info("Time series cross validation for pipeline composing was applied.")
             if self.validation_blocks is None:
-                default_validation_blocks = 3
+                default_validation_blocks = 2
+                self.validation_blocks = default_validation_blocks
                 self.log.info(f'For ts cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
             cv_generator = partial(ts_cv_generator, data,
@@ -78,5 +85,6 @@ class DataObjectiveBuilder:
         else:
             self.log.info("KFolds cross validation for pipeline composing was applied.")
             cv_generator = partial(tabular_cv_generator, data,
-                                   self.cv_folds)
+                                   self.cv_folds,
+                                   self.advisor.propose_kfold(data))
         return cv_generator

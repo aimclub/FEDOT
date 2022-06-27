@@ -1,3 +1,4 @@
+import traceback
 from copy import deepcopy
 from inspect import signature
 from typing import List, Optional, Tuple, Union, Collection, Sequence
@@ -5,18 +6,20 @@ from typing import List, Optional, Tuple, Union, Collection, Sequence
 import numpy as np
 import pandas as pd
 
-from fedot.api.api_utils.api_composer import ApiComposer, fit_and_check_correctness
+from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
+from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.archive import HallOfFame
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
@@ -159,17 +162,19 @@ class Fedot:
 
         if predefined_model is not None:
             # Fit predefined model and return it without composing
-            self.current_pipeline = self._process_predefined_model(predefined_model)
+            self.current_pipeline = PredefinedModel(predefined_model,
+                                                    self.train_data,
+                                                    self.params.api_params['logger']).fit()
         else:
             self.current_pipeline, self.best_models, self.history = \
                 self.api_composer.obtain_model(**self.params.api_params)
 
-        # Final fit for obtained pipeline on full dataset
-        if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
-            self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-            self.params.api_params['logger'].message('Final pipeline was fitted')
-        else:
-            self.params.api_params['logger'].message('Already fitted initial pipeline is used')
+            # Final fit for obtained pipeline on full dataset
+            if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
+                self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
+                self.params.api_params['logger'].message('Final pipeline was fitted')
+            else:
+                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
@@ -425,25 +430,3 @@ class Fedot:
             use_fitted=self.current_pipeline.fit_from_cache(self.api_composer.cache),
             n_jobs=self.params.api_params['n_jobs']
         )
-
-    def _process_predefined_model(self, predefined_model):
-        """ Fit and return predefined model """
-
-        if isinstance(predefined_model, Pipeline):
-            pipelines = [predefined_model]
-        elif predefined_model == 'auto':
-            # Generate initial assumption automatically
-            pipelines = AssumptionsBuilder.get(self.params.api_params['task'], self.train_data).build()
-        elif isinstance(predefined_model, str):
-            model = PrimaryNode(predefined_model)
-            pipelines = [Pipeline(model)]
-        else:
-            raise ValueError(f'{type(predefined_model)} is not supported as Fedot model')
-
-        final_pipeline = pipelines[0]
-        # Perform fitting
-        final_pipeline, _ = fit_and_check_correctness(final_pipeline, data=self.train_data,
-                                                      logger=self.params.api_params['logger'],
-                                                      cache=self.api_composer.cache,
-                                                      n_jobs=self.params.api_params['n_jobs'])
-        return final_pipeline

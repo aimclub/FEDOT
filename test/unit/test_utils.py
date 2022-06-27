@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.utils import default_fedot_data_dir, labels_to_dummy_probs, save_file_to_csv, split_data
+from fedot.core.utils import default_fedot_data_dir, labels_to_dummy_probs, save_file_to_csv
 
 
 def test_default_fedot_data_dir():
@@ -21,18 +21,6 @@ def test_labels_to_dummy_probs():
 
     assert len(probs) == 3
     assert len(probs[0]) == 2
-
-
-def test_split_data():
-    dataframe = pd.DataFrame(data=[[1, 2, 3],
-                                   [4, 5, 6],
-                                   [7, 8, 9],
-                                   [10, 11, 12],
-                                   [13, 14, 15]])
-    train, test = split_data(dataframe)
-
-    assert len(train) == 4
-    assert len(test) == 1
 
 
 def test_save_file_to_csv():
