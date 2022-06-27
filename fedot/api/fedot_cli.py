@@ -82,12 +82,12 @@ def run_fedot(parameters, main_params, fit_params, save_predictions=True):
 
 
 # parameters to init Fedot class
-main_params_names = ['problem', 'preset', 'timeout', 'seed']
+main_params_names = ['problem',  'timeout', 'seed']
 # parameters to fit model
 fit_params_names = ['train', 'target']
 # composer parameters
 composer_params_names = ['depth', 'arity', 'popsize', 'gen_num',
-                         'opers', 'tuning', 'cv_folds', 'val_bl', 'hist_path']
+                         'opers', 'tuning', 'cv_folds', 'val_bl', 'hist_path', 'preset']
 # dictionary with keys for parser creation
 arguments_dicts = [{'tag': '--problem',
                     'help': 'The name of modelling problem to solve: \n'
