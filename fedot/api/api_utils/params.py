@@ -18,8 +18,9 @@ class ApiParams:
         self.log = None
         self.task = None
         self.metric_to_compose = None
+        self.metric_to_tuning = None
         self.task_params = None
-        self.metric_name = None
+        self.metrics_name = None
 
     def initialize_params(self, input_params: Dict[str, Any]):
         """ Merge input_params dictionary with several parameters for AutoML algorithm """
@@ -36,9 +37,6 @@ class ApiParams:
         param_dict = {
             'task': self.task,
             'logger': self.log,
-            'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose,
-            'timeout': input_params['timeout'],
             'current_model': None
         }
         self.api_params = {**self.api_params, **param_dict}
@@ -74,36 +72,28 @@ class ApiParams:
         self.api_params = preset_operations.composer_params_based_on_preset(api_params=self.api_params)
         param_dict = {
             'task': self.task,
-            'logger': self.log,
-            'metric_name': self.metric_name,
-            'composer_metric': self.metric_to_compose
+            'logger': self.log
         }
         self.api_params = {**self.api_params, **param_dict}
 
     def _parse_input_params(self, input_params: Dict[str, Any]):
         """ Parses input params into different class fields """
         self.log = default_log('FEDOT logger', verbose_level=input_params['verbose_level'])
-        simple_keys = ['problem', 'n_jobs', 'use_cache']
+        simple_keys = ['problem', 'n_jobs', 'use_cache', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
         problem = self.api_params['problem']
 
         default_evo_params = self.get_default_evo_params(input_params['problem'])
-        if input_params['composer_params'] is None:
+        if input_params['composer_tuner_params'] is None:
             evo_params = default_evo_params
         else:
-            evo_params = {**default_evo_params, **input_params['composer_params']}
+            evo_params = {**default_evo_params, **input_params['composer_tuner_params']}
         self.api_params.update(evo_params)
-        if 'preset' not in input_params['composer_params']:
+        if 'preset' not in input_params['composer_tuner_params']:
             self.api_params['preset'] = 'auto'
         if input_params['seed'] is not None:
             np.random.seed(input_params['seed'])
             random.seed(input_params['seed'])
-
-        self.metric_to_compose = None
-        if 'metric' in self.api_params:
-            self.api_params['composer_metric'] = self.api_params['metric']
-            del self.api_params['metric']
-            self.metric_to_compose = self.api_params['composer_metric']
 
         if problem == 'ts_forecasting' and input_params['task_params'] is None:
             self.log.warn(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
@@ -170,3 +160,4 @@ def check_timeout_vs_generations(api_params):
     else:
         raise ValueError(f'invalid "timeout" value: timeout={timeout}')
     return api_params
+

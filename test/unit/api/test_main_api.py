@@ -1,5 +1,6 @@
 import os
 import shutil
+from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -16,10 +17,14 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
 from fedot.core.utils import fedot_project_root
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_split_train_test import get_synthetic_input_data
@@ -404,3 +409,40 @@ def test_data_from_csv_load_correctly():
 
     assert train_input.target.shape == (14, 1)
     assert test_input.target is None
+
+
+def test_api_params():
+    train_input, _, _ = get_dataset(task_type='classification')
+    default_int_value = 2
+
+    api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
+                  'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
+                  'verbose_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
+                  'use_cache': True, 'max_depth': default_int_value, 'max_arity': default_int_value,
+                  'stopping_after_n_generation': default_int_value, 'pop_size': default_int_value,
+                  'num_of_generations': default_int_value, 'available_operations': ['lagged', 'ridge'],
+                  'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
+                  'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').to_pipeline(),
+                  'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                  'composer_metric': RegressionMetricsEnum.SMAPE, 'tuner_metric': RegressionMetricsEnum.MAPE,
+                  'collect_intermediate_metric': True, 'preset': 'fast_train'}
+
+    correct_final_params = {'problem': 'ts_forecasting', 'n_jobs': 2, 'use_cache': True, 'timeout': 2, 'max_depth': 2,
+                            'max_arity': 2, 'pop_size': 2, 'num_of_generations': 2, 'with_tuning': True,
+                            'preset': 'fast_train', 'genetic_scheme'
+                            : GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                            'stopping_after_n_generation': 2, 'cv_folds': 2, 'validation_blocks': 2,
+                            'available_operations': [
+                                'lagged', 'ridge'], 'max_pipeline_fit_time': 2,
+                            'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').to_pipeline(),
+                            'composer_metric': RegressionMetricsEnum.SMAPE,
+                            'tuner_metric': RegressionMetricsEnum.MAPE,
+                            'collect_intermediate_metric': True,
+                            'task': Task(task_type=TaskTypesEnum.ts_forecasting, task_params=TsForecastingParams(
+                                forecast_length=2)),
+                            'current_model': None}
+
+    model = Fedot(**api_params)
+
+    for key in correct_final_params.keys():
+        assert correct_final_params[key] == model.params.api_params[key]

@@ -58,33 +58,33 @@ class Fedot:
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
     :param use_cache: bool indicating if it is needed to use pipeline structures caching
-    :param composer_params: parameters of pipeline optimisation
-        The possible parameters are:
-            'max_depth' - max depth of the pipeline
-            'max_arity' - max arity of the pipeline nodes
-            'pop_size' - population size for composer
-            'num_of_generations' - number of generations for composer
-            'available_operations' - list of model names to use
-            'with_tuning' - allow hyperparameters tuning for the model
-            'cv_folds' - number of folds for cross-validation
-            'max_pipeline_fit_time' - time constraint for operation fitting (minutes)
-            'validation_blocks' - number of validation blocks for time series forecasting
-            'initial_assumption' - initial assumption for composer
-            'genetic_scheme' - name of the genetic scheme
-            'history_folder' - name of the folder for composing history
-            'metric' - metric for quality calculation during composing
-            'collect_intermediate_metric' - save metrics for intermediate (non-root) nodes in pipeline
-            'preset' - name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
-                - 'best_quality' - All models that are available for this data type and task are used
-                - 'fast_train' - Models that learn quickly. This includes preprocessing operations
-                    (data operations) that only reduce the dimensionality of the data, but cannot increase
-                     it. For example, there are no polynomial features and one-hot encoding operations
-                - 'stable' - The most reliable preset in which the most stable operations are included.
-                - 'auto' - Automatically determine which preset should be used.
-                - 'gpu' - Models that use GPU resources for computation.
-                - 'ts' - A special preset with models for time series forecasting task.
-                - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
-                - '*tree' - A special preset that allows only tree-based algorithms
+    :param max_depth: max depth of the pipeline
+    :param max_arity: max arity of the pipeline nodes
+    :param pop_size: population size for composer
+    :param num_of_generations: number of generations for composer
+    :param available_operations: list of model names to use
+    :param stopping_after_n_generation': - composer will stop after n generation without improving
+    :param with_tuning: allow hyperparameters tuning for the model
+    :param cv_folds: number of folds for cross-validation
+    :param validation_blocks: number of validation blocks for time series forecasting
+    :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
+    :param initial_assumption: initial assumption for composer
+    :param genetic_scheme: name of the genetic scheme
+    :param history_folder: name of the folder for composing history
+    :param composer_metric:  metric for quality calculation during composing
+    :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
+    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
+        - 'best_quality: All models that are available for this data type and task are used
+        - 'fast_train: Models that learn quickly. This includes preprocessing operations
+            (data operations) that only reduce the dimensionality of the data, but cannot increase
+             it. For example, there are no polynomial features and one-hot encoding operations
+        - 'stable: The most reliable preset in which the most stable operations are included.
+        - 'auto: Automatically determine which preset should be used.
+        - 'gpu: Models that use GPU resources for computation.
+        - 'ts: A special preset with models for time series forecasting task.
+        - 'automl: A special preset with only AutoML libraries such as TPOT and H2O as operations.
+        - '*tree: A special preset that allows only tree-based algorithms
+    :param tuner_metric:  metric for quality calculation during tuning
     """
 
     def __init__(self,
@@ -95,7 +95,7 @@ class Fedot:
                  safe_mode=True,
                  n_jobs: int = 1,
                  use_cache: bool = False,
-                 **composer_params
+                 **composer_tuner_params
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -105,17 +105,12 @@ class Fedot:
 
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem,  'timeout': timeout,
-                        'composer_params': composer_params, 'task_params': task_params,
+                        'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
                         'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs, 'use_cache': use_cache}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's parameters via ApiParams
         self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
-
-        # Get metrics for optimization
-        metric_name = self.params.api_params['metric_name']
-        self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
-        self.params.api_params['tuner_metric'] = self.tuner_metrics
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
@@ -313,7 +308,7 @@ class Fedot:
         :return: the values of quality metrics
         """
         if metric_names is None:
-            metric_names = self.params.api_params['metric_name']
+            metric_names = self.params.metric_name
 
         if target is not None:
             if self.test_data is None:
