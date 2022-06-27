@@ -66,13 +66,13 @@ def test_prepare_for_visualisation(generate_history):
     assert len(history.all_historical_fitness) == pop_size * generations_quantity
 
     leaderboard = history.get_leaderboard()
-    assert 'n_lda_default_params' in leaderboard
+    assert OptNode('lda').descriptive_id in leaderboard
     assert 'Position' in leaderboard
 
     dumped_history = history.save()
     loaded_history = OptHistory.load(dumped_history)
     leaderboard = loaded_history.get_leaderboard()
-    assert 'n_lda_default_params' in leaderboard
+    assert OptNode('lda').descriptive_id in leaderboard
     assert 'Position' in leaderboard
 
 
