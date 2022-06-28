@@ -13,8 +13,6 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComp
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECONDS_FOR_TUNING
 from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
