@@ -3,8 +3,14 @@ import sqlite3
 import uuid
 from contextlib import closing
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple
 
+from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
+    OneHotEncodingImplementation
+)
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
+    ImputationImplementation
+)
 from fedot.core.utils import default_fedot_data_dir
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
@@ -26,22 +32,27 @@ class PreprocessingCacheDB:
         self._del_prev_temps()
         self._init_db()
 
-    def get_preprocessor(self, uid: str) -> Optional[DataPreprocessor]:
+    def get_preprocessor(self, uid: str) -> Tuple[
+        Optional[OneHotEncodingImplementation], Optional[ImputationImplementation]]:
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                cur.execute(f'SELECT preprocessor FROM {self._preproc_table} WHERE id = ?;', [uid])
+                cur.execute(f'SELECT encoder, imputer FROM {self._preproc_table} WHERE id = ?;', [uid])
                 matched = cur.fetchone()
                 if matched is not None:
-                    matched = pickle.loads(matched[0])
+                    matched = tuple([pickle.loads(matched[i]) for i in range(2)])
+                else:
+                    matched = None, None
                 return matched
 
     def add_preprocessor(self, uid: str, value: DataPreprocessor):
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                db_pickled = sqlite3.Binary(pickle.dumps(value, pickle.HIGHEST_PROTOCOL))
-                cur.execute(f'INSERT OR IGNORE INTO {self._preproc_table} VALUES (?, ?);', [uid, db_pickled])
+                pickled_encoder = sqlite3.Binary(pickle.dumps(value.features_encoders, pickle.HIGHEST_PROTOCOL))
+                pickled_imputer = sqlite3.Binary(pickle.dumps(value.features_imputers, pickle.HIGHEST_PROTOCOL))
+                cur.execute(f'INSERT OR IGNORE INTO {self._preproc_table} VALUES (?, ?, ?);',
+                            [uid, pickled_encoder, pickled_imputer])
 
     def reset(self):
         with closing(sqlite3.connect(self.db_path)) as conn:
@@ -55,8 +66,9 @@ class PreprocessingCacheDB:
                 cur = conn.cursor()
                 cur.execute((
                     f'CREATE TABLE IF NOT EXISTS {self._preproc_table} ('
-                    'id TEXT PRIMARY KEY,'  # noqa better viewed like that
-                    'preprocessor BLOB'  # noqa
+                    'id TEXT PRIMARY KEY,'
+                    'encoder BLOB,'
+                    'imputer BLOB'
                     ');'
                 ))
 

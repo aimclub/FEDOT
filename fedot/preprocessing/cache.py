@@ -26,7 +26,9 @@ class PreprocessingCache(metaclass=SingletonMeta):
 
     @contextmanager
     def _using_cache(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
-        pipeline.preprocessor = self.try_find_preprocessor(pipeline, input_data)
+        encoder, imputer = self.try_find_preprocessor(pipeline, input_data)
+        pipeline.preprocessor.features_encoders = encoder
+        pipeline.preprocessor.features_imputers = imputer
         yield
         self.add_preprocessor(pipeline, input_data)
 
@@ -39,12 +41,14 @@ class PreprocessingCache(metaclass=SingletonMeta):
     def try_find_preprocessor(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
         try:
             structural_id = _get_pipeline_structural_id(pipeline, input_data)
-            matched = self._db.get_preprocessor(structural_id)
-            if matched is not None:
-                return matched
+            encoder, imputer = self._db.get_preprocessor(structural_id)
+            if encoder is None:
+                encoder = pipeline.preprocessor.features_encoders
+            if imputer is None:
+                imputer = pipeline.preprocessor.features_imputers
         except Exception as exc:
             self.log.error(f'Preprocessor search error: {exc}')
-        return pipeline.preprocessor
+        return encoder, imputer
 
     def add_preprocessor(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
         structural_id = _get_pipeline_structural_id(pipeline, input_data)

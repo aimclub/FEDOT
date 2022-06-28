@@ -315,9 +315,6 @@ class DataPreprocessor:
         data.features = transformed
         data.supplementary_data = encoder_output.supplementary_data
 
-        # Store encoder to make prediction in the future
-        self.features_encoders.update({source_name: encoder})
-
     def cut_dataset(self, data: InputData, border: int):
         """ Cutting large dataset based on border (number of objects to remain) """
         self.log.info("Cut dataset due to it size is large")
