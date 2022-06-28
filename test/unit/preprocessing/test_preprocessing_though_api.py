@@ -196,7 +196,7 @@ def test_categorical_target_processed_correctly():
     assert predicted[0] == 'ba'
 
 
-def test_text_features_processed_correctly():
+def test_correct_api_dataset_with_text_preprocessing():
     """ Check if dataset with text features preprocessing was performed correctly when API launch using. """
     funcs = [data_with_text_features, data_with_missed_text_features]
 
@@ -207,8 +207,11 @@ def test_text_features_processed_correctly():
         fedot_model.fit(input_data, predefined_model='auto')
         predicted = fedot_model.predict(input_data)
 
+        # Check the features were transformed during preprocessing
+        assert fedot_model.prediction.features.shape[1] > 1
+        assert fedot_model.prediction.features.shape[0] == input_data.features.shape[0]
+
         # Check if there is a text node in pipeline
         node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
         assert any('text' in current_tags for current_tags in node_tags)
-        assert fedot_model.current_pipeline is not None
         assert len(predicted) > 0
