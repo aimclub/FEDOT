@@ -256,10 +256,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
         max_depth = max_depth or self.max_depth
         requirements = custom_requirements or self.requirements
-        return mutation(types=self.parameters.mutation_types,
-                        params=self.graph_generation_params,
-                        ind=ind, requirements=requirements,
-                        max_depth=max_depth, log=self.log)
+        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params, ind=ind,
+                        requirements=requirements, max_depth=max_depth)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
@@ -270,12 +268,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         return new_population
 
     def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
-        return crossover(self.parameters.crossover_types,
-                         individual1, individual2,
-                         crossover_prob=self.requirements.crossover_prob,
-                         max_depth=self.max_depth,
-                         params=self.graph_generation_params,
-                         log=default_log())
+        return crossover(self.parameters.crossover_types, individual1, individual2, max_depth=self.max_depth,
+                         crossover_prob=self.requirements.crossover_prob, params=self.graph_generation_params)
 
 
 def _unfit_pipeline(graph: Any):

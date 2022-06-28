@@ -45,7 +45,7 @@ class RemoteEvaluator:
         """
         Class for the batch evaluation of pipelines using remote client
         """
-        self._logger = default_log('RemoteFitterLog')
+        self._logger = default_log(prefix='RemoteFitterLog')
         self.remote_task_params = None
         self.client = None
 

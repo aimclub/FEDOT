@@ -20,7 +20,7 @@ class Client:
         self.exec_params = exec_params
         self.output_path = output_path if output_path else \
             os.path.join(default_fedot_data_dir(), 'remote_fit_results')
-        self._logger = default_log('ClientLog')
+        self._logger = default_log(prefix='ClientLog')
 
     def create_task(self, config):
         """

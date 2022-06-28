@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 import pytest
+import logging
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -35,12 +36,12 @@ def singleton_cleanup():
 def release_log(logger: Log):
     """ Release logger handlers and delete log file """
     logger.release_handlers()
-    if os.path.exists(logger.log_file):
-        os.remove(logger.log_file)
+    if Path(logger.log_file).exists():
+        Path(logger.log_file).unlink()
 
 
 def test_default_logger_setup_correctly():
-    expected_logger_info_level = 20
+    expected_logger_info_level = logging.INFO
     test_default_log = default_log(prefix='default_test_logger')
 
     assert test_default_log.logger.getEffectiveLevel() == expected_logger_info_level
@@ -48,7 +49,7 @@ def test_default_logger_setup_correctly():
 
 @pytest.mark.parametrize('data_fixture', ['get_config_file'])
 def test_logger_from_config_file_setup_correctly(data_fixture, request):
-    expected_logger_error_level = 40
+    expected_logger_error_level = logging.ERROR
     test_config_file = request.getfixturevalue(data_fixture)
     log = Log('test_logger', config_json_file=test_config_file)
 
@@ -70,12 +71,12 @@ def test_logger_write_logs_correctly():
     except Exception:
         print('Captured error')
 
-    if os.path.exists(DEFAULT_LOG_PATH):
-        with open(DEFAULT_LOG_PATH, 'r') as file:
-            content = file.readlines()
+    content = ''
+    if Path(DEFAULT_LOG_PATH).exists():
+        content = Path(DEFAULT_LOG_PATH).read_text()
 
     # Is there a required message in the logs
-    assert any('Can not find evaluation strategy' in log_message for log_message in content)
+    assert 'Can not find evaluation strategy' in content
 
 
 @pytest.mark.parametrize('data_fixture', ['get_bad_config_file'])

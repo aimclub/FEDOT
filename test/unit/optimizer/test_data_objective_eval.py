@@ -70,7 +70,7 @@ def empty_datasource():
     [pipeline_first_test(), pipeline_second_test(), pipeline_third_test()]
 )
 def test_pipeline_objective_evaluate_with_different_metrics(classification_dataset, pipeline):
-    log = default_log(__name__)
+    default_log(prefix=__name__)
     for metric in ClassificationMetricsEnum:
         one_fold_split = OneFoldInputDataSplit()
         data_split = partial(one_fold_split.input_split, input_data=classification_dataset)

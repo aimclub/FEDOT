@@ -1,6 +1,3 @@
-from typing import Optional
-
-from fedot.core.log import LoggerAdapter
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 

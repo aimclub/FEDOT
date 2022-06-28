@@ -27,7 +27,7 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
     :param log_file_name: name of the file with log to export
     """
 
-    log = default_log('fedot.utilities.project_import_export')
+    log = default_log(prefix='fedot.utilities.project_import_export')
     absolute_folder_path, absolute_zip_path, folder_name, zip_name = _prepare_paths(zip_name)
     _check_for_existing_project(absolute_folder_path, absolute_zip_path)
 
@@ -60,7 +60,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     :param zip_path: path to zip archive
     :return imported classes
     """
-    log = default_log('fedot.utilities.project_import_export')
+    log = default_log(prefix='fedot.utilities.project_import_export')
 
     folder_path, absolute_zip_path, _, zip_name = _prepare_paths(zip_path)
 

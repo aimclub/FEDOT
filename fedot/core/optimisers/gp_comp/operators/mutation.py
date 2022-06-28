@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Union
 import numpy as np
 
 from fedot.core.composer.advisor import RemoveType
-from fedot.core.log import LoggerAdapter
+from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -114,10 +114,11 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
     return new_graph
 
 
-def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
-             ind: Individual, requirements, log: LoggerAdapter,
-             max_depth: int = None) -> Any:
+def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams', ind: Individual,
+             requirements, max_depth: int = None) -> Any:
     """ Function apply mutation operator to graph """
+
+    log = default_log(prefix='mutation')
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
 

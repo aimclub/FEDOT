@@ -1,5 +1,4 @@
 import datetime
-import os
 from pathlib import Path
 
 import numpy as np
@@ -40,10 +39,8 @@ from test.unit.tasks.test_forecasting import get_ts_data
 
 
 def file_data():
-    test_file_path = str(os.path.dirname(__file__))
-    file = '../../data/simple_classification.csv'
-    input_data = InputData.from_csv(
-        os.path.join(test_file_path, file))
+    test_file_path = Path(__file__).parents[2].joinpath('data', 'simple_classification.csv')
+    input_data = InputData.from_csv(test_file_path)
     input_data.idx = to_numerical(categorical_ids=input_data.idx)
     return input_data
 
@@ -110,9 +107,8 @@ def test_nodes_from_height():
 
 
 def test_evaluate_individuals():
-    project_root_path = str(fedot_project_root())
-    file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+    file_path_train = Path(fedot_project_root(), 'test', 'data', 'simple_classification.csv')
+    full_path_train = Path(fedot_project_root(), file_path_train)
 
     task = Task(TaskTypesEnum.classification)
     dataset_to_compose = InputData.from_csv(full_path_train, task=task)
@@ -169,17 +165,14 @@ def test_crossover():
     adapter = PipelineAdapter()
     graph_example_first = adapter.adapt(pipeline_first())
     graph_example_second = adapter.adapt(pipeline_second())
-    log = default_log(__name__)
     crossover_types = [CrossoverTypesEnum.none]
-    new_graphs = crossover(crossover_types, Individual(graph_example_first),
-                           Individual(graph_example_second),
-                           max_depth=3, log=log, crossover_prob=1)
+    new_graphs = crossover(crossover_types, Individual(graph_example_first), Individual(graph_example_second),
+                           max_depth=3, crossover_prob=1)
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
     crossover_types = [CrossoverTypesEnum.subtree]
-    new_graphs = crossover(crossover_types, Individual(graph_example_first),
-                           Individual(graph_example_second),
-                           max_depth=3, log=log, crossover_prob=0)
+    new_graphs = crossover(crossover_types, Individual(graph_example_first), Individual(graph_example_second),
+                           max_depth=3, crossover_prob=0)
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
 
@@ -188,25 +181,21 @@ def test_mutation():
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline_first()))
     mutation_types = [MutationTypesEnum.none]
-    log = default_log(__name__)
     graph_gener_params = GraphGenerationParams()
     task = Task(TaskTypesEnum.classification)
     primary_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
     composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
                                                          secondary=secondary_model_types, mutation_prob=1)
-    new_ind = mutation(mutation_types, graph_gener_params, ind,
-                       composer_requirements, log=log, max_depth=3)
+    new_ind = mutation(mutation_types, graph_gener_params, ind, composer_requirements, max_depth=3)
     assert new_ind.graph == ind.graph
     mutation_types = [MutationTypesEnum.growth]
     composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
                                                          secondary=secondary_model_types, mutation_prob=0)
-    new_ind = mutation(mutation_types, graph_gener_params, ind,
-                       composer_requirements, log=log, max_depth=3)
+    new_ind = mutation(mutation_types, graph_gener_params, ind, composer_requirements, max_depth=3)
     assert new_ind.graph == ind.graph
     ind = Individual(adapter.adapt(pipeline_fifth()))
-    new_ind = mutation(mutation_types, graph_gener_params, ind,
-                       composer_requirements, log=log, max_depth=3)
+    new_ind = mutation(mutation_types, graph_gener_params, ind, composer_requirements, max_depth=3)
     assert new_ind.graph == ind.graph
 
 
@@ -227,11 +216,8 @@ def test_intermediate_add_mutation_for_linear_graph():
     successful_mutation_inner = False
 
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_add],
-                                        params=graph_params,
-                                        ind=Individual(linear_two_nodes),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=3).graph
+        graph_after_mutation = mutation(types=[MutationTypesEnum.single_add], params=graph_params,
+                                        ind=Individual(linear_two_nodes), requirements=composer_requirements).graph
         if not successful_mutation_inner:
             successful_mutation_inner = \
                 graph_after_mutation.root_node.descriptive_id == linear_three_nodes_inner.root_node.descriptive_id
@@ -257,11 +243,9 @@ def test_parent_add_mutation_for_linear_graph():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_outer = False
     for _ in range(200):  # since add mutations has a lot of variations
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_add],
-                                        params=graph_params,
-                                        ind=Individual(linear_one_node),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
+        graph_after_mutation = mutation(types=[MutationTypesEnum.single_add], params=graph_params,
+                                        ind=Individual(linear_one_node), requirements=composer_requirements,
+                                        max_depth=2).graph
         if not successful_mutation_outer:
             successful_mutation_outer = \
                 graph_after_mutation.root_node.descriptive_id == linear_two_nodes.root_node.descriptive_id
@@ -288,11 +272,9 @@ def test_edge_mutation_for_graph():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_edge = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_edge],
-                                        params=graph_params,
-                                        ind=Individual(graph_without_edge),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=graph_with_edge.depth).graph
+        graph_after_mutation = mutation(types=[MutationTypesEnum.single_edge], params=graph_params,
+                                        ind=Individual(graph_without_edge), requirements=composer_requirements,
+                                        max_depth=graph_with_edge.depth).graph
         if not successful_mutation_edge:
             successful_mutation_edge = \
                 graph_after_mutation.root_node.descriptive_id == graph_with_edge.root_node.descriptive_id
@@ -316,11 +298,9 @@ def test_replace_mutation_for_linear_graph():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_replace = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_change],
-                                        params=graph_params,
-                                        ind=Individual(linear_two_nodes),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
+        graph_after_mutation = mutation(types=[MutationTypesEnum.single_change], params=graph_params,
+                                        ind=Individual(linear_two_nodes), requirements=composer_requirements,
+                                        max_depth=2).graph
         if not successful_mutation_replace:
             successful_mutation_replace = \
                 graph_after_mutation.root_node.descriptive_id == linear_changed.root_node.descriptive_id
@@ -345,11 +325,9 @@ def test_drop_mutation_for_linear_graph():
                                          rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_drop = False
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_drop],
-                                        params=graph_params,
-                                        ind=Individual(linear_two_nodes),
-                                        requirements=composer_requirements,
-                                        log=default_log(__name__), max_depth=2).graph
+        graph_after_mutation = mutation(types=[MutationTypesEnum.single_drop], params=graph_params,
+                                        ind=Individual(linear_two_nodes), requirements=composer_requirements,
+                                        max_depth=2).graph
         if not successful_mutation_drop:
             successful_mutation_drop = \
                 graph_after_mutation.root_node.descriptive_id == linear_one_node.root_node.descriptive_id
@@ -385,11 +363,9 @@ def test_boosting_mutation_for_linear_graph():
     successful_mutation_boosting = False
     for _ in range(100):
         if not successful_mutation_boosting:
-            graph_after_mutation = mutation(types=[boosting_mutation],
-                                            params=graph_params,
-                                            ind=Individual(linear_one_node),
-                                            requirements=composer_requirements,
-                                            log=default_log(__name__), max_depth=2).graph
+            graph_after_mutation = mutation(types=[boosting_mutation], params=graph_params,
+                                            ind=Individual(linear_one_node), requirements=composer_requirements,
+                                            max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -436,11 +412,9 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     successful_mutation_boosting = False
     for _ in range(100):
         if not successful_mutation_boosting:
-            graph_after_mutation = mutation(types=[boosting_mutation],
-                                            params=graph_params,
-                                            ind=Individual(linear_two_nodes),
-                                            requirements=composer_requirements,
-                                            log=default_log(__name__), max_depth=2).graph
+            graph_after_mutation = mutation(types=[boosting_mutation], params=graph_params,
+                                            ind=Individual(linear_two_nodes), requirements=composer_requirements,
+                                            max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -502,13 +476,12 @@ def test_crossover_with_single_node():
     adapter = PipelineAdapter()
     graph_example_first = adapter.adapt(generate_pipeline_with_single_node())
     graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
-    log = default_log(__name__)
     graph_params = GraphGenerationParams(adapter=adapter, advisor=PipelineChangeAdvisor(),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
 
     for crossover_type in CrossoverTypesEnum:
         new_graphs = crossover([crossover_type], Individual(graph_example_first), Individual(graph_example_second),
-                               params=graph_params, max_depth=3, log=log, crossover_prob=1)
+                               max_depth=3, crossover_prob=1, params=graph_params)
 
         assert new_graphs[0].graph == graph_example_first
         assert new_graphs[1].graph == graph_example_second
@@ -534,7 +507,7 @@ def test_mutation_with_single_node():
 
 
 def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
-    test_file_path = os.path.join(str(os.path.dirname(__file__)), 'log.log')
+    test_file_path = Path(__file__).parent.joinpath('log.log')
     log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
 
     adapter = PipelineAdapter()
@@ -566,7 +539,7 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
 
 
 def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
-    test_file_path = os.path.join(str(os.path.dirname(__file__)), 'log.log')
+    test_file_path = Path(__file__).parent.joinpath('log.log')
     log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
 
     adapter = PipelineAdapter()

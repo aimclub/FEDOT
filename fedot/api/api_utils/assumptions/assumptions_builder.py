@@ -16,7 +16,7 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder, Node
 class AssumptionsBuilder:
 
     def __init__(self, data: Union[InputData, MultiModalData], repository_name: str = 'model'):
-        self.logger = default_log('FEDOT logger')
+        self.logger = default_log(prefix='FEDOT logger')
         self.data = data
         self.repo = OperationTypesRepository(repository_name)
         self.assumptions_generator = TaskAssumptions.for_task(self.data.task, self.repo)

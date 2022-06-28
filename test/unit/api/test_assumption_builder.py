@@ -8,7 +8,6 @@ from fedot.api.api_utils.assumptions.assumptions_builder \
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node, PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -102,7 +101,6 @@ def test_preprocessing_builder_with_data():
 
 def test_assumptions_builder_for_multimodal_data():
     mm_data, _ = get_single_task_multimodal_tabular_data()
-    default_log('FEDOT logger', verbose_level=10)
 
     mm_builder = MultiModalAssumptionsBuilder(mm_data)
     mm_pipeline: Pipeline = mm_builder.build()[0]
@@ -119,7 +117,6 @@ def test_assumptions_builder_unsuitable_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['linear', 'xgboost', 'lagged']
 
     default_builder = UniModalAssumptionsBuilder(train_input)
@@ -139,8 +136,7 @@ def test_assumptions_builder_suitable_available_operations_unidata():
     impl_test_assumptions_builder_suitable_available_operations(task, train_input)
 
 
-def impl_test_assumptions_builder_suitable_available_operations(
-        task, train_input, data_type=None, logger=default_log('FEDOT logger', verbose_level=4)):
+def impl_test_assumptions_builder_suitable_available_operations(task, train_input, data_type=None):
     """ Check that available operations, when they are suitable for the task,
     are taken into account by AssumptionsBuilder. This is implementation part of the test. """
     if not data_type:
