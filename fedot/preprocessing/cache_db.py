@@ -1,77 +1,81 @@
 import pickle
 import sqlite3
-import uuid
 from contextlib import closing
-from pathlib import Path
-from typing import Optional, Tuple
+from typing import Dict, Optional, Tuple
 
+from fedot.core.caching.base_cache_db import BaseCacheDB
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     OneHotEncodingImplementation
 )
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
     ImputationImplementation
 )
-from fedot.core.utils import default_fedot_data_dir
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
-class PreprocessingCacheDB:
+class PreprocessingCacheDB(BaseCacheDB):
     """
     Database for PreprocessingCache class.
-    Includes low-level idea of caching pipeline preprocessor using sqlite3.
+    Includes low-level idea of caching pipeline preprocessor using relational database.
 
     :param db_path: str db file path
     """
 
     def __init__(self, db_path: Optional[str] = None):
-        self._preproc_table = 'preprocessors'
-        self._db_suffix = '.preprocessing_db'
-        self.db_path = db_path or Path(default_fedot_data_dir(), f'prp_{str(uuid.uuid4())}')
-        self.db_path = Path(self.db_path).with_suffix(self._db_suffix)
-
-        self._del_prev_temps()
+        super().__init__('preprocessors', db_path, False, ['preprocessors_hit', 'preprocessors_total'])
         self._init_db()
 
-    def get_preprocessor(self, uid: str) -> Tuple[
-        Optional[OneHotEncodingImplementation], Optional[ImputationImplementation]]:
+    def get_preprocessor(self, uid: str) -> Optional[Tuple[
+        Dict[str, OneHotEncodingImplementation], Dict[str, ImputationImplementation]
+    ]]:
+        """
+        Tries to return both data processors, None if is not found
+
+        :param uid: uid of preproccesor to be loaded
+
+        :return matched: pair of data processors (encoder, imputer) or None
+        """
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
-                cur.execute(f'SELECT encoder, imputer FROM {self._preproc_table} WHERE id = ?;', [uid])
+                cur.execute(f'SELECT encoder, imputer FROM {self._main_table} WHERE id = ?;', [uid])
                 matched = cur.fetchone()
+                is_loaded = False
                 if matched is not None:
                     matched = tuple([pickle.loads(matched[i]) for i in range(2)])
-                else:
-                    matched = None, None
+                    is_loaded = True
+                if self.use_stats:
+                    if is_loaded:
+                        self._inc_eff(cur, 'preprocessors_hit')
+                    self._inc_eff(cur, 'preprocessors_total')
                 return matched
 
     def add_preprocessor(self, uid: str, value: DataPreprocessor):
+        """
+        Adds preprocessor score to DB table vid its uid.
+
+        :param uid: unique preprocessor identificator
+        :param value: the preprocessor itself
+        """
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
                 pickled_encoder = sqlite3.Binary(pickle.dumps(value.features_encoders, pickle.HIGHEST_PROTOCOL))
                 pickled_imputer = sqlite3.Binary(pickle.dumps(value.features_imputers, pickle.HIGHEST_PROTOCOL))
-                cur.execute(f'INSERT OR IGNORE INTO {self._preproc_table} VALUES (?, ?, ?);',
+                cur.execute(f'INSERT OR IGNORE INTO {self._main_table} VALUES (?, ?, ?);',
                             [uid, pickled_encoder, pickled_imputer])
 
-    def reset(self):
-        with closing(sqlite3.connect(self.db_path)) as conn:
-            with conn:
-                cur = conn.cursor()
-                cur.execute(f'DELETE FROM {self._preproc_table};')
-
     def _init_db(self):
+        """
+        Initializes DB working table.
+        """
         with closing(sqlite3.connect(self.db_path)) as conn:
             with conn:
                 cur = conn.cursor()
                 cur.execute((
-                    f'CREATE TABLE IF NOT EXISTS {self._preproc_table} ('
+                    f'CREATE TABLE IF NOT EXISTS {self._main_table} ('
                     'id TEXT PRIMARY KEY,'
                     'encoder BLOB,'
                     'imputer BLOB'
                     ');'
                 ))
-
-    def _del_prev_temps(self):
-        for file in self.db_path.parent.glob(f'prp_*{self._db_suffix}'):
-            file.unlink()

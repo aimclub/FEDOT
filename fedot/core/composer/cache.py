@@ -1,10 +1,7 @@
-import re
-import string
-from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Union
 
+from fedot.core.caching.base_cache import BaseCache
 from fedot.core.composer.cache_db import OperationsCacheDB
-from fedot.core.log import SingletonMeta, default_log
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -15,12 +12,7 @@ if TYPE_CHECKING:
 IOperation = TypeVar('IOperation', bound=Operation)
 
 
-@dataclass
-class CachedState:
-    operation: IOperation
-
-
-class OperationsCache(metaclass=SingletonMeta):
+class OperationsCache(BaseCache):
     """
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
@@ -28,24 +20,7 @@ class OperationsCache(metaclass=SingletonMeta):
     """
 
     def __init__(self, db_path: Optional[str] = None):
-        self._db = OperationsCacheDB(db_path)
-        self.log = default_log(self)
-
-    @property
-    def effectiveness_ratio(self):
-        """
-        Returns percent of how many pipelines/nodes were loaded instead of computing
-        """
-        #  Result order corresponds to the order in self.db._effectiveness_keys
-        pipelines_hit, nodes_hit, pipelines_total, nodes_total = self._db.get_effectiveness()
-
-        return {
-            'pipelines': round(pipelines_hit / pipelines_total, 3) if pipelines_total else 0.,
-            'nodes': round(nodes_hit / nodes_total, 3) if nodes_total else 0.
-        }
-
-    def reset(self):
-        self._db.reset()
+        super().__init__(OperationsCacheDB(db_path))
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
         """
@@ -55,7 +30,7 @@ class OperationsCache(metaclass=SingletonMeta):
         """
         try:
             mapped = [
-                (_get_structural_id(node, fold_id), CachedState(node.fitted_operation))
+                (_get_structural_id(node, fold_id), node.fitted_operation)
                 for node in ensure_wrapped_in_sequence(nodes)
                 if node.fitted_operation is not None
             ]
@@ -76,15 +51,17 @@ class OperationsCache(metaclass=SingletonMeta):
         :param nodes: nodes which fitted state should be loaded from cache
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
+
+        :return cache_was_used: bool indicating if at least one item was loaded
         """
         cache_was_used = False
         try:
             nodes_lst = ensure_wrapped_in_sequence(nodes)
             structural_ids = [_get_structural_id(node, fold_id) for node in nodes_lst]
-            cached_states = self._db.get_operations(structural_ids)
-            for idx, cached_state in enumerate(cached_states):
-                if cached_state is not None:
-                    nodes_lst[idx].fitted_operation = cached_state.operation
+            cached_ops = self._db.get_operations(structural_ids)
+            for idx, cached_op in enumerate(cached_ops):
+                if cached_op is not None:
+                    nodes_lst[idx].fitted_operation = cached_op
                     cache_was_used = True
                 else:
                     nodes_lst[idx].fitted_operation = None
@@ -98,14 +75,20 @@ class OperationsCache(metaclass=SingletonMeta):
         :param pipeline: pipeline for loading cache into
         :param fold_id: optional part of cache item UID
                             (number of the CV fold)
+
+        :return: bool indicating if at least one item was loaded
         """
         return self.try_load_nodes(pipeline.nodes, fold_id)
 
-    def __len__(self):
-        return len(self._db)
-
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
-    structural_id = re.sub(f'[{string.punctuation}]+', '', node.descriptive_id)
+    """
+    Gets unique id from node.
+
+    :param node: node to get uid from
+    :param fold_id: fold number to fit data
+    :return structural_id: unique node identificator
+    """
+    structural_id = node.descriptive_id
     structural_id += f'_{fold_id}' if fold_id is not None else ''
     return structural_id
