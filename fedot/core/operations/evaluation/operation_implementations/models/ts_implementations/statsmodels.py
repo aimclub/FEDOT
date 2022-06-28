@@ -10,7 +10,6 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum

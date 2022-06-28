@@ -1,4 +1,5 @@
 import traceback
+import logging
 from copy import deepcopy
 from inspect import signature
 from typing import List, Optional, Tuple, Union, Collection, Sequence
@@ -47,9 +48,7 @@ class Fedot:
         - None or -1 means infinite time
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
-    :param verbose_level: level of the output detailing
-        (-1 - nothing, 0 - errors, 1 - messages,
-        2 - warnings and info, 3-4 - basic and detailed debug)
+    :param verbose_level: level of the output detailing. Verbosity levels are the same as in 'logging'
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
@@ -89,7 +88,7 @@ class Fedot:
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed=None, verbose_level: int = 0,
+                 seed=None, verbose_level: int = logging.ERROR,
                  safe_mode=True,
                  n_jobs: int = 1,
                  use_cache: bool = False,

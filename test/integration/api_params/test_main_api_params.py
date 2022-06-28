@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Callable, Union
 
@@ -52,7 +53,7 @@ def test_timeout(case: TimeoutParams):
 
     task_type = 'ts_forecasting'
     fedot_input = {'problem': task_type, 'seed': 42, 'preset': 'fast_train',
-                   'verbose_level': 4,
+                   'verbose_level': logging.DEBUG,
                    'timeout': case['timeout'],
                    'task_params': TsForecastingParams(forecast_length=1),
                    **composer_params}

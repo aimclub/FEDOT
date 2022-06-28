@@ -275,7 +275,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, n_jobs=1,
+    api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
                            use_cache=False)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,

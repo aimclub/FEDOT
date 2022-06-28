@@ -1,3 +1,5 @@
+import logging
+
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -14,7 +16,8 @@ def run_regression_example():
     problem = 'regression'
 
     composer_params = {'history_folder': 'custom_history_folder', 'preset': 'auto'}
-    auto_model = Fedot(problem=problem, seed=42, timeout=2, verbose_level=1, **composer_params)
+    auto_model = Fedot(problem=problem, seed=42, timeout=2, verbose_level=logging.INFO,
+                       **composer_params)
 
     auto_model.fit(features=train, target='target')
     auto_model.history.save('saved_regression_history.json')

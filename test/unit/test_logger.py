@@ -58,7 +58,6 @@ def test_logger_from_config_file_setup_correctly(data_fixture, request):
 
 def test_logger_write_logs_correctly():
     test_file_path = str(os.path.dirname(__file__))
-    default_log(prefix='test_log')
 
     # Model data preparation
     file = os.path.join('../data', 'advanced_classification.csv')

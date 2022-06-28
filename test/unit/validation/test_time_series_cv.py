@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from sklearn.metrics import mean_absolute_error
 
@@ -153,7 +154,7 @@ def test_api_cv_correct():
     model = Fedot(problem='ts_forecasting',
                   timeout=timeout,
                   task_params=task_parameters,
-                  verbose_level=4,
+                  verbose_level=logging.DEBUG,
                   **composer_params)
     fedot_model = model.fit(features=time_series)
     assert fedot_model is not None

@@ -5,7 +5,6 @@ from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder

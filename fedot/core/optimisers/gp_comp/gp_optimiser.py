@@ -1,10 +1,10 @@
+import logging
 from copy import deepcopy
 from functools import partial
-from typing import Any, Iterable, List, Optional, Sequence, Union
+from typing import Any, List, Optional, Sequence, Union
 
 from tqdm import tqdm
 
-from fedot.core.log import default_log
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -191,7 +191,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.verbosity_level == -1):
+                              disable=not show_progress or self.log.verbosity_level == logging.NOTSET):
 
             # Adding of initial assumptions to history as zero generation
             if self.initial_individuals:

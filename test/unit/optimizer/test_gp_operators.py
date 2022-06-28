@@ -9,7 +9,7 @@ from fedot.core.optimisers.objective.data_objective_builder import DataObjective
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual

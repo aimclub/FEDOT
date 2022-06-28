@@ -11,7 +11,6 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher

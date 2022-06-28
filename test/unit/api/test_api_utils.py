@@ -82,7 +82,7 @@ def test_predefined_initial_assumption():
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
     model = Fedot(problem='classification', timeout=1.,
-                  verbose_level=4, available_operations=available_operations,
+                  verbose_level=logging.DEBUG, available_operations=available_operations,
                   initial_assumption=initial_pipeline)
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,
@@ -102,7 +102,6 @@ def test_the_formation_of_initial_assumption():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log(prefix='FEDOT logger')
     available_operations = ['dt']
 
     initial_assumptions = AssumptionsBuilder \
@@ -119,7 +118,6 @@ def test_init_assumption_with_inappropriate_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log(prefix='FEDOT logger', verbose_level=logging.DEBUG)
     available_operations = ['linear', 'xgboost', 'lagged']
 
     initial_assumptions = AssumptionsBuilder \
