@@ -96,6 +96,8 @@ def _run(timeouts: List[int], train_data: InputData, test_data: InputData, base_
             c_pipelines += _count_pipelines(auto_model.history)
             if use_pipelines_cache and auto_model.api_composer.pipelines_cache.effectiveness_ratio:
                 cache_effectiveness += auto_model.api_composer.pipelines_cache.effectiveness_ratio
+            elif use_preprocessing_cache and auto_model.api_composer.preprocessing_cache.effectiveness_ratio:
+                cache_effectiveness += auto_model.api_composer.preprocessing_cache.effectiveness_ratio
 
         time /= mean_range
         c_pipelines /= mean_range
