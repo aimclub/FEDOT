@@ -290,10 +290,13 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 
     dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
-    for i, dct in enumerate(dict_list):
-        dict_list[i] = {
-            **dct,
-            **{k: v for k, v in common_dict.items() if k in dct}
-        }
+    for k, v in common_dict.items():
+        is_unknown_key = True
+        for i, dct in enumerate(dict_list):
+            if k in dict_list[i]:
+                dict_list[i][k] = v
+                is_unknown_key = False
+        if is_unknown_key:
+            raise KeyError(f"Invalid key parameter {k}")
 
     return dict_list

@@ -351,7 +351,7 @@ def test_unshuffled_data():
     problem = 'classification'
     params = {
         **default_params,
-        'metric': 'f1'}
+        'composer_metric': 'f1'}
 
     auto_model = Fedot(problem=problem, seed=42, **params)
     pipeline = auto_model.fit(features=features, target=target)
@@ -466,3 +466,12 @@ def test_api_params():
 
     for key in correct_tuner_params.keys():
         assert correct_tuner_params[key] == tuner_params[key]
+
+
+def test_unknown_param_raises_error():
+    api_params = {'problem': 'classification', 'unknown': 2}
+    try:
+        model = Fedot(**api_params)
+        _divide_parameters(model.params.api_params)
+    except KeyError as e:
+        assert str(e) == "'Invalid key parameter unknown'"

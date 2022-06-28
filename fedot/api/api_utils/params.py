@@ -36,8 +36,7 @@ class ApiParams:
 
         param_dict = {
             'task': self.task,
-            'logger': self.log,
-            'current_model': None
+            'logger': self.log
         }
         self.api_params = {**self.api_params, **param_dict}
 
@@ -81,9 +80,8 @@ class ApiParams:
         self.log = default_log('FEDOT logger', verbose_level=input_params['verbose_level'])
         simple_keys = ['problem', 'n_jobs', 'use_cache', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
-        problem = self.api_params['problem']
 
-        default_evo_params = self.get_default_evo_params(input_params['problem'])
+        default_evo_params = self.get_default_evo_params(self.api_params['problem'])
         if input_params['composer_tuner_params'] is None:
             evo_params = default_evo_params
         else:
@@ -95,15 +93,16 @@ class ApiParams:
             np.random.seed(input_params['seed'])
             random.seed(input_params['seed'])
 
-        if problem == 'ts_forecasting' and input_params['task_params'] is None:
+        if self.api_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
             self.log.warn(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
             input_params['task_params'] = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
-        if problem == 'clustering':
+        if self.api_params['problem'] == 'clustering':
             raise ValueError('This type of task is not not supported in API now')
 
-        self.task = self.get_task_params(problem, input_params['task_params'])
-        self.metric_name = self.get_default_metric(problem)
+        self.task = self.get_task_params(self.api_params['problem'], input_params['task_params'])
+        self.metric_name = self.get_default_metric(self.api_params['problem'])
+        self.api_params.pop('problem')
 
     @staticmethod
     def get_default_evo_params(problem: str):

@@ -9,18 +9,14 @@ import pandas as pd
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
-from fedot.core.log import Log, default_log
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum

@@ -20,11 +20,9 @@ def call_cli_with_parameters(call_string):
     """ Function that imitates argparse api call"""
     parser = create_parser(arguments_dicts)
     parameters = parser.parse_args(call_string)
-    composer_params, main_params, fit_params = separate_argparse_to_fedot(parameters)
+    main_params, fit_params = separate_argparse_to_fedot(parameters)
     preprocess_keys(main_params)
-    preprocess_keys(composer_params)
     preprocess_keys(fit_params)
-    main_params['composer_params'] = composer_params
     predictions = run_fedot(parameters, main_params, fit_params, save_predictions=False)
     return predictions
 
