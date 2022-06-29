@@ -121,8 +121,8 @@ def use_cache_check(problem: str, train_data, test_data, n_jobs: int = 1, test_p
     preset = 'fast_train'
     base_fedot_params = {
         'problem': problem, 'seed': 42,
-        'composer_params': composer_params, 'preset': preset,
-        'verbose_level': logging.NOTSET, 'n_jobs': n_jobs
+        'preset': preset, 'verbose_level': logging.NOTSET, 'n_jobs': n_jobs,
+        **composer_params
     }
     timeouts = [1, 2, 3, 4, 5]
     for use_cache in [True, False]:
@@ -147,8 +147,8 @@ def compare_one_process_to_many(problem: str, train_data, test_data, n_jobs: int
     composer_params = {'with_tuning': False}
     base_fedot_params = {
         'problem': problem, 'seed': 42,
-        'composer_params': composer_params, 'preset': 'fast_train',
-        'verbose_level': logging.NOTSET
+        'preset': 'fast_train', 'verbose_level': logging.NOTSET,
+        **composer_params
     }
     timeouts = [1, 2, 3, 4, 5]
     for _n_jobs in [1, n_jobs]:
