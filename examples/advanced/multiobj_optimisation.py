@@ -11,9 +11,9 @@ def run_classification_multiobj_example(with_plot=True, timeout=None):
     problem = 'classification'
 
     metric_names = ['f1', 'node_num']
-    auto_model = Fedot(problem=problem, timeout=timeout, preset='best_quality',
-                       composer_params={'metric': metric_names,
-                                        'with_tuning': False}, seed=42)
+    auto_model = Fedot(problem=problem, timeout=timeout, preset='best_quality', seed=42,
+                       metric=metric_names,
+                       with_tuning=False)
     auto_model.fit(features=train_data, target='class')
     prediction = auto_model.predict_proba(features=test_data)
     print(auto_model.get_metrics(target))

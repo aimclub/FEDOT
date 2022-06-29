@@ -54,7 +54,8 @@ def test_timeout(case: TimeoutParams):
     fedot_input = {'problem': task_type, 'seed': 42, 'preset': 'fast_train',
                    'verbose_level': 4,
                    'timeout': case['timeout'],
-                   'composer_params': composer_params, 'task_params': TsForecastingParams(forecast_length=1)}
+                   'task_params': TsForecastingParams(forecast_length=1),
+                   **composer_params}
 
     train_data, test_data, _ = get_dataset(task_type)
     if isinstance(case.test_answer, ValueError):

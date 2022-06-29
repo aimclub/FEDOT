@@ -114,7 +114,7 @@ def test_operators_in_history():
     num_of_gens = 2
     auto_model = Fedot(problem='classification', seed=42,
                        timeout=None,
-                       composer_params={'num_of_generations': num_of_gens, 'pop_size': 3},
+                       num_of_generations=num_of_gens, pop_size=3,
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 

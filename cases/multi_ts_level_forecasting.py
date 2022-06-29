@@ -61,17 +61,16 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
                   task_params=task.task_params,
                   timeout=5,
                   n_jobs=1,
-                  composer_params={
-                      'max_depth': 5,
-                      'num_of_generations': 20,
-                      'pop_size': 15,
-                      'max_arity': 4,
-                      'cv_folds': None,
-                      'validation_blocks': None,
-                      'initial_assumption': init_pipeline,
-                      'available_operations': ['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
-                                               'ridge', 'lasso', 'linear', 'cut']
-                  })
+                  max_depth=5,
+                  num_of_generations=20,
+                  pop_size=15,
+                  max_arity=4,
+                  cv_folds=None,
+                  validation_blocks=None,
+                  initial_assumption=init_pipeline,
+                  available_operations=['lagged', 'smoothing', 'diff_filter', 'gaussian_filter',
+                                        'ridge', 'lasso', 'linear', 'cut']
+                  )
     # fit model
     pipeline = model.fit(train_data)
     pipeline.show()
@@ -89,8 +88,7 @@ def run_multi_ts_forecast(forecast_length, is_multi_ts):
 
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
-
-if __name__ == '__main__':
-    forecast_length = 60
+    if __name__ == '__main__':
+        forecast_length = 60
     run_multi_ts_forecast(forecast_length, is_multi_ts=True)
     run_multi_ts_forecast(forecast_length, is_multi_ts=False)

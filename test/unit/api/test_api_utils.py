@@ -31,8 +31,7 @@ def test_compose_fedot_model_with_tuning():
                                                                          logger=default_log('test_log'),
                                                                          timeout=0.1,
                                                                          n_jobs=1,
-                                                                         use_cache=False,
-                                                                         initial_assumption=None),
+                                                                         use_cache=False),
                                                          composer_params=dict(max_depth=1,
                                                                               max_arity=1,
                                                                               pop_size=2,
@@ -43,10 +42,12 @@ def test_compose_fedot_model_with_tuning():
                                                                               cv_folds=None,
                                                                               genetic_scheme=None,
                                                                               max_pipeline_fit_time=None,
-                                                                              collect_intermediate_metric=False),
+                                                                              collect_intermediate_metric=False,
+                                                                              preset='fast_train',
+                                                                              initial_assumption=None),
                                                          tuning_params=dict(with_tuning=True,
                                                                             tuner_metric=None),
-                                                         preset='fast_train')
+                                                         )
     expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
     logs.check_present(expected, order_matters=False)
 
@@ -78,8 +79,8 @@ def test_predefined_initial_assumption():
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
     model = Fedot(problem='classification', timeout=1.,
-                  verbose_level=4, composer_params={'available_operations': available_operations,
-                                                    'initial_assumption': initial_pipeline})
+                  verbose_level=4, available_operations=available_operations,
+                  initial_assumption=initial_pipeline)
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,
                                                         target=train_input.target,
@@ -154,8 +155,8 @@ def test_api_composer_available_operations():
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=0.01,
-                  composer_params={'available_operations': available_operations,
-                                   'pop_size': 500}
+                  available_operations=available_operations,
+                  pop_size=500
                   )
     model.fit(train_data)
     assert model.params.api_params['available_operations'] == available_operations

@@ -153,8 +153,8 @@ def test_api_cv_correct():
 
     model = Fedot(problem='ts_forecasting',
                   timeout=timeout,
-                  composer_params=composer_params,
                   task_params=task_parameters,
-                  verbose_level=4)
+                  verbose_level=4,
+                  **composer_params)
     fedot_model = model.fit(features=time_series)
     assert fedot_model is not None

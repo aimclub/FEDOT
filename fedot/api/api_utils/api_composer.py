@@ -58,11 +58,10 @@ class ApiComposer:
         return metric_function
 
     def obtain_model(self, **common_dict):
-        preset = common_dict['preset']
         # Prepare parameters
         api_params_dict, composer_params_dict, tuner_params_dict = _divide_parameters(common_dict)
         # Start composing - pipeline structure search
-        return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict, preset)
+        return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict)
 
     @staticmethod
     def divide_operations(available_operations, task):
@@ -149,8 +148,8 @@ class ApiComposer:
         )
         return optimiser_parameters
 
-    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict,
-                            preset: str) -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
+    def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
+            -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
         log = api_params['logger']
         task = api_params['task']
@@ -158,13 +157,15 @@ class ApiComposer:
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
         available_operations = composer_params['available_operations']
+        preset = composer_params['preset']
+
         self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
         # Work with initial assumptions
         assumption_handler = AssumptionsHandler(log, train_data)
 
         # Set initial assumption and check correctness
-        initial_assumption = assumption_handler.propose_assumptions(api_params['initial_assumption'],
+        initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations)
         with self.timer.launch_assumption_fit():
             fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
@@ -276,22 +277,26 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, initial_assumption=None, n_jobs=1,
+    api_params_dict = dict(train_data=None, task=Task, logger=Log, timeout=5, n_jobs=1,
                            use_cache=False)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
                                 stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
-                                collect_intermediate_metric=False, max_pipeline_fit_time=None)
+                                collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
+                                preset='auto')
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 
     dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
-    for i, dct in enumerate(dict_list):
-        dict_list[i] = {
-            **dct,
-            **{k: v for k, v in common_dict.items() if k in dct}
-        }
+    for k, v in common_dict.items():
+        is_unknown_key = True
+        for i, dct in enumerate(dict_list):
+            if k in dict_list[i]:
+                dict_list[i][k] = v
+                is_unknown_key = False
+        if is_unknown_key:
+            raise KeyError(f"Invalid key parameter {k}")
 
     return dict_list
