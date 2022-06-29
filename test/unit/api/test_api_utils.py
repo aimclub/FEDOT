@@ -1,7 +1,6 @@
+import logging
 import random
 
-from testfixtures import LogCapture
-import logging
 from copy import deepcopy
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
@@ -35,7 +34,7 @@ def test_compose_fedot_model_with_tuning():
                                                                          timeout=0.1,
                                                                          n_jobs=1,
                                                                          use_pipelines_cache=False,
-                                                                         use_preprocessing_cache=False)
+                                                                         use_preprocessing_cache=False),
                                                          composer_params=dict(max_depth=1,
                                                                               max_arity=1,
                                                                               pop_size=2,

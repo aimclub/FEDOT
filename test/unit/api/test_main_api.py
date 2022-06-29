@@ -1,6 +1,5 @@
 import os
 import shutil
-from pprint import pprint
 
 import numpy as np
 import pandas as pd
@@ -18,14 +17,13 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams, TaskParams
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_split_train_test import get_synthetic_input_data
@@ -419,7 +417,8 @@ def test_api_params():
     api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
                   'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
                   'verbose_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
-                  'use_cache': True, 'max_depth': default_int_value, 'max_arity': default_int_value,
+                  'use_pipelines_cache': True, 'use_preprocessing_cache': True,
+                  'max_depth': default_int_value, 'max_arity': default_int_value,
                   'stopping_after_n_generation': default_int_value, 'pop_size': default_int_value,
                   'num_of_generations': default_int_value, 'available_operations': ['lagged', 'ridge'],
                   'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
@@ -434,7 +433,8 @@ def test_api_params():
                                        task_params=TsForecastingParams(forecast_length=2)),
                           'timeout': default_int_value,
                           'train_data': None,
-                          'use_cache': True}
+                          'use_pipelines_cache': True,
+                          'use_preprocessing_cache': True}
     correct_composer_params = {'available_operations': ['lagged', 'ridge'],
                                'collect_intermediate_metric': True,
                                'composer_metric': RegressionMetricsEnum.SMAPE,
