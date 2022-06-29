@@ -217,7 +217,8 @@ def test_intermediate_add_mutation_for_linear_graph():
 
     for _ in range(100):
         graph_after_mutation = mutation(types=[MutationTypesEnum.single_add], params=graph_params,
-                                        ind=Individual(linear_two_nodes), requirements=composer_requirements).graph
+                                        ind=Individual(linear_two_nodes), requirements=composer_requirements,
+                                        max_depth=3).graph
         if not successful_mutation_inner:
             successful_mutation_inner = \
                 graph_after_mutation.root_node.descriptive_id == linear_three_nodes_inner.root_node.descriptive_id
