@@ -2,16 +2,14 @@ import logging
 import collections
 import operator
 import timeit
-
 from collections import defaultdict
 from copy import deepcopy
 from functools import reduce
 from statistics import mean
-from test.unit.api.test_main_api import get_dataset
 from timeit import repeat
 from typing import List, Optional
 
-import pandas as pd
+from matplotlib import colors, pyplot as plt
 
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
@@ -19,7 +17,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-from matplotlib import colors, pyplot as plt
+from test.unit.api.test_main_api import get_dataset
 
 
 def _count_pipelines(opt_history: Optional[OptHistory]) -> int:
