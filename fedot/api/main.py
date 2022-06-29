@@ -264,7 +264,9 @@ class Fedot:
         Load saved graph from disk
         :param path to json file with model
         """
+        self.current_pipeline = Pipeline()
         self.current_pipeline.load(path)
+        self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
     def plot_pareto(self):
         metric_names = self.params.metric_to_compose
