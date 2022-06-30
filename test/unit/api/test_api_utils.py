@@ -50,9 +50,6 @@ def test_compose_fedot_model_with_tuning():
                                                                             tuner_metric=None))
     # TODO make assert more specific
     assert 'Composed pipeline returned without tuning.' in str(logs)
-                                                         )
-    expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
-    logs.check_present(expected, order_matters=False)
 
 
 def test_output_binary_classification_correct():

@@ -208,7 +208,7 @@ def test_ts_models_fit_predict_correct():
 def test_ts_models_dt_idx_fit_correct():
     """Test to check if all time series models fit correct with datetime indexes"""
     train_data, test_data = get_ts_data_with_dt_idx(forecast_length=5)
-    logger = default_log('default_test_logger')
+    logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
