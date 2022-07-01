@@ -149,21 +149,25 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
     return deepcopy(ind)
 
 
-def simple_mutation(graph: Any, requirements, params, **kwargs) -> Any:
+def simple_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParams', **kwargs) -> Any:
     """
     This type of mutation is passed over all nodes of the tree started from the root node and changes
     nodes’ operations with probability - 'node mutation probability'
     which is initialised inside the function
+
+    :param graph: graph to mutate
+    :param requirements: requirements for composing graphs
+    :param params: parameters that is used to adapt and verify a graph and to generate new nodes for a graph
     """
 
     def replace_node_to_random_recursive(node: Any) -> Any:
         if random() < node_mutation_probability:
-            new_node = params.node_factory.change_node(node)
+            new_node = params.node_factory.exchange_node(node)
             if new_node:
                 graph.update_node(node, new_node)
             if node.nodes_from:
-                for child in node.nodes_from:
-                    replace_node_to_random_recursive(child)
+                for parent in node.nodes_from:
+                    replace_node_to_random_recursive(parent)
 
     node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
                                                   node=graph.root_node)
@@ -230,9 +234,14 @@ def _add_as_child(graph: Any, requirements, params, node_to_mutate):
     return graph
 
 
-def single_add_mutation(graph: Any, requirements, params, max_depth, *args, **kwargs):
+def single_add_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParams', max_depth: int, *args, **kwargs):
     """
     Add new node between two sequential existing modes
+
+    :param graph: graph to mutate
+    :param requirements: requirements for composing a graph
+    :param params: parameters that is used to adapt and verify a graph and to generate new nodes for a graph
+    :param max_depth: maximum depth for a graph
     """
 
     if graph.depth >= max_depth:
@@ -250,21 +259,28 @@ def single_add_mutation(graph: Any, requirements, params, max_depth, *args, **kw
     return result
 
 
-def single_change_mutation(graph: Any, requirements, params, *args, **kwargs):
+def single_change_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParams', *args, **kwargs):
     """
     Change node between two sequential existing modes
+
+    :param graph: graph to mutate
+    :param requirements: requirements for composing a graph
+    :param params: parameters that is used to adapt and verify a graph and to generate new nodes for a graph
     """
     node = choice(graph.nodes)
-    new_node = params.node_factory.change_node(node)
+    new_node = params.node_factory.exchange_node(node)
     if not new_node:
         return graph
     graph.update_node(node, new_node)
     return graph
 
 
-def single_drop_mutation(graph: Any, params, *args, **kwargs):
+def single_drop_mutation(graph: Any, params: 'GraphGenerationParams', *args, **kwargs):
     """
     Drop single node from graph
+
+    :param graph: graph to mutate
+    :param params: parameters that is used to adapt and verify a graph and to generate new nodes for a graph
     """
     node_to_del = choice(graph.nodes)
     node_name = node_to_del.content['name']
@@ -291,7 +307,7 @@ def single_drop_mutation(graph: Any, params, *args, **kwargs):
     return graph
 
 
-def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=True):
+def _tree_growth(graph: Any, requirements: Any, params: 'GraphGenerationParams', max_depth: int, local_growth=True):
     """
     This mutation selects a random node in a tree, generates new subtree,
     and replaces the selected node's subtree.
@@ -321,9 +337,18 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
     return graph
 
 
-def growth_mutation(graph: Any, requirements, params, max_depth: int, local_growth=True) -> Any:
+def growth_mutation(graph: Any,
+                    requirements: Any,
+                    params: 'GraphGenerationParams',
+                    max_depth: int,
+                    local_growth: bool = True) -> Any:
     """
     This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
+
+    :param graph: graph to mutate
+    :param requirements: requirements for composing a graph
+    :param params: parameters that is used to adapt and verify a graph and to generate new nodes for a graph
+    :param max_depth: maximum depth for a graph
     :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
     selected random node, if false then previous depth of selected node doesn't affect to
     new subtree depth, maximal depth of new subtree just should satisfy depth constraint in parent tree
@@ -337,11 +362,15 @@ def growth_mutation(graph: Any, requirements, params, max_depth: int, local_grow
         return _tree_growth(graph, requirements, params, max_depth, local_growth)
 
 
-def reduce_mutation(graph: OptGraph, requirements, params, **kwargs) -> OptGraph:
+def reduce_mutation(graph: OptGraph, requirements: Any, params: 'GraphGenerationParams', **kwargs) -> OptGraph:
     """
     Selects a random node in a tree, then removes its subtree. If the current arity of the node's
     parent is more than the specified minimal arity, then the selected node is also removed.
     Otherwise, it is replaced by a random primary node.
+
+    :param graph: graph to mutate
+    :param requirements: requirements for composing a graph
+    :param params: parameters that is used to adapt and verify a graph and to generate new nodes for a graph
     """
     if len(graph.nodes) == 1:
         return graph

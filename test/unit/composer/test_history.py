@@ -68,7 +68,7 @@ def test_ancestor_for_mutation():
                                                          secondary=available_operations, mutation_prob=1)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
-                                                  rules_for_constraints=DEFAULT_DAG_RULES)
+                                                  rules_for_constraint=DEFAULT_DAG_RULES)
 
     mutation_result = mutation(types=[MutationTypesEnum.simple],
                                params=graph_params,
@@ -88,7 +88,7 @@ def test_ancestor_for_crossover():
     parent_ind_first = Individual(adapter.adapt(Pipeline(PrimaryNode('linear'))))
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
-    graph_params = get_pipeline_generation_params(rules_for_constraints=DEFAULT_DAG_RULES)
+    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
 
     crossover_results = crossover([CrossoverTypesEnum.subtree], parent_ind_first, parent_ind_second, max_depth=3,
                                   crossover_prob=1, params=graph_params)

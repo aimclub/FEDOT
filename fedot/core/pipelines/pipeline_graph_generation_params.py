@@ -11,12 +11,12 @@ from fedot.core.repository.tasks import Task
 
 
 def get_pipeline_generation_params(requirements: Any = None,
-                                   rules_for_constraints: Sequence[VerifierRuleType] = (),
+                                   rules_for_constraint: Sequence[VerifierRuleType] = (),
                                    task: Optional[Task] = None,
                                    log: Optional[Log] = None):
     advisor = PipelineChangeAdvisor(task)
     graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(log),
-                                                    rules_for_constraint=rules_for_constraints,
+                                                    rules_for_constraint=rules_for_constraint,
                                                     advisor=advisor,
                                                     node_factory=PipelineOptNodeFactory(requirements=requirements,
                                                                                         advisor=advisor)

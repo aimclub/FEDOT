@@ -22,8 +22,8 @@ def test_default_node_factory():
                                       'params': DEFAULT_PARAMS_STUB},
                              nodes_from=[primary_node])
 
-    changed_primary_node = node_factory.change_node(primary_node)
-    changed_secondary_node = node_factory.change_node(secondary_node)
+    changed_primary_node = node_factory.exchange_node(primary_node)
+    changed_secondary_node = node_factory.exchange_node(secondary_node)
     new_primary_node = node_factory.get_node(primary=True)
     new_secondary_node = node_factory.get_node(primary=False)
     new_separate_parent_node = node_factory.get_parent_node(secondary_node, primary=True)

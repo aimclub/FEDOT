@@ -16,8 +16,8 @@ class OptNodeFactory(ABC):
         self.advisor = advisor or DefaultChangeAdvisor()
 
     @abstractmethod
-    def change_node(self,
-                    node: OptNode) -> Optional[OptNode]:
+    def exchange_node(self,
+                      node: OptNode) -> Optional[OptNode]:
         """
         Returns new node based on a current node using information whether
         the node is primary or secondary and using advisor.
@@ -55,7 +55,7 @@ class DefaultOptNodeFactory(OptNodeFactory):
                  advisor: Optional[DefaultChangeAdvisor] = None):
         super().__init__(requirements, advisor)
 
-    def change_node(self, node: OptNode):
+    def exchange_node(self, node: OptNode):
         return node
 
     def get_parent_node(self, node: OptNode, primary: bool):

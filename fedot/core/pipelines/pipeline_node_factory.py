@@ -13,8 +13,8 @@ class PipelineOptNodeFactory(OptNodeFactory):
         super().__init__(requirements)
         self.advisor = advisor or PipelineChangeAdvisor()
 
-    def change_node(self,
-                    node: OptNode):
+    def exchange_node(self,
+                      node: OptNode):
         candidates = self.requirements.secondary if node.nodes_from else self.requirements.primary
         candidates = self.advisor.propose_change(current_operation_id=str(node.content['name']),
                                                  possible_operations=candidates)

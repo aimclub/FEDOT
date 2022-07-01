@@ -35,9 +35,9 @@ def node_factory():
 
 def test_change_node(nodes, node_factory):
     primary_node, intermediate_node, secondary_node = nodes
-    new_primary_node = node_factory.change_node(primary_node)
-    new_intermediate_node = node_factory.change_node(intermediate_node)
-    new_secondary_node = node_factory.change_node(secondary_node)
+    new_primary_node = node_factory.exchange_node(primary_node)
+    new_intermediate_node = node_factory.exchange_node(intermediate_node)
+    new_secondary_node = node_factory.exchange_node(secondary_node)
 
     assert new_primary_node is not None
     assert new_secondary_node is not None
