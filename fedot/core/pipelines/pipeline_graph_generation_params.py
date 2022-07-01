@@ -1,5 +1,4 @@
-from collections.abc import Sequence
-from typing import Any, Optional
+from typing import Any, Optional, Sequence
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.dag.graph_verifier import VerifierRuleType
