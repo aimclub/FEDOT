@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.data.data import InputData
-from fedot.core.data.data_preprocessing import data_has_categorical_features, data_has_missing_values
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     OneHotEncodingImplementation
@@ -12,7 +11,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ImputationImplementation
 )
 from fedot.preprocessing.cache_db import PreprocessingCacheDB
-from fedot.preprocessing.structure import PipelineStructureExplorer
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -67,7 +65,7 @@ class PreprocessingCache(BaseCache):
         :return imputer: loaded imputer if included in DB or initial otherwise
         """
         try:
-            structural_id = _get_pipeline_structural_id(pipeline, input_data)
+            structural_id = _get_db_uid(pipeline, input_data)
             processors = self._db.get_preprocessor(structural_id)
             if processors is None:
                 encoder = pipeline.preprocessor.features_encoders
@@ -85,45 +83,22 @@ class PreprocessingCache(BaseCache):
         :param pipeline: pipeline with preprocessor to add
         :param input_data: data that are going to be passed through pipeline
         """
-        structural_id = _get_pipeline_structural_id(pipeline, input_data)
+        structural_id = _get_db_uid(pipeline, input_data)
         self._db.add_preprocessor(structural_id, pipeline.preprocessor)
 
 
-_structure_explorer = PipelineStructureExplorer()
-
-
-def get_struct_info(pipeline: 'Pipeline', input_data: InputData, source_name: str) -> Tuple[bool, bool, bool, bool]:
-    has_cats = data_has_categorical_features(input_data)
-    has_gaps = data_has_missing_values(input_data)
-
-    has_imputer, has_encoder = [
-        _structure_explorer.check_structure_by_tag(pipeline, tag, source_name)
-        for tag in ['imputation', 'encoding']
-    ]
-    return has_cats, has_gaps, has_imputer, has_encoder
-
-
-def _get_pipeline_structural_id(pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]) -> str:
+def _get_db_uid(pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]) -> str:
     """
-    Gets unique id from pipeline.
+    Constructs unique id from pipeline and data, which is considered as primary key for DB.
 
     :param pipeline: pipeline to get uid from
     :param input_data: data that are going to be passed through pipeline
 
-    :return: unique pipeline and related data identificator
+    :return: unique pipeline plus related data identificator
     """
-    # struct_id = ''
-    # if isinstance(input_data, InputData):
-    #     has_cats, has_gaps, has_imputer, has_encoder = get_struct_info(pipeline, input_data, DEFAULT_SOURCE_NAME)
-    #     struct_id += f'_{has_cats}_{has_gaps}_{has_imputer}_{has_encoder}'
-    # else:
-    #     for data_source_name, values in input_data.items():
-    #         has_cats, has_gaps, has_imputer, has_encoder = get_struct_info(pipeline, values, data_source_name)
-    #         struct_id += f'_{has_cats}_{has_gaps}_{has_imputer}_{has_encoder}'
-    # return struct_id
     pipeline_id = pipeline.root_node.descriptive_id
     if isinstance(input_data, InputData):
-        data_id = ''.join(str(input_data.features[[0, -1]]))
+        data_id = f'{input_data.idx[0]}_{input_data.idx[-1]}'
     else:
-        data_id = ''.join([str(x.features[[0, -1]]) for x in input_data.values()])
+        data_id = ':'.join([f'{x.idx[0]}_{x.idx[-1]}' for x in input_data.values()])
     return f'{pipeline_id}_{data_id}'
