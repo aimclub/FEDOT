@@ -15,14 +15,15 @@ from fedot.core.optimisers.gp_comp.operators.selection import (
     tournament_selection
 )
 from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 
 
 def rand_population_gener_and_eval(pop_size=4):
     models_set = ['knn', 'logit', 'rf']
     requirements = PipelineComposerRequirements(primary=models_set,
                                                 secondary=models_set, max_depth=1)
-    pipeline_gener_params = GraphGenerationParams(adapter=PipelineAdapter())
-    random_pipeline_function = partial(random_graph, pipeline_gener_params.verifier, requirements)
+    pipeline_gener_params = get_pipeline_generation_params(requirements=requirements)
+    random_pipeline_function = partial(random_graph, pipeline_gener_params, requirements)
     population = []
     while len(population) != pop_size:
         # to ensure uniqueness

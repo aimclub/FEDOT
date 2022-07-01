@@ -268,8 +268,7 @@ def single_drop_mutation(graph: Any, params, *args, **kwargs):
     """
     node_to_del = choice(graph.nodes)
     node_name = node_to_del.content['name']
-    # TODO: refactor getting a removal type
-    removal_type = params.node_factory.advisor.can_be_removed(str(node_name))
+    removal_type = params.advisor.can_be_removed(str(node_name))
     if removal_type == RemoveType.with_direct_children:
         # TODO refactor workaround with data_source
         nodes_to_delete = \
@@ -317,7 +316,7 @@ def _tree_growth(graph: Any, requirements, params, max_depth: int, local_growth=
             max_depth = node_from_graph.distance_to_primary_level
         else:
             max_depth = max_depth - graph.operator.distance_to_root_level(node_from_graph)
-        new_subtree = random_graph(params.verifier, requirements, max_depth).root_node
+        new_subtree = random_graph(params, requirements, max_depth).root_node
     graph.update_subtree(node_from_graph, new_subtree)
     return graph
 

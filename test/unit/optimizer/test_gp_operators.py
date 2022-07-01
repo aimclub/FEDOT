@@ -23,6 +23,7 @@ from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -368,12 +369,10 @@ def test_boosting_mutation_for_linear_graph():
     available_operations = [node.content['name'] for node in boosting_graph.nodes]
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations, mutation_prob=1)
-    node_factory = PipelineOptNodeFactory(requirements=composer_requirements,
-                                          advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.classification)))
 
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                         rules_for_constraint=DEFAULT_DAG_RULES,
-                                         node_factory=node_factory)
+    graph_params = get_pipeline_generation_params(requirements=composer_requirements,
+                                                  rules_for_constraints=DEFAULT_DAG_RULES,
+                                                  task=Task(TaskTypesEnum.classification))
     successful_mutation_boosting = False
     for _ in range(100):
         if not successful_mutation_boosting:
@@ -418,12 +417,10 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     available_operations = [node.content['name'] for node in boosting_graph.nodes]
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations, mutation_prob=1)
-    node_factory = PipelineOptNodeFactory(requirements=composer_requirements,
-                                          advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.ts_forecasting)))
 
-    graph_params = GraphGenerationParams(adapter=adapter,
-                                         rules_for_constraint=DEFAULT_DAG_RULES,
-                                         node_factory=node_factory)
+    graph_params = get_pipeline_generation_params(requirements=composer_requirements,
+                                                  rules_for_constraints=DEFAULT_DAG_RULES,
+                                                  task=Task(TaskTypesEnum.ts_forecasting))
     successful_mutation_boosting = False
     for _ in range(100):
         if not successful_mutation_boosting:

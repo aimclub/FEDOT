@@ -8,7 +8,7 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class PipelineOptNodeFactory(OptNodeFactory):
-    def __init__(self, requirements: Optional[Any] = None,
+    def __init__(self, requirements: Any,
                  advisor: Optional[PipelineChangeAdvisor] = None):
         super().__init__(requirements)
         self.advisor = advisor or PipelineChangeAdvisor()
