@@ -1,9 +1,9 @@
+import logging
 from typing import Any, Optional, Sequence, Union
 
 from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.dag.graph import Graph
-from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -23,9 +23,8 @@ class RandomMutationSearchOptimizer(GraphOptimiser):
                  initial_graph: Union[Graph, Sequence[Graph]] = (),
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimiserParameters] = None,
-                 log: Optional[Log] = None):
-        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
+                 parameters: Optional[GraphOptimiserParameters] = None):
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters)
         self.change_types = [boosting_mutation, parameter_change_mutation,
                              MutationTypesEnum.single_edge,
                              MutationTypesEnum.single_change,
@@ -44,8 +43,8 @@ class RandomMutationSearchOptimizer(GraphOptimiser):
 
         with timer as t:
             while not t.is_time_limit_reached(num_iter):
-                new = mutation(types=self.change_types, ind=best, params=self.graph_generation_params,
-                               requirements=self.requirements, log=self.log)
+                new = mutation(types=self.change_types, params=self.graph_generation_params, ind=best,
+                               requirements=self.requirements)
                 evaluator([new])
                 if new.fitness < best.fitness:
                     best = new
@@ -61,7 +60,7 @@ def run_with_random_search_composer():
     composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt'],
                        'optimizer': RandomMutationSearchOptimizer}
 
-    automl = Fedot(problem='classification', timeout=1, verbose_level=4,
+    automl = Fedot(problem='classification', timeout=1, verbose_level=logging.DEBUG,
                    preset='fast_train', **composer_params)
 
     automl.fit(train_data_path)

@@ -136,7 +136,7 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     roc_threshold = 0.95
-    logger = default_log('default_test_logger')
+    logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, fitted_operation = repo.suitable_operation(task_type=TaskTypesEnum.classification,
@@ -161,7 +161,7 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
 def test_regression_models_fit_predict_correct():
     data = get_synthetic_regression_data(n_samples=100, random_state=42)
     train_data, test_data = train_test_data_setup(data)
-    logger = default_log('default_test_logger')
+    logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
@@ -182,7 +182,7 @@ def test_regression_models_fit_predict_correct():
 
 def test_ts_models_fit_predict_correct():
     train_data, test_data = get_ts_data(forecast_length=5)
-    logger = default_log('default_test_logger')
+    logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
@@ -208,7 +208,7 @@ def test_ts_models_fit_predict_correct():
 def test_ts_models_dt_idx_fit_correct():
     """Test to check if all time series models fit correct with datetime indexes"""
     train_data, test_data = get_ts_data_with_dt_idx(forecast_length=5)
-    logger = default_log('default_test_logger')
+    logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
         model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,

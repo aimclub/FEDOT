@@ -5,7 +5,6 @@ from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
@@ -51,7 +50,6 @@ class GPComposer(Composer):
     :param optimiser: optimiser generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
-    :param logger: optional Log object for logging.
     :param cache: optional cache for Operations.
     """
 
@@ -59,10 +57,9 @@ class GPComposer(Composer):
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  history: Optional[OptHistory] = None,
-                 logger: Optional[Log] = None,
                  cache: Optional[OperationsCache] = None):
 
-        super().__init__(optimiser, composer_requirements, initial_pipelines, logger)
+        super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
 
         self.optimiser: GraphOptimiser = optimiser
@@ -74,7 +71,7 @@ class GPComposer(Composer):
                                                       composer_requirements.max_pipeline_fit_time,
                                                       composer_requirements.cv_folds,
                                                       composer_requirements.validation_blocks,
-                                                      cache, logger)
+                                                      cache)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary

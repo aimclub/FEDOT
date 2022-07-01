@@ -1,10 +1,8 @@
 from copy import copy
 
 import numpy as np
-from typing import Optional
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
     transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -17,8 +15,8 @@ class RepeatLastValueImplementation(ModelImplementation):
     LOCF (last observation carried forward)
     """
 
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         # Which part of time series will be used for repeating. Vary from 0.01 to 0.5
         # If -1 - repeat only last value
         self.part_for_repeat = params['part_for_repeat']
@@ -82,8 +80,8 @@ class RepeatLastValueImplementation(ModelImplementation):
 class NaiveAverageForecastImplementation(ModelImplementation):
     """ Class for forecasting time series with mean """
 
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.part_for_averaging = params.get('part_for_averaging')
 
     def fit(self, input_data):

@@ -45,12 +45,12 @@ def _load_data(config):
 
 
 def fit_pipeline(config_file: Union[str, bytes]) -> bool:
-    logger = default_log('pipeline_fitting_logger')
+    logger = default_log(prefix='pipeline_fitting_logger')
 
     config = \
         PipelineRunConfig().load_from_file(config_file)
 
-    verifier = verifier_for_task(config.task.task_type, PipelineAdapter(), logger)
+    verifier = verifier_for_task(config.task.task_type, PipelineAdapter())
 
     pipeline = pipeline_from_json(config.pipeline_template)
 

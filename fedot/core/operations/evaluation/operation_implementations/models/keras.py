@@ -1,6 +1,7 @@
 import os
 from typing import Optional
 
+import logging
 import numpy as np
 
 from fedot.utilities.requirements_notificator import warn_requirement
@@ -12,7 +13,7 @@ except ModuleNotFoundError:
     tf = None
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from sklearn import preprocessing
 
@@ -80,12 +81,12 @@ def fit_cnn(train_data: InputData,
             epochs: int = 10,
             batch_size: int = 128,
             optimizer_params: dict = None,
-            logger: Optional[Log] = None):
+            logger: Optional[LoggerAdapter] = None):
     x_train, y_train = train_data.features, train_data.target
     transformed_x_train, transform_flag = check_input_array(x_train)
 
     if logger is None:
-        logger = default_log(__name__)
+        logger = default_log(prefix=__name__)
 
     if transform_flag:
         logger.debug('Train data set was not scaled. The data was divided by 255.')
@@ -105,12 +106,12 @@ def fit_cnn(train_data: InputData,
     model.compile(**optimizer_params)
     model.num_classes = train_data.num_classes
     if logger is None:
-        logger = default_log(__name__)
+        logger = default_log(prefix=__name__)
 
-    if logger.verbosity_level < 4:
-        verbose = 0
+    if logger.verbosity_level > logging.DEBUG:
+        verbose = logging.ERROR
     else:
-        verbose = 2
+        verbose = logging.INFO
 
     if epochs is None:
         logger.warn('The number of training epochs was not set. The selected number of epochs is 10.')
@@ -125,7 +126,7 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
     transformed_x_test, transform_flag = check_input_array(x_test)
 
     if logger is None:
-        logger = default_log(__name__)
+        logger = default_log(prefix=__name__)
 
     if np.max(transformed_x_test) > 1:
         logger.warn('Test data set was not scaled. The data was divided by 255.')
@@ -153,11 +154,11 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         self.params = {'image_shape': (28, 28, 1),
                        'num_classes': 2,
-                       'log': default_log(__name__),
+                       'log': default_log(prefix=__name__),
                        'epochs': 10,
                        'batch_size': 128,
                        'output_mode': 'labels',

@@ -38,8 +38,7 @@ class AssumptionsHandler:
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
                 .get(self.data) \
-                .from_operations(available_operations) \
-                .with_logger(self.log)
+                .from_operations(available_operations)
             initial_assumption = assumptions_builder.build()
         elif isinstance(initial_assumption, Pipeline):
             initial_assumption = [initial_assumption]
@@ -56,12 +55,12 @@ class AssumptionsHandler:
         """
         try:
             data_train, data_test = train_test_data_setup(self.data)
-            self.log.message('Initial pipeline fitting started')
+            self.log.info('Initial pipeline fitting started')
             pipeline.fit(data_train)
             if cache is not None:
                 cache.save_pipeline(pipeline)
             pipeline.predict(data_test)
-            self.log.message('Initial pipeline was fitted successfully')
+            self.log.info('Initial pipeline was fitted successfully')
         except Exception as ex:
             self._raise_evaluating_exception(ex)
         return pipeline

@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import timedelta
 from functools import partial
@@ -11,7 +12,6 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import default_log
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -43,13 +43,12 @@ def get_classification_data():
 
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
-    log = default_log(__name__)
 
     cv_folds = partial(tabular_cv_generator, classification_dataset, folds=3)
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
-    objective_eval = PipelineObjectiveEvaluate(Objective(metrics), cv_folds, log=log)
+    objective_eval = PipelineObjectiveEvaluate(Objective(metrics), cv_folds)
     actual_values = objective_eval(pipeline).values
     all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 
@@ -147,7 +146,7 @@ def test_cv_api_correct():
                        'preset': 'fast_train',
                        'cv_folds': 2}
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
-    model = Fedot(problem='classification', verbose_level=4, **composer_params)
+    model = Fedot(problem='classification', verbose_level=logging.INFO, **composer_params)
     fedot_model = model.fit(features=dataset_to_compose)
     prediction = model.predict(features=dataset_to_validate)
     metric = model.get_metrics()

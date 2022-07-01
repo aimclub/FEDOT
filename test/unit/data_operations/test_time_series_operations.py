@@ -12,7 +12,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
 window_size = 4
 forecast_length = 4
-log = default_log(__name__)
+log = default_log(prefix=__name__)
 
 
 def synthetic_univariate_ts():

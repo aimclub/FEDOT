@@ -1,6 +1,3 @@
-from typing import Optional
-
-from fedot.core.log import Log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -71,7 +68,7 @@ def classification_pipeline_without_balancing():
     return Pipeline(node)
 
 
-def classification_complex_pipeline(log: Optional[Log] = None):
+def classification_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
@@ -84,7 +81,7 @@ def classification_complex_pipeline(log: Optional[Log] = None):
     final = SecondaryNode(operation_type='logit',
                           nodes_from=[first, second])
 
-    pipeline = Pipeline(final, log=log)
+    pipeline = Pipeline(final)
 
     return pipeline
 

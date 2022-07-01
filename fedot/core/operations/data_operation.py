@@ -1,7 +1,6 @@
 from typing import Optional
 
 from fedot.core.data.data import OutputData
-from fedot.core.log import Log
 from fedot.core.operations.operation import Operation
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, OperationTypesRepository
 
@@ -11,11 +10,10 @@ class DataOperation(Operation):
     Class with fit/predict methods defining the evaluation strategy for the task
 
     :param operation_type: name of the data operation
-    :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Optional[Log] = None):
-        super().__init__(operation_type, log)
+    def __init__(self, operation_type: str):
+        super().__init__(operation_type)
         self.operations_repo = OperationTypesRepository('data_operation')
 
     @property

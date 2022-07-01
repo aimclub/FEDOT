@@ -1,7 +1,6 @@
 import warnings
 from typing import Callable, Optional
 
-from fedot.core.log import Log
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -15,8 +14,8 @@ class CustomModelImplementation(ModelImplementation):
     into parameters dictionary {'model_predict': function, 'model_fit': function}
     """
 
-    def __init__(self, params: dict = None, log: Optional[Log] = None):
-        super().__init__(log)
+    def __init__(self, params: dict = None):
+        super().__init__()
         self.params = params
         self.model_fit = None
         self.model_predict = None

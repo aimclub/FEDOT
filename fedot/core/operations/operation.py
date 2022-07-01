@@ -1,10 +1,10 @@
 from abc import abstractmethod
-from typing import Optional, Union
+from typing import Union
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
-from fedot.core.operations.warnings_processor import suppress_stdout
+from fedot.core.log import default_log
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
+from fedot.core.operations.warnings_processor import suppress_stdout
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 from fedot.core.utils import DEFAULT_PARAMS_STUB
@@ -16,17 +16,16 @@ class Operation:
     (or statistical) models or data operations
 
     :param operation_type: name of the operation
-    :param log: Log object to record messages
     """
 
-    def __init__(self, operation_type: str, log: Optional[Log] = None, **kwargs):
+    def __init__(self, operation_type: str, **kwargs):
         self.operation_type = operation_type
 
         self._eval_strategy = None
         self.operations_repo = None
         self.fitted_operation = None
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')

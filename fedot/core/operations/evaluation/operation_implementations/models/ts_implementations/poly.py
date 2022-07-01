@@ -3,15 +3,14 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class PolyfitImplementation(ModelImplementation):
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         self.min_degree = 1
         self.max_degree = 5
         self.default_degree = 3

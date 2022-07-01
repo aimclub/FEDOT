@@ -9,7 +9,7 @@ from typing import Callable, ClassVar, Optional
 import numpy as np
 
 from fedot.core.data.data import data_type_is_ts
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -35,7 +35,6 @@ class HyperoptTuner(ABC):
     def __init__(self, pipeline, task,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
-                 log: Optional[Log] = None,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = None):
         self.pipeline = pipeline
@@ -53,7 +52,7 @@ class HyperoptTuner(ABC):
         self.search_space = search_space
         self.algo = algo
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function, loss_params=None,

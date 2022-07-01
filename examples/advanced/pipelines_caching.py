@@ -1,3 +1,4 @@
+import logging
 import operator
 import timeit
 from collections import defaultdict
@@ -57,7 +58,7 @@ def dummy_time_check():
         print(f'Using cache mode: {use_cache}')
         for task_type in ['ts_forecasting', 'regression', 'classification']:
             preset = 'best_quality'
-            fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': -1,
+            fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': logging.NOTSET,
                            'timeout': composer_params['timeout'], 'use_cache': use_cache,
                            **composer_params}
             if task_type == 'ts_forecasting':
@@ -86,7 +87,7 @@ def use_cache_check():
     plot_labels = {False: 'without cache', True: 'with cache'}
     base_fedot_params = {
         'problem': problem, 'seed': 42,
-        'verbose_level': -1,
+        'verbose_level': logging.NOTSET,
         'with_tuning': False,
         'preset': 'fast_train',
 
@@ -138,7 +139,7 @@ def multiprocessing_check(n_jobs: int = -1):
     base_fedot_params = {
         'problem': problem,
         'seed': 42,
-        'verbose_level': -1,
+        'verbose_level': logging.NOTSET,
         'use_cache': True,
         'with_tuning': False,
         'preset': 'fast_train',

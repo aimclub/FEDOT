@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 
@@ -29,7 +30,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
                                with_tuning=False,
                                target='target'):
 
-    automl = Fedot(problem='classification', timeout=timeout, verbose_level=4,
+    automl = Fedot(problem='classification', timeout=timeout, verbose_level=logging.DEBUG,
                    preset=BEST_QUALITY_PRESET_NAME,
                    with_tuning=with_tuning)
     automl.fit(train_file_path, target=target)

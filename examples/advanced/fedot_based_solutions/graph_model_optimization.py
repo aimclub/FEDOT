@@ -7,7 +7,6 @@ import pandas as pd
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
-from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
     GeneticSchemeTypesEnum
@@ -102,8 +101,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,
-        requirements=requirements, initial_graph=initial,
-        log=default_log(logger_name='Bayesian', verbose_level=1))
+        requirements=requirements, initial_graph=initial)
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graphs = optimiser.optimise(objective_eval)

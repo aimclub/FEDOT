@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Optional, Tuple, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
@@ -27,7 +27,7 @@ def export_project_to_zip(zip_name: Union[str, Path], pipeline: Pipeline, train_
     :param log_file_name: name of the file with log to export
     """
 
-    log = default_log('fedot.utilities.project_import_export')
+    log = default_log(prefix='fedot.utilities.project_import_export')
     absolute_folder_path, absolute_zip_path, folder_name, zip_name = _prepare_paths(zip_name)
     _check_for_existing_project(absolute_folder_path, absolute_zip_path)
 
@@ -60,7 +60,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     :param zip_path: path to zip archive
     :return imported classes
     """
-    log = default_log('fedot.utilities.project_import_export')
+    log = default_log(prefix='fedot.utilities.project_import_export')
 
     folder_path, absolute_zip_path, _, zip_name = _prepare_paths(zip_path)
 
@@ -90,7 +90,7 @@ def import_project_from_zip(zip_path: str) -> Tuple[Pipeline, InputData, InputDa
     return pipeline, train_data, test_data, opt_history
 
 
-def _check_zip_path(zip_path: Path, log: Log) -> Path:
+def _check_zip_path(zip_path: Path, log: LoggerAdapter) -> Path:
     """Check 'zip_path' for correctness."""
 
     zip_path = zip_path.with_suffix('.zip')

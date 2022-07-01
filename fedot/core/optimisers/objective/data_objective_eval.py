@@ -5,10 +5,10 @@ import numpy as np
 
 from fedot.core.composer.cache import OperationsCache
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.fitness import Fitness
+from fedot.core.pipelines.pipeline import Pipeline
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -26,22 +26,16 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
     :param cache: Cache manager for fitted models, optional.
-    :param log: Logger.
     """
 
-    def __init__(self,
-                 objective: Objective,
-                 data_producer: DataSource,
-                 time_constraint: Optional[timedelta] = None,
-                 validation_blocks: Optional[int] = None,
-                 cache: Optional[OperationsCache] = None,
-                 log: Log = None):
+    def __init__(self, objective: Objective, data_producer: DataSource, time_constraint: Optional[timedelta] = None,
+                 validation_blocks: Optional[int] = None, cache: Optional[OperationsCache] = None):
         super().__init__(objective)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
         self._cache = cache
-        self._log = log or default_log(__name__)
+        self._log = default_log(self)
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost

@@ -1,4 +1,5 @@
 import traceback
+import logging
 from copy import deepcopy
 from inspect import signature
 from typing import List, Optional, Tuple, Union, Collection, Sequence
@@ -47,9 +48,7 @@ class Fedot:
         - None or -1 means infinite time
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
-    :param verbose_level: level of the output detailing
-        (-1 - nothing, 0 - errors, 1 - messages,
-        2 - warnings and info, 3-4 - basic and detailed debug)
+    :param verbose_level: level of the output detailing. Verbosity levels are the same as in 'logging'
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
@@ -89,7 +88,7 @@ class Fedot:
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed=None, verbose_level: int = 0,
+                 seed=None, verbose_level: int = logging.ERROR,
                  safe_mode=True,
                  n_jobs: int = 1,
                  use_cache: bool = False,
@@ -111,8 +110,7 @@ class Fedot:
         self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
-                                               log=self.params.api_params['logger'])
+        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -161,15 +159,15 @@ class Fedot:
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-                self.params.api_params['logger'].message('Final pipeline was fitted')
+                self.params.api_params['logger'].info('Final pipeline was fitted')
             else:
-                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
+                self.params.api_params['logger'].info('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
+        self.params.api_params['logger'].info(f'Final pipeline: {str(self.current_pipeline)}')
 
         return self.current_pipeline
 

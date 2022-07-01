@@ -4,7 +4,6 @@ from typing import Callable, ClassVar, Optional
 
 from hyperopt import fmin, space_eval, tpe
 
-from fedot.core.log import Log
 from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
 
@@ -17,13 +16,12 @@ class SequentialTuner(HyperoptTuner):
     def __init__(self, pipeline, task,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
-                 inverse_node_order=False, log: Optional[Log] = None,
+                 inverse_node_order=False,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest):
         super().__init__(pipeline=pipeline, task=task,
                          iterations=iterations, early_stopping_rounds=early_stopping_rounds,
                          timeout=timeout,
-                         log=log,
                          search_space=search_space,
                          algo=algo)
         self.inverse_node_order = inverse_node_order

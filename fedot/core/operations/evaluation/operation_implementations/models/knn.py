@@ -3,14 +3,13 @@ from typing import Callable, Optional
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
-from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         self.parameters_changed = False
         self.params = params
         self.model = None
@@ -69,8 +68,8 @@ class KNeighborsImplementation(ModelImplementation):
 
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         if not params:
             self.model = KNeighborsClassifier()
         else:
@@ -106,8 +105,8 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 
 
 class FedotKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
-        super().__init__(log)
+    def __init__(self, **params: Optional[dict]):
+        super().__init__()
         if not params:
             self.model = KNeighborsRegressor()
         else:

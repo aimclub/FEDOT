@@ -1,12 +1,11 @@
 import os
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Optional
 
 import joblib
 import numpy as np
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
 
 
@@ -17,12 +16,12 @@ class OperationTemplateAbstract(ABC):
     Atomized_operation is pipeline which can be used like general operation.
     """
 
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         self.operation_id = None
         self.operation_type = None
         self.nodes_from = None
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     @abstractmethod
     def _operation_to_template(self, node: Node, operation_id: int, nodes_from: list):

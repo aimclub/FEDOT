@@ -1,11 +1,11 @@
+import logging
 from copy import deepcopy
 from functools import partial
-from typing import Any, Iterable, List, Optional, Sequence, Union
+from typing import Any, List, Optional, Sequence, Union
 
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.log import Log
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import (
@@ -92,24 +92,22 @@ class EvoGraphOptimiser(GraphOptimiser):
                  initial_graph: Union[Pipeline, Sequence[Pipeline]],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional[GPGraphOptimiserParameters] = None,
-                 log: Optional[Log] = None):
-        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters, log)
+                 parameters: Optional[GPGraphOptimiserParameters] = None):
+        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
 
         self.population = None
         self.generations = GenerationKeeper(self.objective)
-        self.timer = OptimisationTimer(timeout=self.requirements.timeout, log=self.log)
+        self.timer = OptimisationTimer(timeout=self.requirements.timeout)
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,
                                                          n_jobs=requirements.n_jobs,
-                                                         graph_cleanup_fn=_unfit_pipeline,
-                                                         log=log)
+                                                         graph_cleanup_fn=_unfit_pipeline)
 
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimisation = \
-            GroupedCondition(self.log).add_condition(
+            GroupedCondition().add_condition(
                 lambda: self.timer.is_time_limit_reached(self.generations.generation_num),
                 'Optimisation stopped: Time limit is reached'
             ).add_condition(
@@ -142,7 +140,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
         verifier = self.graph_generation_params.verifier
-        builder = InitialPopulationBuilder(verifier, self.log)
+        builder = InitialPopulationBuilder(verifier)
 
         if not self.initial_individuals:
             random_graph_sampler = partial(random_graph, verifier, self.requirements, max_depth)
@@ -193,7 +191,7 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.verbosity_level == -1):
+                              disable=not show_progress or self.log.verbosity_level == logging.NOTSET):
 
             # Adding of initial assumptions to history as zero generation
             if self.initial_individuals:
@@ -258,10 +256,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
         max_depth = max_depth or self.max_depth
         requirements = custom_requirements or self.requirements
-        return mutation(types=self.parameters.mutation_types,
-                        params=self.graph_generation_params,
-                        ind=ind, requirements=requirements,
-                        max_depth=max_depth, log=self.log)
+        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params, ind=ind,
+                        requirements=requirements, max_depth=max_depth)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
@@ -272,11 +268,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         return new_population
 
     def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
-        return crossover(self.parameters.crossover_types,
-                         individual1, individual2,
-                         crossover_prob=self.requirements.crossover_prob,
-                         max_depth=self.max_depth, log=self.log,
-                         params=self.graph_generation_params)
+        return crossover(self.parameters.crossover_types, individual1, individual2, max_depth=self.max_depth,
+                         crossover_prob=self.requirements.crossover_prob, params=self.graph_generation_params)
 
 
 def _unfit_pipeline(graph: Any):

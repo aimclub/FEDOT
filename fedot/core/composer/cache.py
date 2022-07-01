@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, TypeVar, Union
 
 from fedot.core.composer.cache_db import OperationsCacheDB
-from fedot.core.log import Log, SingletonMeta, default_log
+from fedot.core.log import SingletonMeta, default_log
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -25,13 +25,12 @@ class OperationsCache(metaclass=SingletonMeta):
     """
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
-    :param log: optional Log object to record messages
     :param db_path: optional str determining a file name for caching pipelines
     """
 
-    def __init__(self, log: Optional[Log] = None, db_path: Optional[str] = None):
-        self.log = log or default_log(__name__)
+    def __init__(self, db_path: Optional[str] = None):
         self._db = OperationsCacheDB(db_path)
+        self.log = default_log(self)
 
     @property
     def effectiveness_ratio(self):

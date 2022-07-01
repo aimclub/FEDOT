@@ -10,7 +10,6 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -57,8 +56,8 @@ class GLMImplementation(ModelImplementation):
         "default": Gaussian(identity())
     }
 
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.model = None
         self.params = params
 
@@ -156,8 +155,8 @@ class GLMImplementation(ModelImplementation):
 
 class AutoRegImplementation(ModelImplementation):
 
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.params = params
         self.autoreg = None
         self.actual_ts_len = None
@@ -239,8 +238,8 @@ class AutoRegImplementation(ModelImplementation):
 class ExpSmoothingImplementation(ModelImplementation):
     """ Exponential smoothing implementation from statsmodels """
 
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.model = None
         self.params = params
         if self.params.get("seasonal"):

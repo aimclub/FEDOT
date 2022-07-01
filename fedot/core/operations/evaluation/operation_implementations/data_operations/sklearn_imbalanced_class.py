@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.utils import resample
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
@@ -28,7 +28,7 @@ class ResampleImplementation(DataOperationImplementation):
     If None number of samples will be equal to the shape of opposite selected transformed class.
     """
 
-    def __init__(self, log: Optional[Log] = None, **params: Optional[dict]):
+    def __init__(self, **params: Optional[dict]):
         super().__init__()
 
         self.balance = params.get('balance')
@@ -36,7 +36,7 @@ class ResampleImplementation(DataOperationImplementation):
         self.n_samples = params.get('n_samples')
         self.parameters_changed = False
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     def fit(self, input_data: Optional[InputData]):
         """ Class doesn't support fit operation

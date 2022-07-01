@@ -2,7 +2,7 @@ from copy import deepcopy
 from random import choice, random
 from typing import TYPE_CHECKING, Any, Callable, List, Union
 
-from fedot.core.log import Log
+from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.graph import OptGraph
@@ -26,10 +26,11 @@ def will_crossover_be_applied(graph_first, graph_second, crossover_prob, crossov
                 crossover_type is CrossoverTypesEnum.none)
 
 
-def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
-              ind_first: Individual, ind_second: Individual,
-              max_depth: int, log: Log,
-              crossover_prob: float = 0.8, params: 'GraphGenerationParams' = None) -> Any:
+def crossover(types: List[Union[CrossoverTypesEnum, Callable]], ind_first: Individual, ind_second: Individual,
+              max_depth: int, crossover_prob: float = 0.8, params: 'GraphGenerationParams' = None) -> Any:
+
+    log = default_log(prefix='crossover')
+
     crossover_type = choice(types)
     is_custom_crossover = isinstance(crossover_type, Callable)
 

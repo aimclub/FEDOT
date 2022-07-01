@@ -5,7 +5,6 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
     prepare_target,
     ts_to_table, transform_features_and_target_into_lagged
@@ -32,8 +31,8 @@ except ModuleNotFoundError:
 
 
 class CLSTMImplementation(ModelImplementation):
-    def __init__(self, log: Optional[Log] = None, **params):
-        super().__init__(log)
+    def __init__(self, **params):
+        super().__init__()
         self.params = params
         self.epochs = params.get("num_epochs")
         self.batch_size = params.get("batch_size")

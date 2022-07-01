@@ -11,7 +11,6 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -73,11 +72,8 @@ def test_ancestor_for_mutation():
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations, mutation_prob=1)
 
-    mutation_result = mutation(types=[MutationTypesEnum.simple],
-                               params=graph_params,
-                               ind=parent_ind,
-                               requirements=composer_requirements,
-                               log=default_log(__name__), max_depth=2)
+    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, ind=parent_ind,
+                               requirements=composer_requirements, max_depth=2)
 
     assert len(mutation_result.parent_operators) > 0
     assert mutation_result.parent_operators[-1].operator_type == 'mutation'
@@ -94,10 +90,8 @@ def test_ancestor_for_crossover():
                                          advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.regression)),
                                          rules_for_constraint=DEFAULT_DAG_RULES)
 
-    crossover_results = crossover([CrossoverTypesEnum.subtree],
-                                  parent_ind_first, parent_ind_second,
-                                  params=graph_params, max_depth=3, log=default_log(__name__),
-                                  crossover_prob=1)
+    crossover_results = crossover([CrossoverTypesEnum.subtree], parent_ind_first, parent_ind_second, max_depth=3,
+                                  crossover_prob=1, params=graph_params)
 
     for crossover_result in crossover_results:
         assert len(crossover_result.parent_operators) > 0

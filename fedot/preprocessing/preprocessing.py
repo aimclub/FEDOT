@@ -13,7 +13,7 @@ from fedot.core.data.data_preprocessing import (
     replace_inf_with_nans
 )
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     LabelEncodingImplementation,
     OneHotEncodingImplementation
@@ -44,7 +44,7 @@ class DataPreprocessor:
     encoding is applied if there is no encoder in the structure of the pipeline etc.
     """
 
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         # There was performed encoding for string target column or not
         self.target_encoders = {}
         self.features_encoders = {}
@@ -58,7 +58,7 @@ class DataPreprocessor:
         self.structure_analysis = PipelineStructureExplorer()
         self.main_target_source_name = None
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     def _init_supplementary_preprocessors(self, data: Union[InputData, MultiModalData]):
         """ Initialize helpers for preprocessor
