@@ -42,7 +42,7 @@ class OperationsPreset:
         """
         preset_name = self.preset_name
         if 'auto' in preset_name:
-            available_operations = get_operations_for_task(self.task, mode='model')
+            available_operations = get_operations_for_task(self.task, mode='all')
             return available_operations
 
         # TODO remove workaround
