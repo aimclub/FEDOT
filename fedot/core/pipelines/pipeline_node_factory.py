@@ -1,14 +1,15 @@
 from random import choice
-from typing import Optional, Any
+from typing import Optional
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class PipelineOptNodeFactory(OptNodeFactory):
-    def __init__(self, requirements: Any,
+    def __init__(self, requirements: PipelineComposerRequirements,
                  advisor: Optional[PipelineChangeAdvisor] = None):
         super().__init__(requirements)
         self.advisor = advisor or PipelineChangeAdvisor()

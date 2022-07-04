@@ -58,12 +58,18 @@ def get_mutation_prob(mut_id, node):
     return mutation_prob
 
 
-def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
+def _will_mutation_be_applied(mutation_prob,
+                              mutation_type) -> bool:
     return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
 
 
-def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List[Union[MutationTypesEnum, Callable]],
-                               num_mut: int, requirements, params: 'GraphGenerationParams', max_depth: int):
+def _adapt_and_apply_mutations(new_graph: Any,
+                               mutation_prob: float,
+                               types: List[Union[MutationTypesEnum, Callable]],
+                               num_mut: int,
+                               requirements,
+                               params: 'GraphGenerationParams',
+                               max_depth: int):
     """
     Apply mutation in several iterations with specific adaptation of each graph
     """
@@ -93,8 +99,13 @@ def _adapt_and_apply_mutations(new_graph: Any, mutation_prob: float, types: List
     return new_graph, mutation_names
 
 
-def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[MutationTypesEnum, Callable],
-                    is_custom_mutation: bool, requirements, params: 'GraphGenerationParams', max_depth: int):
+def _apply_mutation(new_graph: Any,
+                    mutation_prob: float,
+                    mutation_type: Union[MutationTypesEnum, Callable],
+                    is_custom_mutation: bool,
+                    requirements,
+                    params: 'GraphGenerationParams',
+                    max_depth: int):
     """
       Apply mutation for adapted graph
     """
@@ -115,8 +126,10 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
     return new_graph
 
 
-def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams', ind: Individual,
-             requirements, max_depth: int = None) -> Any:
+def mutation(types: List[Union[MutationTypesEnum, Callable]],
+             params: 'GraphGenerationParams',
+             ind: Individual, requirements,
+             max_depth: int = None) -> Any:
     """ Function apply mutation operator to graph """
 
     log = default_log(prefix='mutation')
@@ -149,7 +162,9 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
     return deepcopy(ind)
 
 
-def simple_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParams', **kwargs) -> Any:
+def simple_mutation(graph: Any,
+                    requirements: Any,
+                    params: 'GraphGenerationParams', **kwargs) -> Any:
     """
     This type of mutation is passed over all nodes of the tree started from the root node and changes
     nodes’ operations with probability - 'node mutation probability'
@@ -177,7 +192,8 @@ def simple_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParam
     return graph
 
 
-def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
+def single_edge_mutation(graph: Any,
+                         max_depth, *args, **kwargs):
     old_graph = deepcopy(graph)
 
     for _ in range(MAX_NUM_OF_ATTEMPTS):
@@ -197,7 +213,10 @@ def single_edge_mutation(graph: Any, max_depth, *args, **kwargs):
     return graph
 
 
-def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
+def _add_intermediate_node(graph: Any,
+                           requirements,
+                           params,
+                           node_to_mutate):
     # add between node and parent
     new_node = params.node_factory.get_parent_node(node_to_mutate, primary=False)
     if not new_node:
@@ -208,7 +227,10 @@ def _add_intermediate_node(graph: Any, requirements, params, node_to_mutate):
     return graph
 
 
-def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
+def _add_separate_parent_node(graph: Any,
+                              requirements,
+                              params,
+                              node_to_mutate):
     # add as separate parent
     for iter_num in range(randint(1, 3)):
         new_node = params.node_factory.get_parent_node(node_to_mutate, primary=True)
@@ -223,7 +245,10 @@ def _add_separate_parent_node(graph: Any, requirements, params, node_to_mutate):
     return graph
 
 
-def _add_as_child(graph: Any, requirements, params, node_to_mutate):
+def _add_as_child(graph: Any,
+                  requirements,
+                  params,
+                  node_to_mutate):
     # add as child
     new_node = params.node_factory.get_node(primary=False)
     if not new_node:
@@ -234,7 +259,10 @@ def _add_as_child(graph: Any, requirements, params, node_to_mutate):
     return graph
 
 
-def single_add_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParams', max_depth: int, *args, **kwargs):
+def single_add_mutation(graph: Any,
+                        requirements: Any,
+                        params: 'GraphGenerationParams',
+                        max_depth: int, *args, **kwargs):
     """
     Add new node between two sequential existing modes
 
@@ -259,7 +287,9 @@ def single_add_mutation(graph: Any, requirements: Any, params: 'GraphGenerationP
     return result
 
 
-def single_change_mutation(graph: Any, requirements: Any, params: 'GraphGenerationParams', *args, **kwargs):
+def single_change_mutation(graph: Any,
+                           requirements: Any,
+                           params: 'GraphGenerationParams', *args, **kwargs):
     """
     Change node between two sequential existing modes
 
@@ -275,7 +305,8 @@ def single_change_mutation(graph: Any, requirements: Any, params: 'GraphGenerati
     return graph
 
 
-def single_drop_mutation(graph: Any, params: 'GraphGenerationParams', *args, **kwargs):
+def single_drop_mutation(graph: Any,
+                         params: 'GraphGenerationParams', *args, **kwargs):
     """
     Drop single node from graph
 
@@ -307,7 +338,11 @@ def single_drop_mutation(graph: Any, params: 'GraphGenerationParams', *args, **k
     return graph
 
 
-def _tree_growth(graph: Any, requirements: Any, params: 'GraphGenerationParams', max_depth: int, local_growth=True):
+def _tree_growth(graph: Any,
+                 requirements: Any,
+                 params: 'GraphGenerationParams',
+                 max_depth: int,
+                 local_growth=True):
     """
     This mutation selects a random node in a tree, generates new subtree,
     and replaces the selected node's subtree.
@@ -362,7 +397,9 @@ def growth_mutation(graph: Any,
         return _tree_growth(graph, requirements, params, max_depth, local_growth)
 
 
-def reduce_mutation(graph: OptGraph, requirements: Any, params: 'GraphGenerationParams', **kwargs) -> OptGraph:
+def reduce_mutation(graph: OptGraph,
+                    requirements: Any,
+                    params: 'GraphGenerationParams', **kwargs) -> OptGraph:
     """
     Selects a random node in a tree, then removes its subtree. If the current arity of the node's
     parent is more than the specified minimal arity, then the selected node is also removed.

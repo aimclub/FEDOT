@@ -9,7 +9,6 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import MetricsEnum
 
 
 @dataclass

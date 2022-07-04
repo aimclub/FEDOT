@@ -3,25 +3,27 @@ from pathlib import Path
 
 import numpy as np
 
-from fedot.core.composer.advisor import PipelineChangeAdvisor
+
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.log import Log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
+from fedot.core.optimisers.archive import ParetoFront
+from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations
 from fedot.core.optimisers.gp_comp.operators.mutation import mutation, reduce_mutation, single_drop_mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
+from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
-from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -30,15 +32,13 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-from fedot.core.optimisers.archive import ParetoFront
-from fedot.core.optimisers.objective.objective import Objective
-
 from test.unit.composer.test_composer import to_numerical
 from test.unit.test_logger import release_log, singleton_cleanup
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
-from test.unit.tasks.test_regression import get_synthetic_regression_data
 from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.tasks.test_regression import get_synthetic_regression_data
+from
 
 
 def file_data():
