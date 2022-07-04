@@ -71,4 +71,4 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
             self.model = KeyedVectors.load_word2vec_format(model_path, binary=False)
 
     def get_params(self):
-        raise NotImplementedError()
+        return self.params

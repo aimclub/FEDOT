@@ -12,7 +12,10 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class PreprocessingBuilder:
-
+    """
+    Builder for constructing preprocessing part of pipeline during the preparation of an initial assumption.
+    If data is multimodal, builder makes preprocessing pipeline for each data source iteratively.
+    """
     def __init__(self, task_type: TaskTypesEnum, data_type: DataTypesEnum, *initial_nodes: Node):
         self.task_type = task_type
         self.data_type = data_type

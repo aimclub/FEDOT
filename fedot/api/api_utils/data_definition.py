@@ -132,6 +132,10 @@ class CsvStrategy(StrategyDefineData):
 
 
 class MultimodalStrategy(StrategyDefineData):
+    """
+    Gets dict of NumPy arrays or InputData sources as input data
+    and returns MultiModalData object with source names defined by data type
+    """
     source_name_by_type = {'table': 'data_source_table',
                            'ts': 'data_source_ts',
                            'multi_ts': 'data_source_ts',
@@ -143,7 +147,6 @@ class MultimodalStrategy(StrategyDefineData):
                     target: str = None,
                     is_predict: bool = False,
                     idx=None) -> MultiModalData:
-        # dict of NumPy arrays or InputData sources as input data
 
         # change data type to InputData
         for source in features:

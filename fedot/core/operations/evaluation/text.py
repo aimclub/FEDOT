@@ -5,8 +5,8 @@ import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
-from fedot.core.operations.evaluation.operation_implementations.models. \
-    text_pretrained import PretrainedEmbeddingsImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.text_pretrained \
+    import PretrainedEmbeddingsImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.text_preprocessing import (
     TextCleanImplementation
 )

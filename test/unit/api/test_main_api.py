@@ -15,6 +15,7 @@ from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -97,13 +98,8 @@ def load_categorical_multidata():
     # TODO @andreygetmanov (fails if target = ['true', 'false', ...])
     target = np.array([1, 0, 1, 0, 0, 0, 0, 1, 1])
 
-    input_first = InputData(idx=np.arange(0, 9), features=features_first,
-                            target=target, task=task, data_type=DataTypesEnum.table)
-    input_second = InputData(idx=np.arange(0, 9), features=features_second,
-                             target=target, task=task, data_type=DataTypesEnum.table)
-
-    fit_data = {'first': input_first,
-                'second': input_second}
+    fit_data = {'first': features_first,
+                'second': features_second}
 
     return fit_data, target
 
@@ -200,6 +196,20 @@ def test_api_check_data_correct():
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
             or type(fedot_data_input) == InputData)
+
+
+def test_api_check_multimodal_data_correct():
+    """ Check that DataDefiner works correctly with multimodal data """
+    task = Task(TaskTypesEnum.classification)
+
+    # Get data
+    array_data, target = load_categorical_multidata()
+
+    array_data_input = ApiDataProcessor(task).define_data(features=array_data, target=target)
+
+    assert isinstance(array_data_input, MultiModalData)
+    for data_source in array_data_input:
+        assert isinstance(array_data_input[data_source], InputData)
 
 
 def test_baseline_with_api():
