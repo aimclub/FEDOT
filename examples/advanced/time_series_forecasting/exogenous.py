@@ -89,7 +89,7 @@ def run_exogenous_experiment(path_to_file, len_forecast=250, with_exog=True,
                                    features=exog_variable, target=time_series,
                                    task=task, data_type=DataTypesEnum.ts)
 
-    train_input_exog, _ = train_test_data_setup(predict_input_exog)
+    train_input_exog, predict_input_exog = train_test_data_setup(predict_input_exog)
 
     if with_exog is True:
         # Example with exogenous time series
