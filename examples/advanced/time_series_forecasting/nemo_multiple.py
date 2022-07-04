@@ -41,7 +41,7 @@ def prepare_data(time_series, exog_variable, len_forecast=250):
     predict_input_exog = InputData(idx=np.arange(len(exog_variable)),
                                    features=exog_variable, target=time_series,
                                    task=task, data_type=DataTypesEnum.ts)
-    train_input_exog, _ = train_test_data_setup(predict_input_exog)
+    train_input_exog, predict_input_exog = train_test_data_setup(predict_input_exog)
 
     return train_input, predict_input, train_input_exog, predict_input_exog, predict_input.target
 
