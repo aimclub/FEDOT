@@ -20,7 +20,7 @@ class PreprocessingCache(BaseCache):
     """
     Stores/loads preprocessors for pipelines to decrease time for fitting preprocessor.
 
-    :param db_path: optional str db file name
+    :param db_path: optional str determining a file name for caching pipelines
     """
 
     def __init__(self, db_path: Optional[str] = None):
