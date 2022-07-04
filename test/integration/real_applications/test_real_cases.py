@@ -99,4 +99,4 @@ def test_spam_detection_problem():
 def test_multi_modal_case():
     """ Simple launch of  multi modal case """
     # Classification task based on text data
-    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True, timeout=timedelta(seconds=1))
+    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True, timeout=timedelta(minutes=1))
