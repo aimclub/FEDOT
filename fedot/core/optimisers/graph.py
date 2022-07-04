@@ -44,8 +44,12 @@ class OptNode:
         if isinstance(content, str):
             content = {'name': content}
 
+        for key, value in default_dict.items():
+            if key not in content:
+                content[key] = value
+
         self._nodes_from = UniqueList(nodes_from or ())
-        self.content = {**content, **default_dict}
+        self.content = content
         self._operator = NodeOperator(self)
         self.uid = str(uuid4())
 
