@@ -1,11 +1,11 @@
 import platform
-
 from functools import partial
 from multiprocessing import set_start_method
 from typing import Dict, Iterable, List, Optional, Sequence, Type, Union
 
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.log import LoggerAdapter, default_log
@@ -26,7 +26,6 @@ from fedot.core.repository.quality_metrics_repository import (
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.preprocessing.cache import PreprocessingCache
 
 
 def set_multiprocess_start_method():

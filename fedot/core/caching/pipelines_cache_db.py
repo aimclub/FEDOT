@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple
 from fedot.core.caching.base_cache_db import BaseCacheDB
 
 if TYPE_CHECKING:
-    from .cache import IOperation
+    from .pipelines_cache import IOperation
 
 
 class OperationsCacheDB(BaseCacheDB):

@@ -1,8 +1,8 @@
 from typing import Union
 
-from fedot.core.composer.cache_db import OperationsCacheDB
+from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
+from fedot.core.caching.preprocessing_cache_db import PreprocessingCacheDB
 from fedot.core.log import SingletonMeta, default_log
-from fedot.preprocessing.cache_db import PreprocessingCacheDB
 
 
 class BaseCache(metaclass=SingletonMeta):

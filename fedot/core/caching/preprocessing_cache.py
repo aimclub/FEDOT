@@ -2,6 +2,7 @@ from contextlib import contextmanager, nullcontext
 from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 from fedot.core.caching.base_cache import BaseCache
+from fedot.core.caching.preprocessing_cache_db import PreprocessingCacheDB
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
@@ -10,7 +11,6 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
     ImputationImplementation
 )
-from fedot.preprocessing.cache_db import PreprocessingCacheDB
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline

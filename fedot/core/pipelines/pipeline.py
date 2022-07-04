@@ -4,7 +4,8 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import func_timeout
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
@@ -18,7 +19,6 @@ from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.preprocessing.cache import PreprocessingCache
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'

@@ -7,7 +7,8 @@ from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandl
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
@@ -22,7 +23,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.preprocessing.cache import PreprocessingCache
 from fedot.utilities.define_metric_by_task import MetricByTask, TunerMetricByTask
 
 

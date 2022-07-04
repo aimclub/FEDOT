@@ -8,8 +8,8 @@ import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
+from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements

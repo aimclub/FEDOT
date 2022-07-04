@@ -3,14 +3,13 @@ from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.preprocessing.cache import PreprocessingCache
-
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 

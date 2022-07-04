@@ -2,21 +2,20 @@ from datetime import timedelta
 from functools import partial
 from typing import Optional
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
-from fedot.preprocessing.cache import PreprocessingCache
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
-
-from ...constants import default_data_split_ratio_by_task
 from .data_objective_advisor import DataObjectiveAdvisor
 from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
+from ...constants import default_data_split_ratio_by_task
 
 
 class DataObjectiveBuilder:
