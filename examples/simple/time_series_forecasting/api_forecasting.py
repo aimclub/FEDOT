@@ -19,9 +19,7 @@ datasets = {
     'stackoverflow': f'{fedot_project_root()}/examples/data/ts/stackoverflow.csv'}
 
 
-def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: float = None):
-    validation_blocks = 2
-
+def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validation_blocks = 2, timeout: float = None, visualise=False):
     time_series = pd.read_csv(datasets[dataset])
 
     task = Task(TaskTypesEnum.ts_forecasting,
@@ -56,7 +54,9 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     print(model.get_metrics(metric_names=['rmse', 'mae', 'mape'], target=target))
 
     # plot forecasting result
-    model.plot_prediction()
+    if visualise:
+        pipeline.show()
+        model.plot_prediction()
 
     return forecast
 
