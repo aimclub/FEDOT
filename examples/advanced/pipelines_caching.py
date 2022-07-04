@@ -1,5 +1,5 @@
-import logging
 import collections
+import logging
 import operator
 import timeit
 from collections import defaultdict
@@ -62,7 +62,8 @@ def dummy_time_check():
         for task_type in ['ts_forecasting', 'regression', 'classification']:
             preset = 'best_quality'
             fedot_input = {'problem': task_type, 'seed': 42, 'preset': preset, 'verbose_level': logging.NOTSET,
-                           'timeout': composer_params['timeout'], 'use_cache': use_cache,
+                           'timeout': composer_params['timeout'],
+                           'use_pipelines_cache': use_cache, 'use_preprocessing_cache': use_cache,
                            **composer_params}
             if task_type == 'ts_forecasting':
                 fedot_input['task_params'] = TsForecastingParams(forecast_length=30)
