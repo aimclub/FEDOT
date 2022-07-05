@@ -14,100 +14,140 @@ class Graph(ABC):
     """
 
     @abstractmethod
-    def add_node(self, new_node: GraphNode):
-        """
-        Add new node to the Pipeline
+    def add_node(self, node: GraphNode):
+        """Adds new node to the graph together with its parent nodes.
 
-        :param new_node: new GraphNode object
+        :param node: new node object to add
         """
         raise NotImplementedError()
 
     @abstractmethod
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
-        """
-        Replace old_node with new one.
+        """Replaces ``old_node`` node with ``new_node``.
 
-        :param old_node: 'GraphNode' object to replace
-        :param new_node: 'GraphNode' new object
+        :param old_node: node to be replaced
+        :param new_node: node to be placed instead
         """
         raise NotImplementedError()
 
     @abstractmethod
-    def update_subtree(self, old_subroot: GraphNode, new_subroot: GraphNode):
-        """
-        Replace the subtrees with old and new nodes as subroots
+    def update_subtree(self, old_subtree: GraphNode, new_subtree: GraphNode):
+        """Changes ``old_subtree`` subtree to ``new_subtree``
 
-        :param old_subroot: 'GraphNode' object to replace
-        :param new_subroot: 'GraphNode' new object
+        :param old_subtree: node and its subtree to be removed
+        :param new_subtree: node and its subtree to be placed instead
         """
         raise NotImplementedError()
 
     @abstractmethod
     def delete_node(self, node: GraphNode):
-        """
-        Delete chosen node redirecting all its parents to the child.
+        """Removes ``node`` from the graph.
+        If ``node`` has only one child, then connects all of the ``node`` parents to it.
 
-        :param node: 'GraphNode' object to delete
+        :param node: node of the graph to be deleted
         """
         raise NotImplementedError()
 
     @abstractmethod
     def delete_subtree(self, subroot: GraphNode):
-        """
-        Delete the subtree with node as subroot.
+        """Deletes given node with all its parents.
+        Deletes all edges from removed nodes to remaining graph nodes.
 
-        :param subroot:
+        :param subtree: node to be deleted with all of its parents
+            and their connections amongst the remaining graph nodes
         """
         raise NotImplementedError()
 
     @abstractmethod
     def distance_to_root_level(self, node: GraphNode) -> int:
-        """ Returns distance to root level """
+        """Gets distance to the final output node
+
+        :param node: search starting point
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
-        """ Returns all nodes from specified layer """
+        """Gets all the nodes from the chosen layer up to the surface
+
+        :param layer_number: max height of diving
+
+        :return: all nodes from the surface to the ``layer_number`` layer
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
-        """ Returns all node's children """
+        """Returns all children of the ``node``
+
+        :param node: for getting children from
+
+        :return: children of the ``node``
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def connect_nodes(self, node_parent: GraphNode, node_child: GraphNode):
-        """ Add an edge from node_parent to node_child """
+        """Adds edge between ``parent`` and ``child``
+
+        :param node_parent: acts like parent in pipeline connection relations
+        :param node_child:  acts like child in pipeline connection relations
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
-                         is_clean_up_leftovers: bool = True):
-        """ Delete an edge from node_parent to node_child """
+                         clean_up_leftovers: bool = True):
+        """Removes an edge between two nodes
+
+        :param node_parent: where the removing edge comes out
+        :param node_child: where the removing edge enters
+        :param clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    def get_nodes_degrees(self):
-        """ Nodes degree as the number of edges the node has: k = k(in) + k(out) """
+    def get_nodes_degrees(self) -> Sequence[int]:
+        """Nodes degree as the number of edges the node has:
+            degree = #input_edges + #out_edges
+
+        :return: nodes degrees ordered according to the nx_graph representation of this graph
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
-        """ Returns all available edges in a given graph """
+        """Gets all available edges in this graph
+
+        :return: pairs of parent_node -> child_node
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other_graph: 'Graph') -> bool:
+        """Compares this graph with the ``other_graph``
+
+        :param other_graph: another graph
+
+        :return: is it equal to ``other_graph`` in terms of the graphs
+        """
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
+        """Gets the final layer node(s) of the graph
+
+        :return: the final layer node(s)
+        """
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def nodes(self) -> List[GraphNode]:
+        """Return list of all graph nodes
+
+        :return: graph nodes"""
         raise NotImplementedError()
 
     @nodes.setter
@@ -118,10 +158,18 @@ class Graph(ABC):
     @property
     @abstractmethod
     def depth(self) -> int:
+        """Gets this graph depth from its sink-node to its source-node
+
+        :return: length of a path from the root node to the farthest primary node
+        """
         raise NotImplementedError()
 
     @property
     def length(self) -> int:
+        """Return size of the graph (number of nodes)
+
+        :return: graph size
+        """
         return len(self.nodes)
 
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
@@ -142,6 +190,11 @@ class Graph(ABC):
 
     @property
     def graph_description(self) -> Dict:
+        """Return summary characteristics of the graph
+
+        :return: dict containing information about the graph
+        :rtype: dict
+        """
         return {
             'depth': self.depth,
             'length': self.length,
@@ -150,6 +203,11 @@ class Graph(ABC):
 
     @property
     def descriptive_id(self) -> str:
+        """Returns human-readable identifier of the graph.
+
+        :return: text description of the content in the node and its parameters
+        :rtype: str
+        """
         return self.root_node.descriptive_id
 
     def __str__(self):

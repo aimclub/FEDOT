@@ -18,14 +18,14 @@ class GraphDelegate(Graph):
     def __init__(self, *args, delegate_cls: Type[Graph] = GraphOperator, **kwargs):
         self.operator = delegate_cls(*args, **kwargs)
 
-    def add_node(self, new_node: GraphNode):
-        self.operator.add_node(new_node)
+    def add_node(self, node: GraphNode):
+        self.operator.add_node(node)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.operator.update_node(old_node, new_node)
 
-    def update_subtree(self, old_subroot: GraphNode, new_subroot: GraphNode):
-        self.operator.update_subtree(old_subroot, new_subroot)
+    def update_subtree(self, old_subtree: GraphNode, new_subtree: GraphNode):
+        self.operator.update_subtree(old_subtree, new_subtree)
 
     def delete_node(self, node: GraphNode):
         self.operator.delete_node(node)
@@ -46,8 +46,8 @@ class GraphDelegate(Graph):
         self.operator.connect_nodes(node_parent, node_child)
 
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
-                         is_clean_up_leftovers: bool = True):
-        self.operator.disconnect_nodes(node_parent, node_child, is_clean_up_leftovers)
+                         clean_up_leftovers: bool = True):
+        self.operator.disconnect_nodes(node_parent, node_child, clean_up_leftovers)
 
     def get_nodes_degrees(self):
         return self.operator.get_nodes_degrees()
