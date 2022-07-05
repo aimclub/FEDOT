@@ -7,7 +7,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items, Copyable
-
+from fedot.core.utils import copy_doc
 
 NodePostprocessCallable = Callable[[Graph, Sequence[GraphNode]], Any]
 
@@ -15,27 +15,22 @@ NodePostprocessCallable = Callable[[Graph, Sequence[GraphNode]], Any]
 class GraphOperator(Graph, Copyable):
     """_summary_
 
-    :param graph: object used as the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
-        or as optimized structure
-    :param nodes_postproc_func: nodes postprocessor after their modification
+    :param nodes: nodes of the Graph
+    :param postprocess_nodes: nodes postprocessor after their modification
     """
 
     def __init__(self, nodes: Union[GraphNode, Sequence[GraphNode]] = (),
-                 postproc_nodes: Optional[NodePostprocessCallable] = None):
+                 postprocess_nodes: Optional[NodePostprocessCallable] = None):
         self._nodes = []
         for node in ensure_wrapped_in_sequence(nodes):
             self.add_node(node)
-        self._postproc_nodes = postproc_nodes or self._empty_postproc
+        self._postprocess_nodes = postprocess_nodes or self._empty_postprocess
 
-    def _empty_postproc(self, *args):
+    def _empty_postprocess(self, *args):
         pass
 
+    @copy_doc(Graph)
     def delete_node(self, node: GraphNode):
-        """Removes provided ``node`` from the bounded graph structure.
-        If ``node`` has only one child connects all of the ``node`` parents to it
-
-        :param node: node of the graph to be deleted
-        """
         node_children_cached = self.node_children(node)
         self_root_node_cached = self.root_node
 
@@ -47,27 +42,18 @@ class GraphOperator(Graph, Copyable):
                 node_children_cached[0].nodes_from.append(node_from)
         self._nodes.clear()
         self.add_node(self_root_node_cached)
-        self._postproc_nodes(self, self._nodes)
+        self._postprocess_nodes(self, self._nodes)
 
+    @copy_doc(Graph)
     def delete_subtree(self, subtree: GraphNode):
-        """Deletes given node with all the parents it has, making deletion of the subtree.
-        Deletes all edges from removed nodes to remaining graph nodes
-
-        :param subtree: node to be deleted with all of its parents
-            and their connections amongst the remaining graph nodes
-        """
         subtree_nodes = subtree.ordered_subnodes_hierarchy()
         self._nodes = remove_items(self._nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
         for subtree in self._nodes:
             subtree.nodes_from = remove_items(subtree.nodes_from, subtree_nodes)
 
+    @copy_doc(Graph)
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
-        """Replaces ``old_node`` node with ``new_node``
-
-        :param old_node: node to be replaced
-        :param new_node: node to be placed instead
-        """
         self.actualise_old_node_children(old_node, new_node)
         if old_node.nodes_from:
             if new_node.nodes_from:
@@ -79,36 +65,26 @@ class GraphOperator(Graph, Copyable):
         self._nodes.remove(old_node)
         self._nodes.append(new_node)
         self.sort_nodes()
-        self._postproc_nodes(self, self._nodes)
+        self._postprocess_nodes(self, self._nodes)
 
+    @copy_doc(Graph)
     def update_subtree(self, old_subtree: GraphNode, new_subtree: GraphNode):
-        """Changes ``old_subtree`` subtree to ``new_subtree``
-
-        :param old_subtree: node and its subtree to be removed
-        :param new_subtree: node and its subtree to be placed instead
-        """
         new_subtree = deepcopy(new_subtree)
         self.actualise_old_node_children(old_subtree, new_subtree)
         self.delete_subtree(old_subtree)
         self.add_node(new_subtree)
         self.sort_nodes()
 
+    @copy_doc(Graph)
     def add_node(self, node: GraphNode):
-        """Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
-
-        :param new_node: new node object to add
-        """
         if node not in self._nodes:
             self._nodes.append(node)
             if node.nodes_from:
                 for new_parent_node in node.nodes_from:
                     self.add_node(new_parent_node)
 
+    @copy_doc(Graph)
     def distance_to_root_level(self, node: GraphNode) -> int:
-        """Gets distance to the final output node
-
-        :param node: search starting point
-        """
 
         def recursive_child_height(parent_node: GraphNode) -> int:
             """Recursively dives into ``parent_node`` children to get the bottom height
@@ -124,13 +100,8 @@ class GraphOperator(Graph, Copyable):
         height = recursive_child_height(node)
         return height
 
+    @copy_doc(Graph)
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
-        """Gets all the nodes from the chosen layer up to the surface
-
-        :param layer_number: max height of diving
-
-        :return: all nodes from the surface to the ``layer_number`` layer
-        """
 
         def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
             """Gets all the parent nodes of ``node``
@@ -168,23 +139,14 @@ class GraphOperator(Graph, Copyable):
         if not isinstance(self.root_node, Sequence):
             self._nodes = self.root_node.ordered_subnodes_hierarchy()
 
+    @copy_doc(Graph)
     def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
-        """Returns all children of the ``node``
-
-        :param node: for getting children from
-
-        :return: children of the ``node``
-        """
         return [other_node for other_node in self._nodes
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
 
+    @copy_doc(Graph)
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
-        """Adds edge between ``parent`` and ``child``
-
-        :param parent: acts like parent in pipeline connection relations
-        :param child:  acts like child in pipeline connection relations
-        """
         if child in self.node_children(parent):
             return
         # if not already connected
@@ -210,15 +172,9 @@ class GraphOperator(Graph, Copyable):
                 for node in node.nodes_from:
                     self._clean_up_leftovers(node)
 
+    @copy_doc(Graph)
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
                          clean_up_leftovers: bool = True):
-        """Removes an edge between two nodes
-
-        :param node_parent: where the removing edge comes out
-        :param node_child: where the removing edge enters
-        :param clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
-        """
-
         if not node_child.nodes_from or node_parent not in node_child.nodes_from:
             return
         elif node_parent not in self._nodes or node_child not in self._nodes:
@@ -231,17 +187,14 @@ class GraphOperator(Graph, Copyable):
         if clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
 
-        self._postproc_nodes(self, self._nodes)
+        self._postprocess_nodes(self, self._nodes)
 
     def root_nodes(self) -> Sequence[GraphNode]:
         return [node for node in self._nodes if not any(self.node_children(node))]
 
+    @copy_doc(Graph)
     @property
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
-        """Gets the final layer node(s) of the graph
-
-        :return: the final layer node(s)
-        """
         roots = self.root_nodes()
         if len(roots) == 1:
             return roots[0]
@@ -255,13 +208,8 @@ class GraphOperator(Graph, Copyable):
     def nodes(self, new_nodes: List[GraphNode]):
         self._nodes = new_nodes
 
+    @copy_doc(Graph)
     def __eq__(self, other_graph: Graph) -> bool:
-        """Compares this graph with the ``other_graph``
-
-        :param other_graph: another graph
-
-        :return: is it equal to ``other_graph`` in terms of the graphs
-        """
         if all(isinstance(rn, list) for rn in [self.root_node, other_graph.root_node]):
             return set(rn.descriptive_id for rn in self.root_node) == \
                    set(rn.descriptive_id for rn in other_graph.root_node)
@@ -270,23 +218,14 @@ class GraphOperator(Graph, Copyable):
         else:
             return False
 
+    @copy_doc(Graph)
     @property
     def descriptive_id(self) -> str:
-        """Returns verbal identificator of the node
+        return ''.join([r.descriptive_id for r in self.root_nodes()])
 
-        :return: text description of the content in the node and its parameters
-        :rtype: str
-        """
-        root_list = ensure_wrapped_in_sequence(self.root_node)
-        full_desc_id = ''.join([r.descriptive_id for r in root_list])
-        return full_desc_id
-
+    @copy_doc(Graph)
     @property
     def depth(self) -> int:
-        """Gets this graph depth from its sink-node to its source-node
-
-        :return: length of a path from the root node to the farthest primary node
-        """
         if not self._nodes:
             return 0
 
@@ -307,23 +246,15 @@ class GraphOperator(Graph, Copyable):
         root = ensure_wrapped_in_sequence(self.root_node)
         return max(_depth_recursive(n) for n in root)
 
-    def get_nodes_degrees(self) -> List[int]:
-        """Nodes degree as the number of edges the node has:
-            degree = #input_edges + #out_edges
-
-        :return: nodes degrees ordered according to the nx_graph representation of this graph
-        """
-        graph, _ = graph_structure_as_nx_graph(self._graph)
+    @copy_doc(Graph)
+    def get_nodes_degrees(self) -> Sequence[int]:
+        graph, _ = graph_structure_as_nx_graph(self)
         index_degree_pairs = graph.degree
         node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
         return node_degrees
 
-    def get_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
-        """Gets all available edges in this graph
-
-        :return: pairs of parent_node -> child_node
-        """
-
+    @copy_doc(Graph)
+    def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         edges = []
         for node in self._nodes:
             if node.nodes_from:
