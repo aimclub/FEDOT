@@ -1,6 +1,7 @@
 import os
 from abc import ABC, abstractmethod
 from io import BytesIO
+from typing import Any, Optional, Union
 
 import joblib
 import numpy as np
@@ -142,34 +143,36 @@ class OperationTemplate(OperationTemplateAbstract):
 
         return operation_object
 
-    def export_operation(self, path: str = None):
-        if path:
-            check_existing_path(path)
+    def export_operation(self, return_path: str = None) -> Optional[Union[str, bytes, Any]]:
+        """Export fitted operation: either by path or directly as bytes-like object.
+        Returns None for not fitted operation.
+
+        :param return_path: path to directory for exporting the operation.
+        If None, then bytes-like object is returned directly.
+        """
+        if not self.fitted_operation:
+            return None
+
+        if return_path:
+            check_existing_path(return_path)
 
             # dictionary with paths to saved fitted operations
-            if self.fitted_operation:
-                if 'h2o' in self.operation_type:
-                    self.fitted_operation_path = self.fitted_operation.save_operation(
-                        os.path.join(path, 'fitted_operations'),
-                        self.operation_id
-                    )
-
-                    return self.fitted_operation_path
-                else:
-                    path_fitted_operations = os.path.join(path, 'fitted_operations')
-                    check_existing_path(path_fitted_operations)
-                    joblib.dump(self.fitted_operation, os.path.join(path, self.fitted_operation_path))
-                    return os.path.join(path_fitted_operations, f'operation_{self.operation_id}.pkl')
+            if 'h2o' in self.operation_type:
+                self.fitted_operation_path = self.fitted_operation.save_operation(
+                    os.path.join(return_path, 'fitted_operations'),
+                    self.operation_id
+                )
+                return self.fitted_operation_path
             else:
-                return None
+                path_fitted_operations = os.path.join(return_path, 'fitted_operations')
+                check_existing_path(path_fitted_operations)
+                joblib.dump(self.fitted_operation, os.path.join(return_path, self.fitted_operation_path))
+                return os.path.join(path_fitted_operations, f'operation_{self.operation_id}.pkl')
         else:
             # dictionary with bytes of fitted operations
-            if self.fitted_operation:
-                bytes_container = BytesIO()
-                joblib.dump(self.fitted_operation, bytes_container)
-                return bytes_container
-            else:
-                return None
+            bytes_container = BytesIO()
+            joblib.dump(self.fitted_operation, bytes_container)
+            return bytes_container
 
     def import_json(self, operation_object: dict):
         required_fields = ['operation_id', 'operation_type', 'params', 'nodes_from']
