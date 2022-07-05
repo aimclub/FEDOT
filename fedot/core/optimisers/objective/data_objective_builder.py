@@ -56,8 +56,10 @@ class DataObjectiveBuilder:
         yield train_data, test_data
 
     def _build_holdout_producer(self, data: InputData, **kwargs: dict) -> DataSource:
-        """Build trivial data producer for hold-out validation
-        that always returns same data split. Equivalent to 1-fold validation."""
+        """
+        Build trivial data producer for hold-out validation
+        that always returns same data split. Equivalent to 1-fold validation.
+        """
 
         self.log.info("Hold out validation for graph composing was applied.")
         split_ratio = default_data_split_ratio_by_task[data.task.task_type]
