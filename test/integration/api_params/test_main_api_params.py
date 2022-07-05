@@ -6,6 +6,7 @@ import pytest
 
 from fedot.api.main import Fedot
 from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from test.unit.api.test_main_api import get_dataset
 
@@ -19,11 +20,11 @@ class TimeoutParams:
 TIMEOUT_CASES = [
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 1
+        test_answer=lambda hist: len(hist.individuals) == 2
     ),
     TimeoutParams(
         test_input={'timeout': None, 'num_of_generations': 1},
-        test_answer=lambda hist: len(hist.individuals) == 1
+        test_answer=lambda hist: len(hist.individuals) == 2
     ),
     TimeoutParams(
         test_input={'timeout': 0.1, 'num_of_generations': 15},
@@ -35,7 +36,7 @@ TIMEOUT_CASES = [
     ),
     TimeoutParams(
         test_input={'timeout': -1, 'num_of_generations': 3},
-        test_answer=lambda hist: len(hist.individuals) == 3
+        test_answer=lambda hist: len(hist.individuals) == 4
     )
 ]
 
@@ -48,6 +49,7 @@ def test_timeout(case: TimeoutParams):
         'pop_size': 1,
         'with_tuning': False,
         'validation_blocks': 1,
+        'genetic_scheme': GeneticSchemeTypesEnum.generational,
         'num_of_generations': case.test_input['num_of_generations']
     }
 
