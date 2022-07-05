@@ -1,10 +1,8 @@
+import logging
 import os
 from pathlib import Path
 
-from test.unit.utilities.test_pipeline_import_export import create_four_depth_pipeline
-
 import pytest
-import logging
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup

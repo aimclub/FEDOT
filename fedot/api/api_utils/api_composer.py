@@ -1,6 +1,5 @@
 import datetime
 import gc
-
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
@@ -184,9 +183,9 @@ class ApiComposer:
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])
 
         log.info(f"AutoML configured."
-                    f" Parameters tuning: {with_tuning}."
-                    f" Time limit: {timeout} min."
-                    f" Set of candidate models: {available_operations}.")
+                 f" Parameters tuning: {with_tuning}."
+                 f" Time limit: {timeout} min."
+                 f" Set of candidate models: {available_operations}.")
 
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
@@ -208,7 +207,7 @@ class ApiComposer:
         else:
             # Use initial pipeline as final solution
             log.info(f'Timeout is too small for composing and is skipped '
-                        f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+                     f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
 

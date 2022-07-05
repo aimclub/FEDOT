@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Union
 
 import numpy as np
 import pandas as pd

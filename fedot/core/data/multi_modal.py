@@ -10,6 +10,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 class MultiModalData(dict):
     """ Dictionary with InputData as values and primary node names as keys """
+
     def __init__(self, *arg, **kw):
         super(MultiModalData, self).__init__(*arg, **kw)
 

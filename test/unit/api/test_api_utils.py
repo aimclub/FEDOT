@@ -1,7 +1,8 @@
 import logging
 import random
-
 from copy import deepcopy
+
+from testfixtures import LogCapture
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -13,8 +14,6 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from testfixtures import LogCapture
-
 from ..api.test_main_api import get_dataset
 from ..tasks.test_classification import get_binary_classification_data
 
