@@ -5,9 +5,11 @@ from typing import List, Optional, Sequence, Any, TypeVar
 import numpy as np
 
 from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.pipelines.verification import verify_pipeline
+from fedot.core.optimisers.adapters import BaseOptimizationAdapter
+from fedot.core.pipelines.verification import verify_pipeline, verifier_for_task
 from fedot.core.utilities.serializable import Serializable
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.utilities.pattern_wrappers import singleton
@@ -65,8 +67,9 @@ class RemoteEvaluator:
 
     G = TypeVar('G', bound=Serializable)
 
-    def compute_graphs(self, graphs: Sequence[G]) -> Sequence[G]:
+    def compute_graphs(self, graphs: Sequence[G], verifier: Optional[GraphVerifier] = None) -> Sequence[G]:
         params = self.remote_task_params
+        verifier = verifier or verifier_for_task()
 
         client = self.client
         execution_ids = {}
@@ -77,8 +80,8 @@ class RemoteEvaluator:
         for graphs_batch in graph_batches:
             for graph in graphs_batch:
                 try:
-                    if isinstance(graph, Graph):
-                        verify_pipeline(graph)
+                    if isinstance(graph, Graph) and verifier(graph):
+                        pass
                 except ValueError:
                     execution_ids[id(graph)] = None
                     continue
