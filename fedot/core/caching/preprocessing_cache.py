@@ -18,7 +18,8 @@ if TYPE_CHECKING:
 
 class PreprocessingCache(BaseCache):
     """
-    Stores/loads preprocessors for pipelines to decrease time for fitting preprocessor.
+    Stores/loads DataPreprocessor's encoders and imputers for pipelines to decrease optional preprocessing time.
+    Suitable only for table data.
 
     :param db_path: optional str determining a file name for caching pipelines
     """
