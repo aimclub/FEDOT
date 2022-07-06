@@ -18,6 +18,28 @@ from fedot.core.utilities.singleton import SingletonMeta
 # TODO: registration of all native functions
 
 class AdaptRegistry(metaclass=SingletonMeta):
+    """Registry of functions that require adapter.
+    Adaptation Registry enables automatic transformation
+    between internal and domain graph representations.
+
+    Singleton; requires initialisation with specific adapter before usage.
+
+    Aimed at usage inside the context of Optimiser that internally
+    operates with generic graph representation. Because of this
+    any domain function requires adaptation of its arguments.
+
+    'Domain' functions operate with domain-specific graphs.
+    'Native' functions operate with generic graphs used by optimiser.
+    'External' functions are functions defined by users of optimiser.
+    (most notably, custom mutations and custom verifier rules).
+    'Internal' functions are those defined by graph optimiser.
+    (most notably, the default set of mutations and verifier rules).
+
+    All internal functions are native. Native functions avoid automatic
+    adaptation, while arguments to domain functions are adapted by default.
+    Users of optimiser can register external functions as 'native'
+    to exclude them from the process of automatic adaptation.
+    """
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None):
         self.adapter = adapter or DirectAdapter()
@@ -39,6 +61,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return _transform(fun, self._maybe_adapt, self._maybe_restore)
 
     def restore(self, fun: Callable):
+        """Conditionally restores function if it wasn't registered as native."""
         if fun in self._native_opt_functions:
             return fun
         return _transform(fun, self._maybe_restore, self._maybe_adapt)
