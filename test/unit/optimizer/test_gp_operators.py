@@ -145,18 +145,18 @@ def test_evaluate_individuals():
 
 def test_filter_duplicates():
     archive = ParetoFront()
-    archive_items = [pipeline_first(), pipeline_second(), pipeline_third()]
     adapter = PipelineAdapter()
 
-    population = [Individual(adapter.adapt(c)) for c in [pipeline_first(), pipeline_second(),
+    archive_items = [Individual(adapter.adapt(p)) for p in [pipeline_first(), pipeline_second(), pipeline_third()]]
+    population = [Individual(adapter.adapt(p)) for p in [pipeline_first(), pipeline_second(),
                                                          pipeline_third(), pipeline_fourth()]]
     archive_items_fitness = ((0.80001, 0.25), (0.7, 0.1), (0.9, 0.7))
     population_fitness = ((0.8, 0.25), (0.59, 0.25), (0.9, 0.7), (0.7, 0.1))
     weights = (-1, 1)
     for ind_num in range(len(archive_items)):
-        archive_items[ind_num].fitness = MultiObjFitness(values=archive_items_fitness[ind_num], weights=weights)
+        archive_items[ind_num].set_fitness(MultiObjFitness(values=archive_items_fitness[ind_num], weights=weights))
     for ind_num in range(len(population)):
-        population[ind_num].fitness = MultiObjFitness(values=population_fitness[ind_num], weights=weights)
+        population[ind_num].set_fitness(MultiObjFitness(values=population_fitness[ind_num], weights=weights))
     archive.update(archive_items)
     filtered_archive = filter_duplicates(archive, population)
     assert len(filtered_archive) == 1

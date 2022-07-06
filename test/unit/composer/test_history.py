@@ -109,7 +109,7 @@ def test_ancestor_for_crossover():
         assert crossover_result.parent_operators[-1].parent_individuals[1].uid == parent_ind_second.uid
 
 
-def test_operators_in_history():
+def test_newly_generated_history():
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
@@ -120,15 +120,19 @@ def test_operators_in_history():
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
-    history_1 = auto_model.history
-    history_2 = OptHistory.load(history_1.save())
+    history = auto_model.history
 
-    assert history_1.save() == history_2.save()
     assert auto_model.history is not None
-    assert len(auto_model.history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
+    assert len(history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
+    assert len(history.archive_history) == num_of_gens + 1  # num_of_gens + initial assumption
+    # Test individuals with the same uid are not copied
+    individuals = history.individuals
+    assert len({id(i): i for i in chain(*individuals)}) == len({i.uid: i for i in chain(*individuals)})
     # Test history dumps
-    dumped_history = auto_model.history.save()
+    dumped_history = history.save()
+    loaded_history = OptHistory.load(dumped_history).save()
     assert dumped_history is not None
+    assert dumped_history == loaded_history, 'History does not equal to itself after reloading!'
 
 
 def assert_intermediate_metrics(pipeline: Graph):
@@ -201,9 +205,9 @@ def test_history_backward_compatibility():
     assert len(historical_pipelines) == len(all_historical_fitness)
     assert np.shape(history.individuals) == np.shape(historical_fitness)
     # Assert that fitness, parent_individuals, and objective are valid
-    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain.from_iterable(history.individuals))
+    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
     assert all(isinstance(parent_individual, Individual)
-               for ind in chain.from_iterable(history.individuals) for op in ind.parent_operators
+               for ind in chain(*history.individuals) for op in ind.parent_operators
                for parent_individual in op.parent_individuals)
     assert isinstance(history._objective, Objective)
 
@@ -211,8 +215,9 @@ def test_history_backward_compatibility():
 def test_history_correct_serialization():
     test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
 
-    history_1 = OptHistory.load(test_history_path)
-    history_2 = OptHistory.load(history_1.save())
+    history = OptHistory.load(test_history_path)
+    dumped_history = history.save()
+    reloaded_history = OptHistory.load(dumped_history)
 
-    assert history_1.individuals == history_2.individuals
-    assert history_1.save() == history_2.save()
+    assert history.individuals == reloaded_history.individuals
+    assert dumped_history == reloaded_history.save(), 'History does not equal to itself after reloading!'

@@ -1,4 +1,6 @@
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -82,11 +84,12 @@ def test_hierarchy_pos():
 def test_extract_objectives():
     visualiser = PipelineEvolutionVisualiser()
     num_of_inds = 5
-    individuals = [pipeline_first() for _ in range(num_of_inds)]
+    opt_graph = PipelineAdapter().adapt(pipeline_first())
+    individuals = [Individual(opt_graph) for _ in range(num_of_inds)]
     fitness = (-0.8, 0.1)
     weights = tuple([-1 for _ in range(len(fitness))])
     for ind in individuals:
-        ind.fitness = MultiObjFitness(values=fitness, weights=weights)
+        ind.set_fitness(MultiObjFitness(values=fitness, weights=weights))
     populations_num = 3
     individuals_history = [individuals for _ in range(populations_num)]
     all_objectives = visualiser.extract_objectives(individuals=individuals_history, transform_from_minimization=True)

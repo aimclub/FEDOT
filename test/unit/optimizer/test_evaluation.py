@@ -14,7 +14,6 @@ from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second,
 from test.unit.validation.test_table_cv import get_classification_data
 
 
-@pytest.fixture(scope="module")
 def set_up_tests():
     adapter = PipelineAdapter()
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
@@ -46,8 +45,8 @@ def throwing_exception_objective(*args, **kwargs):
      MultiprocessingDispatcher(PipelineAdapter(), n_jobs=-1),
      MultiprocessingDispatcher(PipelineAdapter(), n_jobs=1)]
 )
-def test_dispatchers_with_and_without_multiprocessing(set_up_tests, dispatcher):
-    _, population = set_up_tests
+def test_dispatchers_with_and_without_multiprocessing(dispatcher):
+    _, population = set_up_tests()
 
     evaluator = dispatcher.dispatch(prepared_objective)
     evaluated_population = evaluator(population)
@@ -66,16 +65,16 @@ def test_dispatchers_with_and_without_multiprocessing(set_up_tests, dispatcher):
     [MultiprocessingDispatcher(PipelineAdapter()),
      SimpleDispatcher(PipelineAdapter())]
 )
-def test_dispatchers_with_faulty_objectives(set_up_tests, objective, dispatcher):
-    adapter, population = set_up_tests
+def test_dispatchers_with_faulty_objectives(objective, dispatcher):
+    adapter, population = set_up_tests()
 
     evaluator = dispatcher.dispatch(objective)
     with pytest.raises(Exception):
         evaluator(population)
 
 
-def test_multiprocessing_dispatcher_with_timeout(set_up_tests):
-    adapter, population = set_up_tests
+def test_multiprocessing_dispatcher_with_timeout():
+    adapter, population = set_up_tests()
 
     timeout = datetime.timedelta(minutes=0.001)
     with OptimisationTimer(timeout=timeout) as t:
@@ -94,8 +93,8 @@ def test_multiprocessing_dispatcher_with_timeout(set_up_tests):
     assert len(population) == len(evaluated_population), "Not all pipelines was evaluated"
 
 
-def test_simple_dispatcher_with_timeout(set_up_tests):
-    adapter, population = set_up_tests
+def test_simple_dispatcher_with_timeout():
+    adapter, population = set_up_tests()
 
     timeout = datetime.timedelta(milliseconds=400)
     with OptimisationTimer(timeout=timeout) as t:
