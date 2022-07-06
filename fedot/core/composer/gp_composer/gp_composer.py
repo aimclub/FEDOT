@@ -1,11 +1,12 @@
 from dataclasses import dataclass
-from typing import Collection, Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Union, Collection, Tuple
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
@@ -50,19 +51,19 @@ class GPComposer(Composer):
     Genetic programming based composer
     :param optimiser: optimiser generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
-    :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
+    :param initial_population_generator: generates initial population.
     :param pipelines_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: PipelineComposerRequirements,
-                 initial_pipelines: Optional[Sequence[Pipeline]] = None,
+                 initial_population_generator: Optional[InitialPopulationGenerator],
                  history: Optional[OptHistory] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None):
 
-        super().__init__(optimiser, composer_requirements, initial_pipelines)
+        super().__init__(optimiser, initial_population_generator, composer_requirements)
         self.composer_requirements = composer_requirements
 
         self.optimiser: GraphOptimiser = optimiser

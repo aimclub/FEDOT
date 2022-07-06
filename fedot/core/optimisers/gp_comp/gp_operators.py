@@ -1,12 +1,10 @@
-import warnings
 from copy import deepcopy
 from random import choice, randint
 from typing import Any, List, Optional, Tuple
 
-from fedot.core.composer.composer import ComposerRequirements
-from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 MAX_ITERS = 1000

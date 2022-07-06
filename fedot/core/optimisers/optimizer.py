@@ -1,14 +1,13 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Callable, Optional, Union, Sequence)
+from typing import (Any, Callable, Optional, Sequence)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.initial_graphs_generator import InitialGraphsGenerator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
@@ -93,12 +92,6 @@ class GraphOptimiser:
         self.requirements = requirements
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
         self.parameters = parameters or GraphOptimiserParameters()
-
-        initial_graph = initial_graph or ()
-        initial_graph = ensure_wrapped_in_sequence(initial_graph)
-        self.initial_individuals = \
-            [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graph]
-
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property
