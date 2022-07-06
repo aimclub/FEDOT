@@ -26,7 +26,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param cache: Cache manager for fitted models, optional.
+    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
     def __init__(self,
@@ -57,7 +58,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
             except Exception as ex:
-                self._log.warn(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
+                self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
                 continue
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
@@ -65,7 +66,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
-                self._log.warn(f'Continuing after objective evaluation error for graph: {graph_id}')
+                self._log.warning(f'Continuing after objective evaluation error for graph: {graph_id}')
                 continue
 
         if folds_metrics:

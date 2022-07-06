@@ -1,4 +1,5 @@
 import traceback
+
 from typing import List, Optional, Union
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -51,7 +52,8 @@ class AssumptionsHandler:
         Check is initial pipeline can be fitted on a presented data
 
         :param pipeline: pipeline for checking
-        :param cache: cache object
+        :param pipelines_cache: Cache manager for fitted models, optional.
+        :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
         """
         try:
             data_train, data_test = train_test_data_setup(self.data)

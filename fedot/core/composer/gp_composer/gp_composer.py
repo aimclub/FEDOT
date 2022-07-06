@@ -51,7 +51,8 @@ class GPComposer(Composer):
     :param optimiser: optimiser generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
-    :param cache: optional cache for Operations.
+    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
     def __init__(self, optimiser: GraphOptimiser,
