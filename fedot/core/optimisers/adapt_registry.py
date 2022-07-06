@@ -36,6 +36,10 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return self.adapter.restore(item) if isinstance(item, self._graph_cls) else item
 
 
+def init_adapter(adapter: BaseOptimizationAdapter):
+    AdaptRegistry(adapter)
+
+
 def adapt(fun: Callable) -> Callable:
     return AdaptRegistry().adapt(fun)
 
