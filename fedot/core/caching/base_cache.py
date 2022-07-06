@@ -25,7 +25,7 @@ class BaseCache(metaclass=SingletonMeta):
             #  Result order corresponds to the order in self.db._effectiveness_keys
             eff_dct = {}
             returned_eff = self._db.get_effectiveness()
-            for key, hit, total in zip(self._db.get_effectiveness_keys(), returned_eff[::2], returned_eff[1::2]):
+            for key, hit, total in zip(self._db.get_effectiveness_keys()[::2], returned_eff[::2], returned_eff[1::2]):
                 key = key.split('_')[0]
                 eff_dct[key] = round(hit / total, 3) if total else 0.
             return eff_dct

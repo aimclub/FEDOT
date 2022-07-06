@@ -57,7 +57,7 @@ class OperationsCacheDB(BaseCacheDB):
                 ))
                 retrieved = cur.fetchall()
                 if self.use_stats:
-                    non_null = list(filter(None, retrieved))
+                    non_null = [x for (x,) in retrieved if x is not None]
                     self._inc_eff(cur, 'nodes_hit', len(non_null))
                     if len(non_null) == len(uids):
                         self._inc_eff(cur, 'pipelines_hit')
