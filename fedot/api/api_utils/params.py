@@ -115,7 +115,9 @@ class ApiParams:
                   'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
-                  'stopping_after_n_generation': 10}
+                  'stopping_after_n_generation': 10,
+                  'use_pipelines_cache': True,
+                  'use_preprocessing_cache': False}
 
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 3
