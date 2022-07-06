@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 
 class PreprocessingCache(BaseCache):
     """
+    Usage of that class makes sense only if you have table data.
     Stores/loads DataPreprocessor's encoders and imputers for pipelines to decrease optional preprocessing time.
-    Suitable only for table data.
 
-    :param db_path: optional str determining a file name for caching pipelines
+    :param db_path: optional str determining a file name for caching preprocessors items.
     """
 
     def __init__(self, db_path: Optional[str] = None):
