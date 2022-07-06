@@ -7,7 +7,7 @@ import pandas as pd
 
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import DirectAdapter
+from fedot.core.adapter import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
     EvoGraphOptimizer,
     GeneticSchemeTypesEnum

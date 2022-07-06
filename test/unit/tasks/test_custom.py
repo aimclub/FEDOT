@@ -5,7 +5,7 @@ import numpy as np
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
-from fedot.core.optimisers.adapters import DirectAdapter
+from fedot.core.adapter import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum

@@ -2,7 +2,7 @@ from typing import Sequence, Optional, Callable
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapt_registry import restore
+from fedot.core.adapter.adapt_registry import restore
 
 # Validation rule can either return False or raise a ValueError to signal a failed check
 VerifierRuleType = Callable[..., bool]

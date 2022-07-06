@@ -1,13 +1,12 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, Sequence
+from typing import Any, Callable, Optional, Sequence, Union
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapt_registry import init_adapter
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.adapter import BaseOptimizationAdapter, DirectAdapter, init_adapter
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT

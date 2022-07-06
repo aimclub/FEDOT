@@ -1,7 +1,7 @@
 from inspect import signature, Parameter
 from typing import Optional, Callable, Any, Tuple
 
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.utilities.singleton import SingletonMeta
 
