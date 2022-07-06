@@ -1,7 +1,7 @@
+import logging
 import os
 from typing import Optional
 
-import logging
 import numpy as np
 
 from fedot.utilities.requirements_notificator import warn_requirement
@@ -114,7 +114,7 @@ def fit_cnn(train_data: InputData,
         verbose = logging.INFO
 
     if epochs is None:
-        logger.warn('The number of training epochs was not set. The selected number of epochs is 10.')
+        logger.warning('The number of training epochs was not set. The selected number of epochs is 10.')
 
     model.fit(transformed_x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
 
@@ -129,7 +129,7 @@ def predict_cnn(trained_model, predict_data: InputData, output_mode: str = 'labe
         logger = default_log(prefix=__name__)
 
     if np.max(transformed_x_test) > 1:
-        logger.warn('Test data set was not scaled. The data was divided by 255.')
+        logger.warning('Test data set was not scaled. The data was divided by 255.')
 
     if len(x_test.shape) == 3:
         transformed_x_test = np.expand_dims(x_test, -1)

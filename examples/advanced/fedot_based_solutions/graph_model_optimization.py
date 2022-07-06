@@ -8,15 +8,18 @@ import pandas as pd
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
-    GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import (
+    EvoGraphOptimiser,
+    GeneticSchemeTypesEnum,
+    GPGraphOptimiserParameters
+)
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import fedot_project_root
-from fedot.core.optimisers.objective import Objective, ObjectiveEvaluate
 
 random.seed(1)
 np.random.seed(1)
@@ -64,7 +67,7 @@ def custom_mutation(graph: OptGraph, **kwargs):
             if nodes_not_cycling:
                 graph.operator.connect_nodes(random_node, other_random_node)
     except Exception as ex:
-        graph.log.warn(f'Incorrect connection: {ex}')
+        graph.log.warning(f'Incorrect connection: {ex}')
     return graph
 
 

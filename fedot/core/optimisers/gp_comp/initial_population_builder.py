@@ -2,11 +2,11 @@ from typing import Callable, Optional, Sequence
 
 import numpy as np
 
+from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import Operator, PopulationT
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.dag.graph_verifier import GraphVerifier
 
 GraphSampler = Callable[[], OptGraph]
 IndividualSampler = Callable[[], Individual]
@@ -57,7 +57,7 @@ class InitialPopulationBuilder:
                 population.append(new_ind)
             n_iter += 1
             if n_iter >= self._max_generation_attempts:
-                self.log.warn(f'Exceeded max number of attempts for generating initial graphs, stopping.'
-                              f'Generated {len(population)} instead of {pop_size} graphs.')
+                self.log.warning(f'Exceeded max number of attempts for generating initial graphs, stopping.'
+                                 f'Generated {len(population)} instead of {pop_size} graphs.')
                 break
         return population

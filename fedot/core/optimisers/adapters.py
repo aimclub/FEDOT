@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import Any, Type, Generic, TypeVar, Optional, Dict
+from typing import Any, Dict, Generic, Optional, Type, TypeVar
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import default_log
@@ -76,12 +76,12 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline, Node]):
     def _transform_to_opt_node(self, node, *args, **params):
         # Prepare content for nodes
         if type(node) == OptNode:
-            self._log.warn('Unexpected: OptNode found in PipelineAdapter instead'
-                           'PrimaryNode or SecondaryNode.')
+            self._log.warning('Unexpected: OptNode found in PipelineAdapter instead'
+                              'PrimaryNode or SecondaryNode.')
         else:
             if type(node) == GraphNode:
-                self._log.warn('Unexpected: GraphNode found in PipelineAdapter instead'
-                               'PrimaryNode or SecondaryNode.')
+                self._log.warning('Unexpected: GraphNode found in PipelineAdapter instead'
+                                  'PrimaryNode or SecondaryNode.')
             else:
                 content = {'name': str(node.operation),
                            'params': node.custom_params,
