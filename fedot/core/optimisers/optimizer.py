@@ -62,7 +62,7 @@ class GraphGenerationParams:
                  advisor: Optional[DefaultChangeAdvisor] = None,
                  node_factory: Optional[OptNodeFactory] = None):
         self.adapter = adapter or DirectAdapter()
-        self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
+        self.verifier = GraphVerifier(rules_for_constraint)
         self.advisor = advisor or DefaultChangeAdvisor()
         self.node_factory = node_factory or DefaultOptNodeFactory()
         init_adapter(self.adapter)

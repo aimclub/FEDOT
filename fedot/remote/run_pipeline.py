@@ -50,7 +50,7 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
     config = \
         PipelineRunConfig().load_from_file(config_file)
 
-    verifier = verifier_for_task(config.task.task_type, PipelineAdapter())
+    verifier = verifier_for_task(config.task.task_type)
 
     pipeline = pipeline_from_json(config.pipeline_template)
 

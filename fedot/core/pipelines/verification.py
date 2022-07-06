@@ -46,9 +46,8 @@ class_rules = [has_no_conflicts_during_multitask,
                has_no_conflicts_after_class_decompose]
 
 
-def verifier_for_task(task_type: Optional[TaskTypesEnum] = None,
-                      adapter: Optional[BaseOptimizationAdapter] = None):
-    return GraphVerifier(rules_by_task(task_type), adapter)
+def verifier_for_task(task_type: Optional[TaskTypesEnum] = None):
+    return GraphVerifier(rules_by_task(task_type))
 
 
 def rules_by_task(task_type: Optional[TaskTypesEnum],
@@ -70,5 +69,4 @@ def verify_pipeline(graph: Union[Graph, OptGraph],
                     task_type: Optional[TaskTypesEnum] = None):
     """Method for validation of graphs with default rules.
     NB: It is preserved for simplicity, use graph checker instead."""
-    adapter = PipelineAdapter()
-    return GraphVerifier(rules_by_task(task_type, rules), adapter).verify(graph)
+    return GraphVerifier(rules_by_task(task_type, rules)).verify(graph)
