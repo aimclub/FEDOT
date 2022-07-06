@@ -5,7 +5,7 @@ import shutil
 import pytest
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data, run_credit_scoring_problem
-from fedot.utilities.profiler.memory_profiler import MemoryProfiler
+from fedot.utilities.profiler.fedot_memory_profiler import MemoryProfiler
 from fedot.utilities.profiler.time_profiler import TimeProfiler
 
 
@@ -31,10 +31,13 @@ def create_func_delete_files(paths):
 
 
 def test_time_profiler_correctly():
+    """
+    Profilers requirements are needed
+    """
     profiler = TimeProfiler()
     full_path_train, full_path_test = get_scoring_data()
     run_credit_scoring_problem(full_path_train, full_path_test,
-                               timeout=0.1)
+                               timeout=1)
     path = os.path.abspath('time_profiler')
     profiler.profile(path=path, node_percent=0.5, edge_percent=0.1, open_web=False)
 
@@ -42,10 +45,14 @@ def test_time_profiler_correctly():
 
 
 def test_memory_profiler_correctly():
+    """
+    Profilers requirements are needed
+    """
+
     path = os.path.abspath('memory_profiler')
     full_path_train, full_path_test = get_scoring_data()
     arguments = {'train_file_path': full_path_train, 'test_file_path': full_path_test,
-                 'timeout': 0.1}
+                 'timeout': 1}
     MemoryProfiler(run_credit_scoring_problem, kwargs=arguments,
                    path=path, roots=[run_credit_scoring_problem], max_depth=8)
 

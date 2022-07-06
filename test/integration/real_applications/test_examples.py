@@ -103,7 +103,7 @@ def test_api_example():
     explainer = run_api_explain_example(visualize=False, timeout=1)
     assert explainer is not None
 
-
-def test_multi_modal_example():
-    result = run_multi_modal_pipeline(files_path='cases/data/mm_imdb', is_visualise=False)
-    assert result > 0
+#
+# def test_multi_modal_example():
+#     result = run_multi_modal_pipeline(files_path='cases/data/mm_imdb', is_visualise=False)
+#     assert result > 0

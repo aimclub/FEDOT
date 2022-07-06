@@ -97,7 +97,6 @@ def test_synthetic_regression_automl():
                                              'linear'],
                        preset='best_quality')
     auto_model.fit(test_data)
-    auto_model.current_pipeline.show()
     auto_model.current_pipeline.fit(test_data)
 
     assert min(auto_model.history.historical_fitness[-1]) < 0.01

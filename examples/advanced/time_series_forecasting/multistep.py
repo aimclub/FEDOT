@@ -44,7 +44,7 @@ def run_multistep(dataset: str, pipeline: Pipeline, step_forecast: int = 10, fut
                 TsForecastingParams(forecast_length=step_forecast))
 
     idx = np.arange(len(time_series['idx'].values))
-    time_series = time_series['value'].values
+    time_series = time_series['Level'].values
     train_input = InputData(idx=idx,
                             features=time_series,
                             target=time_series,
