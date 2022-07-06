@@ -78,7 +78,7 @@ class ApiParams:
     def _parse_input_params(self, input_params: Dict[str, Any]):
         """ Parses input params into different class fields """
         self.log = default_log(prefix='FEDOT logger', verbose_level=input_params['verbose_level'])
-        simple_keys = ['problem', 'n_jobs', 'use_pipelines_cache', 'use_preprocessing_cache', 'timeout']
+        simple_keys = ['problem', 'n_jobs', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
 
         default_evo_params = self.get_default_evo_params(self.api_params['problem'])
@@ -94,7 +94,7 @@ class ApiParams:
             random.seed(input_params['seed'])
 
         if self.api_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
-            self.log.warn(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
+            self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
             input_params['task_params'] = TsForecastingParams(forecast_length=DEFAULT_FORECAST_LENGTH)
 
         if self.api_params['problem'] == 'clustering':

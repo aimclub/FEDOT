@@ -417,7 +417,6 @@ def test_api_params():
     api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
                   'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
                   'verbose_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
-                  'use_pipelines_cache': True, 'use_preprocessing_cache': True,
                   'max_depth': default_int_value, 'max_arity': default_int_value,
                   'stopping_after_n_generation': default_int_value, 'pop_size': default_int_value,
                   'num_of_generations': default_int_value, 'available_operations': ['lagged', 'ridge'],
@@ -432,9 +431,7 @@ def test_api_params():
                           'task': Task(task_type=TaskTypesEnum.ts_forecasting,
                                        task_params=TsForecastingParams(forecast_length=2)),
                           'timeout': default_int_value,
-                          'train_data': None,
-                          'use_pipelines_cache': True,
-                          'use_preprocessing_cache': True}
+                          'train_data': None}
     correct_composer_params = {'available_operations': ['lagged', 'ridge'],
                                'collect_intermediate_metric': True,
                                'composer_metric': RegressionMetricsEnum.SMAPE,
@@ -452,7 +449,8 @@ def test_api_params():
                                'preset': 'fast_train',
                                'stopping_after_n_generation': default_int_value,
                                'validation_blocks': default_int_value,
-                               'optimizer_external_params': {'path': default_int_value}}
+                               'optimizer_external_params': {'path': default_int_value},
+                               'use_pipelines_cache': True, 'use_preprocessing_cache': False}
     correct_tuner_params = {'tuner_metric': RegressionMetricsEnum.MAPE, 'with_tuning': True}
 
     model = Fedot(**api_params)

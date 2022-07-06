@@ -279,15 +279,14 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
-                           use_pipelines_cache=False, use_preprocessing_cache=False)
+    api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
                                 stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
-                                preset='auto')
+                                preset='auto', use_pipelines_cache=True, use_preprocessing_cache=False)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

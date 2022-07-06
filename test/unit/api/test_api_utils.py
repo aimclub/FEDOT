@@ -31,9 +31,7 @@ def test_compose_fedot_model_with_tuning():
                                                                          task=task,
                                                                          logger=default_log(prefix='test_log'),
                                                                          timeout=0.1,
-                                                                         n_jobs=1,
-                                                                         use_pipelines_cache=False,
-                                                                         use_preprocessing_cache=False),
+                                                                         n_jobs=1),
                                                          composer_params=dict(max_depth=1,
                                                                               max_arity=1,
                                                                               pop_size=2,
@@ -46,7 +44,9 @@ def test_compose_fedot_model_with_tuning():
                                                                               max_pipeline_fit_time=None,
                                                                               collect_intermediate_metric=False,
                                                                               preset='fast_train',
-                                                                              initial_assumption=None),
+                                                                              initial_assumption=None,
+                                                                              use_pipelines_cache=False,
+                                                                              use_preprocessing_cache=False),
                                                          tuning_params=dict(with_tuning=True,
                                                                             tuner_metric=None))
     # TODO make assert more specific

@@ -51,8 +51,6 @@ class Fedot:
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
-    :param use_pipelines_cache: bool indicating if it is needed to use pipeline structures caching
-    :param use_preprocessing_cache: bool indicating if it is needed to use optional preprocessors caching
 
     Keywords arguments:
     :param max_depth: max depth of the pipeline
@@ -82,6 +80,8 @@ class Fedot:
         - 'automl: A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree: A special preset that allows only tree-based algorithms
     :param tuner_metric:  metric for quality calculation during tuning
+    :param use_pipelines_cache: bool indicating if it is needed to use pipeline structures caching
+    :param use_preprocessing_cache: bool indicating if it is needed to use optional preprocessors caching
     """
 
     def __init__(self,
@@ -91,8 +91,6 @@ class Fedot:
                  seed=None, verbose_level: int = logging.ERROR,
                  safe_mode=True,
                  n_jobs: int = 1,
-                 use_pipelines_cache: bool = False,
-                 use_preprocessing_cache: bool = False,
                  **composer_tuner_params
                  ):
 
@@ -104,12 +102,12 @@ class Fedot:
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs,
-                        'use_pipelines_cache': use_pipelines_cache, 'use_preprocessing_cache': use_preprocessing_cache}
+                        'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
+        self.api_composer.init_cache(
+            **{k: self.params.api_params[k] for k in signature(self.api_composer.init_cache).parameters})
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
@@ -326,7 +324,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.metrics.get_composer_metrics_mapping(metric_name) is NotImplemented:
-                self.params.api_params['logger'].warn(f'{metric_name} is not available as metric')
+                self.params.api_params['logger'].warning(f'{metric_name} is not available as metric')
             else:
                 composer_metric = self.metrics.get_composer_metrics_mapping(metric_name)
                 metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
