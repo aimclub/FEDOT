@@ -1,8 +1,6 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from random import choice
 from typing import Optional, Any
-
-from testfixtures.compat import ABC
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
