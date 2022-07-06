@@ -1,5 +1,4 @@
 # This code is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
-from copy import deepcopy
 from bisect import bisect_right
 from operator import eq
 from typing import Callable, Optional
@@ -76,7 +75,6 @@ class HallOfFame:
         :param item: The individual with a fitness attribute to insert in the
                      hall of fame.
         """
-        item = deepcopy(item)
         i = bisect_right(self.keys, item.fitness)
         self.items.insert(len(self) - i, item)
         self.keys.insert(i, item.fitness)

@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 from functools import partial
 from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
@@ -133,8 +133,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
 
         is_correct_graph = params.verifier(new_graph)
         if is_correct_graph:
-            new_individual = Individual(new_graph)
-            new_individual.parent_operators = deepcopy(individual.parent_operators)
+            new_individual = Individual(new_graph, copy(individual.parent_operators))
             for mutation_name in mutation_names:
                 new_individual.parent_operators.append(
                     ParentOperator(operator_type='mutation',
@@ -145,7 +144,7 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
     log.debug('Number of mutation attempts exceeded. '
               'Please check composer requirements for correctness.')
 
-    return deepcopy(individual)
+    return individual
 
 
 def simple_mutation(graph: Any, requirements, **kwargs) -> Any:

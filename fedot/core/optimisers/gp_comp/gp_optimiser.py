@@ -160,7 +160,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         return builder.build(pop_size)
 
     def _next_population(self, next_population: PopulationT):
-        self.assign_positional_ids(next_population)
+        self.update_native_generation_numbers(next_population)
         self.generations.append(next_population)
         self._optimisation_callback(next_population, self.generations)
         self.population = next_population
@@ -180,10 +180,9 @@ class EvoGraphOptimiser(GraphOptimiser):
         # Redirect callback to evaluation dispatcher
         self.eval_dispatcher.set_evaluation_callback(callback)
 
-    def assign_positional_ids(self, pop: PopulationT):
-        for ind_id, ind in enumerate(pop):
-            ind.pop_num = self.current_generation_num
-            ind.ind_num = ind_id
+    def update_native_generation_numbers(self, population: PopulationT):
+        for individual in population:
+            individual.set_native_generation(self.current_generation_num)
 
     def optimise(self, objective: ObjectiveFunction,
                  show_progress: bool = True) -> Sequence[OptGraph]:

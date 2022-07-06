@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
@@ -8,28 +8,41 @@ from fedot.core.optimisers.graph import OptGraph
 ERROR_PREFIX = 'Invalid graph configuration:'
 
 
+@dataclass(frozen=True)
 class Individual:
-    def __init__(self, graph: OptGraph,
-                 parent_operators: Optional[List['ParentOperator']] = None,
-                 metadata: Optional[Dict[str, Any]] = None):
-        self.graph = graph
-        self.parent_operators = parent_operators or []
-        self.metadata: Dict[str, Any] = metadata or {}
-        self.fitness: Fitness = null_fitness()
-        self.uid = str(uuid4())
-        self.pop_num = None
-        self.ind_num = None
-
-    @property
-    def positional_id(self) -> str:
-        """
-        Identified for location of individual in history of population-based optimisation
-        :return: string representation of population number and number of individual in population
-        """
-        return f'g{self.pop_num}-i{self.ind_num}'
+    graph: OptGraph
+    parent_operators: List['ParentOperator'] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    native_generation: Optional[int] = None
+    fitness: Fitness = field(default_factory=null_fitness, init=False)
+    uid: str = field(default_factory=lambda: str(uuid4()), init=False)
 
     def __eq__(self, other: 'Individual'):
         return self.uid == other.uid
+
+    def set_native_generation(self, native_generation):
+        if self.native_generation is None:
+            super().__setattr__('native_generation', native_generation)
+
+    def set_fitness(self, fitness: Fitness):
+        if self.fitness.valid:
+            raise ValueError
+        super().__setattr__('fitness', fitness)
+
+    def set_fitness_and_graph(self, fitness: Fitness, graph: OptGraph):
+        if self.fitness.valid:
+            raise ValueError
+        super().__setattr__('fitness', fitness)
+        super().__setattr__('graph', graph)
+
+    def set_uid(self, uid: str):
+        super().__setattr__('uid', uid)
+
+    def __copy__(self):
+        raise ValueError
+
+    def __deepcopy__(self, memodict=None):
+        raise ValueError
 
 
 @dataclass

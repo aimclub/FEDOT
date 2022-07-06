@@ -33,9 +33,6 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
     crossover_type = choice(types)
     is_custom_crossover = isinstance(crossover_type, Callable)
 
-    ind_first = deepcopy(ind_first)
-    ind_second = deepcopy(ind_second)
-
     try:
         if will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_prob, crossover_type):
             if crossover_type in crossover_by_type or is_custom_crossover:
@@ -47,8 +44,8 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                     new_inds = []
 
                     is_custom_operator = isinstance(ind_first, OptGraph)
-                    input_obj_first = ind_first.graph
-                    input_obj_second = ind_second.graph
+                    input_obj_first = deepcopy(ind_first.graph)
+                    input_obj_second = deepcopy(ind_second.graph)
                     if is_custom_operator:
                         input_obj_first = params.adapter.restore(input_obj_first)
                         input_obj_second = params.adapter.restore(input_obj_second)
@@ -71,7 +68,6 @@ def crossover(types: List[Union[CrossoverTypesEnum, Callable]],
                                                   ])
                         for graph in new_graphs:
                             new_ind = Individual(graph)
-                            new_ind.parent_operators = []
                             new_ind.parent_operators.extend(deepcopy(ind_first.parent_operators))
                             new_ind.parent_operators.extend(deepcopy(ind_second.parent_operators))
                             new_ind.parent_operators.append(operator)

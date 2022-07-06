@@ -38,12 +38,10 @@ class OptHistory:
         return not self.individuals
 
     def add_to_history(self, individuals: List[Individual]):
-        new_inds = deepcopy(individuals)
-        self.individuals.append(new_inds)
+        self.individuals.append(individuals)
 
     def add_to_archive_history(self, individuals: List[Individual]):
-        new_inds = deepcopy(individuals)
-        self.archive_history.append(new_inds)
+        self.archive_history.append(individuals)
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()
@@ -255,22 +253,23 @@ class OptHistory:
         Prints ordered description of best solutions in history
         :param top_n: number of solutions to print
         """
-        all_individuals = itertools.chain(*self.individuals)
+        # Take only the first graph's appearance in history
+        individuals_with_positions \
+            = list({ind.graph.descriptive_id: (ind, gen_num, ind_num)
+                    for gen_num, gen in enumerate(self.individuals)
+                    for ind_num, ind in reversed(list(enumerate(gen)))}.values())
 
-        sorted_individuals_by_position = \
-            sorted(all_individuals,
-                   key=lambda ind: ind.positional_id)
-
-        sorted_individuals = sorted(sorted_individuals_by_position,
-                                    key=lambda ind: ind.fitness, reverse=True)
-        top_individuals = list({ind.graph.descriptive_id: ind for ind in sorted_individuals}.values())[:top_n]
+        top_individuals = sorted(individuals_with_positions,
+                                 key=lambda pos_ind: pos_ind[0].fitness, reverse=True)[:top_n]
 
         separator = ' | '
         print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
-        for ind_num, individual in enumerate(top_individuals):
+        for ind_num, ind_with_position in enumerate(top_individuals):
+            individual, gen_num, ind_num = ind_with_position
+            positional_id = f'g{gen_num}-i{ind_num}'
             print(separator.join([f'{ind_num:>3}, '
                                   f'{str(individual.fitness):>8}, '
-                                  f'{individual.positional_id:>8}, '
+                                  f'{positional_id:>8}, '
                                   f'{individual.graph.descriptive_id}']))
 
         # add info about initial assumptions (stored as zero generation)
