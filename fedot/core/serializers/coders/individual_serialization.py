@@ -10,5 +10,5 @@ if TYPE_CHECKING:
 def individual_from_json(cls: Type['Individual'], json_obj: Dict[str, Any]) -> 'Individual':
     deserialized = any_from_json(cls, json_obj)
     if isinstance(deserialized.fitness, float):
-        deserialized.fitness = SingleObjFitness(deserialized.fitness)
+        object.__setattr__(deserialized, 'fitness', SingleObjFitness(deserialized.fitness))
     return deserialized

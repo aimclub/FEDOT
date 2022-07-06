@@ -7,7 +7,6 @@ from fedot.core.optimisers.opt_history import OptHistory
 from . import any_from_json, any_to_json
 
 MISSING_INDIVIDUAL_ARGS = {
-    'graph': OptGraph(),
     'metadata': {'MISSING_INDIVIDUAL': 'This individual could not be restored during `OptHistory.load()`'}
 }
 
@@ -27,7 +26,7 @@ def _get_individuals_pool_from_generations_list(generations_list: List[List[Indi
     return individuals_pool
 
 
-def _serialize_generations_list(generations_list: List[List[Individual]]) -> List[List[Individual]]:
+def _serialize_generations_list(generations_list: List[List[Individual]]) -> List[List[str]]:
     return [[individual.uid for individual in generation] for generation in generations_list]
 
 
@@ -39,12 +38,19 @@ def opt_history_to_json(obj: OptHistory) -> Dict[str, Any]:
     return serialized
 
 
+def _set_native_generations(generations_list: List[List[Individual]]):
+    """The operation is executed in-place"""
+    for gen_num, gen in enumerate(generations_list):
+        for ind in gen:
+            ind.set_native_generation(gen_num)
+
+
 def _get_individuals_from_uid_list(uid_list: List[Union[str, Individual]],
                                    uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
 
     def get_missing_individual(uid: str) -> Individual:
-        individual = Individual(**MISSING_INDIVIDUAL_ARGS)
-        individual.uid = uid
+        individual = Individual(OptGraph(), **MISSING_INDIVIDUAL_ARGS)
+        individual.set_uid(uid)
         return individual
 
     def uid_to_individual_mapper(uid: Union[str, Individual]) -> Individual:
@@ -79,6 +85,7 @@ def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> Op
     else:
         # Older histories has no `individuals_pool`, and all individuals are represented in `individuals` attribute.
         # Let's gather them through all the generations.
+        _set_native_generations(deserialized.individuals)
         individuals_pool = list(chain(*deserialized.individuals))
     # Deserialize parents for all pipelines
     uid_to_individual_map = {ind.uid: ind for ind in individuals_pool}
