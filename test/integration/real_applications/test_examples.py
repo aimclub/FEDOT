@@ -19,14 +19,14 @@ from examples.simple.time_series_forecasting.api_forecasting import run_ts_forec
 from examples.simple.time_series_forecasting.gapfilling import run_gapfilling_example
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
 
-from fedot.core.utils import fedot_project_root
+from fedot.core.utils import fedot_project_root, default_fedot_data_dir
 
 
 def test_multiclass_example():
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/multiclass_classification.csv')
 
-    pipeline = get_model(file_path_train, cur_lead_time=timedelta(seconds=1))
+    pipeline = get_model(file_path_train, cur_lead_time=timedelta(seconds=5))
     assert pipeline is not None
 
 
@@ -65,10 +65,12 @@ def test_nemo_multiple_points_example():
 
 
 def test_log_example():
-    log_file_name = 'example_log.log'
-    run_log_example(log_file_name)
-
-    assert os.path.isfile(log_file_name)
+    with open(os.path.join(default_fedot_data_dir(), 'log.log')) as f:
+        lines_before = len(f.readlines())
+    run_log_example('log.log')
+    with open(os.path.join(default_fedot_data_dir(), 'log.log')) as f:
+        lines_after = len(f.readlines())
+    assert lines_after > lines_before
 
 
 def test_pipeline_tuning_example():

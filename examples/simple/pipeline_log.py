@@ -3,6 +3,7 @@ import pathlib
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.pipeline_tune import get_case_train_test_data
 from fedot.core.log import Log
+from test.unit.test_logger import release_log
 
 
 def run_log_example(log_file):
