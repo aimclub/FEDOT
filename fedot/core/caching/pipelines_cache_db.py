@@ -34,10 +34,7 @@ class OperationsCacheDB(BaseCacheDB):
         cur.execute(f'DROP TABLE IF EXISTS {tmp_name};')  # TODO: make truly temp table, not like that
         query = f'CREATE TABLE {tmp_name} AS SELECT 1 as id1, ? as id2'
         for num, _ in enumerate(other, 2):
-            query += (
-                ' union '
-                f'SELECT {num} as id1, ? as id2'
-            )
+            query += f' union SELECT {num} as id1, ? as id2'
         cur.execute(query, uids)
         return tmp_name
 
