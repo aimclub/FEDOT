@@ -1,8 +1,7 @@
-import traceback
 import logging
 from copy import deepcopy
 from inspect import signature
-from typing import List, Optional, Tuple, Union, Collection, Sequence
+from typing import List, Optional, Tuple, Union, Sequence
 
 import numpy as np
 import pandas as pd
@@ -43,7 +42,6 @@ class Fedot:
         - classification
         - regression
         - ts_forecasting
-        - clustering
     :param timeout: time for model design (in minutes)
         - None or -1 means infinite time
     :param task_params:  additional parameters of the task
