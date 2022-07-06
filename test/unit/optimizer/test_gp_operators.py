@@ -38,7 +38,6 @@ from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second,
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
-from
 
 
 def file_data():
@@ -484,7 +483,7 @@ def test_crossover_with_single_node():
     graph_example_first = adapter.adapt(generate_pipeline_with_single_node())
     graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
 
-    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES, log=log)
+    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
 
     for crossover_type in CrossoverTypesEnum:
         new_graphs = crossover([crossover_type], Individual(graph_example_first), Individual(graph_example_second),

@@ -10,8 +10,6 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.pipeline_node_factory import PipelineNodeFactory
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
