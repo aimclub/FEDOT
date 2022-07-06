@@ -36,7 +36,7 @@ class OperationsCache(BaseCache):
             ]
             self._db.add_operations(mapped)
         except Exception as ex:
-            self.log.info(f'Nodes can not be saved: {ex}. Continue')
+            self.log.warning(f'Nodes can not be saved: {ex}. Continue')
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -66,7 +66,7 @@ class OperationsCache(BaseCache):
                 else:
                     nodes_lst[idx].fitted_operation = None
         except Exception as ex:
-            self.log.info(f'Cache can not be loaded: {ex}. Continue.')
+            self.log.warning(f'Cache can not be loaded: {ex}. Continue.')
         finally:
             return cache_was_used
 

@@ -74,7 +74,7 @@ class PreprocessingCache(BaseCache):
             else:
                 encoder, imputer = processors
         except Exception as exc:
-            self.log.error(f'Preprocessor search error: {exc}')
+            self.log.warning(f'Preprocessor search error: {exc}')
         return encoder, imputer
 
     def add_preprocessor(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]):
