@@ -30,7 +30,6 @@ def get_regression_data():
     input_data = InputData.from_csv(
         os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
     input_data.idx = to_numerical(categorical_ids=input_data.idx)
-    input_data.features.dtype = np.float
     return input_data
 
 
@@ -96,7 +95,7 @@ def test_synthetic_regression_automl():
                                              'ridge',
                                              'linear'],
                        preset='best_quality')
-    auto_model.fit(test_data)
-    auto_model.current_pipeline.fit(test_data)
+    auto_model.fit(train_data)
+    auto_model.current_pipeline.fit(train_data)
 
     assert min(auto_model.history.historical_fitness[-1]) < 0.01

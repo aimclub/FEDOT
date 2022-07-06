@@ -318,8 +318,8 @@ class TableTypesCorrector:
 
                 # Calculate number of unique values except nans
                 unique_numbers = len(numerical_column.dropna().unique())
-                is_data_big = numerical_column.shape[0] > self.numerical_min_uniques
-                if is_data_big and 2 < unique_numbers < self.numerical_min_uniques:
+
+                if 2 < unique_numbers < self.numerical_min_uniques:
                     # Column need to be transformed into categorical (string) one
                     self.numerical_into_str.append(column_id)
 
