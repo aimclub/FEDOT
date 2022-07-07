@@ -5,7 +5,6 @@ import os
 import shutil
 import warnings
 from copy import deepcopy
-from pathlib import Path
 from typing import Any, List, Optional, Sequence, Union
 
 from fedot.core.optimisers.adapters import PipelineAdapter

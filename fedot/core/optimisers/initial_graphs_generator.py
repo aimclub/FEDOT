@@ -63,7 +63,7 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
         self.generation_function = generation_func
         return self
 
-    def get_initial_graphs(self, pop_size: int, max_depth: int) -> Sequence[Union[Graph, OptGraph]]:
+    def get_initial_graphs(self, pop_size: int, max_depth: int = None) -> Sequence[Union[Graph, OptGraph]]:
         verifier = self.generation_params.verifier
         if self.initial_graphs:
             if len(self.initial_graphs) > pop_size:
