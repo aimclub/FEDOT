@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.preprocessing_cache_db import PreprocessingCacheDB
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, data_type_is_table
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
     OneHotEncodingImplementation
@@ -40,7 +40,7 @@ class PreprocessingCache(BaseCache):
         self.add_preprocessor(pipeline, input_data)
 
     @staticmethod
-    def using_cache(cache: Optional['PreprocessingCache'], pipeline: 'Pipeline',
+    def manage(cache: Optional['PreprocessingCache'], pipeline: 'Pipeline',
                     input_data: Union[InputData, MultiModalData]):
         """
         Gets context manager for using preprocessing cache if present or returns nullcontext otherwise.
@@ -49,7 +49,9 @@ class PreprocessingCache(BaseCache):
         :param pipeline: pipeline to use cache for
         :param input_data: data that are going to be passed through pipeline
         """
-        if cache is None:
+        if (cache is None or
+            isinstance(input_data, InputData) and not data_type_is_table(input_data) or
+            isinstance(input_data, MultiModalData) and not any(data_type_is_table(x) for x in input_data.values())):
             return nullcontext()
         return PreprocessingCache._using_cache(cache, pipeline, input_data)
 

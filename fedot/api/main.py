@@ -80,8 +80,8 @@ class Fedot:
         - 'automl: A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree: A special preset that allows only tree-based algorithms
     :param tuner_metric:  metric for quality calculation during tuning
-    :param use_pipelines_cache: bool indicating if it is needed to use pipeline structures caching
-    :param use_preprocessing_cache: bool indicating if it is needed to use optional preprocessors caching
+    :param use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
+    :param use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
     """
 
     def __init__(self,

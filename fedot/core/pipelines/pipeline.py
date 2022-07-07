@@ -144,7 +144,7 @@ class Pipeline(Graph):
             self.unfit(mode='data_operations', unfit_preprocessor=False)
         else:
             self.unfit(mode='all', unfit_preprocessor=True)
-        with PreprocessingCache.using_cache(preprocessing_cache, self, input_data):
+        with PreprocessingCache.manage(preprocessing_cache, self, input_data):
             # Make copy of the input data to avoid performing inplace operations
             copied_input_data = deepcopy(input_data)
             copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)

@@ -1,4 +1,5 @@
 import random
+
 from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
@@ -117,7 +118,7 @@ class ApiParams:
                   'history_folder': None,
                   'stopping_after_n_generation': 10,
                   'use_pipelines_cache': True,
-                  'use_preprocessing_cache': False}
+                  'use_preprocessing_cache': True}
 
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 3

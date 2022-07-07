@@ -1,12 +1,15 @@
 import os
 import shutil
 
+from test.unit.common_tests import is_predict_ignores_target
+from test.unit.models.test_split_train_test import get_synthetic_input_data
+from test.unit.tasks.test_classification import get_iris_data
+from test.unit.tasks.test_forecasting import get_ts_data
+from test.unit.tasks.test_regression import get_synthetic_regression_data
+
 import numpy as np
 import pandas as pd
 import pytest
-from sklearn.datasets import load_iris
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
@@ -25,11 +28,9 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
-from test.unit.common_tests import is_predict_ignores_target
-from test.unit.models.test_split_train_test import get_synthetic_input_data
-from test.unit.tasks.test_classification import get_iris_data
-from test.unit.tasks.test_forecasting import get_ts_data
-from test.unit.tasks.test_regression import get_synthetic_regression_data
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 default_params = {
     'timeout': 0.1,
@@ -450,7 +451,7 @@ def test_api_params():
                                'stopping_after_n_generation': default_int_value,
                                'validation_blocks': default_int_value,
                                'optimizer_external_params': {'path': default_int_value},
-                               'use_pipelines_cache': True, 'use_preprocessing_cache': False}
+                               'use_pipelines_cache': True, 'use_preprocessing_cache': True}
     correct_tuner_params = {'tuner_metric': RegressionMetricsEnum.MAPE, 'with_tuning': True}
 
     model = Fedot(**api_params)
