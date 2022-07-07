@@ -11,6 +11,8 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+AVAILABLE_REPO_NAMES = ['all', 'model', 'data_operation', 'automl']
+
 
 @dataclass
 class OperationMetaInfo:
@@ -405,22 +407,11 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
             preset = None
 
     task_type = task.task_type if task else None
-    if mode != 'all':
+    if mode in AVAILABLE_REPO_NAMES:
         repo = OperationTypesRepository(mode)
         model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
                                                  preset=preset)
         return model_types
-    elif mode == 'all':
-        # Get models from repository
-        repo = OperationTypesRepository('model')
-        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
-                                                 preset=preset)
-        # Get data operations
-        repo = OperationTypesRepository('data_operation')
-        data_operation_types, _ = repo.suitable_operation(task_type, tags=tags,
-                                                          forbidden_tags=forbidden_tags,
-                                                          preset=preset)
-        return model_types + data_operation_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')
 
