@@ -41,7 +41,7 @@ class PreprocessingCache(BaseCache):
 
     @staticmethod
     def manage(cache: Optional['PreprocessingCache'], pipeline: 'Pipeline',
-                    input_data: Union[InputData, MultiModalData]):
+               input_data: Union[InputData, MultiModalData]):
         """
         Gets context manager for using preprocessing cache if present or returns nullcontext otherwise.
 
@@ -50,8 +50,8 @@ class PreprocessingCache(BaseCache):
         :param input_data: data that are going to be passed through pipeline
         """
         if (cache is None or
-            isinstance(input_data, InputData) and not data_type_is_table(input_data) or
-            isinstance(input_data, MultiModalData) and not any(data_type_is_table(x) for x in input_data.values())):
+                isinstance(input_data, InputData) and not data_type_is_table(input_data) or
+                isinstance(input_data, MultiModalData) and not any(data_type_is_table(x) for x in input_data.values())):
             return nullcontext()
         return PreprocessingCache._using_cache(cache, pipeline, input_data)
 
