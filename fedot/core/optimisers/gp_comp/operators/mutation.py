@@ -102,15 +102,8 @@ class Mutation(Operator):
                 if is_static_mutation_type else choice(mutation_types)
             is_custom_mutation = isinstance(mutation_type, Callable)
 
-            if is_custom_mutation:
-                new_graph = self.graph_generation_params.adapter.restore(new_graph)
-            else:
-                if not isinstance(new_graph, OptGraph):
-                    new_graph = self.graph_generation_params.adapter.adapt(new_graph)
             new_graph = self._apply_mutation(new_graph, mutation_type, is_custom_mutation)
             mutation_names.append(str(mutation_type))
-            if not isinstance(new_graph, OptGraph):
-                new_graph = self.graph_generation_params.adapter.adapt(new_graph)
             if is_custom_mutation:
                 # custom mutation occurs once
                 break
