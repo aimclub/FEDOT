@@ -1,4 +1,5 @@
 import logging
+
 from copy import deepcopy
 from inspect import signature
 from typing import List, Optional, Sequence, Tuple, Union
@@ -415,7 +416,5 @@ class Fedot:
                                                                   if k != 'cut'})
         self.current_pipeline.fit(
             full_train_not_preprocessed,
-            use_fitted=self.current_pipeline.fit_from_cache(self.api_composer.pipelines_cache),
             n_jobs=self.params.api_params['n_jobs'],
-            preprocessing_cache=self.api_composer.preprocessing_cache
         )
