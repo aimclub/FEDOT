@@ -250,8 +250,7 @@ class OperationTypesRepository:
                            tags: List[str] = None, is_full_match: bool = False,
                            forbidden_tags: List[str] = None,
                            preset: str = None):
-        """ Method returns operations from repository for desired task and / or
-        tags. Filtering method.
+        """ Returns operations from repository for desired task and / or tags. Filtering method.
 
         :param task_type: task to filter
         :param data_type: data type to filter
@@ -269,26 +268,17 @@ class OperationTypesRepository:
                 # Forbidden tags by default
                 forbidden_tags.append(excluded_default_tag)
 
-        if task_type is None:
-            operations_info = []
-            for o in self._repo:
-                # Perform filtering for every operation in the repository
-                tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
-                tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
-                is_desired_preset = _is_operation_contains_preset(o.presets, preset)
-                if tags_good and tags_bad and is_desired_preset:
-                    operations_info.append(o)
+        no_task = task_type is None
+        operations_info = []
+        for o in self._repo:
+            is_desired_task = task_type in o.task_type or no_task
+            tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
+            tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
+            is_desired_preset = _is_operation_contains_preset(o.presets, preset)
+            if is_desired_task and tags_good and tags_bad and is_desired_preset:
+                operations_info.append(o)
 
-        else:
-            operations_info = []
-            for o in self._repo:
-                is_desired_task = task_type in o.task_type
-                tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
-                tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
-                is_desired_preset = _is_operation_contains_preset(o.presets, preset)
-                if is_desired_task and tags_good and tags_bad and is_desired_preset:
-                    operations_info.append(o)
-
+        # TODO: too many operations are filtered out, because only a small number of operations defines `input_types`
         if data_type:
             operations_info = [o for o in operations_info if data_type in o.input_types]
 
