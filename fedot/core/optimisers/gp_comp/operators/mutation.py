@@ -115,7 +115,7 @@ def _apply_mutation(new_graph: Any, mutation_prob: float, mutation_type: Union[M
 
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGenerationParams',
-             individual: Individual, requirements: 'PipelineComposerRequirements', log: Log,
+             individual: Individual, requirements, log: Log,
              max_depth: Optional[int] = None) -> Any:
     """ Function apply mutation operator to graph """
     max_depth = max_depth if max_depth else requirements.max_depth
