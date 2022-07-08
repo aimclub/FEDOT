@@ -7,7 +7,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.archive import ParetoFront
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
@@ -532,7 +532,8 @@ def test_mutation_with_single_node():
 
 def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     test_file_path = Path(__file__).parent.joinpath('log.log')
-    log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
+    # log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
+    log = default_log("test_log")
 
     adapter = PipelineAdapter()
     graph = adapter.adapt(generate_pipeline_with_single_node())
@@ -551,7 +552,8 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     if Path(test_file_path).exists():
         content = Path(test_file_path).read_text()
 
-    release_log(logger=log)
+    # release_log(logger=log)
+
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
     assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
@@ -559,7 +561,8 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
 
 def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
     test_file_path = Path(__file__).parent.joinpath('log.log')
-    log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
+    # log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
+    log = default_log()
 
     adapter = PipelineAdapter()
     pipeline = generate_so_complex_pipeline()
@@ -568,7 +571,8 @@ def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
     if Path(test_file_path).exists():
         content = Path(test_file_path).read_text()
 
-    release_log(logger=log)
+    # release_log(logger=log)
+
     # Is there a required message in the logs
     assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
     assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
