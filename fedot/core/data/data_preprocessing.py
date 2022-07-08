@@ -132,8 +132,12 @@ def data_has_categorical_features(data: InputData) -> bool:
 
 def data_has_text_features(data: InputData) -> bool:
     """
-    Check data for text fields.
-    Return bool, whether data has text fields or not
+    Checks data for text fields.
+    Data with text fields is always 1-dimensional due to the previous
+    parsing of it from a general table to the distinct text data source.
+    Returns bool, whether data has text fields or not
     """
-
-    return isinstance(data.features[0], str) and len(data.features.shape) == 1
+    if data.data_type is not DataTypesEnum.ts and len(data.features.shape) == 1:
+        el_for_check = next(x for x in data.features if not pd.isna(x))
+        return isinstance(el_for_check, str)
+    return False

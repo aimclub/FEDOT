@@ -148,17 +148,37 @@ def data_with_text_features():
     return train_input
 
 
-def data_with_missed_text_features():
+def data_with_pseudo_text_features():
     """ Generate tabular data with text features """
     task = Task(TaskTypesEnum.classification)
-    features = np.array(['',
+    features = np.array([np.nan,
+                         np.nan,
+                         '4.2',
+                         '3',
+                         '1e-3',
+                         np.nan],
+                        dtype=object)
+
+    target = np.array([[0], [1], [0], [1], [0]])
+    train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
+
+
+def data_with_text_features_and_nans():
+    """ Generate tabular data with text features """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([np.nan,
+                         '',
                          'that can be stated,',
                          'is not the eternal',
                          np.nan],
                         dtype=object)
 
-    target = np.array([[0], [1], [0], [1]])
-    train_input = InputData(idx=[0, 1, 2, 3], features=features,
+    target = np.array([[0], [1], [0], [1], [0]])
+    train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
                             target=target, task=task, data_type=DataTypesEnum.text,
                             supplementary_data=SupplementaryData(was_preprocessed=False))
 
@@ -198,7 +218,7 @@ def test_categorical_target_processed_correctly():
 
 def test_correct_api_dataset_with_text_preprocessing():
     """ Check if dataset with text features preprocessing was performed correctly when API launch using. """
-    funcs = [data_with_text_features, data_with_missed_text_features]
+    funcs = [data_with_text_features, data_with_text_features_and_nans]
 
     # Check for all datasets
     for data_generator in funcs:
@@ -215,3 +235,17 @@ def test_correct_api_dataset_with_text_preprocessing():
         node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
         assert any('text' in current_tags for current_tags in node_tags)
         assert len(predicted) > 0
+
+
+def test_correct_api_dataset_with_pseudo_text_preprocessing():
+    """ Check if dataset with pseudo text features was preprocessed correctly (as numerical) when API launch using. """
+
+    input_data = data_with_pseudo_text_features()
+    fedot_model = Fedot(problem='classification')
+    fedot_model.fit(input_data, predefined_model='auto')
+    predicted = fedot_model.predict(input_data)
+
+    # Check there are no text nodes in the pipeline
+    node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
+    assert not any('text' in current_tags for current_tags in node_tags)
+    assert fedot_model.prediction.features.shape[0] == input_data.features.shape[0]
