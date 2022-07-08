@@ -66,13 +66,13 @@ def test_custom_graph_opt():
         node_factory=PipelineOptNodeFactory(requirements=requirements))
 
     objective = Objective(custom_metric)
-    init_population_generator = InitialPopulationGenerator(graph_generation_params, requirements)
+    init_population = InitialPopulationGenerator(graph_generation_params, requirements).get_initial_graphs()
     optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,
         requirements=requirements,
-        initial_graphs_generator=init_population_generator)
+        initial_graphs=init_population)
 
     objective_eval = ObjectiveEvaluate(objective)
     optimized_graphs = optimiser.optimise(objective_eval)

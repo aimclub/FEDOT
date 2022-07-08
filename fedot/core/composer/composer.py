@@ -1,13 +1,12 @@
 import datetime
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import (List, Optional, Union)
+from typing import (List, Optional, Union, Sequence)
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.optimisers.initial_graphs_generator import InitialGraphsGenerator
 from fedot.core.optimisers.optimizer import GraphOptimiser
 from fedot.core.pipelines.pipeline import Pipeline
 
@@ -51,15 +50,14 @@ class Composer(ABC):
     """
     Base class used for receiving composite operations via optimization
     :param optimiser: optimiser generated in ComposerBuilder
-    :param initial_graphs_generator: defines InitialGraphGenerator which generates initial graphs
     :param composer_requirements: requirements for composition process
+    :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
-    def __init__(self, optimiser: GraphOptimiser,
-                 initial_graphs_generator: Optional[InitialGraphsGenerator] = None,
-                 composer_requirements: Optional[ComposerRequirements] = None):
+    def __init__(self, optimiser: GraphOptimiser, composer_requirements: Optional[ComposerRequirements] = None,
+                 initial_pipelines: Optional[Sequence[Pipeline]] = None):
         self.composer_requirements = composer_requirements
-        self.initial_graphs_generator = initial_graphs_generator
+        self.initial_pipelines = initial_pipelines
         self.optimiser = optimiser
         self.log = default_log(self)
 

@@ -87,12 +87,12 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs_generator: InitialPopulationGenerator,
+                 initial_graphs: Sequence[Pipeline],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective=objective,
-                         initial_graphs_generator=initial_graphs_generator,
+                         initial_graphs=initial_graphs,
                          requirements=requirements,
                          graph_generation_params=graph_generation_params,
                          parameters=parameters)
@@ -140,26 +140,27 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                adaptive=parameters.with_auto_depth_configuration)
         self.max_depth = self._graph_depth.initial
 
-        initial_graphs = self.initial_graphs_generator.get_initial_graphs(pop_size=self._pop_size.initial,
-                                                                          max_depth=self.max_depth)
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
     def _extend_population(self, initial_individuals, pop_size: int, max_depth: int):
         iter_num = 0
+        initial_graphs = [ind.graph for ind in self.initial_individuals]
         while len(initial_individuals) < pop_size:
             initial_req = deepcopy(self.requirements)
             initial_req.mutation_prob = 1
 
             new_ind = self._mutate(choice(self.initial_individuals), max_depth, custom_requirements=initial_req)
+            new_graph = new_ind.graph
             iter_num += 1
-            if new_ind.graph not in [ind.graph for ind in self.initial_individuals] \
-                    and self.graph_generation_params.verifier(new_ind.graph):
-                self.initial_individuals.append(new_ind)
+            if new_graph not in initial_graphs and self.graph_generation_params.verifier(new_graph):
+                initial_individuals.append(new_ind)
+                initial_graphs.append(new_graph)
             if iter_num > MAX_ITER:
                 self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
                                  f'Current size {len(self.initial_individuals)} instead of {pop_size} graphs.')
                 break
+        return initial_individuals
 
     def _next_population(self, next_population: PopulationT):
         self.update_native_generation_numbers(next_population)
@@ -195,11 +196,13 @@ class EvoGraphOptimiser(GraphOptimiser):
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
                               disable=not show_progress or self.log.verbosity_level == logging.NOTSET):
-
-            pop_size = self._pop_size.initial
-            self._extend_population(self.initial_individuals, pop_size, self.max_depth)
             # Adding of initial assumptions to history as zero generation
             self._next_population(evaluator(self.initial_individuals))
+            pop_size = self._pop_size.initial
+            if len(self.initial_individuals) < pop_size:
+                self.initial_individuals = self._extend_population(self.initial_individuals, pop_size, self.max_depth)
+                # Adding of extended population to history as zero generation
+                self._next_population(evaluator(self.initial_individuals))
 
             while not self.stop_optimisation():
                 pop_size = self._pop_size.next(self.population)
@@ -220,9 +223,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
-
+                # Adding of new population to history as zero generation
                 self._next_population(new_population)
-
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
 

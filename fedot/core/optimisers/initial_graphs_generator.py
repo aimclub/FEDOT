@@ -1,29 +1,20 @@
 from abc import ABC, abstractmethod
-from functools import partial
 from typing import Callable, Optional, Sequence, Union, Iterable, TYPE_CHECKING
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.graph import OptGraph
+
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
-    from fedot.core.composer.composer import ComposerRequirements
+    from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 
 GenerationFunction = Callable[[], Graph]
-IndividualSampler = Callable[[], Individual]
 
 
 class InitialGraphsGenerator(ABC):
-    def __init__(self,
-                 generation_params: 'GraphGenerationParams',
-                 requirements: 'ComposerRequirements'):
-        self.generation_params = generation_params
-        self.requirements = requirements
-
     @abstractmethod
-    def get_initial_graphs(self, **kwargs) -> Sequence[Union[Graph, OptGraph]]:
+    def get_initial_graphs(self) -> Sequence[Graph]:
         """Method for generating initial graphs for GraphOptimizer
         """
         pass
@@ -41,13 +32,14 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
 
     def __init__(self,
                  generation_params: 'GraphGenerationParams',
-                 requirements: 'ComposerRequirements'):
-        super(InitialPopulationGenerator, self).__init__(generation_params, requirements)
+                 requirements: 'PipelineComposerRequirements'):
+        self.requirements = requirements
+        self.generation_params = generation_params
         self.generation_function: Optional[GenerationFunction] = None
         self.initial_graphs: Optional[Sequence[Graph]] = None
         self.log = default_log(self)
 
-    def with_initial_graphs(self, initial_graphs: Union[Graph, OptGraph, Sequence[Graph], Sequence[OptGraph]]):
+    def with_initial_graphs(self, initial_graphs: Union[Graph, Sequence[Graph]]):
         """Use initial graphs as initial population."""
         if isinstance(initial_graphs, Graph):
             self.initial_graphs = [initial_graphs]
@@ -63,15 +55,23 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
         self.generation_function = generation_func
         return self
 
-    def get_initial_graphs(self, pop_size: int, max_depth: int = None) -> Sequence[Union[Graph, OptGraph]]:
+    def get_initial_graphs(self) -> Sequence[Graph]:
+
+        def get_random_graph():
+            adapter = self.generation_params.adapter
+            start_depth = self.requirements.start_depth
+            return adapter.restore(random_graph(verifier, self.requirements, max_depth=start_depth))
+
         verifier = self.generation_params.verifier
+        pop_size = int(self.requirements.pop_size)
+
         if self.initial_graphs:
             if len(self.initial_graphs) > pop_size:
                 self.initial_graphs = self.initial_graphs[:pop_size]
             return self.initial_graphs
 
         if not self.generation_function:
-            self.generation_function = partial(random_graph, verifier, self.requirements, max_depth)
+            self.generation_function = get_random_graph
 
         population = []
         n_iter = 0

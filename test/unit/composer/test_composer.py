@@ -28,7 +28,7 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
@@ -324,12 +324,16 @@ def test_gp_composer_random_graph_generation_looping():
     """
     task = Task(TaskTypesEnum.regression)
 
+    adapter = PipelineAdapter()
+    verifier = verifier_for_task(task.task_type, adapter)
+    params = GraphGenerationParams(adapter, verifier, PipelineChangeAdvisor(task=task))
+    operations = get_operations_for_task(task)
     requirements = PipelineComposerRequirements(
-        primary=['simple_imputation'],
-        secondary=['ridge', 'dtreg'],
+        primary=operations,
+        secondary=operations,
         timeout=datetime.timedelta(seconds=300),
         max_pipeline_fit_time=None,
-        max_depth=2,
+        max_depth=1,
         max_arity=2,
         cv_folds=None,
         advisor=PipelineChangeAdvisor(task=task),
@@ -345,11 +349,12 @@ def test_gp_composer_random_graph_generation_looping():
 
     graph = random_graph(params, requirements, max_depth=None)
     nodes_name = list(map(str, graph.nodes))
-
-    for primary_node in requirements.primary:
-        assert primary_node in nodes_name
-        assert nodes_name.count(primary_node) == 1
-    assert params.verifier(graph) is True
+    print(graph)
+    # for primary_node in requirements.primary:
+    #     assert primary_node in nodes_name
+    #     assert nodes_name.count(primary_node) == 1
+    assert verifier(graph) is True
+    assert graph.depth <= requirements.max_depth
 
 
 def test_gp_composer_early_stopping():

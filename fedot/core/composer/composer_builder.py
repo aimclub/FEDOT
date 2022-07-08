@@ -136,13 +136,14 @@ class ComposerBuilder:
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
 
-        initial_population_generator = InitialPopulationGenerator(generation_params=graph_generation_params,
-                                                                  requirements=self.composer_requirements) \
+        initial_population = InitialPopulationGenerator(generation_params=graph_generation_params,
+                                                        requirements=self.composer_requirements) \
             .with_initial_graphs(self.initial_population) \
-            .with_custom_generation_function(self.initial_population_generation_function)
+            .with_custom_generation_function(self.initial_population_generation_function)\
+            .get_initial_graphs()
 
         optimiser = self.optimiser_cls(objective=objective,
-                                       initial_graphs_generator=initial_population_generator,
+                                       initial_graphs=initial_population,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=graph_generation_params,
                                        parameters=self.optimiser_parameters,
@@ -156,7 +157,7 @@ class ComposerBuilder:
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     initial_population_generator,
+                                     initial_population,
                                      history,
                                      self.pipelines_cache,
                                      self.preprocessing_cache)

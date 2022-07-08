@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import (Any, Callable, Optional, Sequence)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
@@ -82,12 +83,12 @@ class GraphOptimiser:
 
     def __init__(self,
                  objective: Objective,
-                 initial_graph: Optional[Union[Graph, Sequence[Graph]]] = None,
+                 initial_graphs: Optional[Sequence[Graph]] = None,
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimiserParameters] = None):
         self.log = default_log(self)
-
+        self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
