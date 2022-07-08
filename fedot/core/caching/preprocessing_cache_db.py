@@ -15,8 +15,8 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 
 class PreprocessingCacheDB(BaseCacheDB):
     """
-    Database for PreprocessingCache class.
-    Includes low-level idea of caching pipeline preprocessor using relational database.
+    Database for `PreprocessingCache` class.
+    Includes low-level idea of caching pipeline preprocessor items using relational database.
 
     :param db_path: str db file path
     """

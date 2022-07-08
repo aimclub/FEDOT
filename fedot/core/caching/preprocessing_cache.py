@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class PreprocessingCache(BaseCache):
     """
     Usage of that class makes sense only if you have table data.
-    Stores/loads DataPreprocessor's encoders and imputers for pipelines to decrease optional preprocessing time.
+    Stores/loads `DataPreprocessor`'s encoders and imputers for pipelines to decrease optional preprocessing time.
 
     :param db_path: optional str determining a file name for caching preprocessors items.
     """
@@ -43,17 +43,20 @@ class PreprocessingCache(BaseCache):
     def manage(cache: Optional['PreprocessingCache'], pipeline: 'Pipeline',
                input_data: Union[InputData, MultiModalData]):
         """
-        Gets context manager for using preprocessing cache if present or returns nullcontext otherwise.
+        Gets context manager for using preprocessing cache if `cache` param is present and data type is table
+            or returns nullcontext otherwise.
 
         :param cache: preprocessors cache instance or None
         :param pipeline: pipeline to use cache for
         :param input_data: data that are going to be passed through pipeline
+
+        :return: cache context manager in case of non None `cache` param and table data type, nullcontext otherwise
         """
         if (cache is None or
                 isinstance(input_data, InputData) and not data_type_is_table(input_data) or
                 isinstance(input_data, MultiModalData) and not any(data_type_is_table(x) for x in input_data.values())):
             return nullcontext()
-        return PreprocessingCache._using_cache(cache, pipeline, input_data)
+        return cache._using_cache(pipeline, input_data)
 
     def try_find_preprocessor(self, pipeline: 'Pipeline', input_data: Union[InputData, MultiModalData]) -> Tuple[
         Dict[str, OneHotEncodingImplementation], Dict[str, ImputationImplementation]
@@ -104,4 +107,4 @@ def _get_db_uid(pipeline: 'Pipeline', input_data: Union[InputData, MultiModalDat
         data_id = f'{input_data.idx[0]}_{input_data.idx[-1]}'
     else:
         data_id = ':'.join([f'{x.idx[0]}_{x.idx[-1]}' for x in input_data.values()])
-    return f'{pipeline_id}_{data_id}'
+    return f'{pipeline_id}:{data_id}'

@@ -1,17 +1,17 @@
 import pickle
 import sqlite3
 from contextlib import closing
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import List, Optional, Tuple, TypeVar
 
 from fedot.core.caching.base_cache_db import BaseCacheDB
+from fedot.core.operations.operation import Operation
 
-if TYPE_CHECKING:
-    from .pipelines_cache import IOperation
+IOperation = TypeVar('IOperation', bound=Operation)
 
 
 class OperationsCacheDB(BaseCacheDB):
     """
-    Database for OperationsCache class.
+    Database for `OperationsCache` class.
     Includes low-level idea of caching pipeline nodes using relational database.
 
     :param db_path: str db file path
@@ -22,12 +22,14 @@ class OperationsCacheDB(BaseCacheDB):
         self._init_db()
 
     @staticmethod
-    def _create_temp_for_ordered_select(cur: sqlite3.Cursor, uids: List[str]):
+    def _create_temp_for_ordered_select(cur: sqlite3.Cursor, uids: List[str]) -> str:
         """
         Creates temp table to keep order of uids while doing select operation in operations getter.
 
         :param cur: cursor with already installed DB connection
         :param uids: list of operations uids for keeping the order
+
+        :return tmp_name: str name of newly created temp table
         """
         _, *other = uids
         tmp_name = 'tmp'

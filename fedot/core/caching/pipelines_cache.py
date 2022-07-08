@@ -1,15 +1,12 @@
-from typing import TYPE_CHECKING, List, Optional, TypeVar, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
-from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
-
-IOperation = TypeVar('IOperation', bound=Operation)
 
 
 class OperationsCache(BaseCache):
@@ -24,7 +21,7 @@ class OperationsCache(BaseCache):
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
         """
-        :param nodes: node/nodes for caching
+        :param nodes: node/nodes to be cached
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
@@ -40,7 +37,7 @@ class OperationsCache(BaseCache):
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
-        :param pipeline: pipeline for caching
+        :param pipeline: pipeline to be cached
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
         """
@@ -72,7 +69,7 @@ class OperationsCache(BaseCache):
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None) -> bool:
         """
-        :param pipeline: pipeline for loading cache into
+        :param pipeline: pipeline for loading into from cache
         :param fold_id: optional part of cache item UID
                             (number of the CV fold)
 
