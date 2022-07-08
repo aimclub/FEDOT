@@ -1,3 +1,5 @@
+import warnings
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -6,6 +8,10 @@ from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
 
 ERROR_PREFIX = 'Invalid graph configuration:'
+INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
+                                      'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n' \
+                                      'If this happened during the optimization process, this is a misusage ' \
+                                      'and should be fixed.'
 
 
 @dataclass(frozen=True)
@@ -31,7 +37,7 @@ class Individual:
 
     def set_fitness_and_graph(self, fitness: Fitness, graph: OptGraph):
         if self.fitness.valid:
-            raise ValueError
+            raise ValueError('The individual has valid fitness and can not be evaluated again.')
         super().__setattr__('fitness', fitness)
         super().__setattr__('graph', graph)
 
@@ -39,10 +45,20 @@ class Individual:
         super().__setattr__('uid', uid)
 
     def __copy__(self):
-        raise ValueError
+        warnings.warn(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, stacklevel=3)
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
 
-    def __deepcopy__(self, memodict=None):
-        raise ValueError
+    def __deepcopy__(self, memo):
+        warnings.warn(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, stacklevel=3)
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            object.__setattr__(result, k, deepcopy(v, memo))
+        return result
 
 
 @dataclass
