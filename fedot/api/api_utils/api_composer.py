@@ -1,13 +1,13 @@
 import datetime
 import gc
-import traceback
-from typing import Callable, List, Optional, Union, Tuple, Collection, Sequence
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
 from fedot.api.api_utils.metrics import ApiMetrics
-from fedot.api.api_utils.presets import change_preset_based_on_initial_fit, OperationsPreset
+from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
@@ -29,7 +29,8 @@ class ApiComposer:
 
     def __init__(self, problem: str):
         self.metrics = ApiMetrics(problem)
-        self.cache: Optional[OperationsCache] = None
+        self.pipelines_cache: Optional[OperationsCache] = None
+        self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.preset_name = None
         self.timer = None
 
@@ -86,11 +87,15 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    def init_cache(self, use_cache: bool):
-        if use_cache:
-            self.cache = OperationsCache()
+    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool):
+        if use_pipelines_cache:
+            self.pipelines_cache = OperationsCache()
             #  in case of previously generated singleton cache
-            self.cache.reset()
+            self.pipelines_cache.reset()
+        if use_preprocessing_cache:
+            self.preprocessing_cache = PreprocessingCache()
+            #  in case of previously generated singleton cache
+            self.preprocessing_cache.reset()
 
     @staticmethod
     def _init_composer_requirements(api_params: dict,
@@ -161,12 +166,13 @@ class ApiComposer:
         # Work with initial assumptions
         assumption_handler = AssumptionsHandler(log, train_data)
 
-        # Set initial assumption and check correctness
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations)
         with self.timer.launch_assumption_fit():
-            fitted_assumption = assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
-                                                                                        self.cache)
+            fitted_assumption = \
+                assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
+                                                                        pipelines_cache=self.pipelines_cache,
+                                                                        preprocessing_cache=self.preprocessing_cache)
         log.info(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
         self.preset_name = assumption_handler.propose_preset(preset, self.timer)
 
@@ -177,9 +183,9 @@ class ApiComposer:
         metric_function = self.obtain_metric(task, composer_params['composer_metric'])
 
         log.info(f"AutoML configured."
-                    f" Parameters tuning: {with_tuning}."
-                    f" Time limit: {timeout} min."
-                    f" Set of candidate models: {available_operations}.")
+                 f" Parameters tuning: {with_tuning}."
+                 f" Time limit: {timeout} min."
+                 f" Set of candidate models: {available_operations}.")
 
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
@@ -189,7 +195,7 @@ class ApiComposer:
                                    external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_function) \
             .with_history(composer_params.get('history_folder')) \
-            .with_cache(self.cache)
+            .with_cache(self.pipelines_cache, self.preprocessing_cache)
         gp_composer: GPComposer = builder.build()
 
         if self.timer.have_time_for_composing(composer_params['pop_size']):
@@ -201,7 +207,7 @@ class ApiComposer:
         else:
             # Use initial pipeline as final solution
             log.info(f'Timeout is too small for composing and is skipped '
-                        f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+                     f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
 
@@ -273,15 +279,14 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
-                           use_cache=False)
+    api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 available_operations=None, composer_metric=None, validation_blocks=None,
                                 cv_folds=None, genetic_scheme=None, history_folder=None,
                                 stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
-                                preset='auto')
+                                preset='auto', use_pipelines_cache=True, use_preprocessing_cache=False)
 
     tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
 

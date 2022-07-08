@@ -98,7 +98,7 @@ class RemoteEvaluator:
                             execution_id=pipeline.execution_id
                         )
                     except Exception as ex:
-                        self._logger.warn(f'{p_id}, {ex}')
+                        self._logger.warning(f'{p_id}, {ex}')
             final_pipelines.extend(pipelines_part)
 
             self._logger.info(f'REMOTE EXECUTION TIME {ex_time}')

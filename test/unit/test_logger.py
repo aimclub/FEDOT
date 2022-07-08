@@ -1,8 +1,8 @@
+import logging
 import os
 from pathlib import Path
 
 import pytest
-import logging
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup

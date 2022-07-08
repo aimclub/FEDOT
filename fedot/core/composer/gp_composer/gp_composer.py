@@ -1,7 +1,8 @@
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Union, Collection, Tuple
+from typing import Collection, Optional, Sequence, Tuple, Union
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer, ComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -50,20 +51,23 @@ class GPComposer(Composer):
     :param optimiser: optimiser generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
     :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
-    :param cache: optional cache for Operations.
+    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
     def __init__(self, optimiser: GraphOptimiser,
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  history: Optional[OptHistory] = None,
-                 cache: Optional[OperationsCache] = None):
+                 pipelines_cache: Optional[OperationsCache] = None,
+                 preprocessing_cache: Optional[PreprocessingCache] = None):
 
         super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
 
         self.optimiser: GraphOptimiser = optimiser
-        self.cache: Optional[OperationsCache] = cache
+        self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
+        self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
         self.history: Optional[OptHistory] = history
         self.best_models: Collection[Pipeline] = ()
 
@@ -71,7 +75,7 @@ class GPComposer(Composer):
                                                       composer_requirements.max_pipeline_fit_time,
                                                       composer_requirements.cv_folds,
                                                       composer_requirements.validation_blocks,
-                                                      cache)
+                                                      pipelines_cache, preprocessing_cache)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary

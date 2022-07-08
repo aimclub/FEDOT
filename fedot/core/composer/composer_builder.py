@@ -1,30 +1,31 @@
+import platform
 from functools import partial
 from multiprocessing import set_start_method
-import platform
-from typing import Optional, Union, List, Dict, Sequence, Type, Iterable
+from typing import Dict, Iterable, List, Optional, Sequence, Type, Union
 
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.opt_history import log_to_history, OptHistory
+from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.opt_history import OptHistory, log_to_history
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (
-    MetricsEnum,
     ClassificationMetricsEnum,
-    RegressionMetricsEnum,
-    ComplexityMetricsEnum
+    ComplexityMetricsEnum,
+    MetricsEnum,
+    RegressionMetricsEnum
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.optimisers.objective.objective import Objective
 
 
 def set_multiprocess_start_method():
@@ -47,7 +48,8 @@ class ComposerBuilder:
         self._keep_history = False
         self._history_folder: Optional[str] = None
         self.log: Optional[LoggerAdapter] = default_log(self)
-        self.cache: Optional[OperationsCache] = None
+        self.pipelines_cache: Optional[OperationsCache] = None
+        self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
 
@@ -89,8 +91,10 @@ class ComposerBuilder:
         self._history_folder = history_folder
         return self
 
-    def with_cache(self, cache: Optional[OperationsCache]):
-        self.cache = cache
+    def with_cache(self, pipelines_cache: Optional[OperationsCache] = None,
+                   preprocessing_cache: Optional[PreprocessingCache] = None):
+        self.pipelines_cache = pipelines_cache
+        self.preprocessing_cache = preprocessing_cache
         return self
 
     def _get_default_composer_params(self) -> PipelineComposerRequirements:
@@ -143,6 +147,7 @@ class ComposerBuilder:
                                      self.composer_requirements,
                                      self.initial_pipelines,
                                      history,
-                                     self.cache)
+                                     self.pipelines_cache,
+                                     self.preprocessing_cache)
 
         return composer

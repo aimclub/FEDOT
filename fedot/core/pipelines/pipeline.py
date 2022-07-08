@@ -4,7 +4,8 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import func_timeout
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
@@ -125,8 +126,9 @@ class Pipeline(Graph):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=False,
-            time_constraint: Optional[timedelta] = None, n_jobs=1) -> OutputData:
+    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted: bool = False,
+            time_constraint: Optional[timedelta] = None, n_jobs=1,
+            preprocessing_cache: Optional[PreprocessingCache] = None) -> OutputData:
         """
         Run training process in all nodes in pipeline starting with root.
 
@@ -138,20 +140,20 @@ class Pipeline(Graph):
         """
         _replace_n_jobs_in_nodes(self, n_jobs)
 
-        if not use_fitted:
-            self.unfit(mode='all', unfit_preprocessor=True)
-        else:
+        if use_fitted:
             self.unfit(mode='data_operations', unfit_preprocessor=False)
+        else:
+            self.unfit(mode='all', unfit_preprocessor=True)
+        with PreprocessingCache.manage(preprocessing_cache, self, input_data):
+            # Make copy of the input data to avoid performing inplace operations
+            copied_input_data = deepcopy(input_data)
+            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                           data=copied_input_data)
 
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                       data=copied_input_data)
-
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                      data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                          data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
@@ -170,7 +172,7 @@ class Pipeline(Graph):
 
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
         """
-        Remove fitted operations for all nodes.
+        Remove fitted operations for chosen type of nodes.
 
         :param mode:
             - 'all' - All models will be unfitted

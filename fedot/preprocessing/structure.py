@@ -70,7 +70,7 @@ class PipelineStructureExplorer:
                         self.check_path(path, tag_to_check)
                         self.path_id += 1
 
-        correct_branches = [branch['correctness'] for path_id, branch in self.paths.items()]
+        correct_branches = (branch['correctness'] for _, branch in self.paths.items())
         if all(is_correct_path for is_correct_path in correct_branches):
             # All paths are correct
             return True

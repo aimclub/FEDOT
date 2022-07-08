@@ -1,9 +1,10 @@
 from datetime import timedelta
-from typing import Optional, Callable, Iterable, Tuple
+from typing import Callable, Iterable, Optional, Tuple
 
 import numpy as np
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.operations.model import Model
@@ -25,16 +26,23 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     If it returns a single fold, it's effectively a hold-out validation. For many folds it's k-folds.
     :param time_constraint: Optional time constraint for pipeline.fit.
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
-    :param cache: Cache manager for fitted models, optional.
+    :param pipelines_cache: Cache manager for fitted models, optional.
+    :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
     """
 
-    def __init__(self, objective: Objective, data_producer: DataSource, time_constraint: Optional[timedelta] = None,
-                 validation_blocks: Optional[int] = None, cache: Optional[OperationsCache] = None):
+    def __init__(self,
+                 objective: Objective,
+                 data_producer: DataSource,
+                 time_constraint: Optional[timedelta] = None,
+                 validation_blocks: Optional[int] = None,
+                 pipelines_cache: Optional[OperationsCache] = None,
+                 preprocessing_cache: Optional[PreprocessingCache] = None):
         super().__init__(objective)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
-        self._cache = cache
+        self._pipelines_cache = pipelines_cache
+        self._preprocessing_cache = preprocessing_cache
         self._log = default_log(self)
 
     def evaluate(self, graph: Pipeline) -> Fitness:
@@ -50,7 +58,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             try:
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
             except Exception as ex:
-                self._log.warn(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
+                self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
                 continue
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
@@ -58,7 +66,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             if evaluated_fitness.valid:
                 folds_metrics.append(evaluated_fitness.values)
             else:
-                self._log.warn(f'Continuing after objective evaluation error for graph: {graph_id}')
+                self._log.warning(f'Continuing after objective evaluation error for graph: {graph_id}')
                 continue
 
         if folds_metrics:
@@ -77,12 +85,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         """
         graph.fit(
             train_data,
-            use_fitted=graph.fit_from_cache(self._cache, fold_id),
-            time_constraint=self._time_constraint
+            use_fitted=graph.fit_from_cache(self._pipelines_cache, fold_id),
+            time_constraint=self._time_constraint,
+            preprocessing_cache=self._preprocessing_cache
         )
-
-        if self._cache is not None:
-            self._cache.save_pipeline(graph, fold_id)
+        if self._pipelines_cache is not None:
+            self._pipelines_cache.save_pipeline(graph, fold_id)
         return graph
 
     def evaluate_intermediate_metrics(self, graph: Pipeline):
