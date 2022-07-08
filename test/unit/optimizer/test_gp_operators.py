@@ -154,9 +154,9 @@ def test_filter_duplicates():
     population_fitness = ((0.8, 0.25), (0.59, 0.25), (0.9, 0.7), (0.7, 0.1))
     weights = (-1, 1)
     for ind_num in range(len(archive_items)):
-        archive_items[ind_num].set_fitness(MultiObjFitness(values=archive_items_fitness[ind_num], weights=weights))
+        archive_items[ind_num].set_evaluation_result(MultiObjFitness(values=archive_items_fitness[ind_num], weights=weights))
     for ind_num in range(len(population)):
-        population[ind_num].set_fitness(MultiObjFitness(values=population_fitness[ind_num], weights=weights))
+        population[ind_num].set_evaluation_result(MultiObjFitness(values=population_fitness[ind_num], weights=weights))
     archive.update(archive_items)
     filtered_archive = filter_duplicates(archive, population)
     assert len(filtered_archive) == 1

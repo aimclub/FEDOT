@@ -122,7 +122,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         ind_graph = self._graph_adapter.adapt(adapted_graph)
 
-        ind.set_fitness_and_graph(ind_fitness, ind_graph)
+        ind.set_evaluation_result(ind_fitness, ind_graph)
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
@@ -180,7 +180,9 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
         graph = ind.graph
         adapted_graph = self._graph_adapter.restore(graph)
-        ind.set_fitness_and_graph(self._objective_eval(adapted_graph), self._graph_adapter.adapt(adapted_graph))
+        ind_fitness = self._objective_eval(adapted_graph)
+        ind_graph = self._graph_adapter.adapt(adapted_graph)
+        ind.set_evaluation_result(ind_fitness, ind_graph)
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         return ind if ind.fitness.valid else None

@@ -49,8 +49,7 @@ def _get_individuals_from_uid_list(uid_list: List[Union[str, Individual]],
                                    uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
 
     def get_missing_individual(uid: str) -> Individual:
-        individual = Individual(OptGraph(), **MISSING_INDIVIDUAL_ARGS)
-        individual.set_uid(uid)
+        individual = Individual(OptGraph(), **MISSING_INDIVIDUAL_ARGS, uid=uid)
         return individual
 
     def uid_to_individual_mapper(uid: Union[str, Individual]) -> Individual:

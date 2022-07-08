@@ -21,7 +21,7 @@ class Individual:
     metadata: Dict[str, Any] = field(default_factory=dict)
     native_generation: Optional[int] = None
     fitness: Fitness = field(default_factory=null_fitness, init=False)
-    uid: str = field(default_factory=lambda: str(uuid4()), init=False)
+    uid: str = field(default_factory=lambda: str(uuid4()))
 
     def __eq__(self, other: 'Individual'):
         return self.uid == other.uid
@@ -30,19 +30,12 @@ class Individual:
         if self.native_generation is None:
             super().__setattr__('native_generation', native_generation)
 
-    def set_fitness(self, fitness: Fitness):
-        if self.fitness.valid:
-            raise ValueError
-        super().__setattr__('fitness', fitness)
-
-    def set_fitness_and_graph(self, fitness: Fitness, graph: OptGraph):
+    def set_evaluation_result(self, fitness: Fitness, updated_graph: Optional[OptGraph] = None):
         if self.fitness.valid:
             raise ValueError('The individual has valid fitness and can not be evaluated again.')
         super().__setattr__('fitness', fitness)
-        super().__setattr__('graph', graph)
-
-    def set_uid(self, uid: str):
-        super().__setattr__('uid', uid)
+        if updated_graph is not None:
+            super().__setattr__('graph', updated_graph)
 
     def __copy__(self):
         warnings.warn(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, stacklevel=3)

@@ -17,9 +17,9 @@ def create_individual():
     final = OptNode(content={'name': 'knn', 'params': DEFAULT_PARAMS_STUB},
                     nodes_from=[first, second])
 
-    indiviual = Individual(graph=OptGraph(final))
-    indiviual.set_fitness(SingleObjFitness(1))
-    return indiviual
+    individual = Individual(graph=OptGraph(final))
+    individual.set_evaluation_result(SingleObjFitness(1))
+    return individual
 
 
 def generate_history(generations_quantity, pop_size):

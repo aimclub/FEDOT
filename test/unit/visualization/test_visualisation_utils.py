@@ -89,7 +89,7 @@ def test_extract_objectives():
     fitness = (-0.8, 0.1)
     weights = tuple([-1 for _ in range(len(fitness))])
     for ind in individuals:
-        ind.set_fitness(MultiObjFitness(values=fitness, weights=weights))
+        ind.set_evaluation_result(MultiObjFitness(values=fitness, weights=weights))
     populations_num = 3
     individuals_history = [individuals for _ in range(populations_num)]
     all_objectives = visualiser.extract_objectives(individuals=individuals_history, transform_from_minimization=True)

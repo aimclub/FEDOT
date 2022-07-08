@@ -14,7 +14,7 @@ def create_individual(fitness: Fitness = None) -> Individual:
     first = OptNode(content={'name': 'logit', 'params': DEFAULT_PARAMS_STUB})
     graph = OptGraph(first)
     individual = Individual(graph)
-    individual.set_fitness(fitness or null_fitness())
+    individual.set_evaluation_result(fitness or null_fitness())
     return individual
 
 
