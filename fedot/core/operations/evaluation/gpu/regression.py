@@ -1,4 +1,10 @@
-import cudf
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    import cudf
+except ModuleNotFoundError:
+    warn_requirement('cudf')
+    cudf = None
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy

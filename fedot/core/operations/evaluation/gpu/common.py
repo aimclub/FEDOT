@@ -1,16 +1,23 @@
 import warnings
 from typing import Optional
 
-import cudf
-import cuml
-from cuml import KMeans, Ridge, LogisticRegression, Lasso, ElasticNet, \
-    MBSGDClassifier, MBSGDRegressor, CD
-from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
-from cuml.svm import SVC
-from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
-    KNeighborsRegressor as CuMlknnRegressor
-from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
-    MultinomialNB as CuMlMultinomialNB
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    import cudf
+    import cuml
+    from cuml import KMeans, Ridge, LogisticRegression, Lasso, ElasticNet, \
+        MBSGDClassifier, MBSGDRegressor, CD
+    from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
+    from cuml.svm import SVC
+    from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
+        KNeighborsRegressor as CuMlknnRegressor
+    from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
+        MultinomialNB as CuMlMultinomialNB
+except ModuleNotFoundError:
+    warn_requirement('cuml')
+    cudf = None
+    cuml = None
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
@@ -26,25 +33,26 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
     data operation repositories
     :param dict params: hyperparameters to fit the operation with
     """
-    __operations_by_types = {
-        'ridge': Ridge,
-        'lasso': Lasso,
-        'logit': LogisticRegression,
-        'linear': CuMlLinReg,
-        'rf': RandomForestClassifier,
-        'rfr': RandomForestRegressor,
-        'svc': SVC,
-        'knn': CuMlknnClassifier,
-        'knnreg': CuMlknnRegressor,
-        'sgd': CuMlSGD,
-        'multinb': CuMlMultinomialNB,
-        'elasticnet': ElasticNet,
-        'mbsgdclass': MBSGDClassifier,
-        'mbsgdcregr': MBSGDRegressor,
-        'cd': CD
-
-
-    }
+    try:
+        __operations_by_types = {
+            'ridge': Ridge,
+            'lasso': Lasso,
+            'logit': LogisticRegression,
+            'linear': CuMlLinReg,
+            'rf': RandomForestClassifier,
+            'rfr': RandomForestRegressor,
+            'svc': SVC,
+            'knn': CuMlknnClassifier,
+            'knnreg': CuMlknnRegressor,
+            'sgd': CuMlSGD,
+            'multinb': CuMlMultinomialNB,
+            'elasticnet': ElasticNet,
+            'mbsgdclass': MBSGDClassifier,
+            'mbsgdcregr': MBSGDRegressor,
+            'cd': CD
+        }
+    except NameError:
+        warn_requirement('cuml')
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
