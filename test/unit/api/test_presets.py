@@ -108,4 +108,4 @@ def test_gpu_preset():
     assert len(operations_for_gpu) > 0
 
     # return repository state after test
-    OperationTypesRepository.init_default_repositories()
+    OperationTypesRepository.assign_repo('model', 'model_repository.json')
