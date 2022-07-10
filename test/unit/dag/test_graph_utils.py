@@ -1,4 +1,4 @@
-from typing import Tuple, List, Optional, Iterable
+from typing import Tuple, List, Optional, Iterable, Callable
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -16,3 +16,7 @@ def graphs_same(left: Graph, right: Graph) -> bool:
 
 def find_same_node(nodes: List[GraphNode], target: GraphNode) -> Optional[GraphNode]:
     return next(filter(lambda n: n.descriptive_id == target.descriptive_id, nodes), None)
+
+
+def find_first(graph, predicate: Callable[[GraphNode], bool]) -> Optional[GraphNode]:
+    return next(filter(predicate, graph.nodes), None)
