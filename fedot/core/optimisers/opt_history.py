@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any, List, Optional, Sequence, Union
 from warnings import warn
 
+from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
 # ParentOperator is needed for backward compatibility with older optimization histories.
@@ -30,7 +31,8 @@ class OptHistory:
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
-        self.save_folder = save_folder
+        self.save_folder: Optional[str] = save_folder
+        self._log = default_log(self)
 
     def is_empty(self) -> bool:
         return not self.individuals

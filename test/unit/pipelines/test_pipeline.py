@@ -427,13 +427,6 @@ def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
     assert is_tuning_finished
 
 
-def test_pipeline_structure_print_correct():
-    pipeline = Pipeline(PrimaryNode('ridge'))
-    pipeline.print_structure()
-    is_print_was_correct = True
-    assert is_print_was_correct
-
-
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
 def test_pipeline_unfit(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
