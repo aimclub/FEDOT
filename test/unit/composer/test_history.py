@@ -1,4 +1,3 @@
-import itertools
 import os
 from functools import partial
 from itertools import chain
@@ -12,13 +11,13 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
+from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.operations.model import Model
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory
@@ -72,11 +71,7 @@ def test_ancestor_for_mutation():
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
 
-    mutation_result = mutation(types=[MutationTypesEnum.simple],
-                               params=graph_params,
-                               individual=parent_ind,
-                               requirements=composer_requirements, max_depth=2)
-    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, ind=parent_ind,
+    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, individual=parent_ind,
                                requirements=composer_requirements, max_depth=2)
 
     assert len(mutation_result.parent_operators) > 0
