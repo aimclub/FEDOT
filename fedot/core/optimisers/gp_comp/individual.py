@@ -7,7 +7,6 @@ from uuid import uuid4
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
 
-ERROR_PREFIX = 'Invalid graph configuration:'
 INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
                                       'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n' \
                                       'If this happened during the optimization process, this is a misusage ' \
