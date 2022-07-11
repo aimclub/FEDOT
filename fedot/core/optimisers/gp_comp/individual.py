@@ -17,10 +17,10 @@ INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
 @dataclass(frozen=True)
 class Individual:
     graph: OptGraph
-    parent_operators: Tuple['ParentOperator', ...] = field(default_factory=list)
+    parent_operators: Tuple['ParentOperator', ...] = field(default=())
     metadata: Dict[str, Any] = field(default_factory=dict)
     native_generation: Optional[int] = None
-    fitness: Fitness = field(default_factory=null_fitness, init=False)
+    fitness: Fitness = field(default_factory=null_fitness)
     uid: str = field(default_factory=lambda: str(uuid4()))
 
     def set_native_generation(self, native_generation):
