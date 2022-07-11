@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -19,7 +20,7 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
             self.model_name = 'glove-twitter-25'
         else:
             self.model_name = params.get('model_name')
-
+        self.logger = default_log(prefix='FEDOT logger')
         self._download_model_resources()
         super().__init__()
 
@@ -67,11 +68,11 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
 
     def _download_model_resources(self):
         """ Method for downloading text embeddings. Embeddings are loaded into external folder"""
-        print('Trying to download embeddings...')
+        self.logger.info('Trying to download embeddings...')
         model_path = api.load(f"{self.model_name}", return_path=True)
 
         if os.path.exists(model_path):
-            print('Embeddings are already downloaded. Loading model...')
+            self.logger.info('Embeddings are already downloaded. Loading model...')
             self.model = KeyedVectors.load_word2vec_format(model_path, binary=False)
 
     def get_params(self):

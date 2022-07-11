@@ -43,7 +43,7 @@ class DataAnalyser:
                     recommendations['cut'] = {'border': border}
                 is_label_encoding_needed = self.control_categorical(input_data)
                 if is_label_encoding_needed:
-                    recommendations['label_encoded'] = {'source_name': source_name}
+                    recommendations['label_encoded'] = {}
         return recommendations
 
     def control_size(self, input_data: InputData) -> Tuple[bool, Any]:
