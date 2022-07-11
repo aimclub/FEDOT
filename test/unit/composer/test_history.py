@@ -8,12 +8,10 @@ import numpy as np
 import pytest
 
 from fedot.api.main import Fedot
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -24,12 +22,11 @@ from fedot.core.operations.model import Model
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, \
     RegressionMetricsEnum, MetricType
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -68,18 +65,19 @@ def test_ancestor_for_mutation():
     adapter = PipelineAdapter()
     parent_ind = Individual(adapter.adapt(pipeline))
 
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                         advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.regression)),
-                                         rules_for_constraint=DEFAULT_DAG_RULES)
     available_operations = ['linear']
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations, mutation_prob=1)
 
+    graph_params = get_pipeline_generation_params(requirements=composer_requirements,
+                                                  rules_for_constraint=DEFAULT_DAG_RULES)
+
     mutation_result = mutation(types=[MutationTypesEnum.simple],
                                params=graph_params,
                                individual=parent_ind,
-                               requirements=composer_requirements,
-                               log=default_log(__name__), max_depth=2)
+                               requirements=composer_requirements, max_depth=2)
+    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, ind=parent_ind,
+                               requirements=composer_requirements, max_depth=2)
 
     assert len(mutation_result.parent_operators) > 0
     assert mutation_result.parent_operators[-1].operator_type == 'mutation'
@@ -92,14 +90,10 @@ def test_ancestor_for_crossover():
     parent_ind_first = Individual(adapter.adapt(Pipeline(PrimaryNode('linear'))))
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                         advisor=PipelineChangeAdvisor(task=Task(TaskTypesEnum.regression)),
-                                         rules_for_constraint=DEFAULT_DAG_RULES)
+    graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
 
-    crossover_results = crossover([CrossoverTypesEnum.subtree],
-                                  parent_ind_first, parent_ind_second,
-                                  params=graph_params, max_depth=3, log=default_log(__name__),
-                                  crossover_prob=1)
+    crossover_results = crossover([CrossoverTypesEnum.subtree], parent_ind_first, parent_ind_second, max_depth=3,
+                                  crossover_prob=1, params=graph_params)
 
     for crossover_result in crossover_results:
         assert len(crossover_result.parent_operators) > 0
@@ -116,7 +110,7 @@ def test_newly_generated_history():
     num_of_gens = 2
     auto_model = Fedot(problem='classification', seed=42,
                        timeout=None,
-                       composer_params={'num_of_generations': num_of_gens, 'pop_size': 3},
+                       num_of_generations=num_of_gens, pop_size=3,
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
@@ -155,8 +149,7 @@ def assert_intermediate_metrics(pipeline: Graph):
                            RegressionMetricsEnum.RMSE),
                           ])
 def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, metric: MetricType):
-    adapter = PipelineAdapter()
-    graph_gen_params = GraphGenerationParams(adapter)
+    graph_gen_params = get_pipeline_generation_params()
     metrics = [metric]
 
     objective_builder = DataObjectiveBuilder(Objective(metrics))
@@ -165,9 +158,9 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     dispatcher.set_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
     evaluate = dispatcher.dispatch(objective_eval)
 
-    population = [Individual(adapter.adapt(pipeline))]
+    population = [Individual(graph_gen_params.adapter.adapt(pipeline))]
     evaluated_pipeline = evaluate(population)[0].graph
-    restored_pipeline = adapter.restore(evaluated_pipeline)
+    restored_pipeline = graph_gen_params.adapter.restore(evaluated_pipeline)
 
     assert_intermediate_metrics(restored_pipeline)
 

@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from functools import partial
@@ -84,13 +85,13 @@ def test_synthetic_regression_automl():
     test_data.target = ground_truth.predict
 
     # run automl
-    auto_model = Fedot(problem='regression', verbose_level=0, timeout=1,
-                       composer_params={'composer_metric': metric_func,
-                                        'cv_folds': None,
-                                        'available_operations': ['rfe_lin_reg',
-                                                                 'rfe_non_lin_reg',
-                                                                 'ridge',
-                                                                 'linear']},
+    auto_model = Fedot(problem='regression', verbose_level=logging.ERROR, timeout=1,
+                       composer_metric=metric_func,
+                       cv_folds=None,
+                       available_operations=['rfe_lin_reg',
+                                             'rfe_non_lin_reg',
+                                             'ridge',
+                                             'linear'],
                        preset='best_quality')
     auto_model.fit(features=test_data.features, target=test_data.target)
 

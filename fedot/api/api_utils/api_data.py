@@ -8,7 +8,6 @@ from fedot.api.api_utils.data_definition import data_strategy_selector
 from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
@@ -26,9 +25,9 @@ class ApiDataProcessor:
     Data preprocessing such a class performing also
     """
 
-    def __init__(self, task: Task, log: Optional[Log] = None):
+    def __init__(self, task: Task):
         self.task = task
-        self.preprocessor = DataPreprocessor(log)
+        self.preprocessor = DataPreprocessor()
 
         # Dictionary with recommendations (e.g. 'cut' for cutting dataset, 'label_encode'
         # to encode features using label encoder). Parameters for transformation provided also

@@ -2,18 +2,19 @@ from datetime import timedelta
 from functools import partial
 from typing import Optional
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.repository.tasks import TaskTypesEnum
-from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
+from fedot.core.validation.split import tabular_cv_generator, ts_cv_generator
 from fedot.remote.remote_evaluator import RemoteEvaluator, init_data_for_remote_execution
 from .data_objective_advisor import DataObjectiveAdvisor
+from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
 from .objective import Objective
 from .objective_eval import ObjectiveEvaluate
-from .data_objective_eval import DataSource, PipelineObjectiveEvaluate
 from ...constants import default_data_split_ratio_by_task
 
 
@@ -24,16 +25,17 @@ class DataObjectiveBuilder:
                  max_pipeline_fit_time: Optional[timedelta] = None,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
-                 cache: Optional[OperationsCache] = None,
-                 log: Log = None):
+                 pipelines_cache: Optional[OperationsCache] = None,
+                 preprocessing_cache: Optional[PreprocessingCache] = None):
 
         self.objective = objective
         self.max_pipeline_fit_time = max_pipeline_fit_time
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
-        self.cache = cache
         self.advisor = DataObjectiveAdvisor()
-        self.log = log or default_log(self.__class__.__name__)
+        self._pipelines_cache = pipelines_cache
+        self._preprocessing_cache = preprocessing_cache
+        self.log = default_log(self)
 
     def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
         """ Compose evaluator object with desired parameters """
@@ -42,14 +44,18 @@ class DataObjectiveBuilder:
         else:
             data_producer = self._build_holdout_producer(data, **kwargs)
 
-        objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective,
-                                                       data_producer=data_producer,
+        objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective, data_producer=data_producer,
                                                        time_constraint=self.max_pipeline_fit_time,
                                                        validation_blocks=self.validation_blocks,
-                                                       cache=self.cache, log=self.log)
+                                                       pipelines_cache=self._pipelines_cache,
+                                                       preprocessing_cache=self._preprocessing_cache)
         return objective_evaluate
 
-    def _build_holdout_producer(self, data: InputData, **kwargs) -> DataSource:
+    @staticmethod
+    def _data_producer(train_data: InputData, test_data: InputData):
+        yield train_data, test_data
+
+    def _build_holdout_producer(self, data: InputData, **kwargs: dict) -> DataSource:
         """
         Build trivial data producer for hold-out validation
         that always returns same data split. Equivalent to 1-fold validation.
@@ -60,12 +66,10 @@ class DataObjectiveBuilder:
         train_data, test_data = train_test_data_setup(data, split_ratio,
                                                       **{'validation_blocks': kwargs.get('validation_blocks')})
 
-        def data_producer(): yield train_data, test_data
-
         if RemoteEvaluator().use_remote:
             init_data_for_remote_execution(train_data)
 
-        return data_producer
+        return partial(self._data_producer, train_data, test_data)
 
     def _build_kfolds_producer(self, data: InputData) -> DataSource:
         if isinstance(data, MultiModalData):

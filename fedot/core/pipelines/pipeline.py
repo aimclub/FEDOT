@@ -4,13 +4,14 @@ from typing import Callable, List, Optional, Tuple, Union
 
 import func_timeout
 
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.data_operation import DataOperation
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
@@ -28,17 +29,15 @@ class Pipeline(Graph):
     Base class used for composite model structure definition
 
     :param nodes: Node object(s)
-    :param log: Log object to record messages
     """
 
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None,
-                 log: Optional[Log] = None):
+    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
         self.computation_time = None
         self.template = None
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
         # Define data preprocessor
-        self.preprocessor = DataPreprocessor(self.log)
+        self.preprocessor = DataPreprocessor()
         super().__init__(nodes)
         self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
 
@@ -112,7 +111,7 @@ class Pipeline(Graph):
         :param fitted_operations: this list is used for saving fitted operations of pipeline nodes
         """
 
-        with Timer(log=self.log) as t:
+        with Timer() as t:
             computation_time_update = not use_fitted_operations or not self.root_node.fitted_operation or \
                                       self.computation_time is None
             train_predicted = self.root_node.fit(input_data=input_data)
@@ -127,8 +126,9 @@ class Pipeline(Graph):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted=False,
-            time_constraint: Optional[timedelta] = None, n_jobs=1) -> OutputData:
+    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted: bool = False,
+            time_constraint: Optional[timedelta] = None, n_jobs=1,
+            preprocessing_cache: Optional[PreprocessingCache] = None) -> OutputData:
         """
         Run training process in all nodes in pipeline starting with root.
 
@@ -140,20 +140,20 @@ class Pipeline(Graph):
         """
         _replace_n_jobs_in_nodes(self, n_jobs)
 
-        if not use_fitted:
-            self.unfit(mode='all', unfit_preprocessor=True)
-        else:
+        if use_fitted:
             self.unfit(mode='data_operations', unfit_preprocessor=False)
+        else:
+            self.unfit(mode='all', unfit_preprocessor=True)
+        with PreprocessingCache.manage(preprocessing_cache, self, input_data):
+            # Make copy of the input data to avoid performing inplace operations
+            copied_input_data = deepcopy(input_data)
+            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+            # Make additional preprocessing if it is needed
+            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                           data=copied_input_data)
 
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-        # Make additional preprocessing if it is needed
-        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                       data=copied_input_data)
-
-        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                      data=copied_input_data)
+            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                          data=copied_input_data)
 
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
@@ -172,7 +172,7 @@ class Pipeline(Graph):
 
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
         """
-        Remove fitted operations for all nodes.
+        Remove fitted operations for chosen type of nodes.
 
         :param mode:
             - 'all' - All models will be unfitted
@@ -184,7 +184,7 @@ class Pipeline(Graph):
                 node.unfit()
 
         if unfit_preprocessor:
-            self.preprocessor = DataPreprocessor(self.log)
+            self.preprocessor = DataPreprocessor()
 
     def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
         return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
@@ -265,7 +265,7 @@ class Pipeline(Graph):
         :param datetime_in_path flag for addition of the datetime stamp to saving path
         :return: json containing a composite operation description
         """
-        self.template = PipelineTemplate(self, self.log)
+        self.template = PipelineTemplate(self)
         json_object, dict_fitted_operations = self.template.export_pipeline(path, root_node=self.root_node,
                                                                             datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
@@ -278,7 +278,7 @@ class Pipeline(Graph):
         :param dict_fitted_operations dictionary of the fitted operations
         """
         self.nodes = []
-        self.template = PipelineTemplate(self, self.log)
+        self.template = PipelineTemplate(self)
         self.template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other) -> bool:

@@ -44,24 +44,26 @@ class TaskAssumptions:
 class TSForecastingAssumptions(TaskAssumptions):
     """ Simple static dictionary-based assumptions for time series forecasting task. """
 
-    builders = {
-        'glm_ridge':
-            PipelineBuilder()
-            .add_branch('glm', 'lagged')
-            .add_node('ridge', branch_idx=1)
-            .join_branches('ridge'),
-        'lagged_ridge':
-            PipelineBuilder()
-            .add_sequence('lagged', 'ridge'),
-        'polyfit_ridge':
-            PipelineBuilder()
-            .add_branch('polyfit', 'lagged')
-            .grow_branches(None, 'ridge')
-            .join_branches('ridge'),
-        'smoothing_ar':
-            PipelineBuilder()
-            .add_sequence('smoothing', 'ar'),
-    }
+    @property
+    def builders(self):
+        return {
+            'glm_ridge':
+                PipelineBuilder()
+                .add_branch('glm', 'lagged')
+                .add_node('ridge', branch_idx=1)
+                .join_branches('ridge'),
+            'lagged_ridge':
+                PipelineBuilder()
+                .add_sequence('lagged', 'ridge'),
+            'polyfit_ridge':
+                PipelineBuilder()
+                .add_branch('polyfit', 'lagged')
+                .grow_branches(None, 'ridge')
+                .join_branches('ridge'),
+            'smoothing_ar':
+                PipelineBuilder()
+                .add_sequence('smoothing', 'ar'),
+        }
 
     def ensemble_operation(self) -> str:
         return 'ridge'
@@ -81,10 +83,12 @@ class TSForecastingAssumptions(TaskAssumptions):
 class RegressionAssumptions(TaskAssumptions):
     """ Simple static dictionary-based assumptions for regression task. """
 
-    builders = {
-        'rfr': PipelineBuilder().add_node('rfr'),
-        'ridge': PipelineBuilder().add_node('ridge'),
-    }
+    @property
+    def builders(self):
+        return {
+            'rfr': PipelineBuilder().add_node('rfr'),
+            'ridge': PipelineBuilder().add_node('ridge'),
+        }
 
     def ensemble_operation(self) -> str:
         return 'rfr'
@@ -100,10 +104,12 @@ class RegressionAssumptions(TaskAssumptions):
 class ClassificationAssumptions(TaskAssumptions):
     """ Simple static dictionary-based assumptions for classification task. """
 
-    builders = {
-        'rf': PipelineBuilder().add_node('rf'),
-        'logit': PipelineBuilder().add_node('logit'),
-    }
+    @property
+    def builders(self):
+        return {
+            'rf': PipelineBuilder().add_node('rf'),
+            'logit': PipelineBuilder().add_node('logit'),
+        }
 
     def ensemble_operation(self) -> str:
         return 'rf'

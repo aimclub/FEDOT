@@ -20,7 +20,7 @@ class AtomizedModel(Operation):
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
         self.unique_id = self.pipeline.root_node.descriptive_id
-        self.atomized_preprocessor = DataPreprocessor(self.log)
+        self.atomized_preprocessor = DataPreprocessor()
 
     def fit(self, params: Optional[Union[str, dict]], data: InputData,
             is_fit_pipeline_stage: bool = True,

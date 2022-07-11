@@ -10,11 +10,12 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 class MultiModalData(dict):
     """ Dictionary with InputData as values and primary node names as keys """
+
     def __init__(self, *arg, **kw):
         super(MultiModalData, self).__init__(*arg, **kw)
 
         # Check if input data contains different targets
-        self.contain_side_inputs = not all([value.supplementary_data.is_main_target for value in self.values()])
+        self.contain_side_inputs = not all(value.supplementary_data.is_main_target for value in self.values())
 
     @property
     def idx(self):

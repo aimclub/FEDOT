@@ -10,15 +10,19 @@ from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
 from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
+from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 from test.unit.common_tests import is_predict_ignores_target
@@ -28,12 +32,10 @@ from test.unit.tasks.test_forecasting import get_ts_data
 from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 default_params = {
-    'preset': 'fast_train',
     'timeout': 0.1,
-    'composer_params': {
-        'max_depth': 1,
-        'max_arity': 2,
-    }
+    'preset': 'fast_train',
+    'max_depth': 1,
+    'max_arity': 2,
 }
 
 
@@ -127,7 +129,6 @@ def data_with_binary_features_and_categorical_target():
     (TaskTypesEnum.regression, 'dtreg', 'rmse'),
 ])
 def test_api_predict_correct(task_type, predefined_model, metric_name):
-
     task_type = task_type.value
 
     train_data, test_data, _ = get_dataset(task_type)
@@ -250,10 +251,7 @@ def test_multiobj_for_api():
 
     params = {
         **default_params,
-        'composer_params': {
-            **default_params['composer_params'],
-            'composer_metric': ['f1', 'node_num']
-        }
+        'composer_metric': ['f1', 'node_num']
     }
 
     model = Fedot(problem='classification', **params)
@@ -351,11 +349,7 @@ def test_unshuffled_data():
     problem = 'classification'
     params = {
         **default_params,
-        'composer_params': {
-            **default_params['composer_params'],
-            'metric': 'f1'
-        }
-    }
+        'composer_metric': 'f1'}
 
     auto_model = Fedot(problem=problem, seed=42, **params)
     pipeline = auto_model.fit(features=features, target=target)
@@ -369,11 +363,7 @@ def test_custom_history_folder_define_correct():
 
     params = {
         **default_params,
-        'composer_params': {
-            **default_params['composer_params'],
-            'history_folder': custom_path
-        }
-    }
+        'history_folder': custom_path}
 
     model = Fedot(problem='ts_forecasting', **params,
                   task_params=TsForecastingParams(forecast_length=5))
@@ -418,3 +408,68 @@ def test_data_from_csv_load_correctly():
 
     assert train_input.target.shape == (14, 1)
     assert test_input.target is None
+
+
+def test_api_params():
+    """ Test checks if all params from api are processed and divided correctly"""
+    default_int_value = 2
+
+    api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
+                  'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
+                  'verbose_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
+                  'max_depth': default_int_value, 'max_arity': default_int_value,
+                  'stopping_after_n_generation': default_int_value, 'pop_size': default_int_value,
+                  'num_of_generations': default_int_value, 'available_operations': ['lagged', 'ridge'],
+                  'with_tuning': True, 'cv_folds': default_int_value, 'max_pipeline_fit_time': default_int_value,
+                  'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').to_pipeline(),
+                  'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
+                  'composer_metric': RegressionMetricsEnum.SMAPE, 'tuner_metric': RegressionMetricsEnum.MAPE,
+                  'collect_intermediate_metric': True, 'preset': 'fast_train',
+                  'optimizer_external_params': {'path': default_int_value}}
+
+    correct_api_params = {'n_jobs': default_int_value,
+                          'task': Task(task_type=TaskTypesEnum.ts_forecasting,
+                                       task_params=TsForecastingParams(forecast_length=2)),
+                          'timeout': default_int_value,
+                          'train_data': None}
+    correct_composer_params = {'available_operations': ['lagged', 'ridge'],
+                               'collect_intermediate_metric': True,
+                               'composer_metric': RegressionMetricsEnum.SMAPE,
+                               'cv_folds': default_int_value,
+                               'genetic_scheme': GeneticSchemeTypesEnum.steady_state,
+                               'history_folder': 'history',
+                               'initial_assumption': PipelineBuilder().add_node('lagged').add_node(
+                                   'ridge').to_pipeline(),
+                               'max_arity': default_int_value,
+                               'max_depth': default_int_value,
+                               'max_pipeline_fit_time': default_int_value,
+                               'num_of_generations': default_int_value,
+                               'optimizer': None,
+                               'pop_size': default_int_value,
+                               'preset': 'fast_train',
+                               'stopping_after_n_generation': default_int_value,
+                               'validation_blocks': default_int_value,
+                               'optimizer_external_params': {'path': default_int_value},
+                               'use_pipelines_cache': True, 'use_preprocessing_cache': True}
+    correct_tuner_params = {'tuner_metric': RegressionMetricsEnum.MAPE, 'with_tuning': True}
+
+    model = Fedot(**api_params)
+    api_params, composer_params, tuner_params = _divide_parameters(model.params.api_params)
+
+    for key in correct_api_params.keys():
+        assert correct_api_params[key] == api_params[key]
+
+    for key in correct_composer_params.keys():
+        assert correct_composer_params[key] == composer_params[key]
+
+    for key in correct_tuner_params.keys():
+        assert correct_tuner_params[key] == tuner_params[key]
+
+
+def test_unknown_param_raises_error():
+    api_params = {'problem': 'classification', 'unknown': 2}
+    try:
+        model = Fedot(**api_params)
+        _divide_parameters(model.params.api_params)
+    except KeyError as e:
+        assert str(e) == "'Invalid key parameter unknown'"

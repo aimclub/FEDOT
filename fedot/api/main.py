@@ -1,7 +1,8 @@
-import traceback
+import logging
+
 from copy import deepcopy
 from inspect import signature
-from typing import List, Optional, Tuple, Union, Collection, Sequence
+from typing import List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -9,18 +10,14 @@ import pandas as pd
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.api_utils.api_data_analyser import DataAnalyser
-from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.metrics import ApiMetrics
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.predefined_model import PredefinedModel
 from fedot.core.constants import DEFAULT_API_TIMEOUT_MINUTES
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
-from fedot.core.log import Log, default_log
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
@@ -46,59 +43,55 @@ class Fedot:
         - classification
         - regression
         - ts_forecasting
-        - clustering
-    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
-        - 'best_quality' - All models that are available for this data type and task are used
-        - 'fast_train' - Models that learn quickly. This includes preprocessing operations
-            (data operations) that only reduce the dimensionality of the data, but cannot increase
-             it. For example, there are no polynomial features and one-hot encoding operations
-        - 'stable' - The most reliable preset in which the most stable operations are included.
-        - 'auto' - Automatically determine which preset should be used.
-        - 'gpu' - Models that use GPU resources for computation.
-        - 'ts' - A special preset with models for time series forecasting task.
-        - 'automl' - A special preset with only AutoML libraries such as TPOT and H2O as operations.
-        - '*tree' - A special preset that allows only tree-based algorithms
     :param timeout: time for model design (in minutes)
         - None or -1 means infinite time
-    :param composer_params: parameters of pipeline optimisation
-        The possible parameters are:
-            'max_depth' - max depth of the pipeline
-            'max_arity' - max arity of the pipeline nodes
-            'pop_size' - population size for composer
-            'num_of_generations' - number of generations for composer
-            'available_operations' - list of model names to use
-            'with_tuning' - allow hyperparameters tuning for the model
-            'cv_folds' - number of folds for cross-validation
-            'max_pipeline_fit_time' - time constraint for operation fitting (minutes)
-            'validation_blocks' - number of validation blocks for time series forecasting
-            'initial_assumption' - initial assumption for composer
-            'genetic_scheme' - name of the genetic scheme
-            'history_folder' - name of the folder for composing history
-            'metric' - metric for quality calculation during composing
-            'collect_intermediate_metric' - save metrics for intermediate (non-root) nodes in pipeline
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
-    :param verbose_level: level of the output detailing
-        (-1 - nothing, 0 - errors, 1 - messages,
-        2 - warnings and info, 3-4 - basic and detailed debug)
+    :param verbose_level: level of the output detailing. Verbosity levels are the same as in 'logging'
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
-    :param initial_assumption: initial assumption for composer
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
-    :param use_cache: bool indicating if it is needed to use pipeline structures caching
+
+    Keywords arguments:
+    :param max_depth: max depth of the pipeline
+    :param max_arity: max arity of the pipeline nodes
+    :param pop_size: population size for composer
+    :param num_of_generations: number of generations for composer
+    :param available_operations: list of model names to use
+    :param stopping_after_n_generation': - composer will stop after n generation without improving
+    :param with_tuning: allow hyperparameters tuning for the model
+    :param cv_folds: number of folds for cross-validation
+    :param validation_blocks: number of validation blocks for time series forecasting
+    :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
+    :param initial_assumption: initial assumption for composer
+    :param genetic_scheme: name of the genetic scheme
+    :param history_folder: name of the folder for composing history
+    :param composer_metric:  metric for quality calculation during composing
+    :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
+    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
+        - 'best_quality: All models that are available for this data type and task are used
+        - 'fast_train: Models that learn quickly. This includes preprocessing operations
+            (data operations) that only reduce the dimensionality of the data, but cannot increase
+             it. For example, there are no polynomial features and one-hot encoding operations
+        - 'stable: The most reliable preset in which the most stable operations are included.
+        - 'auto: Automatically determine which preset should be used.
+        - 'gpu: Models that use GPU resources for computation.
+        - 'ts: A special preset with models for time series forecasting task.
+        - 'automl: A special preset with only AutoML libraries such as TPOT and H2O as operations.
+        - '*tree: A special preset that allows only tree-based algorithms
+    :param tuner_metric:  metric for quality calculation during tuning
+    :param use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
+    :param use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
     """
 
     def __init__(self,
                  problem: str,
-                 preset: str = None,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
-                 composer_params: dict = None,
                  task_params: TaskParams = None,
-                 seed=None, verbose_level: int = 0,
+                 seed=None, verbose_level: int = logging.ERROR,
                  safe_mode=True,
-                 initial_assumption: Union[Pipeline, List[Pipeline]] = None,
                  n_jobs: int = 1,
-                 use_cache: bool = False
+                 **composer_tuner_params
                  ):
 
         # Classes for dealing with metrics, data sources and hyperparameters
@@ -107,23 +100,17 @@ class Fedot:
         self.params = ApiParams()
 
         # Define parameters, that were set via init in init
-        input_params = {'problem': self.metrics.main_problem, 'preset': preset, 'timeout': timeout,
-                        'composer_params': composer_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level,
-                        'initial_assumption': initial_assumption, 'n_jobs': n_jobs, 'use_cache': use_cache}
+        input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
+                        'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
+                        'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs}
         self.params.initialize_params(input_params)
 
-        # Initialize ApiComposer's parameters via ApiParams
-        self.api_composer.init_cache(**{k: input_params[k] for k in signature(self.api_composer.init_cache).parameters})
-
-        # Get metrics for optimization
-        metric_name = self.params.api_params['metric_name']
-        self.task_metrics, self.composer_metrics, self.tuner_metrics = self.metrics.get_metrics_for_task(metric_name)
-        self.params.api_params['tuner_metric'] = self.tuner_metrics
+        # Initialize ApiComposer's cache parameters via ApiParams
+        self.api_composer.init_cache(
+            **{k: self.params.api_params[k] for k in signature(self.api_composer.init_cache).parameters})
 
         # Initialize data processors for data preprocessing and preliminary data analysis
-        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'],
-                                               log=self.params.api_params['logger'])
+        self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
         self.data_analyser = DataAnalyser(safe_mode=safe_mode)
 
         self.target: Optional[TargetType] = None
@@ -172,15 +159,15 @@ class Fedot:
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-                self.params.api_params['logger'].message('Final pipeline was fitted')
+                self.params.api_params['logger'].info('Final pipeline was fitted')
             else:
-                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
+                self.params.api_params['logger'].info('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
+        self.params.api_params['logger'].info(f'Final pipeline: {str(self.current_pipeline)}')
 
         return self.current_pipeline
 
@@ -275,7 +262,9 @@ class Fedot:
         Load saved graph from disk
         :param path to json file with model
         """
+        self.current_pipeline = Pipeline()
         self.current_pipeline.load(path)
+        self.data_processor.preprocessor = self.current_pipeline.preprocessor
 
     def plot_pareto(self):
         metric_names = self.params.metric_to_compose
@@ -317,7 +306,7 @@ class Fedot:
         :return: the values of quality metrics
         """
         if metric_names is None:
-            metric_names = self.params.api_params['metric_name']
+            metric_names = self.params.metric_name
 
         if target is not None:
             if self.test_data is None:
@@ -335,7 +324,7 @@ class Fedot:
         calculated_metrics = dict()
         for metric_name in metric_names:
             if self.metrics.get_composer_metrics_mapping(metric_name) is NotImplemented:
-                self.params.api_params['logger'].warn(f'{metric_name} is not available as metric')
+                self.params.api_params['logger'].warning(f'{metric_name} is not available as metric')
             else:
                 composer_metric = self.metrics.get_composer_metrics_mapping(metric_name)
                 metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
@@ -427,6 +416,5 @@ class Fedot:
                                                                   if k != 'cut'})
         self.current_pipeline.fit(
             full_train_not_preprocessed,
-            use_fitted=self.current_pipeline.fit_from_cache(self.api_composer.cache),
-            n_jobs=self.params.api_params['n_jobs']
+            n_jobs=self.params.api_params['n_jobs'],
         )

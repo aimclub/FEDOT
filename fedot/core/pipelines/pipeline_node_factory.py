@@ -1,0 +1,50 @@
+from random import choice
+from typing import Optional, TYPE_CHECKING
+
+from fedot.core.composer.advisor import PipelineChangeAdvisor
+from fedot.core.optimisers.graph import OptNode
+from fedot.core.optimisers.opt_node_factory import OptNodeFactory
+from fedot.core.utils import DEFAULT_PARAMS_STUB
+
+if TYPE_CHECKING:
+    from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+
+
+class PipelineOptNodeFactory(OptNodeFactory):
+    def __init__(self, requirements: 'PipelineComposerRequirements',
+                 advisor: Optional[PipelineChangeAdvisor] = None):
+        super().__init__(requirements)
+        self.advisor = advisor or PipelineChangeAdvisor()
+
+    def exchange_node(self,
+                      node: OptNode):
+        candidates = self.requirements.secondary if node.nodes_from else self.requirements.primary
+        candidates = self.advisor.propose_change(current_operation_id=str(node.content['name']),
+                                                 possible_operations=candidates)
+        return self._return_node(candidates)
+
+    def get_parent_node(self,
+                        node: OptNode,
+                        primary: bool):
+        parent_operations_ids = None
+        possible_operations = self.requirements.primary
+        if not primary:
+            parent_operations_ids = [str(n.content['name']) for n in node.nodes_from]
+            possible_operations = self.requirements.secondary
+        candidates = self.advisor.propose_parent(current_operation_id=str(node.content['name']),
+                                                 parent_operations_ids=parent_operations_ids,
+                                                 possible_operations=possible_operations)
+        return self._return_node(candidates)
+
+    def get_node(self,
+                 primary: bool):
+        candidates = self.requirements.primary if primary else self.requirements.secondary
+        return self._return_node(candidates)
+
+    @staticmethod
+    def _return_node(candidates):
+        if not candidates:
+            return None
+        return OptNode(content={'name': choice(candidates),
+                                'params': DEFAULT_PARAMS_STUB})
+

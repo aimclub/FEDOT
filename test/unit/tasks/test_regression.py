@@ -110,7 +110,7 @@ def test_multi_target_regression_composing_correct(multi_target_data_setup):
     timeout = 0.1
     simple_composer_params = get_simple_composer_params()
 
-    automl_model = Fedot(problem=problem, timeout=timeout, composer_params=simple_composer_params)
+    automl_model = Fedot(problem=problem, timeout=timeout, **simple_composer_params)
     automl_model.fit(train)
     predicted_array = automl_model.predict(test)
     assert predicted_array is not None

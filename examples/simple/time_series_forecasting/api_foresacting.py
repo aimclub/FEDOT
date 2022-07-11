@@ -10,8 +10,8 @@ from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 import logging
-logging.raiseExceptions = False
 
+logging.raiseExceptions = False
 
 datasets = {
     'australia': f'{fedot_project_root()}/examples/data/ts/australia.csv',
@@ -42,9 +42,8 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, timeout: 
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=timeout,
-                  preset='fast_train',
-                  composer_params={'cv_folds': 2, 'validation_blocks': 2},
-                  n_jobs=1)
+                  n_jobs=1,
+                  cv_folds=2, validation_blocks=2, preset='fast_train')
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)

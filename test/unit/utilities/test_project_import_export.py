@@ -81,9 +81,9 @@ def test_export_import_api_correctly():
     train_data = test_data = get_classification_data()
 
     api = Fedot(problem='classification', timeout=-1,
-                composer_params={'with_tuning': False,
-                                 'num_of_generations': 1,
-                                 'pop_size': 3})
+                with_tuning=False,
+                num_of_generations=1,
+                pop_size=3)
 
     api.fit(train_data)
     api.predict(test_data)

@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import mean_absolute_error
 
+from fedot.api.main import Fedot
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate, extract_subtree_root
@@ -15,6 +16,8 @@ from test.unit.api.test_main_api import get_dataset
 from test.unit.data_operations.test_data_operations_implementations import get_mixed_data
 from test.unit.multimodal.data_generators import get_single_task_multimodal_tabular_data
 from test.unit.pipelines.test_decompose_pipelines import get_classification_data
+from test.unit.preprocessing.test_preprocessing_though_api import \
+    data_with_spaces_and_nans_in_features
 from test.unit.tasks.test_forecasting import get_multiscale_pipeline, get_simple_ts_pipeline, get_ts_data
 
 
@@ -30,7 +33,7 @@ def preprocessing_files_before_and_after_tests(request):
              'test_absolute_relative_paths_correctly_no_exception', 'test_export_one_hot_encoding_operation',
              'test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception',
              'test_save_pipeline_with_np_int_type', 'test_pipeline_with_preprocessing_serialized_correctly',
-             'test_multimodal_pipeline_serialized_correctly']
+             'test_multimodal_pipeline_serialized_correctly', 'test_load_though_api_perform_correctly']
 
     delete_files = create_func_delete_files(paths)
     delete_files()
@@ -471,3 +474,21 @@ def test_old_serialized_paths_load_correctly():
     pipeline_loaded.load(path)
 
     assert pipeline_loaded.nodes is not None
+
+
+def test_load_though_api_perform_correctly():
+    """ Test API wrapper for pipeline loading """
+    input_data = data_with_spaces_and_nans_in_features()
+
+    model = Fedot(problem='regression')
+    obtained_pipeline = model.fit(input_data, predefined_model='ridge')
+    predictions = model.predict(input_data)
+
+    # Save pipeline
+    obtained_pipeline.save('test_load_though_api_perform_correctly')
+
+    loaded_model = Fedot(problem='regression')
+    loaded_model.load(create_correct_path('test_load_though_api_perform_correctly'))
+    loaded_predictions = loaded_model.predict(input_data)
+
+    assert np.array_equal(predictions, loaded_predictions)

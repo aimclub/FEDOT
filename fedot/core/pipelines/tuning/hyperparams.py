@@ -17,7 +17,7 @@ class ParametersChanger:
     def __init__(self, operation_name, current_params):
         self.operation_name = operation_name
         self.current_params = current_params
-        self.logger = default_log('ParametersChangerLog')
+        self.logger = default_log(prefix='ParametersChangerLog')
 
     def get_new_operation_params(self):
         """ Function return a dictionary with new parameters values """
@@ -75,7 +75,7 @@ class ParametersChanger:
             try:
                 current_value = self.current_params.get(parameter_name)
             except Exception as exec:
-                self.logger.warn(f'The following error occurred during the hyperparameter configuration.{exec}')
+                self.logger.warning(f'The following error occurred during the hyperparameter configuration.{exec}')
                 current_value = None
 
         return current_value

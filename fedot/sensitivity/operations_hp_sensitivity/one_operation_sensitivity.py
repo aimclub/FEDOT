@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.operation_template import extract_operation_params
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
@@ -26,8 +26,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
     lock = Lock()
 
     def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
-                 requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None, log: Optional[Log] = None):
+                 requirements: SensitivityAnalysisRequirements = None, path_to_save=None):
         super().__init__(pipeline, train_data, test_data, path_to_save)
 
         requirements = SensitivityAnalysisRequirements() if requirements is None else requirements
@@ -41,7 +40,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
         self.path_to_save = \
             join(default_fedot_data_dir(), 'sensitivity', 'nodes_sensitivity') if path_to_save is None else path_to_save
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self)
 
     def analyze(self, node: Node,
                 is_dispersion_analysis: bool = False) -> Union[dict, float]:

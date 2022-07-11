@@ -5,16 +5,16 @@ from typing import Optional
 import networkx as nx
 from matplotlib import pyplot as plt
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 
 class GraphVisualiser:
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         default_data_dir = default_fedot_data_dir()
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     def visualise(self, pipeline: 'Graph', save_path: Optional[str] = None):
         try:

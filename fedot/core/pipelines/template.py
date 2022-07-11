@@ -3,13 +3,13 @@ import os
 from collections import Counter
 from datetime import datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple, Union, Dict, Any
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import joblib
 import numpy as np
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
@@ -35,10 +35,9 @@ class PipelineTemplate:
     allowing user to upload a pipeline to JSON format and import it from JSON.
 
     :params pipeline: Pipeline object to export or empty Pipeline to import
-    :params log: Log object to record messages
     """
 
-    def __init__(self, pipeline: 'Pipeline' = None, log: Optional[Log] = None):
+    def __init__(self, pipeline: 'Pipeline' = None):
         self.total_pipeline_operations = Counter()
         self.operation_templates: List[OperationTemplate] = []
         self.unique_pipeline_id = str(uuid4())
@@ -53,7 +52,7 @@ class PipelineTemplate:
             self.depth = 0
             self.data_preprocessor = None
 
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
         self._pipeline_to_template(pipeline)
 
@@ -268,8 +267,7 @@ class PipelineTemplate:
             pipeline.preprocessor = joblib.load(tmp_path)
             os.remove(tmp_path)
 
-    def roll_pipeline_structure(self, operation_object: ['OperationTemplate',
-                                                         'AtomizedModelTemplate'],
+    def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
         """
         The function recursively traverses all disjoint operations

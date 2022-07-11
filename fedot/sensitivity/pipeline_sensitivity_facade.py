@@ -1,7 +1,7 @@
-from typing import List, Optional, Type, Union
+from typing import List, Type, Union
 
 from fedot.core.data.data import InputData
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.sensitivity.node_sa_approaches import NodeAnalyzeApproach
@@ -25,7 +25,6 @@ class PipelineSensitivityAnalysis:
     See SensitivityAnalysisRequirements class documentation.
     :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity/
     Default: False
-    :param log: log: Log object to record messages
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -33,10 +32,9 @@ class PipelineSensitivityAnalysis:
                                         Type[MultiOperationsHPAnalyze]]] = None,
                  nodes_to_analyze: List[Node] = None,
                  requirements: SensitivityAnalysisRequirements = None,
-                 path_to_save=None,
-                 log: Optional[Log] = None):
+                 path_to_save=None):
 
-        self.log = default_log(__name__) if log is None else log
+        self.log = default_log(self)
 
         if approaches:
             nodes_analyze_approaches = [approach for approach in approaches
@@ -44,7 +42,7 @@ class PipelineSensitivityAnalysis:
             pipeline_analyze_approaches = [approach for approach in approaches
                                            if not issubclass(approach, NodeAnalyzeApproach)]
         else:
-            self.log.message('Approaches for analysis are not given, thus will be set to defaults.')
+            self.log.info('Approaches for analysis are not given, thus will be set to defaults.')
             nodes_analyze_approaches = None
             pipeline_analyze_approaches = None
 

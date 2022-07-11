@@ -2,11 +2,11 @@ from typing import Callable, Optional, Sequence
 
 import numpy as np
 
-from fedot.core.log import Log
+from fedot.core.dag.graph_verifier import GraphVerifier
+from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import Operator, PopulationT
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.dag.graph_verifier import GraphVerifier
 
 GraphSampler = Callable[[], OptGraph]
 IndividualSampler = Callable[[], Individual]
@@ -19,12 +19,12 @@ class InitialPopulationBuilder:
 
     _max_generation_attempts = 1000
 
-    def __init__(self, verifier: GraphVerifier, log: Log):
+    def __init__(self, verifier: GraphVerifier):
         self.verifier = verifier
         self.mutation_operator: Callable[[Individual], Individual] = lambda ind: ind
         self.individual_sampler: Optional[IndividualSampler] = None
         self.initial_individuals: Sequence[Individual] = ()
-        self.log = log
+        self.log = default_log(self)
 
     def with_mutation(self, mutation_operator: Operator[Individual]):
         """Enables mutation of sampled graphs with provided operator."""
@@ -57,7 +57,7 @@ class InitialPopulationBuilder:
                 population.append(new_ind)
             n_iter += 1
             if n_iter >= self._max_generation_attempts:
-                self.log.warn(f'Exceeded max number of attempts for generating initial graphs, stopping.'
-                              f'Generated {len(population)} instead of {pop_size} graphs.')
+                self.log.warning(f'Exceeded max number of attempts for generating initial graphs, stopping.'
+                                 f'Generated {len(population)} instead of {pop_size} graphs.')
                 break
         return population

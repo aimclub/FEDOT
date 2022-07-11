@@ -45,7 +45,7 @@ class RemoteEvaluator:
         """
         Class for the batch evaluation of pipelines using remote client
         """
-        self._logger = default_log('RemoteFitterLog')
+        self._logger = default_log(prefix='RemoteFitterLog')
         self.remote_task_params = None
         self.client = None
 
@@ -98,7 +98,7 @@ class RemoteEvaluator:
                             execution_id=pipeline.execution_id
                         )
                     except Exception as ex:
-                        self._logger.warn(f'{p_id}, {ex}')
+                        self._logger.warning(f'{p_id}, {ex}')
             final_pipelines.extend(pipelines_part)
 
             self._logger.info(f'REMOTE EXECUTION TIME {ex_time}')

@@ -8,7 +8,6 @@ from fedot.core.dag.verification_rules import (
     has_no_self_cycled_nodes,
     has_one_root
 )
-from fedot.core.log import Log
 from fedot.core.optimisers.adapters import PipelineAdapter, BaseOptimizationAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.verification_rules import (
@@ -48,9 +47,8 @@ class_rules = [has_no_conflicts_during_multitask,
 
 
 def verifier_for_task(task_type: Optional[TaskTypesEnum] = None,
-                      adapter: Optional[BaseOptimizationAdapter] = None,
-                      log: Optional[Log] = None):
-    return GraphVerifier(rules_by_task(task_type), adapter, log)
+                      adapter: Optional[BaseOptimizationAdapter] = None):
+    return GraphVerifier(rules_by_task(task_type), adapter)
 
 
 def rules_by_task(task_type: Optional[TaskTypesEnum],

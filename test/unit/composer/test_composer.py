@@ -8,22 +8,24 @@ import pytest
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from fedot.api.main import Fedot
+from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.cache import OperationsCache
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.composer.random_composer import RandomSearchComposer, RandomSearchOptimiser, RandomGraphFactory
+from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
+from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimiser
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -191,7 +193,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
                                        crossover_prob=0.4, mutation_prob=0.5)
 
     opt_params = GPGraphOptimiserParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification))\
+    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
         .with_metrics(metric_function) \
@@ -266,7 +268,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type,
                                                       with_auto_depth_configuration=True)
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification))\
+    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
         .with_metrics(quality_metric).with_optimiser_params(parameters=optimiser_parameters)
@@ -290,14 +292,14 @@ def test_gp_composer_saving_info_from_process(data_fixture, request):
     optimiser_parameters = GPGraphOptimiserParameters(genetic_scheme_type=scheme_type)
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
         quality_metric).with_optimiser_params(parameters=optimiser_parameters).with_cache(OperationsCache())
-    composer = builder.build()
+    composer: GPComposer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
 
-    global_cache_len_before = len(composer.cache)
+    global_cache_len_before = len(composer.pipelines_cache)
     new_pipeline = pipeline_first()
     objective = composer.objective_builder.build(data)
     objective(new_pipeline)
-    global_cache_len_after = len(composer.cache)
+    global_cache_len_after = len(composer.pipelines_cache)
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None
 
@@ -322,10 +324,6 @@ def test_gp_composer_random_graph_generation_looping():
     """
     task = Task(TaskTypesEnum.regression)
 
-    adapter = PipelineAdapter()
-    verifier = verifier_for_task(task.task_type, adapter)
-    params = GraphGenerationParams(adapter, verifier, PipelineChangeAdvisor(task=task))
-
     requirements = PipelineComposerRequirements(
         primary=['simple_imputation'],
         secondary=['ridge', 'dtreg'],
@@ -342,13 +340,16 @@ def test_gp_composer_random_graph_generation_looping():
         mutation_strength=MutationStrengthEnum.mean
     )
 
-    graph = random_graph(verifier, requirements, max_depth=None)
+    params = get_pipeline_generation_params(requirements=requirements,
+                                            task=task)
+
+    graph = random_graph(params, requirements, max_depth=None)
     nodes_name = list(map(str, graph.nodes))
 
     for primary_node in requirements.primary:
         assert primary_node in nodes_name
         assert nodes_name.count(primary_node) == 1
-    assert verifier(graph) is True
+    assert params.verifier(graph) is True
 
 
 def test_gp_composer_early_stopping():
@@ -357,9 +358,9 @@ def test_gp_composer_early_stopping():
     time_limit = datetime.timedelta(minutes=10)
     start = datetime.datetime.now()
     model = Fedot(problem='classification', timeout=1000,
-                  composer_params={'stopping_after_n_generation': 1,
-                                   'pop_size': 2,
-                                   'with_tuning': False},
+                  stopping_after_n_generation=1,
+                  pop_size=2,
+                  with_tuning=False,
                   preset='fast_train')
     model.fit(train_data)
     spent_time = datetime.datetime.now() - start

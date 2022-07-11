@@ -1,9 +1,10 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import (Any, Callable, List, Optional, Union, Sequence, Collection)
+from typing import (Any, Callable, Optional, Union, Sequence)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
@@ -11,7 +12,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
-from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
+from fedot.core.optimisers.opt_node_factory import OptNodeFactory, DefaultOptNodeFactory
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
@@ -49,18 +50,21 @@ class GraphGenerationParams:
 
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: collection of constraints
-    :param advisor: class of task-specific advices for graph changes
+    :param node_factory: class of generating nodes while mutation
     """
     adapter: BaseOptimizationAdapter
     verifier: GraphVerifier
     advisor: DefaultChangeAdvisor
+    node_factory: OptNodeFactory
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
                  rules_for_constraint: Sequence[VerifierRuleType] = (),
-                 advisor: Optional[DefaultChangeAdvisor] = None):
+                 advisor: Optional[DefaultChangeAdvisor] = None,
+                 node_factory: OptNodeFactory = None):
         self.adapter = adapter or DirectAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
+        self.node_factory = node_factory or DefaultOptNodeFactory(requirements=dict(primary=[], secondary=[]))
 
 
 class GraphOptimiser:
@@ -75,7 +79,6 @@ class GraphOptimiser:
     :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
     :param parameters: parameters for specific implementation of graph optimiser
-    :param log: optional parameter for log object
     """
 
     def __init__(self,
@@ -83,9 +86,8 @@ class GraphOptimiser:
                  initial_graph: Optional[Union[Graph, Sequence[Graph]]] = None,
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimiserParameters] = None,
-                 log: Optional[Log] = None):
-        self.log = log or default_log(self.__class__.__name__)
+                 parameters: Optional[GraphOptimiserParameters] = None):
+        self.log = default_log(self)
 
         self._objective = objective
         self.requirements = requirements

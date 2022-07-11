@@ -1,10 +1,9 @@
 from copy import copy
-from typing import Optional
 
 import numpy as np
 import pandas as pd
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 NAME_CLASS_STR = "<class 'str'>"
@@ -22,7 +21,7 @@ class TableTypesCorrector:
     Class for checking types in input data. Also perform conversion for columns with types conflicts
     """
 
-    def __init__(self, log: Optional[Log] = None):
+    def __init__(self):
         # Maximum allowed unique categories in categorical table (if more - transform it into float)
         self.categorical_max_classes_th = MAX_CATEGORIES_TH
         # Threshold to convert numerical into categorical column
@@ -50,7 +49,7 @@ class TableTypesCorrector:
         # Lists with column types for converting calculated on source input data
         self.features_types = None
         self.target_types = None
-        self.log = log or default_log(__name__)
+        self.log = default_log(self)
 
     def convert_data_for_fit(self, data: 'InputData'):
         """ If column contain several data types - perform correction procedure """
@@ -202,8 +201,8 @@ class TableTypesCorrector:
         Such columns have no conflicts with types converting.
         """
         if len(self.string_columns_transformation_failed) > 0:
-            self.log.warn(f'Columns with indices {list(self.string_columns_transformation_failed.keys())} were '
-                          f'removed during mixed types column converting due to conflicts.')
+            self.log.warning(f'Columns with indices {list(self.string_columns_transformation_failed.keys())} were '
+                             f'removed during mixed types column converting due to conflicts.')
 
             data.features = self.remove_incorrect_features(data.features, self.string_columns_transformation_failed)
 
@@ -218,7 +217,7 @@ class TableTypesCorrector:
         n_rows, n_cols = table.shape
         if n_cols != len(column_types):
             # There is an incorrect types calculation
-            self.log.warn('Columns number and types numbers do not match.')
+            self.log.warning('Columns number and types numbers do not match.')
 
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
@@ -253,7 +252,7 @@ class TableTypesCorrector:
             # Cannot convert string objects into int or float (for example 'a' into int)
             prefix = f'Feature column with index {mixed_column_id} contains ' \
                      f'following data types: {column_info["types"]}.'
-            self.log.warn(f'{prefix} String cannot be converted into {suggested_type}. Drop column.')
+            self.log.warning(f'{prefix} String cannot be converted into {suggested_type}. Drop column.')
             return None, 'removed'
 
     def _convert_target_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int,
@@ -452,7 +451,7 @@ def find_mixed_types_columns(columns_info: dict):
     return columns_with_mixed_types
 
 
-def apply_type_transformation(table: np.array, column_types: list, log: Log):
+def apply_type_transformation(table: np.array, column_types: list, log: LoggerAdapter):
     """
     Apply transformation for columns in dataset into desired type. Perform
     transformation on predict stage when column types were already determined

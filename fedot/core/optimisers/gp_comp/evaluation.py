@@ -4,11 +4,10 @@ import timeit
 from abc import ABC, abstractmethod
 from contextlib import closing
 from random import choice
-
 from typing import Dict, Optional
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
@@ -39,11 +38,8 @@ class ObjectiveEvaluationDispatcher(ABC):
 class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population using multiprocessing pool
     and optionally model evaluation cache with RemoteEvaluator.
-
     Usage: call `dispatch(objective_function)` to get evaluation function.
-
     :param graph_adapter: adapter for mapping between OptGraph and Graph.
-    :param log: logger to use
     :param n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
     :param graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
     """
@@ -51,7 +47,6 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     def __init__(self,
                  graph_adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
-                 log: Log = None,
                  n_jobs: int = 1,
                  graph_cleanup_fn: Optional[GraphFunction] = None):
         self._objective_eval = None
@@ -60,7 +55,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         self._post_eval_callback = None
 
         self.timer = timer or get_forever_timer()
-        self.logger = log or default_log(self.__class__.__name__)
+        self.logger = default_log(self)
         self._n_jobs = n_jobs
         self._reset_eval_cache()
 
@@ -143,9 +138,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
 class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population.
-
     Usage: call `dispatch(objective_function)` to get evaluation function.
-
     :param graph_adapter: adapter for mapping between OptGraph and Graph.
     :param timer: timer to set timeout for evaluation of population
     """

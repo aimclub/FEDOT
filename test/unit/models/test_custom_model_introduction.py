@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 from copy import deepcopy
@@ -219,10 +220,11 @@ def test_composing_with_custom_model():
     train_data, test_data = prepare_data()
 
     initial_assumption = get_simple_pipeline(train_data)
-
-    automl = Fedot(problem='ts_forecasting', preset='ts',
-                   timeout=0.1, composer_params={'initial_assumption': initial_assumption},
-                   task_params=TsForecastingParams(forecast_length=5), verbose_level=0)
+    automl = Fedot(problem='ts_forecasting',
+                   timeout=0.1,
+                   task_params=TsForecastingParams(forecast_length=5), verbose_level=logging.ERROR,
+                   initial_assumption=initial_assumption,
+                   preset='ts')
     pipeline = automl.fit(train_data)
 
     pipeline.fit_from_scratch(train_data)

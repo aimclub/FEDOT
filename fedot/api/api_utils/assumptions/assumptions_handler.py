@@ -1,12 +1,12 @@
-import datetime
 import traceback
 
-from typing import Union, List, Optional
+from typing import List, Optional, Union
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.api_utils.presets import change_preset_based_on_initial_fit
 from fedot.api.time import ApiTime
-from fedot.core.composer.cache import OperationsCache
+from fedot.core.caching.pipelines_cache import OperationsCache
+from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import Log
@@ -38,8 +38,7 @@ class AssumptionsHandler:
         if initial_assumption is None:
             assumptions_builder = AssumptionsBuilder \
                 .get(self.data) \
-                .from_operations(available_operations) \
-                .with_logger(self.log)
+                .from_operations(available_operations)
             initial_assumption = assumptions_builder.build()
         elif isinstance(initial_assumption, Pipeline):
             initial_assumption = [initial_assumption]
@@ -47,21 +46,27 @@ class AssumptionsHandler:
 
     def fit_assumption_and_check_correctness(self,
                                              pipeline: Pipeline,
-                                             cache: Optional[OperationsCache] = None) -> [Pipeline, datetime.timedelta]:
+                                             pipelines_cache: Optional[OperationsCache] = None,
+                                             preprocessing_cache: Optional[PreprocessingCache] = None) -> Pipeline:
         """
         Check is initial pipeline can be fitted on a presented data
 
         :param pipeline: pipeline for checking
-        :param cache: cache object
+        :param pipelines_cache: Cache manager for fitted models, optional.
+        :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
         """
         try:
             data_train, data_test = train_test_data_setup(self.data)
-            self.log.message('Initial pipeline fitting started')
-            pipeline.fit(data_train)
-            if cache is not None:
-                cache.save_pipeline(pipeline)
+            self.log.info('Initial pipeline fitting started')
+            pipeline.fit(
+                data_train,
+                use_fitted=pipeline.fit_from_cache(pipelines_cache),
+                preprocessing_cache=preprocessing_cache
+            )
+            if pipelines_cache is not None:
+                pipelines_cache.save_pipeline(pipeline)
             pipeline.predict(data_test)
-            self.log.message('Initial pipeline was fitted successfully')
+            self.log.info('Initial pipeline was fitted successfully')
         except Exception as ex:
             self._raise_evaluating_exception(ex)
         return pipeline

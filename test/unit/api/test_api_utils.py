@@ -1,3 +1,4 @@
+import logging
 import random
 from copy import deepcopy
 
@@ -28,11 +29,9 @@ def test_compose_fedot_model_with_tuning():
     with LogCapture() as logs:
         _, _, history = api_composer.compose_fedot_model(api_params=dict(train_data=train_input,
                                                                          task=task,
-                                                                         logger=default_log('test_log'),
+                                                                         logger=default_log(prefix='test_log'),
                                                                          timeout=0.1,
-                                                                         n_jobs=1,
-                                                                         use_cache=False,
-                                                                         initial_assumption=None),
+                                                                         n_jobs=1),
                                                          composer_params=dict(max_depth=1,
                                                                               max_arity=1,
                                                                               pop_size=2,
@@ -43,12 +42,15 @@ def test_compose_fedot_model_with_tuning():
                                                                               cv_folds=None,
                                                                               genetic_scheme=None,
                                                                               max_pipeline_fit_time=None,
-                                                                              collect_intermediate_metric=False),
+                                                                              collect_intermediate_metric=False,
+                                                                              preset='fast_train',
+                                                                              initial_assumption=None,
+                                                                              use_pipelines_cache=False,
+                                                                              use_preprocessing_cache=False),
                                                          tuning_params=dict(with_tuning=True,
-                                                                            tuner_metric=None),
-                                                         preset='fast_train')
-    expected = ('test_log', 'INFO', 'Composed pipeline returned without tuning.')
-    logs.check_present(expected, order_matters=False)
+                                                                            tuner_metric=None))
+    # TODO make assert more specific
+    assert 'Composed pipeline returned without tuning.' in str(logs)
 
 
 def test_output_binary_classification_correct():
@@ -78,8 +80,8 @@ def test_predefined_initial_assumption():
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
     model = Fedot(problem='classification', timeout=1.,
-                  verbose_level=4, composer_params={'available_operations': available_operations,
-                                                    'initial_assumption': initial_pipeline})
+                  verbose_level=logging.DEBUG, available_operations=available_operations,
+                  initial_assumption=initial_pipeline)
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,
                                                         target=train_input.target,
@@ -98,12 +100,10 @@ def test_the_formation_of_initial_assumption():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['dt']
 
     initial_assumptions = AssumptionsBuilder \
         .get(train_input) \
-        .with_logger(logger) \
         .from_operations(available_operations) \
         .build()
     res_init_assumption = Pipeline(PrimaryNode('dt'))
@@ -116,12 +116,10 @@ def test_init_assumption_with_inappropriate_available_operations():
 
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
-    logger = default_log('FEDOT logger', verbose_level=4)
     available_operations = ['linear', 'xgboost', 'lagged']
 
     initial_assumptions = AssumptionsBuilder \
         .get(train_input) \
-        .with_logger(logger) \
         .from_operations(available_operations) \
         .build()
     primary = PrimaryNode('scaling')
@@ -154,8 +152,8 @@ def test_api_composer_available_operations():
     model = Fedot(problem='ts_forecasting',
                   task_params=task.task_params,
                   timeout=0.01,
-                  composer_params={'available_operations': available_operations,
-                                   'pop_size': 500}
+                  available_operations=available_operations,
+                  pop_size=500
                   )
     model.fit(train_data)
     assert model.params.api_params['available_operations'] == available_operations

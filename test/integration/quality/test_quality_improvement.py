@@ -1,3 +1,4 @@
+import logging
 import warnings
 
 from fedot.api.main import Fedot
@@ -29,7 +30,8 @@ def test_classification_quality_improvement():
                        'num_of_generations': 20,
                        'with_tuning': True}
 
-    auto_model = Fedot(problem=problem, timeout=timeout, composer_params=composer_params, seed=42, verbose_level=4)
+    auto_model = Fedot(problem=problem, timeout=timeout, seed=42, verbose_level=logging.DEBUG,
+                       **composer_params)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)
     auto_metrics = auto_model.get_metrics()
