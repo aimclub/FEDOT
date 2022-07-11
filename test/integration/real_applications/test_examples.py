@@ -1,5 +1,6 @@
 import os
 from datetime import timedelta
+from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
@@ -65,10 +66,10 @@ def test_nemo_multiple_points_example():
 
 
 def test_log_example():
-    with open(os.path.join(default_fedot_data_dir(), 'log.log')) as f:
+    with open(Path(default_fedot_data_dir(), 'log.log')) as f:
         lines_before = len(f.readlines())
     run_log_example('log.log')
-    with open(os.path.join(default_fedot_data_dir(), 'log.log')) as f:
+    with open(Path(default_fedot_data_dir(), 'log.log')) as f:
         lines_after = len(f.readlines())
     assert lines_after > lines_before
 

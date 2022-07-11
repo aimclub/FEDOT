@@ -26,4 +26,4 @@ def run_classification_multiobj_example(with_plot=False, timeout=None):
 
 
 if __name__ == '__main__':
-    run_classification_multiobj_example()
+    run_classification_multiobj_example(with_plot=True)
