@@ -1,5 +1,5 @@
 from itertools import chain
-from typing import Any, Dict, List, Type, Union
+from typing import Any, Dict, List, Sequence, Type, Union
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
@@ -45,9 +45,8 @@ def _set_native_generations(generations_list: List[List[Individual]]):
             ind.set_native_generation(gen_num)
 
 
-def _uids_to_individuals(uid_list: List[Union[str, Individual]],
+def _uids_to_individuals(uid_sequence: Sequence[Union[str, Individual]],
                          uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
-
     def get_missing_individual(uid: str) -> Individual:
         individual = Individual(OptGraph(), **MISSING_INDIVIDUAL_ARGS, uid=uid)
         return individual
@@ -55,14 +54,14 @@ def _uids_to_individuals(uid_list: List[Union[str, Individual]],
     def uid_to_individual_mapper(uid: Union[str, Individual]) -> Individual:
         return uid_to_individual_map.get(uid, get_missing_individual(uid)) if isinstance(uid, str) else uid
 
-    return list(map(uid_to_individual_mapper, uid_list))
+    return list(map(uid_to_individual_mapper, uid_sequence))
 
 
 def _deserialize_generations_list(generations_list: List[List[Union[str, Individual]]],
                                   uid_to_individual_map: Dict[str, Individual]):
     """The operation is executed in-place"""
     for gen_num, generation in enumerate(generations_list):
-        generations_list[gen_num] = _uids_to_individuals(uid_list=generation,
+        generations_list[gen_num] = _uids_to_individuals(uid_sequence=generation,
                                                          uid_to_individual_map=uid_to_individual_map)
 
 
@@ -71,9 +70,9 @@ def _deserialize_parent_individuals(individuals: List[Individual],
     """The operation is executed in-place"""
     for individual in individuals:
         for parent_op in individual.parent_operators:
-            parent_op.parent_individuals = \
-                _uids_to_individuals(uid_list=parent_op.parent_individuals,
-                                     uid_to_individual_map=uid_to_individual_map)
+            parent_individuals = _uids_to_individuals(uid_sequence=parent_op.parent_individuals,
+                                                      uid_to_individual_map=uid_to_individual_map)
+            object.__setattr__(parent_op, 'parent_individuals', tuple(parent_individuals))
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:

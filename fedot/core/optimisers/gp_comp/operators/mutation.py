@@ -133,13 +133,13 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]], params: 'GraphGene
 
         is_correct_graph = params.verifier(new_graph)
         if is_correct_graph:
-            new_individual = Individual(new_graph, copy(individual.parent_operators))
+            parent_operators = list(individual.parent_operators)
             for mutation_name in mutation_names:
-                new_individual.parent_operators.append(
+                parent_operators.append(
                     ParentOperator(operator_type='mutation',
                                    operator_name=str(mutation_name),
-                                   parent_individuals=parent_individuals))
-            return new_individual
+                                   parent_individuals=tuple(parent_individuals)))
+            return Individual(new_graph, tuple(parent_operators))
 
     log.debug('Number of mutation attempts exceeded. '
               'Please check composer requirements for correctness.')

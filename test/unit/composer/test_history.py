@@ -57,7 +57,7 @@ def test_parent_operator():
     mutation_type = MutationTypesEnum.simple
     operator_for_history = ParentOperator(operator_type='mutation',
                                           operator_name=str(mutation_type),
-                                          parent_individuals=[ind])
+                                          parent_individuals=(ind,))
 
     assert operator_for_history.parent_individuals[0] == ind
     assert operator_for_history.operator_type == 'mutation'

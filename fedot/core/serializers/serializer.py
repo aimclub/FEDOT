@@ -49,6 +49,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 operation_to_json,
                 opt_history_from_json,
                 opt_history_to_json,
+                parent_operator_from_json,
                 parent_operator_to_json,
                 uuid_from_json,
                 uuid_to_json
@@ -65,7 +66,7 @@ class Serializer(JSONEncoder, JSONDecoder):
                 Graph: {_to_json: graph_to_json, _from_json: graph_from_json},
                 Operation: {_to_json: operation_to_json, _from_json: any_from_json},
                 OptHistory: {_to_json: opt_history_to_json, _from_json: opt_history_from_json},
-                ParentOperator: {_to_json: parent_operator_to_json, _from_json: any_from_json},
+                ParentOperator: {_to_json: parent_operator_to_json, _from_json: parent_operator_from_json},
                 UUID: {_to_json: uuid_to_json, _from_json: uuid_from_json},
                 ComparableEnum: {_to_json: enum_to_json, _from_json: enum_from_json},
                 NodeMetadata: {_to_json: any_to_json, _from_json: any_from_json}

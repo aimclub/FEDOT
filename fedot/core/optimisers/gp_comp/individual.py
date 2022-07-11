@@ -1,7 +1,7 @@
 import warnings
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
@@ -17,7 +17,7 @@ INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
 @dataclass(frozen=True)
 class Individual:
     graph: OptGraph
-    parent_operators: List['ParentOperator'] = field(default_factory=list)
+    parent_operators: Tuple['ParentOperator', ...] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=dict)
     native_generation: Optional[int] = None
     fitness: Fitness = field(default_factory=null_fitness, init=False)
@@ -54,13 +54,9 @@ class Individual:
         return result
 
 
-@dataclass
+@dataclass(frozen=True)
 class ParentOperator:
     operator_name: str
     operator_type: str
-    parent_individuals: List[Individual]
-    uid: str = None
-
-    def __post_init__(self):
-        if not self.uid:
-            self.uid = str(uuid4())
+    parent_individuals: Tuple[Individual, ...]
+    uid: str = field(default_factory=lambda: str(uuid4()), init=False)
