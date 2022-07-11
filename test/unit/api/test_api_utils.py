@@ -12,6 +12,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from ..api.test_main_api import get_dataset
@@ -24,6 +25,8 @@ def test_compose_fedot_model_with_tuning():
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
 
     task = Task(task_type=TaskTypesEnum.classification)
+    operations = get_operations_for_task(task=task, mode='model')
+
     generations = 1
 
     with LogCapture() as logs:
@@ -36,7 +39,7 @@ def test_compose_fedot_model_with_tuning():
                                                                               max_arity=1,
                                                                               pop_size=2,
                                                                               num_of_generations=generations,
-                                                                              available_operations=None,
+                                                                              available_operations=operations,
                                                                               composer_metric=None,
                                                                               validation_blocks=None,
                                                                               cv_folds=None,
