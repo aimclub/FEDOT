@@ -11,7 +11,7 @@ MISSING_INDIVIDUAL_ARGS = {
 }
 
 
-def _get_individuals_pool_from_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
+def _flatten_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
     # Only the 1st individual's entrance contains its parent_operators. We must save this entrance.
     uid_to_individual_map = {ind.uid: ind for ind in reversed(list(chain(*generations_list)))}
     parents_map = {}
@@ -26,15 +26,15 @@ def _get_individuals_pool_from_generations_list(generations_list: List[List[Indi
     return individuals_pool
 
 
-def _serialize_generations_list(generations_list: List[List[Individual]]) -> List[List[str]]:
+def _generations_list_to_uids(generations_list: List[List[Individual]]) -> List[List[str]]:
     return [[individual.uid for individual in generation] for generation in generations_list]
 
 
 def opt_history_to_json(obj: OptHistory) -> Dict[str, Any]:
     serialized = any_to_json(obj)
-    serialized['individuals_pool'] = _get_individuals_pool_from_generations_list(serialized['individuals'])
-    serialized['individuals'] = _serialize_generations_list(serialized['individuals'])
-    serialized['archive_history'] = _serialize_generations_list(serialized['archive_history'])
+    serialized['individuals_pool'] = _flatten_generations_list(serialized['individuals'])
+    serialized['individuals'] = _generations_list_to_uids(serialized['individuals'])
+    serialized['archive_history'] = _generations_list_to_uids(serialized['archive_history'])
     return serialized
 
 
@@ -45,8 +45,8 @@ def _set_native_generations(generations_list: List[List[Individual]]):
             ind.set_native_generation(gen_num)
 
 
-def _get_individuals_from_uid_list(uid_list: List[Union[str, Individual]],
-                                   uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
+def _uids_to_individuals(uid_list: List[Union[str, Individual]],
+                         uid_to_individual_map: Dict[str, Individual]) -> List[Individual]:
 
     def get_missing_individual(uid: str) -> Individual:
         individual = Individual(OptGraph(), **MISSING_INDIVIDUAL_ARGS, uid=uid)
@@ -62,8 +62,8 @@ def _deserialize_generations_list(generations_list: List[List[Union[str, Individ
                                   uid_to_individual_map: Dict[str, Individual]):
     """The operation is executed in-place"""
     for gen_num, generation in enumerate(generations_list):
-        generations_list[gen_num] = _get_individuals_from_uid_list(uid_list=generation,
-                                                                   uid_to_individual_map=uid_to_individual_map)
+        generations_list[gen_num] = _uids_to_individuals(uid_list=generation,
+                                                         uid_to_individual_map=uid_to_individual_map)
 
 
 def _deserialize_parent_individuals(individuals: List[Individual],
@@ -72,8 +72,8 @@ def _deserialize_parent_individuals(individuals: List[Individual],
     for individual in individuals:
         for parent_op in individual.parent_operators:
             parent_op.parent_individuals = \
-                _get_individuals_from_uid_list(uid_list=parent_op.parent_individuals,
-                                               uid_to_individual_map=uid_to_individual_map)
+                _uids_to_individuals(uid_list=parent_op.parent_individuals,
+                                     uid_to_individual_map=uid_to_individual_map)
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:
