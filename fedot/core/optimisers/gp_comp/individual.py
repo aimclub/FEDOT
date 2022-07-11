@@ -1,7 +1,7 @@
 import warnings
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 from uuid import uuid4
 
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
