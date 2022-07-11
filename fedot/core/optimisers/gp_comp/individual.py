@@ -23,9 +23,6 @@ class Individual:
     fitness: Fitness = field(default_factory=null_fitness, init=False)
     uid: str = field(default_factory=lambda: str(uuid4()))
 
-    def __eq__(self, other: 'Individual'):
-        return self.uid == other.uid
-
     def set_native_generation(self, native_generation):
         if self.native_generation is None:
             super().__setattr__('native_generation', native_generation)
@@ -36,6 +33,9 @@ class Individual:
         super().__setattr__('fitness', fitness)
         if updated_graph is not None:
             super().__setattr__('graph', updated_graph)
+
+    def __eq__(self, other: 'Individual'):
+        return self.uid == other.uid
 
     def __copy__(self):
         warnings.warn(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, stacklevel=3)
