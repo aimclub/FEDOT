@@ -826,7 +826,7 @@ class PipelineEvolutionVisualiser:
             repeat=True
         )
         ani.save(str(save_path), dpi=animation_dpi)
-        print(f'The animation was saved to "{save_path}".')
+        self.log.info(f'The animation was saved to "{save_path}".')
         plt.close(fig=fig)
 
 
