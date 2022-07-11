@@ -102,10 +102,10 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         return successful_evals
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
-        if with_time_limit and self.timer.is_time_limit_reached():
-            return None
         if ind.fitness.valid:
             return ind
+        if with_time_limit and self.timer.is_time_limit_reached():
+            return None
 
         start_time = timeit.default_timer()
 
@@ -171,10 +171,10 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         return evaluated_population
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
-        if with_time_limit and self.timer.is_time_limit_reached():
-            return None
         if ind.fitness.valid:
             return ind
+        if with_time_limit and self.timer.is_time_limit_reached():
+            return None
 
         start_time = timeit.default_timer()
 
