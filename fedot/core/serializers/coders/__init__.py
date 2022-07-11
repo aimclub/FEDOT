@@ -4,6 +4,6 @@ from .graph_node_serialization import graph_node_to_json
 from .graph_serialization import graph_from_json, graph_to_json
 from .individual_serialization import individual_from_json
 from .operation_serialization import operation_to_json
-from .opt_history_serialization import opt_history_from_json
-from .parent_operator_serialization import parent_operator_to_json
+from .opt_history_serialization import opt_history_from_json, opt_history_to_json
+from .parent_operator_serialization import parent_operator_from_json, parent_operator_to_json
 from .uuid_serialization import uuid_from_json, uuid_to_json

@@ -7,7 +7,7 @@ from .. import INSTANCE_OR_CALLABLE, Serializer
 
 def any_to_json(obj: INSTANCE_OR_CALLABLE) -> Dict[str, Any]:
     return {
-        **{k: v for k, v in vars(obj).items() if not _is_log_var(k)},
+        **{k: v for k, v in sorted(vars(obj).items()) if not _is_log_var(k)},
         **Serializer.dump_path_to_obj(obj)
     }
 

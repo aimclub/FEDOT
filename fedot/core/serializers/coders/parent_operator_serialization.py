@@ -1,7 +1,7 @@
-from typing import Any, Dict
+from typing import Any, Dict, Type
 
 from fedot.core.optimisers.gp_comp.individual import ParentOperator
-from . import any_to_json
+from . import any_from_json, any_to_json
 
 
 def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:
@@ -11,3 +11,9 @@ def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:
         for parent_ind in serialized_op['parent_individuals'] if parent_ind is not None
     ]
     return serialized_op
+
+
+def parent_operator_from_json(cls: Type[ParentOperator], json_obj: Dict[str, Any]) -> ParentOperator:
+    deserialized = any_from_json(cls, json_obj)
+    object.__setattr__(deserialized, 'parent_individuals', tuple(deserialized.parent_individuals))
+    return deserialized

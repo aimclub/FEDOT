@@ -1,5 +1,6 @@
 import os
 from functools import partial
+from itertools import chain
 from pathlib import Path
 
 import numpy as np
@@ -10,13 +11,13 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
+from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
-from fedot.core.operations.model import Model
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory
@@ -34,7 +35,7 @@ from test.unit.validation.test_table_cv import get_classification_data
 def scaling_logit_rf_pipeline():
     node_first = PrimaryNode('scaling')
     node_second = SecondaryNode('logit', nodes_from=[node_first])
-    node_third = SecondaryNode('bernb',  nodes_from=[node_second])
+    node_third = SecondaryNode('bernb', nodes_from=[node_second])
     return Pipeline(node_third)
 
 
@@ -52,7 +53,7 @@ def test_parent_operator():
     mutation_type = MutationTypesEnum.simple
     operator_for_history = ParentOperator(operator_type='mutation',
                                           operator_name=str(mutation_type),
-                                          parent_individuals=[ind])
+                                          parent_individuals=(ind,))
 
     assert operator_for_history.parent_individuals[0] == ind
     assert operator_for_history.operator_type == 'mutation'
@@ -70,11 +71,7 @@ def test_ancestor_for_mutation():
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
 
-    mutation_result = mutation(types=[MutationTypesEnum.simple],
-                               params=graph_params,
-                               ind=parent_ind,
-                               requirements=composer_requirements, max_depth=2)
-    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, ind=parent_ind,
+    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, individual=parent_ind,
                                requirements=composer_requirements, max_depth=2)
 
     assert len(mutation_result.parent_operators) > 0
@@ -101,7 +98,7 @@ def test_ancestor_for_crossover():
         assert crossover_result.parent_operators[-1].parent_individuals[1].uid == parent_ind_second.uid
 
 
-def test_operators_in_history():
+def test_newly_generated_history():
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
@@ -112,13 +109,19 @@ def test_operators_in_history():
                        preset='fast_train')
     auto_model.fit(features=file_path_train, target='Y')
 
+    history = auto_model.history
+
     assert auto_model.history is not None
-    assert len(auto_model.history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
-
-    # test history dumps
-    dumped_history = auto_model.history.save()
-
+    assert len(history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
+    assert len(history.archive_history) == num_of_gens + 1  # num_of_gens + initial assumption
+    # Test individuals with the same uid are not copied
+    individuals = history.individuals
+    assert len({id(i): i for i in chain(*individuals)}) == len({i.uid: i for i in chain(*individuals)})
+    # Test history dumps
+    dumped_history = history.save()
+    loaded_history = OptHistory.load(dumped_history).save()
     assert dumped_history is not None
+    assert dumped_history == loaded_history, 'History does not equal to itself after reloading!'
 
 
 def assert_intermediate_metrics(pipeline: Graph):
@@ -189,6 +192,20 @@ def test_history_backward_compatibility():
     # Assert that all history pipelines have fitness
     assert len(historical_pipelines) == len(all_historical_fitness)
     assert np.shape(history.individuals) == np.shape(historical_fitness)
-    # Assert that fitness and objective are valid
-    assert all(isinstance(ind.fitness, SingleObjFitness) for gen in history.individuals for ind in gen)
+    # Assert that fitness, parent_individuals, and objective are valid
+    assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
+    assert all(isinstance(parent_individual, Individual)
+               for ind in chain(*history.individuals) for op in ind.parent_operators
+               for parent_individual in op.parent_individuals)
     assert isinstance(history._objective, Objective)
+
+
+def test_history_correct_serialization():
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+
+    history = OptHistory.load(test_history_path)
+    dumped_history = history.save()
+    reloaded_history = OptHistory.load(dumped_history)
+
+    assert history.individuals == reloaded_history.individuals
+    assert dumped_history == reloaded_history.save(), 'History does not equal to itself after reloading!'

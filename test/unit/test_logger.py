@@ -6,9 +6,10 @@ import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log, SingletonMeta, DEFAULT_LOG_PATH
+from fedot.core.log import Log, default_log, DEFAULT_LOG_PATH
 from fedot.core.operations.model import Model
 from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
 @pytest.fixture()

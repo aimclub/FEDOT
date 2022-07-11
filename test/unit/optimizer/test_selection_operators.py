@@ -33,7 +33,7 @@ def rand_population_gener_and_eval(pop_size=4):
 
     # evaluation
     for ind in population:
-        ind.fitness = SingleObjFitness(obj_function())
+        ind.set_evaluation_result(SingleObjFitness(obj_function()))
     return population
 
 

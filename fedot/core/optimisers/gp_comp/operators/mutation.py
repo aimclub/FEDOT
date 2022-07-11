@@ -1,7 +1,7 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import TYPE_CHECKING, Any, Callable, List, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 
 import numpy as np
 
@@ -126,16 +126,17 @@ def _apply_mutation(new_graph: Any,
 
 def mutation(types: List[Union[MutationTypesEnum, Callable]],
              params: 'GraphGenerationParams',
-             ind: Individual, requirements,
-             max_depth: int = None) -> Any:
+             individual: Individual, requirements,
+             max_depth: Optional[int] = None) -> Any:
     """ Function apply mutation operator to graph """
 
     log = default_log(prefix='mutation')
     max_depth = max_depth if max_depth else requirements.max_depth
     mutation_prob = requirements.mutation_prob
+    parent_individuals = [individual]
 
     for _ in range(MAX_NUM_OF_ATTEMPTS):
-        new_graph = deepcopy(ind.graph)
+        new_graph = deepcopy(individual.graph)
         num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
 
         new_graph, mutation_names = _adapt_and_apply_mutations(new_graph=new_graph, mutation_prob=mutation_prob,
@@ -145,19 +146,18 @@ def mutation(types: List[Union[MutationTypesEnum, Callable]],
 
         is_correct_graph = params.verifier(new_graph)
         if is_correct_graph:
-            new_individual = Individual(new_graph)
-            new_individual.parent_operators = deepcopy(ind.parent_operators)
+            parent_operators = list(individual.parent_operators)
             for mutation_name in mutation_names:
-                new_individual.parent_operators.append(
+                parent_operators.append(
                     ParentOperator(operator_type='mutation',
                                    operator_name=str(mutation_name),
-                                   parent_individuals=[ind]))
-            return new_individual
+                                   parent_individuals=tuple(parent_individuals)))
+            return Individual(new_graph, tuple(parent_operators))
 
     log.debug('Number of mutation attempts exceeded. '
               'Please check composer requirements for correctness.')
 
-    return deepcopy(ind)
+    return individual
 
 
 def simple_mutation(graph: Any,

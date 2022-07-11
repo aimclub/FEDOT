@@ -35,15 +35,13 @@ def decremental_regularization(population: PopulationT,
     prev_nodes_ids = set()
     for ind in population:
         prev_nodes_ids.add(ind.graph.root_node.descriptive_id)
-        subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())))
+        parent_operator = ParentOperator(operator_type='regularization',
+                                         operator_name='decremental_regularization',
+                                         parent_individuals=(ind,))
+        subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())), (parent_operator,))
                         for node in ind.graph.nodes
                         if is_fitted_subtree(node) and node.descriptive_id not in prev_nodes_ids]
 
-        parent_operator = ParentOperator(operator_type='regularization',
-                                         operator_name='decremental_regularization',
-                                         parent_individuals=[ind])
-        for add_ind in subtree_inds:
-            add_ind.parent_operators.append(parent_operator)
         additional_inds.extend(subtree_inds)
         prev_nodes_ids.update(subtree.graph.root_node.descriptive_id for subtree in subtree_inds)
 

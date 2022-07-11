@@ -97,30 +97,34 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         return successful_evals
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
+        if ind.fitness.valid:
+            return ind
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
+
         start_time = timeit.default_timer()
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
         _restrict_n_jobs_in_nodes(graph)
         adapted_graph = self._graph_adapter.restore(graph)
 
-        ind.fitness = self._objective_eval(adapted_graph)
-
+        ind_fitness = self._objective_eval(adapted_graph)
         if self._post_eval_callback:
             self._post_eval_callback(adapted_graph)
         if self._cleanup:
             self._cleanup(adapted_graph)
         gc.collect()
 
-        ind.graph = self._graph_adapter.adapt(adapted_graph)
+        ind_graph = self._graph_adapter.adapt(adapted_graph)
+
+        ind.set_evaluation_result(ind_fitness, ind_graph)
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         return ind if ind.fitness.valid else None
 
     def _reset_eval_cache(self):
-        self.evaluation_cache: Dict[int, Graph] = {}
+        self.evaluation_cache: Dict[str, Graph] = {}
 
     def _remote_compute_cache(self, population: PopulationT):
         self._reset_eval_cache()
@@ -160,14 +164,18 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         return evaluated_population
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
+        if ind.fitness.valid:
+            return ind
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
+
         start_time = timeit.default_timer()
 
         graph = ind.graph
         adapted_graph = self._graph_adapter.restore(graph)
-        ind.fitness = self._objective_eval(adapted_graph)
-        ind.graph = self._graph_adapter.adapt(adapted_graph)
+        ind_fitness = self._objective_eval(adapted_graph)
+        ind_graph = self._graph_adapter.adapt(adapted_graph)
+        ind.set_evaluation_result(ind_fitness, ind_graph)
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         return ind if ind.fitness.valid else None

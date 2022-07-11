@@ -17,9 +17,9 @@ def create_individual():
     final = OptNode(content={'name': 'knn', 'params': DEFAULT_PARAMS_STUB},
                     nodes_from=[first, second])
 
-    indiviual = Individual(graph=OptGraph(final))
-    indiviual.fitness = SingleObjFitness(1)
-    return indiviual
+    individual = Individual(graph=OptGraph(final))
+    individual.set_evaluation_result(SingleObjFitness(1))
+    return individual
 
 
 def generate_history(generations_quantity, pop_size):
@@ -81,9 +81,9 @@ def test_all_historical_quality():
     for pop_num, population in enumerate(history.individuals):
         if pop_num != 0:
             eval_fitness = [[fit[0] + 0.5, fit[1]] for fit in eval_fitness]
-        for pipeline_num, pipeline in enumerate(population):
-            fitness = MultiObjFitness(values=eval_fitness[pipeline_num], weights=weights)
-            pipeline.fitness = fitness
+        for ind_num, individual in enumerate(population):
+            fitness = MultiObjFitness(values=eval_fitness[ind_num], weights=weights)
+            object.__setattr__(individual, 'fitness', fitness)
     all_quality = history.all_historical_quality
     assert all_quality[0] == -0.9 and all_quality[4] == -1.4 and all_quality[5] == -1.3 and all_quality[10] == -1.2
 

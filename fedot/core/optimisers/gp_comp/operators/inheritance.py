@@ -35,4 +35,4 @@ def steady_state_inheritance(selection_types: List[SelectionTypesEnum],
 
 
 def direct_inheritance(new_population: List[Any], max_size: int):
-    return deepcopy(new_population[:max_size])
+    return new_population[:max_size]
