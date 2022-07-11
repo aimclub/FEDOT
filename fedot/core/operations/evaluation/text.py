@@ -24,20 +24,19 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.vectorizer = self._convert_to_operation(operation_type)
         self.params = params
+        if self.params:
+            self.vectorizer = self.vectorizer(**self.params)
+        else:
+            self.vectorizer = self.vectorizer()
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
 
-        if self.params_for_fit:
-            vectorizer = self.vectorizer(**self.params_for_fit)
-        else:
-            vectorizer = self.vectorizer()
-
         features_list = self._convert_to_one_dim(train_data.features)
 
-        vectorizer.fit(features_list)
+        self.vectorizer.fit(features_list)
 
-        return vectorizer
+        return self.vectorizer
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
@@ -78,6 +77,10 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.text_processor = self._convert_to_operation(operation_type)
         self.params = params
+        if self.params:
+            self.text_processor = self.text_processor(**self.params)
+        else:
+            self.text_processor = self.text_processor()
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -87,13 +90,9 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained model
         """
-        if self.params:
-            text_processor = self.text_processor(**self.params_for_fit)
-        else:
-            text_processor = self.text_processor()
 
-        text_processor.fit(train_data)
-        return text_processor
+        self.text_processor.fit(train_data)
+        return self.text_processor
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
@@ -127,6 +126,10 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         self.vectorizer = self._convert_to_operation(operation_type)
         self.params = params
+        if self.params:
+            self.vectorizer = self.vectorizer(**self.params)
+        else:
+            self.vectorizer = self.vectorizer()
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -134,13 +137,9 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
 
         :param train_data: data with features, target and ids to process
         """
-        if self.params:
-            vectorizer = self.vectorizer(**self.params_for_fit)
-        else:
-            vectorizer = self.vectorizer()
 
-        vectorizer.fit(train_data)
-        return vectorizer
+        self.vectorizer.fit(train_data)
+        return self.vectorizer
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:

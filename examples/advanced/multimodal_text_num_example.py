@@ -37,7 +37,7 @@ def prepare_multi_modal_data(files_path: str, task: Task) -> MultiModalData:
     return data
 
 
-def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
+def run_multi_modal_example(files_path: str, is_visualise=True) -> float:
     task = Task(TaskTypesEnum.classification)
 
     data = prepare_multi_modal_data(files_path, task)
@@ -59,4 +59,4 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
 
 
 if __name__ == '__main__':
-    run_multi_modal_pipeline(files_path='examples/data/multimodal_wine', is_visualise=True)
+    run_multi_modal_example(files_path='examples/data/multimodal_wine', is_visualise=True)

@@ -38,15 +38,15 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         :return output_data: output data with transformed features table
         """
 
-        embed_data = np.stack([self.vectorize_sum(text, self.model) for text in input_data.features])
+        embed_data = np.stack([self.vectorize_avg(text, self.model) for text in input_data.features])
         output_data = self._convert_to_output(input_data,
                                               embed_data,
                                               data_type=DataTypesEnum.table)
         return output_data
 
     @staticmethod
-    def vectorize_sum(text: str, embeddings):
-        """ Method converts text to a sum of token vectors
+    def vectorize_avg(text: str, embeddings):
+        """ Method converts text to an average of token vectors
 
         :param text: str with text data
         :param embeddings: gensim pretrained embeddings
@@ -54,11 +54,15 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         """
         embedding_dim = embeddings.vectors.shape[1]
         features = np.zeros([embedding_dim], dtype='float32')
+        num_words = 0
 
         for word in text.split():
             if word in embeddings:
                 features += embeddings[f'{word}']
+                num_words += 1
 
+        if num_words > 0:
+            return features / num_words
         return features
 
     def _download_model_resources(self):
