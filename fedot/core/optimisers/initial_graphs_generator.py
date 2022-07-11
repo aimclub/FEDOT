@@ -60,9 +60,8 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
         def get_random_graph():
             adapter = self.generation_params.adapter
             start_depth = self.requirements.start_depth
-            return adapter.restore(random_graph(verifier, self.requirements, max_depth=start_depth))
+            return adapter.restore(random_graph(self.generation_params, self.requirements, max_depth=start_depth))
 
-        verifier = self.generation_params.verifier
         pop_size = int(self.requirements.pop_size)
 
         if self.initial_graphs:
@@ -77,7 +76,7 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
         n_iter = 0
         while len(population) < pop_size:
             new_graph = self.generation_function()
-            if new_graph not in population and verifier(new_graph):
+            if new_graph not in population and self.generation_params.verifier(new_graph):
                 population.append(new_graph)
             n_iter += 1
             if n_iter >= self._max_generation_attempts:

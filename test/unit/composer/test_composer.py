@@ -319,21 +319,21 @@ def test_gp_composer_builder_default_params_correct():
     assert 'scaling' in primary_operations
 
 
-def test_gp_composer_random_graph_generation_looping():
+@pytest.mark.parametrize('max_depth', [1, 3, 5])
+def test_gp_composer_random_graph_generation_looping(max_depth):
     """ Test checks random_graph valid generation without freezing in loop of creation.
     """
     task = Task(TaskTypesEnum.regression)
 
-    adapter = PipelineAdapter()
-    verifier = verifier_for_task(task.task_type, adapter)
-    params = GraphGenerationParams(adapter, verifier, PipelineChangeAdvisor(task=task))
-    operations = get_operations_for_task(task)
+    operations = get_operations_for_task(task, mode='model')
+    primary_operations = operations[:len(operations)//2]
+    secondary_operations = operations[len(operations)//2:]
     requirements = PipelineComposerRequirements(
-        primary=operations,
-        secondary=operations,
+        primary=primary_operations,
+        secondary=secondary_operations,
         timeout=datetime.timedelta(seconds=300),
         max_pipeline_fit_time=None,
-        max_depth=1,
+        max_depth=max_depth,
         max_arity=2,
         cv_folds=None,
         advisor=PipelineChangeAdvisor(task=task),
@@ -347,14 +347,15 @@ def test_gp_composer_random_graph_generation_looping():
     params = get_pipeline_generation_params(requirements=requirements,
                                             task=task)
 
-    graph = random_graph(params, requirements, max_depth=None)
-    nodes_name = list(map(str, graph.nodes))
-    print(graph)
-    # for primary_node in requirements.primary:
-    #     assert primary_node in nodes_name
-    #     assert nodes_name.count(primary_node) == 1
-    assert verifier(graph) is True
-    assert graph.depth <= requirements.max_depth
+    graphs = [random_graph(params, requirements, max_depth=None) for _ in range(4)]
+    for graph in graphs:
+        for node in graph.nodes:
+            if node.nodes_from:
+                assert node.content['name'] in requirements.secondary
+            else:
+                assert node.content['name'] in requirements.primary
+        assert params.verifier(graph) is True
+        assert graph.depth <= requirements.max_depth
 
 
 def test_gp_composer_early_stopping():

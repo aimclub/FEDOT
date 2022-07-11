@@ -1,27 +1,21 @@
 import platform
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Optional, Union, List, Dict, Sequence, Type
-from typing import Dict, Iterable, List, Optional, Sequence, Type, Union
+from typing import Dict, List, Optional, Sequence, Type, Union
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.opt_history import log_to_history, OptHistory
+from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory, log_to_history
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (

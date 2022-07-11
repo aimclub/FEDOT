@@ -1,17 +1,17 @@
 from copy import deepcopy
-from random import choice, randint
-from typing import Any, List, Optional, Tuple
+from random import randint
+from typing import Any, List, Optional, Tuple, TYPE_CHECKING
 
-from fedot.core.dag.graph_verifier import GraphVerifier
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.utils import DEFAULT_PARAMS_STUB
+if TYPE_CHECKING:
+    from fedot.core.composer.composer import ComposerRequirements
+    from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 MAX_ITERS = 1000
 
 
-def random_graph(graph_generation_params: GraphGenerationParams,
-                 requirements: ComposerRequirements,
+def random_graph(graph_generation_params: 'GraphGenerationParams',
+                 requirements: 'ComposerRequirements',
                  max_depth: Optional[int] = None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
     is_correct_graph = False
@@ -21,9 +21,14 @@ def random_graph(graph_generation_params: GraphGenerationParams,
 
     while not is_correct_graph:
         graph = OptGraph()
-        graph_root = graph_generation_params.node_factory.get_node(primary=False)
-        graph.add_node(graph_root)
-        graph_growth(graph, graph_root, graph_generation_params, requirements, max_depth)
+        if requirements.max_depth == 1:
+            graph_root = graph_generation_params.node_factory.get_node(primary=True)
+            graph.add_node(graph_root)
+        else:
+            graph_root = graph_generation_params.node_factory.get_node(primary=False)
+            graph.add_node(graph_root)
+            graph_growth(graph, graph_root, graph_generation_params, requirements, max_depth)
+
         is_correct_graph = graph_generation_params.verifier(graph)
         n_iter += 1
         if n_iter > MAX_ITERS:
@@ -46,7 +51,7 @@ def adjust_requirements(requirements):
 
 def graph_growth(graph: OptGraph,
                  node_parent: OptNode,
-                 params: GraphGenerationParams,
+                 params: 'GraphGenerationParams',
                  requirements,
                  max_depth: int):
     """Function create a graph and links between nodes"""

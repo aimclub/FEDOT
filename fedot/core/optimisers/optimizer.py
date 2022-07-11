@@ -5,15 +5,13 @@ from typing import (Any, Callable, Optional, Sequence)
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
-from fedot.core.optimisers.initial_graphs_generator import InitialGraphsGenerator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory, DefaultOptNodeFactory
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
 
@@ -50,6 +48,7 @@ class GraphGenerationParams:
 
     :param adapter: the function for processing of external object that should be optimized
     :param rules_for_constraint: collection of constraints
+    :param advisor: class of task-specific advices for graph changes
     :param node_factory: class of generating nodes while mutation
     """
     adapter: BaseOptimizationAdapter
@@ -74,8 +73,8 @@ class GraphOptimiser:
     the abstract method 'optimize' should be re-defined in the ancestor class
     (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
-    :param initial_graph: graph which was initialized outside the optimiser
     :param objective: objective for optimisation
+    :param initial_graphs: graphs which was initialized outside the optimiser
     :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
     :param parameters: parameters for specific implementation of graph optimiser

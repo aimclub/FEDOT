@@ -3,11 +3,9 @@ from random import choice
 
 import pytest
 
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
-from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -20,9 +18,9 @@ def setup_test(pop_size):
     requirements = PipelineComposerRequirements(primary=available_model_types,
                                                 secondary=available_model_types,
                                                 pop_size=pop_size)
-    graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
-                                                    advisor=PipelineChangeAdvisor(task),
-                                                    rules_for_constraint=rules_by_task(task.task_type))
+    graph_generation_params = get_pipeline_generation_params(requirements=requirements,
+                                                             rules_for_constraint=rules_by_task(task.task_type),
+                                                             task=task)
     return requirements, graph_generation_params, InitialPopulationGenerator(graph_generation_params, requirements)
 
 

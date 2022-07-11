@@ -9,7 +9,6 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -97,7 +96,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                          graph_generation_params=graph_generation_params,
                          parameters=parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
-
         self.population = None
         self.generations = GenerationKeeper(self.objective)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
