@@ -604,7 +604,7 @@ class PipelineEvolutionVisualiser:
             animate,
             frames=len(bar_data),
             interval=animation_interval_between_frames_ms,
-            repeat=False
+            repeat=True
         )
         ani.save(str(save_path), dpi=animation_dpi)
         print(f'The animation was saved to "{save_path}".')
