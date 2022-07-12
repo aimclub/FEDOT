@@ -6,14 +6,13 @@ from glob import glob
 from os import remove
 from pathlib import Path
 from time import time
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -25,7 +24,7 @@ except ModuleNotFoundError:
     warn_requirement('PIL')
     PIL = None
 
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
@@ -428,6 +427,8 @@ class PipelineEvolutionVisualiser:
         df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
         tags_found = df_history[tag_column_name].unique()
 
+        palette = get_palette_based_on_default_tags()
+
         plot = sns.displot(
             data=df_history,
             x=generation_column_name,
@@ -436,7 +437,8 @@ class PipelineEvolutionVisualiser:
             kind='kde',
             clip=(0, max(df_history[generation_column_name])),
             multiple='fill',
-            palette='Set2',
+            bw_adjust=1.2,
+            palette=palette
         )
         fig = plot.figure
         fig.set_dpi(110)
@@ -581,10 +583,10 @@ class PipelineEvolutionVisualiser:
             sm.set_array([])
             fig.colorbar(sm, label=fitness_column_name)
         else:
-            no_fitness_palette = sns.color_palette(no_fitness_palette, n_colors=len(tags_found))
+            no_fitness_palette = get_palette_based_on_default_tags()
 
         count = bar_data[0]
-        color = bar_color[0] if show_fitness_color else [no_fitness_palette[i] for i in range(len(tags_found))]
+        color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in tags_found]
         title = bar_title[0]
 
         bars = ax.barh(tags_found, count, color=color)
@@ -615,3 +617,15 @@ def figure_to_array(fig):
     img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8)
     img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     return img
+
+
+def get_palette_based_on_default_tags() -> Dict[str, Tuple[float, float, float]]:
+    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
+    p_1 = sns.color_palette('tab20')
+    colour_period = 2  # diverge similar nearby colors
+    p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
+    p_2 = sns.color_palette('Set3')
+    palette = np.vstack([p_1, p_2])
+    palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
+    palette_map.update({None: 'mediumaquamarine'})
+    return palette_map

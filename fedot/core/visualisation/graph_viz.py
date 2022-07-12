@@ -45,18 +45,20 @@ class GraphVisualiser:
         inv_map = {v: k for k, v in node_labels.items()}
         if type(graph).__name__ == 'Pipeline':
             root = inv_map[graph.root_node]
+            color_kwargs = {'node_color': colors_by_node_labels(node_labels)}
         else:
             root = 0
+            color_kwargs = {'cmap': 'Set3'}
+
         minimum_spanning_tree = nx.minimum_spanning_tree(nx_graph.to_undirected())
         pos = hierarchy_pos(minimum_spanning_tree, root=root)
         min_size = 3000
         node_sizes = [min_size for _ in word_labels]
         if title:
             plt.title(title)
-        colors = colors_by_node_labels(node_labels)
         nx.draw(nx_graph, pos=pos, with_labels=False,
-                node_size=node_sizes, width=2.0,
-                node_color=colors, cmap='Set3', ax=ax)
+                node_size=node_sizes, width=2.0, ax=ax,
+                **color_kwargs)
         return pos, node_labels
 
     def _draw_dag(self, graph: 'Graph', ax=None, title=None,
@@ -85,7 +87,11 @@ class GraphVisualiser:
 
 
 def colors_by_node_labels(node_labels: dict):
-    colors = [color for color in range(len(node_labels.keys()))]
+    from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
+    from fedot.core.repository.operation_types_repository import get_opt_node_tag
+
+    palette = get_palette_based_on_default_tags()
+    colors = [palette[get_opt_node_tag(str(label))] for label in node_labels.values()]
     return colors
 
 
