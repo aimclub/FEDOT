@@ -38,6 +38,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
     :param mutation_types: List of mutation operators types
     :param regularization_type: type of regularization operator
     :param genetic_scheme_type: type of genetic evolutionary scheme
+    :param elitism_type: type of elitism operator
     evolution. Default False.
     """
 
@@ -66,6 +67,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
                  mutation_types: List[Union[MutationTypesEnum, Any]] = None,
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
+                 elitism_type: ElitismTypesEnum = ElitismTypesEnum.none,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -75,6 +77,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         self.mutation_types = mutation_types
         self.regularization_type = regularization_type
         self.genetic_scheme_type = genetic_scheme_type
+        self.elitism_type = elitism_type
 
         self.set_default_params()  # always initialize in proper state
 
@@ -92,7 +95,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
-        self.elitism = Elitism(ElitismTypesEnum.none)
+        self.elitism = Elitism(self.parameters.elitism_type)
         self.population = None
         self.generations = GenerationKeeper(self.objective)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -234,7 +237,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             return pop_size >= self._min_population_size_with_elitism
 
     def _inheritance(self, offspring: PopulationT, pop_size: int) -> PopulationT:
-        """Gather next population given new offspring, previous population and elite individuals.
+        """Gather next population given new offspring and previous population.
         :param offspring: offspring of current population.
         :param pop_size: size of the next population.
         :return: next population."""
@@ -251,8 +254,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
         max_depth = max_depth or self.max_depth
         requirements = custom_requirements or self.requirements
-        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params, individual=individual,
-                        requirements=requirements, max_depth=max_depth)
+        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params,
+                        individual=individual, requirements=requirements, max_depth=max_depth)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
