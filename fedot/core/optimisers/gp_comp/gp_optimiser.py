@@ -11,6 +11,7 @@ from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -91,6 +92,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
+        self.elitism = Elitism(ElitismTypesEnum.none)
         self.population = None
         self.generations = GenerationKeeper(self.objective)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -237,17 +239,11 @@ class EvoGraphOptimiser(GraphOptimiser):
         :param pop_size: size of the next population.
         :return: next population."""
 
-        elite_inds = self.generations.best_individuals if self.with_elitism(pop_size) else ()
-        num_of_new_individuals = pop_size - len(elite_inds)
-
         # TODO: from inheritance together with elitism we can get duplicate inds!
         offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                 self.population,
-                                offspring, num_of_new_individuals,
+                                offspring, pop_size,
                                 graph_params=self.graph_generation_params)
-
-        # Add best individuals from the previous generation
-        offspring.extend(elite_inds)
         return offspring
 
     def _mutate(self, individual: Individual,
