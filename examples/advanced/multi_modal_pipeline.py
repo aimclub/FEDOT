@@ -77,8 +77,7 @@ def run_multi_modal_pipeline(files_path: str, is_visualise=True) -> float:
 
     fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.6)
 
-    # tuner on image data is not implemented yet, timeout increase can cause unstable work
-    automl_model = Fedot(problem='classification', timeout=0.1)
+    automl_model = Fedot(problem='classification', timeout=15)
     pipeline = automl_model.fit(features=fit_data,
                                 target=fit_data.target)
 

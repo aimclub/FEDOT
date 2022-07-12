@@ -215,3 +215,9 @@ class FedotCNNImplementation(ModelImplementation):
     @property
     def classes_(self):
         return self.classes
+
+    def __deepcopy__(self, memo=None):
+        clone_model = tf.keras.models.clone_model(self.model)
+        clone_model.compile(optimizer=self.model.optimizer, loss=self.model.loss, metrics=self.model.metrics)
+        clone_model.set_weights(self.model.get_weights())
+        return clone_model
