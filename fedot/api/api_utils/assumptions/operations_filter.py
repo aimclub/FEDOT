@@ -2,14 +2,11 @@ from random import choice
 from typing import Optional, Iterable
 
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class OperationsFilter:
-    def satisfies(self, pipeline: Optional[Pipeline], data_type: DataTypesEnum) -> bool:
+    def satisfies(self, pipeline: Optional[Pipeline]) -> bool:
         """ Checks if all operations in a Pipeline satisify this filter. """
-        if data_type is DataTypesEnum.image and 'cnn' not in [node.operation.operation_type for node in pipeline.nodes]:
-            return False
         return True
 
     def sample(self) -> str:
@@ -26,7 +23,7 @@ class WhitelistOperationsFilter(OperationsFilter):
         self._whitelist = tuple(available_operations)
         self._choice_operations = tuple(available_task_operations) if available_task_operations else self._whitelist
 
-    def satisfies(self, pipeline: Optional[Pipeline], data_type: DataTypesEnum) -> bool:
+    def satisfies(self, pipeline: Optional[Pipeline]) -> bool:
         def node_ok(node):
             return node.operation.operation_type in self._whitelist
 

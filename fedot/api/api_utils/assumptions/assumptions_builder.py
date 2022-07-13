@@ -1,4 +1,4 @@
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Set
 
 from fedot.api.api_utils.assumptions.operations_filter import OperationsFilter, WhitelistOperationsFilter
 from fedot.api.api_utils.assumptions.preprocessing_builder import PreprocessingBuilder
@@ -38,7 +38,7 @@ class AssumptionsBuilder:
             raise NotImplementedError(f"Can't build assumptions for data type: {type(data).__name__}")
         return cls(data, repository_name=repository_name)
 
-    def from_operations(self, available_ops: List[str]):
+    def from_operations(self, available_operations: List[str]):
         raise NotImplementedError('abstract')
 
     def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
@@ -64,9 +64,9 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
 
     def from_operations(self, available_operations: Optional[List[str]]):
         if available_operations:
-            _check_available_operations(self.data.task.task_type, available_operations)
-            operations_for_the_task, _ = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
-            operations_to_choose_from = set(operations_for_the_task).intersection(available_operations)
+            operations_for_task_and_data, _ = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
+            operations_to_choose_from = set(operations_for_task_and_data).intersection(available_operations)
+            _check_operations_to_choose_from(self.data, self.data_type, operations_to_choose_from)
             if operations_to_choose_from:
                 self.ops_filter = WhitelistOperationsFilter(available_operations, operations_to_choose_from)
             else:
@@ -84,7 +84,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         valid_builders = []
         for processing in self.assumptions_generator.processing_builders():
             candidate_builder = preprocessing.merge_with(processing)
-            if self.ops_filter.satisfies(candidate_builder.to_pipeline(), self.data_type):
+            if self.ops_filter.satisfies(candidate_builder.to_pipeline()):
                 valid_builders.append(candidate_builder)
         return valid_builders or [self.assumptions_generator.fallback_builder(self.ops_filter)]
 
@@ -93,15 +93,18 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
     def __init__(self, data: MultiModalData, repository_name: str = "model"):
         super().__init__(data, repository_name)
         _subbuilders = []
-        for data_type, (data_source_name, values) in zip(data.data_type, data.items()):
-            # TODO: can have specific Builder for each particular data column, eg construct InputData
-            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(data, data_type)))
+        for data_type, (data_source_name, values) in zip(self.data.data_type, self.data.items()):
+            # Performs specific filter on image data operations
+            if data_type is DataTypesEnum.image:
+                self.available_operations = ['data_source_img', 'cnn']
+                _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)
+                                     .from_operations(self.available_operations)))
+            else:
+                _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
         self._subbuilders = tuple(_subbuilders)
 
-    # TODO: in principle, each data column in MultiModalData can have its own available_ops
-    def from_operations(self, available_ops: List[str]):
-        self.logger.info("Available operations are not taken into account when "
-                            "forming the initial assumption for multi-modal data")
+    def from_operations(self, available_operations: Optional[List[str]]):
+        self.available_operations = available_operations
         return self
 
     def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:
@@ -122,8 +125,15 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         return ensemble_builders
 
 
-def _check_available_operations(task_type: TaskTypesEnum, available_operations: List[str]):
-    """Since it is impossible to form a valid pipeline for the time series
-    without 'lagged' operation, it is added to the list of available operations."""
-    if task_type is TaskTypesEnum.ts_forecasting and 'lagged' not in available_operations:
-        available_operations.append('lagged')
+def _check_operations_to_choose_from(data, data_type: DataTypesEnum, operations_to_choose_from: Set[str]):
+    """Since it is sometimes impossible to form a valid pipeline without some operations,
+     they are added to the set of operations for current task and data."""
+    if isinstance(data, MultiModalData):
+        if data_type is DataTypesEnum.image and 'data_source_img' not in operations_to_choose_from:
+            operations_to_choose_from.add('data_source_img')
+        if data_type is DataTypesEnum.text and 'data_source_text' not in operations_to_choose_from:
+            operations_to_choose_from.add('data_source_text')
+        if data_type is DataTypesEnum.table and 'data_source_table' not in operations_to_choose_from:
+            operations_to_choose_from.add('data_source_table')
+    if data_type is DataTypesEnum.image and 'cnn' not in operations_to_choose_from:
+        operations_to_choose_from.add('cnn')
