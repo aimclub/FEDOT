@@ -28,6 +28,6 @@ class Elitism:
 
     def replace_worst_elitism(self, best_individuals: PopulationT, new_population: PopulationT):
         population = best_individuals + new_population
-        # sort population based on fitness value in ascending order
-        sorted_population = sorted(population, key=lambda individual: individual.fitness)
+        # sort population based on fitness value in descending order
+        sorted_population = sorted(population, key=lambda individual: individual.fitness, reverse=True)
         return sorted_population[:len(new_population)]
