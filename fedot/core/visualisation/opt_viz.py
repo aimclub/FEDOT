@@ -5,15 +5,18 @@ from enum import Enum, auto
 from glob import glob
 from os import remove
 from pathlib import Path
+from textwrap import wrap
 from time import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from fedot.core.optimisers.gp_comp.individual import Individual
+from matplotlib import animation, cm, pyplot as plt, ticker
+from matplotlib.colors import Normalize
+from matplotlib.figure import Figure
+
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -25,12 +28,11 @@ except ModuleNotFoundError:
     PIL = None
 
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
-from matplotlib import animation, cm, ticker
-from matplotlib.colors import Normalize
 
 
 class PlotTypesEnum(Enum):
@@ -415,6 +417,7 @@ class PipelineEvolutionVisualiser:
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
+
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
 
@@ -426,6 +429,8 @@ class PipelineEvolutionVisualiser:
         df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
         df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
         tags_found = df_history[tag_column_name].unique()
+        tags_found = [t for t in tags_all if t in tags_found]
+        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
 
         palette = get_palette_based_on_default_tags()
 
@@ -433,13 +438,17 @@ class PipelineEvolutionVisualiser:
             data=df_history,
             x=generation_column_name,
             hue=tag_column_name,
-            hue_order=[t for t in tags_all if t in tags_found],
+            hue_order=tags_found,
             kind='kde',
             clip=(0, max(df_history[generation_column_name])),
             multiple='fill',
-            bw_adjust=1.2,
             palette=palette
         )
+
+        legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in tags_found]
+        for text, new_text in zip(plot.legend.texts, legend):
+            text.set_text(new_text)
+
         fig = plot.figure
         fig.set_dpi(110)
         fig.set_facecolor('w')
@@ -520,6 +529,7 @@ class PipelineEvolutionVisualiser:
         }, axis='columns')
         tags_found = df_history[tag_column_name].unique()
         tags_found = [tag for tag in tags_all if tag in tags_found]
+        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
         # Getting normed fraction of individuals  per generation that contain operations given.
         generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
         operations_with_individuals_count = df_history.groupby(
@@ -589,7 +599,13 @@ class PipelineEvolutionVisualiser:
         color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in tags_found]
         title = bar_title[0]
 
-        bars = ax.barh(tags_found, count, color=color)
+        bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in tags_found]
+        label_size = 10
+        if any(len(label.split('\n')) > 2 for label in bars_labels):
+            label_size = 8
+
+        bars = ax.barh(bars_labels, count, color=color)
+        ax.tick_params(axis='y', which='major', labelsize=label_size)
         ax.set_title(title)
         ax.set_xlim(0, 1)
         ax.set_xlabel(f'Fraction of pipelines containing the operation')
@@ -617,6 +633,59 @@ def figure_to_array(fig):
     img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8)
     img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     return img
+
+
+def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str], max_line_length: int = 22,
+                                         format_tag: str = 'it'):
+    def make_text_fancy(text: str):
+        return text.replace('_', ' ')
+
+    def format_text(text_to_wrap: str, latex_format_tag: str = 'it') -> str:
+        formatted_text = '$\\' + latex_format_tag + '{' + text_to_wrap + '}$'
+        formatted_text = formatted_text.replace(' ', '\\;')
+        return formatted_text
+
+    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, html_format_tag: str = 'it') -> List[str]:
+
+        long_text = ''.join(wrapped_text)
+        first_tag_pos = long_text.find(part_to_format)
+        second_tag_pos = first_tag_pos + len(part_to_format)
+
+        line_len = len(wrapped_text[0])
+
+        first_tag_line = first_tag_pos // line_len
+        first_tag_char = first_tag_pos % line_len
+
+        second_tag_line = second_tag_pos // line_len
+        second_tag_char = second_tag_pos % line_len
+
+        if first_tag_line == second_tag_line:
+            wrapped_text[first_tag_line] = \
+                wrapped_text[first_tag_line][:first_tag_char] + \
+                format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], html_format_tag) + \
+                wrapped_text[first_tag_line][second_tag_char:]
+        else:
+            for line in range(first_tag_line + 1, second_tag_line):
+                wrapped_text[line] = format_text(wrapped_text[line], html_format_tag)
+
+            wrapped_text[first_tag_line] = \
+                wrapped_text[first_tag_line][:first_tag_char] + \
+                format_text(wrapped_text[first_tag_line][first_tag_char:], html_format_tag)
+
+            wrapped_text[second_tag_line] = \
+                format_text(wrapped_text[second_tag_line][:second_tag_char], html_format_tag) + \
+                wrapped_text[second_tag_line][second_tag_char:]
+
+        return wrapped_text
+
+    tag = make_text_fancy(tag)
+    operations_by_tag = ', '.join(operations_by_tag)
+    description = f'{tag}: {operations_by_tag}.'
+    description = make_text_fancy(description)
+    description = wrap(description, max_line_length)
+    description = format_wrapped_text(description, tag, format_tag)
+    description = '\n'.join(description)
+    return description
 
 
 def get_palette_based_on_default_tags() -> Dict[str, Tuple[float, float, float]]:
