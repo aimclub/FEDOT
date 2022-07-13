@@ -97,7 +97,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.parameters = parameters or GPGraphOptimiserParameters()
         self.elitism = Elitism(self.parameters.elitism_type)
         self.population = None
-        self.generations = GenerationKeeper(self.objective)
+        self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,

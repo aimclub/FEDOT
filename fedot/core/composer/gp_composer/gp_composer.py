@@ -30,6 +30,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :attribute validation_blocks: number of validation blocks for time series validation
     :attribute n_jobs: num of n_jobs
     :attribute collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
+    :attribute keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     """
     pop_size: int = 20
     max_pop_size: Optional[int] = 55
@@ -43,6 +44,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     validation_blocks: int = None
     n_jobs: int = 1
     collect_intermediate_metric: bool = False
+    keep_n_best: int = 1
 
 
 class GPComposer(Composer):
