@@ -1,6 +1,5 @@
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.objective import Objective
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -13,11 +12,12 @@ class ElitismTypesEnum(Enum):
 class Elitism:
     def __init__(self, elitism_type: ElitismTypesEnum,
                  requirements: PipelineComposerRequirements,
-                 objective: Objective):
+                 is_multi_objective: bool,
+                 min_population_size_with_elitism: int = 5):
         self.elitism_type = elitism_type
         self.requirements = requirements
-        self.is_multi_objective = objective.is_multi_objective
-        self._min_population_size_with_elitism = 5
+        self.is_multi_objective = is_multi_objective
+        self.min_population_size_with_elitism = min_population_size_with_elitism
 
     def __call__(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
         if self.elitism_type is ElitismTypesEnum.none or not self.is_elitism_applicable():
@@ -43,4 +43,4 @@ class Elitism:
         if self.is_multi_objective:
             return False
         else:
-            return self.requirements.pop_size >= self._min_population_size_with_elitism
+            return self.requirements.pop_size >= self.min_population_size_with_elitism

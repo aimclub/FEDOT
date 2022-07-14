@@ -25,7 +25,7 @@ def prepared_objective(pipeline: Pipeline) -> Fitness:
     train_data = get_classification_data()
     pipeline.fit(train_data)
 
-    metric = ClassificationMetricsEnum.accuracy
+    metric = ClassificationMetricsEnum.logloss
     objective = Objective(metric)
     return objective(pipeline, reference_data=train_data)
 
