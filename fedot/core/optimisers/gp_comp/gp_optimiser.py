@@ -95,8 +95,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
-        self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
+        self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
