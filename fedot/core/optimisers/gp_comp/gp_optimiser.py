@@ -221,7 +221,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
-                # Adding of new population to history as zero generation
+                # Adding of new population to history
                 self._next_population(new_population)
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
