@@ -67,7 +67,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
                  mutation_types: List[Union[MutationTypesEnum, Any]] = None,
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
-                 elitism_type: ElitismTypesEnum = ElitismTypesEnum.none,
+                 elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -95,7 +95,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
-        self.elitism = Elitism(self.parameters.elitism_type)
+        self.elitism = Elitism(self.parameters.elitism_type, requirements, objective)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -127,8 +127,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
 
         # Define parameters
-
-        self._min_population_size_with_elitism = 5
 
         start_depth = requirements.start_depth or requirements.max_depth
         self._graph_depth = AdaptiveGraphDepth(self.generations,
@@ -225,16 +223,13 @@ class EvoGraphOptimiser(GraphOptimiser):
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
+
+                new_population = self.elitism(self.generations.best_individuals, new_population)
+
                 # Adding of new population to history
                 self._next_population(new_population)
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
-
-    def with_elitism(self, pop_size: int) -> bool:
-        if self.objective.is_multi_objective:
-            return False
-        else:
-            return pop_size >= self._min_population_size_with_elitism
 
     def _inheritance(self, offspring: PopulationT, pop_size: int) -> PopulationT:
         """Gather next population given new offspring and previous population.
