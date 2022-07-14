@@ -7,7 +7,8 @@ FEDOT
    :glob:
    :maxdepth: 2
 
-   fedot
+   intro
+   fedot_features
    benchmarks
    installation
    quickstart
