@@ -13,7 +13,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, crossover_parents_selection, selection
@@ -96,6 +96,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
+        self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -221,6 +222,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                  params=self.graph_generation_params)
                 new_population = self._reproduce(selected_individuals)
 
+                new_population = self.mutation(new_population, self.max_depth)
+
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
@@ -245,14 +248,6 @@ class EvoGraphOptimiser(GraphOptimiser):
                                 graph_params=self.graph_generation_params)
         return offspring
 
-    def _mutate(self, individual: Individual,
-                max_depth: Optional[int] = None,
-                custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
-        max_depth = max_depth or self.max_depth
-        requirements = custom_requirements or self.requirements
-        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params,
-                        individual=individual, requirements=requirements, max_depth=max_depth)
-
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
             new_population = population
@@ -260,7 +255,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             new_population = []
             for ind_1, ind_2 in crossover_parents_selection(population):
                 new_population += self._crossover_pair(ind_1, ind_2)
-        new_population = list(map(self._mutate, new_population))
         return new_population
 
     def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:

@@ -17,7 +17,7 @@ from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory
@@ -70,9 +70,10 @@ def test_ancestor_for_mutation():
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
+    mutation = Mutation(mutation_types=[MutationTypesEnum.simple], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
 
-    mutation_result = mutation(types=[MutationTypesEnum.simple], params=graph_params, individual=parent_ind,
-                               requirements=composer_requirements, max_depth=2)
+    mutation_result = mutation([parent_ind], max_depth=2)[0]
 
     assert len(mutation_result.parent_operators) > 0
     assert mutation_result.parent_operators[-1].operator_type == 'mutation'
