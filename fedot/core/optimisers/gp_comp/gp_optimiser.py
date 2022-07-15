@@ -136,6 +136,10 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
+    @property
+    def current_generation_num(self) -> int:
+        return self.generations.generation_num
+
     def _extend_population(self, initial_individuals, pop_size: int, max_depth: int):
         iter_num = 0
         initial_graphs = [ind.graph for ind in self.initial_individuals]
