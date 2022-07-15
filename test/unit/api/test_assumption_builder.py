@@ -64,24 +64,25 @@ def preprocess(task_type: TaskTypesEnum, data: Union[InputData, MultiModalData])
 
 
 def test_preprocessing_builder_no_data():
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).to_pipeline(), 'scaling')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_gaps().to_pipeline(),
-                                 'simple_imputation')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression).with_categorical().to_pipeline(),
-                                 'one_hot_encoding')
+    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).to_pipeline(),
+                                 'scaling')
+    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).with_gaps().
+                                 to_pipeline(), 'simple_imputation')
+    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).with_categorical().
+                                 to_pipeline(), 'one_hot_encoding')
     assert pipeline_contains_all(
-        PreprocessingBuilder(TaskTypesEnum.regression).with_gaps().with_categorical().to_pipeline(),
-        'simple_imputation', 'one_hot_encoding')
+        PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).
+        with_gaps().with_categorical().to_pipeline(), 'simple_imputation', 'one_hot_encoding')
 
     # have default preprocessing pipelines
-    assert PreprocessingBuilder(TaskTypesEnum.regression).to_pipeline() is not None
-    assert PreprocessingBuilder(TaskTypesEnum.classification).to_pipeline() is not None
-    assert PreprocessingBuilder(TaskTypesEnum.clustering).to_pipeline() is not None
+    assert PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).to_pipeline() is not None
+    assert PreprocessingBuilder(TaskTypesEnum.classification, DataTypesEnum.table).to_pipeline() is not None
+    assert PreprocessingBuilder(TaskTypesEnum.clustering, DataTypesEnum.table).to_pipeline() is not None
 
     # have no default preprocessing pipelines without additional options
-    assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting).to_pipeline() is None
+    assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).to_pipeline() is None
     # with additional options ok
-    assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting).with_gaps().to_pipeline() is not None
+    assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).with_gaps().to_pipeline() is not None
 
 
 def test_preprocessing_builder_with_data():
@@ -102,13 +103,14 @@ def test_preprocessing_builder_with_data():
 def test_assumptions_builder_for_multimodal_data():
     mm_data, _ = get_single_task_multimodal_tabular_data()
 
+    mm_data = DataPreprocessor().obligatory_prepare_for_fit(data=mm_data)
     mm_builder = MultiModalAssumptionsBuilder(mm_data)
     mm_pipeline: Pipeline = mm_builder.build()[0]
 
     assert pipeline_contains_all(mm_pipeline, *mm_data)
     assert len(list(filter(lambda node: isinstance(node, PrimaryNode), mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
-    assert mm_pipeline.length == mm_pipeline.depth * mm_data.num_classes - 1  # minus final ensemble node
+    assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 2  # minus final ensemble & simple imputation nodes
 
 
 def test_assumptions_builder_unsuitable_available_operations():

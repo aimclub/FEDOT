@@ -89,21 +89,19 @@ def load_categorical_unimodal():
 
 def load_categorical_multidata():
     task = Task(TaskTypesEnum.classification)
-    images_size = (128, 128)
 
-    files_path = os.path.join('test', 'data', 'multi_modal')
-    path = os.path.join(str(fedot_project_root()), files_path)
+    # Create features table
+    features_first = np.array([[0, '  a'], [1, ' a '], [2, '  b'], [3, np.nan], [4, '  a'],
+                               [5, '  b'], [6, 'b  '], [7, '  c'], [8, ' c ']], dtype=object)
+    features_second = np.array([[10, '  a'], [11, ' a '], [12, '  b'], [13, ' a '], [14, '  a'],
+                                [15, '  b'], [16, 'b  '], [17, '  c'], [18, ' c ']], dtype=object)
+    # TODO @andreygetmanov (fails if target = ['true', 'false', ...])
+    target = np.array([1, 0, 1, 0, 0, 0, 0, 1, 1])
 
-    train_num, _, train_img, _, train_text, _ = \
-        prepare_multi_modal_data(path, task, images_size, with_split=False)
+    fit_data = {'first': features_first,
+                'second': features_second}
 
-    fit_data = MultiModalData({
-        'data_source_img': train_img,
-        'data_source_table': train_num,
-        'data_source_text': train_text
-    })
-
-    return fit_data
+    return fit_data, target
 
 
 def data_with_binary_features_and_categorical_target():
@@ -198,6 +196,20 @@ def test_api_check_data_correct():
     assert (not type(string_data_input) == InputData
             or type(array_data_input) == InputData
             or type(fedot_data_input) == InputData)
+
+
+def test_api_check_multimodal_data_correct():
+    """ Check that DataDefiner works correctly with multimodal data """
+    task = Task(TaskTypesEnum.classification)
+
+    # Get data
+    array_data, target = load_categorical_multidata()
+
+    array_data_input = ApiDataProcessor(task).define_data(features=array_data, target=target)
+
+    assert isinstance(array_data_input, MultiModalData)
+    for data_source in array_data_input:
+        assert isinstance(array_data_input[data_source], InputData)
 
 
 def test_baseline_with_api():
@@ -310,8 +322,8 @@ def test_fill_nan_without_categorical():
     prediction = pipeline.predict(test_data)
     prediction_train = pipeline.predict(train_data)
 
-    assert np.isnan(prediction.features).sum() == 0
-    assert np.isnan(prediction_train.features).sum() == 0
+    assert pd.isna(prediction.features).sum() == 0
+    assert pd.isna(prediction_train.features).sum() == 0
 
 
 def test_multivariate_ts():
@@ -337,6 +349,23 @@ def test_multivariate_ts():
     fedot.fit(features=historical_data, target=target_history)
     forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
     assert forecast is not None
+
+
+def test_dict_multimodal_input_for_api():
+
+    data, target = load_categorical_multidata()
+
+    model = Fedot(problem='classification', **default_params)
+
+    model.fit(features=data, target=target)
+
+    prediction = model.predict(features=data)
+
+    assert len(prediction) == len(target)
+
+    metrics = model.get_metrics(metric_names='f1')
+
+    assert metrics['f1'] > 0
 
 
 def test_unshuffled_data():

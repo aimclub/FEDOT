@@ -156,22 +156,16 @@ cnn_model_dict = {'deep': create_deep_cnn,
 class FedotCNNImplementation(ModelImplementation):
     def __init__(self, **params: Optional[dict]):
         super().__init__()
-        self.params = {'image_shape': (28, 28, 1),
-                       'num_classes': 2,
-                       'log': default_log(prefix=__name__),
+        self.params = {'log': default_log(prefix=__name__),
                        'epochs': 10,
-                       'batch_size': 128,
+                       'batch_size': 32,
                        'output_mode': 'labels',
                        'architecture_type': 'simplified',
                        'optimizer_parameters': {'loss': "categorical_crossentropy",
                                                 'optimizer': "adam",
                                                 'metrics': ["accuracy"]}}
-        if not params:
-            self.model = cnn_model_dict[self.params['architecture_type']](input_shape=self.params['image_shape'],
-                                                                          num_classes=self.params['num_classes'])
-        else:
+        if params:
             self.params = {**self.params, **params}
-            self.model = None
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -186,9 +180,8 @@ class FedotCNNImplementation(ModelImplementation):
         else:
             self.classes = np.arange(train_data.target.shape[1])
 
-        if self.model is None:
-            self.model = cnn_model_dict[self.params['architecture_type']](input_shape=self.params['image_shape'],
-                                                                          num_classes=len(self.classes))
+        self.model = cnn_model_dict[self.params['architecture_type']](input_shape=train_data.features.shape[1:4],
+                                                                      num_classes=len(self.classes))
 
         self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params['epochs'],
                              batch_size=self.params['batch_size'],
@@ -222,3 +215,9 @@ class FedotCNNImplementation(ModelImplementation):
     @property
     def classes_(self):
         return self.classes
+
+    def __deepcopy__(self, memo=None):
+        clone_model = tf.keras.models.clone_model(self.model)
+        clone_model.compile(optimizer=self.model.optimizer, loss=self.model.loss, metrics=self.model.metrics)
+        clone_model.set_weights(self.model.get_weights())
+        return clone_model

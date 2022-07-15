@@ -1,5 +1,3 @@
-from typing import Union
-
 import numpy as np
 import pandas as pd
 
@@ -110,37 +108,36 @@ def force_categorical_determination(table):
     return categorical_ids, non_categorical_ids
 
 
-def data_has_missing_values(data: Union[InputData, 'MultiModalData']) -> bool:
+def data_has_missing_values(data: InputData) -> bool:
     """ Check data for missing values."""
-
-    if not isinstance(data, InputData):
-        for data_source_name, values in data.items():
-            if data_type_is_table(values):
-                return pd.DataFrame(values.features).isna().sum().sum() > 0
-    elif data_type_is_suitable_preprocessing(data):
+    if data_type_is_suitable_preprocessing(data):
         return pd.DataFrame(data.features).isna().sum().sum() > 0
     return False
 
 
-def data_has_categorical_features(data: Union[InputData, 'MultiModalData']) -> bool:
+def data_has_categorical_features(data: InputData) -> bool:
     """
     Check data for categorical columns.
     Return bool, whether data has categorical columns or not
     """
     if data.data_type is not DataTypesEnum.table:
         return False
-    data_has_categorical_columns = False
 
-    if not isinstance(data, InputData):
-        for data_source_name, values in data.items():
-            if data_source_name.startswith('data_source_table'):
-                features_types = values.supplementary_data.column_types.get('features')
-                cat_ids, non_cat_ids = find_categorical_columns(values.features, features_types)
-                data_has_categorical_columns = len(cat_ids) > 0
-
-    else:
-        features_types = data.supplementary_data.column_types.get('features')
-        cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
-        data_has_categorical_columns = len(cat_ids) > 0
+    features_types = data.supplementary_data.column_types.get('features')
+    cat_ids, non_cat_ids = find_categorical_columns(data.features, features_types)
+    data_has_categorical_columns = len(cat_ids) > 0
 
     return data_has_categorical_columns
+
+
+def data_has_text_features(data: InputData) -> bool:
+    """
+    Checks data for text fields.
+    Data with text fields is always 1-dimensional due to the previous
+    parsing of it from a general table to the distinct text data source.
+    Returns bool, whether data has text fields or not
+    """
+    if data.data_type is not DataTypesEnum.ts and len(data.features.shape) == 1:
+        el_for_check = next(x for x in data.features if not pd.isna(x))
+        return isinstance(el_for_check, str)
+    return False

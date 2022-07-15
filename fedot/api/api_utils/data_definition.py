@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from functools import partial
 from typing import Union
 
 import numpy as np
@@ -45,11 +44,11 @@ class StrategyDefineData(ABC):
 
 
 class FedotStrategy(StrategyDefineData):
-    def define_data(self, features: InputData,
+    def define_data(self, features: Union[InputData, MultiModalData],
                     ml_task: Task,
                     target: str = None,
-                    is_predict: bool = False) -> InputData:
-        # InputData format for input data
+                    is_predict: bool = False) -> Union[InputData, MultiModalData]:
+        # InputData or MultiModalData format for input data
         data = deepcopy(features)
         data.task = ml_task
         return data
@@ -132,26 +131,31 @@ class CsvStrategy(StrategyDefineData):
         return data
 
 
-class MulitmodalStrategy(StrategyDefineData):
-    # TODO data source must be defined dy data type, not task - temporary
-    source_name_by_task = {'classification': 'data_source_table',
-                           'regression': 'data_source_table',
-                           'ts_forecasting': 'data_source_ts'}
+class MultimodalStrategy(StrategyDefineData):
+    """
+    Gets dict of NumPy arrays or InputData sources as input data
+    and returns MultiModalData object with source names defined by data type
+    """
+    source_name_by_type = {'table': 'data_source_table',
+                           'ts': 'data_source_ts',
+                           'multi_ts': 'data_source_ts',
+                           'text': 'data_source_text',
+                           'image': 'data_source_image'}
 
     def define_data(self, features: dict,
                     ml_task: Task,
                     target: str = None,
                     is_predict: bool = False,
                     idx=None) -> MultiModalData:
-        if target is None:
-            target = np.array([])
-        target_array = target
 
-        data_part_transformation_func = partial(array_to_input_data, target_array=target_array, task=ml_task)
-
+        # change data type to InputData
+        for source in features:
+            if not isinstance(features[source], InputData):
+                features[source] = array_to_input_data(features_array=features[source], target_array=target,
+                                                       task=ml_task, idx=idx)
         # create labels for data sources
-        data_source_name = self.source_name_by_task.get(ml_task.task_type.name)
-        sources = dict((f'{data_source_name}/{data_part_key}', data_part_transformation_func(features_array=data_part))
+        sources = dict((f'{self.source_name_by_type.get(features[data_part_key].data_type.name)}/{data_part_key}',
+                        data_part)
                        for (data_part_key, data_part) in features.items())
         data = MultiModalData(sources)
         return data
@@ -165,7 +169,7 @@ def data_strategy_selector(features, target, ml_task: Task = None, is_predict: b
                      pd.DataFrame: PandasStrategy(),
                      np.ndarray: NumpyStrategy(),
                      str: CsvStrategy(),
-                     dict: MulitmodalStrategy()}
+                     dict: MultimodalStrategy()}
 
     data = DataDefiner(strategy_dict[data_type])
     return data.define_data(features, ml_task, target, is_predict)

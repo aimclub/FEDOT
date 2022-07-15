@@ -5,6 +5,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.data_types import NAME_CLASS_STR
 
@@ -130,6 +131,61 @@ def data_with_categorical_target(with_nan: bool = False):
     return train_input
 
 
+def data_with_text_features():
+    """ Generate tabular data with text features """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array(['My mistress eyes are nothing like the sun.',
+                         'Coral is far more red than her lips red.',
+                         'If snow be white, why then her breasts are dun?',
+                         'If hairs be wires, black wires grow on her head.'],
+                        dtype=object)
+
+    target = np.array([[0], [1], [0], [1]])
+    train_input = InputData(idx=[0, 1, 2, 3], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.text,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
+
+
+def data_with_pseudo_text_features():
+    """ Generate tabular data with text features """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([np.nan,
+                         np.nan,
+                         '4.2',
+                         '3',
+                         '1e-3',
+                         np.nan],
+                        dtype=object)
+
+    target = np.array([[0], [1], [0], [1], [0]])
+    train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.table,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
+
+
+def data_with_text_features_and_nans():
+    """ Generate tabular data with text features """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([np.nan,
+                         '',
+                         'that can be stated,',
+                         'is not the eternal',
+                         np.nan],
+                        dtype=object)
+
+    target = np.array([[0], [1], [0], [1], [0]])
+    train_input = InputData(idx=[0, 1, 2, 3, 4], features=features,
+                            target=target, task=task, data_type=DataTypesEnum.text,
+                            supplementary_data=SupplementaryData(was_preprocessed=False))
+
+    return train_input
+# TODO: @andreygetmanov (test data with image features)
+
+
 def test_correct_api_dataset_preprocessing():
     """ Check if dataset preprocessing was performed correctly when API launch using. """
     funcs = [data_with_only_categorical_features, data_with_too_much_nans,
@@ -158,3 +214,38 @@ def test_categorical_target_processed_correctly():
 
     # Predicted label must be close to 'di' label (so, right prediction is 'ba')
     assert predicted[0] == 'ba'
+
+
+def test_correct_api_dataset_with_text_preprocessing():
+    """ Check if dataset with text features preprocessing was performed correctly when API launch using. """
+    funcs = [data_with_text_features, data_with_text_features_and_nans]
+
+    # Check for all datasets
+    for data_generator in funcs:
+        input_data = data_generator()
+        fedot_model = Fedot(problem='classification')
+        fedot_model.fit(input_data, predefined_model='auto')
+        predicted = fedot_model.predict(input_data)
+
+        # Check the features were transformed during preprocessing
+        assert fedot_model.prediction.features.shape[1] > 1
+        assert fedot_model.prediction.features.shape[0] == input_data.features.shape[0]
+
+        # Check if there is a text node in pipeline
+        node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
+        assert any('text' in current_tags for current_tags in node_tags)
+        assert len(predicted) > 0
+
+
+def test_correct_api_dataset_with_pseudo_text_preprocessing():
+    """ Check if dataset with pseudo text features was preprocessed correctly (as numerical) when API launch using. """
+
+    input_data = data_with_pseudo_text_features()
+    fedot_model = Fedot(problem='classification')
+    fedot_model.fit(input_data, predefined_model='auto')
+    predicted = fedot_model.predict(input_data)
+
+    # Check there are no text nodes in the pipeline
+    node_tags = [node.tags for node in fedot_model.current_pipeline.nodes]
+    assert not any('text' in current_tags for current_tags in node_tags)
+    assert fedot_model.prediction.features.shape[0] == input_data.features.shape[0]

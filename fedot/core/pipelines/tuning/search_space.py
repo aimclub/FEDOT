@@ -291,7 +291,16 @@ class SearchSpace:
                 'shrinkage': (hp.uniform, [0.1, 0.9])
             },
             'ts_naive_average': {'part_for_averaging': (hp.uniform, [0.1, 1])},
-            'locf': {'part_for_repeat': (hp.uniform, [0.01, 0.5])}
+            'locf': {'part_for_repeat': (hp.uniform, [0.01, 0.5])},
+            'word2vec_pretrained': {
+                'model_name': (hp.choice, [['glove-twitter-25', 'glove-twitter-50',
+                                            'glove-wiki-gigaword-100', 'word2vec-ruscorpora-300']])
+            },
+            'tfidf': {
+                'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3)]]),
+                'min_df': (hp.uniform, [0.0001, 0.1]),
+                'max_df': (hp.uniform, [0.9, 0.99])
+            },
         }
 
         if self.custom_search_space is not None:

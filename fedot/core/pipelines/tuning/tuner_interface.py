@@ -16,7 +16,6 @@ from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.validation.tune.simple import fit_predict_one_fold
 from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from fedot.core.validation.tune.time_series import cv_time_series_predictions
-from sklearn.preprocessing import LabelEncoder
 
 MAX_METRIC_VALUE = sys.maxsize
 

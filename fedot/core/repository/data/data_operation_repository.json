@@ -333,7 +333,7 @@
 			"meta": "text_preprocessing_sklearn",
 			"tags": ["non-default"]
 		},
-		"word2vec": {
+		"word2vec_pretrained": {
 			"meta": "text_classification_gensim",
 			"tags": ["non-default"]
 		},

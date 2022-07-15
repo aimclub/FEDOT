@@ -184,6 +184,9 @@ class Data:
                 # upload from array
                 features = np.load(images)
                 target = np.load(labels)
+                # add channels if None
+                if len(features.shape) == 3:
+                    features = np.expand_dims(features, -1)
 
         idx = np.arange(0, len(features))
 
@@ -470,6 +473,10 @@ def data_type_is_ts(data: InputData) -> bool:
 
 def data_type_is_multi_ts(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.multi_ts
+
+
+def data_type_is_text(data: InputData) -> bool:
+    return data.data_type is DataTypesEnum.text
 
 
 def get_indices_from_file(data_frame, file_path):

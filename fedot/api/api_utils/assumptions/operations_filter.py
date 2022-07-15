@@ -1,5 +1,5 @@
 from random import choice
-from typing import Optional, List, Iterable
+from typing import Optional, Iterable
 
 from fedot.core.pipelines.pipeline import Pipeline
 

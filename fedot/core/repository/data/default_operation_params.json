@@ -137,5 +137,12 @@
   },
   "locf": {
     "part_for_repeat": -1
+  },
+  "word2vec_pretrained": {
+    "model_name": "glove-twitter-25"
+  },
+  "tfidf": {
+    "min_df": 0.1,
+    "max_df": 0.9
   }
 }
