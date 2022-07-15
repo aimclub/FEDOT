@@ -2,7 +2,7 @@ Example of project import and export
 ====================================
 
 When you are working with the FEDOT framework, it becomes necessary to reproduce the created pipeline on another
-computer with the available data. To do this, there are simple functions for exporting and importing **`project'**
+computer with the available data. To do this, there are simple functions for exporting and importing **`project`**
 . **'Project'** in this context means: pipeline, data, and logs.
 
 Exporting a project

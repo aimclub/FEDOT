@@ -7,7 +7,7 @@ to upload and download pipelines, and their models for further editing, visual
 representation, or data transfer. Here are some simple steps to export
 and import pipeline structure.
 
-.. figure::  ../img/img_utilities/pipeline_json.png
+.. figure::  img_utilities/pipeline_json.png
    :align:   center
 
 Exporting a model pipeline

@@ -1,0 +1,10 @@
+Basic information
+=================
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
+
+   intro
+   fedot_features
+   quickstart

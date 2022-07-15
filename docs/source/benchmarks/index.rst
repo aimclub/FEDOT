@@ -6,5 +6,5 @@ We make a comparison with existing state-of-the-art AutoML libraries on various 
 .. toctree::
    :maxdepth: 1
 
-   benchmarks/forecasting
-   benchmarks/tabular
+   forecasting
+   tabular

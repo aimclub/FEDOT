@@ -22,11 +22,16 @@ Content
 .. toctree::
    :maxdepth: 1
 
-   fedot/index
-   contribution
-   faq
-   about
+   introduction/index
+   basics/index
+   advanced/index
+   faq/index
+   examples/index
+   tutorials/index
+   benchmarks/index
    api/index
+   contribution
+   about
 
 
 Indices and tables

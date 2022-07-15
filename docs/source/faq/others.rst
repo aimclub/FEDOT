@@ -1,7 +1,5 @@
-FAQ
-===
-
-Frequently asked questions and answers
+Others
+======
 
 What is Fedot?
 --------------
@@ -30,14 +28,6 @@ Can I install Fedot using pip/conda?
 
 `Yes <https://pypi.org/project/fedot>`__
 
-Why *feature_name* is not supported?
-------------------------------------
-
-We provide a constant extension of Fedot’s feature set. However, any
-Pull Requests and issues from external contributors that introduce or
-suggests the new features will be appreciated. You can create your `pull
-request`_ or `issue`_ in the main repository of Fedot.
-
 Can I use Fedot in my project/research/etc?
 -------------------------------------------
 
@@ -49,6 +39,3 @@ Why it is named Fedot?
 
 We decided to use this archaic Russian first name to add a bit of
 fantasy spirit into the development process.
-
-.. _pull request: https://github.com/nccr-itmo/FEDOT/pulls
-.. _issue: https://github.com/nccr-itmo/FEDOT/issues
