@@ -1,5 +1,5 @@
 Using the pipeline as an atomic model
-----------------------------------
+-------------------------------------
 
 To create more complex pipelines from other nested pipelines, we created a class
 AtomizedModel, which wraps the pipeline in a wrapper and provides an interface

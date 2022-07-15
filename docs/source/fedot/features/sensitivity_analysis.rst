@@ -23,7 +23,7 @@ analysis is that some hyperparameters may be dobbled due to components duplicati
 
 
 PipelineSensitivityAnalysis
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 FEDOT allows you to apply all the available SA approaches to all (or certain) the components of the composite
 model via ``PipelineSensitivityAnalysis``
@@ -48,7 +48,7 @@ model via ``PipelineSensitivityAnalysis``
 
 
 PipelineStructureAnalysis
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Conduct only composite model structure analysis via ``NodesAnalysis``,
 which analyzes nodes separately from each other. Currently, the

@@ -1,5 +1,5 @@
 FEDOT Command Line Interface (CLI)
-===================================================================
+==================================
 
 FEDOT API can be called via console without writing python code.
 All API parameters can be marked as flags described in application Help.
@@ -16,7 +16,7 @@ FEDOT package with all dependencies.
 ``pip install git+https://github.com/nccr-itmo/FEDOT.git``
 
 Start using
-------------------
+-----------
 
 The main executing script running the application is fedot_cli.py so first, there is a need to navigate to them:
 
@@ -62,7 +62,7 @@ The result of execution is presented below:
   --for_len FOR_LEN     Time Series Forecasting parameter: forecast length
 
 Examples of using (.bat files)
-------------------
+------------------------------
 
 Examples of usage can be presented as .bat files for console execution. These files are located at
 ``/examples/cli_application`` folder. There the templates of parameters for different

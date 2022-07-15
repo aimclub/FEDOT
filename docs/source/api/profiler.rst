@@ -1,5 +1,5 @@
 Profiler
-==============
+========
 
 MemoryProfiler
 --------------

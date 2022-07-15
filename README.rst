@@ -46,7 +46,7 @@ More details about FEDOT are available in the next video:
 
 
 How to Use
-============================
+==========
 
 FEDOT provides a high-level API that allows you to use its capabilities in a simple way. The API can be used for classification, regression, and time series forecasting problems.
 
@@ -178,7 +178,7 @@ Contribution Guide
 - The contribution guide is available in the `repository <https://github.com/nccr-itmo/FEDOT/blob/master/docs/source/contribution.rst>`__.
 
 Acknowledgments
-================
+===============
 
 We acknowledge the contributors for their important impact and the participants of the numerous scientific conferences and workshops for their valuable advice and suggestions.
 

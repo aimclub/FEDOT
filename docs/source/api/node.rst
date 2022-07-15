@@ -1,5 +1,5 @@
 GraphNode
-====
+=========
 
 .. automodule:: fedot.core.pipelines.node
    :members:
