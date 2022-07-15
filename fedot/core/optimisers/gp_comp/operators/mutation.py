@@ -1,4 +1,4 @@
-from copy import copy, deepcopy
+from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
 from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
 import numpy as np
 
 from fedot.core.composer.advisor import RemoveType
+from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
@@ -42,7 +43,8 @@ class MutationStrengthEnum(Enum):
 
 
 class Mutation:
-    def __init__(self, mutation_types: List[MutationTypesEnum], graph_generation_params: 'GraphGenerationParams',
+    def __init__(self, mutation_types: List[Union[MutationTypesEnum, Callable]],
+                 graph_generation_params: 'GraphGenerationParams',
                  requirements: 'PipelineComposerRequirements'):
         self.mutation_types = mutation_types
         self.graph_generation_params = graph_generation_params
@@ -53,7 +55,7 @@ class Mutation:
         return list(map(mutation, population))
 
     @staticmethod
-    def get_mutation_prob(mut_id, node):
+    def get_mutation_prob(mut_id: MutationStrengthEnum, node: GraphNode) -> float:
         """ Function returns mutation probability for certain node in the graph
 
         :param mut_id: MutationStrengthEnum mean weak or strong mutation
@@ -108,18 +110,15 @@ class Mutation:
           Apply mutation for adapted graph
         """
         if self._will_mutation_be_applied(mutation_prob, mutation_type):
-            if self.mutation_by_type(mutation_type) or is_custom_mutation:
-                if is_custom_mutation:
-                    mutation_func = mutation_type
-                else:
-                    mutation_func = self.mutation_by_type(mutation_type)
-                graph_copy = deepcopy(new_graph)
-                new_graph = mutation_func(new_graph, requirements=self.requirements,
-                                          params=self.graph_generation_params, max_depth=max_depth)
-                if not new_graph.nodes:
-                    return graph_copy
-            elif mutation_type is not MutationTypesEnum.none:
-                raise ValueError(f'Required mutation type is not found: {mutation_type}')
+            if is_custom_mutation:
+                mutation_func = mutation_type
+            else:
+                mutation_func = self.mutation_by_type(mutation_type)
+            graph_copy = deepcopy(new_graph)
+            new_graph = mutation_func(new_graph, requirements=self.requirements,
+                                      params=self.graph_generation_params, max_depth=max_depth)
+            if not new_graph.nodes:
+                return graph_copy
         return new_graph
 
     def _mutation(self, individual: Individual, max_depth: Optional[int] = None) -> Any:
@@ -385,4 +384,4 @@ class Mutation:
         if mutation_type in mutations:
             return mutations[mutation_type]
         else:
-            return None
+            raise ValueError(f'Required mutation type is not found: {mutation_type}')
