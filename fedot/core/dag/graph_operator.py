@@ -115,16 +115,31 @@ class GraphOperator:
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
 
+    # def connect_nodes(self, parent: GraphNode, child: GraphNode):
+    #     if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
+    #         if child.nodes_from:
+    #             # if not already connected
+    #             child.nodes_from.append(parent)
+    #         else:
+    #             # add parent to initial node
+    #             new_child = GraphNode(nodes_from=[], content=child.content)
+    #             new_child.nodes_from.append(parent)
+    #             self.update_node(child, new_child)
+
+    # bamt
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
         if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
-            if child.nodes_from:
-                # if not already connected
+            try:
+                if child.nodes_from==None:
+                    child.nodes_from=[]
                 child.nodes_from.append(parent)
-            else:
-                # add parent to initial node
-                new_child = GraphNode(nodes_from=[], content=child.content)
-                new_child.nodes_from.append(parent)
-                self.update_node(child, new_child)
+            except Exception as ex:
+                print(ex)    
+
+    def reverse_edge(self, node_parent: GraphNode, node_child: GraphNode):
+        self.disconnect_nodes(node_parent, node_child, False)
+        self.connect_nodes(node_child, node_parent)
+
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
