@@ -1,5 +1,5 @@
-API
-===
+Classes
+=======
 
 .. toctree::
    :glob:
@@ -7,16 +7,16 @@ API
 
    api
    composer
+   data
+   eval_strategy
    graph
    graph_node
-   pipeline
+   logging
    node
    operation
-   eval_strategy
-   tuning
+   pipeline
+   profiler
    repository
-   data
-   logging
    sensitivity
    synthetic_dataset_generator
-   profiler
+   tuning
