@@ -74,7 +74,7 @@ class GraphOptimiser:
     (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param objective: objective for optimisation
-    :param initial_graphs: graphs which was initialized outside the optimiser
+    :param initial_graphs: graphs which were initialized outside the optimiser
     :param requirements: implementation-independent requirements for graph optimiser
     :param graph_generation_params: parameters for new graph generation
     :param parameters: parameters for specific implementation of graph optimiser

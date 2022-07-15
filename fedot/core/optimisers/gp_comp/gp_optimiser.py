@@ -6,6 +6,7 @@ from typing import Any, List, Optional, Sequence, Union
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -25,8 +26,6 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimise
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
-
-MAX_ITER = 1000
 
 
 class GPGraphOptimiserParameters(GraphOptimiserParameters):
@@ -90,11 +89,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None):
-        super().__init__(objective=objective,
-                         initial_graphs=initial_graphs,
-                         requirements=requirements,
-                         graph_generation_params=graph_generation_params,
-                         parameters=parameters)
+        super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
         self.population = None
         self.generations = GenerationKeeper(self.objective)
@@ -154,7 +149,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             if new_graph not in initial_graphs and self.graph_generation_params.verifier(new_graph):
                 initial_individuals.append(new_ind)
                 initial_graphs.append(new_graph)
-            if iter_num > MAX_ITER:
+            if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
                 self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
                                  f'Current size {len(self.initial_individuals)} instead of {pop_size} graphs.')
                 break

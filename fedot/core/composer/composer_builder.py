@@ -133,8 +133,7 @@ class ComposerBuilder:
         initial_population = InitialPopulationGenerator(generation_params=graph_generation_params,
                                                         requirements=self.composer_requirements) \
             .with_initial_graphs(self.initial_population) \
-            .with_custom_generation_function(self.initial_population_generation_function)\
-            .get_initial_graphs()
+            .with_custom_generation_function(self.initial_population_generation_function)()
 
         optimiser = self.optimiser_cls(objective=objective,
                                        initial_graphs=initial_population,

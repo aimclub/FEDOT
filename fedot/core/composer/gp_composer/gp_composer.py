@@ -62,9 +62,7 @@ class GPComposer(Composer):
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None):
 
-        super().__init__(optimiser=optimiser,
-                         initial_pipelines=initial_pipelines,
-                         composer_requirements=composer_requirements)
+        super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
 
         self.optimiser: GraphOptimiser = optimiser

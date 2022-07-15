@@ -1,23 +1,14 @@
-from abc import ABC, abstractmethod
-from typing import Callable, Optional, Sequence, Union, Iterable, TYPE_CHECKING
+from typing import Callable, Optional, Sequence, Union, Iterable
 
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-
-if TYPE_CHECKING:
-    from fedot.core.optimisers.optimizer import GraphGenerationParams
-    from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 GenerationFunction = Callable[[], Graph]
-
-
-class InitialGraphsGenerator(ABC):
-    @abstractmethod
-    def get_initial_graphs(self) -> Sequence[Graph]:
-        """Method for generating initial graphs for GraphOptimizer
-        """
-        pass
+InitialGraphsGenerator = Callable[[], Sequence[Graph]]
 
 
 class InitialPopulationGenerator(InitialGraphsGenerator):
@@ -28,34 +19,16 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
     The third way is random graphs generation according to GraphGenerationParameters and ComposerRequirements.
     The last approach is applied when neither initial graphs nor initial graphs generation function were provided."""
 
-    _max_generation_attempts = 1000
-
     def __init__(self,
-                 generation_params: 'GraphGenerationParams',
-                 requirements: 'PipelineComposerRequirements'):
+                 generation_params: GraphGenerationParams,
+                 requirements: PipelineComposerRequirements):
         self.requirements = requirements
         self.generation_params = generation_params
         self.generation_function: Optional[GenerationFunction] = None
         self.initial_graphs: Optional[Sequence[Graph]] = None
         self.log = default_log(self)
 
-    def with_initial_graphs(self, initial_graphs: Union[Graph, Sequence[Graph]]):
-        """Use initial graphs as initial population."""
-        if isinstance(initial_graphs, Graph):
-            self.initial_graphs = [initial_graphs]
-        elif isinstance(initial_graphs, Iterable):
-            self.initial_graphs = list(initial_graphs)
-        else:
-            raise ValueError(f'Incorrect type of initial_assumption: '
-                             f'Sequence[Graph] or Graph needed, but has {type(initial_graphs)}')
-        return self
-
-    def with_custom_generation_function(self, generation_func: GenerationFunction):
-        """Use custom graph generation function to create initial population."""
-        self.generation_function = generation_func
-        return self
-
-    def get_initial_graphs(self) -> Sequence[Graph]:
+    def __call__(self) -> Sequence[Graph]:
 
         def get_random_graph():
             adapter = self.generation_params.adapter
@@ -79,8 +52,24 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
             if new_graph not in population and self.generation_params.verifier(new_graph):
                 population.append(new_graph)
             n_iter += 1
-            if n_iter >= self._max_generation_attempts:
+            if n_iter >= MAXIMAL_ATTEMPTS_NUMBER:
                 self.log.warning(f'Exceeded max number of attempts for generating initial graphs, stopping.'
                                  f'Generated {len(population)} instead of {pop_size} graphs.')
                 break
         return population
+
+    def with_initial_graphs(self, initial_graphs: Union[Graph, Sequence[Graph]]):
+        """Use initial graphs as initial population."""
+        if isinstance(initial_graphs, Graph):
+            self.initial_graphs = [initial_graphs]
+        elif isinstance(initial_graphs, Iterable):
+            self.initial_graphs = list(initial_graphs)
+        else:
+            raise ValueError(f'Incorrect type of initial_assumption: '
+                             f'Sequence[Graph] or Graph needed, but has {type(initial_graphs)}')
+        return self
+
+    def with_custom_generation_function(self, generation_func: GenerationFunction):
+        """Use custom graph generation function to create initial population."""
+        self.generation_function = generation_func
+        return self

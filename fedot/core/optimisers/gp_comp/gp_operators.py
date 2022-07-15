@@ -1,17 +1,15 @@
 from copy import deepcopy
 from random import randint
-from typing import Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, List, Optional, Tuple
 
+from fedot.core.composer.composer import ComposerRequirements
+from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.graph import OptGraph, OptNode
-if TYPE_CHECKING:
-    from fedot.core.composer.composer import ComposerRequirements
-    from fedot.core.optimisers.optimizer import GraphGenerationParams
-
-MAX_ITERS = 1000
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
-def random_graph(graph_generation_params: 'GraphGenerationParams',
-                 requirements: 'ComposerRequirements',
+def random_graph(graph_generation_params: GraphGenerationParams,
+                 requirements: ComposerRequirements,
                  max_depth: Optional[int] = None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
     is_correct_graph = False
@@ -31,7 +29,7 @@ def random_graph(graph_generation_params: 'GraphGenerationParams',
 
         is_correct_graph = graph_generation_params.verifier(graph)
         n_iter += 1
-        if n_iter > MAX_ITERS:
+        if n_iter > MAXIMAL_ATTEMPTS_NUMBER:
             raise ValueError(f'Could not generate random graph for {n_iter} '
                              f'iterations with requirements {requirements}')
     return graph
