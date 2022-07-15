@@ -62,7 +62,7 @@ class UniModalAssumptionsBuilder(AssumptionsBuilder):
         self.data_type = data_type or data.data_type
         self.ops_filter = OperationsFilter()
 
-    def from_operations(self, available_operations: Optional[List[str]]):
+    def from_operations(self, available_operations: Optional[List[str]] = None):
         if available_operations:
             operations_for_task_and_data, _ = self.repo.suitable_operation(self.data.task.task_type, self.data_type)
             operations_to_choose_from = set(operations_for_task_and_data).intersection(available_operations)
@@ -94,17 +94,15 @@ class MultiModalAssumptionsBuilder(AssumptionsBuilder):
         super().__init__(data, repository_name)
         _subbuilders = []
         for data_type, (data_source_name, values) in zip(self.data.data_type, self.data.items()):
-            # Performs specific filter on image data operations
-            if data_type is DataTypesEnum.image:
-                self.available_operations = ['data_source_img', 'cnn']
-                _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)
-                                     .from_operations(self.available_operations)))
-            else:
-                _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
+            _subbuilders.append((data_source_name, UniModalAssumptionsBuilder(self.data, data_type)))
         self._subbuilders = tuple(_subbuilders)
 
-    def from_operations(self, available_operations: Optional[List[str]]):
-        self.available_operations = available_operations
+    def from_operations(self, available_operations: Optional[List[str]] = None):
+        for data_source, subbuilder in self._subbuilders:
+            # Performs specific filter on image data operations
+            if subbuilder.data_type is DataTypesEnum.image:
+                available_img_operations = ['data_source_img', 'cnn']
+                subbuilder.from_operations(available_img_operations)
         return self
 
     def to_builders(self, initial_node: Optional[Node] = None) -> List[PipelineBuilder]:

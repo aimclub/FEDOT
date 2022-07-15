@@ -21,7 +21,7 @@ class PredefinedModel:
             pipelines = self.predefined_model
         elif self.predefined_model == 'auto':
             # Generate initial assumption automatically
-            pipelines = AssumptionsBuilder.get(self.data).build()[0]
+            pipelines = AssumptionsBuilder.get(self.data).from_operations().build()[0]
         elif isinstance(self.predefined_model, str):
             model = PrimaryNode(self.predefined_model)
             pipelines = Pipeline(model)
