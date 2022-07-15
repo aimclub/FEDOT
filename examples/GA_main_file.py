@@ -1431,6 +1431,7 @@ if __name__ == '__main__':
             percent = 0.005
         elif file == 'cancer':
             percent = 0.01
+            
         data = pd.read_csv('examples/data/'+file+'.csv')
         # data = bn.import_example(data='sachs')
         if file!='credit_card_anomaly' and file!='custom_encoded' and file!='10nodes_cont' and file!='data_asia':
