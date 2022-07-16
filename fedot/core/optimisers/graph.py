@@ -160,6 +160,9 @@ class OptGraph:
     def distance_to_root_level(self, node: OptNode) -> int:
         return self.operator.distance_to_root_level(node=self._node_adapter.restore(node))
 
+    def nodes_from_layer(self, layer_number: int) -> List[Any]:
+        return self.operator.nodes_from_layer(layer_number=layer_number)
+
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
 

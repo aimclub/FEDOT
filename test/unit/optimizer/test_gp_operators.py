@@ -101,7 +101,7 @@ def pipeline_with_custom_parameters(alpha_value):
 
 def test_nodes_from_height():
     graph = graph_example()
-    found_nodes = graph.operator.nodes_from_layer(1)
+    found_nodes = graph.nodes_from_layer(1)
     true_nodes = [node for node in graph.root_node.nodes_from]
     assert all([node_model == found_node for node_model, found_node in
                 zip(true_nodes, found_nodes)])

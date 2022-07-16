@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union, Any
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.visualisation.graph_viz import GraphVisualiser
@@ -73,6 +73,9 @@ class Graph:
 
     def distance_to_root_level(self, node: 'GraphNode') -> int:
         return self.operator.distance_to_root_level(node=node)
+
+    def nodes_from_layer(self, layer_number: int) -> List[Any]:
+        return self.operator.nodes_from_layer(layer_number=layer_number)
 
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)

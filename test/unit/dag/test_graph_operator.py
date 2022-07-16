@@ -45,7 +45,7 @@ def test_nodes_from_layer():
     desired_layer = 2
 
     # when
-    nodes_from_desired_layer = pipeline.operator.nodes_from_layer(desired_layer)
+    nodes_from_desired_layer = pipeline.nodes_from_layer(desired_layer)
 
     # then
     assert len(nodes_from_desired_layer) == 2
