@@ -60,7 +60,7 @@ def run_with_random_search_composer():
     composer_params = {'available_operations': ['class_decompose', 'rf', 'linear', 'xgboost', 'dt'],
                        'optimizer': RandomMutationSearchOptimizer}
 
-    automl = Fedot(problem='classification', timeout=1, verbose_level=logging.DEBUG,
+    automl = Fedot(problem='classification', timeout=1, logging_level=logging.DEBUG,
                    preset='fast_train', **composer_params)
 
     automl.fit(train_data_path)

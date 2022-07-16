@@ -47,7 +47,9 @@ class Fedot:
         - None or -1 means infinite time
     :param task_params:  additional parameters of the task
     :param seed: value for fixed random seed
-    :param verbose_level: level of the output detailing. Verbosity levels are the same as in 'logging'
+    :param logging_level: logging levels are the same as in 'logging':
+    critical -- 50, error -- 40, warning -- 30, info -- 20, debug -- 10, nonset -- 0.
+    Logs with a level HIGHER than set will be displayed.
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
     instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
@@ -89,7 +91,7 @@ class Fedot:
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed=None, verbose_level: int = logging.ERROR,
+                 seed=None, logging_level: int = logging.ERROR,
                  safe_mode=True,
                  n_jobs: int = 1,
                  **composer_tuner_params
@@ -103,7 +105,7 @@ class Fedot:
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
-                        'seed': seed, 'verbose_level': verbose_level, 'n_jobs': n_jobs}
+                        'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams

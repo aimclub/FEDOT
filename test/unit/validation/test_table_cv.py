@@ -146,7 +146,7 @@ def test_cv_api_correct():
                        'preset': 'fast_train',
                        'cv_folds': 2}
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
-    model = Fedot(problem='classification', verbose_level=logging.INFO, **composer_params)
+    model = Fedot(problem='classification', logging_level=logging.INFO, **composer_params)
     fedot_model = model.fit(features=dataset_to_compose)
     prediction = model.predict(features=dataset_to_validate)
     metric = model.get_metrics()
