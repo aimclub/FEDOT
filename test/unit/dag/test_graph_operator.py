@@ -33,7 +33,7 @@ def test_distance_to_root_level():
     selected_node = pipeline.nodes[2]
 
     # when
-    height = pipeline.operator.distance_to_root_level(selected_node)
+    height = pipeline.distance_to_root_level(selected_node)
 
     # then
     assert height == 2

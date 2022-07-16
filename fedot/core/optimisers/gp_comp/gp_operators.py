@@ -56,7 +56,7 @@ def graph_growth(graph: OptGraph,
     offspring_size = randint(requirements.min_arity, requirements.max_arity)
 
     for offspring_node in range(offspring_size):
-        height = graph.operator.distance_to_root_level(node_parent)
+        height = graph.distance_to_root_level(node_parent)
         is_max_depth_exceeded = height >= max_depth - 2
         is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
         if is_max_depth_exceeded or is_primary_node_selected:

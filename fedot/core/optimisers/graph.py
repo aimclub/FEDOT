@@ -128,6 +128,16 @@ class OptGraph:
                                   self._node_adapter.restore(new_node))
 
     @node_ops_adaptation
+    def delete_node(self, node: OptNode):
+        """
+        Delete chosen node redirecting all its parents to the child.
+
+        :param node: OptNode object to delete
+        """
+
+        self.operator.delete_node(self._node_adapter.restore(node))
+
+    @node_ops_adaptation
     def update_subtree(self, old_subroot: OptNode, new_subroot: OptNode):
         """
         Replace the subtrees with old and new nodes as subroots
@@ -139,16 +149,6 @@ class OptGraph:
                                      self._node_adapter.restore(new_subroot))
 
     @node_ops_adaptation
-    def delete_node(self, node: OptNode):
-        """
-        Delete chosen node redirecting all its parents to the child.
-
-        :param node: OptNode object to delete
-        """
-
-        self.operator.delete_node(self._node_adapter.restore(node))
-
-    @node_ops_adaptation
     def delete_subtree(self, subroot: OptNode):
         """
         Delete the subtree with node as subroot.
@@ -156,6 +156,9 @@ class OptGraph:
         :param subroot:
         """
         self.operator.delete_subtree(self._node_adapter.restore(subroot))
+
+    def distance_to_root_level(self, node: OptNode) -> int:
+        return self.operator.distance_to_root_level(node=self._node_adapter.restore(node))
 
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)

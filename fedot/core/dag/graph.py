@@ -45,15 +45,6 @@ class Graph:
 
         self.operator.update_node(old_node, new_node)
 
-    def update_subtree(self, old_subroot: 'GraphNode', new_subroot: 'GraphNode'):
-        """
-        Replace the subtrees with old and new nodes as subroots
-
-        :param old_subroot: 'GraphNode' object to replace
-        :param new_subroot: 'GraphNode' new object
-        """
-        self.operator.update_subtree(old_subroot, new_subroot)
-
     def delete_node(self, node: 'GraphNode'):
         """
         Delete chosen node redirecting all its parents to the child.
@@ -63,6 +54,15 @@ class Graph:
 
         self.operator.delete_node(node)
 
+    def update_subtree(self, old_subroot: 'GraphNode', new_subroot: 'GraphNode'):
+        """
+        Replace the subtrees with old and new nodes as subroots
+
+        :param old_subroot: 'GraphNode' object to replace
+        :param new_subroot: 'GraphNode' new object
+        """
+        self.operator.update_subtree(old_subroot, new_subroot)
+
     def delete_subtree(self, subroot: 'GraphNode'):
         """
         Delete the subtree with node as subroot.
@@ -70,6 +70,9 @@ class Graph:
         :param subroot:
         """
         self.operator.delete_subtree(subroot)
+
+    def distance_to_root_level(self, node: 'GraphNode') -> int:
+        return self.operator.distance_to_root_level(node=node)
 
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
