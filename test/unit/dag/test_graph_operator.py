@@ -58,8 +58,8 @@ def test_actualise_old_node_children():
     new_node = PrimaryNode('knnreg')
 
     # when
-    pipeline.operator.actualise_old_node_children(old_node=selected_node,
-                                                  new_node=new_node)
+    pipeline.actualise_old_node_children(old_node=selected_node,
+                                         new_node=new_node)
     updated_parent = pipeline.nodes[1]
 
     # then

@@ -163,6 +163,10 @@ class OptGraph:
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
         return self.operator.nodes_from_layer(layer_number=layer_number)
 
+    def actualise_old_node_children(self, old_node: OptNode, new_node: OptNode):
+        self.operator.actualise_old_node_children(old_node=self._node_adapter.restore(old_node),
+                                                  new_node=self._node_adapter.restore(new_node))
+
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
 

@@ -77,6 +77,9 @@ class Graph:
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
         return self.operator.nodes_from_layer(layer_number=layer_number)
 
+    def actualise_old_node_children(self, old_node: 'GraphNode', new_node: 'GraphNode'):
+        self.operator.actualise_old_node_children(old_node=old_node, new_node=new_node)
+
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
 

@@ -229,7 +229,7 @@ class Mutation:
         if not new_node:
             return graph
         new_node.nodes_from = [node_to_mutate]
-        graph.operator.actualise_old_node_children(node_to_mutate, new_node)
+        graph.actualise_old_node_children(node_to_mutate, new_node)
         graph.nodes.append(new_node)
         return graph
 
