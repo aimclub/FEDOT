@@ -65,7 +65,7 @@ def custom_mutation(graph: OptGraph, **kwargs):
             if random_node.nodes_from is not None and len(random_node.nodes_from) == 0:
                 random_node.nodes_from = None
             if nodes_not_cycling:
-                graph.operator.connect_nodes(random_node, other_random_node)
+                graph.connect_nodes(random_node, other_random_node)
     except Exception as ex:
         graph.log.warning(f'Incorrect connection: {ex}')
     return graph

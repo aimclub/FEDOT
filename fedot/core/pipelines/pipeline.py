@@ -52,15 +52,15 @@ class Pipeline(Graph, Serializable):
             if not isinstance(node, GraphNode):
                 continue
             if node.nodes_from and not isinstance(node, SecondaryNode):
-                self.operator.update_node(old_node=node,
-                                          new_node=SecondaryNode(nodes_from=node.nodes_from,
-                                                                 content=node.content))
-            elif not node.nodes_from and not self.operator.node_children(node) and node != self.root_node:
+                self.update_node(old_node=node,
+                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
+                                                        content=node.content))
+            elif not node.nodes_from and not self.node_children(node) and node != self.root_node:
                 self.nodes.remove(node)
             elif not node.nodes_from and not isinstance(node, PrimaryNode):
-                self.operator.update_node(old_node=node,
-                                          new_node=PrimaryNode(nodes_from=node.nodes_from,
-                                                               content=node.content))
+                self.update_node(old_node=node,
+                                 new_node=PrimaryNode(nodes_from=node.nodes_from,
+                                                      content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
@@ -297,7 +297,7 @@ class Pipeline(Graph, Serializable):
         if len(self.nodes) == 0:
             return None
         root = [node for node in self.nodes
-                if not any(self.operator.node_children(node))]
+                if not any(self.node_children(node))]
         if len(root) > 1:
             raise ValueError(f'{ERROR_PREFIX} More than 1 root_nodes in pipeline')
         return root[0]

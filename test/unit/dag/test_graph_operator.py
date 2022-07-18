@@ -76,7 +76,7 @@ def test_sort_nodes():
 
     # when
     selected_node.nodes_from.append(new_subroot)
-    pipeline.operator.sort_nodes()
+    pipeline.sort_nodes()
 
     # then
     assert pipeline.length == original_length + 2
@@ -90,7 +90,7 @@ def test_node_children():
     selected_node = pipeline.nodes[2]
 
     # when
-    children = pipeline.operator.node_children(selected_node)
+    children = pipeline.node_children(selected_node)
 
     # then
     assert len(children) == 1
@@ -107,7 +107,7 @@ def test_distance_to_same_pipeline_restored():
     opt_graph = adapter.adapt(pipeline)
 
     # when
-    distance = pipeline.operator.distance_to(adapter.restore(opt_graph))
+    distance = pipeline.distance_to(adapter.restore(opt_graph))
 
     # then
     assert distance == 0
@@ -121,12 +121,12 @@ def test_known_distances():
     pipeline_knn_alternate_params = PipelineBuilder().add_node('scaling').\
         add_node('knn', params={'metric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
 
-    assert pipeline_knn.operator.distance_to(pipeline_knn) == 0  # the same pipeline
-    assert pipeline_knn.operator.distance_to(pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge
-    assert pipeline_knn.operator.distance_to(pipeline_linear) == 1  # changes: 1 node (operation)
-    assert pipeline_knn.operator.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 node (params)
-    assert pipeline_knn.operator.distance_to(pipeline_xgboost) == 3  # changes: 2 nodes (operations) + 1 edge
-    assert pipeline_linear.operator.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 operation + params
+    assert pipeline_knn.distance_to(pipeline_knn) == 0  # the same pipeline
+    assert pipeline_knn.distance_to(pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge
+    assert pipeline_knn.distance_to(pipeline_linear) == 1  # changes: 1 node (operation)
+    assert pipeline_knn.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 node (params)
+    assert pipeline_knn.distance_to(pipeline_xgboost) == 3  # changes: 2 nodes (operations) + 1 edge
+    assert pipeline_linear.distance_to(pipeline_knn_alternate_params) == 1  # changes: 1 operation + params
 
 
 # ------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ def test_disconnect_nodes_method_first():
     knn_node = pipeline.nodes[4]
     knn_root_node = pipeline.nodes[0]
 
-    pipeline.operator.disconnect_nodes(knn_node, knn_root_node)
+    pipeline.disconnect_nodes(knn_node, knn_root_node)
 
     assert res_pipeline == pipeline
 
@@ -217,7 +217,7 @@ def test_disconnect_nodes_method_second():
     rf_node = pipeline.nodes[5]
     knn_node = pipeline.nodes[4]
 
-    pipeline.operator.disconnect_nodes(rf_node, knn_node)
+    pipeline.disconnect_nodes(rf_node, knn_node)
 
     assert res_pipeline == pipeline
 
@@ -231,7 +231,7 @@ def test_disconnect_nodes_method_third():
     qda_node = pipeline.nodes[1]
     knn_root_node = pipeline.nodes[0]
 
-    pipeline.operator.disconnect_nodes(qda_node, knn_root_node)
+    pipeline.disconnect_nodes(qda_node, knn_root_node)
 
     assert res_pipeline == pipeline
 
@@ -245,7 +245,7 @@ def test_disconnect_nodes_method_fourth():
     rf_node = res_pipeline.nodes[2]
     knn_root_node = res_pipeline.nodes[0]
 
-    res_pipeline.operator.disconnect_nodes(rf_node, knn_root_node)
+    res_pipeline.disconnect_nodes(rf_node, knn_root_node)
     assert res_pipeline == pipeline
 
 
@@ -258,7 +258,7 @@ def test_disconnect_nodes_method_fifth():
     rf_node = PrimaryNode('rf')
     knn_root_node = SecondaryNode('knn', nodes_from=[rf_node])
 
-    res_pipeline.operator.disconnect_nodes(rf_node, knn_root_node)
+    res_pipeline.disconnect_nodes(rf_node, knn_root_node)
     assert res_pipeline == pipeline
 
 
@@ -276,7 +276,7 @@ def test_get_all_edges():
 
     res_edges = [(knn, logit), (qda_second, knn), (qda_first, knn), (lda, qda_second)]
 
-    edges = pipeline.operator.get_all_edges()
+    edges = pipeline.get_all_edges()
     assert res_edges == edges
 
 
@@ -294,7 +294,7 @@ def test_postproc_nodes():
     lda_node = pipeline.nodes[-2]
     qda_node = pipeline.nodes[-1]
 
-    pipeline.operator.connect_nodes(lda_node, qda_node)
+    pipeline.connect_nodes(lda_node, qda_node)
 
     for node in pipeline.nodes:
         assert(isinstance(node, PrimaryNode) or isinstance(node, SecondaryNode))
@@ -312,11 +312,11 @@ def test_postproc_opt_nodes():
     lda_node = pipeline.nodes[-2]
     qda_node = pipeline.nodes[-1]
 
-    pipeline.operator.connect_nodes(lda_node, qda_node)
+    pipeline.connect_nodes(lda_node, qda_node)
 
     # Check that the postproc_nodes method does not change the type of OptNode type nodes
     new_node = OptNode({'name': "opt"})
-    pipeline.operator.update_node(old_node=lda_node,
-                                  new_node=new_node)
+    pipeline.update_node(old_node=lda_node,
+                         new_node=new_node)
     opt_node = pipeline.nodes[3]
     assert (isinstance(opt_node, OptNode))

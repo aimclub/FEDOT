@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union, Any
+from typing import TYPE_CHECKING, List, Optional, Union, Any, Tuple
 
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.visualisation.graph_viz import GraphVisualiser
@@ -80,6 +80,29 @@ class Graph:
     def actualise_old_node_children(self, old_node: 'GraphNode', new_node: 'GraphNode'):
         self.operator.actualise_old_node_children(old_node=old_node, new_node=new_node)
 
+    def sort_nodes(self):
+        self.operator.sort_nodes()
+
+    def node_children(self, node: 'GraphNode') -> List[Optional['GraphNode']]:
+        return self.operator.node_children(node=node)
+
+    def connect_nodes(self, parent: 'GraphNode', child: 'GraphNode'):
+        self.operator.connect_nodes(parent=parent, child=child)
+
+    def disconnect_nodes(self, node_parent: 'GraphNode', node_child: 'GraphNode',
+                         is_clean_up_leftovers: bool = True):
+        self.operator.disconnect_nodes(node_parent=node_parent, node_child=node_child,
+                                       is_clean_up_leftovers=is_clean_up_leftovers)
+
+    def get_nodes_degrees(self):
+        return self.operator.get_nodes_degrees()
+
+    def get_all_edges(self) -> List[Tuple['GraphNode', 'GraphNode']]:
+        return self.operator.get_all_edges()
+
+    def distance_to(self, other_graph: 'Graph') -> int:
+        return self.operator.distance_to(other_graph=other_graph)
+
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
 
@@ -96,6 +119,10 @@ class Graph:
     def root_node(self):
         roots = self.operator.root_node()
         return roots
+
+    @property
+    def descriptive_id(self):
+        return self.operator.descriptive_id
 
     @property
     def length(self) -> int:

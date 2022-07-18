@@ -110,7 +110,7 @@ class GraphOperator:
             nodes = self._graph.root_node.ordered_subnodes_hierarchy()
         self._graph.nodes = nodes
 
-    def node_children(self, node) -> List[Optional[GraphNode]]:
+    def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
         return [other_node for other_node in self._graph.nodes
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
@@ -169,7 +169,7 @@ class GraphOperator:
         if not self._graph.nodes:
             return []
         roots = [node for node in self._graph.nodes
-                 if not any(self._graph.operator.node_children(node))]
+                 if not any(self._graph.node_children(node))]
         if len(roots) == 1:
             return roots[0]
         return roots

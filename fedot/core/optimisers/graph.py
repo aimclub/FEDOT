@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, Iterable, List, Optional, Union, Tuple
 from uuid import uuid4
 
 from fedot.core.dag.graph_node import GraphNode
@@ -163,9 +163,38 @@ class OptGraph:
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
         return self.operator.nodes_from_layer(layer_number=layer_number)
 
+    @node_ops_adaptation
     def actualise_old_node_children(self, old_node: OptNode, new_node: OptNode):
         self.operator.actualise_old_node_children(old_node=self._node_adapter.restore(old_node),
                                                   new_node=self._node_adapter.restore(new_node))
+
+    def sort_nodes(self):
+        self.operator.sort_nodes()
+
+    @node_ops_adaptation
+    def node_children(self, node: OptNode) -> List[Optional[OptNode]]:
+        return self.operator.node_children(node=self._node_adapter.restore(node))
+
+    @node_ops_adaptation
+    def connect_nodes(self, node_parent: OptNode, node_child: OptNode):
+        self.operator.connect_nodes(parent=self._node_adapter.restore(node_parent),
+                                    child=self._node_adapter.restore(node_child))
+
+    @node_ops_adaptation
+    def disconnect_nodes(self, node_parent: OptNode, node_child: OptNode,
+                         is_clean_up_leftovers: bool = True):
+        self.operator.disconnect_nodes(node_parent=self._node_adapter.restore(node_parent),
+                                       node_child=self._node_adapter.restore(node_child),
+                                       is_clean_up_leftovers=is_clean_up_leftovers)
+
+    def get_nodes_degrees(self):
+        return self.operator.get_nodes_degrees()
+
+    def get_all_edges(self):
+        return self.operator.get_all_edges()
+
+    def distance_to(self, other_graph: 'OptGraph') -> int:
+        return self.operator.distance_to(other_graph=other_graph)
 
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
