@@ -96,5 +96,5 @@ class RandomSearchOptimiser(GraphOptimiser):
             history.append((new_pipeline, new_metric_value))
             if show_progress:
                 self.log.info(f'Iter {i}: best metric {best_metric_value},'
-                              f'try {new_metric_value} with num nodes {len(new_pipeline.nodes)}')
+                              f'try {new_metric_value} with num nodes {new_pipeline.length}')
         return [best_set]

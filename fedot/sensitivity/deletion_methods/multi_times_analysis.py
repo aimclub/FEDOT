@@ -70,7 +70,7 @@ class MultiTimesAnalyze:
         total_nodes_deleted = 0
         iteration_index = 1
         worst_node_score = meta_params.worst_node_score
-        while worst_node_score > 1.0 + meta_params.delta and len(self.pipeline.nodes) > 2:
+        while worst_node_score > 1.0 + meta_params.delta and self.pipeline.length > 2:
             self.log.info('new iteration of MTA deletion analysis')
             iteration_result_path = join(self.path_to_save, f'iter_{iteration_index}')
             pipeline_analysis_result = self._pipeline_analysis(result_path=iteration_result_path,

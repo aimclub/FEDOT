@@ -319,7 +319,7 @@ def test_delete_node_with_redirection():
 
     pipeline.delete_node(third)
 
-    assert len(pipeline.nodes) == 3
+    assert pipeline.length == 3
     assert first in pipeline.root_node.nodes_from
 
 
@@ -338,7 +338,7 @@ def test_delete_primary_node():
     new_primary_node = [node for node in pipeline.nodes if node.operation.operation_type == 'knn'][0]
 
     # then
-    assert len(pipeline.nodes) == 3
+    assert pipeline.length == 3
     assert isinstance(new_primary_node, PrimaryNode)
 
 
