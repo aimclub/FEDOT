@@ -96,7 +96,7 @@ def test_spam_detection_problem():
     run_text_problem_from_saved_meta_file(file_path_train)
 
 
-# def test_multi_modal_case():
-#     """ Simple launch of  multi modal case """
-#     # Classification task based on text data
-#     run_multi_modal_case('cases/data/mm_imdb', is_visualise=True, timeout=timedelta(minutes=1))
+def test_multi_modal_case():
+    """ Simple launch of  multi modal case """
+    # Classification task based on text data
+    run_multi_modal_case('cases/data/mm_imdb', is_visualise=True, timeout=timedelta(minutes=1))
