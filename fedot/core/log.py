@@ -33,7 +33,7 @@ class Log(metaclass=SingletonMeta):
         else:
             self.log_file = log_file
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
-                                       verbosity_level=output_logging_level)
+                                       logging_level=output_logging_level)
 
     def get_adapter(self, prefix: str) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
@@ -44,16 +44,16 @@ class Log(metaclass=SingletonMeta):
                                                         {'prefix': prefix})
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, verbosity_level: int) -> logging.Logger:
+    def _get_logger(self, name, config_file: str, logging_level: int) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger(name)
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger, verbosity_level)
+            logger = self._setup_default_logger(logger, logging_level)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, verbosity_level: int) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
         """ Define console and file handlers for logger """
         console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(asctime)s - %(message)s')
@@ -64,7 +64,7 @@ class Log(metaclass=SingletonMeta):
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
-        logger.setLevel(verbosity_level)
+        logger.setLevel(logging_level)
 
         return logger
 
@@ -108,7 +108,7 @@ class LoggerAdapter(logging.LoggerAdapter):
     def __init__(self, logger, extra):
         super().__init__(logger=logger, extra=extra)
         self.setLevel(logger.level)
-        self.verbosity_level = logger.level
+        self.logging_level = logger.level
 
     def process(self, msg, kwargs):
         return '%s - %s' % (self.extra['prefix'], msg), kwargs
