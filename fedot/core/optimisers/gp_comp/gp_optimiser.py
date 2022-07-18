@@ -13,10 +13,11 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, Inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, crossover_parents_selection, selection
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
 from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
 from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
 from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, init_adaptive_pop_size
@@ -97,6 +98,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.parameters = parameters or GPGraphOptimiserParameters()
         self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
+        self.selection = Selection(parameters.selection_types)
+        self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -213,17 +216,14 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                                evaluator,
                                                                self.graph_generation_params)
 
-                selected_individuals = selection(types=self.parameters.selection_types,
-                                                 population=individuals_to_select,
-                                                 pop_size=self.requirements.pop_size,
-                                                 params=self.graph_generation_params)
+                selected_individuals = self.selection(individuals_to_select, pop_size)
                 new_population = self._reproduce(selected_individuals)
 
                 new_population = self.mutation(new_population)
 
                 new_population = evaluator(new_population)
 
-                new_population = self._inheritance(new_population)
+                new_population = self.inheritance(self.population, new_population, pop_size)
 
                 new_population = self.elitism(self.generations.best_individuals, new_population)
 
@@ -259,7 +259,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             new_population = population
         else:
             new_population = []
-            for ind_1, ind_2 in crossover_parents_selection(population):
+            for ind_1, ind_2 in Selection.crossover_parents_selection(population):
                 new_population += self._crossover_pair(ind_1, ind_2)
         return new_population
 

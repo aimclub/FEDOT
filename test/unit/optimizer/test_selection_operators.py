@@ -2,18 +2,10 @@ from functools import partial
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.debug.metrics import RandomMetric
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.selection import (
-    SelectionTypesEnum,
-    individuals_selection,
-    random_selection,
-    selection,
-    tournament_selection
-)
-from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 
 
@@ -44,8 +36,7 @@ def obj_function() -> float:
 def test_tournament_selection():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
-    selected_individuals = tournament_selection(individuals=population,
-                                                pop_size=num_of_inds)
+    selected_individuals = Selection.tournament_selection(individuals=population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 
@@ -53,8 +44,7 @@ def test_tournament_selection():
 def test_random_selection():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
-    selected_individuals = random_selection(individuals=population,
-                                            pop_size=num_of_inds)
+    selected_individuals = Selection.random_selection(individuals=population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 
@@ -62,12 +52,9 @@ def test_random_selection():
 def test_selection():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter())
-
-    selected_individuals = selection(types=[SelectionTypesEnum.tournament],
-                                     population=population,
-                                     pop_size=num_of_inds,
-                                     params=graph_params)
+    types = [SelectionTypesEnum.tournament]
+    selection = Selection(types)
+    selected_individuals = selection(population=population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 
@@ -76,11 +63,8 @@ def test_individuals_selection_random_individuals():
     num_of_inds = 2
     population = rand_population_gener_and_eval(pop_size=4)
     types = [SelectionTypesEnum.tournament]
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter())
-    selected_individuals = individuals_selection(types=types,
-                                                 individuals=population,
-                                                 pop_size=num_of_inds,
-                                                 graph_params=graph_params)
+    selection = Selection(types)
+    selected_individuals = selection.individuals_selection(individuals=population, pop_size=num_of_inds)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
     assert (len(set(selected_individuals_ref)) == len(selected_individuals) and
             len(selected_individuals) == num_of_inds)
@@ -91,10 +75,8 @@ def test_individuals_selection_equality_individuals():
     population = rand_population_gener_and_eval(pop_size=1)
     types = [SelectionTypesEnum.tournament]
     population = [population[0] for _ in range(4)]
-    graph_params = GraphGenerationParams(adapter=PipelineAdapter())
-    selected_individuals = individuals_selection(types=types,
-                                                 individuals=population,
-                                                 pop_size=num_of_inds, graph_params=graph_params)
+    selection = Selection(types)
+    selected_individuals = selection.individuals_selection(individuals=population, pop_size=num_of_inds)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
     assert (len(selected_individuals) == num_of_inds and
             len(set(selected_individuals_ref)) == 1)
