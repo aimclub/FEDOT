@@ -80,8 +80,8 @@ def run_custom_example(timeout: datetime.timedelta = None):
                    'V7', 'V8', 'V9', 'V10']
     rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
-    initial = CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
-                                                      content={'name': node_type}) for node_type in nodes_types])
+    initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
+                                                       content={'name': node_type}) for node_type in nodes_types])]
 
     requirements = PipelineComposerRequirements(
         primary=nodes_types,
@@ -104,7 +104,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,
-        requirements=requirements, initial_graph=initial)
+        requirements=requirements, initial_graphs=initial)
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graphs = optimiser.optimise(objective_eval)

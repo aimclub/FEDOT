@@ -1,8 +1,6 @@
 import random
-from itertools import repeat, cycle
 
 import numpy as np
-import pytest
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
@@ -11,6 +9,7 @@ from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
     GeneticSchemeTypesEnum
+from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -67,11 +66,13 @@ def test_custom_graph_opt():
         node_factory=PipelineOptNodeFactory(requirements=requirements))
 
     objective = Objective(custom_metric)
+    init_population = InitialPopulationGenerator(graph_generation_params, requirements)()
     optimiser = EvoGraphOptimiser(
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,
-        requirements=requirements, initial_graph=None)
+        requirements=requirements,
+        initial_graphs=init_population)
 
     objective_eval = ObjectiveEvaluate(objective)
     optimized_graphs = optimiser.optimise(objective_eval)

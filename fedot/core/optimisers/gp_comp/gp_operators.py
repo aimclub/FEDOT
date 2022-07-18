@@ -1,15 +1,11 @@
-import warnings
 from copy import deepcopy
-from random import choice, randint
+from random import randint
 from typing import Any, List, Optional, Tuple
 
 from fedot.core.composer.composer import ComposerRequirements
+from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.utils import DEFAULT_PARAMS_STUB
-
-MAX_ITERS = 1000
 
 
 def random_graph(graph_generation_params: GraphGenerationParams,
@@ -23,12 +19,17 @@ def random_graph(graph_generation_params: GraphGenerationParams,
 
     while not is_correct_graph:
         graph = OptGraph()
-        graph_root = graph_generation_params.node_factory.get_node(primary=False)
-        graph.add_node(graph_root)
-        graph_growth(graph, graph_root, graph_generation_params, requirements, max_depth)
+        if requirements.max_depth == 1:
+            graph_root = graph_generation_params.node_factory.get_node(primary=True)
+            graph.add_node(graph_root)
+        else:
+            graph_root = graph_generation_params.node_factory.get_node(primary=False)
+            graph.add_node(graph_root)
+            graph_growth(graph, graph_root, graph_generation_params, requirements, max_depth)
+
         is_correct_graph = graph_generation_params.verifier(graph)
         n_iter += 1
-        if n_iter > MAX_ITERS:
+        if n_iter > MAXIMAL_ATTEMPTS_NUMBER:
             raise ValueError(f'Could not generate random graph for {n_iter} '
                              f'iterations with requirements {requirements}')
     return graph
@@ -48,7 +49,7 @@ def adjust_requirements(requirements):
 
 def graph_growth(graph: OptGraph,
                  node_parent: OptNode,
-                 params: GraphGenerationParams,
+                 params: 'GraphGenerationParams',
                  requirements,
                  max_depth: int):
     """Function create a graph and links between nodes"""
@@ -56,7 +57,7 @@ def graph_growth(graph: OptGraph,
 
     for offspring_node in range(offspring_size):
         height = graph.operator.distance_to_root_level(node_parent)
-        is_max_depth_exceeded = height >= max_depth - 1
+        is_max_depth_exceeded = height >= max_depth - 2
         is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
         if is_max_depth_exceeded or is_primary_node_selected:
             primary_node = params.node_factory.get_node(primary=True)

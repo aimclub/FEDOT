@@ -1,16 +1,15 @@
 import logging
 from copy import deepcopy
-from functools import partial
+from random import choice
 from typing import Any, List, Optional, Sequence, Union
 
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.initial_population_builder import InitialPopulationBuilder
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
@@ -86,13 +85,12 @@ class EvoGraphOptimiser(GraphOptimiser):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graph: Union[Pipeline, Sequence[Pipeline]],
+                 initial_graphs: Sequence[Pipeline],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None):
-        super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters)
+        super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
-
         self.population = None
         self.generations = GenerationKeeper(self.objective)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -115,6 +113,14 @@ class EvoGraphOptimiser(GraphOptimiser):
                 'Optimisation finished: Early stopping criteria was satisfied'
             )
 
+        # Define adaptive parameters
+
+        self._pop_size: PopulationSize = \
+            init_adaptive_pop_size(parameters.genetic_scheme_type, requirements, self.generations)
+
+        self._operators_prob = \
+            init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
+
         # Define parameters
 
         self._min_population_size_with_elitism = 5
@@ -127,35 +133,31 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                adaptive=parameters.with_auto_depth_configuration)
         self.max_depth = self._graph_depth.initial
 
-        # Define adaptive parameters
-
-        self._pop_size: PopulationSize = \
-            init_adaptive_pop_size(parameters.genetic_scheme_type, requirements, self.generations)
-
-        self._operators_prob = \
-            init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
+        self.initial_individuals = \
+            [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
     @property
     def current_generation_num(self) -> int:
         return self.generations.generation_num
 
-    def _init_population(self, pop_size: int, max_depth: int) -> PopulationT:
-        verifier = self.graph_generation_params.verifier
-        builder = InitialPopulationBuilder(verifier)
-
-        if not self.initial_individuals:
-            random_graph_sampler = partial(random_graph, self.graph_generation_params, self.requirements, max_depth)
-            builder.with_custom_sampler(random_graph_sampler)
-        else:
+    def _extend_population(self, initial_individuals, pop_size: int, max_depth: int):
+        iter_num = 0
+        initial_graphs = [ind.graph for ind in self.initial_individuals]
+        while len(initial_individuals) < pop_size:
             initial_req = deepcopy(self.requirements)
             initial_req.mutation_prob = 1
 
-            def mutate_operator(ind: Individual):
-                return self._mutate(ind, max_depth, custom_requirements=initial_req)
-
-            builder.with_initial_individuals(self.initial_individuals).with_mutation(mutate_operator)
-
-        return builder.build(pop_size)
+            new_ind = self._mutate(choice(self.initial_individuals), max_depth, custom_requirements=initial_req)
+            new_graph = new_ind.graph
+            iter_num += 1
+            if new_graph not in initial_graphs and self.graph_generation_params.verifier(new_graph):
+                initial_individuals.append(new_ind)
+                initial_graphs.append(new_graph)
+            if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
+                self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
+                                 f'Current size {len(self.initial_individuals)} instead of {pop_size} graphs.')
+                break
+        return initial_individuals
 
     def _next_population(self, next_population: PopulationT):
         self.update_native_generation_numbers(next_population)
@@ -191,13 +193,13 @@ class EvoGraphOptimiser(GraphOptimiser):
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
                               disable=not show_progress or self.log.verbosity_level == logging.NOTSET):
-
             # Adding of initial assumptions to history as zero generation
-            if self.initial_individuals:
-                self._next_population(evaluator(self.initial_individuals))
-
+            self._next_population(evaluator(self.initial_individuals))
             pop_size = self._pop_size.initial
-            self._next_population(evaluator(self._init_population(pop_size, self._graph_depth.initial)))
+            if len(self.initial_individuals) < pop_size:
+                self.initial_individuals = self._extend_population(self.initial_individuals, pop_size, self.max_depth)
+                # Adding of extended population to history as zero generation
+                self._next_population(evaluator(self.initial_individuals))
 
             while not self.stop_optimisation():
                 pop_size = self._pop_size.next(self.population)
@@ -218,9 +220,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
-
+                # Adding of new population to history
                 self._next_population(new_population)
-
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
 

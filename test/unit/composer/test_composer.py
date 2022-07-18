@@ -28,7 +28,7 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.pipelines.test_pipeline_comparison import pipeline_first
@@ -319,17 +319,21 @@ def test_gp_composer_builder_default_params_correct():
     assert 'scaling' in primary_operations
 
 
-def test_gp_composer_random_graph_generation_looping():
+@pytest.mark.parametrize('max_depth', [1, 3, 5])
+def test_gp_composer_random_graph_generation_looping(max_depth):
     """ Test checks random_graph valid generation without freezing in loop of creation.
     """
     task = Task(TaskTypesEnum.regression)
 
+    operations = get_operations_for_task(task, mode='model')
+    primary_operations = operations[:len(operations)//2]
+    secondary_operations = operations[len(operations)//2:]
     requirements = PipelineComposerRequirements(
-        primary=['simple_imputation'],
-        secondary=['ridge', 'dtreg'],
+        primary=primary_operations,
+        secondary=secondary_operations,
         timeout=datetime.timedelta(seconds=300),
         max_pipeline_fit_time=None,
-        max_depth=2,
+        max_depth=max_depth,
         max_arity=2,
         cv_folds=None,
         advisor=PipelineChangeAdvisor(task=task),
@@ -343,13 +347,15 @@ def test_gp_composer_random_graph_generation_looping():
     params = get_pipeline_generation_params(requirements=requirements,
                                             task=task)
 
-    graph = random_graph(params, requirements, max_depth=None)
-    nodes_name = list(map(str, graph.nodes))
-
-    for primary_node in requirements.primary:
-        assert primary_node in nodes_name
-        assert nodes_name.count(primary_node) == 1
-    assert params.verifier(graph) is True
+    graphs = [random_graph(params, requirements, max_depth=None) for _ in range(4)]
+    for graph in graphs:
+        for node in graph.nodes:
+            if node.nodes_from:
+                assert node.content['name'] in requirements.secondary
+            else:
+                assert node.content['name'] in requirements.primary
+        assert params.verifier(graph) is True
+        assert graph.depth <= requirements.max_depth
 
 
 def test_gp_composer_early_stopping():

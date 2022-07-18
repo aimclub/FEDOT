@@ -1,23 +1,21 @@
 import platform
 from functools import partial
 from multiprocessing import set_start_method
-from typing import Dict, Iterable, List, Optional, Sequence, Type, Union
+from typing import Dict, List, Optional, Sequence, Type, Union
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory, log_to_history
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (
@@ -46,7 +44,8 @@ class ComposerBuilder:
         self.optimizer_external_parameters: dict = {}
 
         self.composer_cls: Type[Composer] = GPComposer
-        self.initial_pipelines: Optional[Sequence[Pipeline]] = None
+        self.initial_population: Union[Pipeline, Sequence[Pipeline]] = ()
+        self.initial_population_generation_function: Optional[GenerationFunction] = None
         self._keep_history = False
         self._history_folder: Optional[str] = None
         self.log: Optional[LoggerAdapter] = default_log(self)
@@ -78,14 +77,12 @@ class ComposerBuilder:
         self.metrics = ensure_wrapped_in_sequence(metrics)
         return self
 
-    def with_initial_pipelines(self, initial_pipelines: Optional[Union[Pipeline, Sequence[Pipeline]]]):
-        if isinstance(initial_pipelines, Pipeline):
-            self.initial_pipelines = [initial_pipelines]
-        elif isinstance(initial_pipelines, Iterable):
-            self.initial_pipelines = list(initial_pipelines)
-        else:
-            raise ValueError(f'Incorrect type of initial_assumption: '
-                             f'Sequence[Pipeline] or Pipeline needed, but has {type(initial_pipelines)}')
+    def with_initial_pipelines(self, initial_pipelines: Union[Pipeline, Sequence[Pipeline]]):
+        self.initial_population = initial_pipelines
+        return self
+
+    def with_initial_pipelines_generation_function(self, generation_function: GenerationFunction):
+        self.initial_population_generation_function = generation_function
         return self
 
     def with_history(self, history_folder: Optional[str] = None):
@@ -133,8 +130,13 @@ class ComposerBuilder:
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
 
+        initial_population = InitialPopulationGenerator(generation_params=graph_generation_params,
+                                                        requirements=self.composer_requirements) \
+            .with_initial_graphs(self.initial_population) \
+            .with_custom_generation_function(self.initial_population_generation_function)()
+
         optimiser = self.optimiser_cls(objective=objective,
-                                       initial_graph=self.initial_pipelines,
+                                       initial_graphs=initial_population,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=graph_generation_params,
                                        parameters=self.optimiser_parameters,
@@ -148,7 +150,7 @@ class ComposerBuilder:
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     self.initial_pipelines,
+                                     initial_population,
                                      history,
                                      self.pipelines_cache,
                                      self.preprocessing_cache)
