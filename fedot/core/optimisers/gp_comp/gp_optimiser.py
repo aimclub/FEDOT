@@ -13,11 +13,11 @@ from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NU
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, Inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, Regularization
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, crossover_parents_selection, selection
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
 from fedot.core.optimisers.populational_optimiser import PopulationalOptimiser
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiserParameters
@@ -92,6 +92,8 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.crossover = Crossover(parameters.crossover_types, graph_generation_params, requirements)
+        self.selection = Selection(parameters.selection_types)
+        self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types)
 
 
         # Define adaptive parameters
@@ -153,15 +155,12 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self._update_requirements()
         individuals_to_select = self.regularization(self.population, evaluator)
 
-        selected_individuals = selection(types=self.parameters.selection_types,
-                                         population=individuals_to_select,
-                                         pop_size=self.requirements.pop_size,
-                                         params=self.graph_generation_params)
+        selected_individuals = self.selection(individuals_to_select, self.requirements.pop_size)
 
         new_population = self._spawn_evaluated_population(selected_individuals=selected_individuals,
                                                           evaluator=evaluator)
 
-        new_population = self._inheritance(new_population)
+        new_population = self.inheritance(self.population, new_population, self.requirements.pop_size)
 
         new_population = self.elitism(self.generations.best_individuals, new_population)
 
@@ -199,29 +198,3 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.mutation.update_requirements(self.requirements)
         self.regularization.update_requirements(self.requirements)
         self.crossover.update_requirements(self.requirements)
-
-    def _inheritance(self, offspring: PopulationT) -> PopulationT:
-        """Gather next population given new offspring, previous population and elite individuals.
-        :param offspring: offspring of current population.
-        :return: next population."""
-
-        # TODO: from inheritance together with elitism we can get duplicate inds!
-        offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
-                                self.population,
-                                offspring, self.requirements.pop_size,
-                                graph_params=self.graph_generation_params)
-        return offspring
-
-    # def _reproduce(self, population: PopulationT) -> PopulationT:
-    #     if len(population) == 1:
-    #         new_population = population
-    #     else:
-    #         new_population = []
-    #         for ind_1, ind_2 in crossover_parents_selection(population):
-    #             new_population += self._crossover_pair(ind_1, ind_2)
-    #     return new_population
-    #
-    # def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
-    #     return crossover(self.parameters.crossover_types, individual1, individual2,
-    #                      max_depth=self.requirements.max_depth, crossover_prob=self.requirements.crossover_prob,
-    #                      params=self.graph_generation_params)
