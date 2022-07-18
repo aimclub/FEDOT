@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 
 from examples.advanced.multi_modal_pipeline import run_multi_modal_pipeline
+from examples.advanced.multimodal_text_num_example import run_multi_modal_example
 from examples.advanced.multiobj_optimisation import run_classification_multiobj_example
 from examples.advanced.time_series_forecasting.multistep import run_multistep
 from examples.advanced.time_series_forecasting.nemo_multiple import run_multiple_example
@@ -108,5 +109,7 @@ def test_api_example():
 
 
 def test_multi_modal_example():
-    result = run_multi_modal_pipeline(files_path='cases/data/mm_imdb', is_visualise=False)
-    assert result > 0
+    result = run_multi_modal_example(files_path='examples/data/multimodal_wine', is_visualise=False)
+    assert result > 0.5
+
+
