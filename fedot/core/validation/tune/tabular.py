@@ -2,8 +2,12 @@ import numpy as np
 from typing import Callable
 
 from fedot.core.pipelines.tuning.tuner_interface import _calculate_loss_function
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
+from fedot.core.validation.split import ts_cv_generator
 
 
 def cv_tabular_predictions(pipeline, reference_data: InputData, cv_folds: int, loss_function: Callable):
@@ -17,16 +21,6 @@ def cv_tabular_predictions(pipeline, reference_data: InputData, cv_folds: int, l
         metric_value += _calculate_loss_function(loss_function, test_data, predicted_values)
 
     return metric_value / cv_folds
-
-
-import numpy as np
-from typing import Callable
-
-from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
-from fedot.core.validation.split import ts_cv_generator
 
 
 def cv_time_series_predictions(pipeline, reference_data: InputData, log,

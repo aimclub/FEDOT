@@ -92,22 +92,6 @@ def test_tuner_cv_classification_correct():
     assert tuned
 
 
-def test_cv_tabular_predictions_correct():
-    folds = 2
-    dataset = get_iris_data()
-
-    simple_pipeline = pipeline_simple()
-    predictions, target = cv_tabular_predictions(pipeline=simple_pipeline,
-                                                 reference_data=dataset,
-                                                 cv_folds=folds,
-                                                 )
-    dataset_size = len(dataset.features)
-    predictions_size = len(predictions)
-    target_size = len(target)
-    assert dataset_size == predictions_size
-    assert dataset_size == target_size
-
-
 def test_composer_with_cv_optimization_correct():
     task = Task(task_type=TaskTypesEnum.classification)
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())

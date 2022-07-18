@@ -10,7 +10,8 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
+    _check_and_correct_window_size
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -160,6 +161,8 @@ class AutoRegImplementation(ModelImplementation):
         self.params = params
         self.autoreg = None
         self.actual_ts_len = None
+        self.lag1_changed = False
+        self.lag2_changed = False
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -171,6 +174,21 @@ class AutoRegImplementation(ModelImplementation):
         self.actual_ts_len = len(source_ts)
         lag_1 = int(self.params.get('lag_1'))
         lag_2 = int(self.params.get('lag_2'))
+
+        # Correct window size parameter
+        lag_1, self.lag1_changed = _check_and_correct_window_size(source_ts,
+                                                                  lag_1,
+                                                                  input_data.task.task_params.forecast_length,
+                                                                  source_ts.shape[0],
+                                                                  self.log)
+
+        lag_2, self.lag2_changed = _check_and_correct_window_size(source_ts,
+                                                                  lag_2,
+                                                                  input_data.task.task_params.forecast_length,
+                                                                  source_ts.shape[0],
+                                                                  self.log)
+        self.params['lag_1'] = lag_1
+        self.params['lag_2'] = lag_2
         params = {'lags': [lag_1, lag_2]}
         self.autoreg = AutoReg(source_ts, **params).fit()
         self.actual_ts_len = input_data.idx.shape[0]
@@ -222,7 +240,15 @@ class AutoRegImplementation(ModelImplementation):
         return output_data
 
     def get_params(self):
-        return self.params
+        changed_params = []
+        if self.lag1_changed is True:
+            changed_params.append('lag_1')
+        if self.lag2_changed is True:
+            changed_params.append('lag_2')
+        if changed_params:
+            return (self.params, changed_params)
+        else:
+            return self.params
 
     def handle_new_data(self, input_data: InputData):
         """

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
-from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc, f1_score as f1
+from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
 
 from fedot.core.composer.metrics import ROCAUC, RMSE, Accuracy, MSE
 from fedot.core.data.data import InputData, OutputData
@@ -111,18 +111,11 @@ def get_class_operation_types():
 
 
 def get_regr_losses():
-    regr_losses = [
-        {'loss_function': RMSE.metric}
-    ]
-    return regr_losses
+    return [RMSE.metric]
 
 
 def get_class_losses():
-    class_losses = [
-        {'loss_function': ROCAUC.metric},
-        {'loss_function': Accuracy.metric}
-    ]
-    return class_losses
+    return [ROCAUC.metric, Accuracy.metric]
 
 
 def get_not_default_search_space():
@@ -167,7 +160,7 @@ def custom_minimized_metrics(real_data: InputData, pred_data: OutputData):
 
 def run_pipeline_tuner(train_data,
                        pipeline,
-                       loss,
+                       loss_function,
                        search_space=SearchSpace(),
                        cv=None,
                        algo=tpe.suggest,
@@ -182,13 +175,13 @@ def run_pipeline_tuner(train_data,
                                    algo=algo)
     _ = pipeline_tuner.tune_pipeline(input_data=train_data,
                                      cv_folds=cv,
-                                     **loss)
+                                     loss_function=loss_function)
     return pipeline_tuner
 
 
 def run_sequential_tuner(train_data,
                          pipeline,
-                         loss,
+                         loss_function,
                          search_space=SearchSpace(),
                          cv=None,
                          algo=tpe.suggest,
@@ -204,13 +197,13 @@ def run_sequential_tuner(train_data,
     # Optimization will be performed on RMSE metric, so loss params are defined
     _ = sequential_tuner.tune_pipeline(input_data=train_data,
                                        cv_folds=cv,
-                                       **loss)
+                                       loss_function=loss_function)
     return sequential_tuner
 
 
 def run_node_tuner(train_data,
                    pipeline,
-                   loss,
+                   loss_function,
                    search_space=SearchSpace(),
                    cv=None,
                    node_index=0,
@@ -227,7 +220,7 @@ def run_node_tuner(train_data,
     _ = node_tuner.tune_node(input_data=train_data,
                              node_index=node_index,
                              cv_folds=cv,
-                             **loss)
+                             loss_function=loss_function)
     return node_tuner
 
 
@@ -245,22 +238,22 @@ def test_custom_params_setter(data_fixture, request):
     assert params['C'] == 10
 
 
-@pytest.mark.parametrize('data_fixture, pipelines, losses',
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
-def test_pipeline_tuner_correct(data_fixture, pipelines, losses, request):
+def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
-        for loss in losses:
+        for loss_function in loss_functions:
             for cv in cvs:
                 pipeline_tuner = run_pipeline_tuner(train_data=train_data,
                                                     pipeline=pipeline,
-                                                    loss=loss,
+                                                    loss_function=loss_function,
                                                     cv=cv)
                 assert pipeline_tuner.obtained_metric is not None
 
@@ -269,11 +262,11 @@ def test_pipeline_tuner_correct(data_fixture, pipelines, losses, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture, pipelines, losses',
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
-def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, losses, request):
+def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request):
     """ Test PipelineTuner with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -282,7 +275,7 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, losses
     for search_space in search_spaces:
         pipeline_tuner = run_pipeline_tuner(train_data=train_data,
                                             pipeline=pipelines[0],
-                                            loss=losses[0],
+                                            loss_function=loss_functions[0],
                                             search_space=search_space)
         assert pipeline_tuner.obtained_metric is not None
 
@@ -291,22 +284,22 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, losses
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture, pipelines, losses',
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
-def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
+def test_sequential_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
-        for loss in losses:
+        for loss_function in loss_functions:
             for cv in cvs:
                 sequential_tuner = run_sequential_tuner(train_data=train_data,
                                                         pipeline=pipeline,
-                                                        loss=loss,
+                                                        loss_function=loss_function,
                                                         cv=cv)
                 assert sequential_tuner.obtained_metric is not None
 
@@ -315,11 +308,11 @@ def test_sequential_tuner_correct(data_fixture, pipelines, losses, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture, pipelines, losses',
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
-def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, losses, request):
+def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -328,7 +321,7 @@ def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss
     for search_space in search_spaces:
         sequential_tuner = run_sequential_tuner(train_data=train_data,
                                                 pipeline=pipelines[0],
-                                                loss=losses[0],
+                                                loss_function=loss_functions[0],
                                                 search_space=search_space)
         assert sequential_tuner.obtained_metric is not None
 
@@ -337,22 +330,22 @@ def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture, pipelines, losses',
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
-def test_certain_node_tuning_correct(data_fixture, pipelines, losses, request):
+def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
-        for loss in losses:
+        for loss_function in loss_functions:
             for cv in cvs:
                 node_tuner = run_node_tuner(train_data=train_data,
                                             pipeline=pipeline,
-                                            loss=loss,
+                                            loss_function=loss_function,
                                             cv=cv)
                 assert node_tuner.obtained_metric is not None
 
@@ -361,11 +354,11 @@ def test_certain_node_tuning_correct(data_fixture, pipelines, losses, request):
     assert is_tuning_finished
 
 
-@pytest.mark.parametrize('data_fixture, pipelines, losses',
+@pytest.mark.parametrize('data_fixture, pipelines, loss_functions',
                          [('regression_dataset', get_regr_pipelines(), get_regr_losses()),
                           ('classification_dataset', get_class_pipelines(), get_class_losses()),
                           ('multi_classification_dataset', get_class_pipelines(), get_class_losses())])
-def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, losses, request):
+def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node with different search spaces """
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
@@ -374,7 +367,7 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
     for search_space in search_spaces:
         node_tuner = run_node_tuner(train_data=train_data,
                                     pipeline=pipelines[0],
-                                    loss=losses[0],
+                                    loss_function=loss_functions[0],
                                     search_space=search_space)
         assert node_tuner.obtained_metric is not None
 
@@ -385,7 +378,7 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
 
 def test_ts_pipeline_with_stats_model():
     """ Tests PipelineTuner for time series forecasting task with AR model """
-    train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
+    train_data, test_data = get_ts_data(n_steps=400, forecast_length=5)
 
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 
@@ -409,7 +402,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_pipeline_tuner = time()
     _ = run_pipeline_tuner(train_data=train_data,
                            pipeline=get_class_pipelines()[0],
-                           loss={'loss_function': ROCAUC.metric},
+                           loss_function=ROCAUC.metric,
                            iterations=1000,
                            early_stopping_rounds=1)
     assert time() - start_pipeline_tuner < 1
@@ -417,7 +410,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_sequential_tuner = time()
     _ = run_sequential_tuner(train_data=train_data,
                              pipeline=get_class_pipelines()[0],
-                             loss={'loss_function': roc},
+                             loss_function=ROCAUC.metric,
                              iterations=1000,
                              early_stopping_rounds=1)
     assert time() - start_sequential_tuner < 1
@@ -425,7 +418,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
                        pipeline=get_class_pipelines()[0],
-                       loss={'loss_function': roc},
+                       loss_function=ROCAUC.metric,
                        iterations=1000,
                        early_stopping_rounds=1)
     assert time() - start_node_tuner < 1
@@ -496,12 +489,13 @@ def test_complex_search_space_tuning_correct():
 
 def test_greater_is_better():
     """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
-    assert _greater_is_better(Accuracy.metric)
-    assert _greater_is_better(ROCAUC.metric)
-    assert _greater_is_better(ROCAUC.metric)
+
     assert _greater_is_better(custom_maximized_metrics)
     assert not _greater_is_better(MSE.metric)
     assert not _greater_is_better(custom_minimized_metrics)
+    # these metrics are given with minus
+    assert not _greater_is_better(Accuracy.metric)
+    assert not _greater_is_better(ROCAUC.metric)
 
 
 def test_calculate_loss_function():

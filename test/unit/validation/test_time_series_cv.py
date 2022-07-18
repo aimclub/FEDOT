@@ -92,21 +92,6 @@ def test_tuner_cv_correct():
     assert is_tune_succeeded
 
 
-def test_cv_ts_predictions_correct():
-    folds_len_list = []
-    for folds in range(2, 4):
-        forecast_len, validation_blocks, time_series = configure_experiment()
-
-        simple_pipeline = get_simple_ts_pipeline()
-        predictions, target = cv_time_series_predictions(reference_data=time_series,
-                                                         pipeline=simple_pipeline,
-                                                         log=log,
-                                                         cv_folds=folds,
-                                                         validation_blocks=validation_blocks)
-        folds_len_list.append(len(predictions))
-    assert folds_len_list[0] < folds_len_list[1]
-
-
 def test_composer_cv_correct():
     """ Checks if the composer works correctly when using cross validation for
     time series """
