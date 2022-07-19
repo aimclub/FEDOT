@@ -23,7 +23,7 @@ class GraphOperator:
         if node.nodes_from and len(node_children_cached) == 1:
             for node_from in node.nodes_from:
                 node_children_cached[0].nodes_from.append(node_from)
-        self._graph._nodes.clear()
+        self._graph.nodes.clear()
         self.add_node(self_root_node_cached)
         self._postproc_nodes()
 
