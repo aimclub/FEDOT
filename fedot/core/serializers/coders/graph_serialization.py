@@ -11,7 +11,7 @@ def graph_to_json(obj: Graph) -> Dict[str, Any]:
     serialized_obj = {
         k: v
         for k, v in any_to_json(obj).items()
-        if k != 'operator'  # to prevent circular reference
+        if k != '_operator'  # to prevent circular reference
     }
     return serialized_obj
 

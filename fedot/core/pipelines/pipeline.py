@@ -39,7 +39,7 @@ class Pipeline(Graph, Serializable):
         # Define data preprocessor
         self.preprocessor = DataPreprocessor()
         super().__init__(nodes)
-        self.operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
+        self._operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
 
     def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
         """Method to update nodes types after performing some action on the pipeline
