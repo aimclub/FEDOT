@@ -42,5 +42,4 @@ class Elitism:
     def is_elitism_applicable(self):
         if self.is_multi_objective:
             return False
-        else:
-            return self.requirements.pop_size >= self.min_population_size_with_elitism
+        return self.requirements.pop_size >= self.min_population_size_with_elitism
