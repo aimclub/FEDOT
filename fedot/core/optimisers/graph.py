@@ -178,7 +178,7 @@ class OptGraph:
     def connect_nodes(self, node_parent: OptNode, node_child: OptNode):
         """ Add an edge from node_parent to node_child """
         self._operator.connect_nodes(parent=self._node_adapter.restore(node_parent),
-                                    child=self._node_adapter.restore(node_child))
+                                     child=self._node_adapter.restore(node_child))
 
     @node_ops_adaptation
     def disconnect_nodes(self, node_parent: OptNode, node_child: OptNode,
