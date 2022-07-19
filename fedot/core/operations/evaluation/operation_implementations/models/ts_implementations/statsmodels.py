@@ -174,7 +174,7 @@ class AutoRegImplementation(ModelImplementation):
         self.actual_ts_len = len(source_ts)
         lag_1 = int(self.params.get('lag_1'))
         lag_2 = int(self.params.get('lag_2'))
-
+        # TODO @valer1435 refactor change params logic
         # Correct window size parameter
         lag_1, self.lag1_changed = _check_and_correct_window_size(source_ts,
                                                                   lag_1,
@@ -187,6 +187,11 @@ class AutoRegImplementation(ModelImplementation):
                                                                   input_data.task.task_params.forecast_length,
                                                                   source_ts.shape[0],
                                                                   self.log)
+
+        if self.lag1_changed:
+            lag_1 = lag_1 // 4
+        if self.lag2_changed:
+            lag_2 = lag_2 // 8
         self.params['lag_1'] = lag_1
         self.params['lag_2'] = lag_2
         params = {'lags': [lag_1, lag_2]}
