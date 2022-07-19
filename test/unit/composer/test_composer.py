@@ -15,18 +15,14 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimiser
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
-from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum

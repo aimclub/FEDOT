@@ -13,14 +13,10 @@ from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.optimizer import GraphGenerationParams
     from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-
-MAX_NUM_OF_ATTEMPTS = 100
-MAX_MUT_CYCLES = 5
-STATIC_MUTATION_PROBABILITY = 0.7
 
 
 class MutationTypesEnum(Enum):
@@ -44,14 +40,22 @@ class MutationStrengthEnum(Enum):
 
 class Mutation:
     def __init__(self, mutation_types: List[Union[MutationTypesEnum, Callable]],
-                 graph_generation_params: 'GraphGenerationParams',
-                 requirements: 'PipelineComposerRequirements'):
+                 graph_generation_params: GraphGenerationParams,
+                 requirements: 'PipelineComposerRequirements',
+                 max_num_of_mutation_attempts: int = 100,
+                 static_mutation_probability: float = 0.7):
         self.mutation_types = mutation_types
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
+        self.max_num_of_mutation_attempts = max_num_of_mutation_attempts
+        self.static_mutation_probability = static_mutation_probability
+        self.log = default_log(prefix='mutation')
 
-    def __call__(self, population: PopulationT, max_depth: Optional[int] = None) -> PopulationT:
+    def __call__(self, population: Union[Individual, PopulationT],
+                 max_depth: Optional[int] = None) -> Union[Individual, PopulationT]:
         mutation = partial(self._mutation, max_depth=max_depth)
+        if isinstance(population, Individual):
+            return mutation(population)
         return list(map(mutation, population))
 
     @staticmethod
@@ -71,16 +75,40 @@ class Mutation:
             mutation_prob = default_mutation_prob
         return mutation_prob
 
-    @staticmethod
-    def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
-        return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
+    def _mutation(self, individual: Individual, max_depth: Optional[int] = None) -> Any:
+        """ Function apply mutation operator to graph """
+
+        max_depth = max_depth if max_depth else self.requirements.max_depth
+        mutation_prob = self.requirements.mutation_prob
+        parent_individuals = [individual]
+
+        for _ in range(self.max_num_of_mutation_attempts):
+            new_graph = deepcopy(individual.graph)
+            num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
+
+            new_graph, mutation_names = self._adapt_and_apply_mutations(new_graph, mutation_prob, num_mut, max_depth)
+
+            is_correct_graph = self.graph_generation_params.verifier(new_graph)
+            if is_correct_graph:
+                parent_operators = list(individual.parent_operators)
+                for mutation_name in mutation_names:
+                    parent_operators.append(
+                        ParentOperator(operator_type='mutation',
+                                       operator_name=str(mutation_name),
+                                       parent_individuals=tuple(parent_individuals)))
+                return Individual(new_graph, tuple(parent_operators))
+
+        self.log.debug('Number of mutation attempts exceeded. '
+                       'Please check composer requirements for correctness.')
+
+        return individual
 
     def _adapt_and_apply_mutations(self, new_graph: Any, mutation_prob: float, num_mut: int, max_depth: int):
         """
         Apply mutation in several iterations with specific adaptation of each graph
         """
 
-        is_static_mutation_type = random() < STATIC_MUTATION_PROBABILITY
+        is_static_mutation_type = random() < self.static_mutation_probability
         static_mutation_type = choice(self.mutation_types)
         mutation_names = []
         for _ in range(num_mut):
@@ -93,9 +121,7 @@ class Mutation:
             else:
                 if not isinstance(new_graph, OptGraph):
                     new_graph = self.graph_generation_params.adapter.adapt(new_graph)
-            new_graph = self._apply_mutation(new_graph=new_graph, mutation_prob=mutation_prob,
-                                             mutation_type=mutation_type, is_custom_mutation=is_custom_mutation,
-                                             max_depth=max_depth)
+            new_graph = self._apply_mutation(new_graph, mutation_prob, mutation_type, is_custom_mutation, max_depth)
             mutation_names.append(str(mutation_type))
             if not isinstance(new_graph, OptGraph):
                 new_graph = self.graph_generation_params.adapter.adapt(new_graph)
@@ -121,38 +147,11 @@ class Mutation:
                 return graph_copy
         return new_graph
 
-    def _mutation(self, individual: Individual, max_depth: Optional[int] = None) -> Any:
-        """ Function apply mutation operator to graph """
+    @staticmethod
+    def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
+        return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
 
-        log = default_log(prefix='mutation')
-        max_depth = max_depth if max_depth else self.requirements.max_depth
-        mutation_prob = self.requirements.mutation_prob
-        parent_individuals = [individual]
-
-        for _ in range(MAX_NUM_OF_ATTEMPTS):
-            new_graph = deepcopy(individual.graph)
-            num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
-
-            new_graph, mutation_names = self._adapt_and_apply_mutations(new_graph=new_graph,
-                                                                        mutation_prob=mutation_prob, num_mut=num_mut,
-                                                                        max_depth=max_depth)
-
-            is_correct_graph = self.graph_generation_params.verifier(new_graph)
-            if is_correct_graph:
-                parent_operators = list(individual.parent_operators)
-                for mutation_name in mutation_names:
-                    parent_operators.append(
-                        ParentOperator(operator_type='mutation',
-                                       operator_name=str(mutation_name),
-                                       parent_individuals=tuple(parent_individuals)))
-                return Individual(new_graph, tuple(parent_operators))
-
-        log.debug('Number of mutation attempts exceeded. '
-                  'Please check composer requirements for correctness.')
-
-        return individual
-
-    def simple_mutation(self, graph: Any, **kwargs) -> Any:
+    def _simple_mutation(self, graph: Any, **kwargs) -> Any:
         """
         This type of mutation is passed over all nodes of the tree started from the root node and changes
         nodes’ operations with probability - 'node mutation probability'
@@ -177,10 +176,15 @@ class Mutation:
 
         return graph
 
-    def single_edge_mutation(self, graph: Any, max_depth, *args, **kwargs):
+    def _single_edge_mutation(self, graph: Any, max_depth, *args, **kwargs):
+        """ This mutation adds new edge between two random nodes in graph.
+
+        :param graph: graph to mutate
+        :param max_depth: maximum depth for a graph
+        """
         old_graph = deepcopy(graph)
 
-        for _ in range(MAX_NUM_OF_ATTEMPTS):
+        for _ in range(self.max_num_of_mutation_attempts):
             if len(graph.nodes) < 2 or graph.depth > max_depth:
                 return graph
 
@@ -230,7 +234,7 @@ class Mutation:
         graph.nodes.append(new_node)
         return graph
 
-    def single_add_mutation(self, graph: Any, max_depth: int, *args, **kwargs):
+    def _single_add_mutation(self, graph: Any, max_depth: int, *args, **kwargs):
         """
         Add new node between two sequential existing modes
 
@@ -252,9 +256,9 @@ class Mutation:
         result = strategy(graph, node_to_mutate)
         return result
 
-    def single_change_mutation(self, graph: Any, *args, **kwargs):
+    def _single_change_mutation(self, graph: Any, *args, **kwargs):
         """
-        Change node between two sequential existing modes
+        Change node between two sequential existing modes.
 
         :param graph: graph to mutate
         """
@@ -265,9 +269,9 @@ class Mutation:
         graph.update_node(node, new_node)
         return graph
 
-    def single_drop_mutation(self, graph: Any, *args, **kwargs):
+    def _single_drop_mutation(self, graph: Any, *args, **kwargs):
         """
-        Drop single node from graph
+        Drop single node from graph.
 
         :param graph: graph to mutate
         """
@@ -324,7 +328,7 @@ class Mutation:
         graph.update_subtree(node_from_graph, new_subtree)
         return graph
 
-    def growth_mutation(self, graph: Any, max_depth: int, local_growth: bool = True, **kwargs) -> Any:
+    def _growth_mutation(self, graph: Any, max_depth: int, local_growth: bool = True, **kwargs) -> Any:
         """
         This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
 
@@ -337,12 +341,12 @@ class Mutation:
 
         if random() > 0.5:
             # simple growth (one node can be added)
-            return self.single_add_mutation(graph, max_depth)
+            return self._single_add_mutation(graph, max_depth)
         else:
             # advanced growth (several nodes can be added)
             return self._tree_growth(graph, max_depth, local_growth)
 
-    def reduce_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
+    def _reduce_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Selects a random node in a tree, then removes its subtree. If the current arity of the node's
         parent is more than the specified minimal arity, then the selected node is also removed.
@@ -366,20 +370,20 @@ class Mutation:
             graph.update_subtree(node_to_del, primary_node)
         return graph
 
-    def no_mutation(self, graph: Any, *args, **kwargs):
+    def _no_mutation(self, graph: Any, *args, **kwargs):
         return graph
 
     def mutation_by_type(self, mutation_type: MutationTypesEnum):
         mutations = {
-            MutationTypesEnum.none: self.no_mutation,
-            MutationTypesEnum.simple: self.simple_mutation,
-            MutationTypesEnum.growth: partial(self.growth_mutation, local_growth=False),
-            MutationTypesEnum.local_growth: partial(self.growth_mutation, local_growth=True),
-            MutationTypesEnum.reduce: self.reduce_mutation,
-            MutationTypesEnum.single_add: self.single_add_mutation,
-            MutationTypesEnum.single_edge: self.single_edge_mutation,
-            MutationTypesEnum.single_drop: self.single_drop_mutation,
-            MutationTypesEnum.single_change: self.single_change_mutation,
+            MutationTypesEnum.none: self._no_mutation,
+            MutationTypesEnum.simple: self._simple_mutation,
+            MutationTypesEnum.growth: partial(self._growth_mutation, local_growth=False),
+            MutationTypesEnum.local_growth: partial(self._growth_mutation, local_growth=True),
+            MutationTypesEnum.reduce: self._reduce_mutation,
+            MutationTypesEnum.single_add: self._single_add_mutation,
+            MutationTypesEnum.single_edge: self._single_edge_mutation,
+            MutationTypesEnum.single_drop: self._single_drop_mutation,
+            MutationTypesEnum.single_change: self._single_change_mutation,
         }
         if mutation_type in mutations:
             return mutations[mutation_type]

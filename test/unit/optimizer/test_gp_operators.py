@@ -32,7 +32,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import to_numerical
-from test.unit.test_logger import release_log, singleton_cleanup
+from test.unit.test_logger import release_log
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -192,17 +192,17 @@ def test_mutation():
                                                         task=task)
     mutation = Mutation(mutation_types=mutation_types, graph_generation_params=graph_gener_params,
                         requirements=composer_requirements)
-    new_ind = mutation([ind], max_depth=3)[0]
+    new_ind = mutation(ind, max_depth=3)
     assert new_ind.graph == ind.graph
     mutation_types = [MutationTypesEnum.growth]
     composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
                                                          secondary=secondary_model_types, mutation_prob=0)
     mutation = Mutation(mutation_types=mutation_types, graph_generation_params=graph_gener_params,
                         requirements=composer_requirements)
-    new_ind = mutation([ind], max_depth=3)[0]
+    new_ind = mutation(ind, max_depth=3)
     assert new_ind.graph == ind.graph
     ind = Individual(adapter.adapt(pipeline_fifth()))
-    new_ind = mutation([ind], max_depth=3)[0]
+    new_ind = mutation(ind, max_depth=3)
     assert new_ind.graph == ind.graph
 
 
@@ -225,7 +225,7 @@ def test_intermediate_add_mutation_for_linear_graph():
                         requirements=composer_requirements)
 
     for _ in range(100):
-        graph_after_mutation = mutation([Individual(linear_two_nodes)], max_depth=3)[0].graph
+        graph_after_mutation = mutation(Individual(linear_two_nodes), max_depth=3).graph
         if not successful_mutation_inner:
             successful_mutation_inner = \
                 graph_after_mutation.root_node.descriptive_id == linear_three_nodes_inner.root_node.descriptive_id
@@ -256,7 +256,7 @@ def test_parent_add_mutation_for_linear_graph():
                         requirements=composer_requirements)
 
     for _ in range(200):  # since add mutations has a lot of variations
-        graph_after_mutation = mutation([Individual(linear_one_node)], max_depth=2)[0].graph
+        graph_after_mutation = mutation(Individual(linear_one_node), max_depth=2).graph
         if not successful_mutation_outer:
             successful_mutation_outer = \
                 graph_after_mutation.root_node.descriptive_id == linear_two_nodes.root_node.descriptive_id
@@ -285,7 +285,7 @@ def test_edge_mutation_for_graph():
     mutation = Mutation(mutation_types=[MutationTypesEnum.single_edge], graph_generation_params=graph_params,
                         requirements=composer_requirements)
     for _ in range(100):
-        graph_after_mutation = mutation([Individual(graph_without_edge)], max_depth=graph_with_edge.depth)[0].graph
+        graph_after_mutation = mutation(Individual(graph_without_edge), max_depth=graph_with_edge.depth).graph
         if not successful_mutation_edge:
             successful_mutation_edge = \
                 graph_after_mutation.root_node.descriptive_id == graph_with_edge.root_node.descriptive_id
@@ -312,7 +312,7 @@ def test_replace_mutation_for_linear_graph():
     mutation = Mutation(mutation_types=[MutationTypesEnum.single_change], graph_generation_params=graph_params,
                         requirements=composer_requirements)
     for _ in range(100):
-        graph_after_mutation = mutation([Individual(linear_two_nodes)], max_depth=2)[0].graph
+        graph_after_mutation = mutation(Individual(linear_two_nodes), max_depth=2).graph
         if not successful_mutation_replace:
             successful_mutation_replace = \
                 graph_after_mutation.root_node.descriptive_id == linear_changed.root_node.descriptive_id
@@ -340,7 +340,7 @@ def test_drop_mutation_for_linear_graph():
                         requirements=composer_requirements)
 
     for _ in range(100):
-        graph_after_mutation = mutation([Individual(linear_two_nodes)], max_depth=2)[0].graph
+        graph_after_mutation = mutation(Individual(linear_two_nodes), max_depth=2).graph
         if not successful_mutation_drop:
             successful_mutation_drop = \
                 graph_after_mutation.root_node.descriptive_id == linear_one_node.root_node.descriptive_id
@@ -378,7 +378,7 @@ def test_boosting_mutation_for_linear_graph():
                         requirements=composer_requirements)
     for _ in range(100):
         if not successful_mutation_boosting:
-            graph_after_mutation = mutation([Individual(linear_one_node)], max_depth=2)[0].graph
+            graph_after_mutation = mutation(Individual(linear_one_node), max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -426,7 +426,7 @@ def test_boosting_mutation_for_non_lagged_ts_model():
                         requirements=composer_requirements)
     for _ in range(100):
         if not successful_mutation_boosting:
-            graph_after_mutation = mutation([Individual(linear_two_nodes)], max_depth=2)[0].graph
+            graph_after_mutation = mutation(Individual(linear_two_nodes), max_depth=2).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -514,16 +514,16 @@ def test_mutation_with_single_node():
                                                   task=task)
     mutation = Mutation(mutation_types=[MutationTypesEnum.reduce], graph_generation_params=graph_params,
                         requirements=composer_requirements)
-    new_individual = mutation([individual])[0]
+    new_individual = mutation(individual)
     assert individual.graph == new_individual.graph
 
     mutation = Mutation(mutation_types=[MutationTypesEnum.single_drop], graph_generation_params=graph_params,
                         requirements=composer_requirements)
-    new_individual = mutation([individual])[0]
+    new_individual = mutation(individual)
     assert individual.graph == new_individual.graph
 
 
-def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
+def test_no_opt_or_graph_nodes_after_mutation():
     test_file_path = Path(__file__).parent.joinpath('log.log')
     log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
 
@@ -551,7 +551,7 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
 
 
-def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
+def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
     test_file_path = Path(__file__).parent.joinpath('log.log')
     log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
 

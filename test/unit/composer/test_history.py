@@ -73,7 +73,7 @@ def test_ancestor_for_mutation():
     mutation = Mutation(mutation_types=[MutationTypesEnum.simple], graph_generation_params=graph_params,
                         requirements=composer_requirements)
 
-    mutation_result = mutation([parent_ind], max_depth=2)[0]
+    mutation_result = mutation(parent_ind, max_depth=2)
 
     assert len(mutation_result.parent_operators) > 0
     assert mutation_result.parent_operators[-1].operator_type == 'mutation'

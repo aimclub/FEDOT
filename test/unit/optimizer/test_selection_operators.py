@@ -1,6 +1,5 @@
 from functools import partial
 
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.debug.metrics import RandomMetric
 from fedot.core.optimisers.adapters import PipelineAdapter

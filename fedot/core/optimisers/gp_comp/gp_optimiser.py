@@ -127,14 +127,16 @@ class EvoGraphOptimiser(GraphOptimiser):
         self._operators_prob = \
             init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
 
-        # Define parameters
-
         start_depth = requirements.start_depth or requirements.max_depth
+
         self._graph_depth = AdaptiveGraphDepth(self.generations,
                                                start_depth=start_depth,
                                                max_depth=requirements.max_depth,
                                                max_stagnated_generations=parameters.depth_increase_step,
                                                adaptive=parameters.with_auto_depth_configuration)
+
+        # Define parameters
+
         self.max_depth = self._graph_depth.initial
 
         self.initial_individuals = \
@@ -150,8 +152,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         while len(initial_individuals) < pop_size:
             initial_req = deepcopy(self.requirements)
             initial_req.mutation_prob = 1
-
-            new_ind = self._mutate(choice(self.initial_individuals), max_depth, custom_requirements=initial_req)
+            custom_mutation = Mutation(self.parameters.mutation_types, self.graph_generation_params, initial_req)
+            new_ind = custom_mutation(choice(self.initial_individuals), max_depth)
             new_graph = new_ind.graph
             iter_num += 1
             if new_graph not in initial_graphs and self.graph_generation_params.verifier(new_graph):
