@@ -227,7 +227,6 @@ class Pipeline(Graph, Serializable):
         return result
 
     def fine_tune_all_nodes(self, loss_function: Callable,
-                            loss_params: dict = None,
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations=50, timeout: Optional[float] = 5,
                             cv_folds: int = None,
@@ -249,7 +248,6 @@ class Pipeline(Graph, Serializable):
 
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                                       loss_function=loss_function,
-                                                      loss_params=loss_params,
                                                       cv_folds=cv_folds,
                                                       validation_blocks=validation_blocks)
         self.log.info('Tuning was finished')

@@ -6,7 +6,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
 
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
-from fedot.core.composer.metrics import smape
+from fedot.core.composer.metrics import smape, Metric
 
 
 class ApiMetrics:
@@ -33,39 +33,8 @@ class ApiMetrics:
         }
         return task_dict[self.main_problem]
 
-    def get_metrics_for_task(self, metric_name: Union[str, List[str]]):
-        """ Return one metric for task by name (str)
-
-        :param metric_name: names of metrics
-        """
-        task_metrics = self.get_problem_metrics()
-
-        if type(metric_name) is not str:
-            # Take only one metric (first) for optimisation
-            metric_name = metric_name[0]
-
-        composer_metric = self.get_composer_metrics_mapping(metric_name)
-        tuner_metrics = self.get_tuner_metrics_mapping(metric_name)
-        return task_metrics, composer_metric, tuner_metrics
-
     @staticmethod
-    def get_tuner_metrics_mapping(metric_name):
-        tuner_dict = {
-            'acc': accuracy_score,
-            'roc_auc': roc_auc_score,
-            'f1': f1_score,
-            'logloss': log_loss,
-            'mae': mean_absolute_error,
-            'mse': mean_squared_error,
-            'r2': r2_score,
-            'rmse': mean_squared_error,
-            'smape': smape
-        }
-
-        return tuner_dict.get(metric_name)
-
-    @staticmethod
-    def get_composer_metrics_mapping(metric_name: Union[str, Callable]):
+    def get_metrics_mapping(metric_name: Union[str, Callable]) -> Union[Metric, Callable]:
         if isinstance(metric_name, Callable):
             # for custom metric
             return metric_name

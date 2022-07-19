@@ -97,11 +97,9 @@ def run_river_experiment(file_path, with_tuning=False):
 
     if with_tuning:
         r_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                       loss_params=None,
                                        input_data=train_input,
                                        iterations=100)
         non_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                         loss_params=None,
                                          input_data=train_input,
                                          iterations=100)
 

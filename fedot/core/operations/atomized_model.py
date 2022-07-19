@@ -46,12 +46,11 @@ class AtomizedModel(Operation):
         return prediction
 
     def fine_tune(self, loss_function: Callable,
-                  loss_params: dict = None,
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
         tuned_pipeline = self.pipeline.fine_tune_all_nodes(loss_function=loss_function,
-                                                           loss_params=loss_params,
+
                                                            input_data=input_data,
                                                            iterations=iterations,
                                                            timeout=timeout)

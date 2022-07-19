@@ -145,7 +145,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', **default_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
+                  task_params=TsForecastingParams(forecast_length=forecast_length), tuner_metric='rmse')
 
     model.fit(features=train_data)
     ts_forecast = model.predict(features=test_data)
@@ -442,7 +442,6 @@ def test_data_from_csv_load_correctly():
 def test_api_params():
     """ Test checks if all params from api are processed and divided correctly"""
     default_int_value = 2
-
     api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
                   'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
                   'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,

@@ -7,6 +7,7 @@ from examples.advanced.time_series_forecasting.composing_pipelines import get_av
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.composer.metrics import MAE
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import \
@@ -82,8 +83,7 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                loss_params=None,
+    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
                                                 input_data=time_series,
                                                 iterations=1, timeout=1,
                                                 cv_folds=folds,

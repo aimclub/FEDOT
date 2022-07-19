@@ -70,7 +70,6 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
     if tuning:
         pipeline = pipeline.fine_tune_all_nodes(input_data=train_data,
                                                 loss_function=mean_squared_error,
-                                                loss_params={'squared': False},
                                                 iterations=100)
 
         prediction_after = pipeline.predict(test_data)

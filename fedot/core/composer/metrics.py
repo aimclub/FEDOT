@@ -56,17 +56,15 @@ class QualityMetric:
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int = None) -> float:
         metric = cls.default_value
-        try:
-            if validation_blocks is None:
-                # Time series or regression classical hold-out validation
-                results, reference_data = cls._simple_prediction(pipeline, reference_data)
-            else:
-                # Perform time series in-sample validation
-                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
-            metric = cls.metric(reference_data, results)
-        except Exception as ex:
-            # TODO: use log instead of stdout
-            print(f'Metric evaluation error: {ex}')
+
+        if validation_blocks is None:
+            # Time series or regression classical hold-out validation
+            results, reference_data = cls._simple_prediction(pipeline, reference_data)
+        else:
+            # Perform time series in-sample validation
+            reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+        metric = cls.metric(reference_data, results)
+
         return metric
 
     @classmethod

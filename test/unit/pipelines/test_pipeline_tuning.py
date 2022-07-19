@@ -8,7 +8,8 @@ from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, roc_auc_score as roc, accuracy_score as acc, f1_score as f1
 
-from fedot.core.data.data import InputData
+from fedot.core.composer.metrics import ROCAUC, RMSE, Accuracy, MSE
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
@@ -18,6 +19,7 @@ from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better, _calculate_loss_function
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -110,15 +112,15 @@ def get_class_operation_types():
 
 def get_regr_losses():
     regr_losses = [
-        {'loss_function': mse, 'loss_params': {'squared': False}}
+        {'loss_function': RMSE.metric}
     ]
     return regr_losses
 
 
 def get_class_losses():
     class_losses = [
-        {'loss_function': roc, 'loss_params': {'multi_class': 'ovr'}},
-        {'loss_function': acc}
+        {'loss_function': ROCAUC.metric},
+        {'loss_function': Accuracy.metric}
     ]
     return class_losses
 
@@ -153,13 +155,13 @@ def get_not_default_search_space():
     return SearchSpace(custom_search_space=custom_search_space)
 
 
-def custom_maximized_metrics(y_true, y_pred):
-    mse_value = mse(y_true, y_pred, squared=False)
+def custom_maximized_metrics(real_data: InputData, pred_data: OutputData):
+    mse_value = mse(real_data.target, pred_data.predict, squared=False)
     return -(mse_value + 2) * 0.5
 
 
-def custom_minimized_metrics(y_true, y_pred):
-    acc_value = acc(y_true, y_pred)
+def custom_minimized_metrics(real_data: InputData, pred_data: OutputData):
+    acc_value = acc(real_data.target, pred_data.predict)
     return 100 - (acc_value + 2) * 0.5
 
 
@@ -392,7 +394,7 @@ def test_ts_pipeline_with_stats_model():
         tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3,
                                  search_space=search_space, algo=rand.suggest)
         tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                                   loss_function=mse)
+                                                   loss_function=MSE.metric)
 
     is_tuning_finished = True
 
@@ -407,7 +409,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_pipeline_tuner = time()
     _ = run_pipeline_tuner(train_data=train_data,
                            pipeline=get_class_pipelines()[0],
-                           loss={'loss_function': roc},
+                           loss={'loss_function': ROCAUC.metric},
                            iterations=1000,
                            early_stopping_rounds=1)
     assert time() - start_pipeline_tuner < 1
@@ -487,46 +489,78 @@ def test_complex_search_space_tuning_correct():
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
     tuned_glm_pipeline = glm_pipeline.fine_tune_all_nodes(input_data=train_data,
-                                                          loss_function=mse)
+                                                          loss_function=MSE.metric)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params
 
 
 def test_greater_is_better():
     """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
-    assert _greater_is_better(acc, None)
-    assert _greater_is_better(roc, None)
-    assert _greater_is_better(roc, {'multi_class': 'ovo'})
-    assert _greater_is_better(custom_maximized_metrics, None)
-    assert not _greater_is_better(mse, None)
-    assert not _greater_is_better(custom_minimized_metrics, None)
+    assert _greater_is_better(Accuracy.metric)
+    assert _greater_is_better(ROCAUC.metric)
+    assert _greater_is_better(ROCAUC.metric)
+    assert _greater_is_better(custom_maximized_metrics)
+    assert not _greater_is_better(MSE.metric)
+    assert not _greater_is_better(custom_minimized_metrics)
 
 
 def test_calculate_loss_function():
     """ Tests _calculate_loss_function correctness on quality metrics"""
-    target = np.array([1, 0, 1, 0, 1])
-    multi_target = np.array([2, 0, 1, 0, 1])
-    regr_target = np.array([0.2, 0.1, 1, 0.3, 1.7])
-    pred_clear = np.array([1, 0, 1, 0, 0])
-    pred_prob = np.array([0.8, 0.3, 0.6, 0.49, 0.49])
-    multi_pred_clear = np.array([2, 0, 1, 0, 2])
-    multi_pred_prob = np.array([[0.2, 0.3, 0.5],
-                                [0.6, 0.3, 0.1],
-                                [0.3, 0.4, 0.3],
-                                [0.5, 0.4, 0.1],
-                                [0.1, 0.4, 0.5]])
-    regr_pred = np.array([0.23, 0.15, 1.2, 0.4, 1.16])
 
-    assert _calculate_loss_function(acc, None, target, pred_prob) == 0.8
-    assert _calculate_loss_function(acc, None, target, pred_clear) == 0.8
-    assert np.allclose(a=_calculate_loss_function(roc, None, target, pred_prob),
-                       b=11 / 12,
-                       rtol=1e-9)
+    target = InputData(features=np.arange(5),
+                       idx=np.arange(5),
+                       target=np.array([1, 0, 1, 0, 1]),
+                       task=Task(TaskTypesEnum.classification),
+                       data_type=DataTypesEnum.table)
 
-    assert _calculate_loss_function(acc, None, multi_target, multi_pred_prob) == 0.8
-    assert _calculate_loss_function(acc, None, multi_target, multi_pred_clear) == 0.8
-    assert np.allclose(a=_calculate_loss_function(roc, {'multi_class': 'ovo'}, multi_target, multi_pred_prob),
-                       b=11 / 12,
-                       rtol=1e-9)
+    multi_target = InputData(features=np.arange(5),
+                             idx=np.arange(5),
+                             target=np.array([2, 0, 1, 0, 1]),
+                             task=Task(TaskTypesEnum.classification),
+                             data_type=DataTypesEnum.table)
+    regr_target = InputData(features=np.arange(5),
+                            idx=np.arange(5),
+                            target=np.array([0.2, 0.1, 1, 0.3, 1.7]),
+                            task=Task(TaskTypesEnum.classification),
+                            data_type=DataTypesEnum.table)
 
-    assert _calculate_loss_function(mse, None, regr_target, regr_pred) == 0.069
+    pred_clear = OutputData(features=np.arange(5),
+                            idx=np.arange(5),
+                            predict=np.array([1, 0, 1, 0, 0]),
+                            task=Task(TaskTypesEnum.classification),
+                            data_type=DataTypesEnum.table)
+
+    pred_prob = OutputData(features=np.arange(5),
+                           idx=np.arange(5),
+                           predict=np.array([0.8, 0.3, 0.6, 0.49, 0.49]),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+    multi_pred_clear = OutputData(features=np.arange(5),
+                                  idx=np.arange(5),
+                                  predict=np.array([2, 0, 1, 0, 2]),
+                                  task=Task(TaskTypesEnum.classification),
+                                  data_type=DataTypesEnum.table)
+    multi_pred_prob = OutputData(features=np.arange(5),
+                                 idx=np.arange(5),
+                                 predict=np.array([[0.2, 0.3, 0.5],
+                                                   [0.6, 0.3, 0.1],
+                                                   [0.3, 0.4, 0.3],
+                                                   [0.5, 0.4, 0.1],
+                                                   [0.1, 0.4, 0.5]]),
+                                 task=Task(TaskTypesEnum.classification),
+                                 data_type=DataTypesEnum.table)
+    regr_pred = OutputData(features=np.arange(5),
+                           idx=np.arange(5),
+                           predict=np.array([0.23, 0.15, 1.2, 0.4, 1.16]),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+
+    assert _calculate_loss_function(Accuracy.metric, target, pred_prob) == -0.8
+    assert _calculate_loss_function(Accuracy.metric, target, pred_clear) == -0.8
+    assert _calculate_loss_function(ROCAUC.metric, target, pred_prob) == -0.917
+
+    assert _calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob) == -0.8
+    assert _calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear) == -0.8
+    assert _calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob) == -0.903
+
+    assert _calculate_loss_function(MSE.metric, regr_target, regr_pred) == 0.069

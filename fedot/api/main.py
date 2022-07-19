@@ -328,10 +328,10 @@ class Fedot:
 
         calculated_metrics = dict()
         for metric_name in metric_names:
-            if self.metrics.get_composer_metrics_mapping(metric_name) is NotImplemented:
+            if self.metrics.get_metrics_mapping(metric_name) is NotImplemented:
                 self.params.api_params['logger'].warning(f'{metric_name} is not available as metric')
             else:
-                composer_metric = self.metrics.get_composer_metrics_mapping(metric_name)
+                composer_metric = self.metrics.get_metrics_mapping(metric_name)
                 metric_cls = MetricsRepository().metric_class_by_id(composer_metric)
                 prediction = deepcopy(self.prediction)
                 if metric_name == "roc_auc":  # for roc-auc we need probabilities

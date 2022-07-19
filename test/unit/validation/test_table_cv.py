@@ -10,6 +10,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
@@ -64,7 +65,7 @@ def test_kfold_advisor_works_correct_in_balanced_case():
 
 def test_kfold_advisor_works_correct_in_imbalanced_case():
     data = get_classification_data()
-    data.target[:-int(len(data.target)*0.1)] = 0
+    data.target[:-int(len(data.target) * 0.1)] = 0
     advisor = DataObjectiveAdvisor()
     split_type = advisor.propose_kfold(data)
     assert split_type == StratifiedKFold
@@ -84,8 +85,7 @@ def test_tuner_cv_classification_correct():
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=roc_auc,
-                                                loss_params={"multi_class": "ovr"},
+    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=ROCAUC.metric,
                                                 input_data=dataset,
                                                 iterations=1, timeout=1,
                                                 cv_folds=folds)
@@ -99,7 +99,8 @@ def test_cv_tabular_predictions_correct():
     simple_pipeline = pipeline_simple()
     predictions, target = cv_tabular_predictions(pipeline=simple_pipeline,
                                                  reference_data=dataset,
-                                                 cv_folds=folds)
+                                                 cv_folds=folds,
+                                                 )
     dataset_size = len(dataset.features)
     predictions_size = len(predictions)
     target_size = len(target)
@@ -140,7 +141,6 @@ def test_composer_with_cv_optimization_correct():
 
 
 def test_cv_api_correct():
-
     composer_params = {'max_depth': 1,
                        'max_arity': 2,
                        'pop_size': 3,
