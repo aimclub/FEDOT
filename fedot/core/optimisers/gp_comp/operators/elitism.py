@@ -1,3 +1,5 @@
+from random import shuffle
+
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -30,6 +32,7 @@ class Elitism:
             raise ValueError(f'Required elitism type not found: {self.elitism_type}')
 
     def keep_n_best_elitism(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
+        shuffle(new_population)
         new_population[:len(best_individuals)] = best_individuals
         return new_population
 
