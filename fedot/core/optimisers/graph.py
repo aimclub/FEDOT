@@ -158,31 +158,28 @@ class OptGraph:
         self.operator.delete_subtree(self._node_adapter.restore(subroot))
 
     def distance_to_root_level(self, node: OptNode) -> int:
+        """ Returns distance to root level """
         return self.operator.distance_to_root_level(node=self._node_adapter.restore(node))
 
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
+        """ Returns all nodes from specified layer """
         return self.operator.nodes_from_layer(layer_number=layer_number)
 
     @node_ops_adaptation
-    def actualise_old_node_children(self, old_node: OptNode, new_node: OptNode):
-        self.operator.actualise_old_node_children(old_node=self._node_adapter.restore(old_node),
-                                                  new_node=self._node_adapter.restore(new_node))
-
-    def sort_nodes(self):
-        self.operator.sort_nodes()
-
-    @node_ops_adaptation
     def node_children(self, node: OptNode) -> List[Optional[OptNode]]:
+        """ Returns all node's children """
         return self.operator.node_children(node=self._node_adapter.restore(node))
 
     @node_ops_adaptation
     def connect_nodes(self, node_parent: OptNode, node_child: OptNode):
+        """ Add an edge from node_parent to node_child """
         self.operator.connect_nodes(parent=self._node_adapter.restore(node_parent),
                                     child=self._node_adapter.restore(node_child))
 
     @node_ops_adaptation
     def disconnect_nodes(self, node_parent: OptNode, node_child: OptNode,
                          is_clean_up_leftovers: bool = True):
+        """ Delete an edge from node_parent to node_child """
         self.operator.disconnect_nodes(node_parent=self._node_adapter.restore(node_parent),
                                        node_child=self._node_adapter.restore(node_child),
                                        is_clean_up_leftovers=is_clean_up_leftovers)
@@ -194,6 +191,7 @@ class OptGraph:
         return self.operator.get_all_edges()
 
     def distance_to(self, other_graph: 'OptGraph') -> int:
+        """ Returns distance to specified graph """
         return self.operator.distance_to(other_graph=other_graph)
 
     def show(self, path: str = None):

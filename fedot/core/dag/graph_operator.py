@@ -103,7 +103,7 @@ class GraphOperator:
             old_node_child.nodes_from[updated_index] = new_node
 
     def sort_nodes(self):
-        """layer by layer sorting"""
+        """ Layer by layer sorting """
         if isinstance(self._graph.root_node, list):
             nodes = self._graph.nodes
         else:
@@ -213,7 +213,7 @@ class GraphOperator:
 
     def get_nodes_degrees(self):
         """ Nodes degree as the number of edges the node has:
-         k = k(in) + k(out)"""
+         k = k(in) + k(out) """
         graph, _ = graph_structure_as_nx_graph(self._graph)
         index_degree_pairs = graph.degree
         node_degrees = [node_degree[1] for node_degree in index_degree_pairs]

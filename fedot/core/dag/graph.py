@@ -72,25 +72,24 @@ class Graph:
         self.operator.delete_subtree(subroot)
 
     def distance_to_root_level(self, node: 'GraphNode') -> int:
+        """ Returns distance to root level """
         return self.operator.distance_to_root_level(node=node)
 
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
+        """ Returns all nodes from specified layer """
         return self.operator.nodes_from_layer(layer_number=layer_number)
 
-    def actualise_old_node_children(self, old_node: 'GraphNode', new_node: 'GraphNode'):
-        self.operator.actualise_old_node_children(old_node=old_node, new_node=new_node)
-
-    def sort_nodes(self):
-        self.operator.sort_nodes()
-
     def node_children(self, node: 'GraphNode') -> List[Optional['GraphNode']]:
+        """ Returns all node's children """
         return self.operator.node_children(node=node)
 
-    def connect_nodes(self, parent: 'GraphNode', child: 'GraphNode'):
-        self.operator.connect_nodes(parent=parent, child=child)
+    def connect_nodes(self, node_parent: 'GraphNode', node_child: 'GraphNode'):
+        """ Add an edge from node_parent to node_child """
+        self.operator.connect_nodes(parent=node_parent, child=node_child)
 
     def disconnect_nodes(self, node_parent: 'GraphNode', node_child: 'GraphNode',
                          is_clean_up_leftovers: bool = True):
+        """ Delete an edge from node_parent to node_child """
         self.operator.disconnect_nodes(node_parent=node_parent, node_child=node_child,
                                        is_clean_up_leftovers=is_clean_up_leftovers)
 
@@ -101,6 +100,7 @@ class Graph:
         return self.operator.get_all_edges()
 
     def distance_to(self, other_graph: 'Graph') -> int:
+        """ Returns distance to specified graph """
         return self.operator.distance_to(other_graph=other_graph)
 
     def show(self, path: str = None):
