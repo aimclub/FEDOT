@@ -354,19 +354,7 @@ class PipelineEvolutionVisualiser:
 
         return df_history
 
-    @staticmethod
-    def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
-        if not save_path:
-            figure.show()
-        else:
-            save_path = Path(save_path)
-            if not save_path.is_absolute():
-                save_path = Path(os.getcwd(), save_path)
-            figure.savefig(save_path, dpi=300)
-            print(f'The figure was saved to "{save_path}".')
-            plt.close()
-
-    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
+    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
                               pct_best: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
@@ -377,13 +365,14 @@ class PipelineEvolutionVisualiser:
             Must be in the interval (0, 1].
         """
         df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
-        df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
-        # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
-        palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
-            sort_values('fitness', ignore_index=True)['generation'].sort_values().index
-        palette = sns.color_palette('YlOrRd', n_colors=len(palette_ranks))
+        columns_needed = ['generation', 'individual', 'fitness']
+        df_history = df_history[columns_needed].drop_duplicates(ignore_index=True)
+        # Get color palette by mean fitness per generation
+        fitness = df_history.groupby('generation')['fitness'].mean()
+        fitness = (fitness - min(fitness)) / (max(fitness) - min(fitness))
+        colormap = sns.color_palette('YlOrRd', as_cmap=True)
 
-        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
+        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=fitness.map(colormap))
         fig = plot.figure
         fig.set_dpi(110)
         fig.set_facecolor('w')
