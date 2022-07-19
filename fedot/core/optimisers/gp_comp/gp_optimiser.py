@@ -137,7 +137,9 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         # Define parameters
 
-        self.max_depth = self._graph_depth.initial
+        self.requirements.max_depth = self._graph_depth.initial
+
+        self.requirements.pop_size = self._pop_size.initial
 
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
@@ -146,14 +148,14 @@ class EvoGraphOptimiser(GraphOptimiser):
     def current_generation_num(self) -> int:
         return self.generations.generation_num
 
-    def _extend_population(self, initial_individuals, pop_size: int, max_depth: int):
+    def _extend_population(self, initial_individuals):
         iter_num = 0
-        initial_graphs = [ind.graph for ind in self.initial_individuals]
-        while len(initial_individuals) < pop_size:
+        initial_graphs = [ind.graph for ind in initial_individuals]
+        while len(initial_individuals) < self.requirements.pop_size:
             initial_req = deepcopy(self.requirements)
             initial_req.mutation_prob = 1
-            custom_mutation = Mutation(self.parameters.mutation_types, self.graph_generation_params, initial_req)
-            new_ind = custom_mutation(choice(self.initial_individuals), max_depth)
+            self.mutation.update_requirements(initial_req)
+            new_ind = self.mutation(choice(self.initial_individuals))
             new_graph = new_ind.graph
             iter_num += 1
             if new_graph not in initial_graphs and self.graph_generation_params.verifier(new_graph):
@@ -161,7 +163,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 initial_graphs.append(new_graph)
             if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
                 self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
-                                 f'Current size {len(self.initial_individuals)} instead of {pop_size} graphs.')
+                                 f'Current size {len(self.initial_individuals)} '
+                                 f'instead of {self.requirements.pop_size} graphs.')
                 break
         return initial_individuals
 
@@ -170,17 +173,11 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.generations.append(next_population)
         self._optimisation_callback(next_population, self.generations)
         self.population = next_population
-        self._operators_prob_update()
 
         self.log.info(f'Generation num: {self.current_generation_num}')
         self.log.info(f'Best individuals: {str(self.generations)}')
         self.log.info(f'no improvements for {self.generations.stagnation_duration} iterations')
         self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
-
-    def _operators_prob_update(self):
-        if not self.generations.is_any_improved:
-            self.requirements.mutation_prob, self.requirements.crossover_prob = \
-                self._operators_prob.next(self.population)
 
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         # Redirect callback to evaluation dispatcher
@@ -202,17 +199,14 @@ class EvoGraphOptimiser(GraphOptimiser):
 
             # Adding of initial assumptions to history as zero generation
             self._next_population(evaluator(self.initial_individuals))
-            pop_size = self._pop_size.initial
-            if len(self.initial_individuals) < pop_size:
-                self.initial_individuals = self._extend_population(self.initial_individuals, pop_size, self.max_depth)
-                # Adding of extended population to history as zero generation
+
+            if len(self.initial_individuals) < self.requirements.pop_size:
+                self.initial_individuals = self._extend_population(self.initial_individuals)
+                # Adding of extended population to history
                 self._next_population(evaluator(self.initial_individuals))
 
+            self._update_requirements()
             while not self.stop_optimisation():
-                pop_size = self._pop_size.next(self.population)
-                self.max_depth = self._graph_depth.next()
-                self.log.info(f'Next population size: {pop_size}; max graph depth: {self.max_depth}')
-
                 individuals_to_select = regularized_population(self.parameters.regularization_type,
                                                                self.population,
                                                                evaluator,
@@ -220,33 +214,43 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 selected_individuals = selection(types=self.parameters.selection_types,
                                                  population=individuals_to_select,
-                                                 pop_size=pop_size,
+                                                 pop_size=self.requirements.pop_size,
                                                  params=self.graph_generation_params)
                 new_population = self._reproduce(selected_individuals)
 
-                new_population = self.mutation(new_population, self.max_depth)
+                new_population = self.mutation(new_population)
 
                 new_population = evaluator(new_population)
 
-                new_population = self._inheritance(new_population, pop_size)
+                new_population = self._inheritance(new_population)
 
                 new_population = self.elitism(self.generations.best_individuals, new_population)
 
                 # Adding of new population to history
                 self._next_population(new_population)
+                self._update_requirements()
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
 
-    def _inheritance(self, offspring: PopulationT, pop_size: int) -> PopulationT:
-        """Gather next population given new offspring and previous population.
+    def _update_requirements(self):
+        if not self.generations.is_any_improved:
+            self.requirements.mutation_prob, self.requirements.crossover_prob = \
+                self._operators_prob.next(self.population)
+        self.requirements.pop_size = self._pop_size.next(self.population)
+        self.requirements.max_depth = self._graph_depth.next()
+        self.log.info(
+            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
+        self.mutation.update_requirements(self.requirements)
+
+    def _inheritance(self, offspring: PopulationT) -> PopulationT:
+        """Gather next population given new offspring, previous population and elite individuals.
         :param offspring: offspring of current population.
-        :param pop_size: size of the next population.
         :return: next population."""
 
         # TODO: from inheritance together with elitism we can get duplicate inds!
         offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                 self.population,
-                                offspring, pop_size,
+                                offspring, self.requirements.pop_size,
                                 graph_params=self.graph_generation_params)
         return offspring
 
@@ -260,8 +264,9 @@ class EvoGraphOptimiser(GraphOptimiser):
         return new_population
 
     def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
-        return crossover(self.parameters.crossover_types, individual1, individual2, max_depth=self.max_depth,
-                         crossover_prob=self.requirements.crossover_prob, params=self.graph_generation_params)
+        return crossover(self.parameters.crossover_types, individual1, individual2,
+                         max_depth=self.requirements.max_depth, crossover_prob=self.requirements.crossover_prob,
+                         params=self.graph_generation_params)
 
 
 def _unfit_pipeline(graph: Any):

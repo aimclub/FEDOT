@@ -51,12 +51,13 @@ class Mutation:
         self.static_mutation_probability = static_mutation_probability
         self.log = default_log(prefix='mutation')
 
-    def __call__(self, population: Union[Individual, PopulationT],
-                 max_depth: Optional[int] = None) -> Union[Individual, PopulationT]:
-        mutation = partial(self._mutation, max_depth=max_depth)
+    def __call__(self, population: Union[Individual, PopulationT]) -> Union[Individual, PopulationT]:
         if isinstance(population, Individual):
-            return mutation(population)
-        return list(map(mutation, population))
+            return self._mutation(population)
+        return list(map(self._mutation, population))
+
+    def update_requirements(self, new_requirements):
+        self.requirements = new_requirements
 
     @staticmethod
     def get_mutation_prob(mut_id: MutationStrengthEnum, node: GraphNode) -> float:
@@ -75,18 +76,16 @@ class Mutation:
             mutation_prob = default_mutation_prob
         return mutation_prob
 
-    def _mutation(self, individual: Individual, max_depth: Optional[int] = None) -> Any:
-        """ Function apply mutation operator to graph """
+    def _mutation(self, individual: Individual) -> Any:
+        """ Function applies mutation operator to graph """
 
-        max_depth = max_depth if max_depth else self.requirements.max_depth
-        mutation_prob = self.requirements.mutation_prob
         parent_individuals = [individual]
 
         for _ in range(self.max_num_of_mutation_attempts):
             new_graph = deepcopy(individual.graph)
             num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
 
-            new_graph, mutation_names = self._adapt_and_apply_mutations(new_graph, mutation_prob, num_mut, max_depth)
+            new_graph, mutation_names = self._adapt_and_apply_mutations(new_graph, num_mut)
 
             is_correct_graph = self.graph_generation_params.verifier(new_graph)
             if is_correct_graph:
@@ -103,7 +102,7 @@ class Mutation:
 
         return individual
 
-    def _adapt_and_apply_mutations(self, new_graph: Any, mutation_prob: float, num_mut: int, max_depth: int):
+    def _adapt_and_apply_mutations(self, new_graph: Any, num_mut: int):
         """
         Apply mutation in several iterations with specific adaptation of each graph
         """
@@ -121,7 +120,7 @@ class Mutation:
             else:
                 if not isinstance(new_graph, OptGraph):
                     new_graph = self.graph_generation_params.adapter.adapt(new_graph)
-            new_graph = self._apply_mutation(new_graph, mutation_prob, mutation_type, is_custom_mutation, max_depth)
+            new_graph = self._apply_mutation(new_graph, mutation_type, is_custom_mutation)
             mutation_names.append(str(mutation_type))
             if not isinstance(new_graph, OptGraph):
                 new_graph = self.graph_generation_params.adapter.adapt(new_graph)
@@ -130,19 +129,19 @@ class Mutation:
                 break
         return new_graph, mutation_names
 
-    def _apply_mutation(self, new_graph: Any, mutation_prob: float, mutation_type: Union[MutationTypesEnum, Callable],
-                        is_custom_mutation: bool, max_depth: int):
+    def _apply_mutation(self, new_graph: Any, mutation_type: Union[MutationTypesEnum, Callable],
+                        is_custom_mutation: bool):
         """
           Apply mutation for adapted graph
         """
-        if self._will_mutation_be_applied(mutation_prob, mutation_type):
+        if self._will_mutation_be_applied(self.requirements.mutation_prob, mutation_type):
             if is_custom_mutation:
                 mutation_func = mutation_type
             else:
                 mutation_func = self.mutation_by_type(mutation_type)
             graph_copy = deepcopy(new_graph)
             new_graph = mutation_func(new_graph, requirements=self.requirements,
-                                      params=self.graph_generation_params, max_depth=max_depth)
+                                      params=self.graph_generation_params)
             if not new_graph.nodes:
                 return graph_copy
         return new_graph
@@ -176,16 +175,16 @@ class Mutation:
 
         return graph
 
-    def _single_edge_mutation(self, graph: Any, max_depth, *args, **kwargs):
-        """ This mutation adds new edge between two random nodes in graph.
+    def _single_edge_mutation(self, graph: Any, *args, **kwargs):
+        """
+        This mutation adds new edge between two random nodes in graph.
 
         :param graph: graph to mutate
-        :param max_depth: maximum depth for a graph
         """
         old_graph = deepcopy(graph)
 
         for _ in range(self.max_num_of_mutation_attempts):
-            if len(graph.nodes) < 2 or graph.depth > max_depth:
+            if len(graph.nodes) < 2 or graph.depth > self.requirements.max_depth:
                 return graph
 
             source_node, target_node = sample(graph.nodes, 2)
@@ -196,7 +195,7 @@ class Mutation:
                 graph.operator.connect_nodes(source_node, target_node)
                 break
 
-        if graph.depth > max_depth:
+        if graph.depth > self.requirements.max_depth:
             return old_graph
         return graph
 
@@ -234,15 +233,14 @@ class Mutation:
         graph.nodes.append(new_node)
         return graph
 
-    def _single_add_mutation(self, graph: Any, max_depth: int, *args, **kwargs):
+    def _single_add_mutation(self, graph: Any, *args, **kwargs):
         """
         Add new node between two sequential existing modes
 
         :param graph: graph to mutate
-        :param max_depth: maximum depth for a graph
         """
 
-        if graph.depth >= max_depth:
+        if graph.depth >= self.requirements.max_depth:
             # add mutation is not possible
             return graph
 
@@ -299,10 +297,15 @@ class Mutation:
                         child.nodes_from = node_to_del.nodes_from
         return graph
 
-    def _tree_growth(self, graph: Any, max_depth: int, local_growth=True):
+    def _tree_growth(self, graph: Any, local_growth=True):
         """
         This mutation selects a random node in a tree, generates new subtree,
         and replaces the selected node's subtree.
+
+        :param graph: graph to mutate
+        :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
+        selected random node, if false then previous depth of selected node doesn't affect to
+        new subtree depth, maximal depth of new subtree just should satisfy depth constraint in parent tree
         """
         random_layer_in_graph = randint(0, graph.depth - 1)
         node_from_graph = choice(graph.operator.nodes_from_layer(random_layer_in_graph))
@@ -314,7 +317,7 @@ class Mutation:
         else:
             is_primary_node_selected = \
                 randint(0, 1) and \
-                not graph.operator.distance_to_root_level(node_from_graph) < max_depth
+                not graph.operator.distance_to_root_level(node_from_graph) < self.requirements.max_depth
         if is_primary_node_selected:
             new_subtree = self.graph_generation_params.node_factory.get_node(primary=True)
             if not new_subtree:
@@ -323,17 +326,16 @@ class Mutation:
             if local_growth:
                 max_depth = node_from_graph.distance_to_primary_level
             else:
-                max_depth = max_depth - graph.operator.distance_to_root_level(node_from_graph)
+                max_depth = self.requirements.max_depth - graph.operator.distance_to_root_level(node_from_graph)
             new_subtree = random_graph(self.graph_generation_params, self.requirements, max_depth).root_node
         graph.update_subtree(node_from_graph, new_subtree)
         return graph
 
-    def _growth_mutation(self, graph: Any, max_depth: int, local_growth: bool = True, **kwargs) -> Any:
+    def _growth_mutation(self, graph: Any, local_growth: bool = True, **kwargs) -> Any:
         """
         This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
 
         :param graph: graph to mutate
-        :param max_depth: maximum depth for a graph
         :param local_growth: if true then maximal depth of new subtree equals depth of tree located in
         selected random node, if false then previous depth of selected node doesn't affect to
         new subtree depth, maximal depth of new subtree just should satisfy depth constraint in parent tree
@@ -341,10 +343,10 @@ class Mutation:
 
         if random() > 0.5:
             # simple growth (one node can be added)
-            return self._single_add_mutation(graph, max_depth)
+            return self._single_add_mutation(graph, self.requirements.max_depth)
         else:
             # advanced growth (several nodes can be added)
-            return self._tree_growth(graph, max_depth, local_growth)
+            return self._tree_growth(graph, local_growth)
 
     def _reduce_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """

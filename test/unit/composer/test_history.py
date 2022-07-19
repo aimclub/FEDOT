@@ -66,14 +66,15 @@ def test_ancestor_for_mutation():
 
     available_operations = ['linear']
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations, mutation_prob=1)
+                                                         secondary=available_operations, mutation_prob=1,
+                                                         max_depth=2)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
     mutation = Mutation(mutation_types=[MutationTypesEnum.simple], graph_generation_params=graph_params,
                         requirements=composer_requirements)
 
-    mutation_result = mutation(parent_ind, max_depth=2)
+    mutation_result = mutation(parent_ind)
 
     assert len(mutation_result.parent_operators) > 0
     assert mutation_result.parent_operators[-1].operator_type == 'mutation'
