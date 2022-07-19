@@ -55,7 +55,7 @@ def custom_mutation(graph: OptGraph, **kwargs):
     num_mut = 10
     try:
         for _ in range(num_mut):
-            rid = random.choice(range(len(graph.nodes)))
+            rid = random.choice(range(graph.length))
             random_node = graph.nodes[rid]
             other_random_node = graph.nodes[random.choice(range(len(graph.nodes)))]
             nodes_not_cycling = (random_node.descriptive_id not in

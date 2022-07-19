@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar, Optional
+from typing import Callable, ClassVar
 
 from hyperopt import fmin, space_eval, tpe
 
@@ -40,7 +40,7 @@ class SequentialTuner(HyperoptTuner):
         self.init_check(input_data, loss_function, loss_params)
 
         # Calculate amount of iterations we can apply per node
-        nodes_amount = len(self.pipeline.nodes)
+        nodes_amount = self.pipeline.length
         iterations_per_node = round(self.iterations / nodes_amount)
         iterations_per_node = int(iterations_per_node)
         if iterations_per_node == 0:

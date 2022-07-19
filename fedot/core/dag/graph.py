@@ -17,7 +17,7 @@ class Graph:
     """
 
     def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
-        self.nodes = []
+        self._nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
@@ -26,6 +26,10 @@ class Graph:
 
     def _empty_postproc(self, nodes=None):
         pass
+
+    @property
+    def nodes(self):
+        return self._nodes
 
     def add_node(self, new_node: 'GraphNode'):
         """

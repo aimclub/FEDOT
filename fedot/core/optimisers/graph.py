@@ -19,7 +19,7 @@ def node_ops_adaptation(func):
 
     def _decorator(self, *args, **kwargs):
         func_result = func(self, *args, **kwargs)
-        self.nodes = [_adapt(self._node_adapter, node) for node in self.nodes]
+        self._nodes = [_adapt(self._node_adapter, node) for node in self.nodes]
         return func_result
 
     return _decorator
@@ -92,7 +92,7 @@ class OptGraph:
     def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
         self.log = default_log(self)
 
-        self.nodes = []
+        self._nodes = []
         self.operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
@@ -101,6 +101,10 @@ class OptGraph:
 
     def _empty_postproc(self, nodes=None):
         pass
+
+    @property
+    def nodes(self):
+        return self._nodes
 
     @property
     def _node_adapter(self):

@@ -38,7 +38,7 @@ def test_pipeline_template_as_nx_graph():
     pipeline_template = PipelineTemplate(pipeline)
     graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
 
-    assert len(graph.nodes) == len(pipeline.nodes)  # check node quantity
+    assert len(graph.nodes) == pipeline.length  # check node quantity
     assert node_labels[0] == str(pipeline.root_node)  # check root node
 
 

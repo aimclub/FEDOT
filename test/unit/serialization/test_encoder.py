@@ -81,7 +81,7 @@ ENCODER_CASES.extend([
     EncoderTestCase(
         test_input=MockGraph([MOCK_NODE_1_COPY, MOCK_NODE_2_COPY, MOCK_NODE_3_COPY]),
         test_answer={
-            'nodes': [
+            '_nodes': [
                 MOCK_NODE_1_COPY,
                 MOCK_NODE_2_COPY,
                 MOCK_NODE_3_COPY

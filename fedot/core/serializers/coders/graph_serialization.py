@@ -22,7 +22,12 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
         (cause each node from "nodes_from" in fact should point to the same node from "nodes")
     """
     obj = cls()
-    nodes = json_obj['nodes']
+
+    # TODO: generate new test history with _nodes instead of nodes when PR will be approved
+    try:
+        nodes = json_obj['nodes']
+    except KeyError:
+        nodes = json_obj['_nodes']
 
     lookup_dict = {node.uid: node for node in nodes}
 
@@ -30,6 +35,6 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
         if node.nodes_from:
             for parent_node_idx, parent_node_uid in enumerate(node.nodes_from):
                 node.nodes_from[parent_node_idx] = lookup_dict.get(parent_node_uid, None)
-    obj.nodes = nodes
+    obj._nodes = nodes
     vars(obj).update(**{k: v for k, v in json_obj.items() if k != 'nodes'})
     return obj

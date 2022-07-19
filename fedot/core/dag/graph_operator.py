@@ -23,7 +23,7 @@ class GraphOperator:
         if node.nodes_from and len(node_children_cached) == 1:
             for node_from in node.nodes_from:
                 node_children_cached[0].nodes_from.append(node_from)
-        self._graph.nodes.clear()
+        self._graph._nodes.clear()
         self.add_node(self_root_node_cached)
         self._postproc_nodes()
 
@@ -31,7 +31,7 @@ class GraphOperator:
         """Delete node with all the parents it has.
         and delete all edges from removed nodes to remaining graph nodes."""
         subtree_nodes = node.ordered_subnodes_hierarchy()
-        self._graph.nodes = remove_items(self._graph.nodes, subtree_nodes)
+        self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
         for node in self._graph.nodes:
             node.nodes_from = remove_items(node.nodes_from, subtree_nodes)
@@ -108,7 +108,7 @@ class GraphOperator:
             nodes = self._graph.nodes
         else:
             nodes = self._graph.root_node.ordered_subnodes_hierarchy()
-        self._graph.nodes = nodes
+        self._graph._nodes = nodes
 
     def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
         return [other_node for other_node in self._graph.nodes
