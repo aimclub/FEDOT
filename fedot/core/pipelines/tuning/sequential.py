@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar
+from typing import Callable, ClassVar, Optional, Union
 
 from hyperopt import fmin, space_eval, tpe
 
