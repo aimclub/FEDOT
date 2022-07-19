@@ -224,6 +224,8 @@ class ApiComposer:
             pipeline.log = log
 
         if with_tuning:
+            if tuning_params['tuner_metric'] is None:
+                tuning_params['tuner_metric'] = composer_params['composer_metric']
             timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
                                      tuning_params['tuner_metric'],
