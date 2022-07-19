@@ -1,6 +1,7 @@
 import itertools
 import os
 from copy import deepcopy
+from datetime import datetime
 from enum import Enum, auto
 from glob import glob
 from os import remove
@@ -15,7 +16,6 @@ import seaborn as sns
 
 from matplotlib import animation, cm, pyplot as plt, ticker
 from matplotlib.colors import Normalize
-from matplotlib.figure import Figure
 
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -28,6 +28,7 @@ except ModuleNotFoundError:
     PIL = None
 
 from fedot.core.log import default_log
+from fedot.core.optimisers.fitness import null_fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
@@ -36,6 +37,7 @@ from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
 class PlotTypesEnum(Enum):
+    fitness_line = auto()
     fitness_box = auto()
     operations_kde = auto()
     operations_animated_bar = auto()
@@ -306,6 +308,118 @@ class PipelineEvolutionVisualiser:
             remove(file)
 
     @staticmethod
+    def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
+        if not save_path:
+            figure.show()
+        else:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
+            figure.savefig(save_path, dpi=300)
+            print(f'The figure was saved to "{save_path}".')
+            plt.close()
+
+    @staticmethod
+    def __plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Optional[str] = None) \
+            -> Dict[int, Individual]:
+        best_fitness = null_fitness()
+        best_individuals = {}
+
+        for gen_num, gen in enumerate(generations):
+            for ind in gen:
+                if ind.native_generation != gen_num:
+                    continue
+                if ind.fitness > best_fitness:
+                    best_individuals[gen_num] = ind
+                    best_fitness = ind.fitness
+
+        best_generations, best_fitnesses = np.transpose(
+            [(gen_num, abs(individual.fitness.value))
+             for gen_num, individual in best_individuals.items()])
+
+        best_generations = list(best_generations)
+        best_fitnesses = list(best_fitnesses)
+
+        if best_generations[-1] != len(generations) - 1:
+            best_fitnesses.append(abs(best_fitness.value))
+            best_generations.append(len(generations) - 1)
+
+        axis.step(best_generations, best_fitnesses, where='post', label=label)
+        return best_individuals
+
+    @staticmethod
+    def __plot_fitness_line_per_time(axis: plt.Axes, generations: List[List[Individual]], label: Optional[str] = None) \
+            -> Dict[int, Individual]:
+        best_fitness = null_fitness()
+        gen_start_times = []
+        best_fitnesses = []
+        best_eval_moments = []
+
+        best_individuals = {}
+
+        start_time = datetime.fromisoformat(
+            min(generations[0], key=lambda ind: ind.metadata['evaluation_moment']).metadata[
+                'evaluation_moment'])
+        end_time_seconds = (datetime.fromisoformat(
+            max(generations[-1], key=lambda ind: ind.metadata['evaluation_moment']).metadata[
+                'evaluation_moment']) - start_time).seconds
+
+        for gen_num, gen in enumerate(generations):
+            gen_start_times.append(1e10)
+            gen_sorted = sorted(gen, key=lambda ind: ind.metadata['evaluation_moment'])
+            for ind in gen_sorted:
+                if ind.native_generation != gen_num:
+                    continue
+                evaluation_moment = (datetime.fromisoformat(ind.metadata['evaluation_moment']) - start_time).seconds
+                if evaluation_moment < gen_start_times[gen_num]:
+                    gen_start_times[gen_num] = evaluation_moment
+                if ind.fitness > best_fitness:
+                    best_individuals[evaluation_moment] = ind
+                    best_fitness = ind.fitness
+                    best_eval_moments.append(evaluation_moment)
+                    best_fitnesses.append(abs(ind.fitness.value))
+
+        best_fitnesses.append(abs(best_fitness.value))
+        best_eval_moments.append(end_time_seconds)
+        gen_start_times.append(end_time_seconds)
+
+        axis.step(best_eval_moments, best_fitnesses, label=label)
+
+        prev_time = gen_start_times[0]
+        axis.axvline(prev_time, color='k', linestyle='--', alpha=0.3)
+        for i, next_time in enumerate(gen_start_times[1:]):
+            axis.axvline(next_time, color='k', linestyle='--', alpha=0.3)
+            if i % 2 == 0:
+                axis.axvspan(prev_time, next_time, color='k', alpha=0.05)
+            prev_time = next_time
+
+        return best_individuals
+
+    @staticmethod
+    def __setup_fitness_plot(axis: plt.Axes, xlabel: str, title: Optional[str] = None, with_legend: bool = False):
+        if axis is None:
+            fig, axis = plt.subplots()
+
+        if with_legend:
+            axis.legend()
+        axis.set_ylabel('Fitness')
+        axis.set_xlabel(xlabel)
+        axis.set_title(title)
+        axis.grid(axis='y')
+
+    def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
+                          save_path: Optional[Union[os.PathLike, str]] = None):
+        ax = plt.gca()
+        if per_time:
+            xlabel = 'Time, s'
+            self.__plot_fitness_line_per_time(ax, history.individuals)
+        else:
+            xlabel = 'Generation'
+            self.__plot_fitness_line_per_generations(ax, history.individuals)
+        self.__setup_fitness_plot(ax, xlabel)
+        self.__show_or_save_figure(plt.gcf(), save_path)
+
+    @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
                                 tags_data: Optional[List[str]] = None, pct_best: Optional[float] = None,
                                 get_tags: bool = True):
@@ -381,7 +495,7 @@ class PipelineEvolutionVisualiser:
         ax.set_title('Fitness by generations')
         ax.set_xlabel('Generation')
         # Set ticks for every 5 generation if there's more than 10 generations.
-        if len(history.historical_fitness) > 10:
+        if len(history.individuals) > 10:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
             ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
             ax.xaxis.grid(True)
