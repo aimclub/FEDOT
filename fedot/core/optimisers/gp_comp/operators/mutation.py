@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import TYPE_CHECKING, Any, Callable, List, Optional, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Union
 
 import numpy as np
 
@@ -307,26 +307,20 @@ class Mutation:
         selected random node, if false then previous depth of selected node doesn't affect to
         new subtree depth, maximal depth of new subtree just should satisfy depth constraint in parent tree
         """
-        random_layer_in_graph = randint(0, graph.depth - 1)
-        node_from_graph = choice(graph.operator.nodes_from_layer(random_layer_in_graph))
+        node_from_graph = choice(graph.nodes)
         if local_growth:
-            is_primary_node_selected = (not node_from_graph.nodes_from) or (
-                    node_from_graph.nodes_from and
-                    node_from_graph != graph.root_node
-                    and randint(0, 1))
+            max_depth = node_from_graph.distance_to_primary_level
+            is_primary_node_selected = (not node_from_graph.nodes_from) or (node_from_graph != graph.root_node and
+                                                                            randint(0, 1))
         else:
+            max_depth = self.requirements.max_depth - graph.operator.distance_to_root_level(node_from_graph)
             is_primary_node_selected = \
-                randint(0, 1) and \
-                not graph.operator.distance_to_root_level(node_from_graph) < self.requirements.max_depth
+                graph.operator.distance_to_root_level(node_from_graph) >= self.requirements.max_depth and randint(0, 1)
         if is_primary_node_selected:
             new_subtree = self.graph_generation_params.node_factory.get_node(primary=True)
             if not new_subtree:
                 return graph
         else:
-            if local_growth:
-                max_depth = node_from_graph.distance_to_primary_level
-            else:
-                max_depth = self.requirements.max_depth - graph.operator.distance_to_root_level(node_from_graph)
             new_subtree = random_graph(self.graph_generation_params, self.requirements, max_depth).root_node
         graph.update_subtree(node_from_graph, new_subtree)
         return graph
