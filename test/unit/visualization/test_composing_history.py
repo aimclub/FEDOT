@@ -97,4 +97,5 @@ def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum):
         else save_path.with_suffix('.png')
     history = generate_history(generations_quantity, pop_size)
     history.show(plot_type=plot_type, save_path=str(save_path), pct_best=0.1)
-    assert save_path.exists()
+    if plot_type is not PlotTypesEnum.fitness_line_interactive:
+        assert save_path.exists()

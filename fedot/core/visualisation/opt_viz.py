@@ -9,13 +9,15 @@ from pathlib import Path
 from textwrap import wrap
 from time import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from warnings import warn
 
+import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import seaborn as sns
-
-from matplotlib import animation, cm, pyplot as plt, ticker
+from matplotlib import animation, cm, image as mpimg, pyplot as plt, ticker
 from matplotlib.colors import Normalize
+from matplotlib.widgets import Button
 
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -36,8 +38,23 @@ from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
+def with_alternate_matplotlib_backend(func):
+    def wrapper(*args, **kwargs):
+        default_mpl_backend = mpl.get_backend()
+        try:
+            mpl.use('TKAgg')
+            return func(*args, **kwargs)
+        except ImportError as e:
+            warn(f'{e} or ignore this warning')
+        finally:
+            mpl.use(default_mpl_backend)
+
+    return wrapper
+
+
 class PlotTypesEnum(Enum):
     fitness_line = auto()
+    fitness_line_interactive = auto()
     fitness_box = auto()
     operations_kde = auto()
     operations_animated_bar = auto()
@@ -310,7 +327,7 @@ class PipelineEvolutionVisualiser:
     @staticmethod
     def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
         if not save_path:
-            figure.show()
+            plt.show()
         else:
             save_path = Path(save_path)
             if not save_path.is_absolute():
@@ -348,13 +365,11 @@ class PipelineEvolutionVisualiser:
         return best_individuals
 
     @staticmethod
-    def __plot_fitness_line_per_time(axis: plt.Axes, generations: List[List[Individual]], label: Optional[str] = None) \
+    def __plot_fitness_line_per_time(axis: plt.Axes, generations: List[List[Individual]], label: Optional[str] = None,
+                                     with_generation_limits: bool = True) \
             -> Dict[int, Individual]:
         best_fitness = null_fitness()
         gen_start_times = []
-        best_fitnesses = []
-        best_eval_moments = []
-
         best_individuals = {}
 
         start_time = datetime.fromisoformat(
@@ -376,22 +391,35 @@ class PipelineEvolutionVisualiser:
                 if ind.fitness > best_fitness:
                     best_individuals[evaluation_moment] = ind
                     best_fitness = ind.fitness
-                    best_eval_moments.append(evaluation_moment)
-                    best_fitnesses.append(abs(ind.fitness.value))
 
-        best_fitnesses.append(abs(best_fitness.value))
-        best_eval_moments.append(end_time_seconds)
+        best_eval_moments, best_fitnesses = np.transpose(
+            [(evaluation_moment, abs(individual.fitness.value))
+             for evaluation_moment, individual in best_individuals.items()])
+
+        best_eval_moments = list(best_eval_moments)
+        best_fitnesses = list(best_fitnesses)
+
+        if best_eval_moments[-1] != end_time_seconds:
+            best_fitnesses.append(abs(best_fitness.value))
+            best_eval_moments.append(end_time_seconds)
         gen_start_times.append(end_time_seconds)
 
-        axis.step(best_eval_moments, best_fitnesses, label=label)
+        axis.step(best_eval_moments, best_fitnesses, where='post', label=label)
 
-        prev_time = gen_start_times[0]
-        axis.axvline(prev_time, color='k', linestyle='--', alpha=0.3)
-        for i, next_time in enumerate(gen_start_times[1:]):
-            axis.axvline(next_time, color='k', linestyle='--', alpha=0.3)
-            if i % 2 == 0:
-                axis.axvspan(prev_time, next_time, color='k', alpha=0.05)
-            prev_time = next_time
+        if with_generation_limits:
+            prev_time = gen_start_times[0]
+            axis.axvline(prev_time, color='k', linestyle='--', alpha=0.3)
+            for i, next_time in enumerate(gen_start_times[1:]):
+                axis.axvline(next_time, color='k', linestyle='--', alpha=0.3)
+                if i % 2 == 0:
+                    axis.axvspan(prev_time, next_time, color='k', alpha=0.05)
+                prev_time = next_time
+
+            axis_gen = axis.twiny()
+            axis_gen.set_xlim(axis.get_xlim())
+            axis_gen.set_xticks(gen_start_times)
+            axis_gen.set_xticklabels(list(range(len(gen_start_times) - 1)) + [''])
+            axis_gen.set_xlabel('Generation')
 
         return best_individuals
 
@@ -408,7 +436,7 @@ class PipelineEvolutionVisualiser:
         axis.grid(axis='y')
 
     def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
-                          save_path: Optional[Union[os.PathLike, str]] = None):
+                               save_path: Optional[Union[os.PathLike, str]] = None):
         ax = plt.gca()
         if per_time:
             xlabel = 'Time, s'
@@ -418,6 +446,76 @@ class PipelineEvolutionVisualiser:
             self.__plot_fitness_line_per_generations(ax, history.individuals)
         self.__setup_fitness_plot(ax, xlabel)
         self.__show_or_save_figure(plt.gcf(), save_path)
+
+    @with_alternate_matplotlib_backend
+    def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
+                                           save_path: Optional[Union[os.PathLike, str]] = None):
+        fig, axes = plt.subplots(1, 2, figsize=(15, 10))
+        ax_fitness, ax_graph = axes
+
+        if per_time:
+            x_label = 'Time, s'
+            x_template = 'time {} s'
+            plot_func = self.__plot_fitness_line_per_time
+        else:
+            x_label = 'Generation'
+            x_template = 'generation {}'
+            plot_func = self.__plot_fitness_line_per_generations
+
+        best_individuals = plot_func(ax_fitness, history.individuals)
+        self.__setup_fitness_plot(ax_fitness, x_label)
+
+        ax_graph.axis('off')
+
+        class InteractivePlot:
+            temp_path = Path(default_fedot_data_dir(), 'current_graph.png')
+
+            def __init__(self, best_individuals: Dict[int, Individual]):
+                self.best_x: List[int] = list(best_individuals.keys())
+                self.best_individuals: List[Individual] = list(best_individuals.values())
+                self.index: int = len(best_individuals) - 1
+                self.time_line = ax_fitness.axvline(self.best_x[self.index], color='r', alpha=0.7)
+                self.graph_images: List[np.ndarray] = []
+                self.generate_graph_images()
+                self.update_graph()
+
+            def generate_graph_images(self):
+                for ind in self.best_individuals:
+                    ind.graph.show(self.temp_path)
+                    self.graph_images.append(mpimg.imread(self.temp_path))
+
+            def update_graph(self):
+                ax_graph.imshow(self.graph_images[self.index])
+                x = self.best_x[self.index]
+                fitness = self.best_individuals[self.index].fitness
+                ax_graph.set_title(f'The best pipeline at {x_template.format(x)}, fitness={fitness}')
+
+            def update_time_line(self):
+                self.time_line.set_xdata(self.best_x[self.index])
+
+            def step_index(self, step: int):
+                self.index = (self.index + step) % len(self.best_individuals)
+                self.update_graph()
+                self.update_time_line()
+                plt.draw()
+
+            def next(self, event):
+                self.step_index(1)
+
+            def prev(self, event):
+                self.step_index(-1)
+
+        callback = InteractivePlot(best_individuals)
+
+        if not save_path:  # display buttons only for an interactive plot
+            ax_prev = plt.axes([0.7, 0.05, 0.1, 0.075])
+            ax_next = plt.axes([0.81, 0.05, 0.1, 0.075])
+            b_next = Button(ax_next, 'Next')
+            b_next.on_clicked(callback.next)
+            b_prev = Button(ax_prev, 'Previous')
+            b_prev.on_clicked(callback.prev)
+
+        self.__show_or_save_figure(fig, save_path)
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,

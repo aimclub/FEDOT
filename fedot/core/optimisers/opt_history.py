@@ -26,11 +26,11 @@ class OptHistory:
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, objective: Objective = None, save_folder: Optional[str] = None):
+    def __init__(self, objective: Objective = None, save_folder: Optional[Union[str, os.PathLike]] = None):
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
-        self.save_folder: Optional[str] = save_folder
+        self.save_folder: Optional[Union[str, os.PathLike]] = save_folder
 
     def is_empty(self) -> bool:
         return not self.individuals
@@ -74,7 +74,7 @@ class OptHistory:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             writer.writerow(row)
 
-    def save_current_results(self, path: Optional[str] = None):
+    def save_current_results(self, path: Optional[Union[str, os.PathLike]] = None):
         if not path:
             path = self._get_save_path()
         if path is not None:
@@ -93,7 +93,7 @@ class OptHistory:
             except Exception as ex:
                 print(ex)
 
-    def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
+    def save(self, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
         if json_file_path is None:
             return json.dumps(self, indent=4, cls=Serializer)
         with open(json_file_path, mode='w') as json_file:
@@ -142,19 +142,19 @@ class OptHistory:
         def check_args_constraints():
             nonlocal per_time
             # Check supported cases for `pct_best`.
-            if pct_best is not None:
-                if pct_best <= 0 or pct_best > 1:
-                    raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
+            if pct_best is not None and \
+                    (pct_best <= 0 or pct_best > 1):
+                raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
             # Check supported cases for show_fitness == False.
             if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
                 warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
-                     stacklevel=2)
+                     stacklevel=3)
             # Check plot_type-specific cases
-            if plot_type is PlotTypesEnum.fitness_line:
-                if per_time and self.individuals[0][0].metadata.get('evaluation_moment') is None:
-                    warn('Evaluation time not found in optimization history. Showing fitness plot per generations...',
-                         stacklevel=2)
-                    per_time = False
+            if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
+                    per_time and self.individuals[0][0].metadata.get('evaluation_moment') is None:
+                warn('Evaluation time not found in optimization history. Showing fitness plot per generations...',
+                     stacklevel=3)
+                per_time = False
             elif plot_type is PlotTypesEnum.operations_animated_bar:
                 if not save_path:
                     raise ValueError('Argument `save_path` is required to save the animation.')
@@ -174,6 +174,8 @@ class OptHistory:
         viz = PipelineEvolutionVisualiser()
         if plot_type is PlotTypesEnum.fitness_line:
             viz.visualize_fitness_line(self, per_time, save_path)
+        elif plot_type is PlotTypesEnum.fitness_line_interactive:
+            viz.visualize_fitness_line_interactive(self, per_time, save_path)
         elif plot_type is PlotTypesEnum.fitness_box:
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotTypesEnum.operations_kde:
