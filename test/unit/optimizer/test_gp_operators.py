@@ -32,7 +32,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import to_numerical
-from test.unit.test_logger import release_log
+from test.unit.test_logger import release_log, singleton_cleanup
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -528,7 +528,7 @@ def test_mutation_with_single_node():
     assert individual.graph == new_individual.graph
 
 
-def test_no_opt_or_graph_nodes_after_mutation():
+def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     test_file_path = Path(__file__).parent.joinpath('log.log')
     log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
 
@@ -536,7 +536,6 @@ def test_no_opt_or_graph_nodes_after_mutation():
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
     mutation_types = [MutationTypesEnum.growth]
-    mutation_prob = 1
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                                          max_arity=3, max_depth=2, pop_size=5, num_of_generations=4,
@@ -556,7 +555,7 @@ def test_no_opt_or_graph_nodes_after_mutation():
     assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
 
 
-def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
+def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
     test_file_path = Path(__file__).parent.joinpath('log.log')
     log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
 
