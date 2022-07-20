@@ -69,13 +69,11 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         self._post_eval_callback = callback
 
-    def evaluate_with_cache(self, population: PopulationT) -> PopulationT:
+    def evaluate_with_cache(self, population: PopulationT) -> Optional[PopulationT]:
         reversed_population = list(reversed(population))
         self._remote_compute_cache(reversed_population)
         evaluated_population = self.evaluate_population(reversed_population)
         self._reset_eval_cache()
-        if not evaluated_population and reversed_population:
-            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
         return evaluated_population
 
     def evaluate_population(self, individuals: PopulationT) -> PopulationT:

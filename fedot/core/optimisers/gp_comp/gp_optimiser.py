@@ -9,7 +9,7 @@ from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptiv
 from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
+from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
@@ -168,17 +168,50 @@ class EvoGraphOptimiser(PopulationalOptimiser):
                                          population=individuals_to_select,
                                          pop_size=self.requirements.pop_size,
                                          params=self.graph_generation_params)
-        new_population = self._reproduce(selected_individuals)
 
-        new_population = self.mutation(new_population)
-
-        new_population = evaluator(new_population)
+        new_population = self._spawn_evaluated_population(selected_individuals=selected_individuals,
+                                                          evaluator=evaluator)
 
         new_population = self._inheritance(new_population)
 
         new_population = self.elitism(self.generations.best_individuals, new_population)
 
         return new_population
+
+    def _spawn_evaluated_population(self, selected_individuals: List[Individual], evaluator):
+        """ Reproduce and evaluate new population. If all received individuals can not be evaluated then
+        mutate and evaluate selected individuals until a new population is obtained
+        or the number of attempts is exceeded """
+
+        iter_num = 0
+        new_population = None
+        while not new_population:
+            new_population = self._reproduce(selected_individuals)
+            new_population = evaluator(new_population)
+
+            if iter_num > EVALUATION_ATTEMPTS_NUMBER:
+                break
+
+        if not new_population:
+            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+
+        return new_population
+
+    def with_elitism(self, pop_size: int) -> bool:
+        if self.objective.is_multi_objective:
+            return False
+        else:
+            return pop_size >= self._min_population_size_with_elitism
+
+    def _update_requirements(self):
+        if not self.generations.is_any_improved:
+            self.requirements.mutation_prob, self.requirements.crossover_prob = \
+                self._operators_prob.next(self.population)
+        self.requirements.pop_size = self._pop_size.next(self.population)
+        self.requirements.max_depth = self._graph_depth.next()
+        self.log.info(
+            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
+        self.mutation.update_requirements(self.requirements)
 
     def _inheritance(self, offspring: PopulationT) -> PopulationT:
         """Gather next population given new offspring, previous population and elite individuals.
