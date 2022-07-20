@@ -474,6 +474,7 @@ def test_api_params():
                                'max_depth': default_int_value,
                                'max_pipeline_fit_time': default_int_value,
                                'num_of_generations': default_int_value,
+                               'keep_n_best': default_int_value,
                                'optimizer': None,
                                'pop_size': default_int_value,
                                'preset': 'fast_train',
