@@ -220,10 +220,7 @@ class GraphOperator:
         return node_degrees
 
     def get_all_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
-        """
-        Method to get all available edges in a given graph
-        """
-
+        """ Returns all available edges in a given graph """
         edges = []
         for node in self._graph.nodes:
             if node.nodes_from:
@@ -232,6 +229,7 @@ class GraphOperator:
         return edges
 
     def distance_to(self, other_graph: 'Graph') -> int:
+        """ Returns distance to specified graph """
         def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
             node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
 

@@ -189,9 +189,12 @@ class OptGraph:
                                         is_clean_up_leftovers=is_clean_up_leftovers)
 
     def get_nodes_degrees(self):
+        """ Nodes degree as the number of edges the node has:
+         k = k(in) + k(out) """
         return self._operator.get_nodes_degrees()
 
     def get_all_edges(self):
+        """ Returns all available edges in a given graph """
         return self._operator.get_all_edges()
 
     def distance_to(self, other_graph: 'OptGraph') -> int:

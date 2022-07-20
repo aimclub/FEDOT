@@ -59,8 +59,7 @@ class Pipeline(Graph, Serializable):
                 self.nodes.remove(node)
             elif not node.nodes_from and not isinstance(node, PrimaryNode):
                 self.update_node(old_node=node,
-                                 new_node=PrimaryNode(nodes_from=node.nodes_from,
-                                                      content=node.content))
+                                 new_node=PrimaryNode(content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
