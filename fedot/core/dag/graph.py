@@ -143,7 +143,7 @@ class Graph:
         return self.__str__()
 
     @property
-    def root_node(self) -> Union[GraphNode, List[GraphNode]]:
+    def root_node(self) -> Union['GraphNode', List['GraphNode']]:
         """
         Finds all the sink-nodes of the graph
 
@@ -160,7 +160,6 @@ class Graph:
     def length(self) -> int:
         """
         Returns size of the graph
-
 
         :return: number of nodes in the graph
         """
