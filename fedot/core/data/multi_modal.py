@@ -1,6 +1,8 @@
+from __future__ import annotations
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import List, Optional, Union
 
+import os
 import numpy as np
 import pandas as pd
 
@@ -84,13 +86,14 @@ class MultiModalData(dict):
             self[key] = self[key].subset_indices(selected_idx)
         return self
 
-    @staticmethod
-    def from_csv_time_series(task: Task,
+    @classmethod
+    def from_csv_time_series(cls,
+                             task: Task,
                              file_path=None,
                              delimiter=',',
                              is_predict=False,
                              var_names=None,
-                             target_column: Optional[str] = ''):
+                             target_column: Optional[str] = '') -> MultiModalData:
         df = pd.read_csv(file_path, sep=delimiter)
         idx = get_indices_from_file(df, file_path)
 
@@ -102,9 +105,9 @@ class MultiModalData(dict):
                 'Multivariate predict not supported in this function yet.')
         else:
             train_data, _ = \
-                prepare_multimodal_ts_data(dataframe=df,
-                                           features=var_names,
-                                           forecast_length=0)
+                _prepare_multimodal_ts_data(dataframe=df,
+                                            features=var_names,
+                                            forecast_length=0)
 
             if target_column is not None:
                 target = np.array(df[target_column])
@@ -112,7 +115,7 @@ class MultiModalData(dict):
                 target = np.array(df[df.columns[-1]])
 
             # create labels for data sources
-            data_part_transformation_func = partial(array_to_input_data, idx=idx,
+            data_part_transformation_func = partial(_array_to_input_data, idx=idx,
                                                     target_array=target, task=task,
                                                     data_type=DataTypesEnum.ts)
 
@@ -123,23 +126,25 @@ class MultiModalData(dict):
 
         return input_data
 
-    def from_csv(file_path=None,
+    @classmethod
+    def from_csv(cls,
+                 file_path: Optional[Union[os.PathLike, str]] = None,
                  delimiter=',',
                  task: Task = Task(TaskTypesEnum.classification),
-                 text_columns: Optional[Union[str, List]] = None,
-                 columns_to_drop: Optional[List] = None,
-                 target_columns: Union[str, List] = '',
-                 index_col: Optional[Union[str, int]] = 0):
+                 text_columns: Optional[Union[str, List[str]]] = None,
+                 columns_to_drop: Optional[List[str]] = None,
+                 target_columns: Union[str, List[str]] = '',
+                 index_col: Optional[Union[str, int]] = 0) -> MultiModalData:
         """
         :param file_path: the path to the CSV with data
         :param columns_to_drop: the names of columns that should be dropped
         :param delimiter: the delimiter to separate the columns
         :param task: the task that should be solved with data
-        :param text_columns: name of columns that contain text data
+        :param text_columns: names of columns that contain text data
         :param target_columns: name of target column (last column if empty and no target if None)
         :param index_col: column name or index to use as the Data.idx;
             if None then arrange new unique index
-        :return: MultiModalData object with text and table data source as InputData
+        :return: MultiModalData object with text and table data sources as InputData
         """
 
         data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
@@ -147,18 +152,19 @@ class MultiModalData(dict):
             data_frame = data_frame.drop(columns_to_drop, axis=1)
 
         idx = data_frame.index.to_numpy()
+        text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
 
         if not text_columns:
-            text_columns = define_text_columns(data_frame)
+            text_columns = _define_text_columns(data_frame)
 
-        data_text = prepare_multimodal_text_data(data_frame, text_columns)
+        data_text = _prepare_multimodal_text_data(data_frame, text_columns)
         data_frame_table = data_frame.drop(columns=text_columns)
         table_features, target = process_target_and_features(data_frame_table, target_columns)
 
-        data_part_transformation_func = partial(array_to_input_data, idx=idx,
+        data_part_transformation_func = partial(_array_to_input_data, idx=idx,
                                                 target_array=target, task=task)
 
-        # create labels for data sources
+        # create labels for text data sources
         sources = dict((_new_key_name_text(data_part_key),
                         data_part_transformation_func(features_array=data_part, data_type=DataTypesEnum.text))
                        for (data_part_key, data_part) in data_text.items())
@@ -173,59 +179,63 @@ class MultiModalData(dict):
         return multi_modal_data
 
 
-def define_text_columns(data_frame: pd.DataFrame) -> List[str]:
+def _define_text_columns(data_frame: pd.DataFrame) -> List[str]:
     """
     :param data_frame: pandas dataframe with data
     :return: list of text columns' names
     """
     text_columns = []
-    for column in data_frame.columns:
-        if column_contains_text(data_frame[column]):
-            text_columns.append(column)
+    for column_name in data_frame.columns:
+        if _column_contains_text(data_frame[column_name]):
+            text_columns.append(column_name)
     return text_columns
 
 
-def column_contains_text(column: pd.Series) -> bool:
+def _column_contains_text(column: pd.Series) -> bool:
     """
+    Column contains text if:
+    1. it's not numerical or latent numerical
+    (e.g. ['1.2', '2.3', '3.4', ...] is numerical too)
+    2. fraction of unique values is more than 0.95
+
     :param column: pandas series with data
     :return: True if column contains text
     """
-    if column.dtype == object and not isfloat(column):
+    if column.dtype == object and not _is_float_compatible(column):
         return len(column.unique()) / len(column) > 0.95
     return False
 
 
-def isfloat(column: pd.Series) -> bool:
+def _is_float_compatible(column: pd.Series) -> bool:
     """
     :param column: pandas series with data
     :return: True if column contains only float or nan values
     """
     try:
-        column.map(lambda x: float(x))
+        column.astype(float)
         return True
     except ValueError:
         return False
 
 
-def prepare_multimodal_text_data(dataframe: pd.DataFrame, text_columns: List[str]) -> dict:
+def _prepare_multimodal_text_data(dataframe: pd.DataFrame, text_columns: List[str]) -> dict:
     """ Prepares MultiModal text data in a form of dictionary
 
     :param dataframe: pandas DataFrame to process
-    :param text_columns: list of text columns names
+    :param text_columns: list of text columns' names
 
     :return multimodal_text_data: dictionary with numpy arrays of text data
     """
     multi_modal_text_data = {}
 
-    for column in text_columns:
-
-        text_feature = np.array(dataframe[column])
-        multi_modal_text_data.update({column: text_feature})
+    for column_name in text_columns:
+        text_feature = np.array(dataframe[column_name])
+        multi_modal_text_data.update({column_name: text_feature})
 
     return multi_modal_text_data
 
 
-def prepare_multimodal_ts_data(dataframe: pd.DataFrame, features: list, forecast_length: int) -> dict:
+def _prepare_multimodal_ts_data(dataframe: pd.DataFrame, features: list, forecast_length: int) -> dict:
     """ Prepare MultiModal data for time series forecasting task in a form of
     dictionary
 
@@ -256,11 +266,11 @@ def prepare_multimodal_ts_data(dataframe: pd.DataFrame, features: list, forecast
     return multi_modal_train, multi_modal_test
 
 
-def array_to_input_data(features_array: np.array,
-                        target_array: np.array,
-                        idx: Optional[np.array] = None,
-                        task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = DataTypesEnum.table):
+def _array_to_input_data(features_array: np.array,
+                         target_array: np.array,
+                         idx: Optional[np.array] = None,
+                         task: Task = Task(TaskTypesEnum.classification),
+                         data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
     """
     Transforms numpy array to InputData object
     """

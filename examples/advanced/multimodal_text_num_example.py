@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 
 from fedot.api.main import Fedot
 
@@ -8,10 +8,9 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 
-def run_multi_modal_example(files_path: str, is_visualise=True) -> float:
+def run_multi_modal_example(file_path: str, is_visualise=True) -> float:
     task = Task(TaskTypesEnum.classification)
-
-    path = os.path.join(str(fedot_project_root()), files_path, 'multimodal_wine.csv')
+    path = Path(fedot_project_root(), file_path)
     data = MultiModalData.from_csv(file_path=path, task=task, target_columns='variety', index_col=None)
     fit_data, predict_data = train_test_data_setup(data, shuffle_flag=True, split_ratio=0.7)
 
@@ -31,4 +30,4 @@ def run_multi_modal_example(files_path: str, is_visualise=True) -> float:
 
 
 if __name__ == '__main__':
-    run_multi_modal_example(files_path='examples/data/multimodal_wine', is_visualise=True)
+    run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', is_visualise=True)

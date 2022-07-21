@@ -89,3 +89,13 @@ def test_multi_modal_data():
     new_target = np.asarray([1, 1, 1, 1, 1])
     multi_modal.target = new_target
     assert np.array_equal(multi_modal.target, new_target)
+
+
+def test_text_data_only():
+    # TODO will test the case when there is no table data in csv, but MultiModalData.from_csv() is used
+    pass
+
+
+def test_table_data_only():
+    # TODO will test the case when there is no text data in csv, but MultiModalData.from_csv() is used
+    pass
