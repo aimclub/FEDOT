@@ -178,7 +178,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
 
         return new_population
 
-    def _spawn_evaluated_population(self, selected_individuals: List[Individual], evaluator):
+    def _spawn_evaluated_population(self, selected_individuals: List[Individual], evaluator: Callable):
         """ Reproduce and evaluate new population. If all received individuals can not be evaluated then
         mutate and evaluate selected individuals until a new population is obtained
         or the number of attempts is exceeded """

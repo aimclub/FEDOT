@@ -27,7 +27,7 @@ class AssumptionsHandler:
                             initial_assumption: Union[List[Pipeline], Pipeline, None],
                             available_operations: List) -> List[Pipeline]:
         """
-        Method to propose  initial assumptions if needed
+        Method to propose initial assumptions if needed
 
         :param initial_assumption: initial assumption given by user
         :param available_operations: list of available operations defined by user
@@ -47,7 +47,7 @@ class AssumptionsHandler:
                                              pipelines_cache: Optional[OperationsCache] = None,
                                              preprocessing_cache: Optional[PreprocessingCache] = None) -> Pipeline:
         """
-        Check is initial pipeline can be fitted on a presented data
+        Check if initial pipeline can be fitted on a presented data
 
         :param pipeline: pipeline for checking
         :param pipelines_cache: Cache manager for fitted models, optional.
