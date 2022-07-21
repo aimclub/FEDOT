@@ -11,7 +11,7 @@ from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDe
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
@@ -91,6 +91,8 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
+        self.crossover = Crossover(parameters.crossover_types, graph_generation_params, requirements)
+
 
         # Define adaptive parameters
         self._pop_size: PopulationSize = \
@@ -186,7 +188,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         iter_num = 0
         new_population = None
         while not new_population:
-            new_population = self._reproduce(selected_individuals)
+            new_population = self.crossover(selected_individuals)
             new_population = self.mutation(new_population)
             new_population = evaluator(new_population)
 
@@ -208,6 +210,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.log.info(
             f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
         self.mutation.update_requirements(self.requirements)
+        self.crossover.update_requirements(self.requirements )
 
     def _inheritance(self, offspring: PopulationT) -> PopulationT:
         """Gather next population given new offspring, previous population and elite individuals.
@@ -221,16 +224,16 @@ class EvoGraphOptimiser(PopulationalOptimiser):
                                 graph_params=self.graph_generation_params)
         return offspring
 
-    def _reproduce(self, population: PopulationT) -> PopulationT:
-        if len(population) == 1:
-            new_population = population
-        else:
-            new_population = []
-            for ind_1, ind_2 in crossover_parents_selection(population):
-                new_population += self._crossover_pair(ind_1, ind_2)
-        return new_population
-
-    def _crossover_pair(self, individual1: Individual, individual2: Individual) -> PopulationT:
-        return crossover(self.parameters.crossover_types, individual1, individual2,
-                         max_depth=self.requirements.max_depth, crossover_prob=self.requirements.crossover_prob,
-                         params=self.graph_generation_params)
+    # def _reproduce(self, population: PopulationT) -> PopulationT:
+    #     if len(population) == 1:
+    #         new_population = population
+    #     else:
+    #         new_population = []
+    #         for ind_1, ind_2 in crossover_parents_selection(population):
+    #             new_population += self._crossover_pair(ind_1, ind_2)
+    #     return new_population
+    #
+    # def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
+    #     return crossover(self.parameters.crossover_types, individual1, individual2,
+    #                      max_depth=self.requirements.max_depth, crossover_prob=self.requirements.crossover_prob,
+    #                      params=self.graph_generation_params)
