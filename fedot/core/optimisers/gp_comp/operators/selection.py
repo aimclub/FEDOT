@@ -25,7 +25,7 @@ class Selection:
         :param population: A list of individuals to select from.
         """
         selection_type = choice(self.selection_types)
-        return self._selection_by_type(selection_type)(population, self.requirements.pop_size)
+        return self._selection_by_type(selection_type)(population)
 
     def update_requirements(self, new_requirements: PipelineComposerRequirements):
         self.requirements = new_requirements
@@ -52,7 +52,7 @@ class Selection:
         return chosen
 
     @staticmethod
-    def random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
+    def _random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
         chosen = []
         n_iter = 0
         while len(chosen) < pop_size and n_iter < pop_size * 10:
@@ -65,9 +65,9 @@ class Selection:
                 chosen.append(individual)
         return chosen
 
-    @staticmethod
-    def tournament_selection(individuals: PopulationT, pop_size: int,
-                             fraction: float = 0.1) -> PopulationT:
+    def _tournament_selection(self, individuals: PopulationT,
+                              fraction: float = 0.1) -> PopulationT:
+        pop_size = self.requirements.pop_size
         group_size = math.ceil(len(individuals) * fraction)
         min_group_size = 2 if len(individuals) > 1 else 1
         group_size = max(group_size, min_group_size)
@@ -75,7 +75,7 @@ class Selection:
         n_iter = 0
 
         while len(chosen) < pop_size and n_iter < pop_size * 10:
-            group = Selection.random_selection(individuals, group_size)
+            group = Selection._random_selection(individuals, group_size)
             best = max(group, key=lambda ind: ind.fitness)
             if best.uid not in (c.uid for c in chosen):
                 chosen.append(best)
@@ -84,8 +84,7 @@ class Selection:
         return chosen
 
     # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
-    @staticmethod
-    def spea2_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
+    def _spea2_selection(self, individuals: PopulationT) -> PopulationT:
         """
         Apply SPEA-II selection operator on the *individuals*. Usually, the
         size of *individuals* will be larger than *n* because any individual
@@ -95,10 +94,9 @@ class Selection:
         list returned contains references to the input *individuals*.
 
         :param individuals: A list of individuals to select from.
-        :param pop_size: The number of individuals to select.
         :returns: A list of selected individuals
         """
-
+        pop_size = self.requirements.pop_size
         inds_len = len(individuals)
         fitness_len = len(individuals[0].fitness.values)
         inds_len_sqrt = math.sqrt(inds_len)
@@ -247,8 +245,8 @@ class Selection:
 
     def _selection_by_type(self, selection_type: SelectionTypesEnum):
         selections = {
-            SelectionTypesEnum.tournament: self.tournament_selection,
-            SelectionTypesEnum.spea2: self.spea2_selection
+            SelectionTypesEnum.tournament: self._tournament_selection,
+            SelectionTypesEnum.spea2: self._spea2_selection
         }
         if selection_type in selections:
             return selections[selection_type]
