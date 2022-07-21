@@ -35,8 +35,10 @@ def obj_function() -> float:
 
 def test_tournament_selection():
     num_of_inds = 2
-    population, _ = rand_population_gener_and_eval(pop_size=4)
-    selected_individuals = Selection.tournament_selection(individuals=population, pop_size=num_of_inds)
+    population, requirements = rand_population_gener_and_eval(pop_size=4)
+    requirements.pop_size = num_of_inds
+    selection = Selection([SelectionTypesEnum.tournament], requirements)
+    selected_individuals = selection(population)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 
@@ -44,18 +46,7 @@ def test_tournament_selection():
 def test_random_selection():
     num_of_inds = 2
     population, _ = rand_population_gener_and_eval(pop_size=4)
-    selected_individuals = Selection.random_selection(population, pop_size=num_of_inds)
-    assert (all([ind in population for ind in selected_individuals]) and
-            len(selected_individuals) == num_of_inds)
-
-
-def test_selection():
-    num_of_inds = 2
-    population, requirements = rand_population_gener_and_eval(pop_size=4)
-    requirements.pop_size = num_of_inds
-    types = [SelectionTypesEnum.tournament]
-    selection = Selection(types, requirements)
-    selected_individuals = selection(population=population)
+    selected_individuals = Selection._random_selection(population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 

@@ -242,6 +242,7 @@ class EvoGraphOptimiser(GraphOptimiser):
             f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
         self.selection.update_requirements(self.requirements)
         self.mutation.update_requirements(self.requirements)
+        self.inheritance.update_requirements(self.requirements)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
