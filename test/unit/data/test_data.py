@@ -123,36 +123,6 @@ def test_data_from_json():
     assert len(data.target) == len(data.features) == len(data.idx)
 
 
-def test_multi_modal_data():
-    num_samples = 5
-    target = np.asarray([0, 0, 1, 0, 1])
-    img_data = InputData(idx=range(num_samples),
-                         features=None,  # in test the real data is not passed
-                         target=target,
-                         data_type=DataTypesEnum.text,
-                         task=Task(TaskTypesEnum.classification))
-    tbl_data = InputData(idx=range(num_samples),
-                         features=None,  # in test the real data is not passed
-                         target=target,
-                         data_type=DataTypesEnum.table,
-                         task=Task(TaskTypesEnum.classification))
-
-    multi_modal = MultiModalData({
-        'data_source_img': img_data,
-        'data_source_table': tbl_data,
-    })
-
-    assert multi_modal.task.task_type == TaskTypesEnum.classification
-    assert len(multi_modal.idx) == 5
-    assert multi_modal.num_classes == 2
-    assert np.array_equal(multi_modal.target, target)
-
-    # check setter
-    new_target = np.asarray([1, 1, 1, 1, 1])
-    multi_modal.target = new_target
-    assert np.array_equal(multi_modal.target, new_target)
-
-
 def test_target_data_from_csv_correct():
     """ Function tests two ways of processing target columns in "from_csv"
     method

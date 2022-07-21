@@ -137,6 +137,7 @@ def data_has_text_features(data: InputData) -> bool:
     parsing of it from a general table to the distinct text data source.
     Returns bool, whether data has text fields or not
     """
+    # TODO andreygetmanov: make compatible with current text checking
     if data.data_type is not DataTypesEnum.ts and len(data.features.shape) == 1:
         el_for_check = next(x for x in data.features if not pd.isna(x))
         return isinstance(el_for_check, str)
