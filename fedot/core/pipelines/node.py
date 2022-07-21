@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
@@ -15,22 +15,26 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 @dataclass
 class NodeMetadata:
-    metric: float = None
+    """
+    Dataclass. :class:`Node` metadata
+
+    :param metric: quality score
+    """
+    metric: Optional[float] = None
 
 
 class Node(GraphNode):
     """
-    Base class for Node definition in Pipeline structure
+    Base class for node definition in :class:`~fedot.core.pipelines.pipeline.Pipeline` structure
 
     :param nodes_from: parent nodes which information comes from
-    :param operation_type: str type of the operation defined in operation repository
+    :param operation_type: type of the operation defined in operation repository
                             the custom prefix can be added after / (to highlight the specific node)
                             The prefix will be ignored at Implementation stage
     """
 
     def __init__(self, nodes_from: Optional[List['Node']],
                  operation_type: Optional[Union[str, 'Operation']] = None, **kwargs):
-
         passed_content = kwargs.get('content')
         if passed_content:
             # Define operation, based on content dictionary
@@ -80,8 +84,14 @@ class Node(GraphNode):
         return operation
 
     @staticmethod
-    def _process_direct_init(operation_type) -> Operation:
-        """ Define operation based on direct operation_type without defining content in the node """
+    def _process_direct_init(operation_type: Optional[Union[str, Operation]]) -> Operation:
+        """
+        Define operation based on the direct ``operation_type`` without defining content in the node
+
+        :param operation_type: node type representation
+
+        :return: operation class object
+        """
         if not operation_type:
             raise ValueError('Operation is not defined in the node')
 
@@ -98,7 +108,11 @@ class Node(GraphNode):
     def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
         """
         Filters out the desired parameter values from what Implementation returns
-        :param returned_params: dictionary with
+
+        :param returned_params: simple dictionary or (<parameters dictionary>, <parameters names>) tuple
+
+        :return: :attr:`custom_params` if provided ``returned_params`` is not tuple and
+            dictionary with processed params otherwise
         """
         if isinstance(returned_params, tuple):
             params_dict = returned_params[0]
@@ -124,6 +138,7 @@ class Node(GraphNode):
             return self.custom_params
 
     def update_params(self):
+        """ Updates :attr:`custom_params` only if they were changed """
         new_params = self.fitted_operation.get_params()
         # Filter parameters
         filtered_params = self._filter_params(new_params)
@@ -132,22 +147,39 @@ class Node(GraphNode):
 
     # wrappers for 'operation' field from GraphNode class
     @property
-    def operation(self):
+    def operation(self) -> Operation:
+        """
+        Returns node operation object
+
+        :return: operation object
+        """
         return self.content['name']
 
     @operation.setter
-    def operation(self, value):
+    def operation(self, value: Operation):
+        """
+        Updates :attr:`operation` property with the provided ``value``
+
+        :param value: new operation object
+        """
         self.content.update({'name': value})
 
     @property
-    def fitted_operation(self):
-        if hasattr(self, '_fitted_operation'):
-            return self._fitted_operation
-        else:
-            return None
+    def fitted_operation(self) -> Optional[Any]:
+        """
+        Returns already fitted operation if exists or `None` instead
+
+        :return: node fitted operation or `None`
+        """
+        return getattr(self, '_fitted_operation', None)
 
     @fitted_operation.setter
-    def fitted_operation(self, value):
+    def fitted_operation(self, value: Any):
+        """
+        Sets node fitted operation with the provided ``value``
+
+        :param value: any model from the list of acceptable nodes for the chosen task and problem
+        """
         if value is None:
             if hasattr(self, '_fitted_operation'):
                 del self._fitted_operation
@@ -155,13 +187,16 @@ class Node(GraphNode):
             self._fitted_operation = value
 
     def unfit(self):
+        """ Sets :attr:`fitted_operation` to `None` TODO: check how it would be rendered """
         self.fitted_operation = None
 
     def fit(self, input_data: InputData) -> OutputData:
         """
-        Run training process in the node
+        Runs training process in the node
 
         :param input_data: data used for operation training
+
+        :return: values predicted on the provided ``input_data``
         """
 
         if self.fitted_operation is None:
@@ -189,6 +224,8 @@ class Node(GraphNode):
 
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
+
+        :return: values predicted on the provided ``input_data``
         """
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
@@ -201,10 +238,20 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
+        """
+        Returns node custom parameters
+
+        :return: dict of custom parameters
+        """
         return self.content.get('params')
 
     @custom_params.setter
-    def custom_params(self, params):
+    def custom_params(self, params: dict):
+        """
+        Sets custom parameters of the node
+
+        :param params: new parameters to be placed instead of existing
+        """
         if params:
             if params != DEFAULT_PARAMS_STUB:
                 # Complete the dictionary if it is incomplete
@@ -216,12 +263,21 @@ class Node(GraphNode):
                     params = params['nested_space']
             self.content.update({'params': params})
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        Returns string representation of the node
+
+        :return: stringified node operation type
+        """
         return str(self.operation.operation_type)
 
     @property
-    def tags(self):
-        """ Return tags of operation in the node. """
+    def tags(self) -> Optional[List[str]]:
+        """
+        Returns tags of operation in the node or empty list
+
+        :return: empty list if node is of atomized type and list of tags otherwise
+        """
         if 'atomized' in self.operation.operation_type:
             # There are no tags for atomized operation
             return []
@@ -233,14 +289,14 @@ class Node(GraphNode):
 
 class PrimaryNode(Node):
     """
-    The class defines the interface of Primary nodes where initial task data is located
+    Defines the interface of primary nodes where initial task data is located
 
-    :param operation_type: str type of the operation defined in operation repository
-    :param node_data: dictionary with InputData for fit and predict stage
-    :param kwargs: optional arguments (i.e. logger)
+    :param operation_type: operation defined in the operation repository
+    :param node_data: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
+    :param kwargs: optional arguments (i.e. logger); `nodes_from` will be deleted if exists
     """
 
-    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None, node_data: dict = None, **kwargs):
+    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None, node_data: Optional[dict] = None, **kwargs):
         if 'nodes_from' in kwargs:
             del kwargs['nodes_from']
 
@@ -256,9 +312,11 @@ class PrimaryNode(Node):
 
     def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """
-        Fit the operation located in the primary node
+        Fits the operation located in the primary node
 
         :param input_data: data used for operation training
+
+        :return: values predicted on the provided ``input_data``
         """
         self.log.debug(f'Trying to fit primary node with operation: {self.operation}')
 
@@ -269,17 +327,19 @@ class PrimaryNode(Node):
         return super().fit(input_data)
 
     def unfit(self):
+        """ Sets :attr:`node_data` (if exists) and :attr:`fitted_operation` to `None` """
         self.fitted_operation = None
         if hasattr(self, 'node_data'):
             self.node_data = None
 
-    def predict(self, input_data: InputData,
-                output_mode: str = 'default') -> OutputData:
+    def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
-        Predict using the operation located in the primary node
+        Predicts using the operation located in the primary node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
+
+        :return: values predicted on the provided ``input_data``
         """
         self.log.debug(f'Predict in primary node by operation: {self.operation}')
 
@@ -289,19 +349,30 @@ class PrimaryNode(Node):
             self.node_data = input_data
         return super().predict(input_data, output_mode)
 
-    def get_data_from_node(self):
-        """ Method returns data if the data was set to the nodes directly """
+    def get_data_from_node(self) -> dict:
+        """
+        Returns data if it was set to the nodes directly
+
+        :return: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
+        """
         return self.node_data
 
     @property
-    def node_data(self):
-        if hasattr(self, '_node_data'):
-            return self._node_data
-        else:
-            return {}
+    def node_data(self) -> dict:
+        """
+        Returns directly set :attr:`node_data`
+
+        :return: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
+        """
+        return getattr(self, '_node_data', {})
 
     @node_data.setter
-    def node_data(self, value):
+    def node_data(self, value: dict):
+        """
+        Sets :attr:`node_data`
+
+        :param value: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
+        """
         if value is None:
             if hasattr(self, '_node_data'):
                 del self._node_data
