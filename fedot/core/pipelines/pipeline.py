@@ -319,13 +319,13 @@ class Pipeline(Graph, Serializable):
 
         :param other: another pipeline
 
-        :return: are equal to ``other`` in terms of the pipelines
+        :return: is it equal to ``other`` in terms of the pipelines
         """
         return self.root_node.descriptive_id == other.root_node.descriptive_id
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
-        Returns compact info about class instance
+        Returns compact information about class instance
 
         :return: formatted string representation of the class instance
         """
@@ -339,7 +339,7 @@ class Pipeline(Graph, Serializable):
     @property
     def root_node(self) -> Optional[Node]:
         """
-        Property. Traverses through the pipeline to the end and returns its final node
+        Finds pipelines sink-node
 
         :return: the final predictor-node
         """
