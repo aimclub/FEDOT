@@ -92,8 +92,16 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.crossover = Crossover(parameters.crossover_types, graph_generation_params, requirements)
-        self.selection = Selection(parameters.selection_types)
-        self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types)
+        self.selection = Selection(parameters.selection_types, requirements)
+        self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types, requirements)
+        self.population = None
+        self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
+        self.timer = OptimisationTimer(timeout=self.requirements.timeout)
+        self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
+                                                         timer=self.timer,
+                                                         n_jobs=requirements.n_jobs,
+                                                         graph_cleanup_fn=_unfit_pipeline)
+        self.regularization = Regularization(parameters.regularization_type, graph_generation_params, requirements)
 
 
         # Define adaptive parameters
@@ -155,12 +163,12 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self._update_requirements()
         individuals_to_select = self.regularization(self.population, evaluator)
 
-        selected_individuals = self.selection(individuals_to_select, self.requirements.pop_size)
+        selected_individuals = self.selection(individuals_to_select)
 
         new_population = self._spawn_evaluated_population(selected_individuals=selected_individuals,
                                                           evaluator=evaluator)
 
-        new_population = self.inheritance(self.population, new_population, self.requirements.pop_size)
+        new_population = self.inheritance(self.population, new_population)
 
         new_population = self.elitism(self.generations.best_individuals, new_population)
 
@@ -195,6 +203,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.requirements.max_depth = self._graph_depth.next()
         self.log.info(
             f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
+        self.selection.update_requirements(self.requirements)
         self.mutation.update_requirements(self.requirements)
         self.regularization.update_requirements(self.requirements)
         self.crossover.update_requirements(self.requirements)

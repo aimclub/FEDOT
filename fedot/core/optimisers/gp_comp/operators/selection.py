@@ -1,7 +1,9 @@
 import math
+from copy import deepcopy
 from random import choice, randint
 from typing import List, Iterable, Sequence, Tuple
 
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -13,19 +15,23 @@ class SelectionTypesEnum(Enum):
 
 
 class Selection:
-    def __init__(self, selection_types: List[SelectionTypesEnum]):
+    def __init__(self, selection_types: List[SelectionTypesEnum], requirements: PipelineComposerRequirements):
         self.selection_types = selection_types
+        self.requirements = requirements
 
-    def __call__(self, population: PopulationT, pop_size: int) -> PopulationT:
+    def __call__(self, population: PopulationT) -> PopulationT:
         """
-            Selection of individuals based on specified type of selection
-            :param population: A list of individuals to select from.
-            :param pop_size: The number of individuals to select.
-            """
+        Selection of individuals based on specified type of selection
+        :param population: A list of individuals to select from.
+        """
         selection_type = choice(self.selection_types)
-        return self.selection_by_type(selection_type)(population, pop_size)
+        return self._selection_by_type(selection_type)(population, self.requirements.pop_size)
 
-    def individuals_selection(self, individuals: List[Individual], pop_size: int) -> List[Individual]:
+    def update_requirements(self, new_requirements: PipelineComposerRequirements):
+        self.requirements = new_requirements
+
+    def individuals_selection(self, individuals: PopulationT) -> PopulationT:
+        pop_size = self.requirements.pop_size
         if pop_size == len(individuals):
             chosen = individuals
         else:
@@ -33,17 +39,20 @@ class Selection:
             remaining_individuals = individuals
             individuals_pool_size = len(individuals)
             n_iter = 0
+            old_requirements = deepcopy(self.requirements)
+            self.requirements.pop_size = 1
             while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
-                individual = self.__call__(remaining_individuals, pop_size=1)[0]
-                if individual.uid not in (c.uid for c in chosen):
+                individual = self.__call__(remaining_individuals)[0]
+                if individual.uid not in (chosen_individual.uid for chosen_individual in chosen):
                     chosen.append(individual)
                     if pop_size <= individuals_pool_size:
                         remaining_individuals.remove(individual)
                 n_iter += 1
+            self.requirements = old_requirements
         return chosen
 
     @staticmethod
-    def random_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
+    def random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
         chosen = []
         n_iter = 0
         while len(chosen) < pop_size and n_iter < pop_size * 10:
@@ -57,8 +66,8 @@ class Selection:
         return chosen
 
     @staticmethod
-    def tournament_selection(individuals: List[Individual], pop_size: int,
-                             fraction: float = 0.1) -> List[Individual]:
+    def tournament_selection(individuals: PopulationT, pop_size: int,
+                             fraction: float = 0.1) -> PopulationT:
         group_size = math.ceil(len(individuals) * fraction)
         min_group_size = 2 if len(individuals) > 1 else 1
         group_size = max(group_size, min_group_size)
@@ -76,7 +85,7 @@ class Selection:
 
     # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
     @staticmethod
-    def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
+    def spea2_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
         """
         Apply SPEA-II selection operator on the *individuals*. Usually, the
         size of *individuals* will be larger than *n* because any individual
@@ -200,7 +209,8 @@ class Selection:
     # This code is a part of DEAP library (Library URL: https://github.com/DEAP/deap).
     @staticmethod
     def _randomized_select(array: List[float], begin: int, end: int, i: float) -> float:
-        """Allows to select the ith smallest element from array without sorting it.
+        """
+        Allows to select the ith smallest element from array without sorting it.
         Runtime is expected to be O(n).
         """
         if begin == end:
@@ -235,7 +245,7 @@ class Selection:
             else:
                 return j
 
-    def selection_by_type(self, selection_type: SelectionTypesEnum):
+    def _selection_by_type(self, selection_type: SelectionTypesEnum):
         selections = {
             SelectionTypesEnum.tournament: self.tournament_selection,
             SelectionTypesEnum.spea2: self.spea2_selection
