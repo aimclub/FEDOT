@@ -357,7 +357,7 @@ class Pipeline(Graph, Serializable):
 
         :param task_type: task type of the last node to search for
 
-        :returns: pipeline formed from the last node solving the given problem and all its parents
+        :returns: pipeline formed from the last node solving the given problem and all of its parents
         """
 
         max_distance = 0
@@ -375,11 +375,13 @@ class Pipeline(Graph, Serializable):
 
     def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
         """
-        Assigns :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data` from ``input_data``
+        In case of provided ``input_data`` is of type :class:`~fedot.core.data.multi_modal.MultiModalData`
+            assigns :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data` from the ``input_data``
+        Does nothing otherwise
 
-        :param input_data: _description_
+        :param input_data: data to assign to :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data`
 
-        :return: _description_
+        :return: None in case of :class:`~fedot.core.data.multi_modal.MultiModalData` and ``input_data`` otherwise
         """
         if isinstance(input_data, MultiModalData):
             for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
@@ -392,19 +394,23 @@ class Pipeline(Graph, Serializable):
         return input_data
 
     def print_structure(self):
-        """ Method print information about pipeline """
-        print('Pipeline structure:')
-        print(self.__str__())
-        for node in self.nodes:
-            print(f"{node.operation.operation_type} - {node.custom_params}")
+        """ Prints structural information about the pipeline """
+        print(
+            'Pipeline structure:',
+            self,
+            *(f'{node.operation.operation_type} - {node.custom_params}' for node in self.nodes),
+            sep='\n'
+        )
 
 
-def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
-    """ The function returns list with nodes with the needed operation
+def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
+    """
+    Returns list of nodes with the required ``operation_name``
 
     :param pipeline: pipeline to process
-    :param operation_name: name of operation to search
-    :return : list with nodes, None if there are no nodes
+    :param operation_name: name of the operation to filter by
+
+    :return: list of relevant nodes (empty if there are no such nodes)
     """
 
     # Check if model has decompose operations
@@ -414,10 +420,13 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> list:
 
 
 def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
-    """ Function change number of jobs for nodes"""
+    """
+    Changes number of jobs for nodes
+
+    :param pipeline: pipeline which nodes to update
+    :param n_jobs: required number of the jobs to assign to the nodes
+    """
     for node in pipeline.nodes:
-        # TODO refactor
-        if 'n_jobs' in node.content['params']:
-            node.content['params']['n_jobs'] = n_jobs
-        if 'num_threads' in node.content['params']:
-            node.content['params']['num_threads'] = n_jobs
+        for param in ['n_jobs', 'num_threads']:
+            if param in node.content['params']:
+                node.content['params'][param] = n_jobs
