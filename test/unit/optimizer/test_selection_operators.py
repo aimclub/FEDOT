@@ -25,7 +25,7 @@ def rand_population_gener_and_eval(pop_size=4):
     # evaluation
     for ind in population:
         ind.set_evaluation_result(SingleObjFitness(obj_function()))
-    return population
+    return population, requirements
 
 
 def obj_function() -> float:
@@ -35,7 +35,7 @@ def obj_function() -> float:
 
 def test_tournament_selection():
     num_of_inds = 2
-    population = rand_population_gener_and_eval(pop_size=4)
+    population, _ = rand_population_gener_and_eval(pop_size=4)
     selected_individuals = Selection.tournament_selection(individuals=population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
@@ -43,28 +43,30 @@ def test_tournament_selection():
 
 def test_random_selection():
     num_of_inds = 2
-    population = rand_population_gener_and_eval(pop_size=4)
-    selected_individuals = Selection.random_selection(individuals=population, pop_size=num_of_inds)
+    population, _ = rand_population_gener_and_eval(pop_size=4)
+    selected_individuals = Selection.random_selection(population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 
 
 def test_selection():
     num_of_inds = 2
-    population = rand_population_gener_and_eval(pop_size=4)
+    population, requirements = rand_population_gener_and_eval(pop_size=4)
+    requirements.pop_size = num_of_inds
     types = [SelectionTypesEnum.tournament]
-    selection = Selection(types)
-    selected_individuals = selection(population=population, pop_size=num_of_inds)
+    selection = Selection(types, requirements)
+    selected_individuals = selection(population=population)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 
 
 def test_individuals_selection_random_individuals():
     num_of_inds = 2
-    population = rand_population_gener_and_eval(pop_size=4)
+    population, requirements = rand_population_gener_and_eval(pop_size=4)
+    requirements.pop_size = num_of_inds
     types = [SelectionTypesEnum.tournament]
-    selection = Selection(types)
-    selected_individuals = selection.individuals_selection(individuals=population, pop_size=num_of_inds)
+    selection = Selection(types, requirements)
+    selected_individuals = selection.individuals_selection(individuals=population)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
     assert (len(set(selected_individuals_ref)) == len(selected_individuals) and
             len(selected_individuals) == num_of_inds)
@@ -72,11 +74,12 @@ def test_individuals_selection_random_individuals():
 
 def test_individuals_selection_equality_individuals():
     num_of_inds = 4
-    population = rand_population_gener_and_eval(pop_size=1)
+    population, requirements = rand_population_gener_and_eval(pop_size=1)
+    requirements.pop_size = num_of_inds
     types = [SelectionTypesEnum.tournament]
     population = [population[0] for _ in range(4)]
-    selection = Selection(types)
-    selected_individuals = selection.individuals_selection(individuals=population, pop_size=num_of_inds)
+    selection = Selection(types, requirements)
+    selected_individuals = selection.individuals_selection(individuals=population)
     selected_individuals_ref = [str(ind) for ind in selected_individuals]
     assert (len(selected_individuals) == num_of_inds and
             len(set(selected_individuals_ref)) == 1)

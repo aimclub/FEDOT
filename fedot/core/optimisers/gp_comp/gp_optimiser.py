@@ -12,7 +12,6 @@ from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, Inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -98,8 +97,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.parameters = parameters or GPGraphOptimiserParameters()
         self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
-        self.selection = Selection(parameters.selection_types)
-        self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types)
+        self.selection = Selection(parameters.selection_types, requirements)
+        self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types, requirements)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -216,14 +215,15 @@ class EvoGraphOptimiser(GraphOptimiser):
                                                                evaluator,
                                                                self.graph_generation_params)
 
-                selected_individuals = self.selection(individuals_to_select, pop_size)
+                selected_individuals = self.selection(individuals_to_select)
                 new_population = self._reproduce(selected_individuals)
 
                 new_population = self.mutation(new_population)
 
                 new_population = evaluator(new_population)
 
-                new_population = self.inheritance(self.population, new_population, pop_size)
+                # TODO: from inheritance together with elitism we can get duplicate inds!
+                new_population = self.inheritance(self.population, new_population)
 
                 new_population = self.elitism(self.generations.best_individuals, new_population)
 
@@ -240,19 +240,8 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.requirements.max_depth = self._graph_depth.next()
         self.log.info(
             f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
+        self.selection.update_requirements(self.requirements)
         self.mutation.update_requirements(self.requirements)
-
-    def _inheritance(self, offspring: PopulationT) -> PopulationT:
-        """Gather next population given new offspring, previous population and elite individuals.
-        :param offspring: offspring of current population.
-        :return: next population."""
-
-        # TODO: from inheritance together with elitism we can get duplicate inds!
-        offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
-                                self.population,
-                                offspring, self.requirements.pop_size,
-                                graph_params=self.graph_generation_params)
-        return offspring
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
