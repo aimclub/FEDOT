@@ -357,7 +357,7 @@ class Pipeline(Graph, Serializable):
 
         :param task_type: task type of the last node to search for
 
-        :returns: pipeline formed from the last node solving the given problem and all of its parents
+        :return: pipeline formed from the last node solving the given problem and all of its parents
         """
 
         max_distance = 0
