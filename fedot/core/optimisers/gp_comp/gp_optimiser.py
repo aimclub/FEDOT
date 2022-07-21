@@ -11,6 +11,7 @@ from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -37,6 +38,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
     :param mutation_types: List of mutation operators types
     :param regularization_type: type of regularization operator
     :param genetic_scheme_type: type of genetic evolutionary scheme
+    :param elitism_type: type of elitism operator
     evolution. Default False.
     """
 
@@ -65,6 +67,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
                  mutation_types: List[Union[MutationTypesEnum, Any]] = None,
                  regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
                  genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
+                 elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best,
                  *args, **kwargs):
 
         super().__init__(*args, **kwargs)
@@ -74,6 +77,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         self.mutation_types = mutation_types
         self.regularization_type = regularization_type
         self.genetic_scheme_type = genetic_scheme_type
+        self.elitism_type = elitism_type
 
         self.set_default_params()  # always initialize in proper state
 
@@ -91,8 +95,9 @@ class EvoGraphOptimiser(GraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
+        self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.population = None
-        self.generations = GenerationKeeper(self.objective)
+        self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,
@@ -122,8 +127,6 @@ class EvoGraphOptimiser(GraphOptimiser):
             init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
 
         # Define parameters
-
-        self._min_population_size_with_elitism = 5
 
         start_depth = requirements.start_depth or requirements.max_depth
         self._graph_depth = AdaptiveGraphDepth(self.generations,
@@ -220,34 +223,25 @@ class EvoGraphOptimiser(GraphOptimiser):
                 new_population = evaluator(new_population)
 
                 new_population = self._inheritance(new_population, pop_size)
+
+                new_population = self.elitism(self.generations.best_individuals, new_population)
+
                 # Adding of new population to history
                 self._next_population(new_population)
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
 
-    def with_elitism(self, pop_size: int) -> bool:
-        if self.objective.is_multi_objective:
-            return False
-        else:
-            return pop_size >= self._min_population_size_with_elitism
-
     def _inheritance(self, offspring: PopulationT, pop_size: int) -> PopulationT:
-        """Gather next population given new offspring, previous population and elite individuals.
+        """Gather next population given new offspring and previous population.
         :param offspring: offspring of current population.
         :param pop_size: size of the next population.
         :return: next population."""
 
-        elite_inds = self.generations.best_individuals if self.with_elitism(pop_size) else ()
-        num_of_new_individuals = pop_size - len(elite_inds)
-
         # TODO: from inheritance together with elitism we can get duplicate inds!
         offspring = inheritance(self.parameters.genetic_scheme_type, self.parameters.selection_types,
                                 self.population,
-                                offspring, num_of_new_individuals,
+                                offspring, pop_size,
                                 graph_params=self.graph_generation_params)
-
-        # Add best individuals from the previous generation
-        offspring.extend(elite_inds)
         return offspring
 
     def _mutate(self, individual: Individual,
@@ -255,8 +249,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 custom_requirements: Optional[PipelineComposerRequirements] = None) -> Individual:
         max_depth = max_depth or self.max_depth
         requirements = custom_requirements or self.requirements
-        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params, individual=individual,
-                        requirements=requirements, max_depth=max_depth)
+        return mutation(types=self.parameters.mutation_types, params=self.graph_generation_params,
+                        individual=individual, requirements=requirements, max_depth=max_depth)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:

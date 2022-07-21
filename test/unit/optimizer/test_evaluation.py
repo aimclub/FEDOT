@@ -25,7 +25,7 @@ def prepared_objective(pipeline: Pipeline) -> Fitness:
     train_data = get_classification_data()
     pipeline.fit(train_data)
 
-    metric = ClassificationMetricsEnum.accuracy
+    metric = ClassificationMetricsEnum.logloss
     objective = Objective(metric)
     return objective(pipeline, reference_data=train_data)
 
@@ -101,7 +101,6 @@ def test_simple_dispatcher_with_timeout():
         evaluator = SimpleDispatcher(adapter, timer=t).dispatch(prepared_objective)
         evaluated_population = evaluator(population)
     fitness = [x.fitness for x in evaluated_population]
-    print(fitness)
     assert all(x.valid for x in fitness), "At least one fitness value is invalid"
     assert len(evaluated_population) < len(population), "Not all pipelines should be evaluated (not enough time)"
 

@@ -57,6 +57,7 @@ class Fedot:
     :param max_arity: max arity of the pipeline nodes
     :param pop_size: population size for composer
     :param num_of_generations: number of generations for composer
+    :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     :param available_operations: list of model names to use
     :param stopping_after_n_generation': - composer will stop after n generation without improving
     :param with_tuning: allow hyperparameters tuning for the model

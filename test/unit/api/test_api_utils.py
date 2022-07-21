@@ -39,6 +39,7 @@ def test_compose_fedot_model_with_tuning():
                                                                               max_arity=1,
                                                                               pop_size=2,
                                                                               num_of_generations=generations,
+                                                                              keep_n_best=1,
                                                                               available_operations=operations,
                                                                               composer_metric=None,
                                                                               validation_blocks=None,
