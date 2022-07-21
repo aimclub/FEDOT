@@ -37,6 +37,12 @@ class GraphOperator:
             node.nodes_from = remove_items(node.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
+        """
+        Replaces ``old_node`` with ``new_node``
+
+        :param old_node: node to be replaced
+        :param new_node: node to be placed instead
+        """
         self.actualise_old_node_children(old_node, new_node)
         if old_node.nodes_from:
             if new_node.nodes_from:

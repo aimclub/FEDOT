@@ -1,5 +1,4 @@
 import logging
-
 from copy import deepcopy
 from inspect import signature
 from typing import List, Optional, Sequence, Tuple, Union
@@ -51,7 +50,7 @@ class Fedot:
     critical -- 50, error -- 40, warning -- 30, info -- 20, debug -- 10, nonset -- 0.
     Logs with a level HIGHER than set will be displayed.
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
-    instead of oneHot encoder if summary cardinality of categorical features is high.
+        instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
 
     Keywords arguments:
