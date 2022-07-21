@@ -17,21 +17,23 @@ class Log(metaclass=SingletonMeta):
     """ Log object to store logger singleton and log adapters
     :param logger_name: name of the logger
     :param config_json_file: json file from which to collect the logger if specified
-    :param output_verbosity_level: verbosity level of logger. Verbosity levels are the same as in 'logging'
+    :param output_logging_level: logging levels are the same as in 'logging':
+    critical -- 50, error -- 40, warning -- 30, info -- 20, debug -- 10, nonset -- 0.
+    Logs with a level HIGHER than set will be displayed.
     :param log_file: file to write logs in """
 
     __log_adapters = {}
 
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
-                 output_verbosity_level: int = logging.INFO,
+                 output_logging_level: int = logging.INFO,
                  log_file: str = None):
         if not log_file:
             self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
-                                       verbosity_level=output_verbosity_level)
+                                       logging_level=output_logging_level)
 
     def get_adapter(self, prefix: str) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
@@ -42,16 +44,16 @@ class Log(metaclass=SingletonMeta):
                                                         {'prefix': prefix})
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, verbosity_level: int) -> logging.Logger:
+    def _get_logger(self, name, config_file: str, logging_level: int) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger(name)
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger, verbosity_level)
+            logger = self._setup_default_logger(logger, logging_level)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, verbosity_level: int) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
         """ Define console and file handlers for logger """
         console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(asctime)s - %(message)s')
@@ -62,7 +64,7 @@ class Log(metaclass=SingletonMeta):
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
-        logger.setLevel(verbosity_level)
+        logger.setLevel(logging_level)
 
         return logger
 
@@ -106,7 +108,7 @@ class LoggerAdapter(logging.LoggerAdapter):
     def __init__(self, logger, extra):
         super().__init__(logger=logger, extra=extra)
         self.setLevel(logger.level)
-        self.verbosity_level = logger.level
+        self.logging_level = logger.level
 
     def process(self, msg, kwargs):
         return '%s - %s' % (self.extra['prefix'], msg), kwargs
@@ -118,18 +120,18 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', verbose_level: int = logging.INFO) -> logging.LoggerAdapter:
+def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO) -> logging.LoggerAdapter:
     """
     Default logger
     :param class_object: instance of class
     :param prefix: adapter prefix to add it to log messages.
-    :param verbose_level: level of detailing. Verbosity levels are the same as in 'logging'
+    :param logging_level: logging levels are the same as in 'logging'
     :return: LoggerAdapter: LoggerAdapter object
     """
 
     log = Log(logger_name='default',
               config_json_file='default',
-              output_verbosity_level=verbose_level)
+              output_logging_level=logging_level)
 
     if class_object:
         prefix = class_object.__class__.__name__

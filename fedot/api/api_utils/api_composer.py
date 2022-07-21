@@ -165,7 +165,7 @@ class ApiComposer:
         self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
 
         # Work with initial assumptions
-        assumption_handler = AssumptionsHandler(log, train_data)
+        assumption_handler = AssumptionsHandler(train_data)
 
         initial_assumption = assumption_handler.propose_assumptions(composer_params['initial_assumption'],
                                                                     available_operations)

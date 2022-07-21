@@ -108,15 +108,16 @@ def fit_cnn(train_data: InputData,
     if logger is None:
         logger = default_log(prefix=__name__)
 
-    if logger.verbosity_level > logging.DEBUG:
-        verbose = logging.ERROR
+    if logger.logging_level > logging.DEBUG:
+        verbose = 0
     else:
-        verbose = logging.INFO
+        verbose = 2
 
     if epochs is None:
         logger.warning('The number of training epochs was not set. The selected number of epochs is 10.')
 
-    model.fit(transformed_x_train, y_train, batch_size=batch_size, epochs=epochs, validation_split=0.1, verbose=verbose)
+    model.fit(transformed_x_train, y_train, batch_size=batch_size, epochs=epochs,
+              validation_split=0.1, verbose=verbose)
 
     return model
 

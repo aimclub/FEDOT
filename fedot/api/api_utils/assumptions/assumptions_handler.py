@@ -9,20 +9,18 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log
+from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 
 
 class AssumptionsHandler:
-    def __init__(self, log: Log,
-                 data: InputData):
+    def __init__(self, data: InputData):
         """
         Class for handling operations related with assumptions
 
-        :param log: log object
         :param data: data for pipelines
         """
-        self.log = log
+        self.log = default_log(self)
         self.data = data
 
     def propose_assumptions(self,

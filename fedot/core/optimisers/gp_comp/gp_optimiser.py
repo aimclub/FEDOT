@@ -195,7 +195,8 @@ class EvoGraphOptimiser(GraphOptimiser):
 
         with self.timer, tqdm(total=self.requirements.num_of_generations,
                               desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.verbosity_level == logging.NOTSET):
+                              disable=not show_progress or self.log.logging_level == logging.NOTSET):
+
             # Adding of initial assumptions to history as zero generation
             self._next_population(evaluator(self.initial_individuals))
             pop_size = self._pop_size.initial
