@@ -12,12 +12,11 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
+from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, Regularization
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, crossover_parents_selection, selection
 from fedot.core.optimisers.populational_optimiser import PopulationalOptimiser
 from fedot.core.optimisers.objective.objective import Objective
@@ -139,16 +138,6 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.mutation.update_requirements(self.requirements)
         return initial_individuals
 
-    def _update_requirements(self):
-        if not self.generations.is_any_improved:
-            self.requirements.mutation_prob, self.requirements.crossover_prob = \
-                self._operators_prob.next(self.population)
-        self.requirements.pop_size = self._pop_size.next(self.population)
-        self.requirements.max_depth = self._graph_depth.next()
-        self.log.info(
-            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
-        self.mutation.update_requirements(self.requirements)
-
     def _initial_population(self, evaluator: Callable):
         """ Initializes the initial population """
         # Adding of initial assumptions to history as zero generation
@@ -162,10 +151,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
     def _evolve_population(self, evaluator: Callable) -> PopulationT:
         """ Method realizing full evolution cycle """
         self._update_requirements()
-        individuals_to_select = regularized_population(self.parameters.regularization_type,
-                                                       self.population,
-                                                       evaluator,
-                                                       self.graph_generation_params)
+        individuals_to_select = self.regularization(self.population, evaluator)
 
         selected_individuals = selection(types=self.parameters.selection_types,
                                          population=individuals_to_select,
@@ -211,6 +197,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.log.info(
             f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
         self.mutation.update_requirements(self.requirements)
+        self.regularization.update_requirements(self.requirements)
         self.crossover.update_requirements(self.requirements)
 
     def _inheritance(self, offspring: PopulationT) -> PopulationT:
