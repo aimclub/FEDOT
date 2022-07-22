@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import Any, List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
+
+import numpy as np
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
@@ -223,7 +225,7 @@ class Node(GraphNode):
         Run prediction process in the node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
+        :param output_mode: desired output for operations (e.g. `'labels'`, `'probs'`, `'full_probs'`)
 
         :return: values predicted on the provided ``input_data``
         """
@@ -296,7 +298,8 @@ class PrimaryNode(Node):
     :param kwargs: optional arguments (i.e. logger); `nodes_from` will be deleted if exists
     """
 
-    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None, node_data: Optional[dict] = None, **kwargs):
+    def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None, node_data: Optional[dict] = None,
+                 **kwargs):
         if 'nodes_from' in kwargs:
             del kwargs['nodes_from']
 
@@ -337,7 +340,7 @@ class PrimaryNode(Node):
         Predicts using the operation located in the primary node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
+        :param output_mode: desired output for operations (e.g. `'labels'`, `'probs'`, `'full_probs'`)
 
         :return: values predicted on the provided ``input_data``
         """
@@ -384,7 +387,7 @@ class SecondaryNode(Node):
     """
     The class defines the interface of Secondary nodes modifying tha data flow in Pipeline
 
-    :param operation_type: str type of the operation defined in operation repository
+    :param operation_type: operation defined in the operation repository
     :param nodes_from: parent nodes where data comes from
     :param kwargs: optional arguments (i.e. logger)
     """
@@ -397,9 +400,11 @@ class SecondaryNode(Node):
 
     def fit(self, input_data: InputData, **kwargs) -> OutputData:
         """
-        Fit the operation located in the secondary node
+        Fits the operation located in the secondary node
 
         :param input_data: data used for operation training
+
+        :return: values predicted on the provided ``input_data``
         """
         self.log.debug(f'Trying to fit secondary node with operation: {self.operation}')
 
@@ -409,10 +414,12 @@ class SecondaryNode(Node):
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
         """
-        Predict using the operation located in the secondary node
+        Predicts using the operation located in the secondary node
 
         :param input_data: data used for prediction
-        :param output_mode: desired output for operations (e.g. labels, probs, full_probs)
+        :param output_mode: desired output for operations (e.g. `'labels'`, `'probs'`, `'full_probs'`)
+
+        :return: values predicted on the provided ``input_data``
         """
         self.log.debug(f'Obtain prediction in secondary node with operation: {self.operation}')
 
@@ -421,8 +428,15 @@ class SecondaryNode(Node):
 
         return super().predict(input_data=secondary_input, output_mode=output_mode)
 
-    def _input_from_parents(self, input_data: InputData,
-                            parent_operation: str) -> InputData:
+    def _input_from_parents(self, input_data: InputData, parent_operation: str) -> InputData:
+        """
+        Processes all the parent nodes via the current operation using ``input_data``
+
+        :param input_data: input data from pipeline abstraction (source input data)
+        :param parent_operation: name of parent operation (`'fit'` or `'predict'`)
+
+        :return: predictions from the secondary nodes
+        """
         if len(self.nodes_from) == 0:
             raise ValueError('No parent nodes found')
 
@@ -430,8 +444,8 @@ class SecondaryNode(Node):
 
         parent_nodes = self._nodes_from_with_fixed_order()
 
-        parent_results, target = _combine_parents(parent_nodes, input_data,
-                                                  parent_operation)
+        parent_results, _ = _combine_parents(parent_nodes, input_data,
+                                             parent_operation)
 
         secondary_input = DataMerger.get(parent_results).merge()
 
@@ -441,24 +455,26 @@ class SecondaryNode(Node):
         return secondary_input
 
     def _nodes_from_with_fixed_order(self):
+        """
+        Sorts :attr:`nodes_from` (if exists) by the nodes unique id
+
+        :return: sorted :attr:`nodes_from` by :attr:`~fedot.core.dag.graph_node.GraphNode.descriptive_id` or `None`
+        """
         if self.nodes_from is not None:
             return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
-        else:
-            return None
+        return None
 
 
-def _combine_parents(parent_nodes: List[Node],
-                     input_data: InputData,
-                     parent_operation: str):
+def _combine_parents(parent_nodes: List[Node], input_data: Optional[InputData], parent_operation: str) -> Tuple[
+    List[OutputData], np.array]:
     """
-    Method for combining predictions from parent node or nodes
+    Сombines predictions from the ``parent_nodes``
 
-    :param parent_nodes: list of parent nodes, from which predictions will
-    be combined
+    :param parent_nodes: list of parent nodes, from which predictions will be combined
     :param input_data: input data from pipeline abstraction (source input data)
-    :param parent_operation: name of parent operation (fit or predict)
-    :return parent_results: list with OutputData from parent nodes
-    :return target: target for final pipeline prediction
+    :param parent_operation: name of parent operation (`'fit'` or `'predict'`)
+
+    :return: <output data list from parent nodes>, <target for final pipeline prediction>
     """
 
     if input_data is not None:
@@ -483,5 +499,12 @@ def _combine_parents(parent_nodes: List[Node],
 
 
 def get_default_params(model_name: str):
+    """
+    Gets default params for chosen model name
+
+    :param model_name: the model name to choose default parameters for
+
+    :return: default repository parameters for the model name
+    """
     with DefaultOperationParamsRepository() as default_params_repo:
         return default_params_repo.get_default_params_for_operation(model_name)
