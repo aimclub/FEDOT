@@ -12,6 +12,7 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
@@ -210,7 +211,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.log.info(
             f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
         self.mutation.update_requirements(self.requirements)
-        self.crossover.update_requirements(self.requirements )
+        self.crossover.update_requirements(self.requirements)
 
     def _inheritance(self, offspring: PopulationT) -> PopulationT:
         """Gather next population given new offspring, previous population and elite individuals.
