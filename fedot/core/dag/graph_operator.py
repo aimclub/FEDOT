@@ -1,19 +1,36 @@
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 from networkx import graph_edit_distance, set_node_attributes
 
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
 
 
 class GraphOperator:
-    def __init__(self, graph=None, postproc_nodes=None):
+    """
+    _summary_
+
+    :param graph: object used as the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
+        or as optimized structure
+    :param nodes_postproc_func: nodes postprocessor after their modification
+    """
+
+    def __init__(self, graph: Optional[Union[Graph, OptGraph]] = None,
+                 nodes_postproc_func: Optional[Callable[[List[GraphNode]], None]] = None):
         self._graph = graph
-        self._postproc_nodes = postproc_nodes
+        self._postproc_nodes = nodes_postproc_func
 
     def delete_node(self, node: GraphNode):
+        """
+        Removes provided ``node`` from the bounded graph structure.
+        If ``node`` has only one child connects all of the ``node`` parents to it
+
+        :param node: node of the graph to be deleted
+        """
         node_children_cached = self.node_children(node)
         self_root_node_cached = self._graph.root_node
 
@@ -28,8 +45,12 @@ class GraphOperator:
         self._postproc_nodes()
 
     def delete_subtree(self, node: GraphNode):
-        """Delete node with all the parents it has.
-        and delete all edges from removed nodes to remaining graph nodes."""
+        """
+        Deletes node with all the parents it has.
+        Deletes all edges from removed nodes to remaining graph nodes
+
+        :param node: node to be deleted with all of its parents and their connections amongst the remaining graph nodes
+        """
         subtree_nodes = node.ordered_subnodes_hierarchy()
         self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
