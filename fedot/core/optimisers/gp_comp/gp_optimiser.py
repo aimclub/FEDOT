@@ -179,7 +179,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         return new_population
 
     def _spawn_evaluated_population(self, selected_individuals: List[Individual], evaluator: Callable):
-        """ Reproduce and evaluate new population. If all received individuals can not be evaluated then
+        """ Reproduce and evaluate new population. If at least one of received individuals can not be evaluated then
         mutate and evaluate selected individuals until a new population is obtained
         or the number of attempts is exceeded """
 
@@ -191,6 +191,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
 
             if iter_num > EVALUATION_ATTEMPTS_NUMBER:
                 break
+            iter_num += 1
 
         if not new_population:
             raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
