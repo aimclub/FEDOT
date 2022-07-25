@@ -1,9 +1,14 @@
-from typing import Any, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.utils import copy_doc
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+
+if TYPE_CHECKING:
+    from fedot.core.dag.graph_node import GraphNode
+
 
 
 class Graph:
@@ -116,22 +121,18 @@ class Graph:
         """
         GraphVisualiser().visualise(self, path)
 
-    def __eq__(self, other: 'Graph') -> bool:
+    def __eq__(self, other_graph: 'Graph') -> bool:
         """
-        Compares this graph with the ``other``
+        Compares this graph with the ``other_graph``
 
-        :param other: another graph
+        :param other_graph: another graph
 
-        :return: is it equal to ``other`` in terms of the graphs
+        :return: is it equal to ``other_graph`` in terms of the graphs
         """
-        return self._operator.is_graph_equal(other)
+        return self._operator.is_graph_equal(other_graph)
 
+    @copy_doc(GraphOperator.graph_description)
     def __str__(self) -> str:
-        """
-        Returns graph description
-
-        :return: text graph representation
-        """
         return self._operator.graph_description()
 
     def __repr__(self) -> str:

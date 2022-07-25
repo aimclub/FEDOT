@@ -2,22 +2,25 @@ import collections.abc
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Callable, Container, Iterator, Iterable, List, Sequence, Sized, TypeVar, Union, Optional
+from typing import Callable, Container, Generic, Iterable, Iterator, List, Optional, Sequence, Sized, TypeVar, Union
 
+T = TypeVar('T')
 
-class UniqueList(list):
-    """ Simple list that maintains uniqueness of elements.
+class UniqueList(list, Generic[T]):
+    """
+    Simple list that maintains uniqueness of elements.
     In comparison to 'set': preserves list interface and element ordering.
 
-    But this class is better to use only for short lists
-    because of linear complexity of uniqueness lookup.
+    But this class is better to use only for short lists because of linear complexity of uniqueness lookup.
     Behaves optimally for <= 4 items, good enough for <= 20 items.
 
     List addition and multiplication are not overloaded and return a standard list.
     But addition with assignment (+=) behaves as UniqueList.extend.
+
+    :param iterable: list of elements to turn into distinct
     """
 
-    def __init__(self, iterable=None):
+    def __init__(self, iterable: Optional[Iterable[T]] = None):
         seen = set()
         iterable = iterable or ()
         super().__init__(seen.add(element) or element
@@ -25,11 +28,16 @@ class UniqueList(list):
                          if element not in seen)
         del seen
 
-    def append(self, value):
+    def append(self, value: T):
+        """
+        Adds ``value`` to the end of the list in case it is not present there
+
+        :param value: item to be added or ignored if it is already in the list
+        """
         if value not in super().__iter__():
             super().append(value)
 
-    def extend(self, iterable):
+    def extend(self, iterable: List[T]):
         impl = super()
         impl.extend(element for element in iterable
                     if element not in impl.__iter__())
@@ -70,9 +78,18 @@ T = TypeVar('T')
 
 
 def ensure_wrapped_in_sequence(
-        obj: Optional[Union[T, Iterable[T]]],
-        sequence_factory: Callable[[Iterable[T]], Sequence[T]] = list
+    obj: Optional[Union[T, Iterable[T]]],
+    sequence_factory: Callable[[Iterable[T]], Sequence[T]] = list
 ) -> Optional[Sequence[T]]:
+    """
+    Makes sure given ``obj`` is of type that acts like sequence and converts ``obj`` to it otherwise
+
+    :param obj: any object to be ensured or wrapped into sequence type
+    :param sequence_factory: sequence factory for wrapping ``obj`` into in case it is not of any sequence type
+
+    :return: the same object if it's of type sequence (or None)
+        or ``obj`` wrapped in type provided by ``sequence_factory``
+    """
     if obj is None:
         return obj
     elif isinstance(obj, str) or not isinstance(obj, collections.abc.Iterable):

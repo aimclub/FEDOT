@@ -1,13 +1,12 @@
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from networkx import graph_edit_distance, set_node_attributes
-
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
+from networkx import graph_edit_distance, set_node_attributes
 
 
 class GraphOperator:
@@ -202,7 +201,14 @@ class GraphOperator:
             return roots[0]
         return roots
 
-    def is_graph_equal(self, other_graph: 'Graph') -> bool:
+    def is_graph_equal(self, other_graph: Union['Graph', 'OptGraph']) -> bool:
+        """
+        Compares this graph with the ``other_graph``
+
+        :param other_graph: another graph
+
+        :return: is it equal to ``other_graph`` in terms of the graphs
+        """
         if all(isinstance(rn, list) for rn in [self._graph.root_node, other_graph.root_node]):
             return set(rn.descriptive_id for rn in self._graph.root_node) == \
                    set(rn.descriptive_id for rn in other_graph.root_node)
@@ -212,6 +218,11 @@ class GraphOperator:
             return False
 
     def graph_description(self) -> str:
+        """
+        Returns graph description
+
+        :return: text graph representation
+        """
         return str({
             'depth': self._graph.depth,
             'length': self._graph.length,

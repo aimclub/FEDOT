@@ -1,24 +1,26 @@
 import os
+
 from copy import deepcopy
-from typing import Any, Iterable, List, Optional, Union, Tuple
+from typing import Any, Callable, Iterable, List, Optional, Union
 from uuid import uuid4
 
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import default_log
 from fedot.core.utilities.data_structures import UniqueList, ensure_wrapped_in_sequence
-from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.utils import DEFAULT_PARAMS_STUB, copy_doc
 from fedot.core.visualisation.graph_viz import GraphVisualiser
 
 
-def node_ops_adaptation(func):
-    def _adapt(adapter, node: Any):
+def node_ops_adaptation(func: Callable) -> Callable:
+    def _adapt(adapter, node: Any) -> OptNode:
         if not isinstance(node, OptNode):
             return adapter.adapt(node)
         return node
 
-    def _decorator(self, *args, **kwargs):
+    def _decorator(self, *args, **kwargs) -> Any:
         func_result = func(self, *args, **kwargs)
         self._nodes = [_adapt(self._node_adapter, node) for node in self.nodes]
         return func_result
@@ -53,33 +55,75 @@ class OptNode:
         self.uid = str(uuid4())
 
     @property
-    def nodes_from(self) -> List:
+    def nodes_from(self) -> List['OptNode']:
+        """
+        Gets all parent nodes of this optimization graph node
+
+        :return: all the parent nodes
+        """
         return self._nodes_from
 
     @nodes_from.setter
     def nodes_from(self, nodes: Optional[Iterable['OptNode']]):
+        """
+        Changes value of parent nodes of this optimization graph node
+
+        :param nodes: new sequence of parent nodes
+        """
         self._nodes_from = UniqueList(nodes)
 
     @property
     def _node_adapter(self):
+        """
+        Creates node operator adapter class instance and returns it
+
+        :return: node operator adapter
+        """
         return NodeOperatorAdapter()
 
     def __str__(self):
+        """
+        Returns string representation of the class
+
+        :return: stringified name of the optimization graph node
+        """
         return str(self.content['name'])
 
     def __repr__(self):
+        """
+        Does the same as :meth:`__str__`
+
+        :return: stringified name of the optimization graph node
+        """
         return self.__str__()
 
     @property
     def descriptive_id(self):
+        """
+        Returns verbal identificator of the node
+
+        :return: text description of the content in the node and its parameters
+        """
         return self._operator.descriptive_id()
 
-    def ordered_subnodes_hierarchy(self, visited=None) -> List['OptNode']:
+    def ordered_subnodes_hierarchy(self, visited: Optional[List['OptNode']] = None) -> List['OptNode']:
+        """
+        Gets hierarchical subnodes representation of the graph starting from the bounded node
+
+        :param visited: already visited nodes not to be included to the resulting hierarchical list
+
+        :return: hierarchical subnodes list starting from the bounded node
+        """
         nodes = self._operator.ordered_subnodes_hierarchy(visited)
-        return [self._node_adapter.adapt(node) for node in nodes]
+        return [self._node_adapter.adapt(node) for node in nodes] # TODO: seems like not needed no more
 
     @property
     def distance_to_primary_level(self):
+        """
+        Returns max depth from bounded node to graphs primary level
+
+        :return: max depth to the primary level
+        """
         return self._operator.distance_to_primary_level()
 
 
@@ -87,7 +131,7 @@ class OptGraph:
     """
     Base class used for optimized structure
 
-    :param nodes: OptNode object(s)
+    :param nodes: optimization graph nodes object(s)
     """
 
     def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
@@ -199,14 +243,28 @@ class OptGraph:
         return self._operator.get_edges()
 
     def show(self, path: Optional[Union[os.PathLike, str]] = None):
+        """
+        Visualizes graph or saves its picture to the specified ``path``
+
+        :param path: optional, save location of the graph visualization image
+        """
         GraphVisualiser().visualise(self, path)
 
-    def __eq__(self, other) -> bool:
-        return self._operator.is_graph_equal(other)
+    def __eq__(self, other_graph: 'OptGraph') -> bool:
+        """
+        Compares this graph with the ``other_graph``
 
+        :param other_graph: another graph
+
+        :return: is it equal to ``other_graph`` in terms of the graphs
+        """
+        return self._operator.is_graph_equal(other_graph)
+
+    @copy_doc(GraphOperator.graph_description)
     def __str__(self):
         return self._operator.graph_description()
 
+    @copy_doc(Graph.__repr__)
     def __repr__(self):
         return self.__str__()
 

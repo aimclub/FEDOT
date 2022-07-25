@@ -1,5 +1,7 @@
 from copy import copy
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional, Union
+
+from fedot.core.optimisers.graph import OptNode
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
@@ -8,23 +10,42 @@ MAX_DEPTH = 1000
 
 
 class NodeOperator:
-    def __init__(self, node):
+    """
+    _summary_
+
+    :param node: bounded node to be processed by the operator
+    """
+
+    def __init__(self, node: Union[GraphNode, OptNode]):
         self._node = node
 
     def distance_to_primary_level(self):
+        """
+        Returns max depth from bounded node to graphs primary level
+
+        :return: max depth to the primary level
+        """
         if not self._node.nodes_from:
             return 0
         else:
-            return 1 + max([next_node.distance_to_primary_level for next_node in self._node.nodes_from])
+            return 1 + max(next_node.distance_to_primary_level for next_node in self._node.nodes_from)
 
-    def ordered_subnodes_hierarchy(self, visited=None) -> List['GraphNode']:
+    def ordered_subnodes_hierarchy(self, visited: Optional[Union[List['GraphNode'], List['OptNode']]] = None) -> Union[
+        List['GraphNode'], List['OptNode']]:
+        """
+        Gets hierarchical subnodes representation of the graph starting from the bounded node
+
+        :param visited: already visited nodes not to be included to the resulting hierarchical list
+
+        :return: hierarchical subnodes list starting from the bounded node
+        """
         if visited is None:
             visited = []
 
         if len(visited) > MAX_DEPTH:
             raise ValueError('Graph has cycle')
         nodes = [self._node]
-        if self._node.nodes_from:
+        if self._node.nodes_from is not None:
             for parent in self._node.nodes_from:
                 if parent not in visited:
                     visited.append(parent)
@@ -33,13 +54,20 @@ class NodeOperator:
         return nodes
 
     def descriptive_id(self) -> str:
+        """
+        Returns verbal identificator of the node
+
+        :return: text description of the content in the node and its parameters
+        """
         return _descriptive_id_recursive(self._node, visited_nodes=[])
 
 
-def _descriptive_id_recursive(current_node, visited_nodes) -> str:
+def _descriptive_id_recursive(current_node: Union['GraphNode', 'OptNode'],
+                              visited_nodes: Union[List['GraphNode'], List['OptNode']]) -> str:
     """
-    Method returns verbal description of the content in the node
-    and its parameters
+    Returns verbal identificator of the node
+
+    :return: text description of the content in the node and its parameters
     """
     if isinstance(current_node.content['name'], str):
         # If there is a string: name of operation (as in json repository)
