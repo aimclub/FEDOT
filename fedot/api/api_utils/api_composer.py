@@ -270,7 +270,7 @@ class ApiComposer:
                 log.info('Hyperparameters tuning finished')
         return pipeline_gp_composed
 
-    def obtain_metric_for_tuning(self, tuner_metric: Union[None, str, Metric], task:Task, log: LoggerAdapter):
+    def obtain_metric_for_tuning(self, tuner_metric: Union[None, str, Metric], task: Task, log: LoggerAdapter):
         if tuner_metric is None:
             # Default metric for tuner
             tuner_loss = MetricByTask(task.task_type).metric_cls.metric
