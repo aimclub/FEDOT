@@ -23,9 +23,7 @@ class UniqueList(list, Generic[T]):
     def __init__(self, iterable: Optional[Iterable[T]] = None):
         seen = set()
         iterable = iterable or ()
-        super().__init__(seen.add(element) or element
-                         for element in iterable
-                         if element not in seen)
+        super().__init__(dict.fromkeys(iterable).keys()) # preserves order and uniqueness in the newly created list
         del seen
 
     def append(self, value: T):
