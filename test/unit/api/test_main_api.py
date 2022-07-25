@@ -145,7 +145,7 @@ def test_api_forecast_correct(task_type: str = 'ts_forecasting'):
     forecast_length = 5
     train_data, test_data, _ = get_dataset(task_type)
     model = Fedot(problem='ts_forecasting', **default_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length), tuner_metric='rmse')
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
 
     model.fit(features=train_data)
     ts_forecast = model.predict(features=test_data)
@@ -452,7 +452,7 @@ def test_api_params():
                   'max_pipeline_fit_time': default_int_value,
                   'initial_assumption': PipelineBuilder().add_node('lagged').add_node('ridge').to_pipeline(),
                   'genetic_scheme': GeneticSchemeTypesEnum.steady_state, 'history_folder': 'history',
-                  'composer_metric': RegressionMetricsEnum.SMAPE, 'tuner_metric': RegressionMetricsEnum.MAPE,
+                  'composer_metric': RegressionMetricsEnum.SMAPE,
                   'collect_intermediate_metric': True, 'preset': 'fast_train',
                   'optimizer_external_params': {'path': default_int_value}}
 
@@ -481,7 +481,7 @@ def test_api_params():
                                'validation_blocks': default_int_value,
                                'optimizer_external_params': {'path': default_int_value},
                                'use_pipelines_cache': True, 'use_preprocessing_cache': True}
-    correct_tuner_params = {'tuner_metric': RegressionMetricsEnum.MAPE, 'with_tuning': True}
+    correct_tuner_params = {'with_tuning': True}
 
     model = Fedot(**api_params)
     api_params, composer_params, tuner_params = _divide_parameters(model.params.api_params)

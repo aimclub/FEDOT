@@ -50,7 +50,6 @@ class AtomizedModel(Operation):
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
         tuned_pipeline = self.pipeline.fine_tune_all_nodes(loss_function=loss_function,
-
                                                            input_data=input_data,
                                                            iterations=iterations,
                                                            timeout=timeout)

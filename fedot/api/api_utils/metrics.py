@@ -39,7 +39,7 @@ class ApiMetrics:
             # for custom metric
             return metric_name
 
-        composer_metric_dict = {
+        metric_dict = {
             'acc': ClassificationMetricsEnum.accuracy,
             'roc_auc': ClassificationMetricsEnum.ROCAUC,
             'f1': ClassificationMetricsEnum.f1,
@@ -55,4 +55,4 @@ class ApiMetrics:
             'silhouette': ClusteringMetricsEnum.silhouette,
             'node_num': ComplexityMetricsEnum.node_num
         }
-        return composer_metric_dict[metric_name]
+        return metric_dict[metric_name]

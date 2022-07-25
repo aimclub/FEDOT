@@ -1,5 +1,4 @@
 import os
-from datetime import timedelta
 from pathlib import Path
 
 import numpy as np
@@ -33,9 +32,6 @@ def get_data_from_csv(data_path: Path, task_type: TaskTypesEnum, shuffle_flag: b
 
 
 def run_classification_example(timeout: float = None):
-    # train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
-    # test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
-    #
     problem = 'classification'
 
     train_data, test_data = get_data_from_csv(Path(f'{fedot_project_root()}/examples/data/kc1.csv'),
@@ -48,7 +44,7 @@ def run_classification_example(timeout: float = None):
     print(baseline_model.get_metrics())
 
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=-1,
-                       max_pipeline_fit_time=1, composer_metric='roc_auc', tuner_metric='roc_auc')
+                       max_pipeline_fit_time=1, composer_metric='roc_auc')
     auto_model.fit(features=train_data, target='target')
     prediction = auto_model.predict_proba(features=test_data)
     print(auto_model.get_metrics())

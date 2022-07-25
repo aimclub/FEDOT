@@ -224,11 +224,10 @@ class ApiComposer:
             pipeline.log = log
 
         if with_tuning:
-            if tuning_params['tuner_metric'] is None:
-                tuning_params['tuner_metric'] = composer_params['composer_metric']
+            tuning_metric = composer_params['composer_metric']
             timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
-                                     tuning_params['tuner_metric'],
+                                     tuning_metric,
                                      composer_requirements,
                                      best_pipeline,
                                      timeout_for_tuning,
@@ -301,7 +300,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
                                 preset='auto', use_pipelines_cache=True, use_preprocessing_cache=False)
 
-    tuner_params_dict = dict(with_tuning=False, tuner_metric=None)
+    tuner_params_dict = dict(with_tuning=False)
 
     dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
     for k, v in common_dict.items():

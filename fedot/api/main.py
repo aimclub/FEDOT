@@ -82,7 +82,6 @@ class Fedot:
         - 'ts: A special preset with models for time series forecasting task.
         - 'automl: A special preset with only AutoML libraries such as TPOT and H2O as operations.
         - '*tree: A special preset that allows only tree-based algorithms
-    :param tuner_metric:  metric for quality calculation during tuning
     :param use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
     :param use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
     :param logging_level_opt: logging level for optimiser. Logic of logging is the same as in 'logging_level' param
