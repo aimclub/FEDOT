@@ -37,12 +37,12 @@ class DataObjectiveBuilder:
         self._preprocessing_cache = preprocessing_cache
         self.log = default_log(self)
 
-    def build(self, data: InputData, **kwargs) -> ObjectiveEvaluate:
+    def build(self, data: InputData) -> ObjectiveEvaluate:
         """ Compose evaluator object with desired parameters """
         if self.cv_folds is not None:
             data_producer = self._build_kfolds_producer(data)
         else:
-            data_producer = self._build_holdout_producer(data, **kwargs)
+            data_producer = self._build_holdout_producer(data)
 
         objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective, data_producer=data_producer,
                                                        time_constraint=self.max_pipeline_fit_time,
@@ -55,7 +55,7 @@ class DataObjectiveBuilder:
     def _data_producer(train_data: InputData, test_data: InputData):
         yield train_data, test_data
 
-    def _build_holdout_producer(self, data: InputData, **kwargs: dict) -> DataSource:
+    def _build_holdout_producer(self, data: InputData) -> DataSource:
         """
         Build trivial data producer for hold-out validation
         that always returns same data split. Equivalent to 1-fold validation.
@@ -63,8 +63,7 @@ class DataObjectiveBuilder:
 
         self.log.info("Hold out validation for graph composing was applied.")
         split_ratio = default_data_split_ratio_by_task[data.task.task_type]
-        train_data, test_data = train_test_data_setup(data, split_ratio,
-                                                      **{'validation_blocks': kwargs.get('validation_blocks')})
+        train_data, test_data = train_test_data_setup(data, split_ratio, validation_blocks=self.validation_blocks)
 
         if RemoteEvaluator().use_remote:
             init_data_for_remote_execution(train_data)

@@ -102,10 +102,10 @@ def test_data_splitting_perform_correctly_after_build():
                       1: {'train_features_size': (6,), 'test_features_size': (10,), 'test_target_size': (10,)}}
 
     metric_function = RegressionMetricsEnum.MAE
-    objective_builder = DataObjectiveBuilder(objective=Objective([metric_function]), cv_folds=2)
+    objective_builder = DataObjectiveBuilder(objective=Objective([metric_function]), cv_folds=2, validation_blocks=2)
 
     time_series = get_ts_data_to_forecast_two_elements()
-    evaluator = objective_builder.build(time_series, validation_blocks=2)
+    evaluator = objective_builder.build(time_series)
 
     # Imitate evaluation process
     for fold_id, (train_data, test_data) in enumerate(evaluator._data_producer()):
