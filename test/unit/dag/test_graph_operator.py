@@ -121,12 +121,18 @@ def test_known_distances():
     pipeline_knn_alternate_params = PipelineBuilder().add_node('scaling').\
         add_node('knn', params={'metric': 'euclidean'}).to_pipeline()  # scaling -> knn_alternate_params
 
-    assert get_distance_between(graph_1=pipeline_knn, graph_2=pipeline_knn) == 0  # the same pipeline
-    assert get_distance_between(graph_1=pipeline_knn, graph_2=pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge
-    assert get_distance_between(graph_1=pipeline_knn, graph_2=pipeline_linear) == 1  # changes: 1 node (operation)
-    assert get_distance_between(graph_1=pipeline_knn, graph_2=pipeline_knn_alternate_params) == 1  # changes: 1 node (params)
-    assert get_distance_between(graph_1=pipeline_knn, graph_2=pipeline_xgboost) == 3  # changes: 2 nodes (operations) + 1 edge
-    assert get_distance_between(graph_1=pipeline_knn, graph_2=pipeline_knn_alternate_params) == 1  # changes: 1 operation + params
+    assert get_distance_between(graph_1=pipeline_knn,
+                                graph_2=pipeline_knn) == 0  # the same pipeline
+    assert get_distance_between(graph_1=pipeline_knn,
+                                graph_2=pipeline_scaling) == 2  # changes: 1 node (operation) + 1 edge
+    assert get_distance_between(graph_1=pipeline_knn,
+                                graph_2=pipeline_linear) == 1  # changes: 1 node (operation)
+    assert get_distance_between(graph_1=pipeline_knn,
+                                graph_2=pipeline_knn_alternate_params) == 1  # changes: 1 node (params)
+    assert get_distance_between(graph_1=pipeline_knn,
+                                graph_2=pipeline_xgboost) == 3  # changes: 2 nodes (operations) + 1 edge
+    assert get_distance_between(graph_1=pipeline_knn,
+                                graph_2=pipeline_knn_alternate_params) == 1  # changes: 1 operation + params
 
 
 # ------------------------------------------------------------------------------
@@ -263,9 +269,9 @@ def test_disconnect_nodes_method_fifth():
 
 
 # ------------------------------------------------------------------------------
-# Test for get_all_edges method
+# Test for get_edges method
 
-def test_get_all_edges():
+def test_get_edges():
     pipeline = get_pipeline()
 
     lda = pipeline.nodes[3]
