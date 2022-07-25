@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'FEDOT'
-copyright = '2021-{}, NSS Lab'.format(datetime.datetime.now().year)
+copyright = '2020-{}, NSS Lab'.format(datetime.datetime.now().year)
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
