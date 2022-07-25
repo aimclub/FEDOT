@@ -116,15 +116,16 @@ class GraphOperator:
                 node in other_node.nodes_from]
 
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
-        if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
-            if child.nodes_from:
-                # if not already connected
-                child.nodes_from.append(parent)
-            else:
-                # add parent to initial node
-                new_child = GraphNode(nodes_from=[], content=child.content)
-                new_child.nodes_from.append(parent)
-                self.update_node(child, new_child)
+        if child in self.node_children(parent):
+            return
+        # if not already connected
+        if child.nodes_from:
+            child.nodes_from.append(parent)
+        else:
+            # add parent to initial node
+            new_child = GraphNode(nodes_from=[], content=child.content)
+            new_child.nodes_from.append(parent)
+            self.update_node(child, new_child)
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
