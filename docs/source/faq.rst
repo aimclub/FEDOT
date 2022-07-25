@@ -41,8 +41,7 @@ What is Fedot?
 Why should I use Fedot instead of existing state-of-the-art solutions (H2O/TPOT/etc)?
 -------------------------------------------------------------------------------------
 
-.. sidebar:: Why should I use Fedot
-    :subtitle: Optional Sidebar Subtitle
+.. topic:: Answer
 
     In practice, the existing AutoML solutions are really effective for the
     limited set of problems only. During the model learning, modern AutoML
