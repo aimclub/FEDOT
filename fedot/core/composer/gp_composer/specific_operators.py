@@ -1,7 +1,7 @@
 from random import choice, random
 from typing import Any, List
 
-from fedot.core.optimisers.gp_comp.operators.mutation import get_mutation_prob
+from fedot.core.optimisers.gp_comp.operators.mutation import Mutation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.hyperparams import ParametersChanger
@@ -15,8 +15,8 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, **kwargs) -> Any
     hyperparameters of the operations with probability - 'node mutation probability'
     which is initialised inside the function
     """
-    node_mutation_probability = get_mutation_prob(mut_id=requirements.mutation_strength,
-                                                  node=pipeline.root_node)
+    node_mutation_probability = Mutation.get_mutation_prob(mut_id=requirements.mutation_strength,
+                                                           node=pipeline.root_node)
     for node in pipeline.nodes:
         if random() < node_mutation_probability:
             operation_name = node.operation.operation_type

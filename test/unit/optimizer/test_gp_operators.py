@@ -16,8 +16,7 @@ from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, _adapt_and_apply_mutations
-from fedot.core.optimisers.gp_comp.operators.mutation import mutation, reduce_mutation, single_drop_mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.objective.objective import Objective
@@ -188,19 +187,24 @@ def test_mutation():
     primary_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
     composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
-                                                         secondary=secondary_model_types, mutation_prob=1)
+                                                         secondary=secondary_model_types, mutation_prob=1,
+                                                         max_depth=3)
     graph_gener_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                         task=task)
-    new_ind = mutation(mutation_types, graph_gener_params, ind,
-                       composer_requirements, max_depth=3)
+    mutation = Mutation(mutation_types=mutation_types, graph_generation_params=graph_gener_params,
+                        requirements=composer_requirements)
+    new_ind = mutation(ind)
     assert new_ind.graph == ind.graph
     mutation_types = [MutationTypesEnum.growth]
     composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
-                                                         secondary=secondary_model_types, mutation_prob=0)
-    new_ind = mutation(mutation_types, graph_gener_params, ind, composer_requirements, max_depth=3)
+                                                         secondary=secondary_model_types, mutation_prob=0,
+                                                         max_depth=3)
+    mutation = Mutation(mutation_types=mutation_types, graph_generation_params=graph_gener_params,
+                        requirements=composer_requirements)
+    new_ind = mutation(ind)
     assert new_ind.graph == ind.graph
     ind = Individual(adapter.adapt(pipeline_fifth()))
-    new_ind = mutation(mutation_types, graph_gener_params, ind, composer_requirements, max_depth=3)
+    new_ind = mutation(ind)
     assert new_ind.graph == ind.graph
 
 
@@ -214,16 +218,17 @@ def test_intermediate_add_mutation_for_linear_graph():
     linear_three_nodes_inner = OptGraph(OptNode({'name': 'logit'}, nodes_from))
 
     composer_requirements = PipelineComposerRequirements(primary=['scaling'],
-                                                         secondary=['one_hot_encoding'], mutation_prob=1)
+                                                         secondary=['one_hot_encoding'], mutation_prob=1,
+                                                         max_depth=3)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_inner = False
+    mutation = Mutation(mutation_types=[MutationTypesEnum.single_add], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
 
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_add], params=graph_params,
-                                        individual=Individual(linear_two_nodes), requirements=composer_requirements,
-                                        max_depth=3).graph
+        graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
         if not successful_mutation_inner:
             successful_mutation_inner = \
                 graph_after_mutation.root_node.descriptive_id == linear_three_nodes_inner.root_node.descriptive_id
@@ -243,16 +248,18 @@ def test_parent_add_mutation_for_linear_graph():
     linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
 
     composer_requirements = PipelineComposerRequirements(primary=['scaling'],
-                                                         secondary=['logit'], mutation_prob=1)
+                                                         secondary=['logit'], mutation_prob=1, max_depth=2)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES,
                                          node_factory=DefaultOptNodeFactory(requirements=composer_requirements))
     successful_mutation_outer = False
+
+    mutation = Mutation(mutation_types=[MutationTypesEnum.single_add], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
+
     for _ in range(200):  # since add mutations has a lot of variations
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_add], params=graph_params,
-                                        individual=Individual(linear_one_node), requirements=composer_requirements,
-                                        max_depth=2).graph
+        graph_after_mutation = mutation(Individual(linear_one_node)).graph
         if not successful_mutation_outer:
             successful_mutation_outer = \
                 graph_after_mutation.root_node.descriptive_id == linear_two_nodes.root_node.descriptive_id
@@ -273,15 +280,16 @@ def test_edge_mutation_for_graph():
         OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [primary]), primary]))
 
     composer_requirements = PipelineComposerRequirements(primary=['scaling', 'one_hot_encoding'],
-                                                         secondary=['logit', 'scaling'], mutation_prob=1)
+                                                         secondary=['logit', 'scaling'], mutation_prob=1,
+                                                         max_depth=graph_with_edge.depth)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_edge = False
+    mutation = Mutation(mutation_types=[MutationTypesEnum.single_edge], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_edge], params=graph_params,
-                                        individual=Individual(graph_without_edge), requirements=composer_requirements,
-                                        max_depth=graph_with_edge.depth).graph
+        graph_after_mutation = mutation(Individual(graph_without_edge)).graph
         if not successful_mutation_edge:
             successful_mutation_edge = \
                 graph_after_mutation.root_node.descriptive_id == graph_with_edge.root_node.descriptive_id
@@ -299,16 +307,16 @@ def test_replace_mutation_for_linear_graph():
     linear_changed = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'})]))
 
     composer_requirements = PipelineComposerRequirements(primary=['scaling', 'one_hot_encoding'],
-                                                         secondary=['logit'], mutation_prob=1)
+                                                         secondary=['logit'], mutation_prob=1, max_depth=2)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
                                          rules_for_constraint=DEFAULT_DAG_RULES,
                                          node_factory=PipelineOptNodeFactory(requirements=composer_requirements))
     successful_mutation_replace = False
+    mutation = Mutation(mutation_types=[MutationTypesEnum.single_change], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_change], params=graph_params,
-                                        individual=Individual(linear_two_nodes), requirements=composer_requirements,
-                                        max_depth=2).graph
+        graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
         if not successful_mutation_replace:
             successful_mutation_replace = \
                 graph_after_mutation.root_node.descriptive_id == linear_changed.root_node.descriptive_id
@@ -327,15 +335,16 @@ def test_drop_mutation_for_linear_graph():
     linear_one_node = OptGraph(OptNode({'name': 'logit'}))
 
     composer_requirements = PipelineComposerRequirements(primary=['scaling'],
-                                                         secondary=['logit'], mutation_prob=1)
+                                                         secondary=['logit'], mutation_prob=1, max_depth=2)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
     successful_mutation_drop = False
+    mutation = Mutation(mutation_types=[MutationTypesEnum.single_drop], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
+
     for _ in range(100):
-        graph_after_mutation = mutation(types=[MutationTypesEnum.single_drop], params=graph_params,
-                                        individual=Individual(linear_two_nodes), requirements=composer_requirements,
-                                        max_depth=2).graph
+        graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
         if not successful_mutation_drop:
             successful_mutation_drop = \
                 graph_after_mutation.root_node.descriptive_id == linear_one_node.root_node.descriptive_id
@@ -363,17 +372,18 @@ def test_boosting_mutation_for_linear_graph():
 
     available_operations = [node.content['name'] for node in boosting_graph.nodes]
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations, mutation_prob=1)
+                                                         secondary=available_operations, mutation_prob=1,
+                                                         max_depth=2)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=Task(TaskTypesEnum.classification))
     successful_mutation_boosting = False
+    mutation = Mutation(mutation_types=[boosting_mutation], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
     for _ in range(100):
         if not successful_mutation_boosting:
-            graph_after_mutation = mutation(types=[boosting_mutation], params=graph_params,
-                                            individual=Individual(linear_one_node), requirements=composer_requirements,
-                                            max_depth=2).graph
+            graph_after_mutation = mutation(Individual(linear_one_node)).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -411,17 +421,17 @@ def test_boosting_mutation_for_non_lagged_ts_model():
 
     available_operations = [node.content['name'] for node in boosting_graph.nodes]
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations, mutation_prob=1)
+                                                         secondary=available_operations, mutation_prob=1, max_depth=2)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=Task(TaskTypesEnum.ts_forecasting))
     successful_mutation_boosting = False
+    mutation = Mutation(mutation_types=[boosting_mutation], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
     for _ in range(100):
         if not successful_mutation_boosting:
-            graph_after_mutation = mutation(types=[boosting_mutation], params=graph_params,
-                                            individual=Individual(linear_two_nodes), requirements=composer_requirements,
-                                            max_depth=2).graph
+            graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
             successful_mutation_boosting = \
                 graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
         else:
@@ -496,7 +506,7 @@ def test_crossover_with_single_node():
 
 def test_mutation_with_single_node():
     adapter = PipelineAdapter()
-    graph = adapter.adapt(generate_pipeline_with_single_node())
+    individual = Individual(adapter.adapt(generate_pipeline_with_single_node()))
     task = Task(TaskTypesEnum.classification)
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
@@ -507,12 +517,15 @@ def test_mutation_with_single_node():
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=task)
+    mutation = Mutation(mutation_types=[MutationTypesEnum.reduce], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
+    new_individual = mutation(individual)
+    assert individual.graph == new_individual.graph
 
-    new_graph = reduce_mutation(graph, composer_requirements, graph_params)
-    assert graph == new_graph
-
-    new_graph = single_drop_mutation(graph, graph_params)
-    assert graph == new_graph
+    mutation = Mutation(mutation_types=[MutationTypesEnum.single_drop], graph_generation_params=graph_params,
+                        requirements=composer_requirements)
+    new_individual = mutation(individual)
+    assert individual.graph == new_individual.graph
 
 
 def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
@@ -523,21 +536,15 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
     mutation_types = [MutationTypesEnum.growth]
-    mutation_prob = 1
     available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                                         max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
+                                                         max_arity=3, max_depth=2, pop_size=5, num_of_generations=4,
                                                          crossover_prob=.8, mutation_prob=1)
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=task)
-    _adapt_and_apply_mutations(new_graph=graph,
-                               mutation_prob=mutation_prob,
-                               types=mutation_types,
-                               num_mut=1,
-                               requirements=composer_requirements,
-                               params=graph_params,
-                               max_depth=2)
+    Mutation(mutation_types=mutation_types, requirements=composer_requirements, graph_generation_params=graph_params).\
+        _adapt_and_apply_mutations(new_graph=graph, num_mut=1)
 
     if Path(test_file_path).exists():
         content = Path(test_file_path).read_text()
