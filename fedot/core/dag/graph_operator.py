@@ -219,7 +219,7 @@ class GraphOperator:
         node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
         return node_degrees
 
-    def get_all_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
+    def get_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
         """ Returns all available edges in a given graph """
         edges = []
         for node in self._graph.nodes:
@@ -228,22 +228,24 @@ class GraphOperator:
                     edges.append((parent_node, node))
         return edges
 
-    def distance_to(self, other_graph: 'Graph') -> int:
-        """ Returns distance to specified graph """
-        def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
-            node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
 
-            is_operation_match = str(node_1) == str(node_2)
-            is_params_match = node_1.content.get('params') == node_2.content.get('params')
-            is_match = is_operation_match and is_params_match
-            return is_match
+def get_distance_between(graph_1: 'Graph', graph_2: 'Graph') -> int:
+    """ Returns distance between specified graphs """
 
-        graphs = (self._graph, other_graph)
-        nx_graphs = []
-        for graph in graphs:
-            nx_graph, nodes = graph_structure_as_nx_graph(graph)
-            set_node_attributes(nx_graph, nodes, name='node')
-            nx_graphs.append(nx_graph)
+    def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
+        node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
 
-        distance = graph_edit_distance(*nx_graphs, node_match=node_match)
-        return int(distance)
+        is_operation_match = str(node_1) == str(node_2)
+        is_params_match = node_1.content.get('params') == node_2.content.get('params')
+        is_match = is_operation_match and is_params_match
+        return is_match
+
+    graphs = (graph_1, graph_2)
+    nx_graphs = []
+    for graph in graphs:
+        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        set_node_attributes(nx_graph, nodes, name='node')
+        nx_graphs.append(nx_graph)
+
+    distance = graph_edit_distance(*nx_graphs, node_match=node_match)
+    return int(distance)

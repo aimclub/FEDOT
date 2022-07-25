@@ -193,13 +193,9 @@ class OptGraph:
          k = k(in) + k(out) """
         return self._operator.get_nodes_degrees()
 
-    def get_all_edges(self):
+    def get_edges(self):
         """ Returns all available edges in a given graph """
-        return self._operator.get_all_edges()
-
-    def distance_to(self, other_graph: 'OptGraph') -> int:
-        """ Returns distance to specified graph """
-        return self._operator.distance_to(other_graph=other_graph)
+        return self._operator.get_edges()
 
     def show(self, path: str = None):
         GraphVisualiser().visualise(self, path)
