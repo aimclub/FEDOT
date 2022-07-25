@@ -16,7 +16,7 @@ class RegularizationTypesEnum(Enum):
 
 class Regularization:
     def __init__(self, regularization_type: RegularizationTypesEnum,
-                 graph_generation_params: GraphGenerationParams, requirements: PipelineComposerRequirements):
+                 requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams):
         self.regularization_type = regularization_type
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
@@ -49,7 +49,6 @@ class Regularization:
             prev_nodes_ids.update(subtree.graph.root_node.descriptive_id for subtree in subtree_inds)
 
         additional_inds = [ind for ind in additional_inds if self.graph_generation_params.verifier(ind.graph)]
-
         evaluator(additional_inds)
         additional_inds.extend(population)
         if len(additional_inds) > size:

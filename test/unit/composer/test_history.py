@@ -92,7 +92,7 @@ def test_ancestor_for_crossover():
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
                                                          secondary=available_operations,
                                                          max_depth=3, crossover_prob=1)
-    crossover = Crossover([CrossoverTypesEnum.subtree], graph_params, composer_requirements)
+    crossover = Crossover([CrossoverTypesEnum.subtree], composer_requirements, graph_params)
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 
     for crossover_result in crossover_results:

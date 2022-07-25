@@ -175,7 +175,7 @@ def test_crossover():
     assert new_graphs[1].graph == graph_example_second
     crossover_types = [CrossoverTypesEnum.subtree]
     requirements.crossover_prob = 0
-    crossover = Crossover(crossover_types, get_pipeline_generation_params(), requirements)
+    crossover = Crossover(crossover_types, requirements, get_pipeline_generation_params())
     new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
@@ -500,7 +500,7 @@ def test_crossover_with_single_node():
     requirements = PipelineComposerRequirements(primary=[], secondary=[], max_depth=3, crossover_prob=1)
 
     for crossover_type in CrossoverTypesEnum:
-        crossover = Crossover([crossover_type], graph_params, requirements)
+        crossover = Crossover([crossover_type], requirements, graph_params)
         new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
 
         assert new_graphs[0].graph == graph_example_first
