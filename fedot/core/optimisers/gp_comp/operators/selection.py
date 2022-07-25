@@ -27,8 +27,22 @@ class Selection:
         selection_type = choice(self.selection_types)
         return self._selection_by_type(selection_type)(population)
 
+    def _selection_by_type(self, selection_type: SelectionTypesEnum):
+        selections = {
+            SelectionTypesEnum.tournament: self._tournament_selection,
+            SelectionTypesEnum.spea2: self._spea2_selection
+        }
+        if selection_type in selections:
+            return selections[selection_type]
+        else:
+            raise ValueError(f'Required selection not found: {selection_type}')
+
     def update_requirements(self, new_requirements: PipelineComposerRequirements):
         self.requirements = new_requirements
+
+    @staticmethod
+    def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
+        return zip(population[::2], population[1::2])
 
     def individuals_selection(self, individuals: PopulationT) -> PopulationT:
         pop_size = self.requirements.pop_size
@@ -51,20 +65,6 @@ class Selection:
             self.requirements = old_requirements
         return chosen
 
-    @staticmethod
-    def _random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
-        chosen = []
-        n_iter = 0
-        while len(chosen) < pop_size and n_iter < pop_size * 10:
-            if not individuals:
-                return []
-            if len(individuals) <= 1:
-                return [individuals[0]] * pop_size
-            individual = choice(individuals)
-            if individual.uid not in (c.uid for c in chosen):
-                chosen.append(individual)
-        return chosen
-
     def _tournament_selection(self, individuals: PopulationT,
                               fraction: float = 0.1) -> PopulationT:
         pop_size = self.requirements.pop_size
@@ -81,6 +81,20 @@ class Selection:
                 chosen.append(best)
             n_iter += 1
 
+        return chosen
+
+    @staticmethod
+    def _random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
+        chosen = []
+        n_iter = 0
+        while len(chosen) < pop_size and n_iter < pop_size * 10:
+            if not individuals:
+                return []
+            if len(individuals) <= 1:
+                return [individuals[0]] * pop_size
+            individual = choice(individuals)
+            if individual.uid not in (c.uid for c in chosen):
+                chosen.append(individual)
         return chosen
 
     # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
@@ -199,10 +213,6 @@ class Selection:
 
         return [individuals[i] for i in chosen_indices]
 
-    @staticmethod
-    def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
-        return zip(population[::2], population[1::2])
-
     # Auxiliary algorithmic functions for spea2_selection
     # This code is a part of DEAP library (Library URL: https://github.com/DEAP/deap).
     @staticmethod
@@ -242,13 +252,3 @@ class Selection:
                 array[i], array[j] = array[j], array[i]
             else:
                 return j
-
-    def _selection_by_type(self, selection_type: SelectionTypesEnum):
-        selections = {
-            SelectionTypesEnum.tournament: self._tournament_selection,
-            SelectionTypesEnum.spea2: self._spea2_selection
-        }
-        if selection_type in selections:
-            return selections[selection_type]
-        else:
-            raise ValueError(f'Required selection not found: {selection_type}')

@@ -23,18 +23,6 @@ class Inheritance:
     def __call__(self, previous_population: PopulationT, new_population: PopulationT) -> PopulationT:
         return self._inheritance_type_by_genetic_scheme(self.genetic_scheme_type, previous_population, new_population)()
 
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
-
-    def _steady_state_inheritance(self,
-                                  prev_population: List[Any],
-                                  new_population: List[Any]) -> PopulationT:
-        selection = Selection(self.selection_types, self.requirements)
-        return selection.individuals_selection(individuals=prev_population + new_population)
-
-    def _direct_inheritance(self, new_population: List[Any]):
-        return new_population[:self.requirements.pop_size]
-
     def _inheritance_type_by_genetic_scheme(self, genetic_scheme_type: GeneticSchemeTypesEnum,
                                             previous_population: PopulationT, new_population: PopulationT):
         steady_state_scheme = partial(self._steady_state_inheritance, previous_population,
@@ -46,3 +34,14 @@ class Inheritance:
             GeneticSchemeTypesEnum.parameter_free: steady_state_scheme
         }
         return inheritance_type_by_genetic_scheme[genetic_scheme_type]
+
+    def update_requirements(self, new_requirements: PipelineComposerRequirements):
+        self.requirements = new_requirements
+
+    def _steady_state_inheritance(self, prev_population: List[Any], new_population: List[Any]) -> PopulationT:
+        selection = Selection(self.selection_types, self.requirements)
+        selected_individuals = selection.individuals_selection(individuals=prev_population + new_population)
+        return selected_individuals
+
+    def _direct_inheritance(self, new_population: List[Any]):
+        return new_population[:self.requirements.pop_size]

@@ -95,10 +95,10 @@ class EvoGraphOptimiser(GraphOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.parameters = parameters or GPGraphOptimiserParameters()
-        self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
-        self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.selection = Selection(parameters.selection_types, requirements)
+        self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.inheritance = Inheritance(parameters.genetic_scheme_type, parameters.selection_types, requirements)
+        self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -243,6 +243,7 @@ class EvoGraphOptimiser(GraphOptimiser):
         self.selection.update_requirements(self.requirements)
         self.mutation.update_requirements(self.requirements)
         self.inheritance.update_requirements(self.requirements)
+        self.elitism.update_requirements(self.requirements)
 
     def _reproduce(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
