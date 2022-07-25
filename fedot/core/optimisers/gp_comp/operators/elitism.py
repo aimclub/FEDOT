@@ -46,3 +46,6 @@ class Elitism:
         if self.is_multi_objective:
             return False
         return self.requirements.pop_size >= self.min_population_size_with_elitism
+
+    def update_requirements(self, new_requirements: PipelineComposerRequirements):
+        self.requirements = new_requirements
