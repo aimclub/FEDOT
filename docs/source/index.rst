@@ -20,8 +20,9 @@ The main aim of the Fedot - to improve the quality of analysis of various natura
 Content
 =======
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
+   introduction
    fedot/index
    contribution
    faq
