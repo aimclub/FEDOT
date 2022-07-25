@@ -166,6 +166,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                                  f'Current size {len(self.initial_individuals)} '
                                  f'instead of {self.requirements.pop_size} graphs.')
                 break
+        self.mutation.update_requirements(self.requirements)
         return initial_individuals
 
     def _next_population(self, next_population: PopulationT):
@@ -205,8 +206,8 @@ class EvoGraphOptimiser(GraphOptimiser):
                 # Adding of extended population to history
                 self._next_population(evaluator(self.initial_individuals))
 
-            self._update_requirements()
             while not self.stop_optimisation():
+                self._update_requirements()
                 individuals_to_select = regularized_population(self.parameters.regularization_type,
                                                                self.population,
                                                                evaluator,
@@ -228,7 +229,6 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 # Adding of new population to history
                 self._next_population(new_population)
-                self._update_requirements()
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
 
