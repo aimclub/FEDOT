@@ -14,8 +14,6 @@ from fedot.core.utilities.data_structures import ComparableEnum as Enum
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
 
-MAX_NUM_OF_ATTEMPTS = 100
-
 
 class CrossoverTypesEnum(Enum):
     subtree = 'subtree'
@@ -25,10 +23,12 @@ class CrossoverTypesEnum(Enum):
 
 class Crossover:
     def __init__(self, crossover_types: List[Union[CrossoverTypesEnum, Callable]],
-                 graph_generation_params: 'GraphGenerationParams', requirements: PipelineComposerRequirements):
+                 graph_generation_params: 'GraphGenerationParams', requirements: PipelineComposerRequirements,
+                 max_number_of_attempts: int = 100):
         self.crossover_types = crossover_types
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
+        self.max_number_of_attempts = max_number_of_attempts
         self.log = default_log(prefix='crossover')
 
     def __call__(self, population: PopulationT):
@@ -49,7 +49,7 @@ class Crossover:
 
         try:
             if self._will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_type):
-                for _ in range(MAX_NUM_OF_ATTEMPTS):
+                for _ in range(self.max_number_of_attempts):
                     if is_custom_crossover:
                         crossover_func = crossover_type
                     else:
