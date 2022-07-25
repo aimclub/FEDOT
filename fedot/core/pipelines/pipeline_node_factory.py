@@ -43,6 +43,5 @@ class PipelineOptNodeFactory(OptNodeFactory):
     def _return_node(candidates):
         if not candidates:
             return None
-        return OptNode(content={'name': choice(candidates),
-                                'params': DEFAULT_PARAMS_STUB})
+        return OptNode(content={'name': choice(candidates)})
 
