@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 import zipfile
@@ -83,7 +84,8 @@ def test_export_import_api_correctly():
     api = Fedot(problem='classification', timeout=-1,
                 with_tuning=False,
                 num_of_generations=1,
-                pop_size=3)
+                pop_size=3,
+                logging_level_opt=logging.CRITICAL+1)
 
     api.fit(train_data)
     api.predict(test_data)
