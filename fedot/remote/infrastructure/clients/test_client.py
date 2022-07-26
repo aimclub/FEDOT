@@ -1,6 +1,6 @@
 import os
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, Callable
 from uuid import uuid4
 
 from fedot.core.pipelines.pipeline import Pipeline
@@ -15,7 +15,6 @@ class TestClient(Client):
         self.exec_params = exec_params
         self.output_path = output_path if output_path else \
             os.path.join(default_fedot_data_dir(), 'remote_fit_results')
-        self.pipelines = []
         super().__init__(connect_params, exec_params, output_path)
 
     def create_task(self, config) -> str:

@@ -1,6 +1,6 @@
 import os
 from dataclasses import dataclass
-from typing import List, Optional, Sequence, Any, TypeVar
+from typing import List, Optional, Sequence, Any, TypeVar, Callable
 
 import numpy as np
 
@@ -51,15 +51,20 @@ class RemoteEvaluator:
         self._logger = default_log(prefix='RemoteFitterLog')
         self.remote_task_params = None
         self.client = None
+        self.config_for_dump = _get_config
 
-    def init(self, client: Client = None, remote_task_params: Optional[RemoteTaskParams] = None):
+    def init(self, client: Client = None,
+             remote_task_params: Optional[RemoteTaskParams] = None,
+             get_config: Optional[Callable] = None):
         """
         :param client: client class for connection to external computational server.
         :param remote_task_params: dictionary with the parameters of remote evaluation.
+        :param get_config: optional function that constructs config for remote client.
 
         """
         self.remote_task_params = remote_task_params
         self.client = client
+        self.config_for_dump = get_config or _get_config
 
     @property
     def use_remote(self):
@@ -89,7 +94,7 @@ class RemoteEvaluator:
                 graph_json, _ = graph.save()
                 graph_json = graph_json.replace('\n', '')
 
-                config = _get_config(graph_json, params, self.client.exec_params, self.client.connect_params)
+                config = self.config_for_dump(graph_json, params, self.client.exec_params, self.client.connect_params)
 
                 task_id = client.create_task(config=config)
                 execution_ids[id(graph)] = task_id
