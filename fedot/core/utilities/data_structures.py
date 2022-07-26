@@ -6,6 +6,7 @@ from typing import Callable, Container, Generic, Iterable, Iterator, List, Optio
 
 T = TypeVar('T')
 
+
 class UniqueList(list, Generic[T]):
     """
     Simple list that maintains uniqueness of elements.
@@ -23,45 +24,82 @@ class UniqueList(list, Generic[T]):
     def __init__(self, iterable: Optional[Iterable[T]] = None):
         seen = set()
         iterable = iterable or ()
-        super().__init__(dict.fromkeys(iterable).keys()) # preserves order and uniqueness in the newly created list
+        super().__init__(dict.fromkeys(iterable).keys())  # preserves order and uniqueness in the newly created list
         del seen
 
     def append(self, value: T):
         """
         Adds ``value`` to the end of the list in case it is not present there
 
-        :param value: item to be added or ignored if it is already in the list
+        :param value: will be added to the list or ignored if it's already there
         """
         if value not in super().__iter__():
             super().append(value)
 
-    def extend(self, iterable: List[T]):
+    def extend(self, iterable: Iterable[T]):
+        """
+        Extends current list with the ``iterable`` elements that aren't present in the list yet
+
+        :param iterable: sequence of elements to be added to the list in case they aren't there
+        """
         impl = super()
         impl.extend(element for element in iterable
                     if element not in impl.__iter__())
 
-    def insert(self, index, value):
+    def insert(self, index: int, value: T):
+        """
+        Inserts specified ``value`` to the provided ``index`` in the list in case it's unique value
+
+        :param index: position for inserting into the list
+        :param value: will be inserted at the specified ``index`` if it's unique
+        """
         if value not in super().__iter__():
             super().insert(index, value)
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Union[int, slice], value: Union[T, Iterable[T]]):
+        """
+        Sets specified ``value`` at the specified index or slice if it's unique value
+
+        :param key: for pointing to the elements from the list
+        :param value: element(s) to be set by the specified ``key``
+        """
         if value not in super().__iter__():
             super().__setitem__(key, value)
 
-    def __iadd__(self, other):
+    def __iadd__(self, other: Iterable[T]) -> 'UniqueList':
+        """
+        Extends current list with the ``iterable`` elements that aren't present in the list yet
+
+        :param other: sequence of elements to be added to the list in case they aren't there
+
+        :return: this class instance
+        """
         self.extend(other)
         return self
 
 
-def remove_items(collection: List, items_to_remove: Container):
-    """Removes all specified items from the list. Modifies original collection."""
+def remove_items(collection: List[T], items_to_remove: Container[T]):
+    """
+    Removes all specified items from the list. Modifies original collection
+
+    :param collection: list of elements to be filtered
+    :param items_to_remove: filter list of unwanted elements
+
+    :return: modified ``collection`` parameter
+    """
     if collection:
         collection[:] = [item for item in collection if item not in items_to_remove]
     return collection
 
 
 def are_same_length(collections: Iterable[Sized]) -> bool:
-    """Checks if all arguments have the same length."""
+    """
+    Checks if all arguments have the same length
+
+    :param collections: collection of collections
+
+    :return: does collections inside ``collections`` have the same length
+    """
     it = collections.__iter__()
     first = next(it, None)
     if first is not None:
@@ -72,12 +110,9 @@ def are_same_length(collections: Iterable[Sized]) -> bool:
     return True
 
 
-T = TypeVar('T')
-
-
 def ensure_wrapped_in_sequence(
-    obj: Optional[Union[T, Iterable[T]]],
-    sequence_factory: Callable[[Iterable[T]], Sequence[T]] = list
+        obj: Optional[Union[T, Iterable[T]]],
+        sequence_factory: Callable[[Iterable[T]], Sequence[T]] = list
 ) -> Optional[Sequence[T]]:
     """
     Makes sure given ``obj`` is of type that acts like sequence and converts ``obj`` to it otherwise
@@ -103,56 +138,142 @@ class ComparableEnum(Enum):
     (https://stackoverflow.com/questions/26589805/python-enums-across-modules)
     """
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Enum'):
+        """
+        Compares this enum with the ``other_graph``
+
+        :param other: another enum
+
+        :return: is it equal to ``other`` in terms of the string representation
+        """
         return str(self) == str(other)
 
     def __hash__(self):
+        """
+        Gets hashcode of this enum
+
+        :return: hashcode of string representation of this enum
+        """
         return hash(str(self))
 
 
 class Comparable(ABC):
     @abstractmethod
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: 'Comparable') -> bool:
+        """
+        Compares this object of :class:`Comparable` interface with the ``other`` comparable
+
+        :param other: other object implementing :class:`Comparable` interface
+
+        :return: is it equal to ``other`` in terms of the comparables
+        """
         raise NotImplementedError()
 
     @abstractmethod
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: 'Comparable') -> bool:
+        """
+        Compares this object of :class:`Comparable` interface with the ``other`` comparable
+
+        :param other: other object implementing :class:`Comparable` interface
+
+        :return: is less than ``other`` in terms of the comparables
+        """
         raise NotImplementedError()
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: 'Comparable') -> bool:
+        """
+        Compares this object of :class:`Comparable` interface with the ``other`` comparable
+
+        :param other: other object implementing :class:`Comparable` interface
+
+        :return: is it not equal to ``other`` in terms of the comparables
+        """
         return not self.__eq__(other)
 
     def __le__(self, other) -> bool:
+        """
+        Compares this object of :class:`Comparable` interface with the ``other`` comparable
+
+        :param other: other object implementing :class:`Comparable` interface
+
+        :return: is less than or equal to ``other`` in terms of the comparables
+        """
         return self.__lt__(other) or self.__eq__(other)
 
     def __gt__(self, other) -> bool:
+        """
+        Compares this object of :class:`Comparable` interface with the ``other`` comparable
+
+        :param other: other object implementing :class:`Comparable` interface
+
+        :return: is greater than ``other`` in terms of the comparables
+        """
         return not self.__le__(other)
 
     def __ge__(self, other) -> bool:
+        """
+        Compares this object of :class:`Comparable` interface with the ``other`` comparable
+
+        :param other: other object implementing :class:`Comparable` interface
+
+        :return: is greater than or equal to ``other`` in terms of the comparables
+        """
         return not self.__lt__(other)
 
 
 class BidirectionalIterator(Iterator[T]):
     @abstractmethod
     def has_prev(self) -> bool:
+        """
+        Checks if this iterator has implemented previous item getter
+
+        :return: whether this iterator has previous item getter
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def has_next(self) -> bool:
+        """
+        Checks if this iterator has implemented next item getter
+
+        :return: whether this iterator has next item getter
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def next(self) -> T:
+        """
+        Gets next item of this iterator
+
+        :return: next item
+        """
         raise NotImplementedError()
 
     @abstractmethod
     def prev(self) -> T:
+        """
+        Gets previous item of this iterator
+
+        :return: previous item
+        """
         raise NotImplementedError()
 
     def __next__(self):
+        """
+        Gets next item of this iterator
+
+        :raises StopIteration: the end of this iterator
+
+        :return: next item
+        """
         if self.has_next():
             return self.next()
         raise StopIteration()
 
     def __iter__(self):
+        """
+        Returns this iterator
+
+        :return: this iterator
+        """
         return self
