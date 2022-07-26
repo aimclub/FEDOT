@@ -193,8 +193,8 @@ def test_fitted_pipeline_cache_correctness_after_export_and_import():
     pipeline.save('test_fitted_pipeline_cache_correctness_after_export_and_import')
     prediction = pipeline.predict(test_data)
 
-    new_pipeline = Pipeline()
-    new_pipeline.load(create_correct_path('test_fitted_pipeline_cache_correctness_after_export_and_import'))
+    json_load_path = create_correct_path('test_fitted_pipeline_cache_correctness_after_export_and_import')
+    new_pipeline = Pipeline.from_serialized(json_load_path)
 
     new_prediction = new_pipeline.predict(test_data)
 
@@ -205,8 +205,7 @@ def test_fitted_pipeline_cache_correctness_after_export_and_import():
 def test_import_json_to_pipeline_correctly():
     json_path_load = create_correct_path('test_pipeline_convert_to_json')
 
-    pipeline = Pipeline()
-    pipeline.load(json_path_load)
+    pipeline = Pipeline.from_serialized(json_path_load)
     json_actual, _ = pipeline.save('test_import_json_to_pipeline_correctly_1')
 
     pipeline_expected = create_pipeline()
@@ -233,8 +232,7 @@ def test_import_json_template_to_pipeline_correctly():
 def test_import_json_to_fitted_pipeline_correctly():
     json_path_load = create_correct_path('test_fitted_pipeline_convert_to_json')
 
-    pipeline = Pipeline()
-    pipeline.load(json_path_load)
+    pipeline = Pipeline.from_serialized(json_path_load)
     json_actual, _ = pipeline.save('test_import_json_to_fitted_pipeline_correctly')
 
     with open(json_path_load, 'r') as json_file:
@@ -321,8 +319,7 @@ def test_import_custom_json_object_to_pipeline_and_fit_correctly_no_exception():
 
     train_data, _ = get_classification_data()
 
-    pipeline = Pipeline()
-    pipeline.load(json_path_load)
+    pipeline = Pipeline.from_serialized(json_path_load)
 
     pipeline.fit(train_data)
 
@@ -400,8 +397,7 @@ def test_one_hot_encoder_serialization():
 
     pipeline.save('test_export_one_hot_encoding_operation')
 
-    pipeline_after = Pipeline()
-    pipeline_after.load(create_correct_path('test_export_one_hot_encoding_operation'))
+    pipeline_after = Pipeline.from_serialized(create_correct_path('test_export_one_hot_encoding_operation'))
     prediction_after_export = pipeline_after.predict(test_data)
 
     assert np.array_equal(prediction_before_export.features, prediction_after_export.features)
@@ -434,8 +430,7 @@ def test_pipeline_with_preprocessing_serialized_correctly():
 
     single_node_pipeline.save(path=save_path)
 
-    pipeline_after = Pipeline()
-    pipeline_after.load(create_correct_path(save_path))
+    pipeline_after = Pipeline.from_serialized(create_correct_path(save_path))
 
     after_output = pipeline_after.predict(mixed_input)
     mae_after = mean_absolute_error(mixed_input.target, after_output.predict)
@@ -455,8 +450,7 @@ def test_multimodal_pipeline_serialized_correctly():
     before_save_predicted_labels = pipeline.predict(mm_data, output_mode='labels')
     pipeline.save(path=save_path)
 
-    pipeline_loaded = Pipeline()
-    pipeline_loaded.load(create_correct_path(save_path))
+    pipeline_loaded = Pipeline.from_serialized(create_correct_path(save_path))
     after_load_predicted_labels = pipeline_loaded.predict(mm_data, output_mode='labels')
 
     assert np.array_equal(before_save_predicted_labels.predict, after_load_predicted_labels.predict)
@@ -470,8 +464,7 @@ def test_old_serialized_paths_load_correctly():
     """
     path = os.path.join(fedot_project_root(), 'test', 'data', 'pipeline_with_old_paths', 'pipeline_with_old_paths.json')
 
-    pipeline_loaded = Pipeline()
-    pipeline_loaded.load(path)
+    pipeline_loaded = Pipeline.from_serialized(path)
 
     assert pipeline_loaded.nodes is not None
 

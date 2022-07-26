@@ -59,7 +59,7 @@ class PipelineTemplate:
     def _pipeline_to_template(self, pipeline):
         try:
             # TODO improve for graph with several roots
-            self._extract_pipeline_structure(ensure_wrapped_in_sequence(pipeline.root_node)[0], 0, [])
+            self._extract_pipeline_structure(pipeline.root_node, 0, [])
         except Exception as ex:
             self.log.info(f'Cannot export to template: {ex}')
         self.link_to_empty_pipeline = pipeline

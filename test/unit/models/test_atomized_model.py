@@ -115,8 +115,7 @@ def test_save_load_atomized_pipeline_correctly():
     with open(json_path_load, 'r') as json_file:
         json_expected = json.load(json_file)
 
-    pipeline_loaded = Pipeline()
-    pipeline_loaded.load(json_path_load)
+    pipeline_loaded = Pipeline.from_serialized(json_path_load)
 
     assert pipeline.length == pipeline_loaded.length
     assert json_actual == json.dumps(json_expected, indent=4)
@@ -133,8 +132,7 @@ def test_save_load_fitted_atomized_pipeline_correctly():
 
     json_path_load = create_correct_path('test_save_load_fitted_atomized_pipeline_correctly')
 
-    pipeline_loaded = Pipeline()
-    pipeline_loaded.load(json_path_load)
+    pipeline_loaded = Pipeline.from_serialized(json_path_load)
     json_expected, _ = pipeline_loaded.save('test_save_load_fitted_atomized_pipeline_correctly_loaded')
 
     assert pipeline.length == pipeline_loaded.length

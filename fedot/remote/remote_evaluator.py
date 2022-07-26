@@ -1,13 +1,16 @@
 import os
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List, Optional, Sequence, Any, TypeVar, Callable
 
 import numpy as np
 
+from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.verification import verify_pipeline
+from fedot.core.optimisers.adapters import BaseOptimizationAdapter
+from fedot.core.pipelines.verification import verify_pipeline, verifier_for_task
+from fedot.core.utilities.serializable import Serializable
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.utilities.pattern_wrappers import singleton
 
@@ -48,72 +51,80 @@ class RemoteEvaluator:
         self._logger = default_log(prefix='RemoteFitterLog')
         self.remote_task_params = None
         self.client = None
+        self.config_for_dump = _get_config
 
-    def init(self, client: Client = None, remote_task_params: Optional[RemoteTaskParams] = None):
+    def init(self, client: Client = None,
+             remote_task_params: Optional[RemoteTaskParams] = None,
+             get_config: Optional[Callable] = None):
         """
         :param client: client class for connection to external computational server.
         :param remote_task_params: dictionary with the parameters of remote evaluation.
+        :param get_config: optional function that constructs config for remote client.
 
         """
         self.remote_task_params = remote_task_params
         self.client = client
+        self.config_for_dump = get_config or _get_config
 
     @property
     def use_remote(self):
         return self.remote_task_params is not None and self.remote_task_params.mode == 'remote'
 
-    def compute_pipelines(self, pipelines: List['Pipeline']) -> List['Pipeline']:
+    G = TypeVar('G', bound=Serializable)
+
+    def compute_graphs(self, graphs: Sequence[G], verifier: Optional[GraphVerifier] = None) -> Sequence[G]:
         params = self.remote_task_params
+        verifier = verifier or verifier_for_task()
 
         client = self.client
-        pipelines_parts = _prepare_batches(pipelines, params)
-        final_pipelines = []
+        execution_ids = {}
+        graph_batches = _prepare_batches(graphs, params)
+        final_graphs = []
 
         # start of the remote execution for each pipeline
-        for pipelines_part in pipelines_parts:
-            for pipeline in pipelines_part:
+        for graphs_batch in graph_batches:
+            for graph in graphs_batch:
                 try:
-                    verify_pipeline(pipeline)
+                    if isinstance(graph, Graph) and verifier(graph):
+                        pass
                 except ValueError:
-                    pipeline.execution_id = None
+                    execution_ids[id(graph)] = None
                     continue
 
-                pipeline_json, _ = pipeline.save()
-                pipeline_json = pipeline_json.replace('\n', '')
+                graph_json, _ = graph.save()
+                graph_json = graph_json.replace('\n', '')
 
-                config = _get_config(pipeline_json, params, self.client.exec_params, self.client.connect_params)
+                config = self.config_for_dump(graph_json, params, self.client.exec_params, self.client.connect_params)
 
                 task_id = client.create_task(config=config)
-
-                pipeline.execution_id = task_id
+                execution_ids[id(graph)] = task_id
 
             # waiting for readiness of all pipelines
             ex_time = client.wait_until_ready()
 
             # download of remote execution result for each pipeline
-            for p_id, pipeline in enumerate(pipelines_part):
-                if pipeline.execution_id:
+            for p_id, graph in enumerate(graphs_batch):
+                task_id = execution_ids.get(id(graph), None)
+                if task_id:
                     try:
-                        pipelines_part[p_id] = client.download_result(
-                            execution_id=pipeline.execution_id
-                        )
+                        graphs_batch[p_id] = client.download_result(task_id)
                     except Exception as ex:
                         self._logger.warning(f'{p_id}, {ex}')
-            final_pipelines.extend(pipelines_part)
+            final_graphs.extend(graphs_batch)
 
             self._logger.info(f'REMOTE EXECUTION TIME {ex_time}')
 
-        return final_pipelines
+        return final_graphs
 
 
-def _prepare_batches(pipelines, params):
-    num_parts = np.floor(len(pipelines) / params.max_parallel)
+def _prepare_batches(graphs: Sequence[Any], params):
+    num_parts = np.floor(len(graphs) / params.max_parallel)
     num_parts = max(num_parts, 1)
-    pipelines_parts = [x.tolist() for x in np.array_split(pipelines, num_parts)]
+    pipelines_parts = [x.tolist() for x in np.array_split(graphs, num_parts)]
     return pipelines_parts
 
 
-def _get_config(pipeline_json, params: RemoteTaskParams, client_params: dict, conn_params: dict):
+def _get_config(graph_json: dict, params: RemoteTaskParams, client_params: dict, conn_params: dict):
     var_names = list(map(str, params.var_names)) \
         if params.var_names is not None else []
     train_data_idx = list(map(str, params.train_data_idx)) \
@@ -125,7 +136,7 @@ def _get_config(pipeline_json, params: RemoteTaskParams, client_params: dict, co
     else:
         train_data = f"{client_params['container_input_path']}/{data_name}.csv"
     return f"""[DEFAULT]
-        pipeline_template = {pipeline_json}
+        pipeline_template = {graph_json}
         train_data = {train_data}
         task = {params.task_type}
         output_path = {client_params['container_output_path']}

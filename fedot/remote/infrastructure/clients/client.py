@@ -1,8 +1,13 @@
 import os
-from typing import Optional
+from datetime import timedelta
+from typing import Optional, Type, TypeVar
 
 from fedot.core.log import default_log
+from fedot.core.utilities.serializable import Serializable
 from fedot.core.utils import default_fedot_data_dir
+
+
+G = TypeVar('G', bound=Serializable)
 
 
 class Client:
@@ -22,7 +27,7 @@ class Client:
             os.path.join(default_fedot_data_dir(), 'remote_fit_results')
         self._logger = default_log(prefix='ClientLog')
 
-    def create_task(self, config):
+    def create_task(self, config: dict):
         """
         Create task for execution
         :param config - configuration of pipeline fitting
@@ -30,16 +35,17 @@ class Client:
         """
         raise NotImplementedError()
 
-    def wait_until_ready(self) -> float:
+    def wait_until_ready(self) -> timedelta:
         """
         Delay execution until all remote tasks are ready
         :return: waiting time
         """
         raise NotImplementedError()
 
-    def download_result(self, execution_id):
+    def download_result(self, execution_id: int, result_cls: Type[G]) -> G:
         """
         :param execution_id: id of remote task
+        :param result_cls: result
         :return: fitted pipeline downloaded from the remote server
         """
         raise NotImplementedError()

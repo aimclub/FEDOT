@@ -45,8 +45,7 @@ def run_import_export_example(pipeline_path):
 
     # Import pipeline
     json_path_load = create_correct_path(pipeline_path)
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
+    new_pipeline = Pipeline.from_serialized(json_path_load)
 
     predicted_output_after_export = new_pipeline.predict(test_data)
     prediction_after_export = np.array(predicted_output_after_export.predict)

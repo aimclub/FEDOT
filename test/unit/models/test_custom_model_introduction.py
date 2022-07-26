@@ -193,8 +193,7 @@ def test_save_pipeline_with_custom():
 
     pipeline.save(path='test_pipeline')
     json_path_load = create_correct_path('test_pipeline')
-    new_pipeline = Pipeline()
-    new_pipeline.load(json_path_load)
+    new_pipeline = Pipeline.from_serialized(json_path_load)
     predicted_output_after_export = new_pipeline.predict(predict_input)
     prediction_after_export = np.array(predicted_output_after_export.predict)
 
