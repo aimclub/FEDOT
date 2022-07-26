@@ -1,12 +1,13 @@
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
+from networkx import graph_edit_distance, set_node_attributes
+
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
-from networkx import graph_edit_distance, set_node_attributes
 
 
 class GraphOperator:
@@ -77,7 +78,12 @@ class GraphOperator:
         self._postproc_nodes()
 
     def update_subtree(self, old_node: GraphNode, new_node: GraphNode):
-        """Exchange subtrees with old and new nodes as roots of subtrees"""
+        """
+        Changes ``old_node`` subtree to ``new_node``
+
+        :param old_node: node and its subtree to be removed
+        :param new_node: node and its subtree to be placed instead
+        """
         new_node = deepcopy(new_node)
         self.actualise_old_node_children(old_node, new_node)
         self.delete_subtree(old_node)
@@ -86,9 +92,9 @@ class GraphOperator:
 
     def add_node(self, node: GraphNode):
         """
-        Add new node to the Pipeline
+        Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
 
-        :param node: new Node object
+        :param node: new :class:`~fedot.core.pipelines.node.Node` object
         """
         if node not in self._graph.nodes:
             self._graph.nodes.append(node)
@@ -96,20 +102,46 @@ class GraphOperator:
                 for new_parent_node in node.nodes_from:
                     self.add_node(new_parent_node)
 
-    def distance_to_root_level(self, node: GraphNode):
+    def distance_to_root_level(self, node: GraphNode) -> int:
+        """
+        Gets distance to the final output node
+
+        :param node: search starting point
+        """
+
         def recursive_child_height(parent_node: GraphNode) -> int:
+            """
+            Recursively dives into ``parent_node`` children to get the bottom height
+
+            :param node: search starting point
+            """
             node_child = self.node_children(parent_node)
             if node_child:
                 height = recursive_child_height(node_child[0]) + 1
                 return height
-            else:
-                return 0
+            return 0
 
         height = recursive_child_height(node)
         return height
 
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
-        def get_nodes(node: Any, current_height):
+        """
+        Gets all the nodes from the chosen layer up to the surface
+
+        :param layer_number: max height of diving
+
+        :return: all nodes from the surface to the ``layer_number`` layer
+        """
+
+        def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
+            """
+            Gets all the parent nodes of ``node``
+
+            :param node: node to get all subnodes from
+            :param current_height: current diving step depth
+
+            :return: all parent nodes of ``node``
+            """
             nodes = []
             if current_height == layer_number:
                 nodes.append(node)
@@ -123,6 +155,12 @@ class GraphOperator:
         return nodes
 
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
+        """
+        Changes ``old_node`` children parent to ``new_node``
+
+        :param old_node: node to take children from
+        :param new_node: new parent of ``old_node`` children
+        """
         old_node_offspring = self.node_children(old_node)
         for old_node_child in old_node_offspring:
             updated_index = old_node_child.nodes_from.index(old_node)
