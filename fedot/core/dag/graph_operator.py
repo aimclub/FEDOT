@@ -31,7 +31,7 @@ class GraphOperator:
         """Delete node with all the parents it has.
         and delete all edges from removed nodes to remaining graph nodes."""
         subtree_nodes = node.ordered_subnodes_hierarchy()
-        self._graph.nodes = remove_items(self._graph.nodes, subtree_nodes)
+        self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
         for node in self._graph.nodes:
             node.nodes_from = remove_items(node.nodes_from, subtree_nodes)
@@ -103,28 +103,29 @@ class GraphOperator:
             old_node_child.nodes_from[updated_index] = new_node
 
     def sort_nodes(self):
-        """layer by layer sorting"""
+        """ Layer by layer sorting """
         if isinstance(self._graph.root_node, list):
             nodes = self._graph.nodes
         else:
             nodes = self._graph.root_node.ordered_subnodes_hierarchy()
-        self._graph.nodes = nodes
+        self._graph._nodes = nodes
 
-    def node_children(self, node) -> List[Optional[GraphNode]]:
+    def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
         return [other_node for other_node in self._graph.nodes
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
 
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
-        if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
-            if child.nodes_from:
-                # if not already connected
-                child.nodes_from.append(parent)
-            else:
-                # add parent to initial node
-                new_child = GraphNode(nodes_from=[], content=child.content)
-                new_child.nodes_from.append(parent)
-                self.update_node(child, new_child)
+        if child in self.node_children(parent):
+            return
+        # if not already connected
+        if child.nodes_from:
+            child.nodes_from.append(parent)
+        else:
+            # add parent to initial node
+            new_child = GraphNode(nodes_from=[], content=child.content)
+            new_child.nodes_from.append(parent)
+            self.update_node(child, new_child)
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
@@ -169,7 +170,7 @@ class GraphOperator:
         if not self._graph.nodes:
             return []
         roots = [node for node in self._graph.nodes
-                 if not any(self._graph.operator.node_children(node))]
+                 if not any(self._graph.node_children(node))]
         if len(roots) == 1:
             return roots[0]
         return roots
@@ -213,17 +214,14 @@ class GraphOperator:
 
     def get_nodes_degrees(self):
         """ Nodes degree as the number of edges the node has:
-         k = k(in) + k(out)"""
+         k = k(in) + k(out) """
         graph, _ = graph_structure_as_nx_graph(self._graph)
         index_degree_pairs = graph.degree
         node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
         return node_degrees
 
-    def get_all_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
-        """
-        Method to get all available edges in a given graph
-        """
-
+    def get_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
+        """ Returns all available edges in a given graph """
         edges = []
         for node in self._graph.nodes:
             if node.nodes_from:
@@ -231,21 +229,24 @@ class GraphOperator:
                     edges.append((parent_node, node))
         return edges
 
-    def distance_to(self, other_graph: 'Graph') -> int:
-        def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
-            node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
 
-            is_operation_match = str(node_1) == str(node_2)
-            is_params_match = node_1.content.get('params') == node_2.content.get('params')
-            is_match = is_operation_match and is_params_match
-            return is_match
+def get_distance_between(graph_1: 'Graph', graph_2: 'Graph') -> int:
+    """ Returns distance between specified graphs """
 
-        graphs = (self._graph, other_graph)
-        nx_graphs = []
-        for graph in graphs:
-            nx_graph, nodes = graph_structure_as_nx_graph(graph)
-            set_node_attributes(nx_graph, nodes, name='node')
-            nx_graphs.append(nx_graph)
+    def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
+        node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
 
-        distance = graph_edit_distance(*nx_graphs, node_match=node_match)
-        return int(distance)
+        is_operation_match = str(node_1) == str(node_2)
+        is_params_match = node_1.content.get('params') == node_2.content.get('params')
+        is_match = is_operation_match and is_params_match
+        return is_match
+
+    graphs = (graph_1, graph_2)
+    nx_graphs = []
+    for graph in graphs:
+        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        set_node_attributes(nx_graph, nodes, name='node')
+        nx_graphs.append(nx_graph)
+
+    distance = graph_edit_distance(*nx_graphs, node_match=node_match)
+    return int(distance)

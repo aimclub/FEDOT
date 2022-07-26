@@ -69,7 +69,7 @@ def test_delete_primary_node():
     new_primary_node = [node for node in graph.nodes if node.content['name'] == 'n2'][0]
 
     # then
-    assert len(graph.nodes) == 3
+    assert graph.length == 3
     assert isinstance(new_primary_node, GraphNode)
 
 

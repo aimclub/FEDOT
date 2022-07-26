@@ -231,7 +231,7 @@ def has_parent_contain_single_resample(pipeline: Pipeline):
 
     for node in pipeline.nodes:
         if node.operation.operation_type == 'resample':
-            children_nodes = pipeline.operator.node_children(node)
+            children_nodes = pipeline.node_children(node)
             for child_node in children_nodes:
                 if len(child_node.nodes_from) > 1:
                     raise ValueError(f'{ERROR_PREFIX} Resample node is not single parent node for child operation')

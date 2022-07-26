@@ -347,7 +347,7 @@ def test_data_model_types_forecasting_pipeline_fit():
     pipeline.fit(train_data)
     pipeline.save('data_model_forecasting')
 
-    expected_len_nodes = len(pipeline.nodes)
+    expected_len_nodes = pipeline.length
     actual_len_nodes = len(PipelineTemplate(pipeline).operation_templates)
 
     assert actual_len_nodes == expected_len_nodes
@@ -360,7 +360,7 @@ def test_data_model_type_classification_pipeline_fit():
     pipeline.fit(train_data)
     pipeline.save('data_model_classification')
 
-    expected_len_nodes = len(pipeline.nodes)
+    expected_len_nodes = pipeline.length
     actual_len_nodes = len(PipelineTemplate(pipeline).operation_templates)
 
     assert actual_len_nodes == expected_len_nodes

@@ -93,8 +93,8 @@ def subtree_crossover(graph_first: Any, graph_second: Any, max_depth: int) -> An
     min_second_layer = 1 if random_layer_in_graph_first == 0 and graph_second.depth > 1 else 0
     random_layer_in_graph_second = choice(range(min_second_layer, graph_second.depth))
 
-    node_from_graph_first = choice(graph_first.operator.nodes_from_layer(random_layer_in_graph_first))
-    node_from_graph_second = choice(graph_second.operator.nodes_from_layer(random_layer_in_graph_second))
+    node_from_graph_first = choice(graph_first.nodes_from_layer(random_layer_in_graph_first))
+    node_from_graph_second = choice(graph_second.nodes_from_layer(random_layer_in_graph_second))
 
     replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
                      random_layer_in_graph_first, random_layer_in_graph_second, max_depth)
