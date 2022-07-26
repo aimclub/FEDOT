@@ -278,6 +278,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                        desc='Generations', unit='gen', initial=1, disable=disable)
         return bar
 
+
 def _unfit_pipeline(graph: Any):
     if isinstance(graph, Pipeline):
         graph.unfit()
