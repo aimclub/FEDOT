@@ -1,9 +1,6 @@
-from copy import deepcopy
-from random import choice
 from typing import Any, List, Optional, Sequence, Union, Callable
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
@@ -84,27 +81,6 @@ class EvoGraphOptimiser(PopulationalOptimiser):
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
-
-    def _extend_population(self, initial_individuals):
-        iter_num = 0
-        initial_graphs = [ind.graph for ind in initial_individuals]
-        while len(initial_individuals) < self.requirements.pop_size:
-            initial_req = deepcopy(self.requirements)
-            initial_req.mutation_prob = 1
-            self.mutation.update_requirements(initial_req)
-            new_ind = self.mutation(choice(self.initial_individuals))
-            new_graph = new_ind.graph
-            iter_num += 1
-            if new_graph not in initial_graphs and self.graph_generation_params.verifier(new_graph):
-                initial_individuals.append(new_ind)
-                initial_graphs.append(new_graph)
-            if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
-                self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
-                                 f'Current size {len(self.initial_individuals)} '
-                                 f'instead of {self.requirements.pop_size} graphs.')
-                break
-        self.mutation.update_requirements(self.requirements)
-        return initial_individuals
 
     def _evolution_process(self, evaluator: Callable):
         """ Method realizing the complete process of evolution """
