@@ -35,13 +35,15 @@ class Log(metaclass=SingletonMeta):
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
                                        logging_level=output_logging_level)
 
-    def get_adapter(self, prefix: str) -> 'LoggerAdapter':
+    def get_adapter(self, prefix: str, logging_level: int) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
         :param prefix: prefix to log messages with this adapter. Usually this prefix is the name of the class
-        where the log came from """
+        where the log came from
+        :param logging_level: level of logging """
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
-                                                        {'prefix': prefix})
+                                                        {'prefix': prefix},
+                                                        logging_level=logging_level)
         return self.__log_adapters[prefix]
 
     def _get_logger(self, name, config_file: str, logging_level: int) -> logging.Logger:
@@ -105,12 +107,13 @@ class LoggerAdapter(logging.LoggerAdapter):
     """ This class looks like logger but used to pass contextual information
     to the output along with logging event information """
 
-    def __init__(self, logger, extra):
+    def __init__(self, logger, extra, logging_level: int = None):
         super().__init__(logger=logger, extra=extra)
-        self.setLevel(logger.level)
-        self.logging_level = logger.level
+        self.setLevel(logging_level or logger.level)
+        self.logging_level = logging_level or logger.level
 
     def process(self, msg, kwargs):
+        self.logger.setLevel(self.logging_level)
         return '%s - %s' % (self.extra['prefix'], msg), kwargs
 
     def __str__(self):
@@ -136,4 +139,4 @@ def default_log(class_object=None, prefix: str = 'default', logging_level: int =
     if class_object:
         prefix = class_object.__class__.__name__
 
-    return log.get_adapter(prefix=prefix)
+    return log.get_adapter(prefix=prefix, logging_level=logging_level)
