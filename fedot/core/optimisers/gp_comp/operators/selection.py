@@ -40,10 +40,6 @@ class Selection:
     def update_requirements(self, new_requirements: PipelineComposerRequirements):
         self.requirements = new_requirements
 
-    @staticmethod
-    def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
-        return zip(population[::2], population[1::2])
-
     def individuals_selection(self, individuals: PopulationT) -> PopulationT:
         pop_size = self.requirements.pop_size
         if pop_size == len(individuals):

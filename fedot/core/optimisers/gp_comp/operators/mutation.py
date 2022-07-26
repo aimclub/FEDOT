@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Callable, List, Union
 import numpy as np
 
 from fedot.core.composer.advisor import RemoveType
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
@@ -75,7 +76,7 @@ class Mutation:
             mutation_prob = default_mutation_prob
         return mutation_prob
 
-    def _mutation(self, individual: Individual) -> Any:
+    def _mutation(self, individual: Individual) -> Individual:
         """ Function applies mutation operator to graph """
 
         parent_individuals = [individual]
@@ -101,7 +102,7 @@ class Mutation:
 
         return individual
 
-    def _adapt_and_apply_mutations(self, new_graph: Any, num_mut: int):
+    def _adapt_and_apply_mutations(self, new_graph: OptGraph, num_mut: int):
         """
         Apply mutation in several iterations with specific adaptation of each graph
         """
@@ -128,8 +129,8 @@ class Mutation:
                 break
         return new_graph, mutation_names
 
-    def _apply_mutation(self, new_graph: Any, mutation_type: Union[MutationTypesEnum, Callable],
-                        is_custom_mutation: bool):
+    def _apply_mutation(self, new_graph: Union[Graph, OptGraph], mutation_type: Union[MutationTypesEnum, Callable],
+                        is_custom_mutation: bool) -> Union[Graph, OptGraph]:
         """
           Apply mutation for adapted graph
         """
@@ -174,7 +175,7 @@ class Mutation:
 
         return graph
 
-    def _single_edge_mutation(self, graph: Any, *args, **kwargs):
+    def _single_edge_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         This mutation adds new edge between two random nodes in graph.
 
@@ -198,7 +199,7 @@ class Mutation:
             return old_graph
         return graph
 
-    def _add_intermediate_node(self, graph: Any, node_to_mutate):
+    def _add_intermediate_node(self, graph: OptGraph, node_to_mutate) -> OptGraph:
         # add between node and parent
         new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=False)
         if not new_node:
@@ -208,7 +209,7 @@ class Mutation:
         graph.nodes.append(new_node)
         return graph
 
-    def _add_separate_parent_node(self, graph: Any, node_to_mutate):
+    def _add_separate_parent_node(self, graph: OptGraph, node_to_mutate) -> OptGraph:
         # add as separate parent
         for iter_num in range(randint(1, 3)):
             new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=True)
@@ -222,7 +223,7 @@ class Mutation:
             graph.nodes.append(new_node)
         return graph
 
-    def _add_as_child(self, graph: Any, node_to_mutate):
+    def _add_as_child(self, graph: OptGraph, node_to_mutate) -> OptGraph:
         # add as child
         new_node = self.graph_generation_params.node_factory.get_node(primary=False)
         if not new_node:
@@ -235,7 +236,7 @@ class Mutation:
             graph.disconnect_nodes(node_parent=node_parent, node_child=new_node)
         return graph
 
-    def _single_add_mutation(self, graph: Any, *args, **kwargs):
+    def _single_add_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Add new node between two sequential existing modes
 
@@ -256,7 +257,7 @@ class Mutation:
         result = strategy(graph, node_to_mutate)
         return result
 
-    def _single_change_mutation(self, graph: Any, *args, **kwargs):
+    def _single_change_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Change node between two sequential existing modes.
 
@@ -269,7 +270,7 @@ class Mutation:
         graph.update_node(node, new_node)
         return graph
 
-    def _single_drop_mutation(self, graph: Any, *args, **kwargs):
+    def _single_drop_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Drop single node from graph.
 
@@ -299,7 +300,7 @@ class Mutation:
                         child.nodes_from = node_to_del.nodes_from
         return graph
 
-    def _tree_growth(self, graph: Any, local_growth=True):
+    def _tree_growth(self, graph: OptGraph, local_growth=True) -> OptGraph:
         """
         This mutation selects a random node in a tree, generates new subtree,
         and replaces the selected node's subtree.
@@ -327,7 +328,7 @@ class Mutation:
         graph.update_subtree(node_from_graph, new_subtree)
         return graph
 
-    def _growth_mutation(self, graph: Any, local_growth: bool = True, **kwargs) -> Any:
+    def _growth_mutation(self, graph: OptGraph, local_growth: bool = True, **kwargs) -> OptGraph:
         """
         This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
 
@@ -368,7 +369,7 @@ class Mutation:
             graph.update_subtree(node_to_del, primary_node)
         return graph
 
-    def _no_mutation(self, graph: Any, *args, **kwargs):
+    def _no_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         return graph
 
     def mutation_by_type(self, mutation_type: MutationTypesEnum):

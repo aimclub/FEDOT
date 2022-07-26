@@ -88,10 +88,7 @@ def test_ancestor_for_crossover():
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
     graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
-    available_operations = ['linear']
-    composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations,
-                                                         max_depth=3, crossover_prob=1)
+    composer_requirements = PipelineComposerRequirements(max_depth=3, crossover_prob=1)
     crossover = Crossover([CrossoverTypesEnum.subtree], composer_requirements, graph_params)
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 

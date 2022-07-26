@@ -1,13 +1,12 @@
 from copy import deepcopy
 from random import choice, random
-from typing import TYPE_CHECKING, Any, Callable, List, Union
+from typing import TYPE_CHECKING, Callable, List, Union, Iterable, Tuple
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.gp_comp.operators.selection import Selection
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
@@ -29,21 +28,25 @@ class Crossover:
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
         self.max_number_of_attempts = max_number_of_attempts
-        self.log = default_log(prefix='crossover')
+        self.log = default_log(self)
 
-    def __call__(self, population: PopulationT):
+    def __call__(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
             new_population = population
         else:
             new_population = []
-            for ind_1, ind_2 in Selection.crossover_parents_selection(population):
+            for ind_1, ind_2 in Crossover.crossover_parents_selection(population):
                 new_population += self._crossover(ind_1, ind_2)
         return new_population
 
     def update_requirements(self, new_requirements: PipelineComposerRequirements):
         self.requirements = new_requirements
 
-    def _crossover(self, ind_first: Individual, ind_second: Individual) -> Any:
+    @staticmethod
+    def crossover_parents_selection(population: PopulationT) -> Iterable[Tuple[Individual, Individual]]:
+        return zip(population[::2], population[1::2])
+
+    def _crossover(self, ind_first: Individual, ind_second: Individual) -> Tuple[Individual, Individual]:
         crossover_type = choice(self.crossover_types)
         try:
             if self._will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_type):
@@ -81,7 +84,8 @@ class Crossover:
         else:
             raise ValueError(f'Required crossover type is not found: {crossover_type}')
 
-    def _adapt_and_apply_crossover(self, first_individual, second_individual, crossover_function):
+    def _adapt_and_apply_crossover(self, first_individual: Individual, second_individual: Individual,
+                                   crossover_function: Callable) -> Tuple[OptGraph, OptGraph]:
         is_custom_operator = isinstance(first_individual, OptGraph)
         first_object = deepcopy(first_individual.graph)
         second_object = deepcopy(second_individual.graph)
@@ -109,14 +113,14 @@ class Crossover:
             parent_operators.append(operator)
             new_ind = Individual(graph, tuple(parent_operators))
             new_individuals.append(new_ind)
-        return new_individuals
+        return tuple(new_individuals)
 
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
         return not (graph_first is graph_second or
                     random() > self.requirements.crossover_prob or
                     crossover_type is CrossoverTypesEnum.none)
 
-    def _subtree_crossover(self, graph_first: Any, graph_second: Any) -> Any:
+    def _subtree_crossover(self, graph_first: OptGraph, graph_second: OptGraph) -> Tuple[OptGraph, OptGraph]:
         """Performed by the replacement of random subtree
         in first selected parent to random subtree from the second parent"""
         random_layer_in_graph_first = choice(range(graph_first.depth))
@@ -131,7 +135,7 @@ class Crossover:
 
         return graph_first, graph_second
 
-    def _one_point_crossover(self, graph_first: Any, graph_second: Any) -> Any:
+    def _one_point_crossover(self, graph_first: OptGraph, graph_second: OptGraph) -> Tuple[OptGraph, OptGraph]:
         """Finds common structural parts between two trees, and after that randomly
         chooses the location of nodes, subtrees of which will be swapped"""
         pairs_of_nodes = equivalent_subtree(graph_first, graph_second)
