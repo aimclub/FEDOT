@@ -16,14 +16,6 @@ PATHS_TO_DELETE_AFTER_TEST = []
 LOG_NAME = 'log.log'
 
 
-@pytest.fixture(autouse=True)
-def disable_logging():
-    from logging import NOTSET
-    from fedot.core.log import default_log
-    # disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
-    default_log(logging_level=NOTSET)
-
-
 @pytest.fixture(scope="session", autouse=True)
 def creation_model_files_before_after_tests(request):
     request.addfinalizer(delete_files_folders)
