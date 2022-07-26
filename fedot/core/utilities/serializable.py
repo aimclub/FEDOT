@@ -7,6 +7,9 @@ class Serializable(ABC):
 
     @classmethod
     def from_serialized(cls, source: Union[str, dict], internal_state_data: Optional[dict] = None):
+        """
+        Static constructor for convenience. Creates default instance and calls .load() on it.
+        """
         default_instance = cls()
         default_instance.load(source, internal_state_data)
         return default_instance
