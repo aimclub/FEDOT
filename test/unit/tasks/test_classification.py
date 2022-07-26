@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pytest
 import tensorflow as tf
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -22,6 +23,14 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.models.test_model import classification_dataset_with_redundant_features
+
+
+@pytest.fixture(autouse=True)
+def disable_logging():
+    from logging import NOTSET
+    from fedot.core.log import default_log
+    # disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
+    default_log(logging_level=NOTSET)
 
 
 def check_predict_cnn_correct(model, dataset_to_validate):

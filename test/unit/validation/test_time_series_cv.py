@@ -16,7 +16,9 @@ from fedot.core.validation.split import ts_cv_generator
 from fedot.core.validation.tune.time_series import cv_time_series_predictions
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
-log = default_log(prefix=__name__)
+
+# disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
+log = default_log(prefix=__name__, logging_level=logging.NOTSET)
 
 
 def configure_experiment():

@@ -29,6 +29,13 @@ from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
 _ = classification_dataset
 
 
+@pytest.fixture(autouse=True)
+def disable_logging():
+    from fedot.core.log import default_log
+    # disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
+    default_log(logging_level=logging.NOTSET)
+
+
 def sample_pipeline():
     return Pipeline(SecondaryNode(operation_type='logit',
                                   nodes_from=[PrimaryNode(operation_type='rf'),

@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+import pytest
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -20,6 +21,14 @@ from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 
 random.seed(1)
 np.random.seed(1)
+
+
+@pytest.fixture(autouse=True)
+def disable_logging():
+    from logging import NOTSET
+    from fedot.core.log import default_log
+    # disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
+    default_log(logging_level=NOTSET)
 
 
 class CustomModel(Graph):

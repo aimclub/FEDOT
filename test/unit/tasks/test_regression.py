@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+import pytest
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
 
@@ -13,6 +14,15 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.common_tests import is_predict_ignores_target
 from test.unit.composer.test_quality_metrics import multi_target_data_setup
+
+
+@pytest.fixture(autouse=True)
+def disable_logging():
+    from logging import NOTSET
+    from fedot.core.log import default_log
+    # disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
+    default_log(logging_level=NOTSET)
+
 
 _ = multi_target_data_setup
 

@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -16,6 +17,13 @@ def run_around_tests():
     # return evaluator to local mode
     evaluator = RemoteEvaluator()
     evaluator.init(None, RemoteTaskParams(mode='local'))
+
+
+@pytest.fixture(autouse=True)
+def disable_logging():
+    from fedot.core.log import default_log
+    # disable logging & tqdm to avoid https://github.com/nccr-itmo/FEDOT/issues/765
+    default_log(logging_level=logging.NOTSET)
 
 
 def test_pseudo_remote_composer_classification():
