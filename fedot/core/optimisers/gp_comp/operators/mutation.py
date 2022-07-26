@@ -192,7 +192,7 @@ class Mutation:
             nodes_not_cycling = (target_node.descriptive_id not in
                                  [n.descriptive_id for n in source_node.ordered_subnodes_hierarchy()])
             if nodes_not_cycling and (target_node.nodes_from is None or source_node not in target_node.nodes_from):
-                graph.operator.connect_nodes(source_node, target_node)
+                graph.connect_nodes(source_node, target_node)
                 break
 
         if graph.depth > self.requirements.max_depth:
@@ -228,9 +228,12 @@ class Mutation:
         new_node = self.graph_generation_params.node_factory.get_node(primary=False)
         if not new_node:
             return graph
-        new_node.nodes_from = [node_to_mutate]
-        graph.actualise_old_node_children(node_to_mutate, new_node)
-        graph.nodes.append(new_node)
+        parents_node_to_mutate = node_to_mutate.nodes_from or []
+        graph.update_node(old_node=node_to_mutate, new_node=new_node)
+        graph.add_node(node_to_mutate)
+        graph.connect_nodes(node_parent=node_to_mutate, node_child=new_node)
+        for node_parent in parents_node_to_mutate:
+            graph.disconnect_nodes(node_parent=node_parent, node_child=new_node)
         return graph
 
     def _single_add_mutation(self, graph: Any, *args, **kwargs):
@@ -289,7 +292,7 @@ class Mutation:
         elif removal_type != RemoveType.forbidden:
             graph.delete_node(node_to_del)
             if node_to_del.nodes_from:
-                children = graph.operator.node_children(node_to_del)
+                children = graph.node_children(node_to_del)
                 for child in children:
                     if child.nodes_from:
                         child.nodes_from.extend(node_to_del.nodes_from)
@@ -355,7 +358,7 @@ class Mutation:
 
         nodes = [node for node in graph.nodes if node is not graph.root_node]
         node_to_del = choice(nodes)
-        children = graph.operator.node_children(node_to_del)
+        children = graph.node_children(node_to_del)
         is_possible_to_delete = all([len(child.nodes_from) - 1 >= self.requirements.min_arity for child in children])
         if is_possible_to_delete:
             graph.delete_subtree(node_to_del)
