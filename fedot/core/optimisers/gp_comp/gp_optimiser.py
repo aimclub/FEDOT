@@ -267,7 +267,7 @@ class EvoGraphOptimiser(GraphOptimiser):
                          params=self.graph_generation_params)
 
     def _progressbar(self, show_progress: bool = True):
-        disable = not show_progress or self.log.logging_level == logging.NOTSET
+        disable = not show_progress or self.log.logging_level > logging.CRITICAL
         if disable:
             # disable call to tqdm.__init__ completely
             # to avoid access to stdout/stderr inside it
