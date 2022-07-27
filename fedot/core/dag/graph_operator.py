@@ -1,12 +1,14 @@
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional, Tuple, Union
 
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
 from networkx import graph_edit_distance, set_node_attributes
+
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
+    from fedot.core.optimisers.graph import OptGraph
 
 
 class GraphOperator:
@@ -18,7 +20,7 @@ class GraphOperator:
     :param nodes_postproc_func: nodes postprocessor after their modification
     """
 
-    def __init__(self, graph: Optional[Union[Graph, OptGraph]] = None,
+    def __init__(self, graph: Optional[Union['Graph', 'OptGraph']] = None,
                  nodes_postproc_func: Optional[Callable[[List[GraphNode]], None]] = None):
         self._graph = graph
         self._postproc_nodes = nodes_postproc_func
@@ -43,18 +45,18 @@ class GraphOperator:
         self.add_node(self_root_node_cached)
         self._postproc_nodes()
 
-    def delete_subtree(self, node: GraphNode):
+    def delete_subtree(self, subtree: GraphNode):
         """
-        Deletes node with all the parents it has.
+        Deletes given node with all the parents it has, making deletion of the subtree.
         Deletes all edges from removed nodes to remaining graph nodes
 
-        :param node: node to be deleted with all of its parents and their connections amongst the remaining graph nodes
+        :param subtree: node to be deleted with all of its parents and their connections amongst the remaining graph nodes
         """
-        subtree_nodes = node.ordered_subnodes_hierarchy()
+        subtree_nodes = subtree.ordered_subnodes_hierarchy()
         self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
-        for node in self._graph.nodes:
-            node.nodes_from = remove_items(node.nodes_from, subtree_nodes)
+        for subtree in self._graph.nodes:
+            subtree.nodes_from = remove_items(subtree.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         """
@@ -338,11 +340,12 @@ class GraphOperator:
                     edges.append((parent_node, node))
         return edges
 
-    def distance_to(self, other_graph: 'Graph') -> int:
+    def get_distance_between(graph_1: 'Graph', graph_2: 'Graph') -> int:
         """
-        Gets edit distance from this graph to the ``other_graph``
+        Gets edit distance from ``graph_1`` graph to the ``graph_2``
 
-        :param other_graph: object to compare with this graph
+        :param graph_1: left object to compare
+        :param graph_2: right object to compare
 
         :return: graph edit distance (aka Levenstein distance for graphs)
         """
@@ -363,12 +366,12 @@ class GraphOperator:
             nodes_do_match = operations_do_match and params_do_match
             return nodes_do_match
 
-    graphs = (graph_1, graph_2)
-    nx_graphs = []
-    for graph in graphs:
-        nx_graph, nodes = graph_structure_as_nx_graph(graph)
-        set_node_attributes(nx_graph, nodes, name='node')
-        nx_graphs.append(nx_graph)
+        graphs = (graph_1, graph_2)
+        nx_graphs = []
+        for graph in graphs:
+            nx_graph, nodes = graph_structure_as_nx_graph(graph)
+            set_node_attributes(nx_graph, nodes, name='node')
+            nx_graphs.append(nx_graph)
 
-    distance = graph_edit_distance(*nx_graphs, node_match=node_match)
-    return int(distance)
+        distance = graph_edit_distance(*nx_graphs, node_match=node_match)
+        return int(distance)
