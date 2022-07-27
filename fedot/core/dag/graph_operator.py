@@ -167,13 +167,17 @@ class GraphOperator:
 
     def sort_nodes(self):
         """ Layer by layer sorting """
-        if isinstance(self._graph.root_node, list):
-            nodes = self._graph.nodes
-        else:
-            nodes = self._graph.root_node.ordered_subnodes_hierarchy()
-        self._graph._nodes = nodes
+        if not isinstance(self._graph.root_node, list):
+            self._graph._nodes = self._graph.root_node.ordered_subnodes_hierarchy()
 
-    def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
+    def node_children(self, node: GraphNode) -> List[GraphNode]:
+        """
+        Gets all the ``node`` children
+
+        :param node: for getting children from
+
+        :return: children of the ``node``
+        """
         return [other_node for other_node in self._graph.nodes
                 if other_node.nodes_from and
                 node in other_node.nodes_from]
@@ -192,10 +196,11 @@ class GraphOperator:
 
     def _clean_up_leftovers(self, node: GraphNode):
         """
-        Method removes nodes and edges that do not affect the result of the pipeline
+        Removes nodes and edges that do not affect the result of the pipeline.
+        Leftovers are edges and nodes that remain after the removal of the edge / node
+            and do not affect the result of the pipeline.
 
-        Leftovers - edges and nodes that remain after the removal of the edge / node
-        and do not affect the result of the pipeline
+        :param node: node to be deleted with all of its parents
         """
 
         if not self.node_children(node):
@@ -205,31 +210,34 @@ class GraphOperator:
                     self._clean_up_leftovers(node)
 
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
-                         is_clean_up_leftovers: bool = True):
+                         clean_up_leftovers: bool = True):
         """
-        Method to remove an edge between two nodes
+        Removes an edge between two nodes
 
-        :param node_parent: the node from which the removing edge comes out
-        :param node_child: the node in which the removing edge enters
-        :param is_clean_up_leftovers: bool flag whether to remove the remaining
-        invalid vertices and edges or not
+        :param node_parent: where the removing edge comes out
+        :param node_child: where the removing edge enters
+        :param clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
         """
 
-        if node_child.nodes_from is None or node_parent not in node_child.nodes_from:
-            return
-        elif node_parent not in self._graph.nodes or node_child not in self._graph.nodes:
+        if ((node_child.nodes_from is None or node_parent not in node_child.nodes_from) or
+                (node_parent not in self._graph.nodes or node_child not in self._graph.nodes)):
             return
         elif len(node_child.nodes_from) == 1:
             node_child.nodes_from = None
         else:
             node_child.nodes_from.remove(node_parent)
 
-        if is_clean_up_leftovers:
+        if clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
 
         self._postproc_nodes()
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
+        """
+        Gets the final layer node(s) of the graph
+
+        :return: the final layer node(s)
+        """
         if not self._graph.nodes:
             return []
         roots = [node for node in self._graph.nodes
@@ -268,16 +276,33 @@ class GraphOperator:
 
     @property
     def descriptive_id(self) -> str:
+        """
+        Returns verbal identificator of the node
+
+        :return: text description of the content in the node and its parameters
+        """
         root_list = ensure_wrapped_in_sequence(self.root_node())
-        full_desc_id = ''.join([r.descriptive_id for r in root_list])
+        full_desc_id = ''.join(r.descriptive_id for r in root_list)
         return full_desc_id
 
     def graph_depth(self) -> int:
+        """
+        Gets this graph depth from its sink-node to its source-node
+
+        :return: length of a path from the root node to the farthest primary node
+        """
         if not self._graph.nodes:
             return 0
 
-        def _depth_recursive(node: GraphNode):
-            if node is None:
+        def _depth_recursive(node: GraphNode) -> int:
+            """
+            Gets this graph depth from the provided ``node`` to the graph source node
+
+            :param node: where to start diving from
+
+            :return: length of a path from the provided ``node`` to the farthest primary node
+            """
+            if node is None:  # is it real situation to have None in `node.nodes_from`?
                 return 0
             if node.nodes_from is None or not node.nodes_from:
                 return 1
@@ -287,16 +312,25 @@ class GraphOperator:
         root = ensure_wrapped_in_sequence(self.root_node())
         return max(_depth_recursive(n) for n in root)
 
-    def get_nodes_degrees(self):
-        """ Nodes degree as the number of edges the node has:
-         k = k(in) + k(out) """
+    def get_nodes_degrees(self) -> List[int]:
+        """
+        Nodes degree as the number of edges the node has:
+            degree = #input_edges + #out_edges
+
+        :return: nodes degrees ordered according to the nx_graph representation of this graph
+        """
         graph, _ = graph_structure_as_nx_graph(self._graph)
         index_degree_pairs = graph.degree
         node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
         return node_degrees
 
-    def get_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
-        """ Returns all available edges in a given graph """
+    def get_all_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
+        """
+        Gets all available edges in this graph
+
+        :return: pairs of parent_node -> child_node
+        """
+
         edges = []
         for node in self._graph.nodes:
             if node.nodes_from:
@@ -304,17 +338,30 @@ class GraphOperator:
                     edges.append((parent_node, node))
         return edges
 
+    def distance_to(self, other_graph: 'Graph') -> int:
+        """
+        Gets edit distance from this graph to the ``other_graph``
 
-def get_distance_between(graph_1: 'Graph', graph_2: 'Graph') -> int:
-    """ Returns distance between specified graphs """
+        :param other_graph: object to compare with this graph
 
-    def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
-        node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
+        :return: graph edit distance (aka Levenstein distance for graphs)
+        """
 
-        is_operation_match = str(node_1) == str(node_2)
-        is_params_match = node_1.content.get('params') == node_2.content.get('params')
-        is_match = is_operation_match and is_params_match
-        return is_match
+        def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
+            """
+            Checks if the two given nodes are identical
+
+            :param node_data_1: nx_graph format for the first node to compare
+            :param node_data_2: nx_graph format for the second node to compare
+
+            :return: is the first node equal to the second
+            """
+            node_1, node_2 = node_data_1.get('node'), node_data_2.get('node')
+
+            operations_do_match = str(node_1) == str(node_2)
+            params_do_match = node_1.content.get('params') == node_2.content.get('params')
+            nodes_do_match = operations_do_match and params_do_match
+            return nodes_do_match
 
     graphs = (graph_1, graph_2)
     nx_graphs = []
