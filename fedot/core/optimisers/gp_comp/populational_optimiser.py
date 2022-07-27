@@ -141,8 +141,13 @@ class PopulationalOptimiser(GraphOptimiser):
             individual.set_native_generation(self.current_generation_num)
 
     @abstractmethod
-    def _evolution_process(self, *args, **kwargs):
-        """ Method realizing the complete process of evolution """
+    def _initial_population(self, *args, **kwargs):
+        """ Initializes the initial population """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _evolve_population(self, *args, **kwargs):
+        """ Method realizing full evolution cycle """
         raise NotImplementedError()
 
     def optimise(self, objective: ObjectiveFunction,
@@ -155,7 +160,12 @@ class PopulationalOptimiser(GraphOptimiser):
                               desc='Generations', unit='gen', initial=1,
                               disable=not show_progress or self.log.logging_level == logging.NOTSET):
 
-            self._evolution_process(evaluator=evaluator)
+            self._initial_population(evaluator=evaluator)
+
+            while not self.stop_optimisation():
+                new_population = self._evolve_population(evaluator=evaluator)
+                # Adding of new population to history
+                self._next_population(new_population)
 
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs

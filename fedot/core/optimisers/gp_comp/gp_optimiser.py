@@ -82,8 +82,8 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.elitism = Elitism(self.parameters.elitism_type, requirements, objective.is_multi_objective)
 
-    def _evolution_process(self, evaluator: Callable):
-        """ Method realizing the complete process of evolution """
+    def _initial_population(self, evaluator: Callable):
+        """ Initializes the initial population """
         # Adding of initial assumptions to history as zero generation
         self._next_population(evaluator(self.initial_individuals))
 
@@ -92,29 +92,29 @@ class EvoGraphOptimiser(PopulationalOptimiser):
             # Adding of extended population to history
             self._next_population(evaluator(self.initial_individuals))
 
-        while not self.stop_optimisation():
-            self._update_requirements()
-            individuals_to_select = regularized_population(self.parameters.regularization_type,
-                                                           self.population,
-                                                           evaluator,
-                                                           self.graph_generation_params)
+    def _evolve_population(self, evaluator: Callable):
+        """ Method realizing full evolution cycle """
+        self._update_requirements()
+        individuals_to_select = regularized_population(self.parameters.regularization_type,
+                                                       self.population,
+                                                       evaluator,
+                                                       self.graph_generation_params)
 
-            selected_individuals = selection(types=self.parameters.selection_types,
-                                             population=individuals_to_select,
-                                             pop_size=self.requirements.pop_size,
-                                             params=self.graph_generation_params)
-            new_population = self._reproduce(selected_individuals)
+        selected_individuals = selection(types=self.parameters.selection_types,
+                                         population=individuals_to_select,
+                                         pop_size=self.requirements.pop_size,
+                                         params=self.graph_generation_params)
+        new_population = self._reproduce(selected_individuals)
 
-            new_population = self.mutation(new_population)
+        new_population = self.mutation(new_population)
 
-            new_population = evaluator(new_population)
+        new_population = evaluator(new_population)
 
-            new_population = self._inheritance(new_population)
+        new_population = self._inheritance(new_population)
 
-            new_population = self.elitism(self.generations.best_individuals, new_population)
+        new_population = self.elitism(self.generations.best_individuals, new_population)
 
-            # Adding of new population to history
-            self._next_population(new_population)
+        return new_population
 
     def _inheritance(self, offspring: PopulationT) -> PopulationT:
         """Gather next population given new offspring, previous population and elite individuals.
