@@ -20,7 +20,7 @@ class Timer(ABC):
 
     @property
     def spent_time(self) -> datetime.timedelta:
-        return datetime.datetime.now() - self.start
+        return datetime.datetime.now() - self.start_time
 
     @property
     def minutes_from_start(self) -> float:

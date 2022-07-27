@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Sequence, Callable
-
-from fedot.core.composer.composer import ComposerRequirements
+from typing import TypeVar, Generic, Sequence, Callable, TYPE_CHECKING
 from fedot.core.optimisers.gp_comp.individual import Individual
+
+if TYPE_CHECKING:
+    from fedot.core.composer.composer import ComposerRequirements
 
 T = TypeVar('T')
 
@@ -27,7 +28,7 @@ class Operator(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def update_requirements(self, new_requirements: ComposerRequirements):
+    def update_requirements(self, new_requirements: 'ComposerRequirements'):
         pass
 
 
