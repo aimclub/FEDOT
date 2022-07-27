@@ -1,13 +1,12 @@
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
-from networkx import graph_edit_distance, set_node_attributes
-
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items
+from networkx import graph_edit_distance, set_node_attributes
 
 
 class GraphOperator:
@@ -94,7 +93,7 @@ class GraphOperator:
         """
         Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
 
-        :param node: new :class:`~fedot.core.pipelines.node.Node` object
+        :param node: new node object to add
         """
         if node not in self._graph.nodes:
             self._graph.nodes.append(node)
@@ -156,7 +155,7 @@ class GraphOperator:
 
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
         """
-        Changes ``old_node`` children parent to ``new_node``
+        Changes parent of ``old_node`` children to ``new_node``
 
         :param old_node: node to take children from
         :param new_node: new parent of ``old_node`` children
