@@ -13,19 +13,13 @@ PopulationT = Sequence[Individual]  # TODO: provisional
 class Operator(ABC, Generic[T]):
     """ Base abstract functional interface for genetic operators.
     Specific signatures are:
-    - Evaluation: Population -> Population
     - Selection: Population -> Population
     - Inheritance: [Population, Population] -> Population
     - Regularization: [Population, EvaluationOperator] -> Population
-    - Reproduction: Population -> Population
     - Mutation: Union[Individual, Population] -> Union[Individual, Population]
     - Crossover: Population -> Population
     - Elitism: [Population, Population] -> Population
     """
-
-    @abstractmethod
-    def __call__(self, *args) -> PopulationT:
-        pass
 
     @abstractmethod
     def update_requirements(self, new_requirements: 'ComposerRequirements'):
