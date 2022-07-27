@@ -2,7 +2,7 @@ from functools import partial
 from typing import (Any, List, Callable)
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
@@ -13,7 +13,7 @@ class GeneticSchemeTypesEnum(Enum):
     parameter_free = 'parameter_free'
 
 
-class Inheritance:
+class Inheritance(Operator):
     def __init__(self, genetic_scheme_type: GeneticSchemeTypesEnum,
                  selection_types: List[SelectionTypesEnum], requirements: PipelineComposerRequirements):
         self.genetic_scheme_type = genetic_scheme_type

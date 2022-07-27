@@ -2,7 +2,7 @@ from copy import deepcopy
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -13,7 +13,7 @@ class RegularizationTypesEnum(Enum):
     decremental = 'decremental'
 
 
-class Regularization:
+class Regularization(Operator):
     def __init__(self, regularization_type: RegularizationTypesEnum,
                  requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams):
         self.regularization_type = regularization_type

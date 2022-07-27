@@ -1,7 +1,7 @@
 from random import shuffle
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -11,7 +11,7 @@ class ElitismTypesEnum(Enum):
     none = 'none'
 
 
-class Elitism:
+class Elitism(Operator):
     def __init__(self, elitism_type: ElitismTypesEnum,
                  requirements: PipelineComposerRequirements,
                  is_multi_objective: bool,
@@ -46,6 +46,5 @@ class Elitism:
 
     def _replace_worst_elitism(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
         population = best_individuals + new_population
-        # sort population based on fitness value in ascending order
-        sorted_population = sorted(population, key=lambda individual: individual.fitness)
-        return sorted_population[:len(new_population)]
+        sorted_ascending_population = sorted(population, key=lambda individual: individual.fitness)
+        return sorted_ascending_population[:len(new_population)]

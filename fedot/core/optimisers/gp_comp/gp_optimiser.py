@@ -201,9 +201,9 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self._update_evolutionary_operators_requirements(self.requirements)
 
     def _update_evolutionary_operators_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.regularization.update_requirements(new_requirements)
-        self.selection.update_requirements(new_requirements)
-        self.crossover.update_requirements(new_requirements)
-        self.mutation.update_requirements(new_requirements)
-        self.inheritance.update_requirements(new_requirements)
-        self.elitism.update_requirements(new_requirements)
+        operators_list = self.get_operators()
+        for operator in operators_list:
+            operator.update_requirements(new_requirements)
+
+    def get_operators(self):
+        return [self.regularization, self.selection, self.crossover, self.mutation, self.inheritance, self.elitism]

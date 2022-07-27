@@ -4,7 +4,7 @@ from random import choice, randint
 from typing import List, Callable
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -13,7 +13,7 @@ class SelectionTypesEnum(Enum):
     spea2 = 'spea2'
 
 
-class Selection:
+class Selection(Operator):
     def __init__(self, selection_types: List[SelectionTypesEnum], requirements: PipelineComposerRequirements):
         self.selection_types = selection_types
         self.requirements = requirements

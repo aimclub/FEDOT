@@ -11,7 +11,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -39,7 +39,7 @@ class MutationStrengthEnum(Enum):
     strong = 5.0
 
 
-class Mutation:
+class Mutation(Operator):
     def __init__(self, mutation_types: List[Union[MutationTypesEnum, Callable]],
                  requirements: 'PipelineComposerRequirements', graph_generation_params: GraphGenerationParams,
                  max_num_of_mutation_attempts: int = 100,

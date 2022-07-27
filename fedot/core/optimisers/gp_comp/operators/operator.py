@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Sequence, Callable
 
+from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual
 
 T = TypeVar('T')
@@ -13,15 +14,20 @@ class Operator(ABC, Generic[T]):
     Specific signatures are:
     - Evaluation: Population -> Population
     - Selection: Population -> Population
-    - Inheritance: Population -> Population
-    - Regularization: Population -> Population
+    - Inheritance: [Population, Population] -> Population
+    - Regularization: [Population, EvaluationOperator] -> Population
     - Reproduction: Population -> Population
-    - Mutation: Individual -> Individual
-    - Crossover: (Individual, Individual) -> (Individual, Individual)
+    - Mutation: Union[Individual, Population] -> Union[Individual, Population]
+    - Crossover: Population -> Population
+    - Elitism: [Population, Population] -> Population
     """
 
     @abstractmethod
-    def __call__(self, operand: T) -> T:
+    def __call__(self, *args) -> PopulationT:
+        pass
+
+    @abstractmethod
+    def update_requirements(self, new_requirements: ComposerRequirements):
         pass
 
 

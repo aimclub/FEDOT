@@ -6,7 +6,7 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -18,7 +18,7 @@ class CrossoverTypesEnum(Enum):
     none = 'none'
 
 
-class Crossover:
+class Crossover(Operator):
     def __init__(self, crossover_types: List[Union[CrossoverTypesEnum, Callable]],
                  requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams,
                  max_number_of_attempts: int = 100):
