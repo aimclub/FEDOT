@@ -15,9 +15,9 @@ class GeneticSchemeTypesEnum(Enum):
 
 class Inheritance(Operator):
     def __init__(self, genetic_scheme_type: GeneticSchemeTypesEnum,
-                 selection_types: List[SelectionTypesEnum], requirements: PipelineComposerRequirements):
+                 selection: Selection, requirements: PipelineComposerRequirements):
         self.genetic_scheme_type = genetic_scheme_type
-        self.selection_types = selection_types
+        self.selection = selection
         self.requirements = requirements
 
     def __call__(self, previous_population: PopulationT, new_population: PopulationT) -> PopulationT:
@@ -39,8 +39,7 @@ class Inheritance(Operator):
         self.requirements = new_requirements
 
     def _steady_state_inheritance(self, prev_population: PopulationT, new_population: PopulationT) -> PopulationT:
-        selection = Selection(self.selection_types, self.requirements)
-        selected_individuals = selection.individuals_selection(individuals=prev_population + new_population)
+        selected_individuals = self.selection.individuals_selection(individuals=prev_population + new_population)
         return selected_individuals
 
     def _direct_inheritance(self, new_population: PopulationT) -> PopulationT:
