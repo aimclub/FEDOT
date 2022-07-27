@@ -1,10 +1,10 @@
 from copy import copy
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from fedot.core.optimisers.graph import OptNode
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
+    from fedot.core.optimisers.graph import OptNode
 
 MAX_DEPTH = 1000
 
@@ -16,7 +16,7 @@ class NodeOperator:
     :param node: bounded node to be processed by the operator
     """
 
-    def __init__(self, node: Union[GraphNode, OptNode]):
+    def __init__(self, node: Union['GraphNode', 'OptNode']):
         self._node = node
 
     def distance_to_primary_level(self):
