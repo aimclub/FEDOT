@@ -7,12 +7,7 @@ from tqdm import tqdm
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.mutation import Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
-from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
-from fedot.core.optimisers.gp_comp.parameters.population_size import PopulationSize, init_adaptive_pop_size
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
@@ -45,7 +40,6 @@ class PopulationalOptimiser(GraphOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional['GPGraphOptimiserParameters'] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
-        self.mutation = Mutation(parameters.mutation_types, graph_generation_params, requirements)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -67,31 +61,6 @@ class PopulationalOptimiser(GraphOptimiser):
                 lambda: self.generations.stagnation_duration >= max_stagnation_length,
                 'Optimisation finished: Early stopping criteria was satisfied'
             )
-
-        # Define adaptive parameters
-
-        self._pop_size: PopulationSize = \
-            init_adaptive_pop_size(parameters.genetic_scheme_type, requirements, self.generations)
-
-        self._operators_prob = \
-            init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
-
-        start_depth = requirements.start_depth or requirements.max_depth
-
-        self._graph_depth = AdaptiveGraphDepth(self.generations,
-                                               start_depth=start_depth,
-                                               max_depth=requirements.max_depth,
-                                               max_stagnated_generations=parameters.depth_increase_step,
-                                               adaptive=parameters.with_auto_depth_configuration)
-
-        # Define parameters
-
-        self.requirements.max_depth = self._graph_depth.initial
-
-        self.requirements.pop_size = self._pop_size.initial
-
-        self.initial_individuals = \
-            [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
     @property
     def current_generation_num(self) -> int:
@@ -145,16 +114,6 @@ class PopulationalOptimiser(GraphOptimiser):
 
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
-
-    def _update_requirements(self):
-        if not self.generations.is_any_improved:
-            self.requirements.mutation_prob, self.requirements.crossover_prob = \
-                self._operators_prob.next(self.population)
-        self.requirements.pop_size = self._pop_size.next(self.population)
-        self.requirements.max_depth = self._graph_depth.next()
-        self.log.info(
-            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
-        self.mutation.update_requirements(self.requirements)
 
 
 def _unfit_pipeline(graph: Any):
