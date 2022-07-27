@@ -115,7 +115,7 @@ class OptNode:
         :return: hierarchical subnodes list starting from the bounded node
         """
         nodes = self._operator.ordered_subnodes_hierarchy(visited)
-        return [self._node_adapter.adapt(node) for node in nodes] # TODO: seems like not needed no more
+        return [self._node_adapter.adapt(node) for node in nodes]  # TODO: seems like not needed no more
 
     @property
     def distance_to_primary_level(self):
@@ -144,7 +144,8 @@ class OptGraph:
             for node in ensure_wrapped_in_sequence(nodes):
                 self.add_node(node)
 
-    def _empty_postproc(self, nodes=None):
+    @copy_doc(Graph._empty_postproc)
+    def _empty_postproc(self, nodes: Optional[List[OptNode]] = None):
         pass
 
     @property
@@ -242,14 +243,11 @@ class OptGraph:
         """ Returns all available edges in a given graph """
         return self._operator.get_edges()
 
+    @copy_doc(Graph.show)
     def show(self, path: Optional[Union[os.PathLike, str]] = None):
-        """
-        Visualizes graph or saves its picture to the specified ``path``
-
-        :param path: optional, save location of the graph visualization image
-        """
         GraphVisualiser().visualise(self, path)
 
+    @copy_doc(Graph.__eq__)
     def __eq__(self, other_graph: 'OptGraph') -> bool:
         """
         Compares this graph with the ``other_graph``
@@ -278,10 +276,12 @@ class OptGraph:
         return self._operator.descriptive_id
 
     @property
+    @copy_doc(Graph.length)
     def length(self) -> int:
         return len(self.nodes)
 
     @property
+    @copy_doc(Graph.depth)
     def depth(self) -> int:
         return self._operator.graph_depth()
 

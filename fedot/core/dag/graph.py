@@ -19,18 +19,19 @@ class Graph:
     """
 
     def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
-        self._nodes: List[GraphNode] = []
+        self._nodes: List['GraphNode'] = []
         self._operator = GraphOperator(self, self._empty_postproc)
 
         if nodes:
             for node in ensure_wrapped_in_sequence(nodes):
                 self.add_node(node)
 
-    def _empty_postproc(self, nodes=None):  # TODO: maybe it should return nodes as is instead?
+    def _empty_postproc(self, nodes: Optional[
+        List['GraphNode']] = None):  # TODO: maybe it should return nodes as is instead?
         """
         Doesn't do any postprocessing to the provided ``nodes``
 
-        :param nodes: _description_
+        :param nodes: not obligatory
         """
         pass
 
@@ -38,49 +39,25 @@ class Graph:
     def nodes(self):
         return self._nodes
 
-    def add_node(self, new_node: GraphNode):
-        """
-        Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline`
+    @copy_doc(GraphOperator.add_node)
+    def add_node(self, new_node: 'GraphNode'):
+        self.operator.add_node(new_node)
 
-        :param new_node: node to be added
-        """
-        self._operator.add_node(new_node)
+    @copy_doc(GraphOperator.update_subtree)
+    def update_node(self, old_node: 'GraphNode', new_node: 'GraphNode'):
+        self.operator.update_node(old_node, new_node)
 
-    def update_node(self, old_node: GraphNode, new_node: GraphNode):
-        """
-        Replaces ``old_node`` with ``new_node``
-
-        :param old_node: node to be replaced
-        :param new_node: node to be placed instead
-        """
-
-        self._operator.update_node(old_node, new_node)
-
+    @copy_doc(GraphOperator.delete_node)
     def delete_node(self, node: 'GraphNode'):
-        """
-        Deletes provided ``node`` and redirects all of its parents to its child.
+        self.operator.delete_node(node)
 
-        :param node: to be deleted
-        """
+    @copy_doc(GraphOperator.update_subtree)
+    def update_subtree(self, old_subroot: 'GraphNode', new_subroot: 'GraphNode'):
+        self.operator.update_subtree(old_subroot, new_subroot)
 
-        self._operator.delete_node(node)
-
-    def update_subtree(self, old_subtree: 'GraphNode', new_subtree: 'GraphNode'):
-        """
-        Replaces ``old_subtree`` with ``new_subtree``
-
-        :param old_subtree: to be replaced
-        :param new_subtree: to be placed instead
-        """
-        self._operator.update_subtree(old_subtree, new_subtree)
-
-    def delete_subtree(self, subroot: GraphNode):
-        """
-        Deletes given subtree with node as subroot.
-
-        :param subroot: to be deleted
-        """
-        self._operator.delete_subtree(subroot)
+    @copy_doc(GraphOperator.delete_subtree)
+    def delete_subtree(self, subtree: 'GraphNode'):
+        self.operator.delete_subtree(subtree)
 
     def distance_to_root_level(self, node: GraphNode) -> int:
         """ Returns distance to root level """
