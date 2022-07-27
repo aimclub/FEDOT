@@ -7,6 +7,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimizer
@@ -32,18 +33,12 @@ class GPComposer(Composer):
 
         super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
-
-        self.optimiser: GraphOptimizer = optimiser
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
+
+        self.optimiser: GraphOptimiser = optimiser
         self.history: Optional[OptHistory] = history
         self.best_models: Collection[Pipeline] = ()
-
-        self.objective_builder = DataObjectiveBuilder(optimiser.objective,
-                                                      composer_requirements.max_pipeline_fit_time,
-                                                      composer_requirements.cv_folds,
-                                                      composer_requirements.validation_blocks,
-                                                      pipelines_cache, preprocessing_cache)
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # shuffle data if necessary
@@ -53,8 +48,14 @@ class GPComposer(Composer):
         if self.history:
             self.history.clean_results()
 
+        # Define data source
+        data_producer = DataObjectiveBuilder(self.composer_requirements.cv_folds,
+                                             self.composer_requirements.validation_blocks).build(data)
         # Define objective function
-        objective_evaluator = self.objective_builder.build(data)
+        objective_evaluator = PipelineObjectiveEvaluate(self.optimiser.objective, data_producer,
+                                                        self.composer_requirements.max_pipeline_fit_time,
+                                                        self.composer_requirements.validation_blocks,
+                                                        self.pipelines_cache, self.preprocessing_cache)
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed

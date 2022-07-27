@@ -20,36 +20,20 @@ from ...constants import default_data_split_ratio_by_task
 
 class DataObjectiveBuilder:
 
-    def __init__(self,
-                 objective: Objective,
-                 max_pipeline_fit_time: Optional[timedelta] = None,
-                 cv_folds: Optional[int] = None,
-                 validation_blocks: Optional[int] = None,
-                 pipelines_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None):
-
-        self.objective = objective
-        self.max_pipeline_fit_time = max_pipeline_fit_time
+    def __init__(self, cv_folds: Optional[int] = None, validation_blocks: Optional[int] = None):
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.advisor = DataObjectiveAdvisor()
-        self._pipelines_cache = pipelines_cache
-        self._preprocessing_cache = preprocessing_cache
         self.log = default_log(self)
 
-    def build(self, data: InputData) -> ObjectiveEvaluate:
+    def build(self, data: InputData) -> DataSource:
         """ Compose evaluator object with desired parameters """
         if self.cv_folds is not None:
             data_producer = self._build_kfolds_producer(data)
         else:
             data_producer = self._build_holdout_producer(data)
 
-        objective_evaluate = PipelineObjectiveEvaluate(objective=self.objective, data_producer=data_producer,
-                                                       time_constraint=self.max_pipeline_fit_time,
-                                                       validation_blocks=self.validation_blocks,
-                                                       pipelines_cache=self._pipelines_cache,
-                                                       preprocessing_cache=self._preprocessing_cache)
-        return objective_evaluate
+        return data_producer
 
     @staticmethod
     def _data_producer(train_data: InputData, test_data: InputData):
