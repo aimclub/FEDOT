@@ -12,7 +12,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, regularized_population
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, crossover_parents_selection, selection
-from fedot.core.optimisers.gp_comp.populational_optimiser import PopulationalOptimiser
+from fedot.core.optimisers.populational_optimiser import PopulationalOptimiser
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
