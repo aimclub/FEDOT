@@ -17,7 +17,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
+from fedot.core.optimisers.objective.data_source_builder import DataSourceBuilder
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -116,7 +116,7 @@ def test_evaluate_individuals():
                              pipeline_third(), pipeline_fourth()]
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    objective_builder = DataObjectiveBuilder(Objective([metric_function]))
+    objective_builder = DataSourceBuilder(Objective([metric_function]))
     objective_eval = objective_builder.build(dataset_to_compose)
     adapter = PipelineAdapter()
 
