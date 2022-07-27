@@ -1,10 +1,9 @@
 import math
 from copy import deepcopy
 from random import choice, randint
-from typing import List, Iterable, Sequence, Tuple
+from typing import List, Callable
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
@@ -27,7 +26,7 @@ class Selection:
         selection_type = choice(self.selection_types)
         return self._selection_by_type(selection_type)(population)
 
-    def _selection_by_type(self, selection_type: SelectionTypesEnum):
+    def _selection_by_type(self, selection_type: SelectionTypesEnum) -> Callable[[PopulationT], PopulationT]:
         selections = {
             SelectionTypesEnum.tournament: self._tournament_selection,
             SelectionTypesEnum.spea2: self._spea2_selection
@@ -61,8 +60,7 @@ class Selection:
             self.requirements = old_requirements
         return chosen
 
-    def _tournament_selection(self, individuals: PopulationT,
-                              fraction: float = 0.1) -> PopulationT:
+    def _tournament_selection(self, individuals: PopulationT, fraction: float = 0.1) -> PopulationT:
         pop_size = self.requirements.pop_size
         group_size = math.ceil(len(individuals) * fraction)
         min_group_size = 2 if len(individuals) > 1 else 1

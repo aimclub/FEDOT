@@ -1,10 +1,9 @@
 from copy import deepcopy
-from typing import Any
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
-from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
@@ -57,5 +56,5 @@ class Regularization:
         return additional_inds
 
     @staticmethod
-    def _is_fitted_subtree(node: Any) -> bool:
+    def _is_fitted_subtree(node: OptNode) -> bool:
         return node.nodes_from and node.fitted_model

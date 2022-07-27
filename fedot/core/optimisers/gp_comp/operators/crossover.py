@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import TYPE_CHECKING, Callable, List, Union, Iterable, Tuple
+from typing import Callable, List, Union, Iterable, Tuple
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.log import default_log
@@ -8,10 +8,8 @@ from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, repla
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
-
-if TYPE_CHECKING:
-    from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
 class CrossoverTypesEnum(Enum):
@@ -22,7 +20,7 @@ class CrossoverTypesEnum(Enum):
 
 class Crossover:
     def __init__(self, crossover_types: List[Union[CrossoverTypesEnum, Callable]],
-                 requirements: PipelineComposerRequirements, graph_generation_params: 'GraphGenerationParams',
+                 requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams,
                  max_number_of_attempts: int = 100):
         self.crossover_types = crossover_types
         self.graph_generation_params = graph_generation_params
@@ -56,9 +54,9 @@ class Crossover:
                     are_correct = all(self.graph_generation_params.verifier(new_graph) for new_graph in new_graphs)
                     if are_correct:
                         parent_individuals = (ind_first, ind_second)
-                        new_individuals = self._get_new_individuals_with_proper_parent_operators(new_graphs,
-                                                                                                 parent_individuals,
-                                                                                                 crossover_type)
+                        new_individuals = self._get_individuals_with_proper_parent_operators(new_graphs,
+                                                                                             parent_individuals,
+                                                                                             crossover_type)
                         return new_individuals
 
                 self.log.debug('Number of crossover attempts exceeded. '
@@ -68,7 +66,7 @@ class Crossover:
 
         return ind_first, ind_second
 
-    def _obtain_crossover_function(self, crossover_type: Union[CrossoverTypesEnum, Callable]):
+    def _obtain_crossover_function(self, crossover_type: Union[CrossoverTypesEnum, Callable]) -> Callable:
         if isinstance(crossover_type, Callable):
             return crossover_type
         else:
@@ -101,7 +99,7 @@ class Crossover:
                 new_graphs[graph_id] = self.graph_generation_params.adapter.adapt(graph)
         return new_graphs
 
-    def _get_new_individuals_with_proper_parent_operators(self, new_graphs, parent_individuals, crossover_type):
+    def _get_individuals_with_proper_parent_operators(self, new_graphs, parent_individuals, crossover_type):
         operator = ParentOperator(operator_type='crossover',
                                   operator_name=str(crossover_type),
                                   parent_individuals=parent_individuals)

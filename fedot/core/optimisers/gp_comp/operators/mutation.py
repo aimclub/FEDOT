@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import TYPE_CHECKING, Any, Callable, List, Union
+from typing import TYPE_CHECKING, Any, Callable, List, Union, Tuple
 
 import numpy as np
 
@@ -12,7 +12,7 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.graph import OptGraph
+from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 
@@ -102,7 +102,7 @@ class Mutation:
 
         return individual
 
-    def _adapt_and_apply_mutations(self, new_graph: OptGraph, num_mut: int):
+    def _adapt_and_apply_mutations(self, new_graph: OptGraph, num_mut: int) -> Tuple[OptGraph, List[str]]:
         """
         Apply mutation in several iterations with specific adaptation of each graph
         """
@@ -147,10 +147,10 @@ class Mutation:
         return new_graph
 
     @staticmethod
-    def _will_mutation_be_applied(mutation_prob, mutation_type) -> bool:
+    def _will_mutation_be_applied(mutation_prob: float, mutation_type: Union[MutationTypesEnum, Callable]) -> bool:
         return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
 
-    def _simple_mutation(self, graph: Any, **kwargs) -> Any:
+    def _simple_mutation(self, graph: OptGraph, **kwargs) -> OptGraph:
         """
         This type of mutation is passed over all nodes of the tree started from the root node and changes
         nodes’ operations with probability - 'node mutation probability'
@@ -159,7 +159,7 @@ class Mutation:
         :param graph: graph to mutate
         """
 
-        def replace_node_to_random_recursive(node: Any) -> Any:
+        def replace_node_to_random_recursive(node: OptGraph) -> OptGraph:
             if random() < node_mutation_probability:
                 new_node = self.graph_generation_params.node_factory.exchange_node(node)
                 if new_node:
@@ -199,7 +199,7 @@ class Mutation:
             return old_graph
         return graph
 
-    def _add_intermediate_node(self, graph: OptGraph, node_to_mutate) -> OptGraph:
+    def _add_intermediate_node(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add between node and parent
         new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=False)
         if not new_node:
@@ -209,7 +209,7 @@ class Mutation:
         graph.nodes.append(new_node)
         return graph
 
-    def _add_separate_parent_node(self, graph: OptGraph, node_to_mutate) -> OptGraph:
+    def _add_separate_parent_node(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as separate parent
         for iter_num in range(randint(1, 3)):
             new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=True)
@@ -223,7 +223,7 @@ class Mutation:
             graph.nodes.append(new_node)
         return graph
 
-    def _add_as_child(self, graph: OptGraph, node_to_mutate) -> OptGraph:
+    def _add_as_child(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as child
         new_node = self.graph_generation_params.node_factory.get_node(primary=False)
         if not new_node:
@@ -300,7 +300,7 @@ class Mutation:
                         child.nodes_from = node_to_del.nodes_from
         return graph
 
-    def _tree_growth(self, graph: OptGraph, local_growth=True) -> OptGraph:
+    def _tree_growth(self, graph: OptGraph, local_growth: bool = True) -> OptGraph:
         """
         This mutation selects a random node in a tree, generates new subtree,
         and replaces the selected node's subtree.

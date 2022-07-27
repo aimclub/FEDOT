@@ -31,6 +31,14 @@ class Elitism:
         else:
             raise ValueError(f'Required elitism type not found: {self.elitism_type}')
 
+    def update_requirements(self, new_requirements: PipelineComposerRequirements):
+        self.requirements = new_requirements
+
+    def _is_elitism_applicable(self) -> bool:
+        if self.is_multi_objective:
+            return False
+        return self.requirements.pop_size >= self.min_population_size_with_elitism
+
     def _keep_n_best_elitism(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
         shuffle(new_population)
         new_population[:len(best_individuals)] = best_individuals
@@ -41,11 +49,3 @@ class Elitism:
         # sort population based on fitness value in ascending order
         sorted_population = sorted(population, key=lambda individual: individual.fitness)
         return sorted_population[:len(new_population)]
-
-    def _is_elitism_applicable(self):
-        if self.is_multi_objective:
-            return False
-        return self.requirements.pop_size >= self.min_population_size_with_elitism
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
