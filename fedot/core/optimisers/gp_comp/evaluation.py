@@ -69,16 +69,14 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         self._post_eval_callback = callback
 
-    def evaluate_with_cache(self, population: PopulationT) -> PopulationT:
+    def evaluate_with_cache(self, population: PopulationT) -> Optional[PopulationT]:
         reversed_population = list(reversed(population))
         self._remote_compute_cache(reversed_population)
         evaluated_population = self.evaluate_population(reversed_population)
         self._reset_eval_cache()
-        if not evaluated_population and reversed_population:
-            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
         return evaluated_population
 
-    def evaluate_population(self, individuals: PopulationT) -> PopulationT:
+    def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         if n_jobs == 1:
@@ -88,12 +86,14 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
                 mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
 
         # If there were no successful evals then try once again getting at least one,
-        #  even if time limit was reached
+        # even if time limit was reached
         successful_evals = list(filter(None, mapped_evals))
         if not successful_evals:
             single = self.evaluate_single(choice(individuals), with_time_limit=False)
             if single:
                 successful_evals = [single]
+            else:
+                successful_evals = None
 
         return successful_evals
 
@@ -158,11 +158,11 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         self._objective_eval = objective
         return self.evaluate_population
 
-    def evaluate_population(self, individuals: PopulationT) -> PopulationT:
+    def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         mapped_evals = list(map(self.evaluate_single, individuals))
         evaluated_population = list(filter(None, mapped_evals))
-        if not evaluated_population and individuals:
-            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+        if not evaluated_population:
+            evaluated_population = None
         return evaluated_population
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
