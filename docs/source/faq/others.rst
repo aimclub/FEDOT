@@ -1,15 +1,13 @@
 Others
 ======
 
-What is Fedot?
---------------
+.. topic:: What is Fedot?
 
     *Fedot is the AutoML-like framework for the automated generation of the
     data-driven composite models. It can solve classification, regression,
     clustering, and forecasting problems.*
 
-Why should I use Fedot instead of existing state-of-the-art solutions (H2O/TPOT/etc)?
--------------------------------------------------------------------------------------
+.. topic:: Why should I use Fedot instead of existing state-of-the-art solutions (H2O/TPOT/etc)?
 
     *In practice, the existing AutoML solutions are really effective for the
     limited set of problems only. During the model learning, modern AutoML
@@ -23,19 +21,16 @@ Why should I use Fedot instead of existing state-of-the-art solutions (H2O/TPOT/
     efficient way. Also, we are aimed to outperform the existing solutions
     even for well-known benchmarks (e.g. PMLB datasets).*
 
-Can I install Fedot using pip/conda?
-------------------------------------
+.. topic:: Can I install Fedot using pip/conda?
 
     *Yes, follow the* `link`_
 
-Can I use Fedot in my project/research/etc?
--------------------------------------------
+.. topic:: Can I use Fedot in my project/research/etc?
 
     *Yes, you can. The Fedot is published under the BSD-3 license. Also, we
     will be happy to help the users to adopt Fedot to their needs.*
 
-Why it is named Fedot?
-----------------------
+.. topic:: Why it is named Fedot?
 
     *We decided to use this archaic Russian first name to add a bit of
     fantasy spirit into the development process.*
