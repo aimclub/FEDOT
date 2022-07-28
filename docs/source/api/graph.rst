@@ -1,7 +1,7 @@
 Graph
 =====
 
-.. automodule:: fedot.core.graphs.graph
+.. automodule:: fedot.core.dag.graph
    :members:
    :undoc-members:
    :show-inheritance:
