@@ -18,7 +18,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, Regularization
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
-from fedot.core.optimisers.populational_optimiser import PopulationalOptimiser
+from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
@@ -78,7 +78,7 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         self.set_default_params()  # always initialize in proper state
 
 
-class EvoGraphOptimizer(PopulationalOptimiser):
+class EvoGraphOptimizer(PopulationalOptimizer):
     """
     Multi-objective evolutionary graph optimizer named GPComp
     """
@@ -90,13 +90,6 @@ class EvoGraphOptimizer(PopulationalOptimiser):
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimiserParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
-        self.population = None
-        self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
-        self.timer = OptimisationTimer(timeout=self.requirements.timeout)
-        self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
-                                                         timer=self.timer,
-                                                         n_jobs=requirements.n_jobs,
-                                                         graph_cleanup_fn=_unfit_pipeline)
         # Define genetic operators
         self.regularization = Regularization(parameters.regularization_type, requirements, graph_generation_params,)
         self.selection = Selection(parameters.selection_types, requirements)
@@ -106,7 +99,6 @@ class EvoGraphOptimizer(PopulationalOptimiser):
         self.elitism = Elitism(parameters.elitism_type, requirements, objective.is_multi_objective)
         self.operators = [self.regularization, self.selection, self.crossover,
                           self.mutation, self.inheritance, self.elitism]
-
 
         # Define adaptive parameters
         self._pop_size: PopulationSize = \
@@ -124,6 +116,16 @@ class EvoGraphOptimizer(PopulationalOptimiser):
         self.requirements.pop_size = self._pop_size.initial
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
+
+    def _initial_population(self, evaluator: Callable):
+        """ Initializes the initial population """
+        # Adding of initial assumptions to history as zero generation
+        self._update_population(evaluator(self.initial_individuals))
+
+        if len(self.initial_individuals) < self.requirements.pop_size:
+            self.initial_individuals = self._extend_population(self.initial_individuals)
+            # Adding of extended population to history
+            self._update_population(evaluator(self.initial_individuals))
 
     def _extend_population(self, initial_individuals) -> PopulationT:
         iter_num = 0
@@ -146,33 +148,35 @@ class EvoGraphOptimizer(PopulationalOptimiser):
         self.mutation.update_requirements(self.requirements)
         return initial_individuals
 
-    def _initial_population(self, evaluator: Callable):
-        """ Initializes the initial population """
-        # Adding of initial assumptions to history as zero generation
-        self._next_population(evaluator(self.initial_individuals))
-
-        if len(self.initial_individuals) < self.requirements.pop_size:
-            self.initial_individuals = self._extend_population(self.initial_individuals)
-            # Adding of extended population to history
-            self._next_population(evaluator(self.initial_individuals))
-
     def _evolve_population(self, evaluator: Callable) -> PopulationT:
         """ Method realizing full evolution cycle """
         self._update_requirements()
+
         individuals_to_select = self.regularization(self.population, evaluator)
-
         selected_individuals = self.selection(individuals_to_select)
-
         new_population = self._spawn_evaluated_population(selected_individuals=selected_individuals,
                                                           evaluator=evaluator)
-
         new_population = self.inheritance(self.population, new_population)
-
         new_population = self.elitism(self.generations.best_individuals, new_population)
 
         return new_population
 
-    def _spawn_evaluated_population(self, selected_individuals: List[Individual], evaluator: Callable) -> PopulationT:
+    def _update_requirements(self):
+        if not self.generations.is_any_improved:
+            self.requirements.mutation_prob, self.requirements.crossover_prob = \
+                self._operators_prob.next(self.population)
+        self.requirements.pop_size = self._pop_size.next(self.population)
+        self.requirements.max_depth = self._graph_depth.next()
+        self.log.info(
+            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
+        self._update_evolutionary_operators_requirements(self.requirements)
+
+    def _update_evolutionary_operators_requirements(self, new_requirements: PipelineComposerRequirements):
+        operators_list = self.operators
+        for operator in operators_list:
+            operator.update_requirements(new_requirements)
+
+    def _spawn_evaluated_population(self, selected_individuals: PopulationT, evaluator: Callable) -> PopulationT:
         """ Reproduce and evaluate new population. If at least one of received individuals can not be evaluated then
         mutate and evaluate selected individuals until a new population is obtained
         or the number of attempts is exceeded """
@@ -192,18 +196,3 @@ class EvoGraphOptimizer(PopulationalOptimiser):
             raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
 
         return new_population
-
-    def _update_requirements(self):
-        if not self.generations.is_any_improved:
-            self.requirements.mutation_prob, self.requirements.crossover_prob = \
-                self._operators_prob.next(self.population)
-        self.requirements.pop_size = self._pop_size.next(self.population)
-        self.requirements.max_depth = self._graph_depth.next()
-        self.log.info(
-            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
-        self._update_evolutionary_operators_requirements(self.requirements)
-
-    def _update_evolutionary_operators_requirements(self, new_requirements: PipelineComposerRequirements):
-        operators_list = self.operators
-        for operator in operators_list:
-            operator.update_requirements(new_requirements)

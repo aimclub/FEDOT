@@ -11,16 +11,16 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 
 
-class PopulationalOptimiser(GraphOptimiser):
+class PopulationalOptimizer(GraphOptimizer):
     """
     Base class of populational optimiser.
-    PopulationalOptimiser implements all basic methods for optimisation not related to evolution process
+    PopulationalOptimizer implements all basic methods for optimisation not related to evolution process
     to experiment with other kinds of evolution optimization methods
     It allows to find the optimal solution using specified metric (one or several).
     To implement the specific evolution strategy,
@@ -66,34 +66,9 @@ class PopulationalOptimiser(GraphOptimiser):
     def current_generation_num(self) -> int:
         return self.generations.generation_num
 
-    def _next_population(self, next_population: PopulationT):
-        self.update_native_generation_numbers(next_population)
-        self.generations.append(next_population)
-        self._optimisation_callback(next_population, self.generations)
-        self.population = next_population
-
-        self.log.info(f'Generation num: {self.current_generation_num}')
-        self.log.info(f'Best individuals: {str(self.generations)}')
-        self.log.info(f'no improvements for {self.generations.stagnation_duration} iterations')
-        self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
-
     def set_evaluation_callback(self, callback: Optional[GraphFunction]):
         # Redirect callback to evaluation dispatcher
         self.eval_dispatcher.set_evaluation_callback(callback)
-
-    def update_native_generation_numbers(self, population: PopulationT):
-        for individual in population:
-            individual.set_native_generation(self.current_generation_num)
-
-    @abstractmethod
-    def _initial_population(self, *args, **kwargs):
-        """ Initializes the initial population """
-        raise NotImplementedError()
-
-    @abstractmethod
-    def _evolve_population(self, *args, **kwargs) -> PopulationT:
-        """ Method realizing full evolution cycle """
-        raise NotImplementedError()
 
     def optimise(self, objective: ObjectiveFunction,
                  show_progress: bool = True) -> Sequence[OptGraph]:
@@ -110,10 +85,35 @@ class PopulationalOptimiser(GraphOptimiser):
             while not self.stop_optimisation():
                 new_population = self._evolve_population(evaluator=evaluator)
                 # Adding of new population to history
-                self._next_population(new_population)
+                self._update_population(new_population)
 
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
+
+    @abstractmethod
+    def _initial_population(self, *args, **kwargs):
+        """ Initializes the initial population """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def _evolve_population(self, *args, **kwargs) -> PopulationT:
+        """ Method realizing full evolution cycle """
+        raise NotImplementedError()
+
+    def _update_population(self, next_population: PopulationT):
+        self.update_native_generation_numbers(next_population)
+        self.generations.append(next_population)
+        self._optimisation_callback(next_population, self.generations)
+        self.population = next_population
+
+        self.log.info(f'Generation num: {self.current_generation_num}')
+        self.log.info(f'Best individuals: {str(self.generations)}')
+        self.log.info(f'no improvements for {self.generations.stagnation_duration} iterations')
+        self.log.info(f'spent time: {round(self.timer.minutes_from_start, 1)} min')
+
+    def update_native_generation_numbers(self, population: PopulationT):
+        for individual in population:
+            individual.set_native_generation(self.current_generation_num)
 
 
 def _unfit_pipeline(graph: Any):
