@@ -86,12 +86,14 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
                 mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
 
         # If there were no successful evals then try once again getting at least one,
-        #  even if time limit was reached
+        # even if time limit was reached
         successful_evals = list(filter(None, mapped_evals))
         if not successful_evals:
             single = self.evaluate_single(choice(individuals), with_time_limit=False)
             if single:
                 successful_evals = [single]
+            else:
+                successful_evals = None
 
         return successful_evals
 
