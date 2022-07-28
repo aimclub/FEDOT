@@ -81,12 +81,6 @@ class ApiParams:
         simple_keys = ['problem', 'n_jobs', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
 
-        # Set logging level for optimiser: if not specified then set the same as for api
-        if 'logging_level_opt' in input_params.keys():
-            self.api_params['logging_level_opt'] = input_params['logging_level_opt']
-        else:
-            self.api_params['logging_level_opt'] = input_params['logging_level']
-
         default_evo_params = self.get_default_evo_params(self.api_params['problem'])
         if input_params['composer_tuner_params'] is None:
             evo_params = default_evo_params

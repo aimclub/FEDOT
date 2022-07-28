@@ -33,7 +33,8 @@ def get_simple_composer_params() -> dict:
               'num_of_generations': 2,
               'with_tuning': True,
               'preset': 'fast_train',
-              'logging_level_opt': logging.CRITICAL+1}
+              'logging_level_opt': logging.CRITICAL+1,
+              'show_progress': False}
     return params
 
 

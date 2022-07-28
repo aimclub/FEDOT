@@ -63,7 +63,8 @@ class GPComposer(Composer):
             self.optimiser.set_evaluation_callback(objective_evaluator.evaluate_intermediate_metrics)
 
         # Finally, run optimization process
-        opt_result = self.optimiser.optimise(objective_function)
+        opt_result = self.optimiser.optimise(objective_function,
+                                             show_progress=self.composer_requirements.show_progress)
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')
