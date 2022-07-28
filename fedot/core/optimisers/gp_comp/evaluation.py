@@ -161,8 +161,8 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     def evaluate_population(self, individuals: PopulationT) -> PopulationT:
         mapped_evals = list(map(self.evaluate_single, individuals))
         evaluated_population = list(filter(None, mapped_evals))
-        if not evaluated_population and individuals:
-            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+        if not evaluated_population:
+            evaluated_population = None
         return evaluated_population
 
     def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:

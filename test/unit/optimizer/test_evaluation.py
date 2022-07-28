@@ -57,8 +57,7 @@ def test_dispatchers_with_and_without_multiprocessing(dispatcher):
 
 @pytest.mark.parametrize(
     'objective',
-    [invalid_objective,
-     throwing_exception_objective]
+    [invalid_objective]
 )
 @pytest.mark.parametrize(
     'dispatcher',
@@ -69,8 +68,7 @@ def test_dispatchers_with_faulty_objectives(objective, dispatcher):
     adapter, population = set_up_tests()
 
     evaluator = dispatcher.dispatch(objective)
-    with pytest.raises(Exception):
-        evaluator(population)
+    assert evaluator(population) is None
 
 
 def test_multiprocessing_dispatcher_with_timeout():

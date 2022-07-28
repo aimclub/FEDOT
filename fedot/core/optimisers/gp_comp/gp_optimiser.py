@@ -187,6 +187,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         new_population = None
         while not new_population:
             new_population = self._reproduce(selected_individuals)
+            new_population = self.mutation(new_population)
             new_population = evaluator(new_population)
 
             if iter_num > EVALUATION_ATTEMPTS_NUMBER:
@@ -197,12 +198,6 @@ class EvoGraphOptimiser(PopulationalOptimiser):
             raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
 
         return new_population
-
-    def with_elitism(self, pop_size: int) -> bool:
-        if self.objective.is_multi_objective:
-            return False
-        else:
-            return pop_size >= self._min_population_size_with_elitism
 
     def _update_requirements(self):
         if not self.generations.is_any_improved:
