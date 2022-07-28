@@ -1,4 +1,4 @@
-Node
+GraphNode
 ====
 
 .. automodule:: fedot.core.graphs.graph_node
