@@ -1,9 +1,9 @@
 from functools import partial
-from typing import (Any, List, Callable)
+from typing import (Callable)
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
+from fedot.core.optimisers.gp_comp.operators.selection import Selection
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -25,9 +25,9 @@ class Inheritance(Operator):
 
     def _inheritance_type_by_genetic_scheme(self, genetic_scheme_type: GeneticSchemeTypesEnum,
                                             previous_population: PopulationT, new_population: PopulationT) -> Callable:
-        steady_state_scheme = partial(self._steady_state_inheritance, previous_population,
-                                      new_population)
-        generational_scheme = partial(self._direct_inheritance, new_population)
+        steady_state_scheme = partial(steady_state_inheritance, previous_population,
+                                      new_population, self.selection)
+        generational_scheme = partial(direct_inheritance, new_population, self.requirements.pop_size)
         inheritance_type_by_genetic_scheme = {
             GeneticSchemeTypesEnum.generational: generational_scheme,
             GeneticSchemeTypesEnum.steady_state: steady_state_scheme,
@@ -38,9 +38,12 @@ class Inheritance(Operator):
     def update_requirements(self, new_requirements: PipelineComposerRequirements):
         self.requirements = new_requirements
 
-    def _steady_state_inheritance(self, prev_population: PopulationT, new_population: PopulationT) -> PopulationT:
-        selected_individuals = self.selection.individuals_selection(individuals=prev_population + new_population)
-        return selected_individuals
 
-    def _direct_inheritance(self, new_population: PopulationT) -> PopulationT:
-        return new_population[:self.requirements.pop_size]
+def steady_state_inheritance(prev_population: PopulationT, new_population: PopulationT, selection: Selection) \
+        -> PopulationT:
+    selected_individuals = selection.individuals_selection(individuals=prev_population + new_population)
+    return selected_individuals
+
+
+def direct_inheritance(new_population: PopulationT, pop_size: int) -> PopulationT:
+    return new_population[:pop_size]

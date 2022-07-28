@@ -54,9 +54,7 @@ class Crossover(Operator):
                     are_correct = all(self.graph_generation_params.verifier(new_graph) for new_graph in new_graphs)
                     if are_correct:
                         parent_individuals = (ind_first, ind_second)
-                        new_individuals = self._get_individuals_with_proper_parent_operators(new_graphs,
-                                                                                             parent_individuals,
-                                                                                             crossover_type)
+                        new_individuals = self._get_individuals(new_graphs, parent_individuals, crossover_type)
                         return new_individuals
 
                 self.log.debug('Number of crossover attempts exceeded. '
@@ -72,10 +70,11 @@ class Crossover(Operator):
         else:
             return self._crossover_by_type(crossover_type)
 
-    def _crossover_by_type(self, crossover_type: CrossoverTypesEnum):
+    def _crossover_by_type(self, crossover_type: CrossoverTypesEnum) \
+            -> Callable[[OptGraph, OptGraph, int], Tuple[OptGraph, OptGraph]]:
         crossovers = {
-            CrossoverTypesEnum.subtree: self._subtree_crossover,
-            CrossoverTypesEnum.one_point: self._one_point_crossover,
+            CrossoverTypesEnum.subtree: subtree_crossover,
+            CrossoverTypesEnum.one_point: one_point_crossover,
         }
         if crossover_type in crossovers:
             return crossovers[crossover_type]
@@ -92,14 +91,15 @@ class Crossover(Operator):
             first_object = self.graph_generation_params.adapter.restore(first_object)
             second_object = self.graph_generation_params.adapter.restore(second_object)
 
-        new_graphs = crossover_function(first_object, second_object)
+        new_graphs = crossover_function(first_object, second_object, self.requirements.max_depth)
 
         if is_custom_operator:
             for graph_id, graph in enumerate(new_graphs):
                 new_graphs[graph_id] = self.graph_generation_params.adapter.adapt(graph)
         return new_graphs
 
-    def _get_individuals_with_proper_parent_operators(self, new_graphs, parent_individuals, crossover_type):
+    def _get_individuals(self, new_graphs: Tuple[OptGraph, OptGraph], parent_individuals: Tuple[Individual, Individual],
+                         crossover_type: Union[CrossoverTypesEnum, Callable]) -> Tuple[Individual, Individual]:
         operator = ParentOperator(operator_type='crossover',
                                   operator_name=str(crossover_type),
                                   parent_individuals=parent_individuals)
@@ -113,38 +113,51 @@ class Crossover(Operator):
             new_individuals.append(new_ind)
         return tuple(new_individuals)
 
+    def _get_parent_operators(self, parent_individuals: Tuple[Individual, Individual],
+                              crossover_type: Union[CrossoverTypesEnum, Callable]) -> List[ParentOperator]:
+        operator = ParentOperator(operator_type='crossover',
+                                  operator_name=str(crossover_type),
+                                  parent_individuals=parent_individuals)
+        parent_operators = []
+        for parent_individual in parent_individuals:
+            parent_operators.extend(parent_individual.parent_operators)
+        parent_operators.append(operator)
+        return parent_operators
+
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
         return not (graph_first is graph_second or
                     random() > self.requirements.crossover_prob or
                     crossover_type is CrossoverTypesEnum.none)
 
-    def _subtree_crossover(self, graph_first: OptGraph, graph_second: OptGraph) -> Tuple[OptGraph, OptGraph]:
-        """Performed by the replacement of random subtree
-        in first selected parent to random subtree from the second parent"""
-        random_layer_in_graph_first = choice(range(graph_first.depth))
-        min_second_layer = 1 if random_layer_in_graph_first == 0 and graph_second.depth > 1 else 0
-        random_layer_in_graph_second = choice(range(min_second_layer, graph_second.depth))
 
-        node_from_graph_first = choice(graph_first.nodes_from_layer(random_layer_in_graph_first))
-        node_from_graph_second = choice(graph_second.nodes_from_layer(random_layer_in_graph_second))
+def subtree_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: int) -> Tuple[OptGraph, OptGraph]:
+    """Performed by the replacement of random subtree
+    in first selected parent to random subtree from the second parent"""
+    random_layer_in_graph_first = choice(range(graph_first.depth))
+    min_second_layer = 1 if random_layer_in_graph_first == 0 and graph_second.depth > 1 else 0
+    random_layer_in_graph_second = choice(range(min_second_layer, graph_second.depth))
+
+    node_from_graph_first = choice(graph_first.nodes_from_layer(random_layer_in_graph_first))
+    node_from_graph_second = choice(graph_second.nodes_from_layer(random_layer_in_graph_second))
+
+    replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
+                     random_layer_in_graph_first, random_layer_in_graph_second, max_depth)
+
+    return graph_first, graph_second
+
+
+def one_point_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: int) -> Tuple[OptGraph, OptGraph]:
+    """Finds common structural parts between two trees, and after that randomly
+    chooses the location of nodes, subtrees of which will be swapped"""
+    pairs_of_nodes = equivalent_subtree(graph_first, graph_second)
+    if pairs_of_nodes:
+        node_from_graph_first, node_from_graph_second = choice(pairs_of_nodes)
+
+        layer_in_graph_first = \
+            graph_first.root_node.distance_to_primary_level - node_from_graph_first.distance_to_primary_level
+        layer_in_graph_second = \
+            graph_second.root_node.distance_to_primary_level - node_from_graph_second.distance_to_primary_level
 
         replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
-                         random_layer_in_graph_first, random_layer_in_graph_second, self.requirements.max_depth)
-
-        return graph_first, graph_second
-
-    def _one_point_crossover(self, graph_first: OptGraph, graph_second: OptGraph) -> Tuple[OptGraph, OptGraph]:
-        """Finds common structural parts between two trees, and after that randomly
-        chooses the location of nodes, subtrees of which will be swapped"""
-        pairs_of_nodes = equivalent_subtree(graph_first, graph_second)
-        if pairs_of_nodes:
-            node_from_graph_first, node_from_graph_second = choice(pairs_of_nodes)
-
-            layer_in_graph_first = \
-                graph_first.root_node.distance_to_primary_level - node_from_graph_first.distance_to_primary_level
-            layer_in_graph_second = \
-                graph_second.root_node.distance_to_primary_level - node_from_graph_second.distance_to_primary_level
-
-            replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
-                             layer_in_graph_first, layer_in_graph_second, self.requirements.max_depth)
-        return graph_first, graph_second
+                         layer_in_graph_first, layer_in_graph_second, max_depth)
+    return graph_first, graph_second

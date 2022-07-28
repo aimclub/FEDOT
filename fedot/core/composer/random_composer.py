@@ -8,13 +8,13 @@ from fedot.core.composer.composer import ComposerRequirements, Composer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
-from fedot.core.optimisers.optimizer import GraphOptimiser
+from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
 class RandomSearchComposer(Composer):
-    def __init__(self, optimiser: 'RandomSearchOptimiser',
+    def __init__(self, optimiser: 'RandomSearchOptimizer',
                  composer_requirements: Optional[ComposerRequirements] = None):
         super().__init__(optimiser=optimiser,
                          composer_requirements=composer_requirements)
@@ -72,7 +72,7 @@ class RandomGraphFactory:
         return self.__secondary_node_func(random.choice(self.__secondary_candidates), parent_nodes)
 
 
-class RandomSearchOptimiser(GraphOptimiser):
+class RandomSearchOptimizer(GraphOptimizer):
 
     def __init__(self, objective: Objective,
                  random_pipeline_factory: Callable[..., Pipeline],

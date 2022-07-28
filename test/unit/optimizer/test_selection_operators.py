@@ -5,7 +5,7 @@ from fedot.core.debug.metrics import RandomMetric
 from fedot.core.optimisers.fitness.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection, random_selection
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 
 
@@ -46,7 +46,7 @@ def test_tournament_selection():
 def test_random_selection():
     num_of_inds = 2
     population, _ = rand_population_gener_and_eval(pop_size=4)
-    selected_individuals = Selection._random_selection(population, pop_size=num_of_inds)
+    selected_individuals = random_selection(population, pop_size=num_of_inds)
     assert (all([ind in population for ind in selected_individuals]) and
             len(selected_individuals) == num_of_inds)
 

@@ -20,7 +20,8 @@ from fedot.core.optimisers.gp_comp.operators.regularization import Regularizatio
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
 from fedot.core.optimisers.populational_optimiser import PopulationalOptimiser
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
+from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -77,9 +78,9 @@ class GPGraphOptimiserParameters(GraphOptimiserParameters):
         self.set_default_params()  # always initialize in proper state
 
 
-class EvoGraphOptimiser(PopulationalOptimiser):
+class EvoGraphOptimizer(PopulationalOptimiser):
     """
-    Multi-objective evolutionary graph optimiser named GPComp
+    Multi-objective evolutionary graph optimizer named GPComp
     """
 
     def __init__(self,
@@ -103,6 +104,8 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.mutation = Mutation(parameters.mutation_types, requirements, graph_generation_params)
         self.inheritance = Inheritance(parameters.genetic_scheme_type, self.selection, requirements)
         self.elitism = Elitism(parameters.elitism_type, requirements, objective.is_multi_objective)
+        self.operators = [self.regularization, self.selection, self.crossover,
+                          self.mutation, self.inheritance, self.elitism]
 
 
         # Define adaptive parameters
@@ -201,9 +204,6 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self._update_evolutionary_operators_requirements(self.requirements)
 
     def _update_evolutionary_operators_requirements(self, new_requirements: PipelineComposerRequirements):
-        operators_list = self.get_operators()
+        operators_list = self.operators
         for operator in operators_list:
             operator.update_requirements(new_requirements)
-
-    def get_operators(self):
-        return [self.regularization, self.selection, self.crossover, self.mutation, self.inheritance, self.elitism]

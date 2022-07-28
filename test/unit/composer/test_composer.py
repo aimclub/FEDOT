@@ -13,7 +13,7 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
-from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimiser
+from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimizer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
@@ -71,7 +71,7 @@ def test_random_composer(data_fixture, request):
 
     objective = Objective(ClassificationMetricsEnum.ROCAUC)
     req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
-    optimiser = RandomSearchOptimiser(objective, RandomGraphFactory(req.primary, req.secondary), iter_num=2)
+    optimiser = RandomSearchOptimizer(objective, RandomGraphFactory(req.primary, req.secondary), iter_num=2)
     random_composer = RandomSearchComposer(optimiser, composer_requirements=req)
 
     pipeline_random_composed = random_composer.compose_pipeline(data=dataset_to_compose)

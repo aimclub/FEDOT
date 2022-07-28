@@ -9,12 +9,12 @@ from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.utils import fedot_project_root
 
 
-class RandomMutationSearchOptimizer(GraphOptimiser):
+class RandomMutationSearchOptimizer(GraphOptimizer):
     """
     Random search-based graph models optimizer
     """

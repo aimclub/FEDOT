@@ -10,7 +10,7 @@ from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnu
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.optimisers.optimizer import GraphOptimiser
+from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -57,7 +57,7 @@ class GPComposer(Composer):
     :param initial_pipelines: defines the initial state of the population.
     """
 
-    def __init__(self, optimiser: GraphOptimiser,
+    def __init__(self, optimiser: GraphOptimizer,
                  composer_requirements: PipelineComposerRequirements,
                  initial_pipelines: Optional[Sequence[Pipeline]] = None,
                  history: Optional[OptHistory] = None,
@@ -67,7 +67,7 @@ class GPComposer(Composer):
         super().__init__(optimiser, composer_requirements, initial_pipelines)
         self.composer_requirements = composer_requirements
 
-        self.optimiser: GraphOptimiser = optimiser
+        self.optimiser: GraphOptimizer = optimiser
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
         self.preprocessing_cache: Optional[PreprocessingCache] = preprocessing_cache
         self.history: Optional[OptHistory] = history

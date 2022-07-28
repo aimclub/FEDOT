@@ -9,7 +9,7 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimiser import (
-    EvoGraphOptimiser,
+    EvoGraphOptimizer,
     GeneticSchemeTypesEnum,
     GPGraphOptimiserParameters
 )
@@ -100,7 +100,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         rules_for_constraint=rules)
 
     objective = Objective([custom_metric])
-    optimiser = EvoGraphOptimiser(
+    optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,

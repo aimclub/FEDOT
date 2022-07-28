@@ -7,7 +7,7 @@ from fedot.api.main import Fedot
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.objective.objective import Objective, ObjectiveFunction
@@ -16,7 +16,7 @@ from test.unit.models.test_model import classification_dataset
 _ = classification_dataset  # to avoid auto-removing of import
 
 
-class StaticOptimizer(GraphOptimiser):
+class StaticOptimizer(GraphOptimizer):
     """
     Dummy optimizer for testing
     """

@@ -8,12 +8,12 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
 from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimizer, GPGraphOptimiserParameters
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory, log_to_history
-from fedot.core.optimisers.optimizer import GraphOptimiser, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphOptimizer, GraphOptimiserParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.verification import rules_by_task
@@ -39,7 +39,7 @@ class ComposerBuilder:
     def __init__(self, task: Task):
         self.task: Task = task
 
-        self.optimiser_cls: Type[GraphOptimiser] = EvoGraphOptimiser
+        self.optimiser_cls: Type[GraphOptimizer] = EvoGraphOptimizer
         self.optimiser_parameters: GPGraphOptimiserParameters = GPGraphOptimiserParameters()
         self.optimizer_external_parameters: dict = {}
 
@@ -54,7 +54,7 @@ class ComposerBuilder:
         self.composer_requirements: PipelineComposerRequirements = self._get_default_composer_params()
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
 
-    def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimiser]] = None):
+    def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimizer]] = None):
         if optimiser_cls is not None:
             self.optimiser_cls = optimiser_cls
         return self
