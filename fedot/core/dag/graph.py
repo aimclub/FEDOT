@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 
 class Graph:
-    """
-    Base class used for the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
+    """Base class used for the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
 
     :param nodes: pipeline nodes
     """
@@ -28,8 +27,7 @@ class Graph:
 
     def _empty_postproc(self, nodes: Optional[
         List['GraphNode']] = None):  # TODO: maybe it should return nodes as is instead?
-        """
-        Doesn't do any postprocessing to the provided ``nodes``
+        """Doesn't do any postprocessing to the provided ``nodes``
 
         :param nodes: not obligatory
         """
@@ -91,16 +89,14 @@ class Graph:
         return self._operator.get_edges()
 
     def show(self, path: Optional[str] = None):
-        """
-        Visualizes graph or saves its picture to the specified ``path``
+        """Visualizes graph or saves its picture to the specified ``path``
 
         :param path: optional, save location of the graph visualization image
         """
         GraphVisualiser().visualise(self, path)
 
     def __eq__(self, other_graph: 'Graph') -> bool:
-        """
-        Compares this graph with the ``other_graph``
+        """Compares this graph with the ``other_graph``
 
         :param other_graph: another graph
 
@@ -113,8 +109,7 @@ class Graph:
         return self._operator.graph_description()
 
     def __repr__(self) -> str:
-        """
-        Does the same as :meth:`__str__`
+        """Does the same as :meth:`__str__`
 
         :return: text graph representation
         """
@@ -122,8 +117,7 @@ class Graph:
 
     @property
     def root_node(self) -> Union['GraphNode', List['GraphNode']]:
-        """
-        Finds all the sink-nodes of the graph
+        """Finds all the sink-nodes of the graph
 
         :return: the final predictors-nodes
         """
@@ -136,8 +130,7 @@ class Graph:
 
     @property
     def length(self) -> int:
-        """
-        Returns size of the graph
+        """Returns size of the graph
 
         :return: number of nodes in the graph
         """
@@ -145,8 +138,7 @@ class Graph:
 
     @property
     def depth(self) -> int:
-        """
-        Returns depth of the graph starting from the farthest root node
+        """Returns depth of the graph starting from the farthest root node
 
         :return: depth of the graph
         """

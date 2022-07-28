@@ -12,8 +12,7 @@ if TYPE_CHECKING:
 
 
 class GraphOperator:
-    """
-    _summary_
+    """_summary_
 
     :param graph: object used as the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
         or as optimized structure
@@ -26,8 +25,7 @@ class GraphOperator:
         self._postproc_nodes = nodes_postproc_func
 
     def delete_node(self, node: GraphNode):
-        """
-        Removes provided ``node`` from the bounded graph structure.
+        """Removes provided ``node`` from the bounded graph structure.
         If ``node`` has only one child connects all of the ``node`` parents to it
 
         :param node: node of the graph to be deleted
@@ -46,8 +44,7 @@ class GraphOperator:
         self._postproc_nodes()
 
     def delete_subtree(self, subtree: GraphNode):
-        """
-        Deletes given node with all the parents it has, making deletion of the subtree.
+        """Deletes given node with all the parents it has, making deletion of the subtree.
         Deletes all edges from removed nodes to remaining graph nodes
 
         :param subtree: node to be deleted with all of its parents and their connections amongst the remaining graph nodes
@@ -59,8 +56,7 @@ class GraphOperator:
             subtree.nodes_from = remove_items(subtree.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
-        """
-        Replaces ``old_node`` with ``new_node``
+        """Replaces ``old_node`` with ``new_node``
 
         :param old_node: node to be replaced
         :param new_node: node to be placed instead
@@ -79,8 +75,7 @@ class GraphOperator:
         self._postproc_nodes()
 
     def update_subtree(self, old_node: GraphNode, new_node: GraphNode):
-        """
-        Changes ``old_node`` subtree to ``new_node``
+        """Changes ``old_node`` subtree to ``new_node``
 
         :param old_node: node and its subtree to be removed
         :param new_node: node and its subtree to be placed instead
@@ -92,8 +87,7 @@ class GraphOperator:
         self.sort_nodes()
 
     def add_node(self, node: GraphNode):
-        """
-        Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
+        """Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
 
         :param node: new node object to add
         """
@@ -104,15 +98,13 @@ class GraphOperator:
                     self.add_node(new_parent_node)
 
     def distance_to_root_level(self, node: GraphNode) -> int:
-        """
-        Gets distance to the final output node
+        """Gets distance to the final output node
 
         :param node: search starting point
         """
 
         def recursive_child_height(parent_node: GraphNode) -> int:
-            """
-            Recursively dives into ``parent_node`` children to get the bottom height
+            """Recursively dives into ``parent_node`` children to get the bottom height
 
             :param node: search starting point
             """
@@ -126,8 +118,7 @@ class GraphOperator:
         return height
 
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
-        """
-        Gets all the nodes from the chosen layer up to the surface
+        """Gets all the nodes from the chosen layer up to the surface
 
         :param layer_number: max height of diving
 
@@ -135,8 +126,7 @@ class GraphOperator:
         """
 
         def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
-            """
-            Gets all the parent nodes of ``node``
+            """Gets all the parent nodes of ``node``
 
             :param node: node to get all subnodes from
             :param current_height: current diving step depth
@@ -156,8 +146,7 @@ class GraphOperator:
         return nodes
 
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
-        """
-        Changes parent of ``old_node`` children to ``new_node``
+        """Changes parent of ``old_node`` children to ``new_node``
 
         :param old_node: node to take children from
         :param new_node: new parent of ``old_node`` children
@@ -173,8 +162,7 @@ class GraphOperator:
             self._graph._nodes = self._graph.root_node.ordered_subnodes_hierarchy()
 
     def node_children(self, node: GraphNode) -> List[GraphNode]:
-        """
-        Gets all the ``node`` children
+        """Gets all the ``node`` children
 
         :param node: for getting children from
 
@@ -185,6 +173,11 @@ class GraphOperator:
                 node in other_node.nodes_from]
 
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
+        """Adds edge between ``parent`` and ``child``
+
+        :param parent: acts like parent in pipeline connection relations
+        :param child:  acts like child in pipeline connection relations
+        """
         if child in self.node_children(parent):
             return
         # if not already connected
@@ -197,8 +190,7 @@ class GraphOperator:
             self.update_node(child, new_child)
 
     def _clean_up_leftovers(self, node: GraphNode):
-        """
-        Removes nodes and edges that do not affect the result of the pipeline.
+        """Removes nodes and edges that do not affect the result of the pipeline.
         Leftovers are edges and nodes that remain after the removal of the edge / node
             and do not affect the result of the pipeline.
 
@@ -213,8 +205,7 @@ class GraphOperator:
 
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
                          clean_up_leftovers: bool = True):
-        """
-        Removes an edge between two nodes
+        """Removes an edge between two nodes
 
         :param node_parent: where the removing edge comes out
         :param node_child: where the removing edge enters
@@ -235,8 +226,7 @@ class GraphOperator:
         self._postproc_nodes()
 
     def root_node(self) -> Union[GraphNode, List[GraphNode]]:
-        """
-        Gets the final layer node(s) of the graph
+        """Gets the final layer node(s) of the graph
 
         :return: the final layer node(s)
         """
@@ -249,8 +239,7 @@ class GraphOperator:
         return roots
 
     def is_graph_equal(self, other_graph: Union['Graph', 'OptGraph']) -> bool:
-        """
-        Compares this graph with the ``other_graph``
+        """Compares this graph with the ``other_graph``
 
         :param other_graph: another graph
 
@@ -265,8 +254,7 @@ class GraphOperator:
             return False
 
     def graph_description(self) -> str:
-        """
-        Returns graph description
+        """Returns graph description
 
         :return: text graph representation
         """
@@ -278,8 +266,7 @@ class GraphOperator:
 
     @property
     def descriptive_id(self) -> str:
-        """
-        Returns verbal identificator of the node
+        """Returns verbal identificator of the node
 
         :return: text description of the content in the node and its parameters
         """
@@ -288,8 +275,7 @@ class GraphOperator:
         return full_desc_id
 
     def graph_depth(self) -> int:
-        """
-        Gets this graph depth from its sink-node to its source-node
+        """Gets this graph depth from its sink-node to its source-node
 
         :return: length of a path from the root node to the farthest primary node
         """
@@ -297,8 +283,7 @@ class GraphOperator:
             return 0
 
         def _depth_recursive(node: GraphNode) -> int:
-            """
-            Gets this graph depth from the provided ``node`` to the graph source node
+            """Gets this graph depth from the provided ``node`` to the graph source node
 
             :param node: where to start diving from
 
@@ -315,8 +300,7 @@ class GraphOperator:
         return max(_depth_recursive(n) for n in root)
 
     def get_nodes_degrees(self) -> List[int]:
-        """
-        Nodes degree as the number of edges the node has:
+        """Nodes degree as the number of edges the node has:
             degree = #input_edges + #out_edges
 
         :return: nodes degrees ordered according to the nx_graph representation of this graph
@@ -327,8 +311,7 @@ class GraphOperator:
         return node_degrees
 
     def get_all_edges(self) -> List[Tuple[GraphNode, GraphNode]]:
-        """
-        Gets all available edges in this graph
+        """Gets all available edges in this graph
 
         :return: pairs of parent_node -> child_node
         """
@@ -351,8 +334,7 @@ class GraphOperator:
         """
 
         def node_match(node_data_1: Dict[str, GraphNode], node_data_2: Dict[str, GraphNode]) -> bool:
-            """
-            Checks if the two given nodes are identical
+            """Checks if the two given nodes are identical
 
             :param node_data_1: nx_graph format for the first node to compare
             :param node_data_2: nx_graph format for the second node to compare
