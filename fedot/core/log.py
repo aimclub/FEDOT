@@ -1,14 +1,12 @@
 import json
-import sys
-import pathlib
-
 import logging
+import pathlib
+import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
-
 
 DEFAULT_LOG_PATH = pathlib.Path(default_fedot_data_dir(), 'log.log')
 
@@ -132,8 +130,9 @@ def default_log(class_object=None, prefix: str = 'default', logging_level: int =
                 write_logs: bool = True) -> logging.LoggerAdapter:
     """
     Default logger
+
     :param class_object: instance of class
-    :param prefix: adapter prefix to add it to log messages.
+    :param prefix: adapter prefix to add it to log messages
     :param logging_level: logging levels are the same as in 'logging'
     :param write_logs: bool indicating whenever to write logs in console or not
     :return: LoggerAdapter: LoggerAdapter object
