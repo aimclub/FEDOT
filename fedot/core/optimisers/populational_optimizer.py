@@ -19,18 +19,18 @@ from fedot.core.utilities.grouped_condition import GroupedCondition
 
 class PopulationalOptimizer(GraphOptimizer):
     """
-    Base class of populational optimiser.
-    PopulationalOptimizer implements all basic methods for optimisation not related to evolution process
+    Base class of populational optimizer.
+    PopulationalOptimizer implements all basic methods for optimization not related to evolution process
     to experiment with other kinds of evolution optimization methods
     It allows to find the optimal solution using specified metric (one or several).
     To implement the specific evolution strategy,
     the abstract method '_evolution_process' should be re-defined in the ancestor class
 
-    :param objective: objective for optimisation
-    :param initial_graphs: graphs which were initialized outside the optimiser
-    :param requirements: implementation-independent requirements for graph optimiser
+    :param objective: objective for optimization
+    :param initial_graphs: graphs which were initialized outside the optimizer
+    :param requirements: implementation-independent requirements for graph optimizer
     :param graph_generation_params: parameters for new graph generation
-    :param parameters: parameters for specific implementation of graph optimiser
+    :param parameters: parameters for specific implementation of graph optimizer
     """
 
     def __init__(self,
@@ -38,7 +38,7 @@ class PopulationalOptimizer(GraphOptimizer):
                  initial_graphs: Sequence[Pipeline],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional['GPGraphOptimiserParameters'] = None):
+                 parameters: Optional['GPGraphOptimizerParameters'] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)

@@ -2,12 +2,6 @@ from copy import deepcopy
 from random import choice
 from typing import Any, List, Optional, Sequence, Union, Callable
 
-from fedot.core.optimisers.gp_comp.parameters.population_size import init_adaptive_pop_size, PopulationSize
-
-from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
-
-from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
-
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -15,17 +9,19 @@ from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, Inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, Regularization
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
-from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer
+from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
+from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
+from fedot.core.optimisers.gp_comp.parameters.population_size import init_adaptive_pop_size, PopulationSize
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
-from fedot.core.optimisers.timer import OptimisationTimer
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizerParameters
+from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-class GPGraphOptimiserParameters(GraphOptimiserParameters):
+class GPGraphOptimizerParameters(GraphOptimizerParameters):
     """
     This class is for defining the parameters of optimiser
 
@@ -88,7 +84,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
                  initial_graphs: Sequence[Pipeline],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional[GPGraphOptimiserParameters] = None):
+                 parameters: Optional[GPGraphOptimizerParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         # Define genetic operators
         self.regularization = Regularization(parameters.regularization_type, requirements, graph_generation_params,)

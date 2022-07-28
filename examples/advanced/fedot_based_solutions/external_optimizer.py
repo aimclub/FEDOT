@@ -9,7 +9,7 @@ from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.utils import fedot_project_root
 
@@ -24,7 +24,7 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
                  initial_graphs: Union[Graph, Sequence[Graph]] = (),
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimiserParameters] = None):
+                 parameters: Optional[GraphOptimizerParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.mutation_types = [boosting_mutation, parameter_change_mutation,
                                MutationTypesEnum.single_edge,

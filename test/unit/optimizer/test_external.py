@@ -7,7 +7,7 @@ from fedot.api.main import Fedot
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimiserParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.optimisers.objective.objective import Objective, ObjectiveFunction
@@ -26,7 +26,7 @@ class StaticOptimizer(GraphOptimizer):
                  initial_graph: Union[Graph, Sequence[Graph]] = (),
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimiserParameters] = None,
+                 parameters: Optional[GraphOptimizerParameters] = None,
                  **kwargs):
         super().__init__(objective, initial_graph, requirements, graph_generation_params, parameters)
         self.change_types = []
