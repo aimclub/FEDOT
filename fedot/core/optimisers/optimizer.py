@@ -71,7 +71,7 @@ class GraphOptimiser:
     Base class of graph optimiser. It allows to find the optimal solution using specified metric (one or several).
     To implement the specific optimisation method,
     the abstract method 'optimize' should be re-defined in the ancestor class
-    (e.g. EvoGraphOptimiser, RandomSearchGraphOptimiser, etc).
+    (e.g. PopulationalOptimiser, RandomSearchGraphOptimiser, etc).
 
     :param objective: objective for optimisation
     :param initial_graphs: graphs which were initialized outside the optimiser
