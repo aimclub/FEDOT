@@ -76,7 +76,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         self._reset_eval_cache()
         return evaluated_population
 
-    def evaluate_population(self, individuals: PopulationT) -> PopulationT:
+    def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         if n_jobs == 1:
@@ -158,7 +158,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         self._objective_eval = objective
         return self.evaluate_population
 
-    def evaluate_population(self, individuals: PopulationT) -> PopulationT:
+    def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         mapped_evals = list(map(self.evaluate_single, individuals))
         evaluated_population = list(filter(None, mapped_evals))
         if not evaluated_population:
