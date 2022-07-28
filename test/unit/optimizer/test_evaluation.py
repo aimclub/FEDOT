@@ -34,10 +34,6 @@ def invalid_objective(pipeline: Pipeline) -> Fitness:
     return null_fitness()
 
 
-def throwing_exception_objective(*args, **kwargs):
-    raise Exception
-
-
 @pytest.mark.parametrize(
     'dispatcher',
     [SimpleDispatcher(PipelineAdapter()),
