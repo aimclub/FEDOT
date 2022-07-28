@@ -1,5 +1,5 @@
-OptGraph
-========
+Optimizations
+=============
 
 .. automodule:: fedot.core.optimisers.graph
    :members:

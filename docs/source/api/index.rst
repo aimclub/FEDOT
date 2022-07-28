@@ -11,6 +11,7 @@ Classes
    eval_strategy
    graph
    graph_node
+   optimizations
    logging
    node
    operation
