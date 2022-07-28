@@ -373,38 +373,38 @@ class PipelineEvolutionVisualiser:
         best_individuals = {}
 
         start_time = datetime.fromisoformat(
-            min(generations[0], key=lambda ind: ind.metadata['evaluation_moment']).metadata[
-                'evaluation_moment'])
+            min(generations[0], key=lambda ind: ind.metadata['evaluation_time_iso']).metadata[
+                'evaluation_time_iso'])
         end_time_seconds = (datetime.fromisoformat(
-            max(generations[-1], key=lambda ind: ind.metadata['evaluation_moment']).metadata[
-                'evaluation_moment']) - start_time).seconds
+            max(generations[-1], key=lambda ind: ind.metadata['evaluation_time_iso']).metadata[
+                'evaluation_time_iso']) - start_time).seconds
 
         for gen_num, gen in enumerate(generations):
             gen_start_times.append(1e10)
-            gen_sorted = sorted(gen, key=lambda ind: ind.metadata['evaluation_moment'])
+            gen_sorted = sorted(gen, key=lambda ind: ind.metadata['evaluation_time_iso'])
             for ind in gen_sorted:
                 if ind.native_generation != gen_num:
                     continue
-                evaluation_moment = (datetime.fromisoformat(ind.metadata['evaluation_moment']) - start_time).seconds
-                if evaluation_moment < gen_start_times[gen_num]:
-                    gen_start_times[gen_num] = evaluation_moment
+                evaluation_time = (datetime.fromisoformat(ind.metadata['evaluation_time_iso']) - start_time).seconds
+                if evaluation_time < gen_start_times[gen_num]:
+                    gen_start_times[gen_num] = evaluation_time
                 if ind.fitness > best_fitness:
-                    best_individuals[evaluation_moment] = ind
+                    best_individuals[evaluation_time] = ind
                     best_fitness = ind.fitness
 
-        best_eval_moments, best_fitnesses = np.transpose(
-            [(evaluation_moment, abs(individual.fitness.value))
-             for evaluation_moment, individual in best_individuals.items()])
+        best_eval_times, best_fitnesses = np.transpose(
+            [(evaluation_time, abs(individual.fitness.value))
+             for evaluation_time, individual in best_individuals.items()])
 
-        best_eval_moments = list(best_eval_moments)
+        best_eval_times = list(best_eval_times)
         best_fitnesses = list(best_fitnesses)
 
-        if best_eval_moments[-1] != end_time_seconds:
+        if best_eval_times[-1] != end_time_seconds:
             best_fitnesses.append(abs(best_fitness.value))
-            best_eval_moments.append(end_time_seconds)
+            best_eval_times.append(end_time_seconds)
         gen_start_times.append(end_time_seconds)
 
-        axis.step(best_eval_moments, best_fitnesses, where='post', label=label)
+        axis.step(best_eval_times, best_fitnesses, where='post', label=label)
 
         if with_generation_limits:
             prev_time = gen_start_times[0]

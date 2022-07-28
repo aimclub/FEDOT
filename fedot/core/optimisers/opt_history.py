@@ -151,7 +151,7 @@ class OptHistory:
                      stacklevel=3)
             # Check plot_type-specific cases
             if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
-                    per_time and self.individuals[0][0].metadata.get('evaluation_moment') is None:
+                    per_time and self.individuals[0][0].metadata.get('evaluation_time_iso') is None:
                 warn('Evaluation time not found in optimization history. Showing fitness plot per generations...',
                      stacklevel=3)
                 per_time = False
