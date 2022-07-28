@@ -29,8 +29,7 @@ def node_ops_adaptation(func: Callable) -> Callable:
 
 
 class OptNode:
-    """
-    Class for node definition in optimization graph (OptGraph)
+    """Class for node definition in optimization graph (:class:`~fedot.core.optimisers.graph.OptGraph`)
 
     :param content: content in node (name only or dict with name and params)
     :param nodes_from: parent nodes in directed graph
@@ -56,59 +55,52 @@ class OptNode:
 
     @property
     def nodes_from(self) -> List['OptNode']:
-        """
-        Gets all parent nodes of this optimization graph node
+        """Gets all parent nodes of this optimization graph node
 
         :return: all the parent nodes
+        :rtype: List[:class:`~fedot.core.optimisers.graph.OptNode`]
         """
         return self._nodes_from
 
     @nodes_from.setter
     def nodes_from(self, nodes: Optional[Iterable['OptNode']]):
-        """
-        Changes value of parent nodes of this optimization graph node
+        """Changes value of parent nodes of this optimization graph node
 
         :param nodes: new sequence of parent nodes
+        :type nodes: Iterable[:class:`~fedot.core.optimisers.graph.OptNode`] | None
         """
         self._nodes_from = UniqueList(nodes)
 
     @property
     def _node_adapter(self):
-        """
-        Creates node operator adapter class instance and returns it
+        """Creates node operator adapter class instance and returns it
 
         :return: node operator adapter
+        :rtype: :class:`~fedot.core.optimisers.graph.NodeOperatorAdapter`
         """
         return NodeOperatorAdapter()
 
     def __str__(self):
-        """
-        Returns string representation of the class
+        """Returns string representation of the class
 
         :return: stringified name of the optimization graph node
         """
         return str(self.content['name'])
 
     def __repr__(self):
-        """
-        Does the same as :meth:`__str__`
+        """Does the same as :meth:`__str__`
 
         :return: stringified name of the optimization graph node
         """
         return self.__str__()
 
     @property
-    def descriptive_id(self):
-        """
-        Returns verbal identificator of the node
-
-        :return: text description of the content in the node and its parameters
-        """
+    @copy_doc(NodeOperator.distance_to_primary_level)
+    def descriptive_id(self) -> str:
         return self._operator.descriptive_id()
 
     def ordered_subnodes_hierarchy(self, visited: Optional[List['OptNode']] = None) -> List['OptNode']:
-        """
-        Gets hierarchical subnodes representation of the graph starting from the bounded node
+        """Gets hierarchical subnodes representation of the graph starting from the bounded node
 
         :param visited: already visited nodes not to be included to the resulting hierarchical list
 
@@ -118,18 +110,13 @@ class OptNode:
         return [self._node_adapter.adapt(node) for node in nodes]  # TODO: seems like not needed no more
 
     @property
-    def distance_to_primary_level(self):
-        """
-        Returns max depth from bounded node to graphs primary level
-
-        :return: max depth to the primary level
-        """
+    @copy_doc(NodeOperator.distance_to_primary_level)
+    def distance_to_primary_level(self) -> int:
         return self._operator.distance_to_primary_level()
 
 
 class OptGraph:
-    """
-    Base class used for optimized structure
+    """Base class used for optimized structure
 
     :param nodes: optimization graph nodes object(s)
     """
@@ -154,12 +141,15 @@ class OptGraph:
 
     @property
     def _node_adapter(self):
+        """Creates node operator adapter class instance and returns it
+
+        :return: new instance of :class:`~fedot.core.optimisers.graph.NodeOperatorAdapter`
+        """
         return NodeOperatorAdapter()
 
     @node_ops_adaptation
     def add_node(self, new_node: OptNode):
-        """
-        Add new node to the OptGraph
+        """Adds new node to the OptGraph
 
         :param new_node: new OptNode object
         """
@@ -272,7 +262,8 @@ class OptGraph:
         return roots
 
     @property
-    def descriptive_id(self):
+    @copy_doc(GraphOperator.descriptive_id)
+    def descriptive_id(self) -> str:
         return self._operator.descriptive_id
 
     @property

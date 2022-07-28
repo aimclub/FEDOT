@@ -15,8 +15,6 @@ class Graph:
     """Base class used for the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
 
     :param nodes: pipeline nodes
-    :type nodes: :class:`~fedot.core.dag.graph_node.GraphNode`
-        | List[:class:`~fedot.core.dag.graph_node.GraphNode`] | None
     """
 
     def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
@@ -32,7 +30,6 @@ class Graph:
         """Doesn't do any postprocessing to the provided ``nodes``
 
         :param nodes: not obligatory
-        :type nodes: List[:class:`~fedot.core.dag.graph_node.GraphNode`] | None
         """
         pass
 
@@ -102,7 +99,6 @@ class Graph:
         """Compares this graph with the ``other_graph``
 
         :param other_graph: another graph
-        :type other_graph: :class:`~fedot.core.dag.graph.Graph`
 
         :return: is it equal to ``other_graph`` in terms of the graphs
         """
