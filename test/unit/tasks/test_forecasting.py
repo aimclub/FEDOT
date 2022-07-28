@@ -1,4 +1,5 @@
 import os
+from copy import deepcopy
 from random import seed
 
 import numpy as np
@@ -10,6 +11,8 @@ from scipy import stats
 from examples.simple.time_series_forecasting.ts_pipelines import clstm_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
+    AutoRegImplementation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
@@ -176,6 +179,18 @@ def test_simple_pipeline_forecast_correct():
     rmse_threshold = _max_rmse_threshold_by_std(test_data.target, is_strict=True)
 
     assert rmse_test < rmse_threshold
+
+
+def test_ar_do_correct_lags():
+    train_data, test_data = get_ts_data(n_steps=80)
+    ar = AutoRegImplementation(lag_1=20, lag_2=100)
+    params, _ = ar.get_params()
+    old_params = deepcopy(params)
+    ar.fit(train_data)
+    new_params, changed_params = ar.get_params()
+    for lag in old_params:
+        assert lag in changed_params
+        assert old_params[lag] != new_params[lag]
 
 
 def test_regression_multiscale_pipeline_forecast_correct():

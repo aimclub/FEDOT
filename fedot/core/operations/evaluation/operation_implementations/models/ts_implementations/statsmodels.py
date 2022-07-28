@@ -250,10 +250,7 @@ class AutoRegImplementation(ModelImplementation):
             changed_params.append('lag_1')
         if self.lag2_changed is True:
             changed_params.append('lag_2')
-        if changed_params:
-            return (self.params, changed_params)
-        else:
-            return self.params
+        return self.params, changed_params
 
     def handle_new_data(self, input_data: InputData):
         """

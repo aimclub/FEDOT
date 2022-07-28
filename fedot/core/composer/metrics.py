@@ -7,6 +7,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              silhouette_score, roc_curve, auc)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -117,14 +118,17 @@ class QualityMetric:
         """ Performs in-sample pipeline validation for time series prediction """
 
         # Get number of validation blocks per each fold
-        horizon = data.task.task_params.forecast_length * validation_blocks
+        horizon = int(data.task.task_params.forecast_length * validation_blocks)
 
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,
                                                  horizon=horizon)
 
         # Clip actual data by the forecast horizon length
-        actual_values = data.target[-horizon:]
+        if isinstance(data, MultiModalData):
+            actual_values = data.target[-horizon:]
+        else:
+            actual_values = data.features[-horizon:]
 
         # Wrap target and prediction arrays into OutputData and InputData
         results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,
