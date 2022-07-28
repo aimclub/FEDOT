@@ -72,8 +72,12 @@ class GraphDelegate(Graph):
         return self.operator.root_node
 
     @property
-    def nodes(self) -> Sequence[GraphNode]:
+    def nodes(self) -> List[GraphNode]:
         return self.operator.nodes
+
+    @nodes.setter
+    def nodes(self, new_nodes: List[GraphNode]):
+        self.operator.nodes = new_nodes
 
     @property
     def descriptive_id(self):
