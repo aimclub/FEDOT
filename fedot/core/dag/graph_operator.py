@@ -29,6 +29,7 @@ class GraphOperator:
         If ``node`` has only one child connects all of the ``node`` parents to it
 
         :param node: node of the graph to be deleted
+        :type node: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
         node_children_cached = self.node_children(node)
         self_root_node_cached = self._graph.root_node
@@ -48,6 +49,7 @@ class GraphOperator:
         Deletes all edges from removed nodes to remaining graph nodes
 
         :param subtree: node to be deleted with all of its parents and their connections amongst the remaining graph nodes
+        :type subtree: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
         subtree_nodes = subtree.ordered_subnodes_hierarchy()
         self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)
@@ -56,10 +58,12 @@ class GraphOperator:
             subtree.nodes_from = remove_items(subtree.nodes_from, subtree_nodes)
 
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
-        """Replaces ``old_node`` with ``new_node``
+        """Replaces ``old_node`` node with ``new_node``
 
         :param old_node: node to be replaced
+        :type old_node: :class:`~fedot.core.dag.graph_node.GraphNode`
         :param new_node: node to be placed instead
+        :type new_node: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
         self.actualise_old_node_children(old_node, new_node)
         if old_node.nodes_from:
@@ -74,33 +78,37 @@ class GraphOperator:
         self.sort_nodes()
         self._postproc_nodes()
 
-    def update_subtree(self, old_node: GraphNode, new_node: GraphNode):
+    def update_subtree(self, old_subtree: GraphNode, new_subtree: GraphNode):
         """Changes ``old_node`` subtree to ``new_node``
 
-        :param old_node: node and its subtree to be removed
-        :param new_node: node and its subtree to be placed instead
+        :param old_subtree: node and its subtree to be removed
+        :type old_subtree: :class:`~fedot.core.dag.graph_node.GraphNode`
+        :param new_subtree: node and its subtree to be placed instead
+        :type new_subtree: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
-        new_node = deepcopy(new_node)
-        self.actualise_old_node_children(old_node, new_node)
-        self.delete_subtree(old_node)
-        self.add_node(new_node)
+        new_subtree = deepcopy(new_subtree)
+        self.actualise_old_node_children(old_subtree, new_subtree)
+        self.delete_subtree(old_subtree)
+        self.add_node(new_subtree)
         self.sort_nodes()
 
-    def add_node(self, node: GraphNode):
+    def add_node(self, new_node: GraphNode):
         """Adds new node to the :class:`~fedot.core.pipelines.pipeline.Pipeline` and all of its parent nodes
 
-        :param node: new node object to add
+        :param new_node: new node object to add
+        :type new_node: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
-        if node not in self._graph.nodes:
-            self._graph.nodes.append(node)
-            if node.nodes_from:
-                for new_parent_node in node.nodes_from:
+        if new_node not in self._graph.nodes:
+            self._graph.nodes.append(new_node)
+            if new_node.nodes_from:
+                for new_parent_node in new_node.nodes_from:
                     self.add_node(new_parent_node)
 
     def distance_to_root_level(self, node: GraphNode) -> int:
         """Gets distance to the final output node
 
         :param node: search starting point
+        :type node: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
 
         def recursive_child_height(parent_node: GraphNode) -> int:
@@ -149,7 +157,9 @@ class GraphOperator:
         """Changes parent of ``old_node`` children to ``new_node``
 
         :param old_node: node to take children from
+        :type old_node: :class:`~fedot.core.dag.graph_node.GraphNode`
         :param new_node: new parent of ``old_node`` children
+        :type new_node: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
         old_node_offspring = self.node_children(old_node)
         for old_node_child in old_node_offspring:
@@ -165,6 +175,7 @@ class GraphOperator:
         """Gets all the ``node`` children
 
         :param node: for getting children from
+        :type node: :class:`~fedot.core.dag.graph_node.GraphNode`
 
         :return: children of the ``node``
         """
@@ -176,7 +187,9 @@ class GraphOperator:
         """Adds edge between ``parent`` and ``child``
 
         :param parent: acts like parent in pipeline connection relations
+        :type parent: :class:`~fedot.core.dag.graph_node.GraphNode`
         :param child:  acts like child in pipeline connection relations
+        :type child: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
         if child in self.node_children(parent):
             return
@@ -195,6 +208,7 @@ class GraphOperator:
             and do not affect the result of the pipeline.
 
         :param node: node to be deleted with all of its parents
+        :type node: :class:`~fedot.core.dag.graph_node.GraphNode`
         """
 
         if not self.node_children(node):
@@ -208,7 +222,9 @@ class GraphOperator:
         """Removes an edge between two nodes
 
         :param node_parent: where the removing edge comes out
+        :type node_parent: :class:`~fedot.core.dag.graph_node.GraphNode`
         :param node_child: where the removing edge enters
+        :type node_child: :class:`~fedot.core.dag.graph_node.GraphNode`
         :param clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
         """
 
@@ -229,6 +245,8 @@ class GraphOperator:
         """Gets the final layer node(s) of the graph
 
         :return: the final layer node(s)
+        :rtype: :class:`~fedot.core.dag.graph_node.GraphNode`
+            | List[:class:`~fedot.core.dag.graph_node.GraphNode`]
         """
         if not self._graph.nodes:
             return []
@@ -242,6 +260,7 @@ class GraphOperator:
         """Compares this graph with the ``other_graph``
 
         :param other_graph: another graph
+        :type other_graph: :class:`~fedot.core.dag.graph.Graph` | :class:`~fedot.core.optimisers.graph.OptGraph`
 
         :return: is it equal to ``other_graph`` in terms of the graphs
         """
@@ -269,6 +288,7 @@ class GraphOperator:
         """Returns verbal identificator of the node
 
         :return: text description of the content in the node and its parameters
+        :rtype: str
         """
         root_list = ensure_wrapped_in_sequence(self.root_node())
         full_desc_id = ''.join(r.descriptive_id for r in root_list)
@@ -314,6 +334,8 @@ class GraphOperator:
         """Gets all available edges in this graph
 
         :return: pairs of parent_node -> child_node
+        :rtype: List[
+            Tuple[:class:`~fedot.core.dag.graph_node.GraphNode`, :class:`~fedot.core.dag.graph_node.GraphNode`]]
         """
 
         edges = []

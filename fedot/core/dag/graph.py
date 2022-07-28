@@ -15,6 +15,8 @@ class Graph:
     """Base class used for the :class:`~fedot.core.pipelines.pipeline.Pipeline` structure definition
 
     :param nodes: pipeline nodes
+    :type nodes: :class:`~fedot.core.dag.graph_node.GraphNode`
+        | List[:class:`~fedot.core.dag.graph_node.GraphNode`] | None
     """
 
     def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
@@ -30,6 +32,7 @@ class Graph:
         """Doesn't do any postprocessing to the provided ``nodes``
 
         :param nodes: not obligatory
+        :type nodes: List[:class:`~fedot.core.dag.graph_node.GraphNode`] | None
         """
         pass
 
@@ -41,7 +44,7 @@ class Graph:
     def add_node(self, new_node: 'GraphNode'):
         self.operator.add_node(new_node)
 
-    @copy_doc(GraphOperator.update_subtree)
+    @copy_doc(GraphOperator.update_node)
     def update_node(self, old_node: 'GraphNode', new_node: 'GraphNode'):
         self.operator.update_node(old_node, new_node)
 
@@ -50,8 +53,8 @@ class Graph:
         self.operator.delete_node(node)
 
     @copy_doc(GraphOperator.update_subtree)
-    def update_subtree(self, old_subroot: 'GraphNode', new_subroot: 'GraphNode'):
-        self.operator.update_subtree(old_subroot, new_subroot)
+    def update_subtree(self, old_subtree: 'GraphNode', new_subtree: 'GraphNode'):
+        self.operator.update_subtree(old_subtree, new_subtree)
 
     @copy_doc(GraphOperator.delete_subtree)
     def delete_subtree(self, subtree: 'GraphNode'):
@@ -99,6 +102,7 @@ class Graph:
         """Compares this graph with the ``other_graph``
 
         :param other_graph: another graph
+        :type other_graph: :class:`~fedot.core.dag.graph.Graph`
 
         :return: is it equal to ``other_graph`` in terms of the graphs
         """
@@ -120,6 +124,8 @@ class Graph:
         """Finds all the sink-nodes of the graph
 
         :return: the final predictors-nodes
+        :rtype: :class:`~fedot.core.dag.graph_node.GraphNode`
+            | List[:class:`~fedot.core.dag.graph_node.GraphNode`]
         """
         roots = self._operator.root_node()
         return roots
@@ -133,6 +139,7 @@ class Graph:
         """Returns size of the graph
 
         :return: number of nodes in the graph
+        :rtype: int
         """
         return len(self.nodes)
 
@@ -141,5 +148,6 @@ class Graph:
         """Returns depth of the graph starting from the farthest root node
 
         :return: depth of the graph
+        :rtype: int
         """
         return self._operator.graph_depth()
