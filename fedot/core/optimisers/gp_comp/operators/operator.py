@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Callable, TYPE_CHECKING
+from typing import Sequence, Callable
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.composer_requirements import ComposerRequirements

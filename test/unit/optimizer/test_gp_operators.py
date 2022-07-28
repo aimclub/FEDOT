@@ -17,6 +17,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_builder import DataSourceBuilder
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory
@@ -116,8 +117,9 @@ def test_evaluate_individuals():
                              pipeline_third(), pipeline_fourth()]
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-    objective_builder = DataSourceBuilder(Objective([metric_function]))
-    objective_eval = objective_builder.build(dataset_to_compose)
+    objective = Objective(metric_function)
+    data_source = DataSourceBuilder().build(dataset_to_compose)
+    objective_eval = PipelineObjectiveEvaluate(objective, data_source)
     adapter = PipelineAdapter()
 
     population = [Individual(adapter.adapt(c)) for c in pipelines_to_evaluate]
