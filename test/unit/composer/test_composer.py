@@ -236,8 +236,8 @@ def test_multi_objective_composer(data_fixture, request):
     pipelines_roc_auc = []
 
     assert type(pipelines_evo_composed) is list
-    assert len(composer.optimiser.objective.metrics) > 1
-    assert composer.optimiser.parameters.multi_objective
+    assert len(composer.optimizer.objective.metrics) > 1
+    assert composer.optimizer.parameters.multi_objective
 
     for pipeline_evo_composed in pipelines_evo_composed:
         pipeline_evo_composed.fit_from_scratch(input_data=dataset_to_compose)
@@ -272,7 +272,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
-    assert composer.optimiser.requirements.max_depth == 2
+    assert composer.optimizer.requirements.max_depth == 2
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])

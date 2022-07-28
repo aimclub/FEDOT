@@ -15,9 +15,9 @@ from fedot.core.pipelines.pipeline import Node, Pipeline
 
 
 class RandomSearchComposer(Composer):
-    def __init__(self, optimiser: 'RandomSearchOptimizer',
+    def __init__(self, optimizer: 'RandomSearchOptimizer',
                  composer_requirements: Optional[ComposerRequirements] = None):
-        super().__init__(optimiser=optimiser,
+        super().__init__(optimizer=optimizer,
                          composer_requirements=composer_requirements)
 
     def compose_pipeline(self, data: InputData) -> Pipeline:
@@ -26,9 +26,9 @@ class RandomSearchComposer(Composer):
 
         def prepared_objective(pipeline: Pipeline) -> Fitness:
             pipeline.fit(train_data)
-            return self.optimiser.objective(pipeline, reference_data=test_data)
+            return self.optimizer.objective(pipeline, reference_data=test_data)
 
-        best_pipeline = self.optimiser.optimise(prepared_objective)[0]
+        best_pipeline = self.optimizer.optimise(prepared_objective)[0]
         return best_pipeline
 
 
