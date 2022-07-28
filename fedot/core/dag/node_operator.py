@@ -1,7 +1,6 @@
 from copy import copy
 from typing import TYPE_CHECKING, List, Optional, Union
 
-
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
     from fedot.core.optimisers.graph import OptNode
@@ -19,7 +18,7 @@ class NodeOperator:
     def __init__(self, node: Union['GraphNode', 'OptNode']):
         self._node = node
 
-    def distance_to_primary_level(self):
+    def distance_to_primary_level(self) -> int:
         """
         Returns max depth from bounded node to graphs primary level
 
