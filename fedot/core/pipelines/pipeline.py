@@ -33,17 +33,13 @@ class Pipeline(GraphDelegate, Serializable):
     """
 
     def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
+        super().__init__(GraphOperator(nodes, _graph_nodes_to_pipeline_nodes))
+
         self.computation_time = None
         self.log = default_log(self)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor()
-        operator = GraphOperator(nodes, self._graph_nodes_to_pipeline_nodes)
-        super().__init__(operator)
-
-        # forward declaration for capture in the node postprocessing function
-        operator = GraphOperator(nodes, _graph_nodes_to_pipeline_nodes)
-        super().__init__(operator)
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """

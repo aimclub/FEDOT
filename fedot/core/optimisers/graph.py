@@ -16,5 +16,5 @@ class OptGraph(GraphDelegate):
     """
 
     def __init__(self, nodes: Union[OptNode, List[OptNode]] = ()):
-        self.log = default_log(self)
         super().__init__(GraphOperator(nodes))
+        self.log = default_log(self)
