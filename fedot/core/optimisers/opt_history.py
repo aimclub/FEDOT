@@ -30,7 +30,7 @@ class OptHistory:
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
-        self.save_folder: Optional[Union[str, os.PathLike]] = save_folder
+        self.save_folder = save_folder
 
     def is_empty(self) -> bool:
         return not self.individuals
