@@ -91,7 +91,7 @@ class PopulationalOptimiser(GraphOptimiser):
         raise NotImplementedError()
 
     @abstractmethod
-    def _evolve_population(self, *args, **kwargs):
+    def _evolve_population(self, *args, **kwargs) -> PopulationT:
         """ Method realizing full evolution cycle """
         raise NotImplementedError()
 

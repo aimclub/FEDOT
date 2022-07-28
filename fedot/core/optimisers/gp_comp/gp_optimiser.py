@@ -115,7 +115,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
-    def _extend_population(self, initial_individuals):
+    def _extend_population(self, initial_individuals) -> PopulationT:
         iter_num = 0
         initial_graphs = [ind.graph for ind in initial_individuals]
         while len(initial_individuals) < self.requirements.pop_size:
@@ -156,7 +156,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
             # Adding of extended population to history
             self._next_population(evaluator(self.initial_individuals))
 
-    def _evolve_population(self, evaluator: Callable):
+    def _evolve_population(self, evaluator: Callable) -> PopulationT:
         """ Method realizing full evolution cycle """
         self._update_requirements()
         individuals_to_select = regularized_population(self.parameters.regularization_type,
@@ -201,7 +201,7 @@ class EvoGraphOptimiser(PopulationalOptimiser):
                 new_population += self._crossover_pair(ind_1, ind_2)
         return new_population
 
-    def _crossover_pair(self, individual1: Individual, individual2: Individual) -> Sequence[Individual]:
+    def _crossover_pair(self, individual1: Individual, individual2: Individual) -> PopulationT:
         return crossover(self.parameters.crossover_types, individual1, individual2,
                          max_depth=self.requirements.max_depth, crossover_prob=self.requirements.crossover_prob,
                          params=self.graph_generation_params)
