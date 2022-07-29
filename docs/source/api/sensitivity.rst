@@ -41,7 +41,7 @@ Hyperparameters Analysis
    :undoc-members:
    :show-inheritance:
 
-.. automodule:: fedot.sensitivity.operations_hp_sensitivity.one_operations_sensitivity
+.. automodule:: fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity
    :members:
    :undoc-members:
    :show-inheritance:
