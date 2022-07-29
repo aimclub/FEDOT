@@ -25,8 +25,8 @@ class ComposerRequirements:
     :attribute min_arity: minimal number of parent for node
     :attribute cv_folds: integer or None to use cross validation
     """
-    primary: List[str] = tuple()
-    secondary: List[str] = tuple()
+    primary: Sequence[str] = tuple()
+    secondary: Sequence[str] = tuple()
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     max_depth: int = 3
