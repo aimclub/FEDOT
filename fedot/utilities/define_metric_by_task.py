@@ -1,8 +1,4 @@
-import numpy as np
-from sklearn.metrics import mean_squared_error
-from sklearn.metrics import roc_auc_score as roc_auc
-
-from fedot.core.composer.metrics import RMSE, ROCAUC, Silhouette, MSE
+from fedot.core.composer.metrics import RMSE, ROCAUC, Silhouette
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.repository.tasks import TaskTypesEnum
 

@@ -34,19 +34,19 @@ def get_data_from_csv(data_path: Path, task_type: TaskTypesEnum, shuffle_flag: b
 def run_classification_example(timeout: float = None):
     problem = 'classification'
 
-    train_data, test_data = get_data_from_csv(Path(f'{fedot_project_root()}/examples/data/kc1.csv'),
-                                              task_type=TaskTypesEnum.classification)
+    train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
+    test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
 
     baseline_model = Fedot(problem=problem, timeout=timeout)
-    baseline_model.fit(features=train_data, target='target', predefined_model='rf')
+    baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
 
-    baseline_model.predict(features=test_data)
+    baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=-1,
                        max_pipeline_fit_time=1, composer_metric='roc_auc')
-    auto_model.fit(features=train_data, target='target')
-    prediction = auto_model.predict_proba(features=test_data)
+    auto_model.fit(features=train_data_path, target='target')
+    prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
     auto_model.plot_prediction()
     return prediction

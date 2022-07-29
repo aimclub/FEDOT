@@ -498,7 +498,7 @@ def test_greater_is_better():
     assert not _greater_is_better(ROCAUC.metric)
 
 
-def test_calculate_loss_function():
+def test_calculate_loss_function_for_classification_label():
     """ Tests _calculate_loss_function correctness on quality metrics"""
 
     target = InputData(features=np.arange(5),
@@ -512,11 +512,6 @@ def test_calculate_loss_function():
                              target=np.array([2, 0, 1, 0, 1]),
                              task=Task(TaskTypesEnum.classification),
                              data_type=DataTypesEnum.table)
-    regr_target = InputData(features=np.arange(5),
-                            idx=np.arange(5),
-                            target=np.array([0.2, 0.1, 1, 0.3, 1.7]),
-                            task=Task(TaskTypesEnum.classification),
-                            data_type=DataTypesEnum.table)
 
     pred_clear = OutputData(features=np.arange(5),
                             idx=np.arange(5),
@@ -524,16 +519,35 @@ def test_calculate_loss_function():
                             task=Task(TaskTypesEnum.classification),
                             data_type=DataTypesEnum.table)
 
-    pred_prob = OutputData(features=np.arange(5),
-                           idx=np.arange(5),
-                           predict=np.array([0.8, 0.3, 0.6, 0.49, 0.49]),
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
     multi_pred_clear = OutputData(features=np.arange(5),
                                   idx=np.arange(5),
                                   predict=np.array([2, 0, 1, 0, 2]),
                                   task=Task(TaskTypesEnum.classification),
                                   data_type=DataTypesEnum.table)
+
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
+
+
+def test_calculate_loss_function_for_classification_proba():
+    target = InputData(features=np.arange(5),
+                       idx=np.arange(5),
+                       target=np.array([1, 0, 1, 0, 1]),
+                       task=Task(TaskTypesEnum.classification),
+                       data_type=DataTypesEnum.table)
+
+    multi_target = InputData(features=np.arange(5),
+                             idx=np.arange(5),
+                             target=np.array([2, 0, 1, 0, 1]),
+                             task=Task(TaskTypesEnum.classification),
+                             data_type=DataTypesEnum.table)
+
+    pred_prob = OutputData(features=np.arange(5),
+                           idx=np.arange(5),
+                           predict=np.array([0.8, 0.3, 0.6, 0.49, 0.49]),
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table)
+
     multi_pred_prob = OutputData(features=np.arange(5),
                                  idx=np.arange(5),
                                  predict=np.array([[0.2, 0.3, 0.5],
@@ -543,18 +557,25 @@ def test_calculate_loss_function():
                                                    [0.1, 0.4, 0.5]]),
                                  task=Task(TaskTypesEnum.classification),
                                  data_type=DataTypesEnum.table)
+
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
+    assert np.isclose(_calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
+
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
+    assert np.isclose(_calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
+
+
+def test_calculate_loss_function_for_regression():
+    regr_target = InputData(features=np.arange(5),
+                            idx=np.arange(5),
+                            target=np.array([0.2, 0.1, 1, 0.3, 1.7]),
+                            task=Task(TaskTypesEnum.classification),
+                            data_type=DataTypesEnum.table)
+
     regr_pred = OutputData(features=np.arange(5),
                            idx=np.arange(5),
                            predict=np.array([0.23, 0.15, 1.2, 0.4, 1.16]),
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
 
-    assert _calculate_loss_function(Accuracy.metric, target, pred_prob) == -0.8
-    assert _calculate_loss_function(Accuracy.metric, target, pred_clear) == -0.8
-    assert _calculate_loss_function(ROCAUC.metric, target, pred_prob) == -0.917
-
-    assert _calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob) == -0.8
-    assert _calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear) == -0.8
-    assert _calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob) == -0.903
-
-    assert _calculate_loss_function(MSE.metric, regr_target, regr_pred) == 0.069
+    assert np.isclose(_calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)
