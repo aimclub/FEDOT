@@ -84,9 +84,8 @@ class PipelineEvolutionVisualiser:
         prev_fit = fitnesses[0]
         fig = plt.figure(figsize=(10, 10))
         for ch_id, pipeline in enumerate(pipelines):
-            self.graph_visualizer.draw_single_graph(pipeline,
-                                                    title='Current graph',
-                                                    in_graph_converter_function=pipeline_template_as_nx_graph)
+            self.graph_visualizer.draw_nx_dag(pipeline,
+                                              in_graph_converter_function=pipeline_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.pipelines_imgs.append(img)
@@ -97,9 +96,8 @@ class PipelineEvolutionVisualiser:
                 last_best_pipeline = pipeline
             prev_fit = fitnesses[ch_id]
             plt.clf()
-            self.graph_visualizer.draw_single_graph(last_best_pipeline,
-                                                    title=f'Best graph after {round(ch_id)} evals',
-                                                    in_graph_converter_function=pipeline_template_as_nx_graph)
+            self.graph_visualizer.draw_nx_dag(last_best_pipeline,
+                                              in_graph_converter_function=pipeline_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.best_pipelines_imgs.append(img)

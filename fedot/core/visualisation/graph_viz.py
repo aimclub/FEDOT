@@ -1,9 +1,12 @@
 import os
-from math import ceil, log2
-from typing import Optional
+from math import log2
+from textwrap import wrap
+from typing import Optional, Union, Callable, Any, Tuple, List, Dict
 
 import networkx as nx
+import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.patches import ArrowStyle
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -16,128 +19,165 @@ class GraphVisualiser:
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         self.log = default_log(self)
 
-    def visualise(self, pipeline: 'Graph', save_path: Optional[str] = None):
-        try:
-            fig, axs = plt.subplots(figsize=(9, 9))
-            fig.suptitle('Current graph')
-            self.draw_single_graph(pipeline, axs)
-            if not save_path:
-                plt.show()
+    def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+                  engine: str = 'matplotlib', nodes_color: Optional[Any] = None, edges_curvature: float = 0.35):
+        if len(graph.nodes) == 0:
+            raise ValueError('Empty graph can not be visualized.')
+        if engine == 'matplotlib':
+            self.draw_with_networkx(graph, save_path, nodes_color, edges_curvature)
+        elif engine == 'pyvis':
+            self.draw_with_pyvis(graph, save_path, nodes_color)
+        elif engine == 'graphviz':
+            self.draw_with_graphviz(graph, save_path, nodes_color)
+        else:
+            raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
+                                      'Possible values: matplotlib, pyvis, graphviz.')
+
+    @staticmethod
+    def draw_with_graphviz(graph, save_path, nodes_color=None):
+        pass
+
+    @staticmethod
+    def draw_with_pyvis(graph, save_path, nodes_color=None):
+        pass
+
+    def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None, nodes_color: Any = None,
+                           edges_curvature: float = -0.35,
+                           in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+        fig, ax = plt.subplots()
+        fig.set_dpi(150)
+        self.draw_nx_dag(graph, ax, nodes_color, edges_curvature, in_graph_converter_function)
+        if not save_path:
+            plt.show()
+        else:
+            plt.savefig(save_path, dpi=300)
+            plt.close()
+
+    def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None, nodes_color: Any = None,
+                    edges_curvature: float = -0.35,
+                    in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+
+        def get_scaled_node_size(nodes_amount):
+            min_size = 1000
+            max_size = 4000
+            size = min_size + int((max_size - min_size) / log2(max(nodes_amount, 2)))
+            return size
+
+        if ax is None:
+            ax = plt.gca()
+
+        nx_graph, nodes = in_graph_converter_function(graph)
+        # Define colors
+        if not nodes_color and type(graph).__name__ in ('Pipeline', 'OptGraph'):
+            colors = get_colors_by_node_labels([str(node) for node in nodes.values()])
+            edge_colors = [colors[str(node)] for node in nodes.values()]
+        else:
+            edge_colors = nodes_color or 'k'
+        # Define hierarchy_level
+        for u, v, e in nx_graph.edges(data=True):
+            for n in (u, v):
+                nx_graph.nodes[n]['hierarchy_level'] = nodes[n].distance_to_primary_level
+
+        pos, longest_sequence = get_hierarchy_pos(nx_graph)
+        node_size = get_scaled_node_size(longest_sequence)
+        connection_style = 'arc3'
+        curved_connection_style = 'arc3,rad={}'
+
+        for u, v, e in nx_graph.edges(data=True):
+            if e['is_curved']:
+                e['connectionstyle'] = curved_connection_style.format(edges_curvature * (-1) ** (pos[u][1] < pos[v][1]))
             else:
-                plt.savefig(save_path)
-                plt.close()
-        except Exception as ex:
-            self.log.error(f'Visualisation failed with {ex}')
+                e['connectionstyle'] = connection_style
 
-    def draw_single_graph(self, graph: 'Graph', ax=None, title=None,
-                          in_graph_converter_function=graph_structure_as_nx_graph):
-        if type(graph).__name__ == 'Pipeline':
-            pos, node_labels = self._draw_tree(graph, ax, title, in_graph_converter_function)
-        else:
-            pos, node_labels = self._draw_dag(graph, ax, title, in_graph_converter_function)
+        nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
+                               edgecolors=edge_colors)
 
-        self._draw_labels(pos, node_labels, ax)
+        arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
 
-    def _draw_tree(self, graph: 'Graph', ax=None, title=None,
-                   in_graph_converter_function=graph_structure_as_nx_graph):
-        nx_graph, node_labels = in_graph_converter_function(graph)
-        word_labels = [str(node) for node in node_labels.values()]
-        inv_map = {v: k for k, v in node_labels.items()}
-        if type(graph).__name__ == 'Pipeline':
-            root = inv_map[graph.root_node]
-            color_kwargs = {'node_color': colors_by_node_labels(node_labels)}
-        else:
-            root = 0
-            color_kwargs = {'cmap': 'Set3'}
+        for u, v, e in nx_graph.edges(data=True):
+            nx.draw_networkx_edges(nx_graph, pos, edgelist=[(u, v)], node_size=node_size, ax=ax, arrowsize=10,
+                                   arrowstyle=arrow_style, connectionstyle=e['connectionstyle'])
 
-        minimum_spanning_tree = nx.minimum_spanning_tree(nx_graph.to_undirected())
-        pos = hierarchy_pos(minimum_spanning_tree, root=root)
-        min_size = 3000
-        node_sizes = [min_size for _ in word_labels]
-        if title:
-            plt.title(title)
-        nx.draw(nx_graph, pos=pos, with_labels=False,
-                node_size=node_sizes, width=2.0, ax=ax,
-                **color_kwargs)
-        return pos, node_labels
+        x_1, x_2 = ax.get_xlim()
+        y_1, y_2 = ax.get_ylim()
+        offset = 0.2
+        x_offset = x_2 * offset
+        y_offset = y_2 * offset
 
-    def _draw_dag(self, graph: 'Graph', ax=None, title=None,
-                  in_graph_converter_function=graph_structure_as_nx_graph):
-        nx_graph, node_labels = in_graph_converter_function(graph)
-        word_labels = [str(node) for node in node_labels.values()]
+        ax.set_xlim(x_1 - x_offset, x_2 + x_offset)
+        ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
+        ax.axis('off')
 
-        pos = nx.circular_layout(nx_graph)
+        self._draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence)
 
-        min_size = 3000
-        node_sizes = [min_size for _ in word_labels]
-        if title:
-            plt.title(title)
-        colors = colors_by_node_labels(node_labels)
-        nx.draw(nx_graph, pos=pos, with_labels=False,
-                node_size=node_sizes, width=2.0,
-                node_color=colors, cmap='Set3', ax=ax)
-        return pos, node_labels
+        plt.tight_layout()
 
-    def _draw_labels(self, pos, node_labels, ax):
+    @staticmethod
+    def _draw_nx_labels(pos, node_labels, ax, max_sequence_length):
+        def get_scaled_font_size(nodes_amount):
+            min_size = 6
+            max_size = 16
+
+            size = min_size + int((max_size - min_size) / log2(max(nodes_amount, 2)))
+            return size
+
+        if ax is None:
+            ax = plt.gca()
         for node, (x, y) in pos.items():
-            text = '\n'.join(str(node_labels[node]).split('_'))
-            if ax is None:
-                ax = plt
-            ax.text(x, y, text, ha='center', va='center')
+            text = '\n'.join(wrap(node_labels[node].replace('_', ' ').replace('-', ' '), 10))
+            ax.text(x, y, text, ha='center', va='center', fontsize=get_scaled_font_size(max_sequence_length),
+                    bbox=dict(alpha=0.9, color='w', boxstyle='round'))
 
 
-def colors_by_node_labels(node_labels: dict):
+def get_colors_by_node_labels(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
     from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
     from fedot.core.repository.operation_types_repository import get_opt_node_tag
 
     palette = get_palette_based_on_default_tags()
-    colors = [palette[get_opt_node_tag(str(label))] for label in node_labels.values()]
-    return colors
+    return {label: palette[get_opt_node_tag(label)] for label in labels}
 
 
-def scaled_node_size(nodes_amount):
-    size = int(7000.0 / ceil(log2(nodes_amount)))
-    return size
+def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 5) -> Tuple[Dict[Any, Tuple[float, float]], int]:
+    """By default, returns 'networkx.multipartite_layout' positions based on 'hierarchy_level` from node data - the
+     property must be set beforehand.
+    Also decides whether an edge should be curved and sets 'is_curved' boolean property for each edge.
+    If line of nodes reaches 'max_line_length', the result is the combination of 'networkx.shell_layout' and
+    'networkx.spring_layout'.
+    :param graph: the graph.
+    :param max_line_length: the limit for common nodes horizontal or vertical line.
+    """
 
+    for u, v, e in graph.edges(data=True):
+        is_curved = False
+        distance_1, distance_2 = [graph.nodes[n]['hierarchy_level'] for n in (u, v)]
+        if distance_2 - distance_1 > 1 and len(list(graph.neighbors(u))) > 1:
+            is_curved = True
+        e['is_curved'] = is_curved
 
-def hierarchy_pos(graph, root, levels=None, width=1., height=1.):
-    """If there is a cycle that is reachable from root, then this will see infinite recursion.
-       graph: the graph
-       root: the root node
-       levels: a dictionary
-               key: level number (starting from 0)
-               value: number of nodes in this level
-       width: horizontal space allocated for drawing
-       height: vertical space allocated for drawing"""
-    total = "total"
-    cur = "current"
+    longest_path = nx.dag_longest_path(graph, weight=None)
+    longest_sequence = len(longest_path)
 
-    def make_levels(levels, node=root, current_level=0, parent=None):
-        """Compute the number of nodes for each level
-        """
-        if current_level not in levels:
-            levels[current_level] = {total: 0, cur: 0}
-        levels[current_level][total] += 1
-        neighbors = graph.neighbors(node)
-        for neighbor in neighbors:
-            if not neighbor == parent:
-                levels = make_levels(levels, neighbor, current_level + 1, node)
-        return levels
+    pos = nx.multipartite_layout(graph, subset_key='hierarchy_level')
 
-    def make_pos(pos, node=root, current_level=0, parent=None, vert_loc=0):
-        dx = 1 / levels[current_level][total]
-        left = dx / 2
-        pos[node] = ((left + dx * levels[current_level][cur]) * width, vert_loc)
-        levels[current_level][cur] += 1
-        neighbors = graph.neighbors(node)
-        for neighbor in neighbors:
-            if not neighbor == parent:
-                pos = make_pos(pos, neighbor, current_level + 1, node, vert_loc - vert_gap)
-        return pos
+    if longest_sequence > max_line_length:
+        layers = {}
+        for n, data in graph.nodes(data=True):
+            distance = data['hierarchy_level']
+            layers[distance] = layers.get(distance, []) + [n]
 
-    if levels is None:
-        levels = make_levels({})
-    else:
-        levels = {level: {total: levels[level], cur: 0} for level in levels}
-    vert_gap = height / (max([level for level in levels]) + 1)
-    return make_pos({})
+        nlist = [layers[layer_num] for layer_num in sorted(layers.keys())]
+        pos = nx.shell_layout(graph, nlist=nlist)
+
+        pos = {n: np.array(x_y) + (np.random.random(2) - 0.5) * 0.01 for n, x_y in pos.items()}
+        pos = nx.spring_layout(graph,
+                               k=100,
+                               pos=pos,
+                               center=(0.5, 0.5),
+                               seed=42,
+                               scale=-1
+                               )
+
+        for _, _, e in graph.edges(data=True):
+            e['is_curved'] = False
+
+    return pos, longest_sequence
