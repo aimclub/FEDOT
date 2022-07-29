@@ -15,7 +15,7 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib import animation, cm, image as mpimg, pyplot as plt, ticker
+from matplotlib import animation, cm, pyplot as plt, ticker
 from matplotlib.colors import Normalize
 from matplotlib.widgets import Button
 
@@ -481,7 +481,7 @@ class PipelineEvolutionVisualiser:
             def generate_graph_images(self):
                 for ind in self.best_individuals:
                     ind.graph.show(self.temp_path)
-                    self.graph_images.append(mpimg.imread(str(self.temp_path)))
+                    self.graph_images.append(plt.imread(str(self.temp_path)))
 
             def update_graph(self):
                 ax_graph.imshow(self.graph_images[self.index])
