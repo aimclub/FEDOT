@@ -6,7 +6,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 
-from fedot.core.visualisation.graph_viz import hierarchy_pos
+from fedot.core.visualisation.graph_viz import get_hierarchy_pos
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 
@@ -72,7 +72,7 @@ def test_hierarchy_pos():
                                3: ['rf'], 4: ['logit'], 5: ['knn'], 6: ['lda']}
     pipeline_template = PipelineTemplate(pipeline)
     graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
-    pos = hierarchy_pos(graph.to_undirected(), root=0)
+    pos, _ = get_hierarchy_pos(graph)
     comparable_lists_y = make_comparable_lists(pos, real_hierarchy_levels_y,
                                                node_labels, 1, reverse=True)
     comparable_lists_x = make_comparable_lists(pos, real_hierarchy_levels_x,

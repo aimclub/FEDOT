@@ -88,12 +88,12 @@ class Graph:
         """ Returns all available edges in a given graph """
         return self._operator.get_edges()
 
-    def show(self, path: Optional[str] = None):
+    def show(self, save_path: Optional[str] = None):
         """Visualizes graph or saves its picture to the specified ``path``
 
         :param path: optional, save location of the graph visualization image
         """
-        GraphVisualiser().visualise(self, path)
+        GraphVisualiser().visualise(self, save_path)
 
     def __eq__(self, other_graph: 'Graph') -> bool:
         """Compares this graph with the ``other_graph``

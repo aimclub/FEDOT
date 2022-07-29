@@ -105,7 +105,7 @@ def run_analysis_case(train_data: InputData, test_data: InputData,
         if not exists(result_path):
             makedirs(result_path)
 
-    pipeline.show(path=result_path)
+    pipeline.show(save_path=result_path)
 
     pipeline_analysis_result = NodesAnalysis(pipeline=pipeline, train_data=train_data,
                                              test_data=test_data, path_to_save=result_path,
