@@ -1,12 +1,17 @@
+import datetime
 import os
 from math import log2
+from pathlib import Path
 from textwrap import wrap
 from typing import Optional, Union, Callable, Any, Tuple, List, Dict
+from uuid import uuid4
 
 import networkx as nx
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.colors import to_hex
 from matplotlib.patches import ArrowStyle
+from pyvis.network import Network
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
@@ -39,7 +44,31 @@ class GraphVisualiser:
 
     @staticmethod
     def draw_with_pyvis(graph, save_path, nodes_color=None):
-        pass
+        net = Network('500px', '1000px', directed=True)
+        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        colors = get_colors_by_node_labels([str(n) for n in nodes.values()])
+        for n, data in nx_graph.nodes(data=True):
+            operation = nodes[n]
+            label = str(operation)
+            data['n_id'] = str(n)
+            data['label'] = label.replace('_', ' ')
+            data['level'] = operation.distance_to_primary_level
+            data['color'] = to_hex(nodes_color or colors[label])
+            data['font'] = '20px'
+            data['labelHighlightBold'] = True
+
+        for _, data in nx_graph.nodes(data=True):
+            net.add_node(**data)
+        for u, v in nx_graph.edges:
+            net.add_edge(str(u), str(v))
+
+        if save_path:
+            net.save_graph(save_path)
+            return
+        save_path = Path(default_fedot_data_dir(), 'graph_plots', str(uuid4()) + '.html')
+        save_path.parent.mkdir(exist_ok=True)
+        net.show(str(save_path))
+        remove_old_files_from_dir(save_path.parent)
 
     def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None, nodes_color: Any = None,
                            edges_curvature: float = -0.35,
@@ -181,3 +210,10 @@ def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 5) -> Tuple[Dict
             e['is_curved'] = False
 
     return pos, longest_sequence
+
+
+def remove_old_files_from_dir(dir, time_interval=datetime.timedelta(minutes=10)):
+    for path in os.listdir(dir):
+        path = Path(dir, path)
+        if datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getctime(path)) > time_interval:
+            os.remove(path)
