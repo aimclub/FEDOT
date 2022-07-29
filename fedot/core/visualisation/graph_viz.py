@@ -40,7 +40,30 @@ class GraphVisualiser:
 
     @staticmethod
     def draw_with_graphviz(graph, save_path, nodes_color=None):
-        pass
+        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        colors = get_colors_by_node_labels([str(n) for n in nodes.values()])
+        for n, data in nx_graph.nodes(data=True):
+            label = str(nodes[n])
+            data['label'] = label.replace('_', ' ')
+            data['color'] = to_hex(nodes_color or colors[label])
+
+        gv_graph = nx.nx_agraph.to_agraph(nx_graph)
+        kwargs = {'prog': 'dot', 'args': '-Gnodesep=0.5 -Gdpi=300 -Grankdir="LR"'}
+
+        if save_path:
+            gv_graph.draw(save_path, **kwargs)
+        else:
+            save_path = Path(default_fedot_data_dir(), 'graph_plots', str(uuid4()) + '.png')
+            save_path.parent.mkdir(exist_ok=True)
+            gv_graph.draw(save_path, **kwargs)
+
+            img = plt.imread(str(save_path))
+            plt.imshow(img)
+            plt.gca().axis('off')
+            plt.gcf().set_dpi(300)
+            plt.tight_layout()
+            plt.show()
+            remove_old_files_from_dir(save_path.parent)
 
     @staticmethod
     def draw_with_pyvis(graph, save_path, nodes_color=None):
@@ -210,6 +233,13 @@ def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 5) -> Tuple[Dict
             e['is_curved'] = False
 
     return pos, longest_sequence
+
+
+def remove_old_files_from_dir(dir, time_interval=datetime.timedelta(minutes=10)):
+    for path in os.listdir(dir):
+        path = Path(dir, path)
+        if datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getctime(path)) > time_interval:
+            os.remove(path)
 
 
 def remove_old_files_from_dir(dir, time_interval=datetime.timedelta(minutes=10)):

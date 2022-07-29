@@ -66,7 +66,6 @@ def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse)
 
 def test_hierarchy_pos():
     pipeline = pipeline_first()
-    pipeline.show()
     real_hierarchy_levels_y = {0: ['logit'],
                                1: ['lda', 'rf'],
                                2: ['rf'],
