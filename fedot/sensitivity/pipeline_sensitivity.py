@@ -1,6 +1,6 @@
 import json
 from os.path import join
-from typing import List, Type, Optional
+from typing import List, Optional, Type
 
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
@@ -11,20 +11,19 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
 class PipelineAnalysis:
-    """
-    This class is for analyzing the Pipeline as the black-box model,
-    using analysis approaches defined for whole pipeline perturbation,
-    i.e. MultiOperationsHPAnalyze.
+    """This class is for analyzing the :class:`~fedot.core.pipelines.pipeline.Pipeline` as the black-box model,
+        using analysis approaches defined for whole pipeline perturbation, i.e.
+        :class:`~fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze`.
 
     :param pipeline: pipeline object to analyze
     :param train_data: data used for Pipeline training
     :param test_data: data used for Pipeline validation
-    :param approaches: methods applied to pipeline \
-    Default: [MultiOperationsHPAnalyze]
-    :param requirements: extra requirements to define specific details for different approaches.\
-    See SensitivityAnalysisRequirements class documentation.
-    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity/pipeline_sa
-    Default: False
+    :param approaches: methods applied to pipeline Default: [
+        :class:`~fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze`]
+    :param requirements: extra requirements to define specific details for different approaches.
+        See :class:`~fedot.sensitivity.sa_requirements.SensitivityAnalysisRequirements` class documentation.
+    :param path_to_save: path to save results to. Default: `~home/Fedot/sensitivity/pipeline_sa`
+        Default: False
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
