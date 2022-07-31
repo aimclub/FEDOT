@@ -75,6 +75,10 @@ class GraphVisualiser:
             label = str(operation)
             data['n_id'] = str(n)
             data['label'] = label.replace('_', ' ')
+            params = operation.content.get('params')
+            if isinstance(params, dict):
+                params = str(params)[1:-1]
+            data['title'] = params
             data['level'] = operation.distance_to_primary_level
             data['color'] = to_hex(nodes_color or colors[label])
             data['font'] = '20px'
