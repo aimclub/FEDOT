@@ -11,6 +11,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import to_hex
 from matplotlib.patches import ArrowStyle
+from numpy.linalg import norm
 from pyvis.network import Network
 
 from fedot.core.log import default_log
@@ -25,7 +26,7 @@ class GraphVisualiser:
         self.log = default_log(self)
 
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
-                  engine: str = 'matplotlib', nodes_color: Optional[Any] = None, edges_curvature: float = 0.35):
+                  engine: str = 'matplotlib', nodes_color: Optional[Any] = None, edges_curvature: float = 0.25):
         if len(graph.nodes) == 0:
             raise ValueError('Empty graph can not be visualized.')
         if engine == 'matplotlib':
@@ -98,7 +99,7 @@ class GraphVisualiser:
         remove_old_files_from_dir(save_path.parent)
 
     def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None, nodes_color: Any = None,
-                           edges_curvature: float = -0.35,
+                           edges_curvature: float = 0.25,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots()
         fig.set_dpi(150)
@@ -110,7 +111,7 @@ class GraphVisualiser:
             plt.close()
 
     def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None, nodes_color: Any = None,
-                    edges_curvature: float = -0.35,
+                    edges_curvature: float = 0.25,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 
         def get_scaled_node_size(nodes_amount):
@@ -133,33 +134,59 @@ class GraphVisualiser:
         for u, v, e in nx_graph.edges(data=True):
             for n in (u, v):
                 nx_graph.nodes[n]['hierarchy_level'] = nodes[n].distance_to_primary_level
-
+        # Get nodes positions
         pos, longest_sequence = get_hierarchy_pos(nx_graph)
         node_size = get_scaled_node_size(longest_sequence)
-        connection_style = 'arc3'
-        curved_connection_style = 'arc3,rad={}'
-
-        for u, v, e in nx_graph.edges(data=True):
-            if e['is_curved']:
-                e['connectionstyle'] = curved_connection_style.format(edges_curvature * (-1) ** (pos[u][1] < pos[v][1]))
-            else:
-                e['connectionstyle'] = connection_style
-
+        # Draw nodes
         nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
                                edgecolors=edge_colors)
+        # Define edges curvature
+        connection_style = 'arc3'
+        curved_connection_style = 'arc3,rad={}'
+        for u, v, e in nx_graph.edges(data=True):
+            e['connectionstyle'] = connection_style
+            p1, p2 = np.array(pos[u]), np.array(pos[v])
+            min_distance = 1
+            closest_node = None
+            for n in nx_graph.nodes:
+                if n in (u, v):
+                    continue
+                p3 = np.array(pos[n])
+                distance = abs(np.cross(p2 - p1, p1 - p3) / np.linalg.norm(p2 - p1))
+                if distance > 0.15:
+                    continue
+                min_x, max_x = min(p1[0], p2[0]), max(p1[0], p2[0])
+                min_y, max_y = min(p1[1], p2[1]), max(p1[1], p2[1])
+                if not (min_x <= p3[0] <= max_x and min_y <= p3[1] <= max_y):
+                    continue
+                if distance > min_distance:
+                    continue
+                min_distance = distance
+                closest_node = n
 
+            if closest_node is None:
+                continue
+            p3 = pos[closest_node]
+            curvature_factor = (1 / (min_distance + 1)) ** 2
+            if p1[1] == p2[1]:
+                curvature_sign = -1
+            else:
+                k = np.divide(*(p1 - p2))
+                b = p1[1] - k * p1[0]
+                sign_pow = p3[1] > k * p3[0] + b
+                curvature_sign = (-1) ** sign_pow
+            e['connectionstyle'] = curved_connection_style.format(edges_curvature * curvature_factor * curvature_sign)
+        # Draw edges
         arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
-
         for u, v, e in nx_graph.edges(data=True):
             nx.draw_networkx_edges(nx_graph, pos, edgelist=[(u, v)], node_size=node_size, ax=ax, arrowsize=10,
                                    arrowstyle=arrow_style, connectionstyle=e['connectionstyle'])
-
+        # Rescale graph for all nodes to fit in
         x_1, x_2 = ax.get_xlim()
         y_1, y_2 = ax.get_ylim()
         offset = 0.2
         x_offset = x_2 * offset
         y_offset = y_2 * offset
-
         ax.set_xlim(x_1 - x_offset, x_2 + x_offset)
         ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
         ax.axis('off')
@@ -193,57 +220,32 @@ def get_colors_by_node_labels(labels: List[str]) -> Dict[str, Tuple[float, float
     return {label: palette[get_opt_node_tag(label)] for label in labels}
 
 
-def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 5) -> Tuple[Dict[Any, Tuple[float, float]], int]:
+def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict[Any, Tuple[float, float]], int]:
     """By default, returns 'networkx.multipartite_layout' positions based on 'hierarchy_level` from node data - the
      property must be set beforehand.
-    Also decides whether an edge should be curved and sets 'is_curved' boolean property for each edge.
     If line of nodes reaches 'max_line_length', the result is the combination of 'networkx.shell_layout' and
     'networkx.spring_layout'.
     :param graph: the graph.
     :param max_line_length: the limit for common nodes horizontal or vertical line.
     """
-
-    for u, v, e in graph.edges(data=True):
-        is_curved = False
-        distance_1, distance_2 = [graph.nodes[n]['hierarchy_level'] for n in (u, v)]
-        if distance_2 - distance_1 > 1 and len(list(graph.neighbors(u))) > 1:
-            is_curved = True
-        e['is_curved'] = is_curved
-
     longest_path = nx.dag_longest_path(graph, weight=None)
     longest_sequence = len(longest_path)
-
-    pos = nx.multipartite_layout(graph, subset_key='hierarchy_level')
 
     if longest_sequence > max_line_length:
         layers = {}
         for n, data in graph.nodes(data=True):
             distance = data['hierarchy_level']
             layers[distance] = layers.get(distance, []) + [n]
-
         nlist = [layers[layer_num] for layer_num in sorted(layers.keys())]
         pos = nx.shell_layout(graph, nlist=nlist)
 
         pos = {n: np.array(x_y) + (np.random.random(2) - 0.5) * 0.01 for n, x_y in pos.items()}
-        pos = nx.spring_layout(graph,
-                               k=100,
-                               pos=pos,
-                               center=(0.5, 0.5),
-                               seed=42,
-                               scale=-1
-                               )
+        pos = nx.spring_layout(graph, k=100, pos=pos, center=(0.5, 0.5), seed=42, scale=-1)
 
-        for _, _, e in graph.edges(data=True):
-            e['is_curved'] = False
+    else:
+        pos = nx.multipartite_layout(graph, subset_key='hierarchy_level')
 
     return pos, longest_sequence
-
-
-def remove_old_files_from_dir(dir, time_interval=datetime.timedelta(minutes=10)):
-    for path in os.listdir(dir):
-        path = Path(dir, path)
-        if datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getctime(path)) > time_interval:
-            os.remove(path)
 
 
 def remove_old_files_from_dir(dir, time_interval=datetime.timedelta(minutes=10)):
