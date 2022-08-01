@@ -40,5 +40,4 @@ def get_simple_ridge_pipeline(fedot_window):
 
 if __name__ == '__main__':
     df = pd.read_csv('time_series_withgaps.csv', names=['Values'])
-    df = df.head(150)
     fedot_frwd_bi(df, 10)
