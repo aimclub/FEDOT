@@ -12,7 +12,7 @@ from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirem
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -99,7 +99,7 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
 
     mutation_types = [parameter_change_mutation, MutationTypesEnum.growth, MutationTypesEnum.reduce,
                       MutationTypesEnum.simple]
-    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
+    optimiser_parameters = GPGraphOptimizerParameters(mutation_types=mutation_types)
 
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=task). \

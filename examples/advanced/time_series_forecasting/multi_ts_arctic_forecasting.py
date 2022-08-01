@@ -9,7 +9,7 @@ from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -41,7 +41,7 @@ def compose_pipeline(pipeline, train_data, task):
                       MutationTypesEnum.single_change,
                       MutationTypesEnum.single_drop,
                       MutationTypesEnum.single_add]
-    optimiser_parameters = GPGraphOptimiserParameters(mutation_types=mutation_types)
+    optimiser_parameters = GPGraphOptimizerParameters(mutation_types=mutation_types)
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
     builder = ComposerBuilder(task=task). \
         with_optimiser_params(parameters=optimiser_parameters). \

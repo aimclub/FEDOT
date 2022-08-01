@@ -16,7 +16,7 @@ from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
-from fedot.core.optimisers.gp_comp.operators.crossover import crossover, CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.objective.objective import Objective
@@ -88,9 +88,9 @@ def test_ancestor_for_crossover():
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
     graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
-
-    crossover_results = crossover([CrossoverTypesEnum.subtree], parent_ind_first, parent_ind_second, max_depth=3,
-                                  crossover_prob=1, params=graph_params)
+    composer_requirements = PipelineComposerRequirements(max_depth=3, crossover_prob=1)
+    crossover = Crossover([CrossoverTypesEnum.subtree], composer_requirements, graph_params)
+    crossover_results = crossover([parent_ind_first, parent_ind_second])
 
     for crossover_result in crossover_results:
         assert len(crossover_result.parent_operators) > 0

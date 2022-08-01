@@ -15,7 +15,7 @@ from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitnes
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, crossover
+from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
@@ -168,13 +168,15 @@ def test_crossover():
     graph_example_first = adapter.adapt(pipeline_first())
     graph_example_second = adapter.adapt(pipeline_second())
     crossover_types = [CrossoverTypesEnum.none]
-    new_graphs = crossover(crossover_types, Individual(graph_example_first), Individual(graph_example_second),
-                           max_depth=3, crossover_prob=1)
+    requirements = PipelineComposerRequirements(primary=[], secondary=[], max_depth=3, crossover_prob=1)
+    crossover = Crossover(crossover_types, get_pipeline_generation_params(), requirements)
+    new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
     crossover_types = [CrossoverTypesEnum.subtree]
-    new_graphs = crossover(crossover_types, Individual(graph_example_first), Individual(graph_example_second),
-                           max_depth=3, crossover_prob=0)
+    requirements.crossover_prob = 0
+    crossover = Crossover(crossover_types, requirements, get_pipeline_generation_params())
+    new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
 
@@ -495,10 +497,11 @@ def test_crossover_with_single_node():
     graph_example_second = adapter.adapt(generate_pipeline_with_single_node())
 
     graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
+    requirements = PipelineComposerRequirements(primary=[], secondary=[], max_depth=3, crossover_prob=1)
 
     for crossover_type in CrossoverTypesEnum:
-        new_graphs = crossover([crossover_type], Individual(graph_example_first), Individual(graph_example_second),
-                               max_depth=3, crossover_prob=1, params=graph_params)
+        crossover = Crossover([crossover_type], requirements, graph_params)
+        new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
 
         assert new_graphs[0].graph == graph_example_first
         assert new_graphs[1].graph == graph_example_second

@@ -14,7 +14,7 @@ from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECONDS_FOR_TUNING
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import GeneticSchemeTypesEnum, GPGraphOptimiserParameters
+from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.opt_history import OptHistory
@@ -129,7 +129,7 @@ class ApiComposer:
         return composer_requirements
 
     @staticmethod
-    def _init_optimiser_params(task: Task, composer_params: dict) -> GPGraphOptimiserParameters:
+    def _init_optimiser_params(task: Task, composer_params: dict) -> GPGraphOptimizerParameters:
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
@@ -143,7 +143,7 @@ class ApiComposer:
         if task.task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
-        optimiser_parameters = GPGraphOptimiserParameters(
+        optimiser_parameters = GPGraphOptimizerParameters(
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=mutations,
             crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],

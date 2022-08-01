@@ -7,7 +7,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import EvoGraphOptimiser, GPGraphOptimiserParameters, \
+from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters, \
     GeneticSchemeTypesEnum
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
@@ -51,7 +51,7 @@ def test_custom_graph_opt():
         max_depth=3, pop_size=5, num_of_generations=5,
         crossover_prob=0.8, mutation_prob=0.9)
 
-    optimiser_parameters = GPGraphOptimiserParameters(
+    optimiser_parameters = GPGraphOptimizerParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[
             MutationTypesEnum.simple,
@@ -67,7 +67,7 @@ def test_custom_graph_opt():
 
     objective = Objective(custom_metric)
     init_population = InitialPopulationGenerator(graph_generation_params, requirements)()
-    optimiser = EvoGraphOptimiser(
+    optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,

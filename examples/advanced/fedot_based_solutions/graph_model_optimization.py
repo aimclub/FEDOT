@@ -8,10 +8,10 @@ import pandas as pd
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimiser import (
-    EvoGraphOptimiser,
+from fedot.core.optimisers.gp_comp.gp_optimizer import (
+    EvoGraphOptimizer,
     GeneticSchemeTypesEnum,
-    GPGraphOptimiserParameters
+    GPGraphOptimizerParameters
 )
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
@@ -89,7 +89,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         max_depth=10, pop_size=5, num_of_generations=5,
         crossover_prob=0.8, mutation_prob=0.9, timeout=timeout)
 
-    optimiser_parameters = GPGraphOptimiserParameters(
+    optimiser_parameters = GPGraphOptimizerParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[custom_mutation],
         crossover_types=[CrossoverTypesEnum.none],
@@ -100,7 +100,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
         rules_for_constraint=rules)
 
     objective = Objective([custom_metric])
-    optimiser = EvoGraphOptimiser(
+    optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
         parameters=optimiser_parameters,

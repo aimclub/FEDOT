@@ -3,7 +3,7 @@ from operator import eq
 
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.gp_comp.gp_optimiser import GPGraphOptimiserParameters, GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters, GeneticSchemeTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -25,7 +25,7 @@ def prepare_builder_with_custom_params(return_all: bool):
         timeout=datetime.timedelta(minutes=5))
 
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimiserParameters(
+    optimiser_parameters = GPGraphOptimizerParameters(
         genetic_scheme_type=scheme_type)
 
     builder_with_custom_params = ComposerBuilder(task=task).with_requirements(

@@ -20,9 +20,9 @@ def do_nothing_callback(*args, **kwargs):
     pass
 
 
-class GraphOptimiserParameters:
+class GraphOptimizerParameters:
     """
-        It is base class for defining the parameters of optimiser
+        It is base class for defining the parameters of optimizer
 
         :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
         evolution. Default False.
@@ -66,18 +66,18 @@ class GraphGenerationParams:
         self.node_factory = node_factory or DefaultOptNodeFactory(requirements=dict(primary=[], secondary=[]))
 
 
-class GraphOptimiser:
+class GraphOptimizer:
     """
-    Base class of graph optimiser. It allows to find the optimal solution using specified metric (one or several).
+    Base class of graph optimizer. It allows to find the optimal solution using specified metric (one or several).
     To implement the specific optimisation method,
     the abstract method 'optimize' should be re-defined in the ancestor class
-    (e.g. PopulationalOptimiser, RandomSearchGraphOptimiser, etc).
+    (e.g.  PopulationalOptimizer, RandomSearchGraphOptimiser, etc).
 
     :param objective: objective for optimisation
-    :param initial_graphs: graphs which were initialized outside the optimiser
-    :param requirements: implementation-independent requirements for graph optimiser
+    :param initial_graphs: graphs which were initialized outside the optimizer
+    :param requirements: implementation-independent requirements for graph optimizer
     :param graph_generation_params: parameters for new graph generation
-    :param parameters: parameters for specific implementation of graph optimiser
+    :param parameters: parameters for specific implementation of graph optimizer
     """
 
     def __init__(self,
@@ -85,13 +85,13 @@ class GraphOptimiser:
                  initial_graphs: Optional[Sequence[Graph]] = None,
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimiserParameters] = None):
+                 parameters: Optional[GraphOptimizerParameters] = None):
         self.log = default_log(self)
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
-        self.parameters = parameters or GraphOptimiserParameters()
+        self.parameters = parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property

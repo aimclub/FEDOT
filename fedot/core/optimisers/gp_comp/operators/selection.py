@@ -1,13 +1,11 @@
 import math
+from copy import deepcopy
 from random import choice, randint
-from typing import TYPE_CHECKING, List, Iterable, Sequence, Tuple
+from typing import List, Callable
 
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
-
-
-if TYPE_CHECKING:
-    from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
 class SelectionTypesEnum(Enum):
@@ -15,62 +13,55 @@ class SelectionTypesEnum(Enum):
     spea2 = 'spea2'
 
 
-def selection(types: List[SelectionTypesEnum], population: List[Individual], pop_size: int,
-              params: 'GraphGenerationParams') -> List[Individual]:
-    """
-    Selection of individuals based on specified type of selection
-    :param types: The set of selection types
-    :param population: A list of individuals to select from.
-    :param pop_size: The number of individuals to select.
-    :param params: params for graph generation and convertation
-    """
-    selection_by_type = {
-        SelectionTypesEnum.tournament: tournament_selection,
-        SelectionTypesEnum.spea2: spea2_selection
-    }
+class Selection(Operator):
+    def __init__(self, selection_types: List[SelectionTypesEnum], requirements: PipelineComposerRequirements):
+        self.selection_types = selection_types
+        self.requirements = requirements
 
-    selection_type = choice(types)
-    if selection_type in selection_by_type:
-        selected = selection_by_type[selection_type](population, pop_size)
-        return selected
-    else:
-        raise ValueError(f'Required selection not found: {selection_type}')
+    def __call__(self, population: PopulationT) -> PopulationT:
+        """
+        Selection of individuals based on specified type of selection
+        :param population: A list of individuals to select from.
+        """
+        selection_type = choice(self.selection_types)
+        return self._selection_by_type(selection_type)(population, self.requirements.pop_size)
 
+    def _selection_by_type(self, selection_type: SelectionTypesEnum) -> Callable[[PopulationT, int], PopulationT]:
+        selections = {
+            SelectionTypesEnum.tournament: tournament_selection,
+            SelectionTypesEnum.spea2: spea2_selection
+        }
+        if selection_type in selections:
+            return selections[selection_type]
+        else:
+            raise ValueError(f'Required selection not found: {selection_type}')
 
-def individuals_selection(types: List[SelectionTypesEnum], individuals: List[Individual], pop_size: int,
-                          graph_params: 'GraphGenerationParams') -> List[Individual]:
-    if pop_size == len(individuals):
-        chosen = individuals
-    else:
-        chosen = []
-        remaining_individuals = individuals
-        individuals_pool_size = len(individuals)
-        n_iter = 0
-        while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
-            individual = selection(types, remaining_individuals, pop_size=1, params=graph_params)[0]
-            if individual.uid not in (c.uid for c in chosen):
-                chosen.append(individual)
-                if pop_size <= individuals_pool_size:
-                    remaining_individuals.remove(individual)
-            n_iter += 1
-    return chosen
+    def update_requirements(self, new_requirements: PipelineComposerRequirements):
+        self.requirements = new_requirements
 
-
-def random_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
-    chosen = []
-    n_iter = 0
-    while len(chosen) < pop_size and n_iter < pop_size * 10:
-        if not individuals:
-            return []
-        if len(individuals) <= 1:
-            return [individuals[0]] * pop_size
-        individual = choice(individuals)
-        if individual.uid not in (c.uid for c in chosen):
-            chosen.append(individual)
-    return chosen
+    def individuals_selection(self, individuals: PopulationT) -> PopulationT:
+        pop_size = self.requirements.pop_size
+        if pop_size == len(individuals):
+            chosen = individuals
+        else:
+            chosen = []
+            remaining_individuals = individuals
+            individuals_pool_size = len(individuals)
+            n_iter = 0
+            old_requirements = deepcopy(self.requirements)
+            self.requirements.pop_size = 1
+            while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
+                individual = self.__call__(remaining_individuals)[0]
+                if individual.uid not in (chosen_individual.uid for chosen_individual in chosen):
+                    chosen.append(individual)
+                    if pop_size <= individuals_pool_size:
+                        remaining_individuals.remove(individual)
+                n_iter += 1
+            self.requirements = old_requirements
+        return chosen
 
 
-def tournament_selection(individuals: List[Individual], pop_size: int, fraction: float = 0.1) -> List[Individual]:
+def tournament_selection(individuals: PopulationT, pop_size: int, fraction: float = 0.1) -> PopulationT:
     group_size = math.ceil(len(individuals) * fraction)
     min_group_size = 2 if len(individuals) > 1 else 1
     group_size = max(group_size, min_group_size)
@@ -87,8 +78,22 @@ def tournament_selection(individuals: List[Individual], pop_size: int, fraction:
     return chosen
 
 
+def random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
+    chosen = []
+    n_iter = 0
+    while len(chosen) < pop_size and n_iter < pop_size * 10:
+        if not individuals:
+            return []
+        if len(individuals) <= 1:
+            return [individuals[0]] * pop_size
+        individual = choice(individuals)
+        if individual.uid not in (c.uid for c in chosen):
+            chosen.append(individual)
+    return chosen
+
+
 # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
-def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
+def spea2_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
     """
     Apply SPEA-II selection operator on the *individuals*. Usually, the
     size of *individuals* will be larger than *n* because any individual
@@ -98,10 +103,8 @@ def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Indivi
     list returned contains references to the input *individuals*.
 
     :param individuals: A list of individuals to select from.
-    :param pop_size: The number of individuals to select.
     :returns: A list of selected individuals
     """
-
     inds_len = len(individuals)
     fitness_len = len(individuals[0].fitness.values)
     inds_len_sqrt = math.sqrt(inds_len)
@@ -147,8 +150,8 @@ def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Indivi
 
     elif len(chosen_indices) > pop_size:  # The archive is too large
         inds_len = len(chosen_indices)
-        distances = [[0.0] * inds_len for i in range(inds_len)]
-        sorted_indices = [[0] * inds_len for i in range(inds_len)]
+        distances = [[0.0] * inds_len for _ in range(inds_len)]
+        sorted_indices = [[0] * inds_len for _ in range(inds_len)]
         for i in range(inds_len):
             for j in range(i + 1, inds_len):
                 dist = 0.0
@@ -205,14 +208,11 @@ def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Indivi
     return [individuals[i] for i in chosen_indices]
 
 
-def crossover_parents_selection(population: Sequence[Individual]) -> Iterable[Tuple[Individual, Individual]]:
-    return zip(population[::2], population[1::2])
-
-
 # Auxiliary algorithmic functions for spea2_selection
 # This code is a part of DEAP library (Library URL: https://github.com/DEAP/deap).
 def _randomized_select(array: List[float], begin: int, end: int, i: float) -> float:
-    """Allows to select the ith smallest element from array without sorting it.
+    """
+    Allows to select the ith smallest element from array without sorting it.
     Runtime is expected to be O(n).
     """
     if begin == end:

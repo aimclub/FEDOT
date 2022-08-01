@@ -1,28 +1,26 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Generic, Sequence, Callable
+from typing import Sequence, Callable, TYPE_CHECKING
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 
-T = TypeVar('T')
+if TYPE_CHECKING:
+    from fedot.core.composer.composer import ComposerRequirements
 
 PopulationT = Sequence[Individual]  # TODO: provisional
+EvaluationOperator = Callable[[PopulationT], PopulationT]
 
 
-class Operator(ABC, Generic[T]):
+class Operator(ABC):
     """ Base abstract functional interface for genetic operators.
     Specific signatures are:
-    - Evaluation: Population -> Population
     - Selection: Population -> Population
-    - Inheritance: Population -> Population
-    - Regularization: Population -> Population
-    - Reproduction: Population -> Population
-    - Mutation: Individual -> Individual
-    - Crossover: (Individual, Individual) -> (Individual, Individual)
+    - Inheritance: [Population, Population] -> Population
+    - Regularization: [Population, EvaluationOperator] -> Population
+    - Mutation: Union[Individual, Population] -> Union[Individual, Population]
+    - Crossover: Population -> Population
+    - Elitism: [Population, Population] -> Population
     """
 
     @abstractmethod
-    def __call__(self, operand: T) -> T:
+    def update_requirements(self, new_requirements: 'ComposerRequirements'):
         pass
-
-
-EvaluationOperator = Callable[[PopulationT], PopulationT]
