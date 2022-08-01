@@ -477,7 +477,9 @@ def _combine_parents(parent_nodes: List[Node], input_data: Optional[InputData], 
 
     return parent_results, target
 
-
+# Gets default params for chosen model name
+# model_name: the model name to choose default parameters for
+# default repository parameters for the model name
 def get_default_params(model_name: str):
     """Gets default params for chosen model name
 

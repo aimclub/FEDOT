@@ -39,23 +39,23 @@ class Graph:
 
     @copy_doc(GraphOperator.add_node)
     def add_node(self, new_node: 'GraphNode'):
-        self.operator.add_node(new_node)
+        self._operator.add_node(new_node)
 
     @copy_doc(GraphOperator.update_node)
     def update_node(self, old_node: 'GraphNode', new_node: 'GraphNode'):
-        self.operator.update_node(old_node, new_node)
+        self._operator.update_node(old_node, new_node)
 
     @copy_doc(GraphOperator.delete_node)
     def delete_node(self, node: 'GraphNode'):
-        self.operator.delete_node(node)
+        self._operator.delete_node(node)
 
     @copy_doc(GraphOperator.update_subtree)
     def update_subtree(self, old_subtree: 'GraphNode', new_subtree: 'GraphNode'):
-        self.operator.update_subtree(old_subtree, new_subtree)
+        self._operator.update_subtree(old_subtree, new_subtree)
 
     @copy_doc(GraphOperator.delete_subtree)
     def delete_subtree(self, subtree: 'GraphNode'):
-        self.operator.delete_subtree(subtree)
+        self._operator.delete_subtree(subtree)
 
     def distance_to_root_level(self, node: GraphNode) -> int:
         """ Returns distance to root level """
@@ -74,10 +74,10 @@ class Graph:
         self._operator.connect_nodes(parent=node_parent, child=node_child)
 
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
-                         is_clean_up_leftovers: bool = True):
+                         clean_up_leftovers: bool = True):
         """ Delete an edge from node_parent to node_child """
         self._operator.disconnect_nodes(node_parent=node_parent, node_child=node_child,
-                                        is_clean_up_leftovers=is_clean_up_leftovers)
+                                        clean_up_leftovers=clean_up_leftovers)
 
     def get_nodes_degrees(self):
         """ Nodes degree as the number of edges the node has:

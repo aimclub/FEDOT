@@ -218,11 +218,11 @@ class OptGraph:
 
     @node_ops_adaptation
     def disconnect_nodes(self, node_parent: OptNode, node_child: OptNode,
-                         is_clean_up_leftovers: bool = True):
+                         clean_up_leftovers: bool = True):
         """ Delete an edge from node_parent to node_child """
         self._operator.disconnect_nodes(node_parent=self._node_adapter.restore(node_parent),
                                         node_child=self._node_adapter.restore(node_child),
-                                        is_clean_up_leftovers=is_clean_up_leftovers)
+                                        clean_up_leftovers=clean_up_leftovers)
 
     def get_nodes_degrees(self):
         """ Nodes degree as the number of edges the node has:
