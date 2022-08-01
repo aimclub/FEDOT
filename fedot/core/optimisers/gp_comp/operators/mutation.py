@@ -34,8 +34,8 @@ class MutationTypesEnum(Enum):
 
 class Mutation(Operator):
     def __init__(self, mutation_types: List[Union[MutationTypesEnum, Callable]],
-                 graph_generation_params: GraphGenerationParams,
                  requirements: PipelineComposerRequirements,
+                 graph_generation_params: GraphGenerationParams,
                  max_num_of_mutation_attempts: int = 100,
                  static_mutation_probability: float = 0.7):
         self.mutation_types = mutation_types
