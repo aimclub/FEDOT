@@ -13,7 +13,6 @@ from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
