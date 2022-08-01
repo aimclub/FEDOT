@@ -18,7 +18,7 @@ class OperationsCacheDB(BaseCacheDB):
     """
 
     def __init__(self, db_path: Optional[str] = None):
-        super().__init__('operations', db_path, True, ['pipelines_hit', 'pipelines_total', 'nodes_hit', 'nodes_total'])
+        super().__init__('operations', db_path, False, ['pipelines_hit', 'pipelines_total', 'nodes_hit', 'nodes_total'])
         self._init_db()
 
     @staticmethod
