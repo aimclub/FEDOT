@@ -66,8 +66,7 @@ def gap_time_series_several_first_last_enough_length():
 
 def gap_time_series_several_first_last_not_enough_length():
     """ Some first and last elements are gaps but not the first and last one """
-    ts = [0, -100.0, -100.0, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17
-          -100.0, -100.0, 20]
+    ts = [0, -100.0, -100.0, 3, 4, 5, 6, -100.0, -100.0, 9]
     return np.array(ts, dtype=float)
 
 

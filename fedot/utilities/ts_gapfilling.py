@@ -14,6 +14,7 @@ def series_has_gaps_check(gapfilling_method):
     """ Check is time series has gaps or not. Return source array, if not """
 
     def wrapper(self, input_data, *args, **kwargs):
+        input_data = replace_nan_with_label(input_data, label=self.gap_value)
         gap_ids = np.ravel(np.argwhere(input_data == self.gap_value))
         if len(gap_ids) == 0:
             self.log.info(f'Array does not contain values marked as gaps {self.gap_value}')
