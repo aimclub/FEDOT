@@ -3,7 +3,7 @@ from typing import Collection, Optional, Sequence, Tuple, Union
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.composer.composer import Composer, ComposerRequirements
+from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
@@ -11,6 +11,7 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.data_objective_builder import DataObjectiveBuilder
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimizer
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
 
 

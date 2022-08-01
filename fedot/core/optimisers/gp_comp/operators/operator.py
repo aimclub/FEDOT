@@ -2,9 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Sequence, Callable, TYPE_CHECKING
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-
-if TYPE_CHECKING:
-    from fedot.core.composer.composer import ComposerRequirements
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 
 PopulationT = Sequence[Individual]  # TODO: provisional
 EvaluationOperator = Callable[[PopulationT], PopulationT]
@@ -22,5 +20,5 @@ class Operator(ABC):
     """
 
     @abstractmethod
-    def update_requirements(self, new_requirements: 'ComposerRequirements'):
+    def update_requirements(self, new_requirements: ComposerRequirements):
         pass
