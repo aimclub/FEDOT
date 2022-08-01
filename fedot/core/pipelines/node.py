@@ -17,8 +17,7 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 @dataclass
 class NodeMetadata:
-    """
-    Dataclass. :class:`Node` metadata
+    """Dataclass. :class:`Node` metadata
 
     :param metric: quality score
     """
@@ -26,8 +25,7 @@ class NodeMetadata:
 
 
 class Node(GraphNode):
-    """
-    Base class for node definition in :class:`~fedot.core.pipelines.pipeline.Pipeline` structure
+    """Base class for node definition in :class:`~fedot.core.pipelines.pipeline.Pipeline` structure
 
     :param nodes_from: parent nodes which information comes from
     :param operation_type: type of the operation defined in operation repository
@@ -140,7 +138,7 @@ class Node(GraphNode):
             return self.custom_params
 
     def update_params(self):
-        """ Updates :attr:`custom_params` only if they were changed """
+        """Updates :attr:`custom_params` only if they were changed"""
         new_params = self.fitted_operation.get_params()
         # Filter parameters
         filtered_params = self._filter_params(new_params)
@@ -150,8 +148,7 @@ class Node(GraphNode):
     # wrappers for 'operation' field from GraphNode class
     @property
     def operation(self) -> Operation:
-        """
-        Returns node operation object
+        """Returns node operation object
 
         :return: operation object
         """
@@ -159,8 +156,7 @@ class Node(GraphNode):
 
     @operation.setter
     def operation(self, value: Operation):
-        """
-        Updates :attr:`operation` property with the provided ``value``
+        """Updates :attr:`operation` property with the provided ``value``
 
         :param value: new operation object
         """
@@ -168,8 +164,7 @@ class Node(GraphNode):
 
     @property
     def fitted_operation(self) -> Optional[Any]:
-        """
-        Returns already fitted operation if exists or `None` instead
+        """Returns already fitted operation if exists or `None` instead
 
         :return: node fitted operation or `None`
         """
@@ -177,8 +172,7 @@ class Node(GraphNode):
 
     @fitted_operation.setter
     def fitted_operation(self, value: Any):
-        """
-        Sets node fitted operation with the provided ``value``
+        """Sets node fitted operation with the provided ``value``
 
         :param value: any model from the list of acceptable nodes for the chosen task and problem
         """
@@ -189,12 +183,11 @@ class Node(GraphNode):
             self._fitted_operation = value
 
     def unfit(self):
-        """ Sets :attr:`fitted_operation` to `None` TODO: check how it would be rendered """
+        """Sets :attr:`fitted_operation` to `None` TODO: check how it would be rendered"""
         self.fitted_operation = None
 
     def fit(self, input_data: InputData) -> OutputData:
-        """
-        Runs training process in the node
+        """Runs training process in the node
 
         :param input_data: data used for operation training
 
@@ -221,8 +214,7 @@ class Node(GraphNode):
         return operation_predict
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
-        """
-        Run prediction process in the node
+        """Runs prediction process in the node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. `'labels'`, `'probs'`, `'full_probs'`)
@@ -240,8 +232,7 @@ class Node(GraphNode):
 
     @property
     def custom_params(self) -> dict:
-        """
-        Returns node custom parameters
+        """Returns node custom parameters
 
         :return: dict of custom parameters
         """
@@ -249,8 +240,7 @@ class Node(GraphNode):
 
     @custom_params.setter
     def custom_params(self, params: dict):
-        """
-        Sets custom parameters of the node
+        """Sets custom parameters of the node
 
         :param params: new parameters to be placed instead of existing
         """
@@ -266,8 +256,7 @@ class Node(GraphNode):
             self.content.update({'params': params})
 
     def __str__(self) -> str:
-        """
-        Returns string representation of the node
+        """Returns string representation of the node
 
         :return: stringified node operation type
         """
@@ -275,8 +264,7 @@ class Node(GraphNode):
 
     @property
     def tags(self) -> Optional[List[str]]:
-        """
-        Returns tags of operation in the node or empty list
+        """Returns tags of operation in the node or empty list
 
         :return: empty list if node is of atomized type and list of tags otherwise
         """
@@ -330,14 +318,13 @@ class PrimaryNode(Node):
         return super().fit(input_data)
 
     def unfit(self):
-        """ Sets :attr:`node_data` (if exists) and :attr:`fitted_operation` to `None` """
+        """Sets :attr:`node_data` (if exists) and :attr:`~Node.fitted_operation` to `None`"""
         self.fitted_operation = None
         if hasattr(self, 'node_data'):
             self.node_data = None
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
-        """
-        Predicts using the operation located in the primary node
+        """Predicts using the operation located in the primary node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. `'labels'`, `'probs'`, `'full_probs'`)
@@ -353,8 +340,7 @@ class PrimaryNode(Node):
         return super().predict(input_data, output_mode)
 
     def get_data_from_node(self) -> dict:
-        """
-        Returns data if it was set to the nodes directly
+        """Returns data if it was set to the nodes directly
 
         :return: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
         """
@@ -362,17 +348,16 @@ class PrimaryNode(Node):
 
     @property
     def node_data(self) -> dict:
-        """
-        Returns directly set :attr:`node_data`
+        """Returns directly set :attr:`node_data`
 
         :return: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
+        :rtype: dict
         """
         return getattr(self, '_node_data', {})
 
     @node_data.setter
     def node_data(self, value: dict):
-        """
-        Sets :attr:`node_data`
+        """Sets :attr:`node_data`
 
         :param value: dictionary with :class:`~fedot.core.data.data.InputData` for fit and predict stage
         """
@@ -384,8 +369,8 @@ class PrimaryNode(Node):
 
 
 class SecondaryNode(Node):
-    """
-    The class defines the interface of Secondary nodes modifying tha data flow in Pipeline
+    """The class defines the interface of Secondary nodes modifying tha data flow in
+        :class:`~fedot.core.pipelines.pipeline.Pipeline`
 
     :param operation_type: operation defined in the operation repository
     :param nodes_from: parent nodes where data comes from
@@ -399,8 +384,7 @@ class SecondaryNode(Node):
         super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
 
     def fit(self, input_data: InputData, **kwargs) -> OutputData:
-        """
-        Fits the operation located in the secondary node
+        """Fits the operation located in the secondary node
 
         :param input_data: data used for operation training
 
@@ -413,8 +397,7 @@ class SecondaryNode(Node):
         return super().fit(input_data=secondary_input)
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
-        """
-        Predicts using the operation located in the secondary node
+        """Predicts using the operation located in the secondary node
 
         :param input_data: data used for prediction
         :param output_mode: desired output for operations (e.g. `'labels'`, `'probs'`, `'full_probs'`)
@@ -429,8 +412,7 @@ class SecondaryNode(Node):
         return super().predict(input_data=secondary_input, output_mode=output_mode)
 
     def _input_from_parents(self, input_data: InputData, parent_operation: str) -> InputData:
-        """
-        Processes all the parent nodes via the current operation using ``input_data``
+        """Processes all the parent nodes via the current operation using ``input_data``
 
         :param input_data: input data from pipeline abstraction (source input data)
         :param parent_operation: name of parent operation (`'fit'` or `'predict'`)
@@ -455,8 +437,7 @@ class SecondaryNode(Node):
         return secondary_input
 
     def _nodes_from_with_fixed_order(self):
-        """
-        Sorts :attr:`nodes_from` (if exists) by the nodes unique id
+        """Sorts :attr:`nodes_from` (if exists) by the nodes unique id
 
         :return: sorted :attr:`nodes_from` by :attr:`~fedot.core.dag.graph_node.GraphNode.descriptive_id` or `None`
         """
@@ -467,8 +448,7 @@ class SecondaryNode(Node):
 
 def _combine_parents(parent_nodes: List[Node], input_data: Optional[InputData], parent_operation: str) -> Tuple[
     List[OutputData], np.array]:
-    """
-    Сombines predictions from the ``parent_nodes``
+    """Сombines predictions from the ``parent_nodes``
 
     :param parent_nodes: list of parent nodes, from which predictions will be combined
     :param input_data: input data from pipeline abstraction (source input data)
@@ -499,8 +479,7 @@ def _combine_parents(parent_nodes: List[Node], input_data: Optional[InputData], 
 
 
 def get_default_params(model_name: str):
-    """
-    Gets default params for chosen model name
+    """Gets default params for chosen model name
 
     :param model_name: the model name to choose default parameters for
 
