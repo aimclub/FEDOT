@@ -6,9 +6,10 @@ from typing import Dict, List, Optional, Sequence, Type, Union
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
-from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
