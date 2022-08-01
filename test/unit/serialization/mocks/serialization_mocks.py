@@ -38,5 +38,9 @@ class MockGraph:
     def nodes(self):
         return self._nodes
 
+    @nodes.setter
+    def nodes(self, new_nodes):
+        self._nodes = new_nodes
+
     def __eq__(self, other):
         return self.nodes == other.nodes
