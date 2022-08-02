@@ -6,10 +6,16 @@ import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log, DEFAULT_LOG_PATH
+from fedot.core.log import Log, default_log, DEFAULT_LOG_PATH, LoggerAdapter
 from fedot.core.operations.model import Model
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.singleton_meta import SingletonMeta
+
+
+def release_log(log: Log):
+    log.logger.handlers = []
+    if os.path.exists(log.log_file):
+        os.remove(log.log_file)
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -17,8 +23,11 @@ def disable_test_logging(request):
     """Workaround for issue #765 (https://github.com/nccr-itmo/FEDOT/issues/765)
     Completely disable all logging before tests.
     """
-    default_log(is_console=False).logger.setLevel(logging.CRITICAL+1)
+    log = Log(logger_name='test_log', logging_level=logging.CRITICAL+1, write_logs=False)
     # request.addfinalizer(delete_files)
+    # execute after the last test passed
+    release_log(log)
+
 
 @pytest.fixture()
 def get_config_file():
