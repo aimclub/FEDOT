@@ -168,7 +168,7 @@ def test_crossover():
     graph_example_second = adapter.adapt(pipeline_second())
     crossover_types = [CrossoverTypesEnum.none]
     requirements = PipelineComposerRequirements(primary=[], secondary=[], max_depth=3, crossover_prob=1)
-    crossover = Crossover(crossover_types, get_pipeline_generation_params(), requirements)
+    crossover = Crossover(crossover_types, requirements, get_pipeline_generation_params())
     new_graphs = crossover([Individual(graph_example_first), Individual(graph_example_second)])
     assert new_graphs[0].graph == graph_example_first
     assert new_graphs[1].graph == graph_example_second
