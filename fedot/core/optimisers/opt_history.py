@@ -256,22 +256,22 @@ class OptHistory:
                                  key=lambda pos_ind: pos_ind[0].fitness, reverse=True)[:top_n]
 
         separator = ' | '
-        self._log.info(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
+        print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
         for ind_num, ind_with_position in enumerate(top_individuals):
             individual, gen_num, ind_num = ind_with_position
             positional_id = f'g{gen_num}-i{ind_num}'
-            self._log.info(separator.join([f'{ind_num:>3}, '
-                                           f'{str(individual.fitness):>8}, '
-                                           f'{positional_id:>8}, '
-                                           f'{individual.graph.descriptive_id}']))
+            print(separator.join([f'{ind_num:>3}, '
+                                  f'{str(individual.fitness):>8}, '
+                                  f'{positional_id:>8}, '
+                                  f'{individual.graph.descriptive_id}']))
 
         # add info about initial assumptions (stored as zero generation)
         for i, individual in enumerate(self.individuals[0]):
             ind = f'I{i}'
-            self._log.info(separator.join([f'{ind:>3}'
-                                           f'{str(individual.fitness):>8}',
-                                           f'-',
-                                           f'{individual.graph.descriptive_id}']))
+            print(separator.join([f'{ind:>3}'
+                                  f'{str(individual.fitness):>8}',
+                                  f'-',
+                                  f'{individual.graph.descriptive_id}']))
 
 
 def log_to_history(history: OptHistory, population: PopulationT, generations: GenerationKeeper):
