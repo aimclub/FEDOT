@@ -20,11 +20,8 @@ class PipelineStructureExplorer:
     _invariant_tags = {'encoding': 'categorical-ignore',
                        'imputation': 'nans-ignore'}
 
-    def __init__(self):
-        self.path_id = None
-        self.paths = {}
-
-    def check_structure_by_tag(self, pipeline, tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):
+    @staticmethod
+    def check_structure_by_tag(pipeline: 'Pipeline', tag_to_check: str, source_name: str = DEFAULT_SOURCE_NAME):
         """
         In the pipeline structure, a node with an operation with the appropriate tag is searched for.
         In this case the operations must have priority in the pipeline - in the PrimaryNode or not far from it.
@@ -43,27 +40,29 @@ class PipelineStructureExplorer:
         if len(pipeline.nodes) < 2:
             # Preprocessing needed for single-node pipeline
             return False
-        self.path_id = 0
+
         graph, node_labels = graph_structure_as_nx_graph(pipeline)
 
         # Assign information for all nodes in the graph
-        graph, info_df = self._enrich_with_information(graph, node_labels)
+        graph, info_df = PipelineStructureExplorer._enrich_with_information(graph, node_labels)
 
         primary_df = info_df[info_df['node_type'] == 'primary']
         root_df = info_df[info_df['node_type'] == 'root']
         root_id = root_df.iloc[0]['node_id']
 
+        paths = {}
+        path_id = 0
         for i, node_info in primary_df.iterrows():
             primary_id = node_info['node_id']
             node_name = node_info['node_label'].operation.operation_type
             if source_name in (node_name, DEFAULT_SOURCE_NAME):
                 for path in nx.all_simple_paths(graph, source=primary_id, target=root_id):
                     # Check the path (branch) whether it has wanted operation in correct location or not
-                    path_info = self.check_path(graph, path, tag_to_check)
-                    self.paths[self.path_id] = path_info
-                    self.path_id += 1
+                    path_info = PipelineStructureExplorer.check_path(graph, path, tag_to_check)
+                    paths[path_id] = path_info
+                    path_id += 1
 
-        correct_branches = (branch['correctness'] for branch in self.paths.values())
+        correct_branches = (branch['correctness'] for branch in paths.values())
         # 'False' means that least one branch in the graph cannot process desired type of data
         return all(correct_branches)
 
