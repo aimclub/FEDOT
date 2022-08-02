@@ -27,13 +27,15 @@ class Log(metaclass=SingletonMeta):
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: str = None):
+                 log_file: str = None,
+                 is_console: bool = True):
         if not log_file:
             self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
-                                       logging_level=output_logging_level)
+                                       logging_level=output_logging_level,
+                                       is_console=is_console)
 
     def get_adapter(self, prefix: str, logging_level: int) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
@@ -46,27 +48,28 @@ class Log(metaclass=SingletonMeta):
                                                         logging_level=logging_level)
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, logging_level: int) -> logging.Logger:
+    def _get_logger(self, name, config_file: str, logging_level: int, is_console: bool) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger(name)
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger, logging_level)
+            logger = self._setup_default_logger(logger=logger, logging_level=logging_level, is_console=is_console)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int, is_console: bool) -> logging.Logger:
         """ Define console and file handlers for logger """
-        # console_handler = logging.StreamHandler(sys.stdout)
-        # console_formatter = logging.Formatter('%(asctime)s - %(message)s')
-        # console_handler.setFormatter(console_formatter)
-        # logger.addHandler(console_handler)
+        if is_console or logging_level > logging.CRITICAL:
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_formatter = logging.Formatter('%(asctime)s - %(message)s')
+            console_handler.setFormatter(console_formatter)
+            logger.addHandler(console_handler)
 
-        file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
-        logger.addHandler(file_handler)
+            file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
+            file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+            logger.addHandler(file_handler)
 
-        logger.setLevel(logging_level)
+            logger.setLevel(logging_level)
 
         return logger
 
@@ -123,18 +126,21 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO) -> logging.LoggerAdapter:
+def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO,
+                is_console: bool = True) -> logging.LoggerAdapter:
     """
     Default logger
     :param class_object: instance of class
     :param prefix: adapter prefix to add it to log messages.
     :param logging_level: logging levels are the same as in 'logging'
+    :param is_console: bool indicating whenever to write logs in console or not
     :return: LoggerAdapter: LoggerAdapter object
     """
 
     log = Log(logger_name='default',
               config_json_file='default',
-              output_logging_level=logging_level)
+              output_logging_level=logging_level,
+              is_console=is_console)
 
     if class_object:
         prefix = class_object.__class__.__name__

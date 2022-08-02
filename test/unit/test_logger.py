@@ -17,7 +17,7 @@ def disable_test_logging(request):
     """Workaround for issue #765 (https://github.com/nccr-itmo/FEDOT/issues/765)
     Completely disable all logging before tests.
     """
-    default_log().logger.setLevel(logging.CRITICAL+1)
+    default_log(is_console=False).logger.setLevel(logging.CRITICAL+1)
     # request.addfinalizer(delete_files)
 
 @pytest.fixture()
