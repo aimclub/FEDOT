@@ -3,6 +3,7 @@ import multiprocessing
 import timeit
 from abc import ABC, abstractmethod
 from contextlib import closing
+from datetime import datetime
 from random import choice
 from typing import Dict, Optional
 
@@ -122,6 +123,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
+        ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
     def _reset_eval_cache(self):
@@ -180,6 +182,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         ind.set_evaluation_result(ind_fitness, ind_graph)
         end_time = timeit.default_timer()
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
+        ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
 

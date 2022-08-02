@@ -1,20 +1,24 @@
 import itertools
 import os
 from copy import deepcopy
+from datetime import datetime
 from enum import Enum, auto
 from glob import glob
 from os import remove
 from pathlib import Path
+from textwrap import wrap
 from time import time
-from typing import Any, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from warnings import warn
 
-import matplotlib.pyplot as plt
+import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from matplotlib import animation, cm, image as mpimg, pyplot as plt, ticker
+from matplotlib.colors import Normalize
+from matplotlib.widgets import Button
 
-from fedot.core.optimisers.fitness import Fitness
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -25,16 +29,32 @@ except ModuleNotFoundError:
     warn_requirement('PIL')
     PIL = None
 
-from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.log import default_log
+from fedot.core.optimisers.fitness import null_fitness
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
-from matplotlib import animation, cm, ticker
-from matplotlib.colors import Normalize
+
+
+def with_alternate_matplotlib_backend(func):
+    def wrapper(*args, **kwargs):
+        default_mpl_backend = mpl.get_backend()
+        try:
+            mpl.use('TKAgg')
+            return func(*args, **kwargs)
+        except ImportError as e:
+            warn(f'{e} or ignore this warning')
+        finally:
+            mpl.use(default_mpl_backend)
+
+    return wrapper
 
 
 class PlotTypesEnum(Enum):
+    fitness_line = auto()
+    fitness_line_interactive = auto()
     fitness_box = auto()
     operations_kde = auto()
     operations_animated_bar = auto()
@@ -305,6 +325,199 @@ class PipelineEvolutionVisualiser:
             remove(file)
 
     @staticmethod
+    def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
+        if not save_path:
+            plt.show()
+        else:
+            save_path = Path(save_path)
+            if not save_path.is_absolute():
+                save_path = Path(os.getcwd(), save_path)
+            figure.savefig(save_path, dpi=300)
+            print(f'The figure was saved to "{save_path}".')
+            plt.close()
+
+    @staticmethod
+    def __plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Optional[str] = None) \
+            -> Dict[int, Individual]:
+        best_fitness = null_fitness()
+        best_individuals = {}
+
+        for gen_num, gen in enumerate(generations):
+            for ind in gen:
+                if ind.native_generation != gen_num:
+                    continue
+                if ind.fitness > best_fitness:
+                    best_individuals[gen_num] = ind
+                    best_fitness = ind.fitness
+
+        best_generations, best_fitnesses = np.transpose(
+            [(gen_num, abs(individual.fitness.value))
+             for gen_num, individual in best_individuals.items()])
+
+        best_generations = list(best_generations)
+        best_fitnesses = list(best_fitnesses)
+
+        if best_generations[-1] != len(generations) - 1:
+            best_fitnesses.append(abs(best_fitness.value))
+            best_generations.append(len(generations) - 1)
+
+        axis.step(best_generations, best_fitnesses, where='post', label=label)
+        return best_individuals
+
+    @staticmethod
+    def __plot_fitness_line_per_time(axis: plt.Axes, generations: List[List[Individual]], label: Optional[str] = None,
+                                     with_generation_limits: bool = True) \
+            -> Dict[int, Individual]:
+        best_fitness = null_fitness()
+        gen_start_times = []
+        best_individuals = {}
+
+        start_time = datetime.fromisoformat(
+            min(generations[0], key=lambda ind: ind.metadata['evaluation_time_iso']).metadata[
+                'evaluation_time_iso'])
+        end_time_seconds = (datetime.fromisoformat(
+            max(generations[-1], key=lambda ind: ind.metadata['evaluation_time_iso']).metadata[
+                'evaluation_time_iso']) - start_time).seconds
+
+        for gen_num, gen in enumerate(generations):
+            gen_start_times.append(1e10)
+            gen_sorted = sorted(gen, key=lambda ind: ind.metadata['evaluation_time_iso'])
+            for ind in gen_sorted:
+                if ind.native_generation != gen_num:
+                    continue
+                evaluation_time = (datetime.fromisoformat(ind.metadata['evaluation_time_iso']) - start_time).seconds
+                if evaluation_time < gen_start_times[gen_num]:
+                    gen_start_times[gen_num] = evaluation_time
+                if ind.fitness > best_fitness:
+                    best_individuals[evaluation_time] = ind
+                    best_fitness = ind.fitness
+
+        best_eval_times, best_fitnesses = np.transpose(
+            [(evaluation_time, abs(individual.fitness.value))
+             for evaluation_time, individual in best_individuals.items()])
+
+        best_eval_times = list(best_eval_times)
+        best_fitnesses = list(best_fitnesses)
+
+        if best_eval_times[-1] != end_time_seconds:
+            best_fitnesses.append(abs(best_fitness.value))
+            best_eval_times.append(end_time_seconds)
+        gen_start_times.append(end_time_seconds)
+
+        axis.step(best_eval_times, best_fitnesses, where='post', label=label)
+
+        if with_generation_limits:
+            prev_time = gen_start_times[0]
+            axis.axvline(prev_time, color='k', linestyle='--', alpha=0.3)
+            for i, next_time in enumerate(gen_start_times[1:]):
+                axis.axvline(next_time, color='k', linestyle='--', alpha=0.3)
+                if i % 2 == 0:
+                    axis.axvspan(prev_time, next_time, color='k', alpha=0.05)
+                prev_time = next_time
+
+            axis_gen = axis.twiny()
+            axis_gen.set_xlim(axis.get_xlim())
+            axis_gen.set_xticks(gen_start_times)
+            axis_gen.set_xticklabels(list(range(len(gen_start_times) - 1)) + [''])
+            axis_gen.set_xlabel('Generation')
+
+        return best_individuals
+
+    @staticmethod
+    def __setup_fitness_plot(axis: plt.Axes, xlabel: str, title: Optional[str] = None, with_legend: bool = False):
+        if axis is None:
+            fig, axis = plt.subplots()
+
+        if with_legend:
+            axis.legend()
+        axis.set_ylabel('Fitness')
+        axis.set_xlabel(xlabel)
+        axis.set_title(title)
+        axis.grid(axis='y')
+
+    def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
+                               save_path: Optional[Union[os.PathLike, str]] = None):
+        ax = plt.gca()
+        if per_time:
+            xlabel = 'Time, s'
+            self.__plot_fitness_line_per_time(ax, history.individuals)
+        else:
+            xlabel = 'Generation'
+            self.__plot_fitness_line_per_generations(ax, history.individuals)
+        self.__setup_fitness_plot(ax, xlabel)
+        self.__show_or_save_figure(plt.gcf(), save_path)
+
+    @with_alternate_matplotlib_backend
+    def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
+                                           save_path: Optional[Union[os.PathLike, str]] = None):
+        fig, axes = plt.subplots(1, 2, figsize=(15, 10))
+        ax_fitness, ax_graph = axes
+
+        if per_time:
+            x_label = 'Time, s'
+            x_template = 'time {} s'
+            plot_func = self.__plot_fitness_line_per_time
+        else:
+            x_label = 'Generation'
+            x_template = 'generation {}'
+            plot_func = self.__plot_fitness_line_per_generations
+
+        best_individuals = plot_func(ax_fitness, history.individuals)
+        self.__setup_fitness_plot(ax_fitness, x_label)
+
+        ax_graph.axis('off')
+
+        class InteractivePlot:
+            temp_path = Path(default_fedot_data_dir(), 'current_graph.png')
+
+            def __init__(self, best_individuals: Dict[int, Individual]):
+                self.best_x: List[int] = list(best_individuals.keys())
+                self.best_individuals: List[Individual] = list(best_individuals.values())
+                self.index: int = len(best_individuals) - 1
+                self.time_line = ax_fitness.axvline(self.best_x[self.index], color='r', alpha=0.7)
+                self.graph_images: List[np.ndarray] = []
+                self.generate_graph_images()
+                self.update_graph()
+
+            def generate_graph_images(self):
+                for ind in self.best_individuals:
+                    ind.graph.show(self.temp_path)
+                    self.graph_images.append(mpimg.imread(self.temp_path))
+
+            def update_graph(self):
+                ax_graph.imshow(self.graph_images[self.index])
+                x = self.best_x[self.index]
+                fitness = self.best_individuals[self.index].fitness
+                ax_graph.set_title(f'The best pipeline at {x_template.format(x)}, fitness={fitness}')
+
+            def update_time_line(self):
+                self.time_line.set_xdata(self.best_x[self.index])
+
+            def step_index(self, step: int):
+                self.index = (self.index + step) % len(self.best_individuals)
+                self.update_graph()
+                self.update_time_line()
+                plt.draw()
+
+            def next(self, event):
+                self.step_index(1)
+
+            def prev(self, event):
+                self.step_index(-1)
+
+        callback = InteractivePlot(best_individuals)
+
+        if not save_path:  # display buttons only for an interactive plot
+            ax_prev = plt.axes([0.7, 0.05, 0.1, 0.075])
+            ax_next = plt.axes([0.81, 0.05, 0.1, 0.075])
+            b_next = Button(ax_next, 'Next')
+            b_next.on_clicked(callback.next)
+            b_prev = Button(ax_prev, 'Previous')
+            b_prev.on_clicked(callback.prev)
+
+        self.__show_or_save_figure(fig, save_path)
+
+    @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
                                 tags_data: Optional[List[str]] = None, pct_best: Optional[float] = None,
                                 get_tags: bool = True):
@@ -353,19 +566,7 @@ class PipelineEvolutionVisualiser:
 
         return df_history
 
-    @staticmethod
-    def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
-        if not save_path:
-            figure.show()
-        else:
-            save_path = Path(save_path)
-            if not save_path.is_absolute():
-                save_path = Path(os.getcwd(), save_path)
-            figure.savefig(save_path, dpi=300)
-            print(f'The figure was saved to "{save_path}".')
-            plt.close()
-
-    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[str] = None,
+    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
                               pct_best: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
@@ -376,13 +577,14 @@ class PipelineEvolutionVisualiser:
             Must be in the interval (0, 1].
         """
         df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
-        df_history = df_history[['generation', 'individual', 'fitness']].drop_duplicates(ignore_index=True)
-        # Get color palette for fitness. The lower min_fitness of the generation, the brighter its green color
-        palette_ranks = df_history.groupby('generation', as_index=False).aggregate({'fitness': 'min'}). \
-            sort_values('fitness', ignore_index=True)['generation'].sort_values().index
-        palette = sns.color_palette('YlOrRd', n_colors=len(palette_ranks))
+        columns_needed = ['generation', 'individual', 'fitness']
+        df_history = df_history[columns_needed].drop_duplicates(ignore_index=True)
+        # Get color palette by mean fitness per generation
+        fitness = df_history.groupby('generation')['fitness'].mean()
+        fitness = (fitness - min(fitness)) / (max(fitness) - min(fitness))
+        colormap = sns.color_palette('YlOrRd', as_cmap=True)
 
-        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=palette_ranks.map(palette.__getitem__))
+        plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=fitness.map(colormap))
         fig = plot.figure
         fig.set_dpi(110)
         fig.set_facecolor('w')
@@ -391,7 +593,7 @@ class PipelineEvolutionVisualiser:
         ax.set_title('Fitness by generations')
         ax.set_xlabel('Generation')
         # Set ticks for every 5 generation if there's more than 10 generations.
-        if len(history.historical_fitness) > 10:
+        if len(history.individuals) > 10:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
             ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
             ax.xaxis.grid(True)
@@ -416,6 +618,7 @@ class PipelineEvolutionVisualiser:
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
+
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
 
@@ -427,17 +630,26 @@ class PipelineEvolutionVisualiser:
         df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
         df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
         tags_found = df_history[tag_column_name].unique()
+        tags_found = [t for t in tags_all if t in tags_found]
+        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
+
+        palette = get_palette_based_on_default_tags()
 
         plot = sns.displot(
             data=df_history,
             x=generation_column_name,
             hue=tag_column_name,
-            hue_order=[t for t in tags_all if t in tags_found],
+            hue_order=tags_found,
             kind='kde',
             clip=(0, max(df_history[generation_column_name])),
             multiple='fill',
-            palette='Set2',
+            palette=palette
         )
+
+        legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in tags_found]
+        for text, new_text in zip(plot.legend.texts, legend):
+            text.set_text(new_text)
+
         fig = plot.figure
         fig.set_dpi(110)
         fig.set_facecolor('w')
@@ -518,6 +730,7 @@ class PipelineEvolutionVisualiser:
         }, axis='columns')
         tags_found = df_history[tag_column_name].unique()
         tags_found = [tag for tag in tags_all if tag in tags_found]
+        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
         # Getting normed fraction of individuals  per generation that contain operations given.
         generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
         operations_with_individuals_count = df_history.groupby(
@@ -581,13 +794,19 @@ class PipelineEvolutionVisualiser:
             sm.set_array([])
             fig.colorbar(sm, label=fitness_column_name)
         else:
-            no_fitness_palette = sns.color_palette(no_fitness_palette, n_colors=len(tags_found))
+            no_fitness_palette = get_palette_based_on_default_tags()
 
         count = bar_data[0]
-        color = bar_color[0] if show_fitness_color else [no_fitness_palette[i] for i in range(len(tags_found))]
+        color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in tags_found]
         title = bar_title[0]
 
-        bars = ax.barh(tags_found, count, color=color)
+        bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in tags_found]
+        label_size = 10
+        if any(len(label.split('\n')) > 2 for label in bars_labels):
+            label_size = 8
+
+        bars = ax.barh(bars_labels, count, color=color)
+        ax.tick_params(axis='y', which='major', labelsize=label_size)
         ax.set_title(title)
         ax.set_xlim(0, 1)
         ax.set_xlabel(f'Fraction of pipelines containing the operation')
@@ -604,7 +823,7 @@ class PipelineEvolutionVisualiser:
             animate,
             frames=len(bar_data),
             interval=animation_interval_between_frames_ms,
-            repeat=False
+            repeat=True
         )
         ani.save(str(save_path), dpi=animation_dpi)
         print(f'The animation was saved to "{save_path}".')
@@ -615,3 +834,68 @@ def figure_to_array(fig):
     img = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8)
     img = img.reshape(fig.canvas.get_width_height()[::-1] + (3,))
     return img
+
+
+def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str], max_line_length: int = 22,
+                                         format_tag: str = 'it'):
+    def make_text_fancy(text: str):
+        return text.replace('_', ' ')
+
+    def format_text(text_to_wrap: str, latex_format_tag: str = 'it') -> str:
+        formatted_text = '$\\' + latex_format_tag + '{' + text_to_wrap + '}$'
+        formatted_text = formatted_text.replace(' ', '\\;')
+        return formatted_text
+
+    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, html_format_tag: str = 'it') -> List[str]:
+
+        long_text = ''.join(wrapped_text)
+        first_tag_pos = long_text.find(part_to_format)
+        second_tag_pos = first_tag_pos + len(part_to_format)
+
+        line_len = len(wrapped_text[0])
+
+        first_tag_line = first_tag_pos // line_len
+        first_tag_char = first_tag_pos % line_len
+
+        second_tag_line = second_tag_pos // line_len
+        second_tag_char = second_tag_pos % line_len
+
+        if first_tag_line == second_tag_line:
+            wrapped_text[first_tag_line] = \
+                wrapped_text[first_tag_line][:first_tag_char] + \
+                format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], html_format_tag) + \
+                wrapped_text[first_tag_line][second_tag_char:]
+        else:
+            for line in range(first_tag_line + 1, second_tag_line):
+                wrapped_text[line] = format_text(wrapped_text[line], html_format_tag)
+
+            wrapped_text[first_tag_line] = \
+                wrapped_text[first_tag_line][:first_tag_char] + \
+                format_text(wrapped_text[first_tag_line][first_tag_char:], html_format_tag)
+
+            wrapped_text[second_tag_line] = \
+                format_text(wrapped_text[second_tag_line][:second_tag_char], html_format_tag) + \
+                wrapped_text[second_tag_line][second_tag_char:]
+
+        return wrapped_text
+
+    tag = make_text_fancy(tag)
+    operations_by_tag = ', '.join(operations_by_tag)
+    description = f'{tag}: {operations_by_tag}.'
+    description = make_text_fancy(description)
+    description = wrap(description, max_line_length)
+    description = format_wrapped_text(description, tag, format_tag)
+    description = '\n'.join(description)
+    return description
+
+
+def get_palette_based_on_default_tags() -> Dict[str, Tuple[float, float, float]]:
+    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
+    p_1 = sns.color_palette('tab20')
+    colour_period = 2  # diverge similar nearby colors
+    p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
+    p_2 = sns.color_palette('Set3')
+    palette = np.vstack([p_1, p_2])
+    palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
+    palette_map.update({None: 'mediumaquamarine'})
+    return palette_map

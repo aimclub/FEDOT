@@ -3,16 +3,15 @@ import itertools
 import json
 import os
 import shutil
-import warnings
-from copy import deepcopy
+from pathlib import Path
 from typing import Any, List, Optional, Sequence, Union
+from warnings import warn
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
 # ParentOperator is needed for backward compatibility with older optimization histories.
 # This is a temporary solution until the issue #699 (https://github.com/nccr-itmo/FEDOT/issues/699) is closed.
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator  # noqa
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position
@@ -27,11 +26,11 @@ class OptHistory:
     Contain history, convert Pipeline to PipelineTemplate, save history to csv
     """
 
-    def __init__(self, objective: Objective = None, save_folder: Optional[str] = None):
+    def __init__(self, objective: Objective = None, save_folder: Optional[Union[str, os.PathLike]] = None):
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
-        self.save_folder: Optional[str] = save_folder
+        self.save_folder = save_folder
 
     def is_empty(self) -> bool:
         return not self.individuals
@@ -44,7 +43,7 @@ class OptHistory:
 
     def write_composer_history_to_csv(self, file='history.csv'):
         history_dir = self._get_save_path()
-        file = os.path.join(history_dir, file)
+        file = Path(history_dir, file)
         if not os.path.isdir(history_dir):
             os.mkdir(history_dir)
         self._write_header_to_csv(file)
@@ -75,7 +74,7 @@ class OptHistory:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
             writer.writerow(row)
 
-    def save_current_results(self, path: Optional[str] = None):
+    def save_current_results(self, path: Optional[Union[str, os.PathLike]] = None):
         if not path:
             path = self._get_save_path()
         if path is not None:
@@ -84,7 +83,7 @@ class OptHistory:
                 last_gen = self.individuals[last_gen_id]
                 last_gen_history = self.historical_fitness[last_gen_id]
                 for individual, ind_fitness in zip(last_gen, last_gen_history):
-                    ind_path = os.path.join(path, str(last_gen_id), str(individual.uid))
+                    ind_path = Path(path, str(last_gen_id), str(individual.uid))
                     additional_info = \
                         {'fitness_name': self._objective.metric_names,
                          'fitness_value': ind_fitness}
@@ -94,7 +93,7 @@ class OptHistory:
             except Exception as ex:
                 print(ex)
 
-    def save(self, json_file_path: os.PathLike = None) -> Optional[str]:
+    def save(self, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
         if json_file_path is None:
             return json.dumps(self, indent=4, cls=Serializer)
         with open(json_file_path, mode='w') as json_file:
@@ -119,14 +118,14 @@ class OptHistory:
 
     def clean_results(self, path: Optional[str] = None):
         if not path and self.save_folder is not None:
-            path = os.path.join(default_fedot_data_dir(), self.save_folder)
+            path = Path(default_fedot_data_dir(), self.save_folder)
         if path is not None:
             shutil.rmtree(path, ignore_errors=True)
             os.mkdir(path)
 
-    def show(self, plot_type: Optional[Union[PlotTypesEnum, str]] = PlotTypesEnum.fitness_box,
+    def show(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box,
              save_path: Optional[Union[os.PathLike, str]] = None,
-             pct_best: Optional[float] = None, show_fitness: Optional[bool] = True):
+             pct_best: Optional[float] = None, show_fitness: bool = True, per_time: bool = True):
         """ Visualizes fitness values or operations used across generations.
 
         :param plot_type: visualization to show. Expected values are listed in
@@ -136,24 +135,29 @@ class OptHistory:
         :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
             interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
         :param show_fitness: if False, visualizations that support this parameter will not display fitness.
+        :param per_time: Shows time axis instead of generations axis.
+            Currently, supported for plot_type = 'show_fitness_line'.
         """
 
-        def is_history_contains_fitness(msg_if_not: Optional[str] = None, raise_exception: bool = False) -> bool:
-            if all_historical_fitness is not None:
-                return True
-
-            msg_prefix = 'The history has no fitness data.'
-            if msg_if_not:
-                msg_if_not = ' '.join([msg_prefix, msg_if_not])
-            else:
-                msg_if_not = msg_prefix
-
-            if raise_exception:
-                raise ValueError(msg_if_not)
-            warnings.warn(msg_if_not, stacklevel=3)
-            return False
-
-        print('Visualizing optimization history... It may take some time, depending on the history size.')
+        def check_args_constraints():
+            nonlocal per_time
+            # Check supported cases for `pct_best`.
+            if pct_best is not None and \
+                    (pct_best <= 0 or pct_best > 1):
+                raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
+            # Check supported cases for show_fitness == False.
+            if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
+                warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
+                     stacklevel=3)
+            # Check plot_type-specific cases
+            if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
+                    per_time and self.individuals[0][0].metadata.get('evaluation_time_iso') is None:
+                warn('Evaluation time not found in optimization history. Showing fitness plot per generations...',
+                     stacklevel=3)
+                per_time = False
+            elif plot_type is PlotTypesEnum.operations_animated_bar:
+                if not save_path:
+                    raise ValueError('Argument `save_path` is required to save the animation.')
 
         if isinstance(plot_type, str):
             try:
@@ -163,30 +167,20 @@ class OptHistory:
                     f'Visualization "{plot_type}" is not supported. Expected values: '
                     f'{", ".join(PlotTypesEnum.member_names())}.')
 
-        all_historical_fitness = self.all_historical_fitness
-        # Check supported cases for `pct_best`.
-        if pct_best is not None:
-            if pct_best <= 0 or pct_best > 1:
-                raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
-            if not is_history_contains_fitness(msg_if_not='`pct_best` parameter is ignored.'):
-                pct_best = None
-        # Check supported cases for show_fitness == False.
-        if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
-            warnings.warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
-                          stacklevel=2)
+        check_args_constraints()
+
+        print('Visualizing optimization history... It may take some time, depending on the history size.')
 
         viz = PipelineEvolutionVisualiser()
-        if plot_type is PlotTypesEnum.fitness_box:
-            is_history_contains_fitness(
-                msg_if_not=f'Visualization "{plot_type.name}" is not supported.', raise_exception=True)
+        if plot_type is PlotTypesEnum.fitness_line:
+            viz.visualize_fitness_line(self, per_time, save_path)
+        elif plot_type is PlotTypesEnum.fitness_line_interactive:
+            viz.visualize_fitness_line_interactive(self, per_time, save_path)
+        elif plot_type is PlotTypesEnum.fitness_box:
             viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotTypesEnum.operations_kde:
             viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
         elif plot_type is PlotTypesEnum.operations_animated_bar:
-            if not save_path:
-                raise ValueError('Argument `save_path` is required to save the animation.')
-            if not is_history_contains_fitness(msg_if_not='Fitness is not displayed.'):
-                show_fitness = False
             viz.visualize_operations_animated_bar(
                 self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
         else:
@@ -244,7 +238,7 @@ class OptHistory:
                     os.makedirs(self.save_folder)
                 return self.save_folder
             else:
-                return os.path.join(default_fedot_data_dir(), self.save_folder)
+                return Path(default_fedot_data_dir(), self.save_folder)
         return None
 
     def print_leaderboard(self, top_n: int = 10):

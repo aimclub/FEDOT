@@ -123,7 +123,7 @@ def test_newly_generated_history():
     dumped_history = history.save()
     loaded_history = OptHistory.load(dumped_history).save()
     assert dumped_history is not None
-    assert dumped_history == loaded_history, 'History does not equal to itself after reloading!'
+    assert dumped_history == loaded_history, 'The history is not equal to itself after reloading!'
 
 
 def assert_intermediate_metrics(pipeline: Graph):
@@ -210,4 +210,4 @@ def test_history_correct_serialization():
     reloaded_history = OptHistory.load(dumped_history)
 
     assert history.individuals == reloaded_history.individuals
-    assert dumped_history == reloaded_history.save(), 'History does not equal to itself after reloading!'
+    assert dumped_history == reloaded_history.save(), 'The history is not equal to itself after reloading!'

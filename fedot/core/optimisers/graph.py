@@ -1,3 +1,4 @@
+import os
 from copy import deepcopy
 from typing import Any, Iterable, List, Optional, Union, Tuple
 from uuid import uuid4
@@ -197,7 +198,7 @@ class OptGraph:
         """ Returns all available edges in a given graph """
         return self._operator.get_edges()
 
-    def show(self, path: str = None):
+    def show(self, path: Optional[Union[os.PathLike, str]] = None):
         GraphVisualiser().visualise(self, path)
 
     def __eq__(self, other) -> bool:

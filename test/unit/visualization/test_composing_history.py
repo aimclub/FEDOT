@@ -24,10 +24,11 @@ def create_individual():
 
 def generate_history(generations_quantity, pop_size):
     history = OptHistory()
-    for _ in range(generations_quantity):
+    for gen_num in range(generations_quantity):
         new_pop = []
         for _ in range(pop_size):
             ind = create_individual()
+            ind.set_native_generation(gen_num)
             new_pop.append(ind)
         history.add_to_history(new_pop)
     return history
@@ -97,4 +98,5 @@ def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum):
         else save_path.with_suffix('.png')
     history = generate_history(generations_quantity, pop_size)
     history.show(plot_type=plot_type, save_path=str(save_path), pct_best=0.1)
-    assert save_path.exists()
+    if plot_type is not PlotTypesEnum.fitness_line_interactive:
+        assert save_path.exists()
