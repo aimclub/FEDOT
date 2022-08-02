@@ -126,7 +126,7 @@ def ts_cv_generator(data: InputData, folds: int,
     if not log:
         log = default_log(prefix=__name__)
     # Forecast horizon for each fold
-    horizon = data.task.task_params.forecast_length * validation_blocks
+    horizon = int(data.task.task_params.forecast_length * validation_blocks)
 
     try:
         tscv = TsInputDataSplit(gap=0, validation_blocks=validation_blocks,

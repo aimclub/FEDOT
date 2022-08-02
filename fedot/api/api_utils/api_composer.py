@@ -186,7 +186,7 @@ class ApiComposer:
                                                                  self.timer.timedelta_composing, self.preset_name)
 
         # Get optimiser, its parameters, and composer
-        metric_function = self.obtain_metric(task, composer_params['composer_metric'])
+        metric_function = self.obtain_metric(task, composer_params['metric'])
 
         log.info(f"AutoML configured."
                  f" Parameters tuning: {with_tuning}."
@@ -224,7 +224,7 @@ class ApiComposer:
             pipeline.log = log
 
         if with_tuning:
-            tuning_metric = composer_params['composer_metric']
+            tuning_metric = composer_params['metric']
             timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
                                      tuning_metric,
@@ -294,7 +294,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                            logging_level_opt=logging.INFO, show_progress=True)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
-                                keep_n_best=None, available_operations=None, composer_metric=None,
+                                keep_n_best=None, available_operations=None, metric=None,
                                 validation_blocks=None, cv_folds=None, genetic_scheme=None, history_folder=None,
                                 stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,

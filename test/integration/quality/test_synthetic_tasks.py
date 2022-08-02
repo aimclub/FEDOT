@@ -86,7 +86,7 @@ def test_synthetic_regression_automl():
 
     # run automl
     auto_model = Fedot(problem='regression', logging_level=logging.ERROR, timeout=1,
-                       composer_metric=metric_func,
+                       metric=metric_func,
                        cv_folds=None,
                        available_operations=['rfe_lin_reg',
                                              'rfe_non_lin_reg',
