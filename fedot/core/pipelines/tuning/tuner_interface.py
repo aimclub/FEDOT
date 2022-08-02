@@ -1,24 +1,20 @@
 import sys
-from hyperopt.early_stop import no_progress_loss
-
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, ClassVar, Optional
+from typing import Callable, ClassVar
 
 import numpy as np
+from hyperopt.early_stop import no_progress_loss
 
 from fedot.core.data.data import data_type_is_ts, OutputData, InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
-
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.validation.split import ts_cv_generator, tabular_cv_generator
 from fedot.core.validation.tune.simple import fit_predict_one_fold
-
-from sklearn.preprocessing import LabelEncoder
 
 MAX_METRIC_VALUE = sys.maxsize
 
