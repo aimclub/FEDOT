@@ -65,7 +65,10 @@ class DataPreprocessor:
         # Implemented for backward compatibility for unpickling
         #  Pipelines with older preprocessor that had DiGraph with Nodes inside.
         #  see https://github.com/nccr-itmo/FEDOT/pull/802
-        del state['structure_analysis']
+        unrelevant_fields = ['structure_analysis']
+        for field in unrelevant_fields:
+            if field in state:
+                del state[field]
         self.__dict__.update(state)
 
     def _init_supplementary_preprocessors(self, data: Union[InputData, MultiModalData]):
