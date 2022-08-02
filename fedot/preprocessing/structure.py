@@ -52,24 +52,16 @@ class PipelineStructureExplorer:
         primary_df = info_df[info_df['node_type'] == 'primary']
         root_df = info_df[info_df['node_type'] == 'root']
         root_id = root_df.iloc[0]['node_id']
-        for primary_id in primary_df['node_id']:
-            if source_name == DEFAULT_SOURCE_NAME:
-                # Check all possible paths in the pipeline
+
+        for i, node_info in primary_df.iterrows():
+            primary_id = node_info['node_id']
+            node_name = node_info['node_label'].operation.operation_type
+            if source_name in (node_name, DEFAULT_SOURCE_NAME):
                 for path in nx.all_simple_paths(graph, source=primary_id, target=root_id):
-                    # For all paths perform checking if path (branch) has wanted operation
-                    # in correct location or not
+                    # Check the path (branch) whether it has wanted operation in correct location or not
                     path_info = self.check_path(graph, path, tag_to_check)
-                    self.paths[self.path_id].update(path_info)
+                    self.paths[self.path_id] = path_info
                     self.path_id += 1
-            else:
-                node_info = primary_df[primary_df['node_id'] == primary_id]
-                node_name = node_info['node_label'].iloc[0].operation.operation_type
-                if source_name == node_name:
-                    # Only this path is going to be checked
-                    for path in nx.all_simple_paths(graph, source=primary_id, target=root_id):
-                        path_info = self.check_path(graph, path, tag_to_check)
-                        self.paths[self.path_id].update(path_info)
-                        self.path_id += 1
 
         correct_branches = (branch['correctness'] for branch in self.paths.values())
         # 'False' means that least one branch in the graph cannot process desired type of data
