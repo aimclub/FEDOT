@@ -148,13 +148,12 @@ class OptHistory:
                 raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
             # Check supported cases for show_fitness == False.
             if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
-                self._log.warning(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
-                                  stacklevel=3)
+                self._log.warning(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
             # Check plot_type-specific cases
             if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
                     per_time and self.individuals[0][0].metadata.get('evaluation_time_iso') is None:
-                self._log.warning('Evaluation time not found in optimization history. Showing fitness plot per generations...',
-                                  stacklevel=3)
+                self._log.warning('Evaluation time not found in optimization history. '
+                                  'Showing fitness plot per generations...')
                 per_time = False
             elif plot_type is PlotTypesEnum.operations_animated_bar:
                 if not save_path:
