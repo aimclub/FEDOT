@@ -57,10 +57,10 @@ class Log(metaclass=SingletonMeta):
 
     def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
         """ Define console and file handlers for logger """
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_formatter = logging.Formatter('%(asctime)s - %(message)s')
-        console_handler.setFormatter(console_formatter)
-        logger.addHandler(console_handler)
+        # console_handler = logging.StreamHandler(sys.stdout)
+        # console_formatter = logging.Formatter('%(asctime)s - %(message)s')
+        # console_handler.setFormatter(console_formatter)
+        # logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
