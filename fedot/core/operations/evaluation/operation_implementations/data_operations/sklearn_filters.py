@@ -106,9 +106,9 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
 
         if not params:
             # Default parameters
-            self.operation = RANSACRegressor(estimator=self.inner_model)
+            self.operation = RANSACRegressor(base_estimator=self.inner_model)
         else:
-            self.operation = RANSACRegressor(estimator=self.inner_model,
+            self.operation = RANSACRegressor(base_estimator=self.inner_model,
                                              **params)
         self.params = params
 
@@ -124,9 +124,9 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
         self.inner_model = DecisionTreeRegressor()
         if not params:
             # Default parameters
-            self.operation = RANSACRegressor(estimator=self.inner_model)
+            self.operation = RANSACRegressor(base_estimator=self.inner_model)
         else:
-            self.operation = RANSACRegressor(estimator=self.inner_model,
+            self.operation = RANSACRegressor(base_estimator=self.inner_model,
                                              **params)
         self.params = params
 

@@ -1,15 +1,14 @@
+import logging
+
 import numpy as np
 import pandas as pd
 
-from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TsForecastingParams, Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
-
-import logging
 
 logging.raiseExceptions = False
 
