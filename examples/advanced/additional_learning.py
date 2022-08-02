@@ -41,7 +41,7 @@ def run_additional_learning_example():
     timeout = 1
 
     auto_model_from_atomized = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
-                                     logging_level=logging.INFO,
+                                     console_logging_level=logging.INFO,
                                      initial_assumption=atomized_model)
     auto_model_from_atomized.fit(features=deepcopy(train_data), target='target')
     auto_model_from_atomized.predict_proba(features=deepcopy(test_data))
@@ -49,7 +49,7 @@ def run_additional_learning_example():
     print('auto_model_from_atomized', auto_model_from_atomized.get_metrics(deepcopy(test_data_target)))
 
     auto_model_from_pipeline = Fedot(problem=problem, seed=42, preset='best_quality', timeout=timeout,
-                                     logging_level=logging.INFO,
+                                     console_logging_level=logging.INFO,
                                      initial_assumption=non_atomized_model)
     auto_model_from_pipeline.fit(features=deepcopy(train_data), target='target')
     auto_model_from_pipeline.predict_proba(features=deepcopy(test_data))

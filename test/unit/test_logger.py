@@ -41,7 +41,7 @@ def singleton_cleanup():
 
 
 def test_default_logger_setup_correctly():
-    expected_logger_info_level = logging.INFO
+    expected_logger_info_level = logging.DEBUG
     test_default_log = default_log(prefix='default_test_logger')
 
     assert test_default_log.logger.getEffectiveLevel() == expected_logger_info_level

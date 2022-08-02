@@ -443,7 +443,7 @@ def test_api_params():
     default_int_value = 2
     api_params = {'problem': 'ts_forecasting', 'timeout': default_int_value,
                   'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
-                  'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
+                  'console_logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
                   'max_depth': default_int_value, 'max_arity': default_int_value,
                   'stopping_after_n_generation': default_int_value, 'pop_size': default_int_value,
                   'num_of_generations': default_int_value, 'keep_n_best': default_int_value,

@@ -49,7 +49,8 @@ class Fedot:
             - None or -1 means infinite time
     :param task_params: additional parameters of the task
     :param seed: value for fixed random seed
-    :param logging_level:
+    :param console_logging_level: logging level to console.
+    :param file_logging_level: logging level to file.
         logging levels are the same as in 'logging':
             - critical = 50
             - error = 40
@@ -100,7 +101,9 @@ class Fedot:
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
-                 seed=None, logging_level: int = logging.ERROR,
+                 seed=None,
+                 console_logging_level: int = logging.ERROR,
+                 file_logging_level: int = logging.DEBUG,
                  safe_mode=False,
                  n_jobs: int = 1,
                  **composer_tuner_params
@@ -114,7 +117,8 @@ class Fedot:
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
-                        'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs}
+                        'seed': seed, 'console_logging_level': console_logging_level,
+                        'file_logging_level': file_logging_level, 'n_jobs': n_jobs}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams

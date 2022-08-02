@@ -30,7 +30,7 @@ def test_classification_quality_improvement():
                        'num_of_generations': 20,
                        'with_tuning': True}
 
-    auto_model = Fedot(problem=problem, timeout=timeout, seed=42, logging_level=logging.DEBUG,
+    auto_model = Fedot(problem=problem, timeout=timeout, seed=42, console_logging_level=logging.DEBUG,
                        **composer_params)
     auto_model.fit(features=train_data_path, target='target')
     auto_model.predict_proba(features=test_data_path)

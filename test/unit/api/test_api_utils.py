@@ -85,7 +85,7 @@ def test_predefined_initial_assumption():
                             'scaling', 'normalization', 'pca', 'kernel_pca']
 
     model = Fedot(problem='classification', timeout=1.,
-                  logging_level=logging.DEBUG, available_operations=available_operations,
+                  console_logging_level=logging.DEBUG, available_operations=available_operations,
                   initial_assumption=initial_pipeline)
     model.target = train_input.target
     model.train_data = model.data_processor.define_data(features=train_input.features,

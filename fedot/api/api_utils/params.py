@@ -77,7 +77,8 @@ class ApiParams:
 
     def _parse_input_params(self, input_params: Dict[str, Any]):
         """ Parses input params into different class fields """
-        self.log = default_log(prefix='FEDOT logger', logging_level=input_params['logging_level'])
+        self.log = default_log(prefix='FEDOT logger', console_logging_level=input_params['console_logging_level'],
+                               file_logging_level=input_params['file_logging_level'])
         simple_keys = ['problem', 'n_jobs', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
 

@@ -42,7 +42,7 @@ def test_external_static_optimizer(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     train_data, test_data = train_test_data_setup(data=data)
 
-    automl = Fedot(problem='classification', timeout=0.2, logging_level=logging.DEBUG,
+    automl = Fedot(problem='classification', timeout=0.2, console_logging_level=logging.DEBUG,
                    preset='fast_train',
                    with_tuning=False,
                    optimizer=StaticOptimizer,
