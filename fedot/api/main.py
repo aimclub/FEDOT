@@ -1,7 +1,7 @@
 import logging
 from copy import deepcopy
 from inspect import signature
-from typing import List, Optional, Sequence, Tuple, Union
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -37,30 +37,39 @@ TargetType = Union[str, np.ndarray, pd.Series, dict]
 class Fedot:
     """
     Main class for FEDOT API.
-    Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
-    :param problem: the name of modelling problem to solve:
-        - classification
-        - regression
-        - ts_forecasting
-    :param timeout: time for model design (in minutes)
-        - None or -1 means infinite time
-    :param task_params:  additional parameters of the task
+        Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
+
+    :param problem:
+        the name of modelling problem to solve:
+            - classification
+            - regression
+            - ts_forecasting
+    :param timeout:
+        time for model design (in minutes):
+            - None or -1 means infinite time
+    :param task_params: additional parameters of the task
     :param seed: value for fixed random seed
-    :param logging_level: logging levels are the same as in 'logging':
-    critical -- 50, error -- 40, warning -- 30, info -- 20, debug -- 10, nonset -- 0.
-    Logs with a level HIGHER than set will be displayed.
+    :param logging_level:
+        logging levels are the same as in 'logging':
+            - critical = 50
+            - error = 40
+            - warning = 30
+            - info = 20
+            - debug = 10
+            - nonset = 0
+        Logs with a level HIGHER than set will be displayed.
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
         instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
 
-    Keywords arguments:
+    :Keywords arguments:
     :param max_depth: max depth of the pipeline
     :param max_arity: max arity of the pipeline nodes
     :param pop_size: population size for composer
     :param num_of_generations: number of generations for composer
     :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     :param available_operations: list of model names to use
-    :param stopping_after_n_generation': - composer will stop after n generation without improving
+    :param stopping_after_n_generation': composer will stop after n generation without improving
     :param with_tuning: allow hyperparameters tuning for the model
     :param cv_folds: number of folds for cross-validation
     :param validation_blocks: number of validation blocks for time series forecasting
@@ -69,19 +78,18 @@ class Fedot:
     :param genetic_scheme: name of the genetic scheme
     :param history_folder: name of the folder for composing history
     :param metric:  metric for quality calculation during composing,
-    also is used for tuning if with_tuning=True
-    :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
-    :param preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu')
-        - 'best_quality: All models that are available for this data type and task are used
-        - 'fast_train: Models that learn quickly. This includes preprocessing operations
-            (data operations) that only reduce the dimensionality of the data, but cannot increase
-             it. For example, there are no polynomial features and one-hot encoding operations
-        - 'stable: The most reliable preset in which the most stable operations are included.
-        - 'auto: Automatically determine which preset should be used.
-        - 'gpu: Models that use GPU resources for computation.
-        - 'ts: A special preset with models for time series forecasting task.
-        - 'automl: A special preset with only AutoML libraries such as TPOT and H2O as operations.
-        - '*tree: A special preset that allows only tree-based algorithms
+        also is used for tuning if with_tuning=True
+    :param preset:
+        name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu'):
+            - 'best_quality': All models that are available for this data type and task are used
+            - 'fast_train': Models that learn quickly. This includes preprocessing operations
+              (data operations) that only reduce the dimensionality of the data, but cannot increase it.
+              For example, there are no polynomial features and one-hot encoding operations
+            - 'stable': The most reliable preset in which the most stable operations are included.
+            - 'auto': Automatically determine which preset should be used.
+            - 'gpu': Models that use GPU resources for computation.
+            - 'ts': A special preset with models for time series forecasting task.
+            - 'automl': A special preset with only AutoML libraries such as TPOT and H2O as operations.
     :param use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
     :param use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
     :param logging_level_opt: logging level for optimiser. Logic of logging is the same as in 'logging_level' param
@@ -131,12 +139,13 @@ class Fedot:
             features: Union[str, np.ndarray, pd.DataFrame, InputData, dict],
             target: TargetType = 'target',
             predefined_model: Union[str, Pipeline] = None) -> Pipeline:
-        """
-        Fit the graph with a predefined structure or compose and fit the new graph
+        """Fits the graph with a predefined structure or compose and fit the new graph
+
         :param features: the array with features of train data
         :param target: the array with target values of train data
         :param predefined_model: the name of the atomic model or Pipeline instance.
-        If argument is 'auto', perform initial assumption generation and then fit the pipeline
+            If argument is 'auto', perform initial assumption generation and then fit the pipeline
+
         :return: Pipeline object
         """
         self.target = target
@@ -178,10 +187,11 @@ class Fedot:
     def predict(self,
                 features: FeaturesType,
                 save_predictions: bool = False) -> np.ndarray:
-        """
-        Predict new target using already fitted model
+        """Predicts new target using already fitted model
+
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
+
         :return: the array with prediction values
         """
         if self.current_pipeline is None:
@@ -201,11 +211,12 @@ class Fedot:
                       features: FeaturesType,
                       save_predictions: bool = False,
                       probs_for_all_classes: bool = False) -> np.ndarray:
-        """
-        Predict the probability of new target using already fitted classification model
+        """Predicts the probability of new target using already fitted classification model
+
         :param features: the array with features of test data
         :param save_predictions: if True-save predictions as csv-file in working directory.
         :param probs_for_all_classes: return probability for each class even for binary case
+
         :return: the array with prediction values
         """
 
@@ -231,11 +242,12 @@ class Fedot:
                  pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict],
                  forecast_length: int = 1,
                  save_predictions: bool = False) -> np.ndarray:
-        """
-        Forecast the new values of time series
+        """Forecasts the new values of time series
+
         :param pre_history: the array with features for pre-history of the forecast
         :param forecast_length: num of steps to forecast
         :param save_predictions: if True-save predictions as csv-file in working directory.
+
         :return: the array with prediction values
         """
 
@@ -262,8 +274,8 @@ class Fedot:
         return self.prediction.predict
 
     def load(self, path):
-        """
-        Load saved graph from disk
+        """Loads saved graph from disk
+
         :param path to json file with model
         """
         self.current_pipeline = Pipeline()
@@ -280,9 +292,9 @@ class Fedot:
                                                        objectives_names=metric_names,
                                                        show=True)
 
-    def plot_prediction(self, target: [Optional] = None):
-        """
-        Plot the prediction obtained from graph
+    def plot_prediction(self, target: Optional[Any] = None):
+        """Plots the prediction obtained from graph
+
         :param target: user-specified name of target variable for MultiModalData
         """
         if self.prediction is not None:
@@ -303,10 +315,11 @@ class Fedot:
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
                     metric_names: Union[str, List[str]] = None) -> dict:
-        """
-        Get quality metrics for the fitted graph
+        """Gets quality metrics for the fitted graph
+
         :param target: the array with target values of test data
         :param metric_names: the names of required metrics
+
         :return: the values of quality metrics
         """
         if metric_names is None:
@@ -353,7 +366,7 @@ class Fedot:
 
     def save_predict(self, predicted_data: OutputData):
         # TODO unify with OutputData.save_to_csv()
-        """ Save pipeline forecasts in csv file """
+        """ Saves pipeline forecasts in csv file """
         if len(predicted_data.predict.shape) >= 2:
             prediction = predicted_data.predict.tolist()
         else:
@@ -377,8 +390,9 @@ class Fedot:
 
     def explain(self, features: FeaturesType = None,
                 method: str = 'surrogate_dt', visualize: bool = True, **kwargs) -> 'Explainer':
-        """Create explanation for 'current_pipeline' according to the selected 'method'.
-        An `Explainer` instance is returned.
+        """Creates explanation for 'current_pipeline' according to the selected 'method'.
+            An `Explainer` instance is returned.
+
         :param features: samples to be explained. If `None`, `train_data` from last fit is used.
         :param method: explanation method, defaults to 'surrogate_dt'. Options: ['surrogate_dt', ...]
         :param visualize: print and plot the explanation simultaneously, defaults to True.
@@ -412,7 +426,7 @@ class Fedot:
                 remote.remote_task_params.target = self.target
 
     def _train_pipeline_on_full_dataset(self, recommendations: dict, full_train_not_preprocessed):
-        """ Apply training procedure for obtained pipeline if dataset was clipped """
+        """ Applies training procedure for obtained pipeline if dataset was clipped """
         if recommendations:
             # if data was cut we need to refit pipeline on full data
             self.data_processor.accept_and_apply_recommendations(full_train_not_preprocessed,

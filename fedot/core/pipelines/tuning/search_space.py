@@ -6,9 +6,9 @@ class SearchSpace:
     """
     Class for extracting searching space
 
-    :attribute custom_search_space: dictionary of dictionaries of tuples (hyperopt expression (e.g. hp.choice), *params)
+    :param custom_search_space: dictionary of dictionaries of tuples (hyperopt expression (e.g. hp.choice), *params)
      for applying custom hyperparameters search space
-    :attribute replace_default_search_space: whether replace default dictionary (False) or append it (True)
+    :param replace_default_search_space: whether replace default dictionary (False) or append it (True)
     """
 
     def __init__(self,

@@ -26,11 +26,11 @@ class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
-    :attribute pipeline: pipeline to optimize
-    :attribute task: task (classification, regression, ts_forecasting, clustering)
-    :attribute iterations: max number of iterations
-    :attribute search_space: SearchSpace instance
-    :attribute algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
+    :param pipeline: pipeline to optimize
+    :param task: task (classification, regression, ts_forecasting, clustering)
+    :param iterations: max number of iterations
+    :param search_space: SearchSpace instance
+    :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
     def __init__(self, pipeline, task,

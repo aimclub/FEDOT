@@ -1,4 +1,5 @@
 import logging
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -17,20 +18,19 @@ class PipelineComposerRequirements(ComposerRequirements):
     """
     Dataclass is for defining the requirements for composition process of genetic programming composer
 
-    :attribute pop_size: initial population size; if unspecified, default value is used.
-    :attribute max_pop_size: maximum population size; optional, if unspecified, then population size is unbound.
-    :attribute num_of_generations: maximal number of evolutionary algorithm generations
-    :attribute crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
-    :attribute mutation_prob: mutation probability
-    :attribute mutation_strength: strength of mutation in tree (using in certain mutation types)
-    :attribute max_pipeline_fit_time: time constraint for operation fitting (minutes)
-    :attribute start_depth: start value of tree depth
-    :attribute validation_blocks: number of validation blocks for time series validation
-    :attribute n_jobs: num of n_jobs
-    :attribute show_progress: bool indicating whether to show progress using tqdm or not
-    :attribute logging_level_opt: logging level for optimiser
-    :attribute collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
-    :attribute keep_n_best: Number of the best individuals of previous generation to keep in next generation.
+    :param pop_size: initial population size; if unspecified, default value is used.
+    :param max_pop_size: maximum population size; optional, if unspecified, then population size is unbound.
+    :param num_of_generations: maximal number of evolutionary algorithm generations
+    :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
+    :param mutation_prob: mutation probability
+    :param mutation_strength: strength of mutation in tree (using in certain mutation types)
+    :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
+    :param start_depth: start value of tree depth
+    :param validation_blocks: number of validation blocks for time series validation
+    :param n_jobs: num of n_jobs
+    :param show_progress: bool indicating whether to show progress using tqdm or not
+    :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
+    :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     """
     pop_size: int = 20
     max_pop_size: Optional[int] = 55
