@@ -843,7 +843,7 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
         formatted_text = formatted_text.replace(' ', '\\;')
         return formatted_text
 
-    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, html_format_tag: str = 'it') -> List[str]:
+    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, latex_format_tag: str = 'it') -> List[str]:
 
         long_text = ''.join(wrapped_text)
         first_tag_pos = long_text.find(part_to_format)
@@ -858,22 +858,23 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
         second_tag_char = second_tag_pos % line_len
 
         if first_tag_line == second_tag_line:
-            wrapped_text[first_tag_line] = \
-                wrapped_text[first_tag_line][:first_tag_char] + \
-                format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], html_format_tag) + \
-                wrapped_text[first_tag_line][second_tag_char:]
+            wrapped_text[first_tag_line] = (
+                    wrapped_text[first_tag_line][:first_tag_char] +
+                    format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], latex_format_tag) +
+                    wrapped_text[first_tag_line][second_tag_char:]
+            )
         else:
             for line in range(first_tag_line + 1, second_tag_line):
-                wrapped_text[line] = format_text(wrapped_text[line], html_format_tag)
+                wrapped_text[line] = format_text(wrapped_text[line], latex_format_tag)
 
-            wrapped_text[first_tag_line] = \
-                wrapped_text[first_tag_line][:first_tag_char] + \
-                format_text(wrapped_text[first_tag_line][first_tag_char:], html_format_tag)
-
-            wrapped_text[second_tag_line] = \
-                format_text(wrapped_text[second_tag_line][:second_tag_char], html_format_tag) + \
+            wrapped_text[first_tag_line] = (
+                wrapped_text[first_tag_line][:first_tag_char] +
+                format_text(wrapped_text[first_tag_line][first_tag_char:], latex_format_tag)
+            )
+            wrapped_text[second_tag_line] = (
+                    format_text(wrapped_text[second_tag_line][:second_tag_char], latex_format_tag) +
                 wrapped_text[second_tag_line][second_tag_char:]
-
+            )
         return wrapped_text
 
     tag = make_text_fancy(tag)
