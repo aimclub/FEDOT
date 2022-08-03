@@ -12,8 +12,8 @@ class DataOperation(Operation):
     :param operation_type: name of the data operation
     """
 
-    def __init__(self, operation_type: str):
-        super().__init__(operation_type)
+    def __init__(self, operation_type: str, **kwargs):
+        super().__init__(operation_type, **kwargs)
         self.operations_repo = OperationTypesRepository('data_operation')
 
     @property
