@@ -234,8 +234,9 @@ class OptGraph:
         return self._operator.get_edges()
 
     @copy_doc(Graph.show)
-    def show(self, path: Optional[Union[os.PathLike, str]] = None):
-        GraphVisualiser().visualise(self, path)
+    def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
+             nodes_color: Optional[Any] = None, edges_curvature: float = 0.25):
+        GraphVisualiser().visualise(self, save_path, engine, nodes_color, edges_curvature)
 
     @copy_doc(Graph.__eq__)
     def __eq__(self, other_graph: 'OptGraph') -> bool:
