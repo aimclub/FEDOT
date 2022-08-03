@@ -16,7 +16,7 @@ class MockNode:
         self.uid = name
         self._nodes_from = nodes_from or []
         self.content = {
-            'name': DataOperation('test_operation')
+            'name': 'test_operation'
         }
 
     @property
