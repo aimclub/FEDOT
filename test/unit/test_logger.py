@@ -12,20 +12,6 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
-def release_log(log: Log):
-    log.logger.handlers = []
-    if os.path.exists(log.log_file):
-        os.remove(log.log_file)
-
-
-@pytest.fixture(scope='session', autouse=True)
-def disable_test_logging(request):
-    """Workaround for issue #765 (https://github.com/nccr-itmo/FEDOT/issues/765)
-    Completely disable all logging before tests.
-    """
-    # Log(logger_name='test_log', logging_level=logging.CRITICAL+1, write_logs=False)
-
-
 @pytest.fixture()
 def get_config_file():
     test_file_path = str(os.path.dirname(__file__))
