@@ -130,7 +130,7 @@
   },
   "pca": {
     "svd_solver": "full",
-    "n_components": "mle"
+    "n_components": 0.7
   },
   "ts_naive_average": {
     "part_for_averaging": 1.0
