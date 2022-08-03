@@ -1,5 +1,5 @@
-Main usage points
-=================
+Basics
+======
 
 .. toctree::
    :maxdepth: 1

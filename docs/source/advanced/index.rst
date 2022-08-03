@@ -8,7 +8,6 @@ Advanced usage information
    automated_pipelines_design
    hyperparameters_tuning
    data_preprocessing
-   nodes
    cli_call
    gpu_evaluation
    atomized_model

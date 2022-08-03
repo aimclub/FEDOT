@@ -1,5 +1,5 @@
-Basic information
-=================
+Introduction
+============
 
 .. toctree::
    :glob:
