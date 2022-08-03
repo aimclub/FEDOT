@@ -142,7 +142,7 @@ class GraphVisualiser:
                                edgecolors=edge_colors)
         # Define edges curvature
         connection_style = 'arc3'
-        curved_connection_style = 'arc3,rad={}'
+        curved_connection_style = connection_style + ',rad={}'
         for u, v, e in nx_graph.edges(data=True):
             e['connectionstyle'] = connection_style
             p1, p2 = np.array(pos[u]), np.array(pos[v])
@@ -248,8 +248,7 @@ def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict
     return pos, longest_sequence
 
 
-def remove_old_files_from_dir(dir, time_interval=datetime.timedelta(minutes=10)):
-    for path in os.listdir(dir):
-        path = Path(dir, path)
-        if datetime.datetime.now() - datetime.datetime.fromtimestamp(os.path.getctime(path)) > time_interval:
-            os.remove(path)
+def remove_old_files_from_dir(dir: Path, time_interval=datetime.timedelta(minutes=10)):
+    for path in dir.iterdir():
+        if datetime.datetime.now() - datetime.datetime.fromtimestamp(path.stat().st_ctime) > time_interval:
+            path.unlink()
