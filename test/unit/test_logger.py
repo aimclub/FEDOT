@@ -28,10 +28,16 @@ def get_bad_config_file():
         return file
 
 
+def clear_singleton_class(klass=Log):
+    if klass in SingletonMeta._instances:
+        del SingletonMeta._instances[klass]
+
+
 @pytest.fixture(autouse=True)
 def singleton_cleanup():
-    SingletonMeta._instances = {}
+    clear_singleton_class(Log)
     yield
+    clear_singleton_class(Log)
 
 
 def test_default_logger_setup_correctly():
