@@ -111,5 +111,3 @@ def test_api_example():
 def test_multi_modal_example():
     result = run_multi_modal_example(files_path='examples/data/multimodal_wine', is_visualise=False)
     assert result > 0.5
-
-
