@@ -481,7 +481,7 @@ class PipelineEvolutionVisualiser:
             def generate_graph_images(self):
                 for ind in self.best_individuals:
                     ind.graph.show(self.temp_path)
-                    self.graph_images.append(mpimg.imread(self.temp_path))
+                    self.graph_images.append(mpimg.imread(str(self.temp_path)))
 
             def update_graph(self):
                 ax_graph.imshow(self.graph_images[self.index])
