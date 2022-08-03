@@ -22,7 +22,7 @@ class GraphOperator:
     def __init__(self, graph: Optional[Union['Graph', 'OptGraph']] = None,
                  nodes_postproc_func: Optional[Callable[[List[GraphNode]], None]] = None):
         self._graph = graph
-        self._postproc_nodes = nodes_postproc_func
+        self._postproc_nodes = nodes_postproc_func or (lambda: ...)
 
     def delete_node(self, node: GraphNode):
         """Removes provided ``node`` from the bounded graph structure.
