@@ -328,7 +328,7 @@ class PipelineEvolutionVisualiser:
         else:
             save_path = Path(save_path)
             if not save_path.is_absolute():
-                save_path = Path(os.getcwd(), save_path)
+                save_path = Path.cwd().joinpath(save_path)
             figure.savefig(save_path, dpi=300)
             self.log.info(f'The figure was saved to "{save_path}".')
             plt.close()
@@ -813,7 +813,7 @@ class PipelineEvolutionVisualiser:
         plt.tight_layout()
 
         if not save_path.is_absolute():
-            save_path = Path(os.getcwd(), save_path)
+            save_path = Path.cwd().joinpath(save_path)
 
         ani = animation.FuncAnimation(
             fig,
