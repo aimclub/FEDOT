@@ -21,9 +21,10 @@ from fedot.utilities.define_metric_by_task import MetricByTask
 
 class NodeAnalysis:
     """
-    :param approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\
-    Default: [NodeDeletionAnalyze, NodeTuneAnalyze, NodeReplaceOperationAnalyze]
-    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    Args:
+        approaches: methods applied to nodes to modify the pipeline or analyze certain operations.
+            Default: [``NodeDeletionAnalyze``, ``NodeTuneAnalyze``, ``NodeReplaceOperationAnalyze``]
+        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity``
     """
 
     def __init__(self, approaches: Optional[List[Type['NodeAnalyzeApproach']]] = None,
@@ -43,15 +44,17 @@ class NodeAnalysis:
                 train_data: InputData, test_data: InputData,
                 is_save: bool = False) -> dict:
 
-        """
-        Method runs Node analysis within defined approaches
+        """Method runs Node analysis within defined approaches
 
-        :param is_save: whether the certain node analysis result is needed to ba saved
-        :param pipeline: Pipeline containing the analyzed Node
-        :param node: Node object to analyze in Pipeline
-        :param train_data: data used for Pipeline training
-        :param test_data: data used for Pipeline validation
-        :return: dict with Node analysis result per approach
+        Args:
+            is_save: whether the certain node analysis result is needed to ba saved
+            pipeline: :obj:`Pipeline` containing the analyzed :obj:`Node`
+            node: :obj:`Node` object to analyze in :obj:`Pipeline`
+            train_data: data used for :obj:`Pipeline` training
+            test_data: data used for :obj:`Pipeline` validation
+
+        Returns:
+            dict:  :obj:`Node` analysis result per approach
         """
 
         results = dict()
@@ -118,13 +121,13 @@ class NodeAnalysis:
 
 
 class NodeAnalyzeApproach(ABC):
-    """
-    Base class for analysis approach.
+    """Base class for analysis approach.
 
-    :param pipeline: Pipeline containing the analyzed Node
-    :param train_data: data used for Pipeline training
-    :param test_data: data used for Pipeline validation
-    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    Args:
+        pipeline: :obj:`Pipeline` containing the analyzed :obj:`Node`
+        train_data: data used for :obj:`Pipeline` training
+        test_data: data used for :obj:`Pipeline` validation
+        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity``
     """
 
     def __init__(self, pipeline: Pipeline, train_data, test_data: InputData,
@@ -149,7 +152,8 @@ class NodeAnalyzeApproach(ABC):
         """Creates the difference metric(scorer, index, etc) of the changed
         graph in relation to the original one
 
-        :param node: the sequence number of the node as in DFS result
+        Args:
+            node: the sequence number of the node as in ``DFS`` result
         """
         pass
 
@@ -185,9 +189,13 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
-        :param node: Node object to analyze
-        :return: the ratio of modified pipeline score to origin score
+        Args:
+            node: :obj:`Node` object to analyze
+        
+        Returns:
+            the ratio of modified pipeline score to origin score
         """
+
         if node is self._pipeline.root_node:
             # TODO or warning?
             return [1.0]
@@ -203,10 +211,12 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
     def sample(self, node: Node):
         """
-
-        :param node: Node object to delete from Pipeline object
-        :return: Pipeline object without node
+        Args:
+            node: :obj:`Node` object to delete from :obj:`Pipeline` object
+        Retuens:
+            :obj:`Pipeline`: pipeline without node
         """
+
         pipeline_sample = deepcopy(self._pipeline)
         node_index_to_delete = self._pipeline.nodes.index(node)
         node_to_delete = pipeline_sample.nodes[node_index_to_delete]
@@ -224,9 +234,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
 
 
 class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
-    """
-    Replace node with operations available for the current task
-    and evaluate the score difference
+    """Replace node with operations available for the current task and evaluate the score difference
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -236,10 +244,13 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
 
     def analyze(self, node: Node, **kwargs) -> Union[List[dict], List[float]]:
         """
-        :param node: Node object to analyze
+        Args:
+            node: :obj:`Node` object to analyze
 
-        :return: the ratio of modified pipeline score to origin score
+        Returns:
+            the ratio of modified pipeline score to origin score
         """
+
         requirements: ReplacementAnalysisMetaParams = self._requirements.replacement_meta
         node_id = self._pipeline.nodes.index(node)
         samples = self.sample(node=node,
@@ -266,12 +277,13 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
                nodes_to_replace_to: Optional[List[Node]],
                number_of_random_operations: Optional[int] = None) -> Union[List[Pipeline], Pipeline]:
         """
-
-        :param node: Node object to replace
-        :param nodes_to_replace_to: nodes provided for old_node replacement
-        :param number_of_random_operations: number of replacement operations, \
-        if nodes_to_replace_to not provided
-        :return: Sequence of Pipeline objects with new operations instead of old one.
+        Args:
+            node: :obj:`Node` object to replace
+            nodes_to_replace_to: nodes provided for old_node replacement
+            number_of_random_operations: number of replacement operations,
+                if ``nodes_to_replace_to`` not provided
+        Returns:
+            Union[List[Pipeline], Pipeline]: sequence of :obj:`Pipeline` objects with new operations instead of old one
         """
 
         if not nodes_to_replace_to:

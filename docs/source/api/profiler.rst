@@ -6,16 +6,11 @@ MemoryProfiler
 
 .. automodule:: fedot.utilities.profiler.memory_profiler
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 TimeProfiler
 ------------
 
 .. automodule:: fedot.utilities.profiler.time_profiler
    :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. toctree::
-   :glob:
+   :no-undoc-members:

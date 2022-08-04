@@ -10,11 +10,11 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class Operation:
-    """
-    Base class for operations in nodes. Operations could be machine learning
+    """Base class for operations in nodes. Operations could be machine learning
     (or statistical) models or data operations
 
-    :param operation_type: name of the operation
+    Args:
+        operation_type: name of the operation
     """
 
     def __init__(self, operation_type: str, **kwargs):
@@ -64,14 +64,16 @@ class Operation:
         return operation_info
 
     def fit(self, params: Union[str, dict, None], data: InputData, is_fit_pipeline_stage: bool = True):
-        """
-        This method is used for defining and running of the evaluation strategy
+        """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
-        :param params: hyperparameters for operation
-        :param data: data used for operation training
-        :return: tuple of trained operation and prediction on train data
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        Args:
+            params: hyperparameters for operation
+            data: data used for operation training
+            is_fit_pipeline_stage: is this :obj:`fit` or :obj:`predict` stage for pipeline
+
+        Returns:
+            tuple: trained operation and prediction on train data
         """
 
         self._init(data.task, params=params, n_samples_data=data.features.shape[0])
@@ -84,17 +86,18 @@ class Operation:
 
     def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool,
                 params: Union[str, dict, None] = None, output_mode: str = 'default'):
-        """
-        This method is used for defining and running of the evaluation strategy
+        """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
-        :param fitted_operation: trained operation object
-        :param data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :param params: hyperparameters for operation
-        :param output_mode: string with information about output of operation,
-        for example, is the operation predict probabilities or class labels
+        Args:
+            fitted_operation: trained operation object
+            data: data used for prediction
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+            params: hyperparameters for operation
+            output_mode: string with information about output of operation,
+            for example, is the operation predict probabilities or class labels
         """
+
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params)
@@ -115,9 +118,10 @@ class Operation:
     @staticmethod
     @abstractmethod
     def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
-        """ Assign types for columns based on task and output_mode (for classification)
+        """Assign types for columns based on task and output_mode (for classification)\n
         For example, pipeline for solving time series forecasting task contains lagged and ridge operations.
-        ts_type -> lagged -> tabular type. So, there is a need to assign column types to new data
+        ``ts_type -> lagged -> tabular type``\n
+        So, there is a need to assign column types to new data
         """
         raise NotImplementedError()
 
@@ -127,15 +131,16 @@ class Operation:
 
 def _eval_strategy_for_task(operation_type: str, current_task_type: TaskTypesEnum,
                             operations_repo):
-    """
-    The function returns the strategy for the selected operation and task type.
+    """The function returns the strategy for the selected operation and task type.
     And if it is necessary, found acceptable strategy for operation
 
-    :param operation_type: name of operation, for example, 'ridge'
-    :param current_task_type: task to solve
-    :param operations_repo: repository with operations
+    Args:
+        operation_type: name of operation, for example, ``'ridge'``
+        current_task_type: task to solve
+        operations_repo: repository with operations
 
-    :return strategy: EvaluationStrategy class for this operation
+    Returns:
+        EvaluationStrategy: ``EvaluationStrategy`` class for this operation
     """
 
     # Get acceptable task types for operation

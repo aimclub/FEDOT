@@ -27,6 +27,7 @@ class Data:
     """
     Base Data type class
     """
+
     idx: np.array
     features: np.array
     task: Task
@@ -44,16 +45,20 @@ class Data:
                  columns_to_drop: Optional[List] = None,
                  target_columns: Union[str, List] = '',
                  index_col: Optional[Union[str, int]] = 0):
-        """
-        :param file_path: the path to the CSV with data
-        :param columns_to_drop: the names of columns that should be dropped
-        :param delimiter: the delimiter to separate the columns
-        :param task: the task that should be solved with data
-        :param data_type: the type of data interpretation
-        :param target_columns: name of target column (last column if empty and no target if None)
-        :param index_col: column name or index to use as the Data.idx;
-            if None then arrange new unique index
-        :return:
+        """Import data from ``csv``
+
+        Args:
+            file_path: the path to the ``CSV`` with data
+            columns_to_drop: the names of columns that should be dropped
+            delimiter: the delimiter to separate the columns
+            task: the :obj:`Task` that should be solved with data
+            data_type: the type of data interpretation
+            target_columns: name of target column (last column if empty and no target if ``None``)
+            index_col: column name or index to use as the :obj:`Data.idx`;\n
+                if ``None`` then arrange new unique index
+
+        Returns:
+            data
         """
 
         data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
@@ -109,15 +114,20 @@ class Data:
                                    columns_to_use: Optional[list] = None,
                                    target_column: Optional[str] = ''):
         """
-        Forms InputData of multi_ts type from columns of different variant of the same variable
+        Forms :obj:`InputData` of ``multi_ts`` type from columns of different variant of the same variable
 
-        :param task: the task that should be solved with data
-        :param file_path: path to csv file
-        :param delimiter: delimiter for pandas df
-        :param is_predict: is preparing for fit or predict stage
-        :param columns_to_use: list with names of columns of different variant of the same variable
-        :param target_column: string with name of target column, used for predict stage
+        Args:
+            task: the :obj:`Task` that should be solved with data
+            file_path: path to csv file
+            delimiter: delimiter for pandas df
+            is_predict: is preparing for fit or predict stage
+            columns_to_use: ``list`` with names of columns of different variant of the same variable
+            target_column: ``string`` with name of target column, used for predict stage
+
+        Returns:
+            data
         """
+
         df = pd.read_csv(file_path, sep=delimiter)
 
         idx = get_indices_from_file(df, file_path)
@@ -156,13 +166,18 @@ class Data:
                    labels: Union[str, np.ndarray] = None,
                    task: Task = Task(TaskTypesEnum.classification),
                    target_size: Optional[Tuple[int, int]] = None):
+        """Input data from Image
+
+        Args:
+            images: the path to the directory with image data in ``np.ndarray`` format or array in ``np.ndarray`` format
+            labels: the path to the directory with image labels in ``np.ndarray`` format or array in ``np.ndarray`` format
+            task: the :obj:`Task` that should be solved with data
+            target_size: size for the images resizing (if necessary)
+
+        Returns:
+            data
         """
-        :param images: the path to the directory with image data in np.ndarray format or array in np.ndarray format
-        :param labels: the path to the directory with image labels in np.ndarray format or array in np.ndarray format
-        :param task: the task that should be solved with data
-        :param target_size: size for the images resizing (if necessary)
-        :return:
-        """
+
         features = images
         target = labels
 
@@ -237,17 +252,20 @@ class Data:
                         task: Task = Task(TaskTypesEnum.classification),
                         data_type: DataTypesEnum = DataTypesEnum.table,
                         export_to_meta=False, is_multilabel=False, shuffle=True) -> 'InputData':
-        """
-        Generates InputData from the set of JSON files with different fields
-        :param files_path: path the folder with jsons
-        :param fields_to_use: list of fields that will be considered as a features
-        :param label: name of field with target variable
-        :param task: task to solve
-        :param data_type: data type in fields (as well as type for obtained InputData)
-        :param export_to_meta: combine extracted field and save to CSV
-        :param is_multilabel: if True, creates multilabel target
-        :param shuffle: if True, shuffles data
-        :return: combined dataset
+        """Generates InputData from the set of ``JSON`` files with different fields
+
+        Args:
+            files_path: path the folder with ``json`` files
+            fields_to_use: ``list`` of fields that will be considered as a features
+            label: name of field with target variable
+            task: :obj:`Task` to solve
+            data_type: data type in fields (as well as type for obtained :obj:`InputData`)
+            export_to_meta: combine extracted field and save to ``CSV``
+            is_multilabel: if ``True``, creates multilabel target
+            shuffle: if ``True``, shuffles data
+        
+        Returns:
+            combined dataset
         """
 
         if os.path.isfile(files_path):
@@ -302,8 +320,7 @@ class Data:
 
 @dataclass
 class InputData(Data):
-    """
-    Data class for input data for the nodes
+    """Data class for input data for the nodes
     """
 
     @property
@@ -329,11 +346,15 @@ class InputData(Data):
                          task=self.task, data_type=self.data_type)
 
     def subset_indices(self, selected_idx: List):
+        """Get subset from :obj:`InputData` to extract all items with specified indices
+
+        Args:
+            selected_idx: ``list`` of indices for extraction
+        
+        Returns:
+            :obj:`InputData`
         """
-        Get subset from InputData to extract all items with specified indices
-        :param selected_idx: list of indices for extraction
-        :return:
-        """
+
         idx_list = [str(i) for i in self.idx]
 
         # extractions of row number for each existing index from selected_idx
@@ -348,7 +369,9 @@ class InputData(Data):
                          task=self.task, data_type=self.data_type)
 
     def subset_features(self, features_ids: list):
-        """ Return new InputData with subset of features based on features_ids list """
+        """Return new :obj:`InputData` with subset of features based on ``features_ids`` list 
+        """
+
         subsample_features = self.features[:, features_ids]
         subsample_input = InputData(features=subsample_features,
                                     data_type=self.data_type,
@@ -359,10 +382,10 @@ class InputData(Data):
         return subsample_input
 
     def shuffle(self):
+        """Shuffles features and target if possible
         """
-        Shuffles features and target if possible.
-        """
-        if self.data_type in (DataTypesEnum.table, DataTypesEnum.image, DataTypesEnum.text):
+
+        if self.data_type is DataTypesEnum.table:
             shuffled_ind = np.random.permutation(len(self.features))
             idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
                 shuffled_ind]
@@ -373,7 +396,9 @@ class InputData(Data):
             pass
 
     def convert_non_int_indexes_for_fit(self, pipeline):
-        """ Conversion non int (datetime, string, etc) indexes in integer form in fit stage """
+        """Conversion non ``int`` (``datetime``, ``string``, etc) indexes in ``integer`` form on the fit stage
+        """
+
         copied_data = deepcopy(self)
         is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)
@@ -395,7 +420,9 @@ class InputData(Data):
         return copied_data
 
     def convert_non_int_indexes_for_predict(self, pipeline):
-        """Conversion non int (datetime, string, etc) indexes in integer form in predict stage"""
+        """Conversion non ``int`` (``datetime``, ``string``, etc) indexes in ``integer`` form on the predict stage
+        """
+
         copied_data = deepcopy(self)
         is_timestamp = isinstance(copied_data.idx[0], pd._libs.tslibs.timestamps.Timestamp)
         is_numpy_datetime = isinstance(copied_data.idx[0], np.datetime64)
@@ -420,17 +447,17 @@ class InputData(Data):
 
 @dataclass
 class OutputData(Data):
+    """``Data`` type for data prediction in the node
     """
-    Data type for data prediction in the node
-    """
+
     predict: np.ndarray = None
     target: Optional[np.ndarray] = None
 
 
 def _resize_image(file_path: str, target_size: Tuple[int, int]):
+    """Function resizes and rewrites the input image
     """
-    Function resizes and rewrites the input image
-    """
+
     img = cv2.imread(file_path)
     if img.shape[:2] != target_size:
         img = cv2.resize(img, (target_size[0], target_size[1]))
@@ -441,14 +468,16 @@ def _resize_image(file_path: str, target_size: Tuple[int, int]):
 def process_target_and_features(data_frame: pd.DataFrame,
                                 target_column: Optional[Union[str, List[str]]]
                                 ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
-    """ Function process pandas dataframe with single column
+    """Function process pandas ``dataframe`` with single column
 
-    :param data_frame: loaded pandas DataFrame
-    :param target_column: names of columns with target or None
+    Args:
+        data_frame: loaded pandas :obj:`DataFrame`
+        target_column: names of columns with target or ``None``
 
-    :return features: numpy array (table) with features
-    :return target: numpy array (column) with target
+    Returns: 
+        (``np.array`` (table) with features, ``np.array`` (column) with target)
     """
+
     if target_column == '':
         # Take the last column in the table
         target_column = data_frame.columns[-1]

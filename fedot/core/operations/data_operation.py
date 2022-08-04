@@ -7,9 +7,10 @@ from fedot.core.repository.operation_types_repository import OperationMetaInfo, 
 
 class DataOperation(Operation):
     """
-    Class with fit/predict methods defining the evaluation strategy for the task
+    Class with ``fit``/``predict`` methods defining the evaluation strategy for the task
 
-    :param operation_type: name of the data operation
+    Args:
+        operation_type: name of the data operation
     """
 
     def __init__(self, operation_type: str):
@@ -25,9 +26,8 @@ class DataOperation(Operation):
 
     @staticmethod
     def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
-        """
-        Assign new column types if it necessary. By default, all data operations
-        must define column types at lower levels (EvalStrategies and Implementations).
+        """Assign new column types if it necessary.\n By default, all data operations
+        must define column types at lower levels (:obj:`EvalStrategies` and :obj:`Implementations`).\n
         In some cases the previously defined data types are passed.
         """
         # There are already assigned types for columns

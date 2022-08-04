@@ -16,8 +16,7 @@ except ImportError:
 
 
 class TimeProfiler:
-    """
-    Profile code and visual interpret results of it.
+    """Profile code and visual interpret results of it
     """
 
     def __init__(self):
@@ -26,10 +25,10 @@ class TimeProfiler:
         self.profiler.enable()
 
     def _generate_pstats(self, path: str):
-        """
-        Aggregate profiler statistics and create 'output.pstats' from cPorifler.
+        """Aggregate profiler statistics and create :obj:`output.pstats` from ``Profiler``
 
-        :param str path: path to save results.
+        Args:
+            path: path to save results
         """
 
         self.path_stats = os.path.join(os.path.abspath(path), 'output.pstats')
@@ -37,14 +36,15 @@ class TimeProfiler:
         stats.dump_stats(self.path_stats)
 
     def profile(self, path: str, node_percent: float = 0.5, edge_percent: float = 0.1, open_web: bool = False):
-        """
-        Method to convert the statistics from profiler to visual representation.
+        """Method to convert the statistics from profiler to visual representation
 
-        :param str path: path to save profiling result.
-        :param float node_percent: eliminate nodes below this threshold [default: 0.5].
-        :param float edge_percent: eliminate edges below this threshold [default: 0.1].
-        :param bool open_web: boolean parametr to open web-interface.
+        Args:
+            spath: path to save profiling result
+            node_percent: eliminate nodes below this threshold [default: 0.5]
+            edge_percent: eliminate edges below this threshold [default: 0.1]
+            open_web: boolean parametr to open web-interface
         """
+
         self.profiler.disable()
 
         self.folder = os.path.abspath(path)

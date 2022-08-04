@@ -26,12 +26,14 @@ class OperationMetaInfo:
     presets: Optional[List[str]] = None
 
     def current_strategy(self, task: TaskTypesEnum):
-        """
-        Method allows getting available processing strategies depending on the
+        """Method allows getting available processing strategies depending on the
         selected task
 
-        :param task: machine learning task (e.g. regression and classification)
-        :return : supported strategies for task
+        Args:
+            task: machine learning task (e.g. regression and classification)
+        
+        Returns:
+            supported strategies for task
         """
 
         if isinstance(self.supported_strategies, dict):
@@ -50,8 +52,9 @@ def run_once(function):
 
 
 class OperationTypesRepository:
-    """ Class for connecting models and data operations with json files with
-    its descriptions and metadata"""
+    """Class for connecting models and data operations with json files with
+    its descriptions and metadata
+    """
 
     __initialized_repositories__ = {}
     # The later the tag, the higher its priority in case of intersection
@@ -146,12 +149,13 @@ class OperationTypesRepository:
 
     @classmethod
     def _initialise_repo(cls, repo_path: str) -> List[OperationMetaInfo]:
-        """ Method parse JSON repository with operations descriptions and
-        wrapped information into OperationMetaInfo, then put it into the list
+        """Method parse ``JSON`` repository with operations descriptions and
+        wrapped information into :obj:`OperationMetaInfo`, then put it into the list
 
-        :return operations_list: list with OperationMetaInfo for every operation
-        from json repository
+        Returns:
+            List[OperationMetaInfo]: list with :obj:`OperationMetaInfo` for every operation from ``json`` repository
         """
+
         repository_json = load_repository(repo_path)
 
         metadata_json = repository_json['metadata']
@@ -209,10 +213,11 @@ class OperationTypesRepository:
 
     @staticmethod
     def get_strategies_by_metadata(metadata: dict):
-        """ Method allow obtain strategy instance by the metadata
+        """Method allow obtain strategy instance by the metadata
 
-        :param metadata: information about meta of the operation
-        :return supported_strategies: available strategies for current metadata
+        Args:
+            metadata: information about meta of the operation
+            supported_strategies: available strategies for current metadata
         """
         strategies_json = metadata['strategies']
         if isinstance(strategies_json, list):
@@ -250,15 +255,16 @@ class OperationTypesRepository:
                            tags: List[str] = None, is_full_match: bool = False,
                            forbidden_tags: List[str] = None,
                            preset: str = None):
-        """ Method returns operations from repository for desired task and / or
+        """Method returns operations from repository for desired task and / or
         tags. Filtering method.
 
-        :param task_type: task to filter
-        :param data_type: data type to filter
-        :param tags: operations with which tags are required
-        :param is_full_match: requires all tags to match, or at least one
-        :param forbidden_tags: operations with such tags shouldn't be returned
-        :param preset: return operations from desired preset
+        Args:
+            task_type: task to filter
+            data_type: data type to filter
+            tags: operations with which tags are required
+            is_full_match: requires all tags to match, or at least one
+            forbidden_tags: operations with such tags shouldn't be returned
+            preset: return operations from desired preset
         """
 
         if not forbidden_tags:
@@ -300,12 +306,16 @@ class OperationTypesRepository:
 
     def get_first_suitable_operation_tag(self, operation: str, tags_to_find: Optional[List[str]] = None) \
             -> Optional[str]:
-        """ Finds the first suitable tag for the operation in the repository.
+        """Finds the first suitable tag for the operation in the repository.
 
-        :param operation: name of the operation.
-        :param tags_to_find: list of suitable tags. The later the tag, the higher its priority in case of intersection.
-        :return: first suitable tag or None.
+        Args:
+            operation: name of the operation
+            tags_to_find: list of suitable tags. The later the tag, the higher its priority in case of intersection
+
+        Returns: 
+            Optional[List[str]]: first suitable tag or ``None``
         """
+
         tags_to_find = tags_to_find or self.default_tags
 
         info = self.operation_info_by_id(operation)
@@ -320,17 +330,20 @@ class OperationTypesRepository:
 def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[str]] = None,
                      tags_data: Optional[List[str]] = None,
                      repos_tags: Optional[Dict['OperationTypesRepository', List[str]]] = None) -> Optional[str]:
-    """ Finds the first suitable tag for the OptNode across Fedot repositories.
+    """Finds the first suitable tag for the OptNode across Fedot repositories
 
-    :param opt_node: OptNode or its name.
-    :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
-        The later the tag, the higher its priority in case of intersection.
-    :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
-        The later the tag, the higher its priority in case of intersection.
-    :param repos_tags: dictionary mapping OperationTypesRepository with suitable tags. Can be used only if no tags_model
-        and tags_data specified.
-    :return: first suitable tag or None.
+    Args:
+        opt_node: :obj:`OptNode` or its name
+        tags_model: tags for :obj:`OperationTypesRepository('model')` to map the history operations
+            The later the tag, the higher its priority in case of intersection
+        tags_data: tags for :obj:`OperationTypesRepository('data_operation')` to map the history operations
+            The later the tag, the higher its priority in case of intersection
+        repos_tags: dictionary mapping :obj:`OperationTypesRepository` with suitable tags. Can be used only if no ``tags_model``
+            and ``tags_data`` specified.
+    Returns:
+        Optional[str]: first suitable tag or ``None``
     """
+
     if (tags_model or tags_data) and repos_tags:
         raise ValueError('Parameter repos_tags can not be set with any of these parameters: tags_model, tags_data.')
 
@@ -351,16 +364,17 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
 def _is_operation_contains_tag(candidate_tags: List[str],
                                operation_tags: List[str],
                                is_full_match: bool) -> bool:
-    """
-    The function checks which operations are suitable for the selected tags
+    """The function checks which operations are suitable for the selected tags
 
-    :param candidate_tags: list with tags that the operation must have in order
-        to fit the selected task
-    :param operation_tags: list with tags with names as in repository json file
-        which correspond to the considering operation
-    :param is_full_match: requires all tags to match, or at least one
+    Args:
+        candidate_tags: ``list`` with tags that the operation must have in order
+            to fit the selected task
+        operation_tags: ``list`` with tags with names as in repository json file
+            which correspond to the considering operation
+        is_full_match: requires all tags to match, or at least one
 
-    :return : is there a match on the tags
+    Returns:
+        bool: is there a match on the tags
     """
 
     matches = (tag in operation_tags for tag in candidate_tags)
@@ -371,7 +385,9 @@ def _is_operation_contains_tag(candidate_tags: List[str],
 
 
 def _is_operation_contains_preset(operation_presets: List[str], preset: str) -> bool:
-    """ Checking whether the operation is suitable for current preset """
+    """Checking whether the operation is suitable for current preset
+    """
+
     if preset is None:
         # None means that best_quality preset are using so return all operations
         return True
@@ -389,20 +405,26 @@ def atomized_model_meta_tags():
 
 def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidden_tags=None,
                             preset: str = None):
-    """ Function returns aliases of operations.
+    """Function returns aliases of operations.
 
-    :param task: task to solve
-    :param mode: mode to return operations
-        The possible parameters are:
-            'all' - return list with all operations
-            'model' - return only list with models
-            'data_operation' - return only list with data_operations
-    :param tags: tags for grabbing when filtering
-    :param forbidden_tags: tags for skipping when filtering
-    :param preset: operations from this preset will be obtained
+    Args:
+        task: task to solve
+        mode: mode to return operations
 
-    :return : list with operation aliases
+            .. details:: the possible parameters of ``mode``:
+
+                - ``all`` -> return list with all operations
+                - ``model`` -> return only list with models
+                - ``data_operation`` -> return only list with data_operations
+
+        tags: tags for grabbing when filtering
+        forbidden_tags: tags for skipping when filtering
+        preset: operations from this preset will be obtained
+
+    Returns:
+        list:  operation aliases
     """
+
     # Preset None means that all operations will be returned
     if preset is not None:
         if BEST_QUALITY_PRESET_NAME in preset or AUTO_PRESET_NAME in preset:
@@ -425,9 +447,12 @@ def get_operation_type_from_id(operation_id):
 
 def _operation_name_without_postfix(operation_id):
     """
-    :param operation_id: operation name with optional postfix - text after / sign
-    :return: operation type - all characters before postfix (all characters if no postfix found)
+    Args:
+        operation_id: operation name with optional postfix - text after / sign
+    Returns:
+        operation type - all characters before postfix (all characters if no postfix found)
     """
+
     postfix_sign = '/'
     # if the operation id has custom postfix
     if postfix_sign in operation_id:

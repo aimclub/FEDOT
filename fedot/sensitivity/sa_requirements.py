@@ -12,18 +12,18 @@ ReplacementAnalysisMetaParams = namedtuple('ReplacementAnalysisMetaParams', ['no
 
 
 class SensitivityAnalysisRequirements:
-    """
-    Use this object to pass all the requirements needed for SA.
+    """Use this object to pass all the requirements needed for ``SA``
 
-    :param hyperparams_analyze_method: defines string name of SA method to use. Defaults: 'sobol'
-    :param hyperparams_sample_method: defines string name of sampling method to use. Defaults: 'saltelli'
-    :param hyperparams_analysis_samples_size: defines the number of shyperparameters samples used in SA
-    :param replacement_nodes_to_replace_to: defines nodes which is used in replacement analysis.
-    :param replacement_number_of_random_operations: if replacement_nodes_to_replace_to is not filled, \
-    define the number of randomly chosen operations used in replacement analysis.
-    :param is_visualize: defines whether the SA visualization needs to be saved to .png files.
-    :param is_save_results_to_json: defines whether the SA indices needs to be saved to .json file.
-    :param metric: metric used for validation. Default: see MetricByTask
+    Args:
+        hyperparams_analyze_method: defines string name of SA method to use. Defaults: ``sobol``
+        hyperparams_sample_method: defines string name of sampling method to use. Defaults: ``saltelli``
+        hyperparams_analysis_samples_size: defines the number of shyperparameters samples used in SA
+        replacement_nodes_to_replace_to: defines nodes which is used in replacement analysis.
+        replacement_number_of_random_operations: if ``replacement_nodes_to_replace_to`` is not filled,
+            define the number of randomly chosen operations used in replacement analysis.
+        is_visualize: defines whether the SA visualization needs to be saved to ``.png`` files.
+        is_save_results_to_json: defines whether the SA indices needs to be saved to ``.json`` file.
+        metric: metric used for validation. Default: see :obj:`MetricByTask`
     """
 
     def __init__(self,

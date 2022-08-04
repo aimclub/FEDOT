@@ -6,6 +6,7 @@ import pandas as pd
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+NoneType = type(None)
 NAME_CLASS_STR = "<class 'str'>"
 NAME_CLASS_INT = "<class 'int'>"
 NAME_CLASS_FLOAT = "<class 'float'>"

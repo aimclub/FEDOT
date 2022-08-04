@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -32,16 +32,21 @@ class LaggedImplementation(DataOperationImplementation):
     def fit(self, input_data):
         """ Class doesn't support fit operation
 
-        :param input_data: data with features, target and ids to process
+        Args:
+            input_data: data with features, target and ids to process
         """
+
         pass
 
     def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for transformation of time series to lagged form
 
-        :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return output_data: output data with transformed features table
+        Args:
+            input_data: data with features, target and ids to process
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
+        Returns:
+            output data with transformed features table
         """
 
         new_input_data = copy(input_data)
@@ -76,7 +81,9 @@ class LaggedImplementation(DataOperationImplementation):
         return output_data
 
     def _update_column_types(self, output_data: OutputData):
-        """ Update column types after lagged transformation. All features becomes float """
+        """Update column types after lagged transformation. All features becomes ``float``
+        """
+
         features_n_rows, features_n_cols = output_data.predict.shape
         features_column_types = [str(float)] * features_n_cols
         column_types = {'features': features_column_types}
@@ -88,7 +95,9 @@ class LaggedImplementation(DataOperationImplementation):
 
     def _apply_transformation_for_fit(self, input_data: InputData, features: np.array, target: np.array,
                                       forecast_length: int, old_idx: np.array):
-        """ Apply lagged transformation on each time series in the current dataset """
+        """Apply lagged transformation on each time series in the current dataset
+        """
+
         # Shape of the time series
         if len(features.shape) > 1:
             # Multivariate time series
@@ -138,7 +147,9 @@ class LaggedImplementation(DataOperationImplementation):
         return all_transformed_target, all_transformed_idx
 
     def stack_by_type_fit(self, input_data, all_features, all_target, all_idx, features, target, idx):
-        """ Apply stack function for multi_ts and multivariable ts types on fit step"""
+        """Apply stack function for multi_ts and multivariable ts types on fit step
+        """
+
         functions_by_type = {
             DataTypesEnum.multi_ts: self._stack_multi_ts,
             DataTypesEnum.ts: self._stack_multi_variable
@@ -151,17 +162,21 @@ class LaggedImplementation(DataOperationImplementation):
                               all_idx: np.array,
                               features: np.array,
                               target: np.array,
-                              idx: [list, np.array]):
-        """
-        Horizontally stack tables as multiple variables extends features for training
+                              idx: Union[list, np.array]):
+        """Horizontally stack tables as multiple variables extends features for training
 
-        :param all_features: array with all features for adding new
-        :param all_target:  array with all target (does not change)
-        :param all_idx: array with all indices (does not change)
-        :param features: array with new features for adding
-        :param target: array with new target for adding
-        :param idx: array with new idx for adding
+        Args:
+            all_features: ``array`` with all features for adding new
+            all_target:  ``array`` with all target (does not change)
+            all_idx: ``array`` with all indices (does not change)
+            features: ``array`` with new features for adding
+            target: ``array`` with new target for adding
+            idx: ``array`` with new idx for adding
+
+        Returns:
+            table
         """
+
         all_features = np.hstack((all_features, features))
         return all_features, all_target, all_idx
 
@@ -170,24 +185,30 @@ class LaggedImplementation(DataOperationImplementation):
                         all_idx: np.array,
                         features: np.array,
                         target: np.array,
-                        idx: [list, np.array]):
-        """
-        Vertically stack tables as multi_ts data extends training set as combination of train and target
+                        idx: Union[list, np.array]):
+        """Vertically stack tables as multi_ts data extends training set as combination of train and target
 
-        :param all_features: array with all features for adding new
-        :param all_target:  array with all target
-        :param all_idx: array with all indices
-        :param features: array with new features for adding
-        :param target: array with new target for adding
-        :param idx: array with new idx for adding
+        Args:
+            all_features: ``array`` with all features for adding new
+            all_target:  ``array`` with all target
+            all_idx: ``array`` with all indices
+            features: ``array`` with new features for adding
+            target: ``array`` with new target for adding
+            idx: ``array`` with new idx for adding
+
+        Returns:
+            table
         """
+
         all_features = np.vstack((all_features, features))
         all_target = np.vstack((all_target, target))
         all_idx = np.hstack((all_idx, np.array(idx)))
         return all_features, all_target, all_idx
 
     def _current_target_for_each_ts(self, current_ts_id, target):
-        """ Returns target for each time-series"""
+        """Returns target for each time-series
+        """
+
         if len(target.shape) > 1:
             # if multi_ts case
             if current_ts_id >= target.shape[1]:
@@ -199,7 +220,9 @@ class LaggedImplementation(DataOperationImplementation):
             return target
 
     def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
-        """ Apply lagged transformation for every column (time series) in the dataset """
+        """Apply lagged transformation for every column (time series) in the dataset
+        """
+
         if self.sparse_transform:
             self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
             transformed_cols = self._update_features_for_sparse(input_data)
@@ -236,7 +259,9 @@ class LaggedImplementation(DataOperationImplementation):
         return all_transformed_features
 
     def stack_by_type_predict(self, input_data, all_features, part_to_add):
-        """ Apply stack function for multi_ts and multivariable ts types on predict step"""
+        """Apply stack function for multi_ts and multivariable ts types on predict step
+        """
+
         if input_data.data_type == DataTypesEnum.multi_ts:
             # for mutli_ts
             all_features = np.vstack((all_features, part_to_add))
@@ -246,7 +271,9 @@ class LaggedImplementation(DataOperationImplementation):
         return all_features
 
     def _update_features_for_sparse(self, input_data: InputData):
-        """ Make sparse matrix which will be used during forecasting """
+        """Make sparse matrix which will be used during forecasting
+        """
+
         # Prepare features for training
         new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
                                                 time_series=input_data.features,
@@ -261,7 +288,8 @@ class LaggedImplementation(DataOperationImplementation):
 
 
 class SparseLaggedTransformationImplementation(LaggedImplementation):
-    """ Implementation of sparse lagged transformation for time series forecasting"""
+    """Implementation of sparse lagged transformation for time series forecasting
+    """
 
     def __init__(self, **params):
         super().__init__()
@@ -282,7 +310,8 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
 
 
 class LaggedTransformationImplementation(LaggedImplementation):
-    """ Implementation of lagged transformation for time series forecasting"""
+    """Implementation of lagged transformation for time series forecasting
+    """
 
     def __init__(self, **params):
         super().__init__()
@@ -309,18 +338,23 @@ class TsSmoothingImplementation(DataOperationImplementation):
             self.window_size = round(params.get('window_size'))
 
     def fit(self, input_data):
-        """ Class doesn't support fit operation
+        """Class doesn't support fit operation
 
-        :param input_data: data with features, target and ids to process
+        Args:
+            input_data: data with features, target and ids to process
         """
+
         pass
 
     def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
-        """ Method for smoothing time series
+        """Method for smoothing time series
 
-        :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return output_data: output data with smoothed time series
+        Args:
+            input_data: data with features, target and ids to process
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
+        Returns:
+            output data with smoothed time series
         """
 
         source_ts = input_data.features
@@ -362,17 +396,23 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
     def fit(self, input_data):
         """ Class doesn't support fit operation
 
-        :param input_data: data with features, target and ids to process
+        Args:
+            input_data: data with features, target and ids to process
         """
+
         pass
 
     def transform(self, input_data, is_fit_pipeline_stage: bool):
         """ Method for representing time series as column
 
-        :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return output_data: output data with features as columns
+        Args:
+            input_data: data with features, target and ids to process
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
+        Returns:
+            output data with features as columns
         """
+
         copied_data = copy(input_data)
         parameters = copied_data.task.task_params
         old_idx = copied_data.idx
@@ -424,16 +464,21 @@ class GaussianFilterImplementation(DataOperationImplementation):
     def fit(self, input_data):
         """ Class doesn't support fit operation
 
-        :param input_data: data with features, target and ids to process
+        Args:
+            input_data: data with features, target and ids to process
         """
+
         pass
 
     def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
         """ Method for smoothing time series
 
-        :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return output_data: output data with smoothed time series
+        Args:
+            input_data: data with features, target and ids to process
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
+        Returns:
+            output data with smoothed time series
         """
 
         source_ts = np.array(input_data.features)
@@ -475,16 +520,21 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
     def fit(self, input_data):
         """ Class doesn't support fit operation
 
-        :param input_data: data with features, target and ids to process
+        Args:
+            input_data: data with features, target and ids to process
         """
+
         pass
 
     def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
         """ Method for finding numerical derivative of time series
 
-        :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return output_data: output data with smoothed time series
+        Args:
+            input_data: data with features, target and ids to process
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
+        Returns:
+            output data with smoothed time series
         """
 
         source_ts = np.array(input_data.features)
@@ -507,7 +557,9 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         return output_data
 
     def _differential_filter(self, ts):
-        """ NumericalDerivative filter """
+        """:obj:`NumericalDerivative` filter
+        """
+
         if self.window_size > ts.shape[0]:
             self.parameters_changed = True
             self.changed_params.append('window_size')
@@ -595,20 +647,26 @@ class CutImplementation(DataOperationImplementation):
             self.parameters_changed = True
 
     def fit(self, input_data: InputData):
-        """ Class doesn't support fit operation
+        """Class doesn't support fit operation
 
-            :param input_data: data with features, target and ids to process
+        Args:
+            input_data: data with features, target and ids to process
         """
+
         pass
 
     def transform(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]) -> OutputData:
-        """ Cut first cut_part from time series
-            new_len = len - int(self.cut_part * (input_values.shape[0]-horizon))
+        """ Cut first cut_part from time series\n
+            ``new_len = len - int(self.cut_part * (input_values.shape[0]-horizon))``
 
-            :param input_data: data with features, target and ids to process
-            :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-            :return output_data: output data with cutted time series
+        Args:
+            input_data: data with features, target and ids to process
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
+        Returns:
+            output data with cutted time series
         """
+
         horizon = input_data.task.task_params.forecast_length
         input_copy = copy(input_data)
         input_values = input_copy.features
@@ -636,11 +694,15 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     """ Method check if the length of the time series is not enough for
     lagged transformation - clip it
 
-    :param time_series: time series for transformation
-    :param window_size: size of sliding window, which defines lag
-    :param forecast_length: forecast length
-    :param window_size_minimum: minimum moving window size
-    :param log: logger for saving messages
+    Args:
+        time_series: time series for transformation
+        window_size: size of sliding window, which defines lag
+        forecast_length: forecast length
+        window_size_minimum: minimum moving window size
+        log: logger for saving messages
+    
+    Returns:
+
     """
     prefix = "Warning: window size of lagged transformation was changed"
     was_changed = False
@@ -666,17 +728,24 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     return window_size, was_changed
 
 
-def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
+def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool=False):
     """ Method convert time series to lagged form.
 
-    :param idx: the indices of the time series to convert
-    :param time_series: source time series
-    :param window_size: size of sliding window, which defines lag
-    :param is_lag: is function used for lagged transformation.
-    False needs to convert one dimensional output to lagged form.
+    Args:
+        idx: the indices of the time series to convert
+        time_series: source time series
+        window_size: size of sliding window, which defines lag
+        is_lag: is function used for lagged transformation
+            ``False`` needs to convert one dimensional output to lagged form
 
-    :return updated_idx: clipped indices of time series
-    :return features_columns: lagged time series feature table
+    Returns: 
+        ``updated_idx``, ``features_columns``
+
+        .. details:: more information:
+
+            - ``updated_idx`` -> clipped indices of time series\n
+            - ``features_columns`` -> lagged time series feature table
+
     """
     # Convert data to lagged form
     lagged_dataframe = pd.DataFrame({'t_id': time_series})
@@ -704,15 +773,21 @@ def ts_to_table(idx, time_series: np.array, window_size: int, is_lag=False):
 
 
 def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, use_svd=False):
-    """ Method converts the matrix to sparse form
+    """Method converts the matrix to sparse form
 
-        :param features_columns: matrix to sparse
-        :param n_components_perc: initial approximation of percent of components to keep
-        :param use_svd: is there need to use SVD method for sparse or use naive method
+        Args:
+            features_columns: matrix to sparse
+            n_components_perc: initial approximation of percent of components to keep
+            use_svd: is there need to use :obj:`SVD` method for sparse or use naive method
 
-        :return components: reduced dimension matrix, its shape depends on the number of components which includes
-                            the threshold of explained variance gain
+        Returns:
+            reduced dimension matrix
+        
+        Notes: 
+            shape of returned matrix depends on the number of components which includes
+            the threshold of explained variance gain
         """
+
     if not n_components_perc:
         n_components_perc = 0.5
 
@@ -736,12 +811,14 @@ def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, us
 
 
 def _get_svd(features_columns: np.array, n_components: int):
-    """ Method converts the matrix to svd sparse form
+    """Method converts the matrix to svd sparse form
 
-    :param features_columns: matrix to sparse
-    :param n_components: number of components to keep
+    Args:
+        features_columns: matrix to sparse
+        n_components: number of components to keep
 
-    :return components: transformed sparse matrix
+    Returns:
+        transformed sparse matrix
     """
 
     svd = TruncatedSVD(n_components=n_components, n_iter=5, random_state=42)
@@ -751,19 +828,26 @@ def _get_svd(features_columns: np.array, n_components: int):
 
 
 def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_length: int):
-    """ Method convert time series to lagged form. Transformation applied
+    """Method convert time series to lagged form. Transformation applied
     only for generating target table (time series considering as multi-target
-    regression task).
+    regression task)
 
-    :param all_idx: all indices in data
-    :param idx: remaining indices after lagged feature table generation
-    :param features_columns: lagged feature table
-    :param target: source time series
-    :param forecast_length: forecast length
+    Args:
+        all_idx: all indices in data
+        idx: remaining indices after lagged feature table generation
+        features_columns: lagged feature table
+        target: source time series
+        forecast_length: forecast length
 
-    :return updated_idx: clipped indices of time series
-    :return updated_features: clipped lagged feature table
-    :return updated_target: lagged target table
+    Returns: 
+        ``updated_idx``, ``updated_features``, ``updated_target``
+
+        .. details:: more information:
+
+            - ``updated_idx`` -> clipped indices of time series
+            - ``updated_features`` -> clipped lagged feature table
+            - ``updated_target`` -> lagged target table
+
     """
     # Remove last repeated element
     idx = idx[: -1]
@@ -798,13 +882,24 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
 
 def transform_features_and_target_into_lagged(input_data: InputData, forecast_length: int,
                                               window_size: int):
-    """
-    Perform lagged transformation firstly on features and secondly on target array
+    """Perform lagged transformation firstly on features and secondly on target array
 
-    :param input_data: dataclass with features
-    :param forecast_length: forecast horizon
-    :param window_size: window size for features transformation
+    Args:
+        input_data: dataclass with features
+        forecast_length: forecast horizon
+        window_size: window size for features transformation
+
+    Returns: 
+        ``new_idx``, ``transformed_cols``, ``new_target``
+
+        .. details:: more information:
+
+            - ``new_idx`` -> 
+            - ``transformed_cols`` -> 
+            - ``new_target`` -> 
+
     """
+
     new_idx, transformed_cols = ts_to_table(idx=input_data.idx,
                                             time_series=input_data.features,
                                             window_size=window_size,

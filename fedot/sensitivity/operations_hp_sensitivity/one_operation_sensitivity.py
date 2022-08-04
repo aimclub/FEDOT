@@ -70,10 +70,8 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
 
     def sample(self, *args) -> Union[List[Pipeline], Pipeline]:
         """
-
-        :param args:
-        :return:
         """
+
         sample_size, node = args
         samples: List[np.array] = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
 

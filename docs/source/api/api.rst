@@ -1,10 +1,8 @@
 FEDOT API
 =========
 
-.. automodule:: fedot.api.main
+.. autoclass:: fedot.api.main.Fedot
    :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. toctree::
-   :glob:
+   :no-undoc-members:
+   :no-private-members:
+   :no-special-members:

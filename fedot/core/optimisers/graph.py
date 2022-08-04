@@ -29,10 +29,11 @@ def node_ops_adaptation(func: Callable) -> Callable:
 
 
 class OptNode:
-    """Class for node definition in optimization graph (:class:`~fedot.core.optimisers.graph.OptGraph`)
+    """Class for node definition in optimization graph :obj:`OptGraph`
 
-    :param content: content in node (name only or dict with name and params)
-    :param nodes_from: parent nodes in directed graph
+    Args:
+        content: content in node (name only or ``dict`` with name and params)
+        nodes_from: parent nodes in directed graph
     """
 
     def __init__(self, content: Union[str, dict],
@@ -57,41 +58,47 @@ class OptNode:
     def nodes_from(self) -> List['OptNode']:
         """Gets all parent nodes of this optimization graph node
 
-        :return: all the parent nodes
-        :rtype: List[:class:`~fedot.core.optimisers.graph.OptNode`]
+        Returns:
+            List['OptNode']: all the parent nodes
         """
+
         return self._nodes_from
 
     @nodes_from.setter
     def nodes_from(self, nodes: Optional[Iterable['OptNode']]):
         """Changes value of parent nodes of this optimization graph node
 
-        :param nodes: new sequence of parent nodes
-        :type nodes: Iterable[:class:`~fedot.core.optimisers.graph.OptNode`] | None
+        Args:
+            nodes: new sequence of parent nodes
         """
+
         self._nodes_from = UniqueList(nodes)
 
     @property
     def _node_adapter(self):
         """Creates node operator adapter class instance and returns it
 
-        :return: node operator adapter
-        :rtype: :class:`~fedot.core.optimisers.graph.NodeOperatorAdapter`
+        Returns: node operator adapter
         """
+
         return NodeOperatorAdapter()
 
     def __str__(self):
         """Returns string representation of the class
 
-        :return: stringified name of the optimization graph node
+        Returns:
+            stringified name of the optimization graph node
         """
+
         return str(self.content['name'])
 
     def __repr__(self):
         """Does the same as :meth:`__str__`
 
-        :return: stringified name of the optimization graph node
+        Returns:
+            stringified name of the optimization graph node
         """
+
         return self.__str__()
 
     @property
@@ -102,10 +109,13 @@ class OptNode:
     def ordered_subnodes_hierarchy(self, visited: Optional[List['OptNode']] = None) -> List['OptNode']:
         """Gets hierarchical subnodes representation of the graph starting from the bounded node
 
-        :param visited: already visited nodes not to be included to the resulting hierarchical list
+        Args:
+            visited: already visited nodes not to be included to the resulting hierarchical list
 
-        :return: hierarchical subnodes list starting from the bounded node
+        Returns:
+            List['OptNode']: hierarchical subnodes list starting from the bounded node
         """
+
         nodes = self._operator.ordered_subnodes_hierarchy(visited)
         return [self._node_adapter.adapt(node) for node in nodes]  # TODO: seems like not needed no more
 
@@ -118,7 +128,8 @@ class OptNode:
 class OptGraph:
     """Base class used for optimized structure
 
-    :param nodes: optimization graph nodes object(s)
+    Args:
+        nodes: optimization graph nodes object(s)
     """
 
     def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
@@ -143,25 +154,29 @@ class OptGraph:
     def _node_adapter(self):
         """Creates node operator adapter class instance and returns it
 
-        :return: new instance of :class:`~fedot.core.optimisers.graph.NodeOperatorAdapter`
+        Returns:
+            new instance of :obj:`NodeOperatorAdapter`
         """
+
         return NodeOperatorAdapter()
 
     @node_ops_adaptation
     def add_node(self, new_node: OptNode):
         """Adds new node to the OptGraph
 
-        :param new_node: new OptNode object
+        Args:
+            new_node: new :obj:`OptNode` object
         """
+
         self._operator.add_node(self._node_adapter.restore(new_node))
 
     @node_ops_adaptation
     def update_node(self, old_node: OptNode, new_node: OptNode):
-        """
-        Replace old_node with new one.
+        """Replace old_node with new one.
 
-        :param old_node: OptNode object to replace
-        :param new_node: OptNode object to replace
+        Args:
+            old_node: :obj:`OptNode` object to replace
+            new_node: :obj:`OptNode` object to replace
         """
 
         self._operator.update_node(self._node_adapter.restore(old_node),
@@ -169,68 +184,83 @@ class OptGraph:
 
     @node_ops_adaptation
     def delete_node(self, node: OptNode):
-        """
-        Delete chosen node redirecting all its parents to the child.
+        """Delete chosen node redirecting all its parents to the child.
 
-        :param node: OptNode object to delete
+        Args:
+            node: :obj:`OptNode` object to delete
         """
 
         self._operator.delete_node(self._node_adapter.restore(node))
 
     @node_ops_adaptation
     def update_subtree(self, old_subroot: OptNode, new_subroot: OptNode):
-        """
-        Replace the subtrees with old and new nodes as subroots
+        """Replace the subtrees with old and new nodes as subroots
 
-        :param old_subroot: OptNode object to replace
-        :param new_subroot: OptNode object to replace
+        Args:
+            old_subroot: :obj:`OptNode` object to replace
+            new_subroot: :obj:`OptNode` object to replace
         """
+
         self._operator.update_subtree(self._node_adapter.restore(old_subroot),
                                       self._node_adapter.restore(new_subroot))
 
     @node_ops_adaptation
     def delete_subtree(self, subroot: OptNode):
-        """
-        Delete the subtree with node as subroot.
+        """Delete the subtree with node as subroot.
 
-        :param subroot:
+        Args:
+            subroot:
         """
+
         self._operator.delete_subtree(self._node_adapter.restore(subroot))
 
     def distance_to_root_level(self, node: OptNode) -> int:
-        """ Returns distance to root level """
+        """Returns distance to root level
+        """
+
         return self._operator.distance_to_root_level(node=self._node_adapter.restore(node))
 
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
-        """ Returns all nodes from specified layer """
+        """Returns all nodes from specified layer
+        """
+
         return self._operator.nodes_from_layer(layer_number=layer_number)
 
     @node_ops_adaptation
     def node_children(self, node: OptNode) -> List[Optional[OptNode]]:
-        """ Returns all node's children """
+        """Returns all node's children
+        """
+
         return self._operator.node_children(node=self._node_adapter.restore(node))
 
     @node_ops_adaptation
     def connect_nodes(self, node_parent: OptNode, node_child: OptNode):
-        """ Add an edge from node_parent to node_child """
+        """Add an edge from node_parent to node_child
+        """
+
         self._operator.connect_nodes(parent=self._node_adapter.restore(node_parent),
                                      child=self._node_adapter.restore(node_child))
 
     @node_ops_adaptation
     def disconnect_nodes(self, node_parent: OptNode, node_child: OptNode,
                          clean_up_leftovers: bool = True):
-        """ Delete an edge from node_parent to node_child """
+        """Delete an edge from node_parent to node_child
+        """
+
         self._operator.disconnect_nodes(node_parent=self._node_adapter.restore(node_parent),
                                         node_child=self._node_adapter.restore(node_child),
                                         clean_up_leftovers=clean_up_leftovers)
 
     def get_nodes_degrees(self):
-        """ Nodes degree as the number of edges the node has:
-         k = k(in) + k(out) """
+        """Nodes degree as the number of edges the node has: ``k = k(in) + k(out)``
+        """
+
         return self._operator.get_nodes_degrees()
 
     def get_edges(self):
-        """ Returns all available edges in a given graph """
+        """Returns all available edges in a given graph
+        """
+
         return self._operator.get_edges()
 
     @copy_doc(Graph.show)
@@ -239,13 +269,15 @@ class OptGraph:
 
     @copy_doc(Graph.__eq__)
     def __eq__(self, other_graph: 'OptGraph') -> bool:
-        """
-        Compares this graph with the ``other_graph``
+        """Compares this graph with the ``other_graph``
 
-        :param other_graph: another graph
+        Args:
+            other_graph: another graph
 
-        :return: is it equal to ``other_graph`` in terms of the graphs
+        Returns:
+            is it equal to ``other_graph`` in terms of the graphs
         """
+
         return self._operator.is_graph_equal(other_graph)
 
     @copy_doc(GraphOperator.graph_description)

@@ -37,11 +37,12 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class EvaluationStrategy:
-    """
-    Base class to define the evaluation strategy of Operation object:
+    """Base class to define the evaluation strategy of Operation object:
     the certain sklearn or any other operation with fit/predict methods.
-    :param operation_type: str type of the operation defined in operation repository
-    :param dict params: hyperparameters to fit the operation with
+
+    Args:
+        operation_type: ``str`` of the operation defined in operation repository
+        params: hyperparameters to fit the operation with
     """
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -58,23 +59,29 @@ class EvaluationStrategy:
 
     @abstractmethod
     def fit(self, train_data: InputData):
-        """
-        Main method to train the operation with the data provided
-        :param InputData train_data: data used for operation training
-        :return:
+        """Main method to train the operation with the data provided
+        
+        Args:
+            train_data: data used for operation training
+        
+        Returns:
+
         """
         raise NotImplementedError()
 
     @abstractmethod
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
+        """Main method to predict the target data
+
+        Args:
+            trained_operation: trained operation object
+            predict_data: data to predict
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        
+        Returns: passed data with new predicted target
         """
-        Main method to predict the target data.
-        :param trained_operation: trained operation object
-        :param InputData predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return OutputData: passed data with new predicted target
-        """
+
         raise NotImplementedError()
 
     @abstractmethod
@@ -88,13 +95,14 @@ class EvaluationStrategy:
     @staticmethod
     def _convert_to_output(prediction, predict_data: InputData,
                            output_data_type: DataTypesEnum = DataTypesEnum.table) -> OutputData:
-        """ Method convert prediction into OutputData if it is not this type yet
+        """Method convert prediction into :obj:`OutputData` if it is not this type yet
 
-        :param prediction: output from model implementation
-        :param predict_data: InputData used for prediction
-        :param output_data_type: DataTypesEnum for output
+        Args:
+            prediction: output from model implementation
+            predict_data: :obj:`InputData` used for prediction
+            output_data_type: :obj:`DataTypesEnum` for output
 
-        :return : prediction as OutputData
+        Returns: prediction as :obj:`OutputData`
         """
 
         if type(prediction) is not OutputData:
@@ -113,13 +121,42 @@ class EvaluationStrategy:
 
 
 class SkLearnEvaluationStrategy(EvaluationStrategy):
-    """
-    This class defines the certain operation implementation for the sklearn operations
+    """This class defines the certain operation implementation for the sklearn operations
     defined in operation repository
-    :param str operation_type: str type of the operation defined in operation or
-    data operation repositories
-    :param dict params: hyperparameters to fit the operation with
+
+    Args:
+        operation_type: ``str`` of the operation defined in operation or
+            data operation repositories
+
+            .. details:: possible operations:
+
+                - ``xgbreg``-> XGBRegressor
+                - ``adareg``-> AdaBoostRegressor
+                - ``gbr``-> GradientBoostingRegressor
+                - ``dtreg``-> DecisionTreeRegressor
+                - ``treg``-> ExtraTreesRegressor
+                - ``rfr``-> RandomForestRegressor
+                - ``linear``-> SklearnLinReg
+                - ``ridge``-> SklearnRidgeReg
+                - ``lasso``-> SklearnLassoReg
+                - ``svr``-> SklearnSVR
+                - ``sgdr``-> SklearnSGD
+                - ``lgbmreg``-> LGBMRegressor
+                - ``catboostreg``-> CatBoostRegressor
+                - ``xgboost``-> XGBClassifier
+                - ``logit``-> SklearnLogReg
+                - ``bernb``-> SklearnBernoulliNB
+                - ``multinb``-> SklearnMultinomialNB
+                - ``dt``-> DecisionTreeClassifier
+                - ``rf``-> RandomForestClassifier
+                - ``mlp``-> MLPClassifier
+                - ``lgbm``-> LGBMClassifier
+                - ``catboost``-> CatBoostClassifier
+                - ``kmeans``-> SklearnKmeans
+
+        params: hyperparameters to fit the operation with
     """
+
     __operations_by_types = {
         'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
@@ -154,11 +191,15 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
+        """This method is used for operation training with the data provided
+
+        Args:
+            train_data: data used for operation training
+        
+        Returns:
+            trained Sklearn operation
         """
-        This method is used for operation training with the data provided
-        :param InputData train_data: data used for operation training
-        :return: trained Sklearn operation
-        """
+
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
         if self.params_for_fit:
@@ -185,12 +226,15 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
-        """
-        This method used for prediction of the target data.
-        :param trained_operation: operation object
-        :param predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return OutputData: passed data with new predicted target
+        """This method used for prediction of the target data
+
+        Args:
+            trained_operation: operation object
+            predict_data: data to predict
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        
+        Returns:
+            passed data with new predicted target
         """
         raise NotImplementedError()
 
@@ -234,13 +278,14 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
 
 def convert_to_multivariate_model(sklearn_model, train_data: InputData):
-    """
-    The function returns an iterator for multiple target for those models for
+    """The function returns an iterator for multiple target for those models for
     which such a function is not initially provided
 
-    :param sklearn_model: Sklearn model to train
-    :param train_data: data used for model training
-    :return : wrapped Sklearn model
+    Args:
+        sklearn_model: :obj:`Sklearn model` to train
+        train_data: data used for model training
+    Returns:
+        wrapped :obj:`Sklearn model`
     """
 
     if train_data.task.task_type == TaskTypesEnum.classification:

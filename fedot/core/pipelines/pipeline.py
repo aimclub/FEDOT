@@ -26,10 +26,10 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
 class Pipeline(Graph, Serializable):
-    """
-    Base class used for composite model structure definition
+    """Base class used for composite model structure definition
 
-    :param nodes: Node object(s)
+    Args:
+        nodes: :obj:`Node` object(s)
     """
 
     def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
@@ -42,11 +42,11 @@ class Pipeline(Graph, Serializable):
         self._operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
 
     def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
-        """
-        Method to update nodes type after performing some action on the pipeline
-            via GraphOperator, if any of them are of GraphNode type
+        """Method to update nodes type after performing some action on the pipeline
+        via :obj:`GraphOperator`, if any of them are of ``GraphNode`` type
 
-        :param nodes: Node object(s)
+        Args:
+            nodes: :obj:`Node` object(s)
         """
 
         if not nodes:
@@ -67,27 +67,32 @@ class Pipeline(Graph, Serializable):
                                      new_node=PrimaryNode(content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
-        """
-        [Obsolete] Method used for training the pipeline without using saved information
+        """[Obsolete] Method used for training the pipeline without using saved information
 
-        :param input_data: data used for operation training
+        Args:
+            input_data: data used for operation training
         """
+
         # Clean all saved states and fit all operations
         self.unfit(unfit_preprocessor=True)
         self.fit(input_data, use_fitted=False)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations: bool = False,
                              time: int = 3) -> OutputData:
-        """
-        Runs training process in all of the pipeline nodes starting with root with time limit.
-            Create TODO: unresolved sentence
+        """Runs training process in all of the pipeline nodes starting with root with time limit.
+        
+        Todo:
+            unresolved sentence
 
-        :param input_data: data used for operations training
-        :param use_fitted_operations: flag defining whether to use saved information about previous executions or not
-        :param time: time constraint for operations fitting process (in seconds)
+        Args:
+            input_data: data used for operations training
+            use_fitted_operations: flag defining whether to use saved information about previous executions or not
+            time: time constraint for operations fitting process (in seconds)
 
-        :return: values predicted on the provided ``input_data``
+        Returns: 
+            OutputData: values predicted on the provided ``input_data``
         """
+
         time = int(timedelta(minutes=time).total_seconds())
         process_state_dict = {}
         fitted_operations = []
@@ -106,16 +111,17 @@ class Pipeline(Graph, Serializable):
 
     def _fit(self, input_data: Optional[InputData] = None, use_fitted_operations: bool = False,
              process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
-        """
-        Runs training process in all of the pipeline nodes starting with root
+        """Runs training process in all of the pipeline nodes starting with root
 
-        :param input_data: data used for operation training
-        :param use_fitted_operations: flag defining whether to use saved information about previous executions or not
-        :param process_state_dict: dictionary used for saving required pipeline parameters
-            (which were changed inside the process) in case of operations fit time control (when process created)
-        :param fitted_operations: list used for saving fitted operations of pipeline nodes
+        Args:
+            input_data: data used for operation training
+            use_fitted_operations: flag defining whether to use saved information about previous executions or not
+            process_state_dict: dictionary used for saving required pipeline parameters
+                (which were changed inside the process) in case of operations fit time control (when process created)
+            fitted_operations: list used for saving fitted operations of pipeline nodes
 
-        :return: values predicted on the provided ``input_data`` or nothing in case of the time controlled call
+        Returns:
+            Optional[OutputData]: values predicted on the provided ``input_data`` or nothing in case of the time controlled call
         """
 
         with Timer() as t:
@@ -137,16 +143,18 @@ class Pipeline(Graph, Serializable):
     def fit(self, input_data: Union[InputData, MultiModalData], use_fitted: bool = False,
             time_constraint: Optional[timedelta] = None, n_jobs: int = 1,
             preprocessing_cache: Optional[PreprocessingCache] = None) -> OutputData:
-        """
-        Runs training process in all of the pipeline nodes starting with root
+        """Runs training process in all of the pipeline nodes starting with root
 
-        :param input_data: data used for operations training
-        :param use_fitted: flag defining whether to use saved information about previous fits or not
-        :param time_constraint: time constraint for operations fitting (in seconds)
-        :param n_jobs: number of threads for nodes fitting
+        Args:
+            input_data: data used for operations training
+            use_fitted: flag defining whether to use saved information about previous fits or not
+            time_constraint: time constraint for operations fitting (in seconds)
+            n_jobs: number of threads for nodes fitting
 
-        :return: values predicted on the provided ``input_data``
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
         """
+
         _replace_n_jobs_in_nodes(self, n_jobs)
 
         if use_fitted:
@@ -177,21 +185,28 @@ class Pipeline(Graph, Serializable):
 
     @property
     def is_fitted(self) -> bool:
-        """
-        Property showing whether pipeline is fitted
+        """Property showing whether pipeline is fitted
 
-        :return: flag showing if all of the pipeline nodes are fitted already
+        Returns:
+            flag showing if all of the pipeline nodes are fitted already
         """
+
         return all(node.fitted_operation is not None for node in self.nodes)
 
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
-        """
-        Removes fitted operations for chosen type of nodes.
+        """Removes fitted operations for chosen type of nodes.
 
-        :param mode: - 'all' (default) - All models will be unfitted
-                     - 'data_operations' - All data operations will be unfitted
-        :param unfit_preprocessor: should we unfit preprocessor
+        Args:
+            mode: the name of mode
+            
+                .. details:: possible ``mode`` options:
+
+                        - ``all`` -> (default) All models will be unfitted
+                        - ``data_operations`` -> All data operations will be unfitted
+
+            unfit_preprocessor: should we unfit preprocessor
         """
+
         for node in self.nodes:
             if mode == 'all' or (mode == 'data_operations' and isinstance(node.content['name'], DataOperation)):
                 node.unfit()
@@ -200,29 +215,34 @@ class Pipeline(Graph, Serializable):
             self.preprocessor = DataPreprocessor()
 
     def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
-        """
-        Tries to load pipeline nodes if ``cache`` is provided
+        """Tries to load pipeline nodes if ``cache`` is provided
 
-        :param cache: pipeline nodes cacher
-        :param fold_num: optional part of the cache item UID
-                            (can be used to specify the number of CV fold)
+        Args:
+            cache: pipeline nodes cacher
+            fold_num: optional part of the cache item UID
+               (can be used to specify the number of CV fold)
 
-        :return: bool indicating if at least one node was loaded
+        Returns:
+            bool: indicating if at least one node was loaded
         """
+
         return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
-        """
-        Runs the predict process in all of the pipeline nodes starting with root
+        """Runs the predict process in all of the pipeline nodes starting with root
 
-        :param input_data: data for prediction
-        :param output_mode: desired form of output for operations. Available options are:
-                - 'default' (as is, default)
-                - 'labels' (numbers of classes - for classification)
-                - 'probs' (probabilities - for classification == 'default')
-                - 'full_probs' (return all probabilities - for binary classification)
+        input_data: data for prediction
+        output_mode: desired form of output for operations
+                  
+            .. details:: possible ``output_mode`` options:
 
-        :return: values predicted on the provided ``input_data``
+                - ``default`` -> (as is, default)
+                - ``labels`` -> (numbers of classes - for classification)
+                - ``probs`` -> (probabilities - for classification == default)
+                - ``full_probs`` -> (return all probabilities - for binary classification)
+
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
         """
 
         if not self.is_fitted:
@@ -254,21 +274,23 @@ class Pipeline(Graph, Serializable):
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations: int = 50, timeout: Optional[float] = 5.,
                             cv_folds: Optional[int] = None, validation_blocks: int = 3) -> 'Pipeline':
-        """
-        Tunes all nodes hyperparameters simultaneously via black-box
-            optimization using PipelineTuner. For details, see
-                :meth:`~fedot.core.pipelines.tuning.unified.PipelineTuner.tune_pipeline`
+        """Tunes all nodes hyperparameters simultaneously via black-box
+        optimization using ``PipelineTuner``.\n
+        For details, see :obj:`PipelineTuner.tune_pipeline`
 
-        :param loss_function: desired loss function
-        :param loss_params: ``loss_function`` parameters
-        :param input_data: data from which to tune the pipeline upon
-        :param iterations: max number of tuning iterations
-        :param timeout: max time spent on tuning
-        :param cv_folds: number of cross-validation folds
-        :param validation_blocks: number of validation blocks for time series forecasting
+        Args:
+            loss_function: desired loss function
+            loss_params: ``loss_function`` parameters
+            input_data: data from which to tune the pipeline upon
+            iterations: max number of tuning iterations
+            timeout: max time spent on tuning
+            cv_folds: number of cross-validation folds
+            validation_blocks: number of validation blocks for time series forecasting
 
-        :return: pipeline with tuned hyperparameters
+        Returns:
+            Pipeline: pipeline with tuned hyperparameters
         """
+
         # Make copy of the input data to avoid performing inplace operations
         copied_input_data = deepcopy(input_data)
 
@@ -289,46 +311,52 @@ class Pipeline(Graph, Serializable):
         return tuned_pipeline
 
     def save(self, path: Optional[str] = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
-        """
-        Saves the pipeline to JSON representation with pickled fitted operations
+        """Saves the pipeline to ``JSON`` representation with pickled fitted operations
 
-        :param path: custom path to save the JSON to
-        :param datetime_in_path: is it required to add the datetime timestamp to the path
+        Args:
+            path: custom path to save the JSON to
+            datetime_in_path: is it required to add the datetime timestamp to the path
 
-        :return: <JSON representation of the pipeline structure>, <dict of paths to fitted models>
+        Returns:
+            Tuple[str, dict]: :obj:`JSON representation of the pipeline structure`, :obj:`dict of paths to fitted models`
         """
+
         template = PipelineTemplate(self)
         json_object, dict_fitted_operations = template.export_pipeline(path, root_node=self.root_node,
                                                                        datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
 
     def load(self, source: Union[str, dict], dict_fitted_operations: Optional[dict] = None):
-        """
-        Loads the pipeline JSON representation with pickled fitted operations.
+        """Loads the pipeline ``JSON`` representation with pickled fitted operations.
 
-        :param source: where to load the pipeline from
-        :param dict_fitted_operations: dictionary of the fitted operations
+        Args:
+            source: where to load the pipeline from
+            dict_fitted_operations: dictionary of the fitted operations
         """
+
         self._nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other: 'Pipeline') -> bool:
-        """
-        Compares this pipeline with provided ``other``
+        """Compares this pipeline with provided ``other``
 
-        :param other: another pipeline
+        Args:
+            other: another pipeline
 
-        :return: is it equal to ``other`` in terms of the pipelines
+        Returns:
+            is it equal to ``other`` in terms of the pipelines
         """
+
         return self.root_node.descriptive_id == other.root_node.descriptive_id
 
     def __str__(self) -> str:
-        """
-        Returns compact information about class instance
+        """Returns compact information about class instance
 
-        :return: formatted string representation of the class instance
+        Returns:
+            formatted string representation of the class instance
         """
+
         description = {
             'depth': self.depth,
             'length': self.length,
@@ -338,10 +366,10 @@ class Pipeline(Graph, Serializable):
 
     @property
     def root_node(self) -> Optional[Node]:
-        """
-        Finds pipelines sink-node
+        """Finds pipelines sink-node
 
-        :return: the final predictor-node
+        Returns:
+            the final predictor-node
         """
         if not self.nodes:
             return None
@@ -352,12 +380,13 @@ class Pipeline(Graph, Serializable):
         return root[0]
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
-        """
-        Returns pipeline formed from the last node solving the given problem and all its parents
+        """Returns pipeline formed from the last node solving the given problem and all its parents
 
-        :param task_type: task type of the last node to search for
+        Args:
+            task_type: task type of the last node to search for
 
-        :return: pipeline formed from the last node solving the given problem and all of its parents
+        Returns:
+            pipeline formed from the last node solving the given problem and all of its parents
         """
 
         max_distance = 0
@@ -374,15 +403,16 @@ class Pipeline(Graph, Serializable):
         return pipeline
 
     def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
-        """
-        In case of provided ``input_data`` is of type :class:`~fedot.core.data.multi_modal.MultiModalData`
-            assigns :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data` from the ``input_data``
-        Does nothing otherwise
+        """In case of provided ``input_data`` is of type :class:`MultiModalData`
+        assigns :attr:`PrimaryNode.node_data` from the ``input_data``
 
-        :param input_data: data to assign to :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data`
+        Args:
+            input_data: data to assign to :attr:`PrimaryNode.node_data`
 
-        :return: None in case of :class:`~fedot.core.data.multi_modal.MultiModalData` and ``input_data`` otherwise
+        Returns:
+            ``None`` in case of :class:`MultiModalData` and ``input_data`` otherwise
         """
+
         if isinstance(input_data, MultiModalData):
             for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
                 if node.operation.operation_type in input_data:
@@ -394,7 +424,9 @@ class Pipeline(Graph, Serializable):
         return input_data
 
     def print_structure(self):
-        """ Prints structural information about the pipeline """
+        """ Prints structural information about the pipeline
+        """
+
         print(
             'Pipeline structure:',
             self,
@@ -404,13 +436,14 @@ class Pipeline(Graph, Serializable):
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
-    """
-    Returns list of nodes with the required ``operation_name``
+    """Returns list of nodes with the required ``operation_name``
 
-    :param pipeline: pipeline to process
-    :param operation_name: name of the operation to filter by
+    Args:
+        pipeline: pipeline to process
+        operation_name: name of the operation to filter by
 
-    :return: list of relevant nodes (empty if there are no such nodes)
+    Returns:
+        list: relevant nodes (empty if there are no such nodes)
     """
 
     # Check if model has decompose operations
@@ -420,12 +453,13 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
 
 
 def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
-    """
-    Changes number of jobs for nodes
+    """Changes number of jobs for nodes
 
-    :param pipeline: pipeline which nodes to update
-    :param n_jobs: required number of the jobs to assign to the nodes
+    Args:
+        pipeline: pipeline which nodes to update
+        n_jobs: required number of the jobs to assign to the nodes
     """
+
     for node in pipeline.nodes:
         for param in ['n_jobs', 'num_threads']:
             if param in node.content['params']:

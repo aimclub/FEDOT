@@ -19,15 +19,15 @@ except ImportError:
 
 
 class MemoryProfiler:
-    """
-    Visual interpretation of memory usage. Create two png files.
+    """Visual interpretation of memory usage. Create two ``png`` files.
 
-    :param function: function to profile.
-    :param path: path to save profiling result.
-    :param list args: arguments for function in array format.
-    :param dict kwargs: arguments for function in dictionary format.
-    :param list roots: array with FEDOT types each of them is ROOT node in call-graph.
-    :param int max_depth: maximum depth of graph.
+    Args:
+        function: function to profile.
+        path: path to save profiling result.
+        list args: arguments for function in array format.
+        dict kwargs: arguments for function in dictionary format.
+        list roots: array with FEDOT types each of them is ROOT node in call-graph.
+        int max_depth: maximum depth of graph.
     """
 
     def __init__(self, function, path: str, args=None, kwargs=None, roots=None, max_depth: int = 7):

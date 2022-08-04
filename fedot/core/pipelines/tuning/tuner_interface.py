@@ -26,11 +26,11 @@ class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
-    :param pipeline: pipeline to optimize
-    :param task: task (classification, regression, ts_forecasting, clustering)
-    :param iterations: max number of iterations
-    :param search_space: SearchSpace instance
-    :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
+    pipeline: pipeline to optimize
+    task: task (classification, regression, ts_forecasting, clustering)
+    iterations: max number of iterations
+    search_space: SearchSpace instance
+    algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
     def __init__(self, pipeline, task,
@@ -58,30 +58,34 @@ class HyperoptTuner(ABC):
     @abstractmethod
     def tune_pipeline(self, input_data, loss_function,
                       cv_folds: int = None, validation_blocks: int = None):
-        """
-        Function for hyperparameters tuning on the pipeline
+        """Function for hyperparameters tuning on the pipeline
 
-        :param input_data: data used for hyperparameter searching
-        :param loss_function: loss function to minimize (or maximize) during pipeline tuning,
-            such function should take InputData with true values as the first input and
-            OutputData with model prediction as the second
-        :param cv_folds: number of cross-validation folds
-        :param validation_blocks: number of validation blocks for time series forecasting
+        Args:
+            input_data: data used for hyperparameter searching
+            loss_function: loss function to minimize (or maximize) during pipeline tuning,
+                such function should take :obj:`InputData` with true values as the first input and
+                :obj:`OutputData` with model prediction as the second one
+            cv_folds: number of cross-validation folds
+            validation_blocks: number of validation blocks for time series forecasting
 
-        :return fitted_pipeline: pipeline with optimized hyperparameters
+        Returns:
+            Pipeline: pipeline with optimized hyperparameters
         """
+
         raise NotImplementedError()
 
     def get_metric_value(self, data, pipeline, loss_function):
-        """
-        Method calculates metric for algorithm validation
+        """Method calculates metric for algorithm validation
 
-        :param data: InputData for validation
-        :param pipeline: pipeline to validate
-        :param loss_function: function to minimize (or maximize)
+        Args:
+            data: :obj:`InputData` for validation
+            pipeline: :obj:`Pipeline` to validate
+            loss_function: function to minimize (or maximize)
 
-        :return: value of loss function
+        Returns:
+            value of loss function
         """
+
         try:
             if self.cv_folds is None:
                 metric_value = self._one_fold_validation(data, pipeline, loss_function)
@@ -95,12 +99,13 @@ class HyperoptTuner(ABC):
         return metric_value
 
     def init_check(self, data, loss_function) -> None:
-        """
-        Method get metric on validation set before start optimization
+        """Method get metric on validation set before start optimization
 
-        :param data: InputData for validation
-        :param loss_function: function to minimize (or maximize)
+        Args:
+            data: InputData for validation
+            loss_function: function to minimize (or maximize)
         """
+
         self.log.info('Hyperparameters optimization start')
 
         # Train pipeline
@@ -111,12 +116,12 @@ class HyperoptTuner(ABC):
                                                  loss_function=loss_function)
 
     def final_check(self, data, tuned_pipeline, loss_function):
-        """
-        Method propose final quality check after optimization process
+        """Method propose final quality check after optimization process
 
-        :param data: InputData for validation
-        :param tuned_pipeline: tuned pipeline
-        :param loss_function: function to minimize (or maximize)
+        Args:
+            data: :obj:`InputData` for validation
+            tuned_pipeline: tuned pipeline
+            loss_function: function to minimize (or maximize)
         """
 
         self.obtained_metric = self.get_metric_value(data=data,
@@ -167,7 +172,8 @@ class HyperoptTuner(ABC):
 
     @staticmethod
     def _one_fold_validation(data: InputData, pipeline, loss_function: Callable):
-        """ Perform simple (hold-out) validation """
+        """Perform simple (hold-out) validation
+        """
 
         if data.task.task_type is TaskTypesEnum.classification:
             predict_input, predicted_output = fit_predict_one_fold(data, pipeline)
@@ -179,7 +185,8 @@ class HyperoptTuner(ABC):
         return metric_value
 
     def _cross_validation(self, data, pipeline, loss_function: Callable):
-        """ Perform cross validation for metric evaluation """
+        """Perform cross validation for metric evaluation
+        """
 
         if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
                 data.data_type is DataTypesEnum.image:
@@ -206,13 +213,16 @@ class HyperoptTuner(ABC):
 
 
 def _create_multi_target_prediction(output_data: OutputData):
-    """ Function creates an array of shape (target len, num classes)
+    """Function creates an array of shape (target len, num classes)
     with classes probabilities from target values
 
-    :param output_data: output_data for define what problem is solving (max or min)
+    Args:
+        output_data: define what problem is solving (max or min)
 
-    :return: 2d-array of classes probabilities
+    Returns:
+        :obj:`2d-array`: classes probability
     """
+
     target = output_data.predict
     nb_classes = len(np.unique(target))
 
@@ -223,11 +233,13 @@ def _create_multi_target_prediction(output_data: OutputData):
 
 
 def _greater_is_better(loss_function) -> bool:
-    """ Function checks is metric (loss function) need to be minimized or maximized
+    """Function checks is metric (loss function) need to be minimized or maximized
 
-    :param loss_function: loss function
+    Args:
+        loss_function: loss function
 
-    :return: bool value is it good to maximize metric or not
+    Returns:
+        bool: value is it good to maximize metric or not
     """
 
     ground_truth = InputData(target=np.array([[0], [1]]), features=[[1], [1]], data_type=DataTypesEnum.table,

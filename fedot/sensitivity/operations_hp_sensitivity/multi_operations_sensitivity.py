@@ -18,16 +18,16 @@ from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams, Sen
 
 
 class MultiOperationsHPAnalyze:
-    """Provides with analysis of all the :class:`~fedot.core.pipelines.pipeline.Pipeline`'s operations hyperparameters
-        using sample and analyze methods from SALib.
+    """Provides with analysis of all the :class:`Pipeline`'s operations hyperparameters
+    using sample and analyze methods from ``SALib``
 
-    :param pipeline: pipeline object to analyze
-    :param train_data: data used for Pipeline training
-    :param test_data: data used for Pipeline validation
-    :param requirements: extra requirements to define specific details for different approaches.
-        See :class:`~fedot.sensitivity.sa_requirements.SensitivityAnalysisRequirements` class documentation.
-    :param path_to_save: path to save results to. Default: `~home/Fedot/sensitivity/`
-        Default: False
+    Args:
+        pipeline: :obj:`Pipeline` object to analyze
+        train_data: data used for :obj:`Pipeline` training
+        test_data: data used for :obj:`Pipeline` validation
+        requirements: extra requirements to define specific details for different approaches.
+            See :class:`SensitivityAnalysisRequirements` class documentation.
+        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity/``
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -49,11 +49,13 @@ class MultiOperationsHPAnalyze:
         self.log = default_log(self)
 
     def analyze(self) -> dict:
-        """
-        Analyze all the hyperparameters af all Pipeline operations using SA methods.
+        """Analyze all the hyperparameters af all :obj:`Pipeline` operations using ``SA`` methods.\n
         Default: Sobol method with Saltelli sample algorithm
-        :return: Main and total Sobol indices for every parameter per node.
+
+        Returns: 
+            dict: ``Main`` and total ``Sobol`` indices for every parameter per node
         """
+
         if not self._pipeline.is_fitted:
             self._pipeline.fit(self._train_data)
 
@@ -76,12 +78,14 @@ class MultiOperationsHPAnalyze:
         return converted_to_json_indices
 
     def sample(self, *args) -> Union[List[Pipeline], Pipeline]:
-        """
-        Makes hyperparameters samples
+        """Makes hyperparameters samples
 
-        :param args: i.e. sample_size
-        :return List[Pipeline]: List of Pipelines with new sampled hyperparameters
+        Args:
+            args: i.e. ``sample_size``
+        Returns:
+            List[Pipeline]: new sampled hyperparameters
         """
+
         sample_size = args[0]
         samples = self.sample_method(self.problem.dictionary, num_of_samples=sample_size)
         converted_samples: List[List[dict]] = self.problem.convert_sample_to_dict(samples)
