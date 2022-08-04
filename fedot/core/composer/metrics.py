@@ -57,17 +57,17 @@ class QualityMetric:
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int = None) -> float:
         metric = cls.default_value
-
-        if validation_blocks is None:
-            # Time series or regression classical hold-out validation
-            results, reference_data = cls._simple_prediction(pipeline, reference_data)
-        else:
-            # Perform time series in-sample validation
-            reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
-        metric = cls.metric(reference_data, results)
-        # except Exception as ex:
-        #     # TODO: use log instead of stdout
-        #     print(f'Metric evaluation error: {ex}')
+        try:
+            if validation_blocks is None:
+                # Time series or regression classical hold-out validation
+                results, reference_data = cls._simple_prediction(pipeline, reference_data)
+            else:
+                # Perform time series in-sample validation
+                reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
+            metric = cls.metric(reference_data, results)
+        except Exception as ex:
+            # TODO: use log instead of stdout
+            print(f'Metric evaluation error: {ex}')
 
         return metric
 
@@ -120,18 +120,12 @@ class QualityMetric:
     def _in_sample_prediction(pipeline, data, validation_blocks):
         """ Performs in-sample pipeline validation for time series prediction """
 
-        # Get number of validation blocks per each fold
-        horizon = int(data.task.task_params.forecast_length * validation_blocks)
+        actual_values = data.target
+        horizon = len(actual_values)
 
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,
                                                  horizon=horizon)
-
-        # Clip actual data by the forecast horizon length
-        if isinstance(data, MultiModalData):
-            actual_values = data.target[-horizon:]
-        else:
-            actual_values = data.features[-horizon:]
 
         # Wrap target and prediction arrays into OutputData and InputData
         results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,

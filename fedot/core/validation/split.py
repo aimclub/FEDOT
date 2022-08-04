@@ -136,6 +136,7 @@ def ts_cv_generator(data: InputData, folds: int,
     except ValueError:
         log.info(f'Time series length too small for cross validation with {folds} folds. Perform one fold validation')
         # Perform one fold validation (folds parameter will be ignored)
+
         one_fold_split = OneFoldInputDataSplit()
         for train_data, test_data in one_fold_split.input_split(data):
             yield train_data, test_data
