@@ -1,5 +1,5 @@
-Tutorials on how to start using FEDOT
-=====================================
+Tutorials
+=========
 
 .. toctree::
    :maxdepth: 1

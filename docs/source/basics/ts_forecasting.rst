@@ -1,2 +1,2 @@
-Timer Series Forecasting
-========================
+Time Series Forecasting
+=======================

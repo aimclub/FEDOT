@@ -1,5 +1,8 @@
-Classes
+Modules
 =======
+
+.. image:: unknown.png
+  :alt: Code structure
 
 .. toctree::
    :glob:
