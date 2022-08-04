@@ -1,13 +1,11 @@
-from typing import Any, Dict, Type, TYPE_CHECKING
+from typing import Any, Dict, Type
 
-from . import any_from_json
 from fedot.core.optimisers.fitness import SingleObjFitness
+from fedot.core.optimisers.gp_comp.individual import Individual
+from . import any_from_json
 
-if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.individual import Individual
 
-
-def individual_from_json(cls: Type['Individual'], json_obj: Dict[str, Any]) -> 'Individual':
+def individual_from_json(cls: Type[Individual], json_obj: Dict[str, Any]) -> Individual:
     deserialized = any_from_json(cls, json_obj)
     if isinstance(deserialized.fitness, float):  # legacy histories support
         object.__setattr__(deserialized, 'fitness', SingleObjFitness(deserialized.fitness))

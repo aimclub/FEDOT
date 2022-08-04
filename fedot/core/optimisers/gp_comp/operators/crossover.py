@@ -2,7 +2,7 @@ from copy import deepcopy
 from random import choice, random
 from typing import Callable, List, Union, Iterable, Tuple
 
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator

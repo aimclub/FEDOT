@@ -4,7 +4,7 @@ from typing import Optional
 from .parameter import AdaptiveParameter
 from fedot.core.utilities.data_structures import BidirectionalIterator
 from fedot.core.utilities.sequence_iterator import fibonacci_sequence, SequenceIterator
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from ..pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive.generation_keeper import ImprovementWatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT

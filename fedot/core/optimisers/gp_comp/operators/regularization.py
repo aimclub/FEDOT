@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
 from fedot.core.optimisers.graph import OptGraph, OptNode

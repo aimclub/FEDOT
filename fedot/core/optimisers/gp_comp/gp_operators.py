@@ -2,10 +2,10 @@ from copy import deepcopy
 from random import randint
 from typing import Any, List, Optional, Tuple
 
-from fedot.core.composer.composer import ComposerRequirements
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 
 
 def random_graph(graph_generation_params: GraphGenerationParams,

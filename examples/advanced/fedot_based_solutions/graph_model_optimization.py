@@ -5,7 +5,6 @@ import random
 import numpy as np
 import pandas as pd
 
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
@@ -13,6 +12,7 @@ from fedot.core.optimisers.gp_comp.gp_optimizer import (
     GeneticSchemeTypesEnum,
     GPGraphOptimizerParameters
 )
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.graph import OptGraph, OptNode

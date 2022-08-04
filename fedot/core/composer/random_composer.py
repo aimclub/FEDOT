@@ -4,11 +4,12 @@ from typing import (Any, Callable, List, Optional, Sequence)
 
 from numpy import random
 
-from fedot.core.composer.composer import ComposerRequirements, Composer
+from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Node, Pipeline
 

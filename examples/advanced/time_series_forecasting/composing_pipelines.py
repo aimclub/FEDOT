@@ -8,11 +8,11 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum

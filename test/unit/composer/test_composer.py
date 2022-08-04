@@ -10,14 +10,15 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from fedot.api.main import Fedot
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
-from fedot.core.composer.composer import ComposerRequirements
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import GPComposer, PipelineComposerRequirements
+from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimizer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements, \
+    MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.objective import Objective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

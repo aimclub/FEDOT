@@ -1,6 +1,6 @@
 from random import shuffle
 
-from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
