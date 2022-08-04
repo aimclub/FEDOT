@@ -26,7 +26,7 @@ try:
 
     from PIL import Image
 except ModuleNotFoundError:
-    warn_requirement('PIL')
+    warn_requirement('Pillow')
     PIL = None
 
 from fedot.core.log import default_log
