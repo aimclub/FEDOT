@@ -47,7 +47,8 @@ class GraphOperator:
         """Deletes given node with all the parents it has, making deletion of the subtree.
         Deletes all edges from removed nodes to remaining graph nodes
 
-        :param subtree: node to be deleted with all of its parents and their connections amongst the remaining graph nodes
+        :param subtree: node to be deleted with all of its parents
+            and their connections amongst the remaining graph nodes
         """
         subtree_nodes = subtree.ordered_subnodes_hierarchy()
         self._graph._nodes = remove_items(self._graph.nodes, subtree_nodes)

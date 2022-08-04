@@ -29,8 +29,8 @@ class NodeOperator:
         else:
             return 1 + max(next_node.distance_to_primary_level for next_node in self._node.nodes_from)
 
-    def ordered_subnodes_hierarchy(self, visited: Optional[Union[List['GraphNode'], List['OptNode']]] = None) -> Union[
-        List['GraphNode'], List['OptNode']]:
+    def ordered_subnodes_hierarchy(self, visited: Optional[Union[List['GraphNode'], List['OptNode']]] = None) \
+            -> Union[List['GraphNode'], List['OptNode']]:
         """
         Gets hierarchical subnodes representation of the graph starting from the bounded node
 

@@ -446,8 +446,8 @@ class SecondaryNode(Node):
         return None
 
 
-def _combine_parents(parent_nodes: List[Node], input_data: Optional[InputData], parent_operation: str) -> Tuple[
-    List[OutputData], np.array]:
+def _combine_parents(parent_nodes: List[Node],
+                     input_data: Optional[InputData], parent_operation: str) -> Tuple[List[OutputData], np.array]:
     """Сombines predictions from the ``parent_nodes``
 
     :param parent_nodes: list of parent nodes, from which predictions will be combined

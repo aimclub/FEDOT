@@ -25,8 +25,8 @@ class Graph:
             for node in ensure_wrapped_in_sequence(nodes):
                 self.add_node(node)
 
-    def _empty_postproc(self, nodes: Optional[
-        List['GraphNode']] = None):  # TODO: maybe it should return nodes as is instead?
+    def _empty_postproc(self,
+                        nodes: Optional[List['GraphNode']] = None):  # TODO: maybe it should return nodes as is instead?
         """Doesn't do any postprocessing to the provided ``nodes``
 
         :param nodes: not obligatory
