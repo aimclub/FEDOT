@@ -28,9 +28,9 @@ def get_bad_config_file():
         return file
 
 
-def clear_singleton_class(klass=Log):
-    if klass in SingletonMeta._instances:
-        del SingletonMeta._instances[klass]
+def clear_singleton_class(cls=Log):
+    if cls in SingletonMeta._instances:
+        del SingletonMeta._instances[cls]
 
 
 @pytest.fixture(autouse=True)
