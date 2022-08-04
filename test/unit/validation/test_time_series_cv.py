@@ -1,6 +1,8 @@
 import datetime
 import logging
 
+import numpy as np
+import pytest
 from sklearn.metrics import mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
@@ -92,19 +94,21 @@ def test_tuner_cv_correct():
     assert is_tune_succeeded
 
 
-def test_cv_ts_predictions_correct():
-    for folds in range(2, 4):
-        forecast_len, validation_blocks, time_series = configure_experiment()
+@pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
+def test_cv_ts_predictions_correct(folds, actual_value):
 
-        simple_pipeline = get_simple_ts_pipeline()
-        metric_value = cv_time_series_predictions(reference_data=time_series,
-                                                  pipeline=simple_pipeline,
-                                                  log=log,
-                                                  cv_folds=folds,
-                                                  validation_blocks=validation_blocks,
-                                                  loss_function=MSE.metric)
-        assert metric_value
-        assert metric_value > 0
+    forecast_len, validation_blocks, time_series = configure_experiment()
+
+    simple_pipeline = get_simple_ts_pipeline()
+    metric_value = cv_time_series_predictions(reference_data=time_series,
+                                              pipeline=simple_pipeline,
+                                              log=log,
+                                              cv_folds=folds,
+                                              validation_blocks=validation_blocks,
+                                              loss_function=MSE.metric)
+    assert metric_value
+    assert metric_value > 0
+    assert np.isclose(metric_value, actual_value)
 
 
 def test_composer_cv_correct():
