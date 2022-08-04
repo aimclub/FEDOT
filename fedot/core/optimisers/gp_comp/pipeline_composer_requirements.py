@@ -42,5 +42,3 @@ class PipelineComposerRequirements(ComposerRequirements):
     n_jobs: int = 1
     collect_intermediate_metric: bool = False
     keep_n_best: int = 1
-
-
