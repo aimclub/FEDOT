@@ -65,6 +65,9 @@ class QualityMetric:
             # Perform time series in-sample validation
             reference_data, results = cls._in_sample_prediction(pipeline, reference_data, validation_blocks)
         metric = cls.metric(reference_data, results)
+        # except Exception as ex:
+        #     # TODO: use log instead of stdout
+        #     print(f'Metric evaluation error: {ex}')
 
         return metric
 

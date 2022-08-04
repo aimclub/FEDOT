@@ -55,8 +55,7 @@
     "use_svd": false
   },
   "ar": {
-    "lag_1": 7,
-    "lag_2": 12
+    "lag": 7
   },
   "arima": {
     "p": 2,

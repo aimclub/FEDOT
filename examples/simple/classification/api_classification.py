@@ -1,34 +1,5 @@
-import os
-from pathlib import Path
-
-import numpy as np
-import pandas as pd
-
 from fedot.api.main import Fedot
-from fedot.core.data.data import InputData
-from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
-
-
-def get_data_from_csv(data_path: Path, task_type: TaskTypesEnum, shuffle_flag: bool = True):
-    data_frame = pd.read_csv(data_path)
-    dataset_name = os.path.split(data_path)[-1]
-    if dataset_name in ['sylvine.csv', 'jasmine.csv', 'volkert.csv']:
-        targets = data_frame[data_frame.columns[0]].values
-        features = data_frame.drop([f'{data_frame.columns[0]}'], axis=1).values
-    else:
-        targets = data_frame[data_frame.columns[-1]].values
-        features = data_frame.drop([f'{data_frame.columns[-1]}'], axis=1).values
-
-    data = InputData(features=features, target=targets, idx=np.arange(0, len(targets)),
-                     task=Task(task_type),
-                     data_type=DataTypesEnum.table
-                     )
-    train_data, test_data = train_test_data_setup(data, split_ratio=0.7, shuffle_flag=shuffle_flag)
-
-    return train_data, test_data
 
 
 def run_classification_example(timeout: float = None):

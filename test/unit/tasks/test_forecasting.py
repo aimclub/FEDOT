@@ -111,7 +111,7 @@ def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
 
 def get_statsmodels_pipeline():
     node_ar = PrimaryNode('ar')
-    node_ar.custom_params = {'lag_1': 20, 'lag_2': 100}
+    node_ar.custom_params = {'lag': 20}
     pipeline = Pipeline(node_ar)
     return pipeline
 
@@ -183,14 +183,13 @@ def test_simple_pipeline_forecast_correct():
 
 def test_ar_do_correct_lags():
     train_data, test_data = get_ts_data(n_steps=80)
-    ar = AutoRegImplementation(lag_1=20, lag_2=100)
-    params, _ = ar.get_params()
+    ar = AutoRegImplementation(lag=70)
+    params = ar.get_params()
     old_params = deepcopy(params)
     ar.fit(train_data)
     new_params, changed_params = ar.get_params()
-    for lag in old_params:
-        assert lag in changed_params
-        assert old_params[lag] != new_params[lag]
+    assert 'lag' in changed_params
+    assert old_params['lag'] != new_params['lag']
 
 
 def test_regression_multiscale_pipeline_forecast_correct():

@@ -138,8 +138,7 @@ def get_not_default_search_space():
             'max_depth': (hp.choice, [[-1]])
         },
         'ar': {
-            'lag_1': (hp.uniform, [2, 100]),
-            'lag_2': (hp.uniform, [2, 500])
+            'lag': (hp.uniform, [2, 500])
         },
         'pca': {
             'n_components': (hp.uniform, [0.2, 0.8])
@@ -376,9 +375,10 @@ def test_certain_node_tuner_with_custom_search_space(data_fixture, pipelines, lo
     assert is_tuning_finished
 
 
-def test_ts_pipeline_with_stats_model():
+@pytest.mark.parametrize('n_steps', [100, 133, 217, 300])
+def test_ts_pipeline_with_stats_model(n_steps):
     """ Tests PipelineTuner for time series forecasting task with AR model """
-    train_data, test_data = get_ts_data(n_steps=400, forecast_length=5)
+    train_data, test_data = get_ts_data(n_steps=n_steps, forecast_length=5)
 
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 

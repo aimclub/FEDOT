@@ -49,13 +49,13 @@ class LaggedImplementation(DataOperationImplementation):
         old_idx = new_input_data.idx
 
         # Correct window size parameter
-        self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
-                                                                                   self.window_size,
-                                                                                   forecast_length,
-                                                                                   self.window_size_minimum,
-                                                                                   self.log)
 
         if is_fit_pipeline_stage:
+            self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
+                                                                                       self.window_size,
+                                                                                       forecast_length,
+                                                                                       self.window_size_minimum,
+                                                                                       self.log)
             # Transformation for fit stage of the pipeline
             target = np.array(new_input_data.target)
             features = np.array(new_input_data.features)
@@ -648,12 +648,11 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
 
     # Maximum threshold
     removing_len = window_size + forecast_length
-    if removing_len > len(time_series):
+    if window_size > len(time_series) // 2 - 1:
         previous_size = window_size
-        # At least 10 objects we need for training, so minus 10
-        window_size = len(time_series) - forecast_length - 10
+        window_size = len(time_series) // 2 - 1
 
-        log.info(f"{prefix} from {previous_size} to {window_size}")
+        log.info(f"{prefix} from {previous_size} to {window_size}.")
         was_changed = True
 
     # Minimum threshold

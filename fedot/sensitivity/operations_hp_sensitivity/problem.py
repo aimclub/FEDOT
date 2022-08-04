@@ -20,7 +20,7 @@ class Problem:
 
     INTEGER_PARAMS = ['n_estimators', 'n_neighbors', 'p', 'min_child_weight', 'max_depth', 'n_clusters',
                       'min_samples_split', 'min_samples_leaf', 'd',
-                      'q', 'lag_1', 'lag_2', 'max_trials', 'max_skips',
+                      'q', 'lag', 'max_trials', 'max_skips',
                       'degree', 'window_size', 'sigma']
 
     def __init__(self, operation_types: Union[List[str], str]):
