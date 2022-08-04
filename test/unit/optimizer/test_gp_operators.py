@@ -3,6 +3,7 @@ from pathlib import Path
 
 import numpy as np
 
+from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
