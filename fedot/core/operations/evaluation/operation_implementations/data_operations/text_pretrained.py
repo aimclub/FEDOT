@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 
 import numpy as np
@@ -6,9 +7,15 @@ from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
-import os
-import gensim.downloader as api
-from gensim.models import KeyedVectors
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    import gensim.downloader as api
+    from gensim.models import KeyedVectors
+except ModuleNotFoundError:
+    warn_requirement('gensim')
+    api = None
+    KeyedVectors = None
 
 
 class PretrainedEmbeddingsImplementation(DataOperationImplementation):
