@@ -1,4 +1,5 @@
 import csv
+import io
 import itertools
 import json
 import os
@@ -241,7 +242,7 @@ class OptHistory:
                 return Path(default_fedot_data_dir(), self.save_folder)
         return None
 
-    def print_leaderboard(self, top_n: int = 10):
+    def get_leaderboard(self, top_n: int = 10) -> str:
         """
         Prints ordered description of best solutions in history
         :param top_n: number of solutions to print
@@ -255,15 +256,17 @@ class OptHistory:
         top_individuals = sorted(individuals_with_positions,
                                  key=lambda pos_ind: pos_ind[0].fitness, reverse=True)[:top_n]
 
+        output = io.StringIO()
         separator = ' | '
-        print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
+        header = separator.join(['Position', 'Fitness', 'Generation', 'Pipeline'])
+        print(header, file=output)
         for ind_num, ind_with_position in enumerate(top_individuals):
             individual, gen_num, ind_num = ind_with_position
             positional_id = f'g{gen_num}-i{ind_num}'
             print(separator.join([f'{ind_num:>3}, '
                                   f'{str(individual.fitness):>8}, '
                                   f'{positional_id:>8}, '
-                                  f'{individual.graph.descriptive_id}']))
+                                  f'{individual.graph.descriptive_id}']), file=output)
 
         # add info about initial assumptions (stored as zero generation)
         for i, individual in enumerate(self.individuals[0]):
@@ -271,7 +274,8 @@ class OptHistory:
             print(separator.join([f'{ind:>3}'
                                   f'{str(individual.fitness):>8}',
                                   f'-',
-                                  f'{individual.graph.descriptive_id}']))
+                                  f'{individual.graph.descriptive_id}']), file=output)
+        return output.getvalue()
 
 
 def log_to_history(history: OptHistory, population: PopulationT, generations: GenerationKeeper):
