@@ -1,7 +1,9 @@
 import datetime
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -25,9 +27,10 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
-from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
@@ -447,6 +450,34 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     pipeline.fit(data_train)
     result = pipeline.predict(data_test)
     assert result is not None
+
+
+@pytest.mark.parametrize('pipeline, requirements, params',
+                         [(PipelineBuilder().add_node('scaling').add_node('rf').to_pipeline(),
+                           PipelineComposerRequirements(
+                               primary=get_operations_for_task(Task(TaskTypesEnum.classification)),
+                               secondary=get_operations_for_task(Task(TaskTypesEnum.classification)), mutation_prob=1,
+                               max_depth=2),
+                           get_pipeline_generation_params(
+                               rules_for_constraint=DEFAULT_DAG_RULES,
+                               task=Task(TaskTypesEnum.classification))
+                           ),
+                          (PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline(),
+                           PipelineComposerRequirements(
+                               primary=get_operations_for_task(Task(TaskTypesEnum.ts_forecasting)),
+                               secondary=get_operations_for_task(Task(TaskTypesEnum.ts_forecasting)), mutation_prob=1,
+                               max_depth=2),
+                           get_pipeline_generation_params(
+                               rules_for_constraint=DEFAULT_DAG_RULES,
+                               task=Task(TaskTypesEnum.ts_forecasting))
+                           )
+                          ])
+def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: PipelineComposerRequirements,
+                                            params: GraphGenerationParams):
+    new_pipeline = deepcopy(pipeline)
+    new_pipeline = boosting_mutation(new_pipeline, requirements, params)
+    assert new_pipeline.descriptive_id != pipeline.descriptive_id
+    assert 'class_decompose' in new_pipeline.descriptive_id or 'decompose' in new_pipeline.descriptive_id
 
 
 def test_pipeline_adapters_params_correct():

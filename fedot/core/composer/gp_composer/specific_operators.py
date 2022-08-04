@@ -64,8 +64,6 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
         boosting_model_candidates, _ = \
             OperationTypesRepository('model').suitable_operation(
                 task_type=TaskTypesEnum.regression, forbidden_tags=['non_lagged'])
-        boosting_model_candidates = [operation for operation in boosting_model_candidates
-                                     if operation in requirements.secondary]
         if not boosting_model_candidates:
             return pipeline
 
@@ -84,15 +82,6 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
     node_decompose = SecondaryNode(decompose_operation, nodes_from=decompose_parents)
 
     node_boost = SecondaryNode(new_model, nodes_from=[node_decompose])
-
-    # Check if all nodes in the boosting pipeline can be used according to available_operations
-    available_operations = list(set(requirements.primary + requirements.secondary))
-    if task_type == TaskTypesEnum.ts_forecasting:
-        available_operations.append('lagged')
-
-    for node in node_boost.ordered_subnodes_hierarchy():
-        if str(node.content['name']) not in available_operations:
-            return pipeline
 
     node_final = SecondaryNode(choice(requirements.secondary),
                                nodes_from=[existing_pipeline.root_node, node_boost])
