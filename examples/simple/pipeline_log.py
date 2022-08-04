@@ -22,8 +22,6 @@ def run_log_example(log_file):
     log.info('start fitting pipeline')
     pipeline.fit(train_data, use_fitted=False)
 
-    # release_log(logger=log)
-
 
 if __name__ == '__main__':
     run_log_example(log_file='example_log.log')

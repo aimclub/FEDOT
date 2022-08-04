@@ -37,7 +37,7 @@ class Log(metaclass=SingletonMeta):
                                        logging_level=output_logging_level,
                                        write_logs=write_logs)
 
-    def get_adapter(self, prefix: str, logging_level: int) -> 'LoggerAdapter':
+    def get_adapter(self, prefix: str, logging_level: int = logging.INFO) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
         :param prefix: prefix to log messages with this adapter. Usually this prefix is the name of the class
         where the log came from
@@ -112,7 +112,7 @@ class LoggerAdapter(logging.LoggerAdapter):
     """ This class looks like logger but used to pass contextual information
     to the output along with logging event information """
 
-    def __init__(self, logger, extra, logging_level: int = None):
+    def __init__(self, logger: logging.Logger, extra: dict, logging_level: int = None):
         super().__init__(logger=logger, extra=extra)
         self.setLevel(logging_level or logger.level)
         self.logging_level = logging_level or logger.level
