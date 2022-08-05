@@ -322,14 +322,14 @@ class PipelineEvolutionVisualiser:
         for file in files:
             remove(file)
 
-    def __show_or_save_figure(self, figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
+    def __show_or_save_figure(self, figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 300):
         if not save_path:
             plt.show()
         else:
             save_path = Path(save_path)
             if not save_path.is_absolute():
                 save_path = Path.cwd().joinpath(save_path)
-            figure.savefig(save_path, dpi=300)
+            figure.savefig(save_path, dpi=dpi)
             self.log.info(f'The figure was saved to "{save_path}".')
             plt.close()
 
@@ -433,7 +433,7 @@ class PipelineEvolutionVisualiser:
         axis.grid(axis='y')
 
     def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
-                               save_path: Optional[Union[os.PathLike, str]] = None):
+                               save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
         ax = plt.gca()
         if per_time:
             xlabel = 'Time, s'
@@ -442,11 +442,11 @@ class PipelineEvolutionVisualiser:
             xlabel = 'Generation'
             self.__plot_fitness_line_per_generations(ax, history.individuals)
         self.__setup_fitness_plot(ax, xlabel)
-        self.__show_or_save_figure(plt.gcf(), save_path)
+        self.__show_or_save_figure(plt.gcf(), save_path, dpi)
 
     @with_alternate_matplotlib_backend
     def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
-                                           save_path: Optional[Union[os.PathLike, str]] = None):
+                                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
 
@@ -512,7 +512,7 @@ class PipelineEvolutionVisualiser:
             b_prev = Button(ax_prev, 'Previous')
             b_prev.on_clicked(callback.prev)
 
-        self.__show_or_save_figure(fig, save_path)
+        self.__show_or_save_figure(fig, save_path, dpi)
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
@@ -564,12 +564,13 @@ class PipelineEvolutionVisualiser:
         return df_history
 
     def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                              pct_best: Optional[float] = None):
+                              dpi: int = 300, pct_best: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
+        :param dpi: DPI if the output figure.
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
@@ -583,7 +584,7 @@ class PipelineEvolutionVisualiser:
 
         plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=fitness.map(colormap))
         fig = plot.figure
-        fig.set_dpi(110)
+        fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
 
@@ -598,16 +599,18 @@ class PipelineEvolutionVisualiser:
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
         ax.yaxis.grid(True)
 
-        self.__show_or_save_figure(fig, save_path)
+        self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
+                                 dpi: int = 300, tags_model: Optional[List[str]] = None,
+                                 tags_data: Optional[List[str]] = None,
                                  pct_best: Optional[float] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
+        :param dpi: DPI of the output figure.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
@@ -648,22 +651,23 @@ class PipelineEvolutionVisualiser:
             text.set_text(new_text)
 
         fig = plot.figure
-        fig.set_dpi(110)
+        fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
-        self.__show_or_save_figure(fig, save_path)
+        self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
-                                          tags_model: Optional[List[str]] = None,
+                                          dpi: int = 300, tags_model: Optional[List[str]] = None,
                                           tags_data: Optional[List[str]] = None,
                                           pct_best: Optional[float] = None, show_fitness_color: bool = True):
         """ Visualizes operations used across generations in the form of animated bar plot.
 
-        :param history: OptHistory.
+        :param history: OptHistory instance.
         :param save_path: path to save the visualization.
+        :param dpi: DPI of the output figure.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
@@ -706,7 +710,6 @@ class PipelineEvolutionVisualiser:
         animation_frames_per_step = 18
         animation_interval_between_frames_ms = 40
         animation_interpolation_power = 4
-        animation_dpi = 200
         fitness_colormap = cm.get_cmap('YlOrRd')
         no_fitness_palette = 'crest'
 
@@ -822,7 +825,7 @@ class PipelineEvolutionVisualiser:
             interval=animation_interval_between_frames_ms,
             repeat=True
         )
-        ani.save(str(save_path), dpi=animation_dpi)
+        ani.save(str(save_path), dpi=dpi)
         self.log.info(f'The animation was saved to "{save_path}".')
         plt.close(fig=fig)
 

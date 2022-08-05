@@ -25,21 +25,21 @@ class GraphVisualiser:
 
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
                   engine: str = 'matplotlib', nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
-                  edges_curvature: float = 0.25):
+                  dpi: int = 300, edges_curvature: float = 0.25):
         if len(graph.nodes) == 0:
             raise ValueError('Empty graph can not be visualized.')
         if engine == 'matplotlib':
-            self.draw_with_networkx(graph, save_path, nodes_color, edges_curvature)
+            self.draw_with_networkx(graph, save_path, nodes_color, dpi, edges_curvature)
         elif engine == 'pyvis':
             self.draw_with_pyvis(graph, save_path, nodes_color)
         elif engine == 'graphviz':
-            self.draw_with_graphviz(graph, save_path, nodes_color)
+            self.draw_with_graphviz(graph, save_path, nodes_color, dpi)
         else:
             raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
                                       'Possible values: matplotlib, pyvis, graphviz.')
 
     @staticmethod
-    def draw_with_graphviz(graph, save_path, nodes_color=None):
+    def draw_with_graphviz(graph, save_path, nodes_color=None, dpi=300):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         colors = get_colors_by_node_labels([str(n) for n in nodes.values()])
         for n, data in nx_graph.nodes(data=True):
@@ -48,7 +48,7 @@ class GraphVisualiser:
             data['color'] = to_hex(nodes_color or colors[label])
 
         gv_graph = nx.nx_agraph.to_agraph(nx_graph)
-        kwargs = {'prog': 'dot', 'args': '-Gnodesep=0.5 -Gdpi=300 -Grankdir="LR"'}
+        kwargs = {'prog': 'dot', 'args': f'-Gnodesep=0.5 -Gdpi={dpi} -Grankdir="LR"'}
 
         if save_path:
             gv_graph.draw(save_path, **kwargs)
@@ -60,7 +60,7 @@ class GraphVisualiser:
             img = plt.imread(str(save_path))
             plt.imshow(img)
             plt.gca().axis('off')
-            plt.gcf().set_dpi(300)
+            plt.gcf().set_dpi(dpi)
             plt.tight_layout()
             plt.show()
             remove_old_files_from_dir(save_path.parent)
@@ -99,15 +99,15 @@ class GraphVisualiser:
 
     def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
                            nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
-                           edges_curvature: float = 0.25,
+                           dpi: int = 300, edges_curvature: float = 0.25,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots()
-        fig.set_dpi(150)
+        fig.set_dpi(dpi)
         self.draw_nx_dag(graph, ax, nodes_color, edges_curvature, in_graph_converter_function)
         if not save_path:
             plt.show()
         else:
-            plt.savefig(save_path, dpi=300)
+            plt.savefig(save_path, dpi=dpi)
             plt.close()
 
     def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
