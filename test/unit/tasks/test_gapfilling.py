@@ -148,8 +148,8 @@ def test_gap_filling_forward_inverse_correct(get_time_series: Callable):
     """
     arr_with_gaps = get_time_series()
 
-    ridge_pipeline = get_simple_ts_pipeline(model_root='linear')
-    gapfiller = ModelGapFiller(gap_value=-100, pipeline=ridge_pipeline)
+    linear_pipeline = get_simple_ts_pipeline(model_root='linear')
+    gapfiller = ModelGapFiller(gap_value=-100, pipeline=linear_pipeline)
     without_gap = gapfiller.forward_inverse_filling(arr_with_gaps)
 
     assert len(np.ravel(np.argwhere(without_gap == -100))) == 0

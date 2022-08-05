@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional, Union
+from typing import List, Union
 
 import numpy as np
 from scipy import interpolate
@@ -171,7 +171,7 @@ class SimpleGapFiller:
 
         return output_data
 
-    def _parse_gap_ids(self, gap_list: Union[list, np.ndarray]) -> list:
+    def _parse_gap_ids(self, gap_list: Union[List, np.ndarray]) -> list:
         """
         Method allows parsing source array with gaps indexes
 
@@ -268,7 +268,7 @@ class ModelGapFiller(SimpleGapFiller):
         return output_data
 
     @series_has_gaps_check
-    def forward_filling(self, input_data: Union[list, np.ndarray]):
+    def forward_filling(self, input_data: Union[List, np.ndarray]):
         """
         Method fills in the gaps in the input array using graph with only
         forward direction (i.e. time series forecasting)
