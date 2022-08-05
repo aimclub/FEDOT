@@ -121,7 +121,9 @@ def test_composer_with_cv_optimization_correct():
     composer_requirements = PipelineComposerRequirements(primary=available_model_types,
                                                          secondary=available_model_types,
                                                          timeout=timedelta(minutes=0.2),
-                                                         num_of_generations=2, cv_folds=3)
+                                                         num_of_generations=2, cv_folds=3,
+                                                         logging_level_opt=logging.CRITICAL+1,
+                                                         show_progress=False)
 
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
     composer = builder.build()
@@ -144,7 +146,9 @@ def test_cv_api_correct():
                        'pop_size': 3,
                        'num_of_generations': 1,
                        'preset': 'fast_train',
-                       'cv_folds': 2}
+                       'cv_folds': 2,
+                       'logging_level_opt': logging.CRITICAL+1,
+                       'show_progress': False}
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
     model = Fedot(problem='classification', logging_level=logging.INFO, **composer_params)
     fedot_model = model.fit(features=dataset_to_compose)

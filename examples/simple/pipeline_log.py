@@ -5,7 +5,6 @@ import pathlib
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from examples.simple.pipeline_tune import get_case_train_test_data, get_scoring_case_data_paths
 from fedot.core.log import Log
-from test.unit.test_logger import release_log
 
 
 def run_log_example(log_file):
@@ -22,8 +21,6 @@ def run_log_example(log_file):
 
     log.info('start fitting pipeline')
     pipeline.fit(train_data, use_fitted=False)
-
-    release_log(logger=log)
 
 
 if __name__ == '__main__':

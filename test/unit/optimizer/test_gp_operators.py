@@ -3,11 +3,11 @@ from pathlib import Path
 
 import numpy as np
 
+from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
-from fedot.core.log import Log
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
 from fedot.core.optimisers.archive import ParetoFront
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
@@ -31,7 +31,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import to_numerical
-from test.unit.test_logger import release_log, singleton_cleanup
+from test.unit.dag.test_graph_utils import find_same_node, find_first
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -530,10 +530,7 @@ def test_mutation_with_single_node():
     assert individual.graph == new_individual.graph
 
 
-def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
-    test_file_path = Path(__file__).parent.joinpath('log.log')
-    log = Log(logger_name='test_no_opt_or_graph_nodes_after_mutation', log_file=test_file_path)
-
+def test_no_opt_or_graph_nodes_after_mutation():
     adapter = PipelineAdapter()
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
@@ -542,33 +539,18 @@ def test_no_opt_or_graph_nodes_after_mutation(singleton_cleanup):
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                                          max_arity=3, max_depth=2, pop_size=5, num_of_generations=4,
                                                          crossover_prob=.8, mutation_prob=1)
-    graph_params = get_pipeline_generation_params(requirements=composer_requirements,
-                                                  rules_for_constraint=DEFAULT_DAG_RULES,
-                                                  task=task)
-    Mutation(mutation_types=mutation_types, requirements=composer_requirements, graph_generation_params=graph_params).\
-        _adapt_and_apply_mutations(new_graph=graph, num_mut=1)
+    graph_params = get_pipeline_generation_params(composer_requirements, DEFAULT_DAG_RULES, task)
+    mutation = Mutation(mutation_types=mutation_types, graph_generation_params=graph_params,
+                        requirements=composer_requirements)
+    new_graph, _ = mutation._adapt_and_apply_mutations(new_graph=graph, num_mut=1)
+    new_pipeline = adapter.restore(new_graph)
 
-    if Path(test_file_path).exists():
-        content = Path(test_file_path).read_text()
-
-    release_log(logger=log)
-    # Is there a required message in the logs
-    assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
-    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+    assert not find_first(new_pipeline, lambda n: type(n) in (GraphNode, OptNode))
 
 
-def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph(singleton_cleanup):
-    test_file_path = Path(__file__).parent.joinpath('log.log')
-    log = Log(logger_name='test_no_opt_in_complex_graph', log_file=test_file_path)
-
+def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
     adapter = PipelineAdapter()
     pipeline = generate_so_complex_pipeline()
-    adapter.adapt(pipeline)
+    graph = adapter.adapt(pipeline)
 
-    if Path(test_file_path).exists():
-        content = Path(test_file_path).read_text()
-
-    release_log(logger=log)
-    # Is there a required message in the logs
-    assert not any('Unexpected: GraphNode found in PipelineAdapter instead' in log_message for log_message in content)
-    assert not any('Unexpected: OptNode found in PipelineAdapter instead' in log_message for log_message in content)
+    assert not find_first(pipeline, lambda n: type(n) in (GraphNode, OptNode))

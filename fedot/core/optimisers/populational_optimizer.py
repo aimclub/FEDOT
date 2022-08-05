@@ -115,7 +115,27 @@ class PopulationalOptimizer(GraphOptimizer):
         for individual in population:
             individual.set_native_generation(self.current_generation_num)
 
+    def _progressbar(self, show_progress: bool = True):
+        disable = not show_progress
+        if disable:
+            # disable call to tqdm.__init__ completely
+            # to avoid access to stdout/stderr inside it
+            # workaround for https://github.com/nccr-itmo/FEDOT/issues/765
+            bar = EmptyProgressBar()
+        else:
+            bar = tqdm(total=self.requirements.num_of_generations,
+                       desc='Generations', unit='gen', initial=1, disable=disable)
+        return bar
+
 
 def _unfit_pipeline(graph: Any):
     if isinstance(graph, Pipeline):
         graph.unfit()
+
+
+class EmptyProgressBar:
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return True

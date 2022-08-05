@@ -1,12 +1,13 @@
 import csv
+import io
 import itertools
 import json
 import os
 import shutil
 from pathlib import Path
 from typing import Any, List, Optional, Sequence, Union
-from warnings import warn
 
+from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
 # ParentOperator is needed for backward compatibility with older optimization histories.
@@ -30,7 +31,8 @@ class OptHistory:
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
-        self.save_folder = save_folder
+        self.save_folder: Optional[str] = save_folder
+        self._log = default_log(self)
 
     def is_empty(self) -> bool:
         return not self.individuals
@@ -91,7 +93,7 @@ class OptHistory:
                         individual.graph, individual.metadata
                     ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
             except Exception as ex:
-                print(ex)
+                self._log.exception(ex)
 
     def save(self, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
         if json_file_path is None:
@@ -147,13 +149,12 @@ class OptHistory:
                 raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
             # Check supported cases for show_fitness == False.
             if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
-                warn(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.',
-                     stacklevel=3)
+                self._log.warning(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
             # Check plot_type-specific cases
             if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
                     per_time and self.individuals[0][0].metadata.get('evaluation_time_iso') is None:
-                warn('Evaluation time not found in optimization history. Showing fitness plot per generations...',
-                     stacklevel=3)
+                self._log.warning('Evaluation time not found in optimization history. '
+                                  'Showing fitness plot per generations...')
                 per_time = False
             elif plot_type is PlotTypesEnum.operations_animated_bar:
                 if not save_path:
@@ -169,7 +170,7 @@ class OptHistory:
 
         check_args_constraints()
 
-        print('Visualizing optimization history... It may take some time, depending on the history size.')
+        self._log.info('Visualizing optimization history... It may take some time, depending on the history size.')
 
         viz = PipelineEvolutionVisualiser()
         if plot_type is PlotTypesEnum.fitness_line:
@@ -241,7 +242,7 @@ class OptHistory:
                 return Path(default_fedot_data_dir(), self.save_folder)
         return None
 
-    def print_leaderboard(self, top_n: int = 10):
+    def get_leaderboard(self, top_n: int = 10) -> str:
         """
         Prints ordered description of best solutions in history
         :param top_n: number of solutions to print
@@ -255,15 +256,17 @@ class OptHistory:
         top_individuals = sorted(individuals_with_positions,
                                  key=lambda pos_ind: pos_ind[0].fitness, reverse=True)[:top_n]
 
+        output = io.StringIO()
         separator = ' | '
-        print(separator.join(['Position', 'Fitness', 'Generation', 'Pipeline']))
+        header = separator.join(['Position', 'Fitness', 'Generation', 'Pipeline'])
+        print(header, file=output)
         for ind_num, ind_with_position in enumerate(top_individuals):
             individual, gen_num, ind_num = ind_with_position
             positional_id = f'g{gen_num}-i{ind_num}'
             print(separator.join([f'{ind_num:>3}, '
                                   f'{str(individual.fitness):>8}, '
                                   f'{positional_id:>8}, '
-                                  f'{individual.graph.descriptive_id}']))
+                                  f'{individual.graph.descriptive_id}']), file=output)
 
         # add info about initial assumptions (stored as zero generation)
         for i, individual in enumerate(self.individuals[0]):
@@ -271,7 +274,8 @@ class OptHistory:
             print(separator.join([f'{ind:>3}'
                                   f'{str(individual.fitness):>8}',
                                   f'-',
-                                  f'{individual.graph.descriptive_id}']))
+                                  f'{individual.graph.descriptive_id}']), file=output)
+        return output.getvalue()
 
 
 def log_to_history(history: OptHistory, population: PopulationT, generations: GenerationKeeper):

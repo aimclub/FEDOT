@@ -1,3 +1,4 @@
+import logging
 import random
 
 import numpy as np
@@ -31,7 +32,9 @@ def get_simple_composer_params() -> dict:
               'pop_size': 2,
               'num_of_generations': 2,
               'with_tuning': True,
-              'preset': 'fast_train'}
+              'preset': 'fast_train',
+              'logging_level_opt': logging.CRITICAL+1,
+              'show_progress': False}
     return params
 
 

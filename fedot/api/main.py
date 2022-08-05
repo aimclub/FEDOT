@@ -85,6 +85,8 @@ class Fedot:
     :param tuner_metric:  metric for quality calculation during tuning
     :param use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
     :param use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
+    :param logging_level_opt: logging level for optimiser. Logic of logging is the same as in 'logging_level' param
+    :param show_progress: bool indicating whether to show progress using tqdm or not
     """
 
     def __init__(self,

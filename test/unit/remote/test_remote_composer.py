@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -46,7 +47,9 @@ def test_pseudo_remote_composer_classification():
         'pop_size': 3,
         'cv_folds': None,
         'with_tuning': False,
-        'preset': 'best_quality'
+        'preset': 'best_quality',
+        'logging_level_opt': logging.CRITICAL+1,
+        'show_progress': False
     }
 
     automl = Fedot(problem='classification', timeout=0.1, **composer_params)
@@ -88,6 +91,8 @@ def test_pseudo_remote_composer_ts_forecasting():
         'pop_size': 10,
         'cv_folds': None,
         'with_tuning': False,
+        'logging_level_opt': logging.CRITICAL+1,
+        'show_progress': False
     }
 
     preset = 'best_quality'

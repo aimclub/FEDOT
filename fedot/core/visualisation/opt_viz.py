@@ -45,7 +45,7 @@ def with_alternate_matplotlib_backend(func):
             mpl.use('TKAgg')
             return func(*args, **kwargs)
         except ImportError as e:
-            warn(f'{e} or ignore this warning')
+            default_log('Requirements').warning(f'{e} or ignore this warning')
         finally:
             mpl.use(default_mpl_backend)
 
@@ -324,8 +324,7 @@ class PipelineEvolutionVisualiser:
         for file in files:
             remove(file)
 
-    @staticmethod
-    def __show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
+    def __show_or_save_figure(self, figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
         if not save_path:
             plt.show()
         else:
@@ -333,7 +332,7 @@ class PipelineEvolutionVisualiser:
             if not save_path.is_absolute():
                 save_path = Path(os.getcwd(), save_path)
             figure.savefig(save_path, dpi=300)
-            print(f'The figure was saved to "{save_path}".')
+            self.log.info(f'The figure was saved to "{save_path}".')
             plt.close()
 
     @staticmethod
@@ -826,7 +825,7 @@ class PipelineEvolutionVisualiser:
             repeat=True
         )
         ani.save(str(save_path), dpi=animation_dpi)
-        print(f'The animation was saved to "{save_path}".')
+        self.log.info(f'The animation was saved to "{save_path}".')
         plt.close(fig=fig)
 
 

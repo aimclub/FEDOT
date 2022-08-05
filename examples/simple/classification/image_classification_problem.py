@@ -40,8 +40,6 @@ def run_image_classification_problem(train_dataset: tuple,
     predictions = pipeline.predict(dataset_to_validate)
     roc_auc_on_valid = calculate_validation_metric(predictions,
                                                    dataset_to_validate)
-    print(f'ROCAUC: {roc_auc_on_valid}')
-
     return roc_auc_on_valid, dataset_to_train, dataset_to_validate
 
 

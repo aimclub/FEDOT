@@ -6,7 +6,7 @@ import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log, DEFAULT_LOG_PATH
+from fedot.core.log import Log, default_log, DEFAULT_LOG_PATH, LoggerAdapter
 from fedot.core.operations.model import Model
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.singleton_meta import SingletonMeta
@@ -28,17 +28,16 @@ def get_bad_config_file():
         return file
 
 
+def clear_singleton_class(cls=Log):
+    if cls in SingletonMeta._instances:
+        del SingletonMeta._instances[cls]
+
+
 @pytest.fixture(autouse=True)
 def singleton_cleanup():
-    SingletonMeta._instances = {}
+    clear_singleton_class(Log)
     yield
-
-
-def release_log(logger: Log):
-    """ Release logger handlers and delete log file """
-    logger.release_handlers()
-    if Path(logger.log_file).exists():
-        Path(logger.log_file).unlink()
+    clear_singleton_class(Log)
 
 
 def test_default_logger_setup_correctly():
@@ -119,3 +118,15 @@ def test_multiple_adapters_with_one_prefix():
 
     assert f'prefix_1 - {info_1}' in content
     assert f'prefix_1 - {info_2}' in content
+
+
+def test_logger_levels():
+    adapter_1 = default_log(prefix='debug_logger', logging_level=logging.DEBUG)
+
+    assert adapter_1.extra['prefix'] == 'debug_logger'
+    assert adapter_1.logger.level == logging.DEBUG
+
+    adapter_2 = default_log(prefix='warning_logger', logging_level=logging.WARNING)
+
+    assert adapter_2.extra['prefix'] == 'warning_logger'
+    assert adapter_2.logger.level == logging.WARNING

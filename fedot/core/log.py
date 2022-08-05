@@ -27,34 +27,41 @@ class Log(metaclass=SingletonMeta):
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: str = None):
+                 log_file: str = None,
+                 write_logs: bool = True):
         if not log_file:
             self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
-                                       logging_level=output_logging_level)
+                                       logging_level=output_logging_level,
+                                       write_logs=write_logs)
 
-    def get_adapter(self, prefix: str) -> 'LoggerAdapter':
+    def get_adapter(self, prefix: str, logging_level: int = logging.INFO) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
         :param prefix: prefix to log messages with this adapter. Usually this prefix is the name of the class
-        where the log came from """
+        where the log came from
+        :param logging_level: level of logging """
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
-                                                        {'prefix': prefix})
+                                                        {'prefix': prefix},
+                                                        logging_level=logging_level)
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, logging_level: int) -> logging.Logger:
+    def _get_logger(self, name, config_file: str, logging_level: int, write_logs: bool) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger(name)
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger, logging_level)
+            logger = self._setup_default_logger(logger=logger, logging_level=logging_level, write_logs=write_logs)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int, write_logs: bool) -> logging.Logger:
         """ Define console and file handlers for logger """
+        if not write_logs or logging_level > logging.CRITICAL:
+            return logger
+
         console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(asctime)s - %(message)s')
         console_handler.setFormatter(console_formatter)
@@ -105,12 +112,13 @@ class LoggerAdapter(logging.LoggerAdapter):
     """ This class looks like logger but used to pass contextual information
     to the output along with logging event information """
 
-    def __init__(self, logger, extra):
+    def __init__(self, logger: logging.Logger, extra: dict, logging_level: int = None):
         super().__init__(logger=logger, extra=extra)
-        self.setLevel(logger.level)
-        self.logging_level = logger.level
+        self.setLevel(logging_level or logger.level)
+        self.logging_level = logging_level or logger.level
 
     def process(self, msg, kwargs):
+        self.logger.setLevel(self.logging_level)
         return '%s - %s' % (self.extra['prefix'], msg), kwargs
 
     def __str__(self):
@@ -120,20 +128,23 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO) -> logging.LoggerAdapter:
+def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO,
+                write_logs: bool = True) -> logging.LoggerAdapter:
     """
     Default logger
     :param class_object: instance of class
     :param prefix: adapter prefix to add it to log messages.
     :param logging_level: logging levels are the same as in 'logging'
+    :param write_logs: bool indicating whenever to write logs in console or not
     :return: LoggerAdapter: LoggerAdapter object
     """
 
     log = Log(logger_name='default',
               config_json_file='default',
-              output_logging_level=logging_level)
+              output_logging_level=logging_level,
+              write_logs=write_logs)
 
     if class_object:
         prefix = class_object.__class__.__name__
 
-    return log.get_adapter(prefix=prefix)
+    return log.get_adapter(prefix=prefix, logging_level=logging_level)

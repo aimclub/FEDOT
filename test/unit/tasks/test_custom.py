@@ -1,3 +1,4 @@
+import logging
 import random
 
 import numpy as np
@@ -49,7 +50,8 @@ def test_custom_graph_opt():
         primary=nodes_types,
         secondary=nodes_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.9)
+        crossover_prob=0.8, mutation_prob=0.9, logging_level_opt=logging.CRITICAL+1,
+        show_progress=False)
 
     optimiser_parameters = GPGraphOptimizerParameters(
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
@@ -75,7 +77,7 @@ def test_custom_graph_opt():
         initial_graphs=init_population)
 
     objective_eval = ObjectiveEvaluate(objective)
-    optimized_graphs = optimiser.optimise(objective_eval)
+    optimized_graphs = optimiser.optimise(objective_eval, show_progress=requirements.show_progress)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
     assert optimized_network is not None

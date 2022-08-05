@@ -1,11 +1,11 @@
 import json
 import os
-import warnings
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any, List, Optional, Dict, Union
 
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, AUTO_PRESET_NAME
+from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.json_evaluation import eval_field_str, eval_strategy_str, read_field
@@ -71,6 +71,8 @@ class OperationTypesRepository:
     }
 
     def __init__(self, operation_type: str = 'model'):
+        self.log = default_log(self)
+
         self._tags_excluded_by_default = ['non-default', 'expensive']
         OperationTypesRepository.init_default_repositories()
 
@@ -234,7 +236,7 @@ class OperationTypesRepository:
         if len(operations_with_id) > 1:
             raise ValueError('Several operations with same id in repository')
         if len(operations_with_id) == 0:
-            warnings.warn(f'Operation {operation_id} not found in the repository')
+            self.log.warning(f'Operation {operation_id} not found in the repository')
             return None
         return operations_with_id[0]
 
