@@ -57,10 +57,19 @@ class DataPreprocessor:
         # Categorical preprocessor for binary categorical features
         self.binary_categorical_processors: Dict[str, BinaryCategoricalPreprocessor] = {}
         self.types_correctors: Dict[str, TableTypesCorrector] = {}
-        self.structure_analysis = PipelineStructureExplorer()
         self.main_target_source_name = None
 
         self.log = default_log(self)
+
+    def __setstate__(self, state):
+        # Implemented for backward compatibility for unpickling
+        #  Pipelines with older preprocessor that had DiGraph with Nodes inside.
+        #  see https://github.com/nccr-itmo/FEDOT/pull/802
+        unrelevant_fields = ['structure_analysis']
+        for field in unrelevant_fields:
+            if field in state:
+                del state[field]
+        self.__dict__.update(state)
 
     def _init_supplementary_preprocessors(self, data: Union[InputData, MultiModalData]):
         """ Initialize helpers for preprocessor
@@ -236,15 +245,15 @@ class DataPreprocessor:
 
         if data_has_missing_values(data):
             # Data contains missing values
-            has_imputer = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='imputation',
-                                                                         source_name=source_name)
+            has_imputer = PipelineStructureExplorer.\
+                check_structure_by_tag(pipeline, tag_to_check='imputation', source_name=source_name)
             if not has_imputer:
                 data = self._apply_imputation_unidata(data, source_name)
 
         if data_has_categorical_features(data):
             # Data contains categorical features values
-            has_encoder = self.structure_analysis.check_structure_by_tag(pipeline, tag_to_check='encoding',
-                                                                         source_name=source_name)
+            has_encoder = PipelineStructureExplorer.\
+                check_structure_by_tag(pipeline, tag_to_check='encoding', source_name=source_name)
             if not has_encoder:
                 data = self._apply_categorical_encoding(data, source_name)
 
@@ -491,7 +500,6 @@ def merge_preprocessors(api_preprocessor: DataPreprocessor,
     new_data_preprocessor = api_preprocessor
 
     # Update optional preprocessing (take it from obtained pipeline)
-    new_data_preprocessor.structure_analysis = pipeline_preprocessor.structure_analysis
     if not new_data_preprocessor.features_encoders:
         # Store features encoder from obtained pipeline because in API there are no encoding
         new_data_preprocessor.features_encoders = pipeline_preprocessor.features_encoders
