@@ -26,7 +26,8 @@ class GraphVisualiser:
         self.log = default_log(self)
 
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
-                  engine: str = 'matplotlib', nodes_color: Optional[Any] = None, edges_curvature: float = 0.25):
+                  engine: str = 'matplotlib', nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
+                  edges_curvature: float = 0.25):
         if len(graph.nodes) == 0:
             raise ValueError('Empty graph can not be visualized.')
         if engine == 'matplotlib':
@@ -98,7 +99,8 @@ class GraphVisualiser:
         net.show(str(save_path))
         remove_old_files_from_dir(save_path.parent)
 
-    def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None, nodes_color: Any = None,
+    def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
+                           nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
                            edges_curvature: float = 0.25,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots()
@@ -110,7 +112,8 @@ class GraphVisualiser:
             plt.savefig(save_path, dpi=300)
             plt.close()
 
-    def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None, nodes_color: Any = None,
+    def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
+                    nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
                     edges_curvature: float = 0.25,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 

@@ -90,7 +90,7 @@ class Graph:
         return self._operator.get_edges()
 
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
-             nodes_color: Optional[Any] = None, edges_curvature: float = 0.25):
+             nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, edges_curvature: float = 0.25):
         """Visualizes graph or saves its picture to the specified ``path``
 
         :param save_path: optional, save location of the graph visualization image.
