@@ -1,9 +1,9 @@
-import warnings
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple
 from uuid import uuid4
 
+from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
 
@@ -37,14 +37,14 @@ class Individual:
         return self.uid == other.uid
 
     def __copy__(self):
-        warnings.warn(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, stacklevel=3)
+        default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         return result
 
     def __deepcopy__(self, memo):
-        warnings.warn(INDIVIDUAL_COPY_RESTRICTION_MESSAGE, stacklevel=3)
+        default_log(self).warning(INDIVIDUAL_COPY_RESTRICTION_MESSAGE)
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
