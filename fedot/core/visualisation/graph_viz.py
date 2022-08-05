@@ -133,8 +133,8 @@ class GraphVisualiser:
             edge_colors = nodes_color or 'k'
         # Define hierarchy_level
         for u, v, e in nx_graph.edges(data=True):
-            for n in (u, v):
-                nx_graph.nodes[n]['hierarchy_level'] = nodes[n].distance_to_primary_level
+            for node_id in (u, v):
+                nx_graph.nodes[node_id]['hierarchy_level'] = nodes[node_id].distance_to_primary_level
         # Get nodes positions
         pos, longest_sequence = get_hierarchy_pos(nx_graph)
         node_size = get_scaled_node_size(longest_sequence)
@@ -148,11 +148,11 @@ class GraphVisualiser:
             e['connectionstyle'] = connection_style
             p1, p2 = np.array(pos[u]), np.array(pos[v])
             min_distance = 1
-            closest_node = None
-            for n in nx_graph.nodes:
-                if n in (u, v):
+            closest_node_id = None
+            for node_id in nx_graph.nodes:
+                if node_id in (u, v):
                     continue
-                p3 = np.array(pos[n])
+                p3 = np.array(pos[node_id])
                 distance = abs(np.cross(p2 - p1, p1 - p3) / np.linalg.norm(p2 - p1))
                 if distance > 0.15:
                     continue
@@ -163,11 +163,11 @@ class GraphVisualiser:
                 if distance > min_distance:
                     continue
                 min_distance = distance
-                closest_node = n
+                closest_node_id = node_id
 
-            if closest_node is None:
+            if closest_node_id is None:
                 continue
-            p3 = pos[closest_node]
+            p3 = pos[closest_node_id]
             curvature_factor = (1 / (min_distance + 1)) ** 2
             if p1[1] == p2[1]:
                 curvature_sign = -1
