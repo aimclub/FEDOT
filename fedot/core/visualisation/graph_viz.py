@@ -1,6 +1,5 @@
 import datetime
 import os
-from math import log2
 from pathlib import Path
 from textwrap import wrap
 from typing import Optional, Union, Callable, Any, Tuple, List, Dict
@@ -11,7 +10,6 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import to_hex
 from matplotlib.patches import ArrowStyle
-from numpy.linalg import norm
 from pyvis.network import Network
 
 from fedot.core.log import default_log
@@ -120,7 +118,7 @@ class GraphVisualiser:
         def get_scaled_node_size(nodes_amount):
             min_size = 1000
             max_size = 4000
-            size = min_size + int((max_size - min_size) / log2(max(nodes_amount, 2)))
+            size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
             return size
 
         if ax is None:
@@ -204,7 +202,7 @@ class GraphVisualiser:
             min_size = 6
             max_size = 16
 
-            size = min_size + int((max_size - min_size) / log2(max(nodes_amount, 2)))
+            size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
             return size
 
         if ax is None:
