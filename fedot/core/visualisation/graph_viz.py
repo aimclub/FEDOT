@@ -11,10 +11,25 @@ from matplotlib import pyplot as plt
 from matplotlib.colors import to_hex
 from matplotlib.patches import ArrowStyle
 from pyvis.network import Network
+from seaborn import color_palette
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
+
+
+def get_colors_by_tags(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
+    from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
+    from fedot.core.repository.operation_types_repository import get_opt_node_tag
+
+    palette = get_palette_based_on_default_tags()
+    return {label: palette[get_opt_node_tag(label)] for label in labels}
+
+
+def get_colors_by_labels(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
+    unique_labels = list(set(labels))
+    palette = color_palette('tab10', len(unique_labels))
+    return {label: palette[unique_labels.index(label)] for label in labels}
 
 
 class GraphVisualiser:
@@ -28,6 +43,12 @@ class GraphVisualiser:
                   dpi: int = 300, edges_curvature: float = 0.3):
         if len(graph.nodes) == 0:
             raise ValueError('Empty graph can not be visualized.')
+        # Define colors
+        if not nodes_color:
+            if type(graph).__name__ in ('Pipeline', 'OptGraph'):
+                nodes_color = get_colors_by_tags
+            else:
+                nodes_color = get_colors_by_labels
         if engine == 'matplotlib':
             self.draw_with_networkx(graph, save_path, nodes_color, dpi, edges_curvature)
         elif engine == 'pyvis':
@@ -41,11 +62,15 @@ class GraphVisualiser:
     @staticmethod
     def draw_with_graphviz(graph, save_path, nodes_color=None, dpi=300):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
-        colors = get_colors_by_node_labels([str(n) for n in nodes.values()])
+        # Define colors
+        if callable(nodes_color):
+            colors = nodes_color([str(node) for node in nodes.values()])
+        else:
+            colors = {str(node): nodes_color for node in nodes.values()}
         for n, data in nx_graph.nodes(data=True):
             label = str(nodes[n])
             data['label'] = label.replace('_', ' ')
-            data['color'] = to_hex(nodes_color or colors[label])
+            data['color'] = to_hex(colors[label])
 
         gv_graph = nx.nx_agraph.to_agraph(nx_graph)
         kwargs = {'prog': 'dot', 'args': f'-Gnodesep=0.5 -Gdpi={dpi} -Grankdir="LR"'}
@@ -66,10 +91,14 @@ class GraphVisualiser:
             remove_old_files_from_dir(save_path.parent)
 
     @staticmethod
-    def draw_with_pyvis(graph, save_path, nodes_color=None):
+    def draw_with_pyvis(graph, save_path, nodes_color=get_colors_by_tags):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
-        colors = get_colors_by_node_labels([str(n) for n in nodes.values()])
+        # Define colors
+        if callable(nodes_color):
+            colors = nodes_color([str(node) for node in nodes.values()])
+        else:
+            colors = {str(node): nodes_color for node in nodes.values()}
         for n, data in nx_graph.nodes(data=True):
             operation = nodes[n]
             label = str(operation)
@@ -80,7 +109,7 @@ class GraphVisualiser:
                 params = str(params)[1:-1]
             data['title'] = params
             data['level'] = operation.distance_to_primary_level
-            data['color'] = to_hex(nodes_color or colors[label])
+            data['color'] = to_hex(colors[label])
             data['font'] = '20px'
             data['labelHighlightBold'] = True
 
@@ -98,7 +127,9 @@ class GraphVisualiser:
         remove_old_files_from_dir(save_path.parent)
 
     def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
-                           nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
+                           nodes_color: Optional[Union[str, Tuple[float, float, float],
+                                                       Callable[
+                                                           [List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
                            dpi: int = 300, edges_curvature: float = 0.3,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots()
@@ -111,7 +142,8 @@ class GraphVisualiser:
             plt.close()
 
     def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
-                    nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
+                    nodes_color: Optional[Union[str, Tuple[float, float, float],
+                                                Callable[[List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
                     edges_curvature: float = 0.3,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 
@@ -126,11 +158,11 @@ class GraphVisualiser:
 
         nx_graph, nodes = in_graph_converter_function(graph)
         # Define colors
-        if not nodes_color and type(graph).__name__ in ('Pipeline', 'OptGraph'):
-            colors = get_colors_by_node_labels([str(node) for node in nodes.values()])
+        if callable(nodes_color):
+            colors = nodes_color([str(node) for node in nodes.values()])
             edge_colors = [colors[str(node)] for node in nodes.values()]
         else:
-            edge_colors = nodes_color or 'k'
+            edge_colors = nodes_color
         # Define hierarchy_level
         for u, v, e in nx_graph.edges(data=True):
             for node_id in (u, v):
@@ -211,14 +243,6 @@ class GraphVisualiser:
             text = '\n'.join(wrap(node_labels[node].replace('_', ' ').replace('-', ' '), 10))
             ax.text(x, y, text, ha='center', va='center', fontsize=get_scaled_font_size(max_sequence_length),
                     bbox=dict(alpha=0.9, color='w', boxstyle='round'))
-
-
-def get_colors_by_node_labels(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
-    from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
-    from fedot.core.repository.operation_types_repository import get_opt_node_tag
-
-    palette = get_palette_based_on_default_tags()
-    return {label: palette[get_opt_node_tag(label)] for label in labels}
 
 
 def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict[Any, Tuple[float, float]], int]:
