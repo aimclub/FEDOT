@@ -91,7 +91,7 @@ class Graph:
 
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
              nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
-             edges_curvature: float = 0.25):
+             edges_curvature: float = 0.3):
         """Visualizes graph or saves its picture to the specified ``path``
 
         :param save_path: optional, save location of the graph visualization image.

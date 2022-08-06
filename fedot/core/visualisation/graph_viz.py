@@ -25,7 +25,7 @@ class GraphVisualiser:
 
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
                   engine: str = 'matplotlib', nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
-                  dpi: int = 300, edges_curvature: float = 0.25):
+                  dpi: int = 300, edges_curvature: float = 0.3):
         if len(graph.nodes) == 0:
             raise ValueError('Empty graph can not be visualized.')
         if engine == 'matplotlib':
@@ -99,7 +99,7 @@ class GraphVisualiser:
 
     def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
                            nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
-                           dpi: int = 300, edges_curvature: float = 0.25,
+                           dpi: int = 300, edges_curvature: float = 0.3,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots()
         fig.set_dpi(dpi)
@@ -112,7 +112,7 @@ class GraphVisualiser:
 
     def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
                     nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
-                    edges_curvature: float = 0.25,
+                    edges_curvature: float = 0.3,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 
         def get_scaled_node_size(nodes_amount):
