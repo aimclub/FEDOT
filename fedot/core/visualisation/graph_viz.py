@@ -90,7 +90,7 @@ class GraphVisualiser:
             net.add_edge(str(u), str(v))
 
         if save_path:
-            net.save_graph(save_path)
+            net.save_graph(str(save_path))
             return
         save_path = Path(default_fedot_data_dir(), 'graph_plots', str(uuid4()) + '.html')
         save_path.parent.mkdir(exist_ok=True)
