@@ -602,21 +602,20 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                                 dpi: int = 300, tags_model: Optional[List[str]] = None,
-                                 tags_data: Optional[List[str]] = None,
-                                 pct_best: Optional[float] = None):
+                                 dpi: int = 300, pct_best: Optional[float] = None,
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param dpi: DPI of the output figure.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
-            Must be in the interval (0, 1].
         """
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
@@ -660,21 +659,21 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
-                                          dpi: int = 300, tags_model: Optional[List[str]] = None,
-                                          tags_data: Optional[List[str]] = None,
-                                          pct_best: Optional[float] = None, show_fitness_color: bool = True):
+                                          dpi: int = 300, pct_best: Optional[float] = None,
+                                          show_fitness_color: bool = True, tags_model: Optional[List[str]] = None,
+                                          tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of animated bar plot.
 
         :param history: OptHistory instance.
         :param save_path: path to save the visualization.
         :param dpi: DPI of the output figure.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        :param show_fitness_color: if False, the bar colors will not correspond to fitness.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
-            Must be in the interval (0, 1].
-        :param show_fitness_color: if False, the bar colors will not correspond to fitness.
         """
 
         def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:

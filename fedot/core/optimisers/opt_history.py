@@ -181,7 +181,7 @@ class OptHistory:
         elif plot_type is PlotTypesEnum.operations_kde:
             viz.visualize_operations_kde(self, save_path, dpi, pct_best)
         elif plot_type is PlotTypesEnum.operations_animated_bar:
-            viz.visualize_operations_animated_bar(self, save_path, dpi, pct_best, show_fitness_color=show_fitness)
+            viz.visualize_operations_animated_bar(self, save_path, dpi, pct_best, show_fitness)
         else:
             raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 
