@@ -57,8 +57,8 @@ def graph_example():
     # LR LDA LR  LDA
     graph = OptGraph()
 
-    root_of_tree, root_child_first, root_child_second = \
-        [OptNode({'name': model}) for model in ('xgboost', 'xgboost', 'knn')]
+    root_of_tree, root_child_first, root_child_second = [OptNode({'name': model}) for model in
+                                                         ('xgboost', 'xgboost', 'knn')]
 
     for root_node_child in (root_child_first, root_child_second):
         for requirement_model in ('logit', 'lda'):
@@ -100,6 +100,15 @@ def pipeline_with_custom_parameters(alpha_value):
     pipeline = Pipeline(node_final)
 
     return pipeline
+
+
+def _get_requirements_and_params_for_task(task: TaskTypesEnum):
+    ops = get_operations_for_task(Task(task))
+    return PipelineComposerRequirements(primary=ops, secondary=ops, mutation_prob=1,
+                                        max_depth=2), get_pipeline_generation_params(
+        rules_for_constraint=DEFAULT_DAG_RULES,
+        task=Task(task)
+    )
 
 
 def test_nodes_from_height():
@@ -236,8 +245,9 @@ def test_intermediate_add_mutation_for_linear_graph():
     for _ in range(100):
         graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
         if not successful_mutation_inner:
-            successful_mutation_inner = \
-                graph_after_mutation.root_node.descriptive_id == linear_three_nodes_inner.root_node.descriptive_id
+            id_before = linear_three_nodes_inner.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            successful_mutation_inner = id_before == id_after
         else:
             break
 
@@ -267,8 +277,9 @@ def test_parent_add_mutation_for_linear_graph():
     for _ in range(200):  # since add mutations has a lot of variations
         graph_after_mutation = mutation(Individual(linear_one_node)).graph
         if not successful_mutation_outer:
-            successful_mutation_outer = \
-                graph_after_mutation.root_node.descriptive_id == linear_two_nodes.root_node.descriptive_id
+            id_before = linear_two_nodes.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            successful_mutation_outer = id_before == id_after
         else:
             break
     assert successful_mutation_outer
@@ -278,12 +289,11 @@ def test_edge_mutation_for_graph():
     """
     Tests edge mutation can add edge between nodes
     """
-    graph_without_edge = \
-        OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [OptNode({'name': 'scaling'})])]))
+    graph_without_edge = OptGraph(
+        OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [OptNode({'name': 'scaling'})])]))
 
     primary = OptNode({'name': 'scaling'})
-    graph_with_edge = \
-        OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [primary]), primary]))
+    graph_with_edge = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'}, [primary]), primary]))
 
     composer_requirements = PipelineComposerRequirements(primary=['scaling', 'one_hot_encoding'],
                                                          secondary=['logit', 'scaling'], mutation_prob=1,
@@ -297,8 +307,9 @@ def test_edge_mutation_for_graph():
     for _ in range(100):
         graph_after_mutation = mutation(Individual(graph_without_edge)).graph
         if not successful_mutation_edge:
-            successful_mutation_edge = \
-                graph_after_mutation.root_node.descriptive_id == graph_with_edge.root_node.descriptive_id
+            id_before = graph_with_edge.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            successful_mutation_edge = id_before == id_after
         else:
             break
     assert successful_mutation_edge
@@ -324,8 +335,9 @@ def test_replace_mutation_for_linear_graph():
     for _ in range(100):
         graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
         if not successful_mutation_replace:
-            successful_mutation_replace = \
-                graph_after_mutation.root_node.descriptive_id == linear_changed.root_node.descriptive_id
+            id_before = linear_changed.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            successful_mutation_replace = id_before == id_after
         else:
             break
     assert successful_mutation_replace
@@ -352,8 +364,9 @@ def test_drop_mutation_for_linear_graph():
     for _ in range(100):
         graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
         if not successful_mutation_drop:
-            successful_mutation_drop = \
-                graph_after_mutation.root_node.descriptive_id == linear_one_node.root_node.descriptive_id
+            id_before = linear_one_node.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            successful_mutation_drop = id_before == id_after
         else:
             break
     assert successful_mutation_drop
@@ -369,12 +382,11 @@ def test_boosting_mutation_for_linear_graph():
     init_node = OptNode({'name': 'scaling'})
     model_node = OptNode({'name': 'knn'}, [init_node])
 
-    boosting_graph = \
-        OptGraph(
-            OptNode({'name': 'logit'},
-                    [model_node, OptNode({'name': 'linear', },
-                                         [OptNode({'name': 'class_decompose'},
-                                                  [model_node, init_node])])]))
+    boosting_graph = OptGraph(
+        OptNode({'name': 'logit'},
+                [model_node, OptNode({'name': 'linear', },
+                                     [OptNode({'name': 'class_decompose'},
+                                              [model_node, init_node])])]))
 
     available_operations = [node.content['name'] for node in boosting_graph.nodes]
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
@@ -390,8 +402,9 @@ def test_boosting_mutation_for_linear_graph():
     for _ in range(100):
         if not successful_mutation_boosting:
             graph_after_mutation = mutation(Individual(linear_one_node)).graph
-            successful_mutation_boosting = \
-                graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            id_boosting = boosting_graph.root_node.descriptive_id
+            successful_mutation_boosting = id_after == id_boosting
         else:
             break
     assert successful_mutation_boosting
@@ -415,12 +428,11 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     model_node = OptNode({'name': 'clstm'}, nodes_from=[init_node])
     lagged_node = OptNode({'name': 'lagged'}, nodes_from=[init_node])
 
-    boosting_graph = \
-        OptGraph(
-            OptNode({'name': 'ridge'},
-                    [model_node, OptNode({'name': 'ridge', },
-                                         [OptNode({'name': 'decompose'},
-                                                  [model_node, lagged_node])])]))
+    boosting_graph = OptGraph(
+        OptNode({'name': 'ridge'},
+                [model_node, OptNode({'name': 'ridge', },
+                                     [OptNode({'name': 'decompose'},
+                                              [model_node, lagged_node])])]))
     adapter = PipelineAdapter()
     # to ensure hyperparameters of custom models
     boosting_graph = adapter.adapt(adapter.restore(boosting_graph))
@@ -438,8 +450,9 @@ def test_boosting_mutation_for_non_lagged_ts_model():
     for _ in range(100):
         if not successful_mutation_boosting:
             graph_after_mutation = mutation(Individual(linear_two_nodes)).graph
-            successful_mutation_boosting = \
-                graph_after_mutation.root_node.descriptive_id == boosting_graph.root_node.descriptive_id
+            id_after = graph_after_mutation.root_node.descriptive_id
+            id_boosting = boosting_graph.root_node.descriptive_id
+            successful_mutation_boosting = id_after == id_boosting
         else:
             break
     assert successful_mutation_boosting
@@ -454,23 +467,9 @@ def test_boosting_mutation_for_non_lagged_ts_model():
 
 @pytest.mark.parametrize('pipeline, requirements, params',
                          [(PipelineBuilder().add_node('scaling').add_node('rf').to_pipeline(),
-                           PipelineComposerRequirements(
-                               primary=get_operations_for_task(Task(TaskTypesEnum.classification)),
-                               secondary=get_operations_for_task(Task(TaskTypesEnum.classification)), mutation_prob=1,
-                               max_depth=2),
-                           get_pipeline_generation_params(
-                               rules_for_constraint=DEFAULT_DAG_RULES,
-                               task=Task(TaskTypesEnum.classification))
-                           ),
+                           *_get_requirements_and_params_for_task(TaskTypesEnum.classification)),
                           (PipelineBuilder().add_node('smoothing').add_node('ar').to_pipeline(),
-                           PipelineComposerRequirements(
-                               primary=get_operations_for_task(Task(TaskTypesEnum.ts_forecasting)),
-                               secondary=get_operations_for_task(Task(TaskTypesEnum.ts_forecasting)), mutation_prob=1,
-                               max_depth=2),
-                           get_pipeline_generation_params(
-                               rules_for_constraint=DEFAULT_DAG_RULES,
-                               task=Task(TaskTypesEnum.ts_forecasting))
-                           )
+                           *_get_requirements_and_params_for_task(TaskTypesEnum.ts_forecasting))
                           ])
 def test_boosting_mutation_changes_pipeline(pipeline: Pipeline, requirements: PipelineComposerRequirements,
                                             params: GraphGenerationParams):
