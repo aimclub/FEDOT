@@ -10,8 +10,8 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.data.data import InputData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
-    _check_and_correct_window_size
+from fedot.core.log import LoggerAdapter
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -172,13 +172,9 @@ class AutoRegImplementation(ModelImplementation):
         source_ts = np.array(input_data.features)
         self.actual_ts_len = len(source_ts)
         lag = int(self.params.get('lag'))
-        #
-        # # Correct window size parameter
-        lag, self.lag_changed = _check_and_correct_window_size(source_ts,
-                                                               lag,
-                                                               input_data.task.task_params.forecast_length,
-                                                               2,
-                                                               self.log)
+
+        # Correct window size parameter
+        lag, self.lag_changed = AutoRegImplementation._correct_lag(source_ts, lag, self.log)
 
         self.params['lag'] = lag
         self.autoreg = AutoReg(source_ts, lags=lag).fit()
@@ -228,6 +224,18 @@ class AutoRegImplementation(ModelImplementation):
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data
+
+    @staticmethod
+    def _correct_lag(time_series: np.array, lag: int, log: LoggerAdapter):
+        prefix = "Warning: lag of AutoRegImplementation was changed"
+        max_lag = len(time_series) // 2 - 1
+        was_changed = False
+        if lag > max_lag:
+            previous_lag = lag
+            lag = max_lag
+            log.info(f"{prefix} from {previous_lag} to {lag}.")
+            was_changed = True
+        return lag, was_changed
 
     def get_params(self):
         changed_params = []

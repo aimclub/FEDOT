@@ -62,7 +62,7 @@ def test_lagged_with_invalid_params_fit_correctly():
     fixed_params = lagged_node.custom_params
 
     assert pipeline.is_fitted
-    assert fixed_params['window_size'] == 248
+    assert fixed_params['window_size'] == 439
 
 
 def test_ransac_with_invalid_params_fit_correctly():

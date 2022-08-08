@@ -120,12 +120,9 @@ class QualityMetric:
     def _in_sample_prediction(pipeline, data, validation_blocks):
         """ Performs in-sample pipeline validation for time series prediction """
 
-        actual_values = data.target
         horizon = int(validation_blocks * data.task.task_params.forecast_length)
-        if len(actual_values) < horizon:
-            horizon = len(actual_values)
-        else:
-            actual_values = actual_values[-horizon:]
+
+        actual_values = data.target[-horizon:]
 
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,

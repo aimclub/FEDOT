@@ -59,7 +59,7 @@ class HyperoptTuner(ABC):
         Function for hyperparameters tuning on the pipeline
 
         :param input_data: data used for hyperparameter searching
-        :param loss_function: function to minimize (or maximize) the metric,
+        :param loss_function: loss function to minimize (or maximize) during pipeline tuning,
         such function should take vector with true values as first values and
         predicted array as the second
         :param cv_folds: number of folds for cross validation
@@ -79,12 +79,16 @@ class HyperoptTuner(ABC):
 
         :return: value of loss function
         """
+        try:
+            if self.cv_folds is None:
+                metric_value = self._one_fold_validation(data, pipeline, loss_function)
 
-        if self.cv_folds is None:
-            metric_value = self._one_fold_validation(data, pipeline, loss_function)
-
-        else:
-            metric_value = self._cross_validation(data, pipeline, loss_function)
+            else:
+                metric_value = self._cross_validation(data, pipeline, loss_function)
+        except Exception as ex:
+            self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
+            # Return default metric: too small (for maximization) or too big (for minimization)
+            return self._default_metric_value
         return metric_value
 
     def init_check(self, data, loss_function) -> None:

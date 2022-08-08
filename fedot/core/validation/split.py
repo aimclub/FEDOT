@@ -16,9 +16,9 @@ class OneFoldInputDataSplit:
         pass
 
     @staticmethod
-    def input_split(input_data: InputData):
+    def input_split(input_data: InputData, **kwargs):
         # Train test split
-        train_input, test_input = train_test_data_setup(input_data)
+        train_input, test_input = train_test_data_setup(input_data, **kwargs)
 
         yield train_input, test_input
 
@@ -125,8 +125,9 @@ def ts_cv_generator(data: InputData, folds: int,
     """
     if not log:
         log = default_log(prefix=__name__)
+    validation_blocks = int(validation_blocks)
     # Forecast horizon for each fold
-    horizon = int(data.task.task_params.forecast_length * validation_blocks)
+    horizon = data.task.task_params.forecast_length * validation_blocks
 
     try:
         tscv = TsInputDataSplit(gap=0, validation_blocks=validation_blocks,
@@ -138,7 +139,7 @@ def ts_cv_generator(data: InputData, folds: int,
         # Perform one fold validation (folds parameter will be ignored)
 
         one_fold_split = OneFoldInputDataSplit()
-        for train_data, test_data in one_fold_split.input_split(data):
+        for train_data, test_data in one_fold_split.input_split(data, validation_blocks=validation_blocks):
             yield train_data, test_data
 
 

@@ -64,7 +64,7 @@ def test_cv_folds_too_large_correct():
     the number of elements to be validated to be greater than the number of elements
     in the time series itself, are adequately handled
 
-    In this case a hold-out validation must be performed
+    In this case a hold-out validation with 1 fold and 3 validation blocks must be performed
     """
     folds = 50
     forecast_len, validation_blocks, time_series = configure_experiment()
@@ -72,7 +72,7 @@ def test_cv_folds_too_large_correct():
     i = 0
     for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
         i += 1
-        assert len(train_data.idx) == 95
+        assert len(train_data.idx) == 85
     assert i == 1
 
 

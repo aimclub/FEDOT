@@ -647,9 +647,10 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
 
     # Maximum threshold
     removing_len = window_size + forecast_length
-    if window_size > len(time_series) // 2 - 1:
+    if removing_len > len(time_series):
         previous_size = window_size
-        window_size = len(time_series) // 2 - 1
+        # At least 10 objects we need for training, so minus 10
+        window_size = len(time_series) - forecast_length - 10
 
         log.info(f"{prefix} from {previous_size} to {window_size}.")
         was_changed = True
