@@ -75,9 +75,7 @@ class PopulationalOptimizer(GraphOptimizer):
         # eval_dispatcher defines how to evaluate objective on the whole population
         evaluator = self.eval_dispatcher.dispatch(objective)
 
-        with self.timer, tqdm(total=self.requirements.num_of_generations,
-                              desc='Generations', unit='gen', initial=1,
-                              disable=self.log.logging_level == logging.NOTSET):
+        with self.timer, self._progressbar:
 
             self._initial_population(evaluator=evaluator)
 
@@ -122,16 +120,15 @@ class PopulationalOptimizer(GraphOptimizer):
         for individual in population:
             individual.set_native_generation(self.current_generation_num)
 
-    def _progressbar(self, show_progress: bool = True):
-        disable = not show_progress
-        if disable:
-            # disable call to tqdm.__init__ completely
-            # to avoid access to stdout/stderr inside it
-            # workaround for https://github.com/nccr-itmo/FEDOT/issues/765
-            bar = EmptyProgressBar()
-        else:
+    @property
+    def _progressbar(self):
+        if self.requirements.show_progress:
             bar = tqdm(total=self.requirements.num_of_generations,
-                       desc='Generations', unit='gen', initial=1, disable=disable)
+                       desc='Generations', unit='gen', initial=1)
+        else:
+            # disable call to tqdm.__init__ to avoid stdout/stderr access inside it
+            # part of a workaround for https://github.com/nccr-itmo/FEDOT/issues/765
+            bar = EmptyProgressBar()
         return bar
 
 

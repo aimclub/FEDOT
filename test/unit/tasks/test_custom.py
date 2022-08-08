@@ -83,7 +83,7 @@ def test_custom_graph_opt():
         initial_graphs=init_population)
 
     objective_eval = ObjectiveEvaluate(objective)
-    optimized_graphs = optimiser.optimise(objective_eval, show_progress=requirements.show_progress)
+    optimized_graphs = optimiser.optimise(objective_eval)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
     assert optimized_network is not None
