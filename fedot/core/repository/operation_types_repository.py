@@ -108,7 +108,6 @@ class OperationTypesRepository:
         return operation_types
 
     @classmethod
-    @run_once
     def init_automl_repository(cls):
         default_automl_repo_file = cls.__repository_dict__['automl']['file']
         return cls.assign_repo('automl', default_automl_repo_file)
@@ -148,6 +147,10 @@ class OperationTypesRepository:
 
     def __repr__(self):
         return f"{self.__class__.__name__} for {self.repository_name}"
+
+    @property
+    def is_initialized(self):
+        return OperationTypesRepository.__repository_dict__[self.operation_type]['initialized_repo'] is None
 
     @classmethod
     def _initialise_repo(cls, repo_path: str) -> List[OperationMetaInfo]:

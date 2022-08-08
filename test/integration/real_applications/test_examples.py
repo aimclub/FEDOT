@@ -67,10 +67,11 @@ def test_nemo_multiple_points_example():
 
 
 def test_log_example():
-    with open(Path(default_fedot_data_dir(), 'log.log')) as f:
+    pth = Path(default_fedot_data_dir(), 'log.log')
+    with pth.open() as f:
         lines_before = len(f.readlines())
-    run_log_example('log.log')
-    with open(Path(default_fedot_data_dir(), 'log.log')) as f:
+    run_log_example(pth.name)
+    with pth.open() as f:
         lines_after = len(f.readlines())
     assert lines_after > lines_before
 

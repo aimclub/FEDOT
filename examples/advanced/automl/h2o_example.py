@@ -108,5 +108,7 @@ def h2o_ts_pipeline_evaluation():
 if __name__ == '__main__':
     with OperationTypesRepository.init_automl_repository() as _:
         h2o_classification_pipeline_evaluation()
+    with OperationTypesRepository.init_automl_repository() as _:
         h2o_regression_pipeline_evaluation()
+    with OperationTypesRepository.init_automl_repository() as _:
         h2o_ts_pipeline_evaluation()

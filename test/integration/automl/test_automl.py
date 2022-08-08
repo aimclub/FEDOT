@@ -1,8 +1,11 @@
 import os
 from datetime import timedelta
 
+from examples.advanced.automl.h2o_example import h2o_classification_pipeline_evaluation, \
+    h2o_regression_pipeline_evaluation, h2o_ts_pipeline_evaluation
 from examples.advanced.automl.pipeline_from_automl import run_pipeline_from_automl
 from examples.advanced.automl.tpot_vs_fedot import run_tpot_vs_fedot_example
+from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import fedot_project_root
 
 
@@ -24,3 +27,12 @@ def test_tpot_vs_fedot_example():
 
     auc = run_tpot_vs_fedot_example(file_path_train, file_path_test)
     assert auc > 0.5
+
+
+def test_h2o_vs_fedot_example():
+    with OperationTypesRepository.init_automl_repository() as _:
+        h2o_classification_pipeline_evaluation()
+    with OperationTypesRepository.init_automl_repository() as _:
+        h2o_regression_pipeline_evaluation()
+    with OperationTypesRepository.init_automl_repository() as _:
+        h2o_ts_pipeline_evaluation()
