@@ -5,6 +5,7 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
+from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -103,7 +104,7 @@ def run_experiment(pipeline, tuner):
             pipeline_tuner = tuner(pipeline=pipeline, task=task,
                                    iterations=50, timeout=timedelta(seconds=50))
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=mean_absolute_error)
+                                                          loss_function=MAE.metric)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

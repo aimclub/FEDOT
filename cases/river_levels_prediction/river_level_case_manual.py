@@ -5,6 +5,7 @@ from datetime import timedelta
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -61,7 +62,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
             pipeline_tuner = tuner(pipeline=current_pipeline, task=data.task,
                                    iterations=tuner_iterations, timeout=timedelta(seconds=30))
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=mean_absolute_error)
+                                                          loss_function=MAE.metric)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

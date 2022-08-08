@@ -3,6 +3,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
 from examples.simple.classification.classification_pipelines import classification_random_forest_pipeline
+from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -123,7 +124,7 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
             pipeline_tuner = tuner(pipeline=pipeline, task=task,
                                    iterations=50)
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=roc_auc)
+                                                          loss_function=ROCAUC.metric)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
