@@ -94,7 +94,7 @@ class Fedot:
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
                  task_params: TaskParams = None,
                  seed=None, logging_level: int = logging.ERROR,
-                 safe_mode=True,
+                 safe_mode=False,
                  n_jobs: int = 1,
                  **composer_tuner_params
                  ):
