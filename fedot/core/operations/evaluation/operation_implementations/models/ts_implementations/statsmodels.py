@@ -161,7 +161,8 @@ class AutoRegImplementation(ModelImplementation):
         self.params = params
         self.autoreg = None
         self.actual_ts_len = None
-        self.lag_changed = False
+        self.lag1_changed = False
+        self.lag2_changed = False
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -171,13 +172,19 @@ class AutoRegImplementation(ModelImplementation):
 
         source_ts = np.array(input_data.features)
         self.actual_ts_len = len(source_ts)
-        lag = int(self.params.get('lag'))
+        lag_1 = int(self.params.get('lag_1'))
+        lag_2 = int(self.params.get('lag_2'))
 
         # Correct window size parameter
-        lag, self.lag_changed = AutoRegImplementation._correct_lag(source_ts, lag, self.log)
+        lag_1, self.lag1_changed = AutoRegImplementation._correct_lag(source_ts, lag_1, self.log)
+        lag_2, self.lag2_changed = AutoRegImplementation._correct_lag(source_ts, lag_2, self.log)
 
-        self.params['lag'] = lag
-        self.autoreg = AutoReg(source_ts, lags=lag).fit()
+        if lag_1 == lag_2:
+            lag_2 -= 1
+
+        self.params['lag_1'] = lag_1
+        self.params['lag_2'] = lag_2
+        self.autoreg = AutoReg(source_ts, lags=[lag_1, lag_2]).fit()
         self.actual_ts_len = input_data.idx.shape[0]
 
         return self.autoreg
@@ -239,8 +246,12 @@ class AutoRegImplementation(ModelImplementation):
 
     def get_params(self):
         changed_params = []
-        if self.lag_changed is True:
-            changed_params.append('lag')
+        if self.lag1_changed is True:
+            changed_params.append('lag_1')
+
+        if self.lag2_changed is True:
+            changed_params.append('lag_2')
+        if changed_params:
             return self.params, changed_params
         return self.params
 

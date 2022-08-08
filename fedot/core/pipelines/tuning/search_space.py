@@ -123,7 +123,8 @@ class SearchSpace:
                 'period': (hp.uniformint, [1, 365])
             },
             'ar': {
-                'lag': (hp.uniform, [2, 800])
+                'lag_1': (hp.uniform, [2, 200]),
+                'lag_2': (hp.uniform, [2, 800])
             },
             'ets': {
                 'error': (hp.choice, [['add', 'mul']]),

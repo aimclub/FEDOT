@@ -138,7 +138,8 @@ def get_not_default_search_space():
             'max_depth': (hp.choice, [[-1]])
         },
         'ar': {
-            'lag': (hp.uniform, [2, 500])
+            'lag_1': (hp.uniform, [2, 100]),
+            'lag_2': (hp.uniform, [2, 500])
         },
         'pca': {
             'n_components': (hp.uniform, [0.2, 0.8])
