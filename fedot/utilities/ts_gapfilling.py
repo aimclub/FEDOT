@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Optional
+from typing import List, Union
 
 import numpy as np
 from scipy import interpolate
@@ -14,6 +14,7 @@ def series_has_gaps_check(gapfilling_method):
     """ Check is time series has gaps or not. Return source array, if not """
 
     def wrapper(self, input_data, *args, **kwargs):
+        input_data = replace_nan_with_label(input_data, label=self.gap_value)
         gap_ids = np.ravel(np.argwhere(input_data == self.gap_value))
         if len(gap_ids) == 0:
             self.log.info(f'Array does not contain values marked as gaps {self.gap_value}')
@@ -49,6 +50,7 @@ class SimpleGapFiller:
         :return: array without gaps
         """
         output_data = np.array(input_data)
+        output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
         # Process first and last elements in time series
         output_data = self._fill_first_and_last_gaps(input_data, output_data)
@@ -76,6 +78,7 @@ class SimpleGapFiller:
         :return: array without gaps
         """
         output_data = np.array(input_data)
+        output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
         i_gaps = np.ravel(np.argwhere(output_data == self.gap_value))
 
@@ -123,6 +126,7 @@ class SimpleGapFiller:
         :return: array without gaps
         """
         output_data = np.array(input_data)
+        output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
         # Gap indices
         gap_list = np.ravel(np.argwhere(output_data == self.gap_value))
@@ -167,7 +171,7 @@ class SimpleGapFiller:
 
         return output_data
 
-    def _parse_gap_ids(self, gap_list: list) -> list:
+    def _parse_gap_ids(self, gap_list: Union[List, np.ndarray]) -> list:
         """
         Method allows parsing source array with gaps indexes
 
@@ -235,12 +239,12 @@ class ModelGapFiller(SimpleGapFiller):
         :return: array without gaps
         """
         output_data = np.array(input_data)
-
+        output_data = replace_nan_with_label(output_data, label=self.gap_value)
         # Gap indices
         gap_list = np.ravel(np.argwhere(output_data == self.gap_value))
         new_gap_list = self._parse_gap_ids(gap_list)
 
-        # Iterately fill in the gaps in the time series
+        # Iteratively fill in the gaps in the time series
         for batch_index in range(len(new_gap_list)):
 
             preds = []
@@ -264,7 +268,7 @@ class ModelGapFiller(SimpleGapFiller):
         return output_data
 
     @series_has_gaps_check
-    def forward_filling(self, input_data):
+    def forward_filling(self, input_data: Union[List, np.ndarray]):
         """
         Method fills in the gaps in the input array using graph with only
         forward direction (i.e. time series forecasting)
@@ -273,6 +277,7 @@ class ModelGapFiller(SimpleGapFiller):
         :return: array without gaps
         """
         output_data = np.array(input_data)
+        output_data = replace_nan_with_label(output_data, label=self.gap_value)
 
         # Gap indices
         gap_list = np.ravel(np.argwhere(output_data == self.gap_value))
@@ -334,18 +339,27 @@ class ModelGapFiller(SimpleGapFiller):
         gap = new_gap_list[batch_index]
         # Adaptive prediction interval length
         len_gap = len(gap)
+        weights_list = np.arange(1, (len_gap + 1), 1)
 
-        # If the interval with a gap is the last one in the array
         first_gap_element_id = gap[0]
         latest_gap_element_id = gap[-1]
         if batch_index == len(new_gap_list) - 1:
+            # If the interval with a gap is the last one in the array
             timeseries_train_part = output_data[(latest_gap_element_id + 1):]
 
-            if len(timeseries_train_part) == 0:
-                # Take last observed value as predicted
+            is_gap_in_end_time_series = len(timeseries_train_part) == 0
+            is_series_size_not_enough = (len(timeseries_train_part) - len_gap) < self.min_train_ts_length
+            if is_gap_in_end_time_series:
+                # The gap is last element - take last observed value as predicted
                 last_known_value = output_data[first_gap_element_id - 1]
-                return [last_known_value] * len_gap
+                return weights_list, [last_known_value] * len_gap
+            elif is_series_size_not_enough:
+                # Number of elements in time series after gap is not enough for
+                # model training - interpolation is required
+                last_known_value_id = first_gap_element_id - 1 if first_gap_element_id > 0 else 0
+                extended_part = output_data[last_known_value_id:]
         else:
+            # Next gap interval is exist
             next_gap = new_gap_list[batch_index + 1]
             timeseries_train_part = output_data[(latest_gap_element_id + 1): next_gap[0]]
 
@@ -355,7 +369,7 @@ class ModelGapFiller(SimpleGapFiller):
             if first_gap_element_id == 0:
                 # Gap in the first part of time series - take first observed value
                 first_known_value = timeseries_train_part[0]
-                return [first_known_value] * len_gap
+                return weights_list, [first_known_value] * len_gap
         timeseries_train_part = np.flip(timeseries_train_part)
 
         train_ts_len = len(timeseries_train_part) - len_gap
@@ -371,7 +385,6 @@ class ModelGapFiller(SimpleGapFiller):
                                                     len_gap)
 
             predicted = np.flip(predicted)
-        weights_list = np.arange(1, (len_gap + 1), 1)
         return weights_list, predicted
 
     def __pipeline_fit_predict(self, pipeline, timeseries_train: np.array, len_gap: int):
@@ -426,9 +439,9 @@ class ModelGapFiller(SimpleGapFiller):
             # Take part with gap [..., gap, gap, known_value]
             gap_part = output_data[:gap[-1] + 2]
 
-            # Use linear interpolation
+            # Use linear interpolation - get full time series
             interpolated_part = self.linear_interpolation(gap_part)
-            predicted = interpolated_part[:-1]
+            predicted = interpolated_part[gap]
         else:
             # Pipeline for the task of filling in gaps
             predicted = self.__pipeline_fit_predict(pipeline,
@@ -436,3 +449,8 @@ class ModelGapFiller(SimpleGapFiller):
                                                     len(gap))
 
         return predicted
+
+
+def replace_nan_with_label(time_series: np.ndarray, label: Union[int, float]):
+    """ Replace np.nan in the array with desired label """
+    return np.nan_to_num(time_series, nan=label)

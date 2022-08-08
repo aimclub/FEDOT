@@ -51,11 +51,11 @@ def get_array_with_gaps(gap_dict=None, gap_value: float = -100.0):
     :return real_values: an array with actual values in gaps
     """
 
-    real_values = generate_synthetic_data()
+    real_values = generate_synthetic_data(length=100)
 
     if gap_dict is None:
-        gap_dict = {850: 100,
-                    1400: 150}
+        gap_dict = {20: 5,
+                    70: 10}
     array_with_gaps = generate_gaps_in_ts(array_without_gaps=real_values,
                                           gap_dict=gap_dict,
                                           gap_value=gap_value)
@@ -125,7 +125,7 @@ def plot_results(arrays_dict, gap_data):
     plt.plot(arrays_dict.get('ridge'), c='red',
              alpha=0.5, label='Inverse ridge')
     plt.plot(masked_array, c='blue', alpha=1.0, label='Actual values')
-    plt.xlim(gap_ids[0] - 100, gap_ids[-1] + 100)
+    plt.xlim(gap_ids[0] - 10, gap_ids[-1] + 10)
     plt.legend(loc='upper center')
     plt.grid()
     plt.show()
