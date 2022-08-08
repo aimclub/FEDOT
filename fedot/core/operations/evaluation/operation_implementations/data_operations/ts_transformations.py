@@ -48,13 +48,13 @@ class LaggedImplementation(DataOperationImplementation):
         forecast_length = new_input_data.task.task_params.forecast_length
         old_idx = new_input_data.idx
 
+        # Correct window size parameter
+        self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
+                                                                                   self.window_size,
+                                                                                   forecast_length,
+                                                                                   self.window_size_minimum,
+                                                                                   self.log)
         if is_fit_pipeline_stage:
-            # Correct window size parameter
-            self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
-                                                                                       self.window_size,
-                                                                                       forecast_length,
-                                                                                       self.window_size_minimum,
-                                                                                       self.log)
             # Transformation for fit stage of the pipeline
             target = np.array(new_input_data.target)
             features = np.array(new_input_data.features)

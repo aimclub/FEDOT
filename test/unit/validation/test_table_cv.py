@@ -22,7 +22,6 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.validation.split import tabular_cv_generator
-from fedot.core.validation.tune.tabular import cv_tabular_predictions
 from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset
 from test.unit.tasks.test_classification import get_iris_data, pipeline_simple
