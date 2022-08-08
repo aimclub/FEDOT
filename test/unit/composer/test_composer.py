@@ -20,7 +20,7 @@ from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, G
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements, \
     MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.optimisers.objective import Objective
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -28,7 +28,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from test.unit.pipelines.test_pipeline_comparison import pipeline_first
+from test.unit.pipelines.test_pipeline_comparison import pipeline_first, pipeline_second
 
 
 def to_numerical(categorical_ids: np.ndarray):
@@ -236,8 +236,8 @@ def test_multi_objective_composer(data_fixture, request):
     pipelines_roc_auc = []
 
     assert type(pipelines_evo_composed) is list
-    assert len(composer.optimiser.objective.metrics) > 1
-    assert composer.optimiser.parameters.multi_objective
+    assert len(composer.optimizer.objective.metrics) > 1
+    assert composer.optimizer.parameters.multi_objective
 
     for pipeline_evo_composed in pipelines_evo_composed:
         pipeline_evo_composed.fit_from_scratch(input_data=dataset_to_compose)
@@ -272,31 +272,28 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     composer = builder.build()
     composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
-    assert composer.optimiser.requirements.max_depth == 2
+    assert composer.optimizer.requirements.max_depth == 2
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_gp_composer_saving_info_from_process(data_fixture, request):
+def test_evaluation_saving_info_from_process(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
-    dataset_to_compose = data
-    available_model_types = ['rf', 'knn']
     quality_metric = ClassificationMetricsEnum.ROCAUC
-    req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=4, pop_size=3, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2
-                                       )
-    scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type)
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        quality_metric).with_optimiser_params(parameters=optimiser_parameters).with_cache(OperationsCache())
-    composer: GPComposer = builder.build()
-    composer.compose_pipeline(data=dataset_to_compose)
 
-    global_cache_len_before = len(composer.pipelines_cache)
-    new_pipeline = pipeline_first()
-    objective = composer.objective_builder.build(data)
-    objective(new_pipeline)
-    global_cache_len_after = len(composer.pipelines_cache)
+    data_source = DataSourceBuilder().build(data)
+    objective_evaluator = PipelineObjectiveEvaluate(Objective(quality_metric), data_source,
+                                                    pipelines_cache=OperationsCache())
+
+    objective_evaluator(pipeline_first())
+    global_cache_len_before = len(objective_evaluator._pipelines_cache)
+
+    assert global_cache_len_before > 0
+
+    # evaluate additional pipeline to see that cache changes
+    new_pipeline = pipeline_second()
+    objective_evaluator(new_pipeline)
+    global_cache_len_after = len(objective_evaluator._pipelines_cache)
+
     assert global_cache_len_before < global_cache_len_after
     assert new_pipeline.computation_time is not None
 

@@ -12,16 +12,13 @@ from fedot.core.pipelines.pipeline import Pipeline
 class Composer(ABC):
     """
     Base class used for receiving composite operations via optimization
-    :param optimiser: optimiser generated in ComposerBuilder
+    :param optimizer: optimizer generated in ComposerBuilder
     :param composer_requirements: requirements for composition process
-    :param initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
-    def __init__(self, optimiser: GraphOptimizer, composer_requirements: Optional[ComposerRequirements] = None,
-                 initial_pipelines: Optional[Sequence[Pipeline]] = None):
+    def __init__(self, optimizer: GraphOptimizer, composer_requirements: Optional[ComposerRequirements] = None):
         self.composer_requirements = composer_requirements
-        self.initial_pipelines = initial_pipelines
-        self.optimiser = optimiser
+        self.optimizer = optimizer
         self.log = default_log(self)
 
     @abstractmethod

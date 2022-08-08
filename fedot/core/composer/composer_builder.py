@@ -151,7 +151,6 @@ class ComposerBuilder:
 
         composer = self.composer_cls(optimiser,
                                      self.composer_requirements,
-                                     initial_population,
                                      history,
                                      self.pipelines_cache,
                                      self.preprocessing_cache)
