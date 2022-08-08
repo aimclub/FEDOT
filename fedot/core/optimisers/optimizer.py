@@ -87,7 +87,7 @@ class GraphOptimizer:
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None):
-        self.log = default_log(self, self, logging_level=requirements.logging_level_opt if requirements else
+        self.log = default_log(self, logging_level=requirements.logging_level_opt if requirements else
                                logging.CRITICAL+1)
         self.initial_graphs = initial_graphs
         self._objective = objective
