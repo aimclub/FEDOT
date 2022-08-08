@@ -1,10 +1,9 @@
-from copy import copy
-from typing import Union, Sequence, List, Callable, Optional, Tuple
+
+from typing import Union, Sequence, List, Callable, Optional, Tuple, Type
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
-from fedot.core.utilities.data_structures import Copyable
 
 
 class GraphDelegate(Graph):
@@ -14,12 +13,10 @@ class GraphDelegate(Graph):
     The class purpose is for cleaner code organisation:
     - avoid inheriting from specific Graph implementations
     - hide Graph implementation details from inheritors.
-
-    :param delegate: Graph implementation to delegate to.
     """
 
-    def __init__(self, delegate: Graph):
-        self.operator = delegate
+    def __init__(self, *args, delegate_cls: Type[Graph] = GraphOperator, **kwargs):
+        self.operator = delegate_cls(*args, **kwargs)
 
     def add_node(self, new_node: GraphNode):
         self.operator.add_node(new_node)
