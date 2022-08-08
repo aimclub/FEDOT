@@ -92,10 +92,30 @@ def test_multi_modal_data():
 
 
 def test_text_data_only():
-    # TODO will test the case when there is no table data in csv, but MultiModalData.from_csv() is used
-    pass
+    # Case when there is no table data in csv, but MultiModalData.from_csv() is used
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/simple_multimodal_classification_text.csv'
+    path = os.path.join(test_file_path, file)
+
+    file_data = InputData.from_csv(path, data_type=DataTypesEnum.text)
+    file_mm_data = MultiModalData.from_csv(path)
+
+    assert len(file_mm_data) == 1
+    assert file_mm_data['data_source_text/description'].data_type is DataTypesEnum.text
+    assert file_mm_data['data_source_text/description'].features.all() == file_data.features.all()
+    assert file_mm_data['data_source_text/description'].target.all() == file_data.target.all()
 
 
 def test_table_data_only():
-    # TODO will test the case when there is no text data in csv, but MultiModalData.from_csv() is used
-    pass
+    # Case when there is no text data in csv, but MultiModalData.from_csv() is used
+    test_file_path = str(os.path.dirname(__file__))
+    file = '../../data/simple_classification.csv'
+    path = os.path.join(test_file_path, file)
+
+    file_data = InputData.from_csv(path)
+    file_mm_data = MultiModalData.from_csv(path)
+
+    assert len(file_mm_data) == 1
+    assert file_mm_data['data_source_table'].data_type is DataTypesEnum.table
+    assert file_mm_data['data_source_table'].features.all() == file_data.features.all()
+    assert file_mm_data['data_source_table'].target.all() == file_data.target.all()
