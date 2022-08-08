@@ -33,7 +33,7 @@ class Pipeline(GraphDelegate, Serializable):
     """
 
     def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
-        super().__init__(GraphOperator(nodes, _graph_nodes_to_pipeline_nodes))
+        super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
 
         self.computation_time = None
         self.log = default_log(self)

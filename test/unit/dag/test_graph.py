@@ -200,7 +200,7 @@ def test_update_subtree_with_duplicated_edges():
 
 
 @pytest.mark.parametrize('graph', [GraphImpl(GraphNode(content='n1')),
-                                   GraphDelegate(GraphImpl(GraphNode(content='n1')))])
+                                   GraphDelegate(GraphNode(content='n1'), delegate_cls=GraphImpl)])
 def test_graph_copy(graph: Graph):
     graph_copy = copy(graph)
 
@@ -213,7 +213,7 @@ def test_graph_copy(graph: Graph):
 
 
 @pytest.mark.parametrize('graph', [GraphImpl(GraphNode(content='n1')),
-                                   GraphDelegate(GraphImpl(GraphNode(content='n1')))])
+                                   GraphDelegate(GraphNode(content='n1'), delegate_cls=GraphImpl)])
 def test_graph_deepcopy(graph: Graph):
     graph_copy = deepcopy(graph)
 
