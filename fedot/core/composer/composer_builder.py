@@ -43,17 +43,17 @@ class ComposerBuilder:
 
     def __init__(self, task: Task):
         self.log: LoggerAdapter = default_log(self)
-        self.task: Task = task
 
-        self.optimiser_cls: Type[GraphOptimizer] = EvoGraphOptimizer
+        self.task: Task = task
+        self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
+
+        self.optimiser_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
         self.optimiser_parameters: GPGraphOptimizerParameters = GPGraphOptimizerParameters()
         self.optimizer_external_parameters: dict = {}
 
-        # TODO: abstract
-        self.composer_cls: Type[Composer] = GPComposer
-        self.graph_generation_params: Optional[GraphGenerationParams] = None
+        self.composer_cls: Type[Composer] = GPComposer  # default composer class
         self.composer_requirements: Optional[PipelineComposerRequirements] = None
-        self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
+        self.graph_generation_params: Optional[GraphGenerationParams] = None
 
         self.initial_population: Union[Pipeline, Sequence[Pipeline]] = ()
         self.initial_population_generation_function: Optional[GenerationFunction] = None
@@ -63,6 +63,11 @@ class ComposerBuilder:
 
         self.pipelines_cache: Optional[OperationsCache] = None
         self.preprocessing_cache: Optional[PreprocessingCache] = None
+
+    def with_composer(self, composer_cls: Optional[Type[Composer]]):
+        if composer_cls is not None:
+            self.composer_cls = composer_cls
+        return self
 
     def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimizer]] = None):
         if optimiser_cls is not None:
@@ -112,9 +117,10 @@ class ComposerBuilder:
         self.preprocessing_cache = preprocessing_cache
         return self
 
-    def _get_default_composer_params(self) -> PipelineComposerRequirements:
+    @staticmethod
+    def _get_default_composer_params(task: Task) -> PipelineComposerRequirements:
         # Get all available operations for task
-        operations = get_operations_for_task(task=self.task, mode='all')
+        operations = get_operations_for_task(task=task, mode='all')
         return PipelineComposerRequirements(primary=operations, secondary=operations)
 
     def _get_default_graph_generation_params(self) -> GraphGenerationParams:
@@ -137,7 +143,7 @@ class ComposerBuilder:
 
     def build(self) -> Composer:
         if not self.composer_requirements:
-            self.composer_requirements = self._get_default_composer_params()
+            self.composer_requirements = self._get_default_composer_params(self.task)
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
 
