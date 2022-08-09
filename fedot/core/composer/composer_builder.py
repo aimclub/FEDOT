@@ -1,6 +1,8 @@
 import platform
 from functools import partial
 from multiprocessing import set_start_method
+from os import PathLike
+from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Type, Union
 
 from fedot.core.caching.pipelines_cache import OperationsCache
@@ -28,6 +30,7 @@ from fedot.core.repository.quality_metrics_repository import (
 )
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.core.utils import default_fedot_data_dir
 
 
 def set_multiprocess_start_method():
@@ -48,15 +51,18 @@ class ComposerBuilder:
 
         # TODO: abstract
         self.composer_cls: Type[Composer] = GPComposer
-        self.initial_population: Union[Pipeline, Sequence[Pipeline]] = ()
-        self.initial_population_generation_function: Optional[GenerationFunction] = None
-        self._keep_history: bool = False
-        self._history_folder: Optional[str] = None
-        self.pipelines_cache: Optional[OperationsCache] = None
-        self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.graph_generation_params: Optional[GraphGenerationParams] = None
         self.composer_requirements: Optional[PipelineComposerRequirements] = None
         self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
+
+        self.initial_population: Union[Pipeline, Sequence[Pipeline]] = ()
+        self.initial_population_generation_function: Optional[GenerationFunction] = None
+
+        self._keep_history: bool = False
+        self._full_history_dir: Optional[Path] = None
+
+        self.pipelines_cache: Optional[OperationsCache] = None
+        self.preprocessing_cache: Optional[PreprocessingCache] = None
 
     def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimizer]] = None):
         if optimiser_cls is not None:
@@ -95,7 +101,9 @@ class ComposerBuilder:
 
     def with_history(self, history_folder: Optional[str] = None):
         self._keep_history = True
-        self._history_folder = history_folder
+        if history_folder:
+            history_folder = Path(default_fedot_data_dir(), history_folder)
+        self._full_history_dir = history_folder
         return self
 
     def with_cache(self, pipelines_cache: Optional[OperationsCache] = None,
@@ -156,9 +164,10 @@ class ComposerBuilder:
                                        **self.optimizer_external_parameters)
         history = None
         if self._keep_history:
-            # fix init of GPComposer, use history
-            history = OptHistory(objective, self._history_folder)
-            history_callback = partial(log_to_history, history)
+            # Clean results of the previous run
+            history = OptHistory(objective)
+            history.clean_results(self._full_history_dir)
+            history_callback = partial(log_to_history, history=history, save_dir=self._full_history_dir)
             optimiser.set_optimisation_callback(history_callback)
 
         composer = self.composer_cls(optimiser,

@@ -1,5 +1,6 @@
 import datetime
 import random
+from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -14,6 +15,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 random.seed(12)
@@ -75,7 +77,7 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
     # the optimal pipeline generation by composition - the most time-consuming task
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
 
-    composer.history.write_composer_history_to_csv()
+    composer.history.write_history_to_csv()
 
     if is_visualise:
         results_visualization(composed_pipelines=pipelines_evo_composed, history=composer.history)

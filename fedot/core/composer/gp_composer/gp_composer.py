@@ -42,10 +42,6 @@ class GPComposer(Composer):
         # shuffle data if necessary
         data.shuffle()
 
-        # Keep history of optimization
-        if self.history:
-            self.history.clean_results()
-
         # Define data source
         data_producer = DataSourceBuilder(self.composer_requirements.cv_folds,
                                           self.composer_requirements.validation_blocks).build(data)
