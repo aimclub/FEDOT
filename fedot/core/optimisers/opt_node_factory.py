@@ -53,16 +53,16 @@ class DefaultOptNodeFactory(OptNodeFactory):
                  advisor: Optional[DefaultChangeAdvisor] = None):
         super().__init__(requirements, advisor)
 
-    def exchange_node(self, node: OptNode):
+    def exchange_node(self, node: OptNode) -> Optional[OptNode]:
         return node
 
-    def get_parent_node(self, node: OptNode, primary: bool):
+    def get_parent_node(self, node: OptNode, primary: bool) -> Optional[OptNode]:
         return self.get_node(primary=primary)
 
-    def get_node(self, primary: bool):
+    def get_node(self, primary: bool) -> Optional[OptNode]:
         if self.requirements:
             candidates = self.requirements.primary if primary else self.requirements.secondary
             return OptNode(content={'name': choice(candidates),
                                     'params': DEFAULT_PARAMS_STUB})
         else:
-            None
+            return None
