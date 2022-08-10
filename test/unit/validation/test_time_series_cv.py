@@ -12,7 +12,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.composer.metrics import MAE, MSE
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.tuner_interface import cv_time_series_predictions
+from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
@@ -106,8 +106,6 @@ def test_cv_ts_predictions_correct(folds, actual_value):
                                               cv_folds=folds,
                                               validation_blocks=validation_blocks,
                                               loss_function=MSE.metric)
-    assert metric_value
-    assert metric_value > 0
     assert np.isclose(metric_value, actual_value)
 
 

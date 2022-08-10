@@ -172,18 +172,12 @@ class AutoRegImplementation(ModelImplementation):
 
         source_ts = np.array(input_data.features)
         self.actual_ts_len = len(source_ts)
-        lag_1 = int(self.params.get('lag_1'))
-        lag_2 = int(self.params.get('lag_2'))
 
         # Correct window size parameter
-        lag_1, self.lag1_changed = AutoRegImplementation._correct_lag(source_ts, lag_1, self.log)
-        lag_2, self.lag2_changed = AutoRegImplementation._correct_lag(source_ts, lag_2, self.log)
+        self.lag1_changed, self.lag2_changed = self._check_and_correct_lags(source_ts)
 
-        if lag_1 == lag_2:
-            lag_2 -= 1
-
-        self.params['lag_1'] = lag_1
-        self.params['lag_2'] = lag_2
+        lag_1 = int(self.params.get('lag_1'))
+        lag_2 = int(self.params.get('lag_2'))
         self.autoreg = AutoReg(source_ts, lags=[lag_1, lag_2]).fit()
         self.actual_ts_len = input_data.idx.shape[0]
 
@@ -232,23 +226,36 @@ class AutoRegImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    @staticmethod
-    def _correct_lag(time_series: np.array, lag: int, log: LoggerAdapter):
-        prefix = "Warning: lag of AutoRegImplementation was changed"
+    def _check_and_correct_lags(self, time_series: np.array):
+        previous_lag_1 = int(self.params.get('lag_1'))
+        previous_lag_2 = int(self.params.get('lag_2'))
         max_lag = len(time_series) // 2 - 1
-        was_changed = False
+        new_lag_1 = self._check_and_correct_lag(max_lag, previous_lag_1)
+        new_lag_2 = self._check_and_correct_lag(max_lag, previous_lag_2)
+        if new_lag_1 == new_lag_2:
+            new_lag_2 -= 1
+        lag1_was_changed = self._lag_was_changed(previous_lag_1, new_lag_1)
+        lag2_was_changed = self._lag_was_changed(previous_lag_2, new_lag_2)
+        self.params['lag_1'] = new_lag_1
+        self.params['lag_2'] = new_lag_2
+        return lag1_was_changed, lag2_was_changed
+
+    def _check_and_correct_lag(self, max_lag: int, lag: int):
         if lag > max_lag:
-            previous_lag = lag
             lag = max_lag
-            log.info(f"{prefix} from {previous_lag} to {lag}.")
-            was_changed = True
-        return lag, was_changed
+        return lag
+
+    def _lag_was_changed(self, previous_lag, new_lag):
+        was_changed = (previous_lag != new_lag)
+        prefix = "Warning: lag of AutoRegImplementation was changed"
+        if was_changed:
+            self.log.info(f"{prefix} from {previous_lag} to {new_lag}.")
+        return was_changed
 
     def get_params(self):
         changed_params = []
         if self.lag1_changed is True:
             changed_params.append('lag_1')
-
         if self.lag2_changed is True:
             changed_params.append('lag_2')
         if changed_params:

@@ -17,7 +17,8 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better, _calculate_loss_function
+from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
+from fedot.core.validation.tune.cv_prediction import calculate_loss_function
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -526,8 +527,8 @@ def test_calculate_loss_function_for_classification_label():
                                   task=Task(TaskTypesEnum.classification),
                                   data_type=DataTypesEnum.table)
 
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
+    assert np.isclose(calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
+    assert np.isclose(calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
 
 
 def test_calculate_loss_function_for_classification_proba():
@@ -559,11 +560,11 @@ def test_calculate_loss_function_for_classification_proba():
                                  task=Task(TaskTypesEnum.classification),
                                  data_type=DataTypesEnum.table)
 
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
-    assert np.isclose(_calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
+    assert np.isclose(calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
+    assert np.isclose(calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
 
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
-    assert np.isclose(_calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
+    assert np.isclose(calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
+    assert np.isclose(calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
 
 
 def test_calculate_loss_function_for_regression():
@@ -579,4 +580,4 @@ def test_calculate_loss_function_for_regression():
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
 
-    assert np.isclose(_calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)
+    assert np.isclose(calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)
