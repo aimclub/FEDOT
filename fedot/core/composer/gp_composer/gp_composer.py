@@ -39,12 +39,10 @@ class GPComposer(Composer):
         self.best_models: Collection[Pipeline] = ()
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
-        # shuffle data if necessary
-        data.shuffle()
-
         # Define data source
         data_producer = DataSourceBuilder(self.composer_requirements.cv_folds,
-                                          self.composer_requirements.validation_blocks).build(data)
+                                          self.composer_requirements.validation_blocks,
+                                          shuffle=True).build(data)
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,

@@ -22,19 +22,30 @@ class DataSourceBuilder:
     If provided, then k-fold validation is used. Otherwise, hold-out validation is used.
     :param validation_blocks: Number of validation blocks for time series forecasting.
     :param split_ratio: Ratio of data for splitting. Applied only in case of hold-out split.
+    If not provided, then default split ratios will be used.
+    :param shuffle: Is shuffling required for data.
     """
 
     def __init__(self,
                  cv_folds: Optional[int] = None,
                  validation_blocks: Optional[int] = None,
-                 split_ratio: Optional[float] = None):
+                 split_ratio: Optional[float] = None,
+                 shuffle: bool = False):
         self.cv_folds = cv_folds
         self.validation_blocks = validation_blocks
         self.split_ratio = split_ratio
+        self.shuffle = shuffle
         self.advisor = DataObjectiveAdvisor()
         self.log = default_log(self)
 
     def build(self, data: InputData) -> DataSource:
+        # Shuffle data
+        if self.shuffle:
+            if data.task.task_type is TaskTypesEnum.ts_forecasting:
+                self.log.warning("Shuffling data for time-series: possibly incorrect use!")
+            data.shuffle()
+
+        # Split data
         if self.cv_folds is not None:
             self.log.info("K-folds cross validation is applied.")
             data_producer = self._build_kfolds_producer(data)
