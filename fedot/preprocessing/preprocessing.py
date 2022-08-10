@@ -187,27 +187,25 @@ class DataPreprocessor:
             # Preprocessing was already done - return data
             return data
 
-        # Fix tables / time series sizes
-        data = self._correct_shapes(data)
+        if data_type_is_text(data) or data_type_is_table(data):
+            # Fix tables / time series sizes
+            data = self._correct_shapes(data)
+            if data_type_is_table(data):
+                replace_inf_with_nans(data)
+                # Find incorrect features which must be removed
+                self._find_features_full_of_nans(data, source_name)
+                self.take_only_correct_features(data, source_name)
 
-        if data_type_is_table(data):
-            replace_inf_with_nans(data)
-
-            # Find incorrect features which must be removed
-            self._find_features_full_of_nans(data, source_name)
-            self.take_only_correct_features(data, source_name)
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
             self.types_correctors[source_name].convert_data_for_fit(data)
-            if self.types_correctors[source_name].target_converting_has_errors:
-                data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical target if necessary and apply it
             self._train_target_encoder(data, source_name)
             data.target = self._apply_target_encoding(data, source_name)
-
-            data = self._clean_extra_spaces(data)
+            if data_type_is_table(data):
+                data = self._clean_extra_spaces(data)
             # Wrap indices in numpy array
             data.idx = np.array(data.idx)
 
@@ -224,16 +222,18 @@ class DataPreprocessor:
             return data
 
         data = self._correct_shapes(data)
-        if data_type_is_table(data):
-            replace_inf_with_nans(data)
-            self.take_only_correct_features(data, source_name)
+
+        # Wrap indices in numpy array
+        data.idx = np.array(data.idx)
+        if data_type_is_table(data) or data_type_is_text(data):
+            if data_type_is_table(data):
+                replace_inf_with_nans(data)
+                self.take_only_correct_features(data, source_name)
 
             # Perform preprocessing for types - launch after correct features selection
             self.types_correctors[source_name].convert_data_for_predict(data)
-
-            data = self._clean_extra_spaces(data)
-            # Wrap indices in numpy array
-            data.idx = np.array(data.idx)
+            if data_type_is_table(data):
+                data = self._clean_extra_spaces(data)
             data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
@@ -435,16 +435,18 @@ class DataPreprocessor:
     def _correct_shapes(data: InputData) -> InputData:
         """
         Correct shapes of tabular data or time series: tabular must be
-        two-dimensional arrays, time series - one-dim array
+        two-dimensional arrays, text - array of (n, 1), time series - one-dim array
         """
-
         if data_type_is_table(data) or data.data_type is DataTypesEnum.multi_ts:
-            if len(data.features.shape) < 2:
+            if np.ndim(data.features) < 2:
                 data.features = data.features.reshape((-1, 1))
-            if data.target is not None and len(data.target.shape) < 2:
+            if data.target is not None and np.ndim(data.target) < 2:
                 data.target = data.target.reshape((-1, 1))
-
-        elif data_type_is_ts(data) or data_type_is_text(data):
+        elif data_type_is_text(data):
+            data.features = data.features.reshape((-1, 1))
+            if data.target is not None and np.ndim(data.target) < 2:
+                data.target = np.array(data.target).reshape((-1, 1))
+        elif data_type_is_ts(data):
             data.features = np.ravel(data.features)
 
         return data
