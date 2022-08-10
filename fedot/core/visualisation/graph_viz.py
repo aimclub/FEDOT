@@ -18,20 +18,6 @@ from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
 
-def get_colors_by_tags(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
-    from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
-    from fedot.core.repository.operation_types_repository import get_opt_node_tag
-
-    palette = get_palette_based_on_default_tags()
-    return {label: palette[get_opt_node_tag(label)] for label in labels}
-
-
-def get_colors_by_labels(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
-    unique_labels = list(set(labels))
-    palette = color_palette('tab10', len(unique_labels))
-    return {label: palette[unique_labels.index(label)] for label in labels}
-
-
 class GraphVisualiser:
     def __init__(self):
         default_data_dir = default_fedot_data_dir()
@@ -46,9 +32,9 @@ class GraphVisualiser:
         # Define colors
         if not nodes_color:
             if type(graph).__name__ in ('Pipeline', 'OptGraph'):
-                nodes_color = get_colors_by_tags
+                nodes_color = self.__get_colors_by_tags
             else:
-                nodes_color = get_colors_by_labels
+                nodes_color = self.__get_colors_by_labels
         if engine == 'matplotlib':
             self.draw_with_networkx(graph, save_path, nodes_color, dpi, edges_curvature)
         elif engine == 'pyvis':
@@ -58,6 +44,20 @@ class GraphVisualiser:
         else:
             raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
                                       'Possible values: matplotlib, pyvis, graphviz.')
+
+    @staticmethod
+    def __get_colors_by_tags(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
+        from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
+        from fedot.core.repository.operation_types_repository import get_opt_node_tag
+
+        palette = get_palette_based_on_default_tags()
+        return {label: palette[get_opt_node_tag(label)] for label in labels}
+
+    @staticmethod
+    def __get_colors_by_labels(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
+        unique_labels = list(set(labels))
+        palette = color_palette('tab10', len(unique_labels))
+        return {label: palette[unique_labels.index(label)] for label in labels}
 
     @staticmethod
     def draw_with_graphviz(graph, save_path, nodes_color=None, dpi=300):
@@ -91,7 +91,7 @@ class GraphVisualiser:
             remove_old_files_from_dir(save_path.parent)
 
     @staticmethod
-    def draw_with_pyvis(graph, save_path, nodes_color=get_colors_by_tags):
+    def draw_with_pyvis(graph, save_path, nodes_color=__get_colors_by_tags):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
