@@ -360,9 +360,9 @@ class InputData(Data):
 
     def shuffle(self):
         """
-        Shuffles features and target if possible
+        Shuffles features and target if possible.
         """
-        if self.data_type is DataTypesEnum.table:
+        if self.data_type in (DataTypesEnum.table, DataTypesEnum.image, DataTypesEnum.text):
             shuffled_ind = np.random.permutation(len(self.features))
             idx, features, target = np.asarray(self.idx)[shuffled_ind], self.features[shuffled_ind], self.target[
                 shuffled_ind]
