@@ -5,8 +5,7 @@ from sklearn.model_selection import train_test_split
 from examples.simple.classification.classification_pipelines import classification_random_forest_pipeline
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -120,11 +119,11 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 
         if tuner is not None:
             print(f'Start tuning process ...')
-
-            pipeline_tuner = tuner(pipeline=pipeline, task=task,
-                                   iterations=50)
-            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=ROCAUC.metric)
+            objective = Objective(ROCAUC.get_value)
+            data_producer = DataSourceBuilder().build(train_input)
+            objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+            pipeline_tuner = tuner(task=task, iterations=50)
+            tuned_pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

@@ -5,8 +5,10 @@ from hyperopt import hp
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error
 
+from fedot.core.composer.metrics import MSE, RMSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -109,16 +111,18 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     predicted_before_tuning = pipeline.predict(predict_input).predict
 
     replace_default_search_space = True
-    pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                   task=train_input.task,
+    cv_folds = 3
+    validation_blocks = 3
+
+    objective = Objective(RMSE.get_value)
+    data_producer = DataSourceBuilder(cv_folds, validation_blocks).build(train_input)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
+    pipeline_tuner = PipelineTuner(task=train_input.task,
                                    iterations=10,
                                    search_space=SearchSpace(custom_search_space=custom_search_space,
                                                             replace_default_search_space=replace_default_search_space))
     # Tuning pipeline
-    pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                            loss_function=mean_squared_error,
-                                            cv_folds=3,
-                                            validation_blocks=3)
+    pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
     # Fit pipeline on the entire train data
     pipeline.fit_from_scratch(train_input)
     # Predict tuned pipeline

@@ -18,9 +18,11 @@ from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -227,10 +229,9 @@ class ApiComposer:
             pipeline.log = log
 
         if with_tuning:
-            tuning_metric = composer_params['metric']
             timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
-                                     tuning_metric,
+                                     metric_function,
                                      composer_requirements,
                                      best_pipeline,
                                      timeout_for_tuning,
@@ -243,7 +244,7 @@ class ApiComposer:
 
     def tune_final_pipeline(self, task: Task,
                             train_data: InputData,
-                            tuner_metric: Optional[MetricType],
+                            metric_function: Optional[MetricType],
                             composer_requirements: PipelineComposerRequirements,
                             pipeline_gp_composed: Pipeline,
                             timeout_for_tuning: int,
@@ -256,22 +257,20 @@ class ApiComposer:
                      f'to tune the hyperparameters.')
             log.info('Composed pipeline returned without tuning.')
         else:
-            tuner_loss = self.obtain_metric_for_tuning(tuner_metric, task, log)
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
                 log.info('Hyperparameters tuning started')
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
-                pipeline_gp_composed = pipeline_gp_composed. \
-                    fine_tune_all_nodes(loss_function=tuner_loss,
-                                        input_data=train_data,
-                                        iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
-                                        timeout=timeout_for_tuning,
-                                        cv_folds=folds,
-                                        validation_blocks=vb_number,
-                                        n_jobs=n_jobs,
-                                        show_progress=composer_requirements.show_progress)
+                objective = Objective(metric_function)
+                data_producer = DataSourceBuilder(cv_folds=folds, validation_blocks=vb_number).build(train_data)
+                objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=vb_number)
+                tuner = PipelineTuner(task=task,
+                                      iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
+                                      timeout=datetime.timedelta(minutes=timeout_for_tuning),
+                                      n_jobs=n_jobs)
+                pipeline_gp_composed = tuner.tune(pipeline_gp_composed, objective_evaluate)
                 log.info('Hyperparameters tuning finished')
         return pipeline_gp_composed
 

@@ -13,12 +13,12 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
-from fedot.core.validation.tune.cv_prediction import calculate_loss_function
+from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -112,11 +112,11 @@ def get_class_operation_types():
 
 
 def get_regr_losses():
-    return [RMSE.metric]
+    return [RMSE.get_value]
 
 
 def get_class_losses():
-    return [ROCAUC.metric, Accuracy.metric]
+    return [ROCAUC.get_value, Accuracy.get_value]
 
 
 def get_not_default_search_space():
@@ -167,16 +167,17 @@ def run_pipeline_tuner(train_data,
                        algo=tpe.suggest,
                        iterations=1,
                        early_stopping_rounds=None):
+    objective = Objective(loss_function)
+    data_producer = DataSourceBuilder(cv_folds=cv).build(train_data)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
-    pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                   task=train_data.task,
+    pipeline_tuner = PipelineTuner(task=train_data.task,
                                    iterations=iterations,
                                    early_stopping_rounds=early_stopping_rounds,
                                    search_space=search_space,
                                    algo=algo)
-    _ = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                     cv_folds=cv,
-                                     loss_function=loss_function)
+
+    _ = pipeline_tuner.tune(pipeline, objective_evaluate)
     return pipeline_tuner
 
 
@@ -188,17 +189,17 @@ def run_sequential_tuner(train_data,
                          algo=tpe.suggest,
                          iterations=1,
                          early_stopping_rounds=None):
+    objective = Objective(loss_function)
+    data_producer = DataSourceBuilder(cv_folds=cv).build(train_data)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
-    sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                       task=train_data.task,
+    sequential_tuner = SequentialTuner(task=train_data.task,
                                        iterations=iterations,
                                        early_stopping_rounds=early_stopping_rounds,
                                        search_space=search_space,
                                        algo=algo)
     # Optimization will be performed on RMSE metric, so loss params are defined
-    _ = sequential_tuner.tune_pipeline(input_data=train_data,
-                                       cv_folds=cv,
-                                       loss_function=loss_function)
+    _ = sequential_tuner.tune(pipeline, objective_evaluate)
     return sequential_tuner
 
 
@@ -211,17 +212,17 @@ def run_node_tuner(train_data,
                    algo=tpe.suggest,
                    iterations=1,
                    early_stopping_rounds=None):
+    # TODO: get rid of repeating code
+    objective = Objective(loss_function)
+    data_producer = DataSourceBuilder(cv_folds=cv).build(train_data)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
-    node_tuner = SequentialTuner(pipeline=pipeline,
-                                 task=train_data.task,
+    node_tuner = SequentialTuner(task=train_data.task,
                                  iterations=iterations,
                                  early_stopping_rounds=early_stopping_rounds,
                                  search_space=search_space,
                                  algo=algo)
-    _ = node_tuner.tune_node(input_data=train_data,
-                             node_index=node_index,
-                             cv_folds=cv,
-                             loss_function=loss_function)
+    _ = node_tuner.tune_node(pipeline, node_index, objective_evaluate)
     return node_tuner
 
 
@@ -385,11 +386,13 @@ def test_ts_pipeline_with_stats_model(n_steps):
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
+        objective = Objective(MSE.get_value)
+        data_producer = DataSourceBuilder().build(train_data)
+        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         # Tune AR model
-        tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3,
+        tuner_ar = PipelineTuner(task=train_data.task, iterations=3,
                                  search_space=search_space, algo=rand.suggest)
-        tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                                   loss_function=MSE.metric)
+        tuned_ar_pipeline = tuner_ar.tune(ar_pipeline, objective_evaluate)
 
     is_tuning_finished = True
 
@@ -483,8 +486,11 @@ def test_complex_search_space_tuning_correct():
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
-    tuned_glm_pipeline = glm_pipeline.fine_tune_all_nodes(input_data=train_data,
-                                                          loss_function=MSE.metric)
+    objective = Objective(MSE.get_value)
+    data_producer = DataSourceBuilder().build(train_data)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+    tuner = PipelineTuner(task=train_data.task)
+    tuned_glm_pipeline = tuner.tune(glm_pipeline, objective_evaluate)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params
 
@@ -492,14 +498,15 @@ def test_complex_search_space_tuning_correct():
 def test_greater_is_better():
     """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
 
-    assert _greater_is_better(custom_maximized_metrics)
-    assert not _greater_is_better(MSE.metric)
-    assert not _greater_is_better(custom_minimized_metrics)
+    assert HyperoptTuner._greater_is_better(custom_maximized_metrics)
+    assert not HyperoptTuner._greater_is_better(MSE.metric)
+    assert not HyperoptTuner._greater_is_better(custom_minimized_metrics)
     # these metrics are given with minus
-    assert not _greater_is_better(Accuracy.metric)
-    assert not _greater_is_better(ROCAUC.metric)
+    assert not HyperoptTuner._greater_is_better(Accuracy.metric)
+    assert not HyperoptTuner._greater_is_better(ROCAUC.metric)
 
 
+# TODO: refactor
 def test_calculate_loss_function_for_classification_label():
     """ Tests _calculate_loss_function correctness on quality metrics"""
 
@@ -527,8 +534,8 @@ def test_calculate_loss_function_for_classification_label():
                                   task=Task(TaskTypesEnum.classification),
                                   data_type=DataTypesEnum.table)
 
-    assert np.isclose(calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
-    assert np.isclose(calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
 
 
 def test_calculate_loss_function_for_classification_proba():
@@ -560,11 +567,11 @@ def test_calculate_loss_function_for_classification_proba():
                                  task=Task(TaskTypesEnum.classification),
                                  data_type=DataTypesEnum.table)
 
-    assert np.isclose(calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
-    assert np.isclose(calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
+    assert np.isclose(_calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
 
-    assert np.isclose(calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
-    assert np.isclose(calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
+    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
+    assert np.isclose(_calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
 
 
 def test_calculate_loss_function_for_regression():
@@ -580,4 +587,4 @@ def test_calculate_loss_function_for_regression():
                            task=Task(TaskTypesEnum.classification),
                            data_type=DataTypesEnum.table)
 
-    assert np.isclose(calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)
+    assert np.isclose(_calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)

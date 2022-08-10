@@ -39,8 +39,8 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
         pipeline_tuner = PipelineTuner(pipeline=pipeline,
                                        task=train_data.task,
                                        iterations=tuner_iter_num)
-        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                                      loss_function=roc_auc)
+        tuned_pipeline = pipeline_tuner.tune(input_data=train_data,
+                                             loss_function=roc_auc)
 
         # After tuning prediction
         tuned_pipeline.fit(train_data)

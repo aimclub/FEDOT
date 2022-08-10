@@ -12,7 +12,6 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimizer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph

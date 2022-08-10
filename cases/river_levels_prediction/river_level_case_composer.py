@@ -10,6 +10,7 @@ from fedot.core.composer.metrics import MAE
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -120,10 +121,11 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            pipeline_tuner = tuner(pipeline=obtained_pipeline, task=data.task,
-                                   iterations=100)
-            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=MAE.metric)
+            objective = Objective(MAE.get_value)
+            data_producer = DataSourceBuilder().build(train_input)
+            objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+            pipeline_tuner = tuner(task=data.task, iterations=100)
+            tuned_pipeline = pipeline_tuner.tune(obtained_pipeline, objective_evaluate)
 
             preds_tuned = fit_predict_for_pipeline(pipeline=tuned_pipeline,
                                                    train_input=train_input,

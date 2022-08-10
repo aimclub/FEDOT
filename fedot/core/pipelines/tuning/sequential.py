@@ -4,8 +4,10 @@ from typing import Callable, ClassVar
 
 from hyperopt import fmin, space_eval, tpe
 
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
-from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner, _greater_is_better
+from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 
 
 class SequentialTuner(HyperoptTuner):
@@ -13,14 +15,14 @@ class SequentialTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes sequentially
     """
 
-    def __init__(self, pipeline, task,
+    def __init__(self, task,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  inverse_node_order=False,
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest,
                  n_jobs: int = -1):
-        super().__init__(pipeline=pipeline, task=task,
+        super().__init__(task=task,
                          iterations=iterations, early_stopping_rounds=early_stopping_rounds,
                          timeout=timeout,
                          search_space=search_space,
@@ -28,22 +30,23 @@ class SequentialTuner(HyperoptTuner):
                          n_jobs=n_jobs)
         self.inverse_node_order = inverse_node_order
 
-    def tune_pipeline(self, input_data, loss_function,
-                      cv_folds: int = None, validation_blocks: int = None):
-        """ Method for hyperparameters sequential tuning """
+    def tune(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate):
+        """ Function for hyperparameters tuning on the entire pipeline
+
+        :param pipeline: Pipeline which hyperparameters will be tuned
+        :param objective_evaluate: PipelineObjectiveEvaluate used for pipeline evaluation
+        """
         # Define folds for cross validation
-        self.cv_folds = cv_folds
-        self.validation_blocks = validation_blocks
-        is_need_to_maximize = _greater_is_better(loss_function=loss_function)
+        is_need_to_maximize = self._greater_is_better(loss_function=objective_evaluate._objective.metrics[0])
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
-        self.init_check(input_data, loss_function)
+        self.init_check(pipeline, objective_evaluate)
 
         self.pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
         # Calculate amount of iterations we can apply per node
-        nodes_amount = self.pipeline.length
+        nodes_amount = pipeline.length
         iterations_per_node = round(self.iterations / nodes_amount)
         iterations_per_node = int(iterations_per_node)
         if iterations_per_node == 0:
@@ -59,7 +62,7 @@ class SequentialTuner(HyperoptTuner):
         # Tuning performed sequentially for every node - so get ids of nodes
         nodes_ids = self.get_nodes_order(nodes_number=nodes_amount)
         for node_id in nodes_ids:
-            node = self.pipeline.nodes[node_id]
+            node = pipeline.nodes[node_id]
             operation_name = node.operation.operation_type
 
             # Get node's parameters to optimize
@@ -71,31 +74,32 @@ class SequentialTuner(HyperoptTuner):
             else:
                 # Apply tuning for current node
                 self._optimize_node(node_id=node_id,
-                                    data=input_data,
+                                    pipeline=pipeline,
                                     node_params=node_params,
                                     iterations_per_node=iterations_per_node,
                                     seconds_per_node=seconds_per_node,
-                                    loss_function=loss_function)
+                                    objective_evaluate=objective_evaluate)
 
         # Validation is the optimization do well
-        final_pipeline = self.final_check(data=input_data,
-                                          tuned_pipeline=self.pipeline,
-                                          loss_function=loss_function)
+        final_pipeline = self.final_check(tuned_pipeline=pipeline,
+                                          objective_evaluate=objective_evaluate)
 
         return final_pipeline
 
-    def tune_node(self, input_data, loss_function, node_index,
-                  cv_folds: int = None, validation_blocks: int = None):
-        """ Method for hyperparameters tuning for particular node"""
-        self.cv_folds = cv_folds
-        self.validation_blocks = validation_blocks
-        is_need_to_maximize = _greater_is_better(loss_function=loss_function)
+    def tune_node(self, pipeline, node_index, objective_evaluate):
+        """ Method for hyperparameters tuning for particular node
+
+        :param pipeline: Pipeline which contains a node to be tuned
+        :param node_index: Index of the node to tune
+        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate tne pipeline
+        """
+        is_need_to_maximize = super()._greater_is_better(loss_function=objective_evaluate._objective.metrics[0])
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
-        self.init_check(input_data, loss_function)
+        self.init_check(pipeline, objective_evaluate)
 
-        node = self.pipeline.nodes[node_index]
+        node = pipeline.nodes[node_index]
         operation_name = node.operation.operation_type
 
         # Get node's parameters to optimize
@@ -106,17 +110,17 @@ class SequentialTuner(HyperoptTuner):
             self.log.info(f'"{operation_name}" operation has no parameters to optimize')
         else:
             # Apply tuning for current node
-            self._optimize_node(node_id=node_index,
-                                data=input_data,
+            self._optimize_node(pipeline=pipeline,
+                                node_id=node_index,
+                                objective_evaluate=objective_evaluate,
                                 node_params=node_params,
                                 iterations_per_node=self.iterations,
                                 seconds_per_node=self.max_seconds,
-                                loss_function=loss_function)
+                                )
 
         # Validation is the optimization do well
-        final_pipeline = self.final_check(data=input_data,
-                                          tuned_pipeline=self.pipeline,
-                                          loss_function=loss_function)
+        final_pipeline = self.final_check(tuned_pipeline=pipeline,
+                                          objective_evaluate=objective_evaluate)
         return final_pipeline
 
     def get_nodes_order(self, nodes_number):
@@ -131,25 +135,25 @@ class SequentialTuner(HyperoptTuner):
 
         return nodes_ids
 
-    def _optimize_node(self, node_id, data, node_params, iterations_per_node,
-                       seconds_per_node, loss_function: Callable):
+    def _optimize_node(self, pipeline, node_id, node_params, iterations_per_node,
+                       seconds_per_node, objective_evaluate):
         """
         Method for node optimization
 
+        :param pipeline: Pipeline which node is optimized
         :param node_id: id of the current node in the pipeline
-        :param data: InputData for validation
         :param node_params: dictionary with parameters for node
         :param iterations_per_node: amount of iterations to produce
         :param seconds_per_node: amount of seconds to produce
-        :param loss_function: loss function to minimize
+        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
 
         :return : updated pipeline with tuned parameters in particular node
         """
         best_parameters = fmin(partial(self._objective,
-                                       pipeline=self.pipeline,
+                                       pipeline=pipeline,
                                        node_id=node_id,
-                                       data=data,
-                                       loss_function=loss_function),
+                                       objective_evaluate=objective_evaluate
+                                       ),
                                node_params,
                                algo=self.algo,
                                max_evals=iterations_per_node,
@@ -160,7 +164,7 @@ class SequentialTuner(HyperoptTuner):
                                      hp_assignment=best_parameters)
 
         # Set best params for this node in the pipeline
-        self.pipeline = self.set_arg_node(pipeline=self.pipeline,
+        self.pipeline = self.set_arg_node(pipeline=pipeline,
                                           node_id=node_id,
                                           node_params=best_parameters)
         return self.pipeline
@@ -172,6 +176,7 @@ class SequentialTuner(HyperoptTuner):
         :param pipeline: pipeline with nodes
         :param node_id: id of the node to which parameters should ba assigned
         :param node_params: dictionary with labeled parameters to set
+
         :return pipeline: pipeline with new hyperparameters in each node
         """
 
@@ -183,14 +188,13 @@ class SequentialTuner(HyperoptTuner):
 
         return pipeline
 
-    def _objective(self, node_params, pipeline, node_id, data, loss_function):
+    def _objective(self, node_params, pipeline, node_id, objective_evaluate):
         """
         Objective function for minimization / maximization problem
 
         :param node_params: dictionary with parameters for node
         :param pipeline: pipeline to optimize
-        :param data: InputData for validation
-        :param loss_function: loss function to optimize
+        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
 
         :return metric_value: value of objective function
         """
@@ -199,7 +203,6 @@ class SequentialTuner(HyperoptTuner):
         pipeline = self.set_arg_node(pipeline=pipeline, node_id=node_id,
                                      node_params=node_params)
 
-        metric_value = self.get_metric_value(data=data,
-                                             pipeline=pipeline,
-                                             loss_function=loss_function)
+        metric_value = self.get_metric_value(pipeline=pipeline,
+                                             objective_evaluate=objective_evaluate)
         return metric_value

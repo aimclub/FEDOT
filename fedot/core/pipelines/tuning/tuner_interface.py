@@ -7,17 +7,14 @@ from typing import Callable, ClassVar
 import numpy as np
 from hyperopt.early_stop import no_progress_loss
 
-from fedot.core.data.data import InputData, OutputData, data_type_is_ts
+from fedot.core.dag.graph import Graph
+from fedot.core.data.data import OutputData, InputData
 from fedot.core.log import default_log
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate, ObjectiveEvaluate
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.validation.tune.cv_prediction import (
-    calculate_loss_function,
-    cv_tabular_predictions,
-    cv_time_series_predictions
-)
-from fedot.core.validation.tune.simple import fit_predict_one_fold
+from fedot.core.repository.tasks import TaskTypesEnum, Task
 
 MAX_METRIC_VALUE = sys.maxsize
 
@@ -26,20 +23,18 @@ class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
-    :param pipeline: pipeline to optimize
     :param task: task (classification, regression, ts_forecasting, clustering)
     :param iterations: max number of iterations
     :param search_space: SearchSpace instance
     :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
-    def __init__(self, pipeline, task,
+    def __init__(self, task,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = None,
                  n_jobs: int = -1):
-        self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
         iteration_stop_count = early_stopping_rounds or max(100, int(np.sqrt(iterations) * 10))
@@ -49,81 +44,52 @@ class HyperoptTuner(ABC):
         self.init_metric = None
         self.obtained_metric = None
         self.is_need_to_maximize = None
-        self.cv_folds = None
-        self.validation_blocks = None
+        self.objective_evaluate = None
         self.search_space = search_space
         self.algo = algo
         self.n_jobs = n_jobs
 
         self.log = default_log(self)
 
-    @abstractmethod
-    def tune_pipeline(self, input_data, loss_function,
-                      cv_folds: int = None, validation_blocks: int = None):
-        """
-        Function for hyperparameters tuning on the pipeline
-
-        :param input_data: data used for hyperparameter searching
-        :param loss_function: loss function to minimize (or maximize) during pipeline tuning,
-            such function should take InputData with true values as the first input and
-            OutputData with model prediction as the second
-        :param cv_folds: number of cross-validation folds
-        :param validation_blocks: number of validation blocks for time series forecasting
-
-        :return fitted_pipeline: pipeline with optimized hyperparameters
-        """
-        raise NotImplementedError()
-
-    def get_metric_value(self, data, pipeline, loss_function):
+    def get_metric_value(self, pipeline, objective_evaluate):
         """
         Method calculates metric for algorithm validation
 
-        :param data: InputData for validation
         :param pipeline: pipeline to validate
-        :param loss_function: function to minimize (or maximize)
 
         :return: value of loss function
-        """
-        try:
-            if self.cv_folds is None:
-                metric_value = self._one_fold_validation(data, pipeline, loss_function)
-
-            else:
-                metric_value = self._cross_validation(data, pipeline, loss_function)
-        except Exception as ex:
-            self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
-            # Return default metric: too small (for maximization) or too big (for minimization)
+        # """
+        pipeline_fitness = objective_evaluate.evaluate(pipeline)
+        metric_value = pipeline_fitness.value
+        if not metric_value:
             return self._default_metric_value
         return metric_value
 
-    def init_check(self, data, loss_function) -> None:
+    def init_check(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> None:
         """
         Method get metric on validation set before start optimization
 
-        :param data: InputData for validation
-        :param loss_function: function to minimize (or maximize)
+        :param pipeline: Pipeline to calculate objective
+        :param objective_evaluate: ObjectiveEvaluate to evaluate the pipeline
         """
         self.log.info('Hyperparameters optimization start')
 
         # Train pipeline
-        self.init_pipeline = deepcopy(self.pipeline)
+        self.init_pipeline = deepcopy(pipeline)
 
-        self.init_metric = self.get_metric_value(data=data,
-                                                 pipeline=self.init_pipeline,
-                                                 loss_function=loss_function)
+        self.init_metric = self.get_metric_value(pipeline=self.init_pipeline,
+                                                 objective_evaluate=objective_evaluate)
 
-    def final_check(self, data, tuned_pipeline, loss_function):
+    def final_check(self, tuned_pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate):
         """
         Method propose final quality check after optimization process
 
-        :param data: InputData for validation
-        :param tuned_pipeline: tuned pipeline
-        :param loss_function: function to minimize (or maximize)
+        :param tuned_pipeline: Tuned pipeline to calculate objective
+        :param objective_evaluate: ObjectiveEvaluate to evaluate the pipeline
         """
 
-        self.obtained_metric = self.get_metric_value(data=data,
-                                                     pipeline=tuned_pipeline,
-                                                     loss_function=loss_function)
+        self.obtained_metric = self.get_metric_value(pipeline=tuned_pipeline,
+                                                     objective_evaluate=objective_evaluate)
 
         if self.obtained_metric == self._default_metric_value:
             self.obtained_metric = None
@@ -167,37 +133,38 @@ class HyperoptTuner(ABC):
                               f'bigger than initial (+ 5% deviation) {init_metric:.3f}')
                 return self.init_pipeline
 
+    # TODO: refactor
     @staticmethod
-    def _one_fold_validation(data: InputData, pipeline, loss_function: Callable):
-        """ Perform simple (hold-out) validation """
+    def _greater_is_better(loss_function) -> bool:
+        """ Function checks is metric (loss function) need to be minimized or maximized
 
-        if data.task.task_type is TaskTypesEnum.classification:
-            predict_input, predicted_output = fit_predict_one_fold(data, pipeline)
-        else:
-            # For regression and time series forecasting
-            predict_input, predicted_output = fit_predict_one_fold(data, pipeline)
+        :param loss_function: loss function
 
-        metric_value = calculate_loss_function(loss_function, predict_input, predicted_output)
-        return metric_value
+        :return: bool value is it good to maximize metric or not
+        """
 
-    def _cross_validation(self, data, pipeline, loss_function: Callable):
-        """ Perform cross validation for metric evaluation """
+        ground_truth = InputData(target=np.array([[0], [1]]), features=[[1], [1]], data_type=DataTypesEnum.table,
+                                 idx=[0, 1], task=Task(TaskTypesEnum.classification))
+        precise_prediction = OutputData(predict=np.array([[0], [1]]), features=[[1], [1]], idx=[0, 1],
+                                        data_type=DataTypesEnum.table,
+                                        task=Task(TaskTypesEnum.classification))
+        approximate_prediction = OutputData(predict=np.array([[0], [0]]), features=[[1], [1]], idx=[0, 1],
+                                            data_type=DataTypesEnum.table,
+                                            task=Task(TaskTypesEnum.classification))
 
-        if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
-                data.data_type is DataTypesEnum.image:
-            metric_value = cv_tabular_predictions(pipeline, data,
-                                                  cv_folds=self.cv_folds, loss_function=loss_function)
+        try:
+            optimal_metric, non_optimal_metric = [
+                loss_function(ground_truth, score) for score in [precise_prediction, approximate_prediction]]
+        except Exception:
+            multiclass_precise_pred, multiclass_approximate_pred = [
+                _create_multi_target_prediction(score) for score in [precise_prediction, approximate_prediction]]
 
-        elif data_type_is_ts(data):
-            if self.validation_blocks is None:
-                self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
-                self.validation_blocks = 3
+            optimal_metric, non_optimal_metric = [
+                loss_function(ground_truth, score)
+                for score in [multiclass_precise_pred, multiclass_approximate_pred]
+            ]
 
-            metric_value = cv_time_series_predictions(pipeline, data, log=self.log,
-                                                      cv_folds=self.cv_folds,
-                                                      validation_blocks=self.validation_blocks,
-                                                      loss_function=loss_function)
-        return metric_value
+        return optimal_metric > non_optimal_metric
 
     @property
     def _default_metric_value(self):
@@ -222,35 +189,3 @@ def _create_multi_target_prediction(output_data: OutputData):
     multi_target = np.eye(nb_classes)[target.ravel()]
 
     return multi_target
-
-
-def _greater_is_better(loss_function) -> bool:
-    """ Function checks is metric (loss function) need to be minimized or maximized
-
-    :param loss_function: loss function
-
-    :return: bool value is it good to maximize metric or not
-    """
-
-    ground_truth = InputData(target=np.array([[0], [1]]), features=[[1], [1]], data_type=DataTypesEnum.table,
-                             idx=[0, 1], task=Task(TaskTypesEnum.classification))
-    precise_prediction = OutputData(predict=np.array([[0], [1]]), features=[[1], [1]], idx=[0, 1],
-                                    data_type=DataTypesEnum.table,
-                                    task=Task(TaskTypesEnum.classification))
-    approximate_prediction = OutputData(predict=np.array([[0], [0]]), features=[[1], [1]], idx=[0, 1],
-                                        data_type=DataTypesEnum.table,
-                                        task=Task(TaskTypesEnum.classification))
-
-    try:
-        optimal_metric, non_optimal_metric = [
-            loss_function(ground_truth, score) for score in [precise_prediction, approximate_prediction]]
-    except Exception:
-        multiclass_precise_pred, multiclass_approximate_pred = [
-            _create_multi_target_prediction(score) for score in [precise_prediction, approximate_prediction]]
-
-        optimal_metric, non_optimal_metric = [
-            loss_function(ground_truth, score)
-            for score in [multiclass_precise_pred, multiclass_approximate_pred]
-        ]
-
-    return optimal_metric > non_optimal_metric

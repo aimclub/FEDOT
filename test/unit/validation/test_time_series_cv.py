@@ -14,7 +14,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
-from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)
@@ -92,6 +91,7 @@ def test_tuner_cv_correct():
     assert is_tune_succeeded
 
 
+# TODO: refactor
 @pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
 def test_cv_ts_predictions_correct(folds, actual_value):
     forecast_len, validation_blocks, time_series = configure_experiment()

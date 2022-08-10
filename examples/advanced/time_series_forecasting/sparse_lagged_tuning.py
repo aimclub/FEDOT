@@ -1,3 +1,4 @@
+import os
 import timeit
 import warnings
 import pandas as pd
@@ -5,11 +6,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
+from fedot.core.composer.metrics import MAE
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from sklearn.metrics import mean_absolute_error
+
+from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
 
@@ -66,14 +71,15 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
     # Predict
     predicted_values = pipeline.predict(predict_input)
     old_predicted_values = predicted_values.predict
+    cv_folds = 3
+    validation_blocks = 2
 
     start_time = timeit.default_timer()
-    pipeline_tuner = PipelineTuner(pipeline=pipeline, task=task,
-                                   iterations=20)
-    pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                            loss_function=mean_absolute_error,
-                                            cv_folds=3,
-                                            validation_blocks=2)
+    objective = Objective(MAE.get_value)
+    data_producer = DataSourceBuilder(cv_folds, validation_blocks).build(train_input)
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
+    pipeline_tuner = PipelineTuner(task=task, iterations=20)
+    pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
     print(pipeline.print_structure())
     amount_of_seconds = timeit.default_timer() - start_time
     print(f'\nTuning pipline on {amount_of_seconds:.2f} seconds\n')
@@ -122,8 +128,7 @@ def visualize(tuned, no_tuned, time, method_name):
 
 
 def run_tuning_comparison(n_repits=10, ts_size=1000, forecast_length=50, is_visualize=True):
-    file_path = '../../cases/data/time_series/temperature.csv'
-
+    file_path = os.path.join(str(fedot_project_root()), 'cases/data/time_series/temperature.csv')
     df = pd.read_csv(file_path)
     time_series = np.array(df['value'])[:ts_size]
 
