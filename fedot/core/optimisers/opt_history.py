@@ -44,39 +44,33 @@ class OptHistory:
     def add_to_archive_history(self, individuals: List[Individual]):
         self.archive_history.append(individuals)
 
-    def write_history_to_csv(self, save_dir: Optional[os.PathLike] = None, file: os.PathLike = 'history.csv'):
+    def to_csv(self, save_dir: Optional[os.PathLike] = None, file: os.PathLike = 'history.csv'):
         save_dir = save_dir or default_fedot_data_dir()
-        file = Path(save_dir, file)
         if not os.path.isdir(save_dir):
             os.mkdir(save_dir)
 
-        self._write_header_to_csv(file)
-        idx = 0
-        adapter = PipelineAdapter()
-        for gen_num, gen_inds in enumerate(self.individuals):
-            for ind_num, ind in enumerate(gen_inds):
-                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
-                row = [
-                    idx, gen_num, ind.fitness.values,
-                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
-                ]
-                self._add_history_to_csv(file, row)
-                idx += 1
-
-    def _write_header_to_csv(self, f):
-        with open(f, 'w', newline='') as file:
+        with open(Path(save_dir, file), 'w', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+
+            # Write header
             metric_str = 'metric'
             if self._objective.is_multi_objective:
                 metric_str += 's'
-            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
-            writer.writerow(row)
+            header_row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
+            writer.writerow(header_row)
 
-    @staticmethod
-    def _add_history_to_csv(f: os.PathLike, row: List[Any]):
-        with open(f, 'a', newline='') as file:
-            writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-            writer.writerow(row)
+            # Write history rows
+            idx = 0
+            adapter = PipelineAdapter()
+            for gen_num, gen_inds in enumerate(self.individuals):
+                for ind_num, ind in enumerate(gen_inds):
+                    ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
+                    row = [
+                        idx, gen_num, ind.fitness.values,
+                        len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
+                    ]
+                    writer.writerow(row)
+                    idx += 1
 
     def save_current_results(self, save_dir: os.PathLike):
         # Create folder if it's not exists
