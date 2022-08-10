@@ -3,13 +3,12 @@ from datetime import timedelta
 
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error
 
 from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate, DataSourceSplitter
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -68,7 +67,7 @@ def launch_multitask_example(with_tuning: bool = False):
 
     if with_tuning:
         objective = Objective(MAE.get_value)
-        data_producer = DataSourceBuilder().build(train_input)
+        data_producer = DataSourceSplitter().build(train_input)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         tuner = PipelineTuner(task=train_input.task,
                               iterations=100,

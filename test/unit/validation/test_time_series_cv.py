@@ -9,7 +9,7 @@ from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.metrics import MAE, MSE
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
 # from fedot.core.pipelines.tuning.tuner_interface import cv_time_series_predictions
@@ -87,7 +87,7 @@ def test_tuner_cv_correct():
 
     simple_pipeline = get_simple_ts_pipeline()
     objective = Objective(MAE.get_value)
-    data_producer = DataSourceBuilder(folds, validation_blocks).build(time_series)
+    data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
     tuner = PipelineTuner(task=time_series.task,
                           iterations=1,

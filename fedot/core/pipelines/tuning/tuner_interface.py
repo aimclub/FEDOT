@@ -10,7 +10,7 @@ from hyperopt.early_stop import no_progress_loss
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate, ObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum

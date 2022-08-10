@@ -3,12 +3,11 @@ import numpy as np
 import pandas as pd
 from hyperopt import hp
 from sklearn.linear_model import Ridge
-from sklearn.metrics import mean_squared_error
 
-from fedot.core.composer.metrics import MSE, RMSE
+from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -115,7 +114,7 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     validation_blocks = 3
 
     objective = Objective(RMSE.get_value)
-    data_producer = DataSourceBuilder(cv_folds, validation_blocks).build(train_input)
+    data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(train_input)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
     pipeline_tuner = PipelineTuner(task=train_input.task,
                                    iterations=10,

@@ -5,7 +5,7 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
 from fedot.core.composer.metrics import ROCAUC
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
@@ -68,7 +68,7 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
 
     if with_tuning:
         objective = Objective(ROCAUC.get_value)
-        data_producer = DataSourceBuilder().build(train_dataset)
+        data_producer = DataSourceSplitter().build(train_dataset)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         tuner = PipelineTuner(task=train_dataset.task, iterations=30)
 

@@ -13,7 +13,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -168,7 +168,7 @@ def run_pipeline_tuner(train_data,
                        iterations=1,
                        early_stopping_rounds=None):
     objective = Objective(loss_function)
-    data_producer = DataSourceBuilder(cv_folds=cv).build(train_data)
+    data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
     pipeline_tuner = PipelineTuner(task=train_data.task,
@@ -190,7 +190,7 @@ def run_sequential_tuner(train_data,
                          iterations=1,
                          early_stopping_rounds=None):
     objective = Objective(loss_function)
-    data_producer = DataSourceBuilder(cv_folds=cv).build(train_data)
+    data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
     sequential_tuner = SequentialTuner(task=train_data.task,
@@ -214,7 +214,7 @@ def run_node_tuner(train_data,
                    early_stopping_rounds=None):
     # TODO: get rid of repeating code
     objective = Objective(loss_function)
-    data_producer = DataSourceBuilder(cv_folds=cv).build(train_data)
+    data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
     node_tuner = SequentialTuner(task=train_data.task,
@@ -387,7 +387,7 @@ def test_ts_pipeline_with_stats_model(n_steps):
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
         objective = Objective(MSE.get_value)
-        data_producer = DataSourceBuilder().build(train_data)
+        data_producer = DataSourceSplitter().build(train_data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         # Tune AR model
         tuner_ar = PipelineTuner(task=train_data.task, iterations=3,
@@ -487,7 +487,7 @@ def test_complex_search_space_tuning_correct():
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
     objective = Objective(MSE.get_value)
-    data_producer = DataSourceBuilder().build(train_data)
+    data_producer = DataSourceSplitter().build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     tuner = PipelineTuner(task=train_data.task)
     tuned_glm_pipeline = tuner.tune(glm_pipeline, objective_evaluate)

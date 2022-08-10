@@ -6,7 +6,7 @@ from examples.advanced.time_series_forecasting.composing_pipelines import visual
 from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -72,7 +72,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
     if tuning:
         objective = Objective(MSE.get_value)
-        data_producer = DataSourceBuilder().build(train_data)
+        data_producer = DataSourceSplitter().build(train_data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         tuner = PipelineTuner(task=train_data.task,
                               iterations=100)

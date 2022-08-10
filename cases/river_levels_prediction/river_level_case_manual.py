@@ -8,7 +8,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -61,7 +61,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
         if tuner is not None:
             print(f'Start tuning process ...')
             objective = Objective(MAE.get_value)
-            data_producer = DataSourceBuilder().build(train_input)
+            data_producer = DataSourceSplitter().build(train_input)
             objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
             pipeline_tuner = tuner(task=data.task, iterations=tuner_iterations, timeout=timedelta(seconds=30))
             tuned_pipeline = pipeline_tuner.tune(current_pipeline, objective_evaluate)

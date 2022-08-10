@@ -12,7 +12,7 @@ from fedot.core.composer.metrics import MAE
 from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -79,7 +79,7 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
 
     # tuning composed pipeline
     objective = Objective(MAE.get_value)
-    data_producer = DataSourceBuilder().build(train_data)
+    data_producer = DataSourceSplitter().build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     tuner = PipelineTuner(task=task, iterations=50,)
     obtained_pipeline_copy = tuner.tune(obtained_pipeline_copy, objective_evaluate)

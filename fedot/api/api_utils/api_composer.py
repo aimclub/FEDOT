@@ -18,7 +18,7 @@ from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
@@ -264,7 +264,7 @@ class ApiComposer:
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
                 objective = Objective(metric_function)
-                data_producer = DataSourceBuilder(cv_folds=folds, validation_blocks=vb_number).build(train_data)
+                data_producer = DataSourceSplitter(cv_folds=folds, validation_blocks=vb_number).build(train_data)
                 objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=vb_number)
                 tuner = PipelineTuner(task=task,
                                       iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,

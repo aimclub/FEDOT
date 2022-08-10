@@ -4,7 +4,7 @@ from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
@@ -56,7 +56,7 @@ class AtomizedModel(Operation):
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
         objective = Objective(loss_function)
-        data_producer = DataSourceBuilder().build(input_data)
+        data_producer = DataSourceSplitter().build(input_data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         tuner = PipelineTuner(task=input_data.task,
                               iterations=iterations,

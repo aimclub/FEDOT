@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
 from fedot.core.composer.metrics import MAE
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -76,7 +76,7 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
 
     start_time = timeit.default_timer()
     objective = Objective(MAE.get_value)
-    data_producer = DataSourceBuilder(cv_folds, validation_blocks).build(train_input)
+    data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(train_input)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
     pipeline_tuner = PipelineTuner(task=task, iterations=20)
     pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
