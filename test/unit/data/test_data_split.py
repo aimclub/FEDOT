@@ -6,7 +6,7 @@ from typing import Callable
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.optimisers.objective import DataSourceBuilder, Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import DataSourceSplitter, Objective, PipelineObjectiveEvaluate
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -102,7 +102,7 @@ def test_data_splitting_perform_correctly_after_build():
                       1: {'train_features_size': (6,), 'test_features_size': (10,), 'test_target_size': (10,)}}
 
     time_series = get_ts_data_to_forecast_two_elements()
-    data_source = DataSourceBuilder(cv_folds=2, validation_blocks=2).build(time_series)
+    data_source = DataSourceSplitter(cv_folds=2, validation_blocks=2).build(time_series)
 
     # Imitate evaluation process
     for fold_id, (train_data, test_data) in enumerate(data_source()):

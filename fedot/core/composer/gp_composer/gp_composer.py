@@ -8,7 +8,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
-from fedot.core.optimisers.objective.data_source_builder import DataSourceBuilder
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.pipeline import Pipeline
@@ -40,9 +40,9 @@ class GPComposer(Composer):
 
     def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         # Define data source
-        data_producer = DataSourceBuilder(self.composer_requirements.cv_folds,
-                                          self.composer_requirements.validation_blocks,
-                                          shuffle=True).build(data)
+        data_producer = DataSourceSplitter(self.composer_requirements.cv_folds,
+                                           self.composer_requirements.validation_blocks,
+                                           shuffle=True).build(data)
         # Define objective function
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,

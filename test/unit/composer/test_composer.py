@@ -20,7 +20,7 @@ from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, G
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements, \
     MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -280,7 +280,7 @@ def test_evaluation_saving_info_from_process(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     quality_metric = ClassificationMetricsEnum.ROCAUC
 
-    data_source = DataSourceBuilder().build(data)
+    data_source = DataSourceSplitter().build(data)
     objective_evaluator = PipelineObjectiveEvaluate(Objective(quality_metric), data_source,
                                                     pipelines_cache=OperationsCache())
 

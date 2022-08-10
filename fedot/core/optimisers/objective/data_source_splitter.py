@@ -13,7 +13,7 @@ from .data_objective_eval import DataSource
 from ...constants import default_data_split_ratio_by_task
 
 
-class DataSourceBuilder:
+class DataSourceSplitter:
     """
     Splitter of data that provides generator of test-train splits.
     Can provide hold-out validation and k-fold validation.

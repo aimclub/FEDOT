@@ -19,7 +19,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
-from fedot.core.optimisers.objective.data_source_builder import DataSourceBuilder
+from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -150,7 +150,7 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
     graph_gen_params = get_pipeline_generation_params()
     metrics = [metric]
 
-    data_source = DataSourceBuilder().build(input_data)
+    data_source = DataSourceSplitter().build(input_data)
     objective_eval = PipelineObjectiveEvaluate(Objective(metrics), data_source)
     dispatcher = MultiprocessingDispatcher(graph_gen_params.adapter)
     dispatcher.set_evaluation_callback(objective_eval.evaluate_intermediate_metrics)
