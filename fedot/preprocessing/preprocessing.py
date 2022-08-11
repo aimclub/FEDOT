@@ -200,6 +200,8 @@ class DataPreprocessor:
 
             # Column types processing - launch after correct features selection
             self.types_correctors[source_name].convert_data_for_fit(data)
+            if self.types_correctors[source_name].target_converting_has_errors:
+                data = self._drop_rows_with_nan_in_target(data)
 
             # Train Label Encoder for categorical target if necessary and apply it
             self._train_target_encoder(data, source_name)
