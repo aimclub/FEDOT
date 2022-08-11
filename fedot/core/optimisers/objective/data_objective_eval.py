@@ -103,13 +103,16 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         for last_fold in self._data_producer():
             pass
         # And so test only on the last fold
-        test_data = last_fold[1]
+        train_data, test_data = last_fold
 
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node)
-            intermediate_graph.preprocessor = graph.preprocessor
+            intermediate_graph.fit(
+                train_data,
+                time_constraint=self._time_constraint
+            )
             intermediate_fitness = self._objective(intermediate_graph,
                                                    reference_data=test_data,
                                                    validation_blocks=self._validation_blocks)
