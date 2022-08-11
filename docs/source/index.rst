@@ -24,9 +24,8 @@ Content
 
    introduction/index
    basics/index
-   advanced/index
    examples/index
-   tutorials/index
+   advanced/index
    benchmarks/index
    api/index
    contribution

@@ -1,5 +1,5 @@
-Cases and examples
-==================
+Examples and notebooks
+======================
 
 .. toctree::
    :glob:
