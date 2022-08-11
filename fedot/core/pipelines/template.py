@@ -255,16 +255,11 @@ class PipelineTemplate:
 
         if path is not None and 'preprocessing' in os.listdir(path):
             # Load data preprocessor and store it into the
-            path_to_preprocessor = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
-            if os.path.exists(path_to_preprocessor):
-                restored_data_preprocessor = joblib.load(path_to_preprocessor)
-                pipeline.preprocessor = restored_data_preprocessor
-        elif dict_fitted_operations is not None and 'preprocessing' in dict_fitted_operations:
-            tmp_path = os.path.join(default_fedot_data_dir(), 'preprocessing.tmp')
-            with open(tmp_path, 'wb') as f:
-                f.write(BytesIO(dict_fitted_operations['preprocessing']).getbuffer())
-            pipeline.preprocessor = joblib.load(tmp_path)
-            os.remove(tmp_path)
+            preprocessor_file = os.path.join(path, 'preprocessing', 'data_preprocessor.pkl')
+            pipeline.preprocessor = joblib.load(preprocessor_file)
+        elif dict_fitted_operations and 'preprocessing' in dict_fitted_operations:
+            preprocessor_file = dict_fitted_operations['preprocessing']
+            pipeline.preprocessor = joblib.load(preprocessor_file)
 
     def roll_pipeline_structure(self, operation_object: Union['OperationTemplate', 'AtomizedModelTemplate'],
                                 visited_nodes: dict, path: str = None, dict_fitted_operations: dict = None):
