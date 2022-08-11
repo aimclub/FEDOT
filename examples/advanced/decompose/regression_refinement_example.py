@@ -1,13 +1,17 @@
 import warnings
+from datetime import timedelta
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
+from fedot.core.composer.metrics import MAE
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -96,12 +100,13 @@ def run_river_experiment(file_path, with_tuning=False):
     non_pipeline.fit(train_input)
 
     if with_tuning:
-        r_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                       input_data=train_input,
-                                       iterations=100)
-        non_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                         input_data=train_input,
-                                         iterations=100)
+        objective = Objective(MAE.get_value)
+        data_producer = DataSourceBuilder().build(train_input)
+        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+        tuner = PipelineTuner(task=train_input.task,
+                              iterations=100)
+        r_pipeline = tuner.tune(r_pipeline, objective_evaluate)
+        non_pipeline = tuner.tune(non_pipeline, objective_evaluate)
 
     # Predict
     predicted_values = r_pipeline.predict(predict_input)

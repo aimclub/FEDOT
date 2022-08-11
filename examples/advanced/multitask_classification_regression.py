@@ -1,13 +1,18 @@
 import os
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
+from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from test.unit.api.test_api_cli_params import project_root_path
@@ -62,10 +67,13 @@ def launch_multitask_example(with_tuning: bool = False):
     multitask_pipeline = get_multitask_pipeline()
 
     if with_tuning:
-        multitask_pipeline = multitask_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                                    input_data=train_input,
-                                                                    timeout=2,
-                                                                    iterations=100)
+        objective = Objective(MAE.get_value)
+        data_producer = DataSourceBuilder().build(train_input)
+        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+        tuner = PipelineTuner(task=train_input.task,
+                              iterations=100,
+                              timeout=timedelta(minutes=2))
+        multitask_pipeline = tuner.tune(multitask_pipeline, objective_evaluate)
 
     multitask_pipeline.fit(train_input)
     side_pipeline = multitask_pipeline.pipeline_for_side_task(task_type=TaskTypesEnum.classification)

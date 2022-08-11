@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -8,6 +10,8 @@ from examples.simple.classification.classification_pipelines import classificati
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.utils import fedot_project_root
@@ -79,11 +83,14 @@ def run_resample_example(path_to_data=None, tune=False):
     print(f'ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n')
 
     if tune:
-        print('Start tuning process ...')
-        tuned_pipeline = pipeline.fine_tune_all_nodes(iterations=50,
-                                                      timeout=1,
-                                                      input_data=train_input,
-                                                      loss_function=ROCAUC.metric)
+        print(f'Start tuning process ...')
+        objective = Objective(ROCAUC.get_value)
+        data_producer = DataSourceBuilder().build(train_input)
+        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+        tuner = PipelineTuner(task=train_input.task,
+                              iterations=50,
+                              timeout=timedelta(minutes=1))
+        tuned_pipeline = tuner.tune(pipeline, objective_evaluate)
 
         # Predict
         predicted_values_tuned = tuned_pipeline.predict(predict_input)

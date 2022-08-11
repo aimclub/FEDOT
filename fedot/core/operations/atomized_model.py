@@ -1,9 +1,12 @@
 from copy import deepcopy
+from datetime import timedelta
 from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
 from fedot.core.utils import make_pipeline_generator
@@ -52,10 +55,13 @@ class AtomizedModel(Operation):
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
-        tuned_pipeline = self.pipeline.fine_tune_all_nodes(loss_function=loss_function,
-                                                           input_data=input_data,
-                                                           iterations=iterations,
-                                                           timeout=timeout)
+        objective = Objective(loss_function)
+        data_producer = DataSourceBuilder().build(input_data)
+        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
+        tuner = PipelineTuner(task=input_data.task,
+                              iterations=iterations,
+                              timeout=timedelta(minutes=timeout))
+        tuned_pipeline = tuner.tune(self.pipeline, objective_evaluate)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)
         return tuned_atomized_model
 

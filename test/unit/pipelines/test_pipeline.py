@@ -16,8 +16,10 @@ from sklearn.metrics import roc_auc_score as roc
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.objective import Objective, DataSourceBuilder, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import probs_to_labels
@@ -406,26 +408,6 @@ def test_pipeline_fit_time_constraint():
     assert predicted_first is None
     assert computation_time_second is not None
     assert predicted_second is not None
-
-
-def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
-    data = classification_dataset
-
-    first = PrimaryNode(operation_type='scaling')
-    second = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='dt', nodes_from=[first, second])
-
-    pipeline = Pipeline(final)
-
-    iterations_total, time_limit_minutes = 5, 1
-    tuned_pipeline = pipeline.fine_tune_all_nodes(loss_function=ROCAUC.metric, input_data=data,
-                                                  iterations=iterations_total,
-                                                  timeout=time_limit_minutes)
-    tuned_pipeline.predict(input_data=data)
-
-    is_tuning_finished = True
-
-    assert is_tuning_finished
 
 
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
