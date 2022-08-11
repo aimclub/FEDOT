@@ -186,7 +186,7 @@ class DataPreprocessor:
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
-
+        # TODO target encoding must be obligatory for all data types
         if data_type_is_text(data) or data_type_is_table(data):
             # Fix tables / time series sizes
             data = self._correct_shapes(data)
