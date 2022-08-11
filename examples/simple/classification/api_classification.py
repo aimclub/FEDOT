@@ -1,14 +1,12 @@
-from datetime import timedelta
-
 from fedot.api.main import Fedot
 from fedot.core.utils import fedot_project_root
 
 
 def run_classification_example(timeout: float = None):
+    problem = 'classification'
+
     train_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_train.csv'
     test_data_path = f'{fedot_project_root()}/cases/data/scoring/scoring_test.csv'
-
-    problem = 'classification'
 
     baseline_model = Fedot(problem=problem, timeout=timeout)
     baseline_model.fit(features=train_data_path, target='target', predefined_model='rf')
@@ -17,7 +15,7 @@ def run_classification_example(timeout: float = None):
     print(baseline_model.get_metrics())
 
     auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=-1,
-                       max_pipeline_fit_time=1)
+                       max_pipeline_fit_time=1, metric='roc_auc')
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)
     print(auto_model.get_metrics())
@@ -26,4 +24,4 @@ def run_classification_example(timeout: float = None):
 
 
 if __name__ == '__main__':
-    run_classification_example(timeout=1)
+    run_classification_example(timeout=2)

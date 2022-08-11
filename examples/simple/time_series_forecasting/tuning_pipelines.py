@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
+from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
@@ -69,8 +70,7 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
 
     if tuning:
         pipeline = pipeline.fine_tune_all_nodes(input_data=train_data,
-                                                loss_function=mean_squared_error,
-                                                loss_params={'squared': False},
+                                                loss_function=MSE.metric,
                                                 iterations=100)
 
         prediction_after = pipeline.predict(test_data)

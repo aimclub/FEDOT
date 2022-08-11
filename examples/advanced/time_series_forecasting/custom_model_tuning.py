@@ -117,7 +117,6 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     # Tuning pipeline
     pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
                                             loss_function=mean_squared_error,
-                                            loss_params={'squared': False},
                                             cv_folds=3,
                                             validation_blocks=3)
     # Fit pipeline on the entire train data

@@ -10,6 +10,7 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.data.data import InputData
+from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -160,6 +161,8 @@ class AutoRegImplementation(ModelImplementation):
         self.params = params
         self.autoreg = None
         self.actual_ts_len = None
+        self.lag1_changed = False
+        self.lag2_changed = False
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -169,10 +172,13 @@ class AutoRegImplementation(ModelImplementation):
 
         source_ts = np.array(input_data.features)
         self.actual_ts_len = len(source_ts)
+
+        # Correct window size parameter
+        self.lag1_changed, self.lag2_changed = self._check_and_correct_lags(source_ts)
+
         lag_1 = int(self.params.get('lag_1'))
         lag_2 = int(self.params.get('lag_2'))
-        params = {'lags': [lag_1, lag_2]}
-        self.autoreg = AutoReg(source_ts, **params).fit()
+        self.autoreg = AutoReg(source_ts, lags=[lag_1, lag_2]).fit()
         self.actual_ts_len = input_data.idx.shape[0]
 
         return self.autoreg
@@ -212,8 +218,7 @@ class AutoRegImplementation(ModelImplementation):
             self.handle_new_data(input_data)
             start_id = self.actual_ts_len
             end_id = start_id + forecast_length - 1
-            predicted = self.autoreg.predict(start=start_id,
-                                             end=end_id)
+            predicted = self.autoreg.predict(start=start_id, end=end_id)
             predict = np.array(predicted).reshape(1, -1)
 
         output_data = self._convert_to_output(input_data,
@@ -221,7 +226,40 @@ class AutoRegImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
+    def _check_and_correct_lags(self, time_series: np.array):
+        previous_lag_1 = int(self.params.get('lag_1'))
+        previous_lag_2 = int(self.params.get('lag_2'))
+        max_lag = len(time_series) // 2 - 1
+        new_lag_1 = self._check_and_correct_lag(max_lag, previous_lag_1)
+        new_lag_2 = self._check_and_correct_lag(max_lag, previous_lag_2)
+        if new_lag_1 == new_lag_2:
+            new_lag_2 -= 1
+        lag1_was_changed = self._lag_was_changed(previous_lag_1, new_lag_1)
+        lag2_was_changed = self._lag_was_changed(previous_lag_2, new_lag_2)
+        self.params['lag_1'] = new_lag_1
+        self.params['lag_2'] = new_lag_2
+        return lag1_was_changed, lag2_was_changed
+
+    def _check_and_correct_lag(self, max_lag: int, lag: int):
+        if lag > max_lag:
+            lag = max_lag
+        return lag
+
+    def _lag_was_changed(self, previous_lag, new_lag):
+        was_changed = (previous_lag != new_lag)
+        prefix = "Warning: lag of AutoRegImplementation was changed"
+        if was_changed:
+            self.log.info(f"{prefix} from {previous_lag} to {new_lag}.")
+        return was_changed
+
     def get_params(self):
+        changed_params = []
+        if self.lag1_changed is True:
+            changed_params.append('lag_1')
+        if self.lag2_changed is True:
+            changed_params.append('lag_2')
+        if changed_params:
+            return self.params, changed_params
         return self.params
 
     def handle_new_data(self, input_data: InputData):

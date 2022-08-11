@@ -7,6 +7,7 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              silhouette_score, roc_curve, auc)
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -67,6 +68,7 @@ class QualityMetric:
         except Exception as ex:
             # TODO: use log instead of stdout
             print(f'Metric evaluation error: {ex}')
+
         return metric
 
     @classmethod
@@ -118,15 +120,13 @@ class QualityMetric:
     def _in_sample_prediction(pipeline, data, validation_blocks):
         """ Performs in-sample pipeline validation for time series prediction """
 
-        # Get number of validation blocks per each fold
-        horizon = data.task.task_params.forecast_length * validation_blocks
+        horizon = int(validation_blocks * data.task.task_params.forecast_length)
+
+        actual_values = data.target[-horizon:]
 
         predicted_values = in_sample_ts_forecast(pipeline=pipeline,
                                                  input_data=data,
                                                  horizon=horizon)
-
-        # Clip actual data by the forecast horizon length
-        actual_values = data.target[-horizon:]
 
         # Wrap target and prediction arrays into OutputData and InputData
         results = OutputData(idx=np.arange(0, len(predicted_values)), features=predicted_values,

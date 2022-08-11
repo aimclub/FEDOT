@@ -24,7 +24,7 @@ class PipelineTuner(HyperoptTuner):
                          search_space=search_space,
                          algo=algo)
 
-    def tune_pipeline(self, input_data, loss_function, loss_params=None,
+    def tune_pipeline(self, input_data, loss_function,
                       cv_folds: int = None, validation_blocks: int = None):
         """ Function for hyperparameters tuning on the entire pipeline """
 
@@ -34,18 +34,16 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict = self._get_parameters_for_tune()
 
-        is_need_to_maximize = _greater_is_better(loss_function=loss_function,
-                                                 loss_params=loss_params)
+        is_need_to_maximize = _greater_is_better(loss_function=loss_function)
         self.is_need_to_maximize = is_need_to_maximize
 
         # Check source metrics for data
-        self.init_check(input_data, loss_function, loss_params)
+        self.init_check(input_data, loss_function)
 
         best = fmin(partial(self._objective,
                             pipeline=self.pipeline,
                             data=input_data,
-                            loss_function=loss_function,
-                            loss_params=loss_params),
+                            loss_function=loss_function),
                     parameters_dict,
                     algo=self.algo,
                     max_evals=self.iterations,
@@ -60,8 +58,7 @@ class PipelineTuner(HyperoptTuner):
         # Validation is the optimization do well
         final_pipeline = self.final_check(data=input_data,
                                           tuned_pipeline=tuned_pipeline,
-                                          loss_function=loss_function,
-                                          loss_params=loss_params)
+                                          loss_function=loss_function)
 
         return final_pipeline
 
@@ -108,8 +105,7 @@ class PipelineTuner(HyperoptTuner):
 
         return parameters_dict
 
-    def _objective(self, parameters_dict, pipeline, data, loss_function,
-                   loss_params: dict):
+    def _objective(self, parameters_dict, pipeline, data, loss_function):
         """
         Objective function for minimization / maximization problem
 
@@ -117,7 +113,6 @@ class PipelineTuner(HyperoptTuner):
         :param pipeline: pipeline to optimize
         :param data: InputData for model train and validation
         :param loss_function: loss function to optimize
-        :param loss_params: parameters for loss function
 
         :return metric_value: value of objective function
         """
@@ -127,6 +122,5 @@ class PipelineTuner(HyperoptTuner):
 
         metric_value = self.get_metric_value(data=data,
                                              pipeline=pipeline,
-                                             loss_function=loss_function,
-                                             loss_params=loss_params)
+                                             loss_function=loss_function)
         return metric_value

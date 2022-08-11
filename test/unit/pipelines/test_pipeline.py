@@ -13,6 +13,7 @@ import pytest
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc
 
+from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -417,7 +418,7 @@ def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
     pipeline = Pipeline(final)
 
     iterations_total, time_limit_minutes = 5, 1
-    tuned_pipeline = pipeline.fine_tune_all_nodes(loss_function=roc, input_data=data,
+    tuned_pipeline = pipeline.fine_tune_all_nodes(loss_function=ROCAUC.metric, input_data=data,
                                                   iterations=iterations_total,
                                                   timeout=time_limit_minutes)
     tuned_pipeline.predict(input_data=data)

@@ -6,6 +6,7 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.metrics import MAE
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
@@ -28,7 +29,7 @@ def get_pipeline_info(pipeline):
     """
 
     obtained_operations = [str(node) for node in pipeline.nodes]
-    depth = int(pipeline.graph_depth)
+    depth = int(pipeline.depth)
     pipeline.print_structure()
 
     return obtained_operations, depth
@@ -122,7 +123,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
             pipeline_tuner = tuner(pipeline=obtained_pipeline, task=data.task,
                                    iterations=100)
             tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=mean_absolute_error)
+                                                          loss_function=MAE.metric)
 
             preds_tuned = fit_predict_for_pipeline(pipeline=tuned_pipeline,
                                                    train_input=train_input,

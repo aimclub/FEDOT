@@ -1,19 +1,22 @@
 import datetime
 import logging
 
+import numpy as np
+import pytest
 from sklearn.metrics import mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.composer.metrics import MAE, MSE
 from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
-from fedot.core.validation.tune.time_series import cv_time_series_predictions
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)
@@ -61,7 +64,7 @@ def test_cv_folds_too_large_correct():
     the number of elements to be validated to be greater than the number of elements
     in the time series itself, are adequately handled
 
-    In this case a hold-out validation must be performed
+    In this case a hold-out validation with 1 fold and 3 validation blocks must be performed
     """
     folds = 50
     forecast_len, validation_blocks, time_series = configure_experiment()
@@ -69,7 +72,7 @@ def test_cv_folds_too_large_correct():
     i = 0
     for train_data, test_data in ts_cv_generator(time_series, folds, validation_blocks, log):
         i += 1
-        assert len(train_data.idx) == 95
+        assert len(train_data.idx) == 85
     assert i == 1
 
 
@@ -82,8 +85,7 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                                loss_params=None,
+    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
                                                 input_data=time_series,
                                                 iterations=1, timeout=1,
                                                 cv_folds=folds,
@@ -92,19 +94,19 @@ def test_tuner_cv_correct():
     assert is_tune_succeeded
 
 
-def test_cv_ts_predictions_correct():
-    folds_len_list = []
-    for folds in range(2, 4):
-        forecast_len, validation_blocks, time_series = configure_experiment()
+@pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
+def test_cv_ts_predictions_correct(folds, actual_value):
 
-        simple_pipeline = get_simple_ts_pipeline()
-        predictions, target = cv_time_series_predictions(reference_data=time_series,
-                                                         pipeline=simple_pipeline,
-                                                         log=log,
-                                                         cv_folds=folds,
-                                                         validation_blocks=validation_blocks)
-        folds_len_list.append(len(predictions))
-    assert folds_len_list[0] < folds_len_list[1]
+    forecast_len, validation_blocks, time_series = configure_experiment()
+
+    simple_pipeline = get_simple_ts_pipeline()
+    metric_value = cv_time_series_predictions(reference_data=time_series,
+                                              pipeline=simple_pipeline,
+                                              log=log,
+                                              cv_folds=folds,
+                                              validation_blocks=validation_blocks,
+                                              loss_function=MSE.metric)
+    assert np.isclose(metric_value, actual_value)
 
 
 def test_composer_cv_correct():

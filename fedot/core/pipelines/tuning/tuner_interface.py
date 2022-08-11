@@ -1,21 +1,20 @@
 import sys
-from hyperopt.early_stop import no_progress_loss
-
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, ClassVar, Optional
+from typing import Callable, ClassVar
 
 import numpy as np
+from hyperopt.early_stop import no_progress_loss
 
-from fedot.core.data.data import data_type_is_ts
+from fedot.core.data.data import data_type_is_ts, OutputData, InputData
 from fedot.core.log import default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.tasks import TaskTypesEnum, Task
 from fedot.core.validation.tune.simple import fit_predict_one_fold
-from fedot.core.validation.tune.tabular import cv_tabular_predictions
-from fedot.core.validation.tune.time_series import cv_time_series_predictions
+from fedot.core.validation.tune.cv_prediction import calculate_loss_function, cv_tabular_predictions, \
+    cv_time_series_predictions
 
 MAX_METRIC_VALUE = sys.maxsize
 
@@ -54,16 +53,15 @@ class HyperoptTuner(ABC):
         self.log = default_log(self)
 
     @abstractmethod
-    def tune_pipeline(self, input_data, loss_function, loss_params=None,
+    def tune_pipeline(self, input_data, loss_function,
                       cv_folds: int = None, validation_blocks: int = None):
         """
         Function for hyperparameters tuning on the pipeline
 
         :param input_data: data used for hyperparameter searching
-        :param loss_function: function to minimize (or maximize) the metric,
-        such function should take vector with true values as first values and
-        predicted array as the second
-        :param loss_params: dictionary with parameters for loss function
+        :param loss_function: loss function to minimize (or maximize) during pipeline tuning,
+        such function should take InputData with true values as the first input and
+        OutputData with model prediction as the second
         :param cv_folds: number of folds for cross validation
         :param validation_blocks: number of validation blocks for time series forecasting
 
@@ -71,43 +69,34 @@ class HyperoptTuner(ABC):
         """
         raise NotImplementedError()
 
-    def get_metric_value(self, data, pipeline, loss_function, loss_params):
+    def get_metric_value(self, data, pipeline, loss_function):
         """
         Method calculates metric for algorithm validation
 
         :param data: InputData for validation
         :param pipeline: pipeline to validate
         :param loss_function: function to minimize (or maximize)
-        :param loss_params: parameters for loss function
 
         :return: value of loss function
         """
-
         try:
             if self.cv_folds is None:
-                preds, test_target = self._one_fold_validation(data, pipeline)
-            else:
-                preds, test_target = self._cross_validation(data, pipeline)
+                metric_value = self._one_fold_validation(data, pipeline, loss_function)
 
-            # Calculate metric
-            metric_value = _calculate_loss_function(loss_function, loss_params, test_target, preds)
+            else:
+                metric_value = self._cross_validation(data, pipeline, loss_function)
         except Exception as ex:
             self.log.debug(f'Tuning metric evaluation warning: {ex}. Continue.')
             # Return default metric: too small (for maximization) or too big (for minimization)
             return self._default_metric_value
+        return metric_value
 
-        if self.is_need_to_maximize:
-            return -metric_value
-        else:
-            return metric_value
-
-    def init_check(self, data, loss_function, loss_params) -> None:
+    def init_check(self, data, loss_function) -> None:
         """
         Method get metric on validation set before start optimization
 
         :param data: InputData for validation
         :param loss_function: function to minimize (or maximize)
-        :param loss_params: parameters for loss function
         """
         self.log.info('Hyperparameters optimization start')
 
@@ -116,23 +105,20 @@ class HyperoptTuner(ABC):
 
         self.init_metric = self.get_metric_value(data=data,
                                                  pipeline=self.init_pipeline,
-                                                 loss_function=loss_function,
-                                                 loss_params=loss_params)
+                                                 loss_function=loss_function)
 
-    def final_check(self, data, tuned_pipeline, loss_function, loss_params):
+    def final_check(self, data, tuned_pipeline, loss_function):
         """
         Method propose final quality check after optimization process
 
         :param data: InputData for validation
         :param tuned_pipeline: tuned pipeline
         :param loss_function: function to minimize (or maximize)
-        :param loss_params: parameters for loss function
         """
 
         self.obtained_metric = self.get_metric_value(data=data,
                                                      pipeline=tuned_pipeline,
-                                                     loss_function=loss_function,
-                                                     loss_params=loss_params)
+                                                     loss_function=loss_function)
 
         if self.obtained_metric == self._default_metric_value:
             self.obtained_metric = None
@@ -177,38 +163,36 @@ class HyperoptTuner(ABC):
                 return self.init_pipeline
 
     @staticmethod
-    def _one_fold_validation(data, pipeline):
+    def _one_fold_validation(data: InputData, pipeline, loss_function: Callable):
         """ Perform simple (hold-out) validation """
 
         if data.task.task_type is TaskTypesEnum.classification:
-            test_target, preds = fit_predict_one_fold(data, pipeline)
+            predict_input, predicted_output = fit_predict_one_fold(data, pipeline)
         else:
             # For regression and time series forecasting
-            test_target, preds = fit_predict_one_fold(data, pipeline)
-            # Convert predictions into one dimensional array
-            preds = np.ravel(np.array(preds))
-            test_target = np.ravel(test_target)
+            predict_input, predicted_output = fit_predict_one_fold(data, pipeline)
 
-        return preds, test_target
+        metric_value = calculate_loss_function(loss_function, predict_input, predicted_output)
+        return metric_value
 
-    def _cross_validation(self, data, pipeline):
+    def _cross_validation(self, data, pipeline, loss_function: Callable):
         """ Perform cross validation for metric evaluation """
 
-        preds, test_target = [], []
         if data.data_type is DataTypesEnum.table or data.data_type is DataTypesEnum.text or \
                 data.data_type is DataTypesEnum.image:
-            preds, test_target = cv_tabular_predictions(pipeline, data,
-                                                        cv_folds=self.cv_folds)
+            metric_value = cv_tabular_predictions(pipeline, data,
+                                                  cv_folds=self.cv_folds, loss_function=loss_function)
 
         elif data_type_is_ts(data):
             if self.validation_blocks is None:
                 self.log.info('For ts cross validation validation_blocks number was changed from None to 3 blocks')
                 self.validation_blocks = 3
 
-            preds, test_target = cv_time_series_predictions(pipeline, data, log=self.log,
-                                                            cv_folds=self.cv_folds,
-                                                            validation_blocks=self.validation_blocks)
-        return preds, test_target
+            metric_value = cv_time_series_predictions(pipeline, data, log=self.log,
+                                                      cv_folds=self.cv_folds,
+                                                      validation_blocks=self.validation_blocks,
+                                                      loss_function=loss_function)
+        return metric_value
 
     @property
     def _default_metric_value(self):
@@ -218,15 +202,15 @@ class HyperoptTuner(ABC):
             return MAX_METRIC_VALUE
 
 
-def _create_multi_target_prediction(target):
+def _create_multi_target_prediction(output_data: OutputData):
     """ Function creates an array of shape (target len, num classes)
     with classes probabilities from target values
 
-    :param target: target for define what problem is solving (max or min)
+    :param output_data: output_data for define what problem is solving (max or min)
 
     :return: 2d-array of classes probabilities
     """
-
+    target = output_data.predict
     nb_classes = len(np.unique(target))
 
     assert np.issubdtype(target.dtype, np.integer), 'Impossible to create multi target array from non integers'
@@ -235,59 +219,33 @@ def _create_multi_target_prediction(target):
     return multi_target
 
 
-def _greater_is_better(loss_function, loss_params) -> bool:
+def _greater_is_better(loss_function) -> bool:
     """ Function checks is metric (loss function) need to be minimized or maximized
 
     :param loss_function: loss function
-    :param loss_params: parameters for loss function
 
     :return: bool value is it good to maximize metric or not
     """
 
-    ground_truth = np.array([[0], [1]])
-    precise_prediction = np.array([[0], [1]])
-    approximate_prediction = np.array([[0], [0]])
-
-    if loss_params is None:
-        loss_params = {}
+    ground_truth = InputData(target=np.array([[0], [1]]), features=[[1], [1]], data_type=DataTypesEnum.table,
+                             idx=[0, 1], task=Task(TaskTypesEnum.classification))
+    precise_prediction = OutputData(predict=np.array([[0], [1]]), features=[[1], [1]], idx=[0, 1],
+                                    data_type=DataTypesEnum.table,
+                                    task=Task(TaskTypesEnum.classification))
+    approximate_prediction = OutputData(predict=np.array([[0], [0]]), features=[[1], [1]], idx=[0, 1],
+                                        data_type=DataTypesEnum.table,
+                                        task=Task(TaskTypesEnum.classification))
 
     try:
         optimal_metric, non_optimal_metric = [
-            loss_function(ground_truth, score, **loss_params) for score in [precise_prediction, approximate_prediction]]
+            loss_function(ground_truth, score) for score in [precise_prediction, approximate_prediction]]
     except Exception:
         multiclass_precise_pred, multiclass_approximate_pred = [
             _create_multi_target_prediction(score) for score in [precise_prediction, approximate_prediction]]
 
         optimal_metric, non_optimal_metric = [
-            loss_function(ground_truth, score, **loss_params)
+            loss_function(ground_truth, score)
             for score in [multiclass_precise_pred, multiclass_approximate_pred]
         ]
 
     return optimal_metric > non_optimal_metric
-
-
-def _calculate_loss_function(loss_function, loss_params, target, preds):
-    """ Function processing preds and calculating metric (loss function)
-
-    :param loss_function: loss function
-    :param loss_params: parameters for loss function
-    :param target: target for evaluation
-    :param preds: prediction for evaluation
-
-    :return: calculated loss_function
-    """
-
-    if loss_params is None:
-        loss_params = {}
-    try:
-        # actual for regression and classification metrics that requires all classes probabilities
-        metric_value = loss_function(target, preds, **loss_params)
-    except ValueError:
-        try:
-            # transform 1st class probability to assigned class, actual for accuracy-like metrics with binary
-            metric_value = loss_function(target, preds.round(), **loss_params)
-        except ValueError:
-            # transform class probabilities to assigned class, actual for accuracy-like metrics with multiclass
-            metric_value = loss_function(target, np.argmax(preds, axis=1), **loss_params)
-
-    return metric_value

@@ -15,7 +15,7 @@ from examples.simple.interpretable.api_explain import run_api_explain_example
 from examples.simple.pipeline_log import run_log_example
 from examples.simple.pipeline_tune import get_case_train_test_data, pipeline_tuning
 from examples.advanced.time_series_forecasting.exogenous import run_exogenous_experiment
-from examples.simple.time_series_forecasting.api_foresacting import run_ts_forecasting_example
+from examples.simple.time_series_forecasting.api_forecasting import run_ts_forecasting_example
 from examples.simple.time_series_forecasting.gapfilling import run_gapfilling_example
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
 

@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 from sklearn.metrics import mean_squared_error
 
+from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -181,7 +182,7 @@ def test_fine_tune_atomized_model_correct():
     atm_model = create_atomized_model()
     dummy_atomized_model = create_atomized_model()
 
-    fine_tuned_atomized_model = atm_model.fine_tune(loss_function=mean_squared_error,
+    fine_tuned_atomized_model = atm_model.fine_tune(loss_function=RMSE.metric,
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
