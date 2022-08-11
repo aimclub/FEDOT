@@ -365,9 +365,7 @@ class DataPreprocessor:
         if encoder is None:
             encoder = LabelEncodingImplementation() if self.use_label_encoder else OneHotEncodingImplementation()
             encoder.fit(data)
-            print("fit " + str(encoder.encoder.categories_))
             self.features_encoders[source_name] = encoder
-        print("transform " + str(encoder.encoder.categories_))
         output_data = encoder.transform(data, True)
 
         output_data.predict = output_data.predict.astype(float)

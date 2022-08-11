@@ -160,12 +160,6 @@ class Pipeline(Graph, Serializable):
                                                                            data=copied_input_data)
             copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
                                                                           data=copied_input_data)
-        if copied_input_data.features.shape[1] == 29:
-            print('29')
-        elif copied_input_data.features.shape[1] == 30:
-            print('30')
-        else:
-            print(copied_input_data.features.shape[1])
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
@@ -199,7 +193,10 @@ class Pipeline(Graph, Serializable):
                 node.unfit()
 
         if unfit_preprocessor:
-            self.preprocessor = DataPreprocessor()
+            self.unfit_preprocessor()
+
+    def unfit_preprocessor(self):
+        self.preprocessor = DataPreprocessor()
 
     def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
         """
