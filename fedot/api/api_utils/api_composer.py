@@ -11,13 +11,13 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.composer.metrics import Metric
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECONDS_FOR_TUNING
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
@@ -273,20 +273,6 @@ class ApiComposer:
                 pipeline_gp_composed = tuner.tune(pipeline_gp_composed, objective_evaluate)
                 log.info('Hyperparameters tuning finished')
         return pipeline_gp_composed
-
-    def obtain_metric_for_tuning(self, tuner_metric: Union[None, str, Metric], task: Task, log: LoggerAdapter):
-        if tuner_metric is None:
-            # Default metric for tuner
-            tuner_loss = MetricByTask(task.task_type).metric_cls.metric
-            log.info(f'Tuner metric is None, {tuner_loss.__name__} is set as default')
-        elif isinstance(tuner_metric, Metric):
-            tuner_loss = tuner_metric.metric
-        elif isinstance(tuner_metric, str):
-            metric_id = self.metrics.get_metrics_mapping(metric_name=tuner_metric)
-            tuner_loss = MetricsRepository().metric_class_by_id(metric_id).metric
-        else:
-            tuner_loss = tuner_metric
-        return tuner_loss
 
 
 def _divide_parameters(common_dict: dict) -> List[dict]:

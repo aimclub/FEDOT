@@ -36,10 +36,6 @@ class SequentialTuner(HyperoptTuner):
         :param pipeline: Pipeline which hyperparameters will be tuned
         :param objective_evaluate: PipelineObjectiveEvaluate used for pipeline evaluation
         """
-        # Define folds for cross validation
-        is_need_to_maximize = self._greater_is_better(loss_function=objective_evaluate._objective.metrics[0])
-        self.is_need_to_maximize = is_need_to_maximize
-
         # Check source metrics for data
         self.init_check(pipeline, objective_evaluate)
 
@@ -93,9 +89,6 @@ class SequentialTuner(HyperoptTuner):
         :param node_index: Index of the node to tune
         :param objective_evaluate: PipelineObjectiveEvaluate to evaluate tne pipeline
         """
-        is_need_to_maximize = super()._greater_is_better(loss_function=objective_evaluate._objective.metrics[0])
-        self.is_need_to_maximize = is_need_to_maximize
-
         # Check source metrics for data
         self.init_check(pipeline, objective_evaluate)
 
@@ -173,8 +166,8 @@ class SequentialTuner(HyperoptTuner):
     def set_arg_node(pipeline, node_id, node_params):
         """ Method for parameters setting to a pipeline
 
-        :param pipeline: pipeline with nodes
-        :param node_id: id of the node to which parameters should ba assigned
+        :param pipeline: pipeline which contains the node
+        :param node_id: id of the node to which parameters should be assigned
         :param node_params: dictionary with labeled parameters to set
 
         :return pipeline: pipeline with new hyperparameters in each node
@@ -193,7 +186,8 @@ class SequentialTuner(HyperoptTuner):
         Objective function for minimization / maximization problem
 
         :param node_params: dictionary with parameters for node
-        :param pipeline: pipeline to optimize
+        :param pipeline: pipeline to evaluate
+        :param node_id: id of the node to which parameters should be assigned
         :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
 
         :return metric_value: value of objective function

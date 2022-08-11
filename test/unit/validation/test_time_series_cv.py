@@ -1,18 +1,14 @@
 import datetime
 import logging
 
-import numpy as np
-import pytest
-
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.metrics import MAE, MSE
+from fedot.core.composer.metrics import MAE
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
-# from fedot.core.pipelines.tuning.tuner_interface import cv_time_series_predictions
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -95,21 +91,6 @@ def test_tuner_cv_correct():
     tuned = tuner.tune(simple_pipeline, objective_evaluate)
     is_tune_succeeded = True
     assert is_tune_succeeded
-
-
-# TODO: refactor
-@pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
-def test_cv_ts_predictions_correct(folds, actual_value):
-    forecast_len, validation_blocks, time_series = configure_experiment()
-
-    simple_pipeline = get_simple_ts_pipeline()
-    metric_value = cv_time_series_predictions(reference_data=time_series,
-                                              pipeline=simple_pipeline,
-                                              log=log,
-                                              cv_folds=folds,
-                                              validation_blocks=validation_blocks,
-                                              loss_function=MSE.metric)
-    assert np.isclose(metric_value, actual_value)
 
 
 def test_composer_cv_correct():

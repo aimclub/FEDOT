@@ -38,7 +38,6 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
         pipeline = PipelineAdapter().restore(pipeline)
     root_node = pipeline.root_node
 
-    # TODO: refactor to avoid importing Atomized model or refactor AtomizedModel.fine_tune
     if type(root_node.operation) is not Model and str(type(root_node.operation)) is not 'AtomizedModel':
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 

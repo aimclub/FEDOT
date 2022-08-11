@@ -34,10 +34,6 @@ class PipelineTuner(HyperoptTuner):
 
         parameters_dict = self._get_parameters_for_tune(pipeline)
 
-        # is_need_to_maximize = self._greater_is_better(metric_function=objective_evaluate._objective.metrics[0])
-        # self.is_need_to_maximize = is_need_to_maximize
-        # TODO: refactor
-        self.is_need_to_maximize = True
         # Check source metrics for data
         self.init_check(pipeline, objective_evaluate)
 

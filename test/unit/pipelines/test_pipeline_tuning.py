@@ -1,6 +1,6 @@
 import os
-from time import time
 from random import seed
+from time import time
 
 import numpy as np
 import pytest
@@ -8,7 +8,7 @@ from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
 
-from fedot.core.composer.metrics import ROCAUC, RMSE, Accuracy, MSE
+from fedot.core.composer.metrics import ROCAUC, RMSE, MSE, Accuracy
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -18,9 +18,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
 
@@ -212,7 +210,6 @@ def run_node_tuner(train_data,
                    algo=tpe.suggest,
                    iterations=1,
                    early_stopping_rounds=None):
-    # TODO: get rid of repeating code
     objective = Objective(loss_function)
     data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
@@ -247,13 +244,12 @@ def test_custom_params_setter(data_fixture, request):
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                pipeline_tuner = run_pipeline_tuner(train_data=train_data,
+                pipeline_tuner = run_pipeline_tuner(train_data=data,
                                                     pipeline=pipeline,
                                                     loss_function=loss_function,
                                                     cv=cv)
@@ -293,13 +289,12 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_f
 def test_sequential_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                sequential_tuner = run_sequential_tuner(train_data=train_data,
+                sequential_tuner = run_sequential_tuner(train_data=data,
                                                         pipeline=pipeline,
                                                         loss_function=loss_function,
                                                         cv=cv)
@@ -339,13 +334,12 @@ def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss
 def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                node_tuner = run_node_tuner(train_data=train_data,
+                node_tuner = run_node_tuner(train_data=data,
                                             pipeline=pipeline,
                                             loss_function=loss_function,
                                             cv=cv)
@@ -493,98 +487,3 @@ def test_complex_search_space_tuning_correct():
     tuned_glm_pipeline = tuner.tune(glm_pipeline, objective_evaluate)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params
-
-
-def test_greater_is_better():
-    """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
-
-    assert HyperoptTuner._greater_is_better(custom_maximized_metrics)
-    assert not HyperoptTuner._greater_is_better(MSE.metric)
-    assert not HyperoptTuner._greater_is_better(custom_minimized_metrics)
-    # these metrics are given with minus
-    assert not HyperoptTuner._greater_is_better(Accuracy.metric)
-    assert not HyperoptTuner._greater_is_better(ROCAUC.metric)
-
-
-# TODO: refactor
-def test_calculate_loss_function_for_classification_label():
-    """ Tests _calculate_loss_function correctness on quality metrics"""
-
-    target = InputData(features=np.arange(5),
-                       idx=np.arange(5),
-                       target=np.array([1, 0, 1, 0, 1]),
-                       task=Task(TaskTypesEnum.classification),
-                       data_type=DataTypesEnum.table)
-
-    multi_target = InputData(features=np.arange(5),
-                             idx=np.arange(5),
-                             target=np.array([2, 0, 1, 0, 1]),
-                             task=Task(TaskTypesEnum.classification),
-                             data_type=DataTypesEnum.table)
-
-    pred_clear = OutputData(features=np.arange(5),
-                            idx=np.arange(5),
-                            predict=np.array([1, 0, 1, 0, 0]),
-                            task=Task(TaskTypesEnum.classification),
-                            data_type=DataTypesEnum.table)
-
-    multi_pred_clear = OutputData(features=np.arange(5),
-                                  idx=np.arange(5),
-                                  predict=np.array([2, 0, 1, 0, 2]),
-                                  task=Task(TaskTypesEnum.classification),
-                                  data_type=DataTypesEnum.table)
-
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
-
-
-def test_calculate_loss_function_for_classification_proba():
-    target = InputData(features=np.arange(5),
-                       idx=np.arange(5),
-                       target=np.array([1, 0, 1, 0, 1]),
-                       task=Task(TaskTypesEnum.classification),
-                       data_type=DataTypesEnum.table)
-
-    multi_target = InputData(features=np.arange(5),
-                             idx=np.arange(5),
-                             target=np.array([2, 0, 1, 0, 1]),
-                             task=Task(TaskTypesEnum.classification),
-                             data_type=DataTypesEnum.table)
-
-    pred_prob = OutputData(features=np.arange(5),
-                           idx=np.arange(5),
-                           predict=np.array([0.8, 0.3, 0.6, 0.49, 0.49]),
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-
-    multi_pred_prob = OutputData(features=np.arange(5),
-                                 idx=np.arange(5),
-                                 predict=np.array([[0.2, 0.3, 0.5],
-                                                   [0.6, 0.3, 0.1],
-                                                   [0.3, 0.4, 0.3],
-                                                   [0.5, 0.4, 0.1],
-                                                   [0.1, 0.4, 0.5]]),
-                                 task=Task(TaskTypesEnum.classification),
-                                 data_type=DataTypesEnum.table)
-
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
-    assert np.isclose(_calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
-
-    assert np.isclose(_calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
-    assert np.isclose(_calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
-
-
-def test_calculate_loss_function_for_regression():
-    regr_target = InputData(features=np.arange(5),
-                            idx=np.arange(5),
-                            target=np.array([0.2, 0.1, 1, 0.3, 1.7]),
-                            task=Task(TaskTypesEnum.classification),
-                            data_type=DataTypesEnum.table)
-
-    regr_pred = OutputData(features=np.arange(5),
-                           idx=np.arange(5),
-                           predict=np.array([0.23, 0.15, 1.2, 0.4, 1.16]),
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-
-    assert np.isclose(_calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)
