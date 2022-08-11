@@ -1,49 +1,3 @@
-Quickstart
-==========
-
-FEDOT Framework quick start guide
-
-How to install
---------------
-.. code::
-
- pip install fedot
-
-How to create your own composite model in manual way
-----------------------------------------------------
-
--  **Step 1**. Specify problem type and choose dataset.
-
-.. code:: python
-
-   import pandas as pd
-
-   model = Fedot(problem='classification')
-
-   dataset_to_train = pd.read_csv(train_file_path)
-   dataset_to_validate = pd.read_csv(train_file_path)
-
--  **Step 2**. Create *Pipeline* instance, create nodes with desired models
-
-.. code:: python
-
-   node_first = PrimaryNode('logit')
-   node_second= PrimaryNode('xgboost')
-   node_final = SecondaryNode('knn', nodes_from = [node_first, node_second])
-   pipeline = Pipeline(node_final)
-
--  **Step 3**. Fit the pipeline using *fit* method.
-
-.. code:: python
-
-   model.fit(features=dataset_to_train, target='target', predefined_model=pipeline)
-
--  **Step 4**. Obtain the prediction using *predict* method.
-
-.. code:: python
-
-   prediction = model.predict(features=dataset_to_validate)
-
 How to compose the pipeline in automated way
 --------------------------------------------
 
@@ -80,7 +34,7 @@ How to setup the development environments for the Fedot
       following command *pip install .[extra]* (red square).
    -  For more details, take a look at the picture below.
 
-        |Step 3|
+        |Step 2.1|
 
 -  **Step 3**. *Manually installing libraries*.
 
@@ -88,4 +42,4 @@ How to setup the development environments for the Fedot
 
 .. |Step 1| image:: img_tutorial/1_step.png
 .. |Step 2| image:: img_tutorial/2_step.png
-.. |Step 3| image:: img_tutorial/3_step.png
+.. |Step 2.1| image:: img_tutorial/2_1_step.png

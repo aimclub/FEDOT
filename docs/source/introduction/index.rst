@@ -7,4 +7,4 @@ Introduction
 
    intro
    fedot_features
-   quickstart
+   tutorial/quickstart
