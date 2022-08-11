@@ -149,9 +149,7 @@ class Pipeline(Graph, Serializable):
         """
         _replace_n_jobs_in_nodes(self, n_jobs)
 
-        if use_fitted:
-            self.unfit(mode='data_operations', unfit_preprocessor=False)
-        else:
+        if not use_fitted:
             self.unfit(mode='all', unfit_preprocessor=True)
         with PreprocessingCache.manage(preprocessing_cache, self, input_data):
             # Make copy of the input data to avoid performing inplace operations
@@ -160,10 +158,14 @@ class Pipeline(Graph, Serializable):
             # Make additional preprocessing if it is needed
             copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
                                                                            data=copied_input_data)
-
             copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
                                                                           data=copied_input_data)
-
+        if copied_input_data.features.shape[1] == 29:
+            print('29')
+        elif copied_input_data.features.shape[1] == 30:
+            print('30')
+        else:
+            print(copied_input_data.features.shape[1])
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:

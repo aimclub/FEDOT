@@ -1,0 +1,20 @@
+{
+    "_objective": {
+        "is_multi_objective": false,
+        "metrics": [
+            {
+                "_class_path": "fedot.core.composer.metrics/QualityMetric.get_value"
+            },
+            {
+                "value": "node_number",
+                "_class_path": "fedot.core.repository.quality_metrics_repository/ComplexityMetricsEnum"
+            }
+        ],
+        "_class_path": "fedot.core.optimisers.objective.objective/Objective"
+    },
+    "archive_history": [],
+    "individuals": [],
+    "save_folder": "custom_history_folder",
+    "_class_path": "fedot.core.optimisers.opt_history/OptHistory",
+    "individuals_pool": []
+}

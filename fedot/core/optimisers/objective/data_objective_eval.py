@@ -83,6 +83,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param train_data: InputData for training pipeline
         :param fold_id: Id of the fold in cross-validation, used for cache requests.
         """
+        print('fold_id '+str(fold_id))
         graph.fit(
             train_data,
             use_fitted=graph.fit_from_cache(self._pipelines_cache, fold_id),

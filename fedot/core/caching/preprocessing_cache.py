@@ -34,10 +34,13 @@ class PreprocessingCache(BaseCache):
         :param input_data: data that are going to be passed through pipeline
         """
         encoder, imputer = self.try_find_preprocessor(pipeline, input_data)
+        if encoder:
+            print('add_preprocessor!')
         pipeline.preprocessor.features_encoders = encoder
         pipeline.preprocessor.features_imputers = imputer
         yield
         self.add_preprocessor(pipeline, input_data)
+
 
     @staticmethod
     def manage(cache: Optional['PreprocessingCache'], pipeline: 'Pipeline',
@@ -104,7 +107,8 @@ def _get_db_uid(pipeline: 'Pipeline', input_data: Union[InputData, MultiModalDat
     """
     pipeline_id = pipeline.root_node.descriptive_id
     if isinstance(input_data, InputData):
-        data_id = f'{input_data.idx[0]}_{input_data.idx[-1]}'
+        data_id = f'{hash(str(input_data.features))}'
     else:
-        data_id = ':'.join([f'{x.idx[0]}_{x.idx[-1]}' for x in input_data.values()])
+        data_id = ':'.join([f'{hash(str(x.features))}' for x in input_data.values()])
+    print(data_id)
     return f'{pipeline_id}:{data_id}'

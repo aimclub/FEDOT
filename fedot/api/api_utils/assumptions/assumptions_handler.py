@@ -61,8 +61,6 @@ class AssumptionsHandler:
                 use_fitted=pipeline.fit_from_cache(pipelines_cache),
                 preprocessing_cache=preprocessing_cache
             )
-            if pipelines_cache is not None:
-                pipelines_cache.save_pipeline(pipeline)
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')
         except Exception as ex:

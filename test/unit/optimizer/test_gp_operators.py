@@ -318,9 +318,9 @@ def test_replace_mutation_for_linear_graph():
     """
     linear_two_nodes = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'scaling'})]))
 
-    linear_changed = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'one_hot_encoding'})]))
+    linear_changed = OptGraph(OptNode({'name': 'logit'}, [OptNode({'name': 'poly_features'})]))
 
-    composer_requirements = PipelineComposerRequirements(primary=['scaling', 'one_hot_encoding'],
+    composer_requirements = PipelineComposerRequirements(primary=['scaling', 'poly_features'],
                                                          secondary=['logit'], mutation_prob=1, max_depth=2)
 
     graph_params = GraphGenerationParams(adapter=DirectAdapter(),
