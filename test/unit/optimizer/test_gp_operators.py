@@ -104,11 +104,8 @@ def pipeline_with_custom_parameters(alpha_value):
 
 def _get_requirements_and_params_for_task(task: TaskTypesEnum):
     ops = get_operations_for_task(Task(task))
-    return PipelineComposerRequirements(primary=ops, secondary=ops, mutation_prob=1,
-                                        max_depth=2), get_pipeline_generation_params(
-        rules_for_constraint=DEFAULT_DAG_RULES,
-        task=Task(task)
-    )
+    return (PipelineComposerRequirements(primary=ops, secondary=ops, mutation_prob=1, max_depth=2),
+            get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES, task=Task(task)))
 
 
 def test_nodes_from_height():
