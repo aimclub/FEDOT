@@ -24,14 +24,15 @@ from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTy
 
 class OptHistory:
     """
-    Contain history, convert Pipeline to PipelineTemplate, save history to csv
+    Contains optimization history, convert Pipeline to PipelineTemplate, save history to csv.
+
+    :param objective: contains information about metrics used during optimization.
     """
 
-    def __init__(self, objective: Objective = None, save_folder: Optional[Union[str, os.PathLike]] = None):
+    def __init__(self, objective: Objective = None):
         self._objective = objective or Objective([])
         self.individuals: List[List[Individual]] = []
         self.archive_history: List[List[Individual]] = []
-        self.save_folder: Optional[str] = save_folder
         self._log = default_log(self)
 
     def is_empty(self) -> bool:
@@ -43,57 +44,54 @@ class OptHistory:
     def add_to_archive_history(self, individuals: List[Individual]):
         self.archive_history.append(individuals)
 
-    def write_composer_history_to_csv(self, file='history.csv'):
-        history_dir = self._get_save_path()
-        file = Path(history_dir, file)
-        if not os.path.isdir(history_dir):
-            os.mkdir(history_dir)
-        self._write_header_to_csv(file)
-        idx = 0
-        adapter = PipelineAdapter()
-        for gen_num, gen_inds in enumerate(self.individuals):
-            for ind_num, ind in enumerate(gen_inds):
-                ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
-                row = [
-                    idx, gen_num, ind.fitness.values,
-                    len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
-                ]
-                self._add_history_to_csv(file, row)
-                idx += 1
+    def to_csv(self, save_dir: Optional[os.PathLike] = None, file: os.PathLike = 'history.csv'):
+        save_dir = save_dir or default_fedot_data_dir()
+        if not os.path.isdir(save_dir):
+            os.mkdir(save_dir)
 
-    def _write_header_to_csv(self, f):
-        with open(f, 'w', newline='') as file:
+        with open(Path(save_dir, file), 'w', newline='') as file:
             writer = csv.writer(file, quoting=csv.QUOTE_ALL)
+
+            # Write header
             metric_str = 'metric'
             if self._objective.is_multi_objective:
                 metric_str += 's'
-            row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
-            writer.writerow(row)
+            header_row = ['index', 'generation', metric_str, 'quantity_of_operations', 'depth', 'metadata']
+            writer.writerow(header_row)
 
-    @staticmethod
-    def _add_history_to_csv(f: str, row: List[Any]):
-        with open(f, 'a', newline='') as file:
-            writer = csv.writer(file, quoting=csv.QUOTE_ALL)
-            writer.writerow(row)
+            # Write history rows
+            idx = 0
+            adapter = PipelineAdapter()
+            for gen_num, gen_inds in enumerate(self.individuals):
+                for ind_num, ind in enumerate(gen_inds):
+                    ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
+                    row = [
+                        idx, gen_num, ind.fitness.values,
+                        len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
+                    ]
+                    writer.writerow(row)
+                    idx += 1
 
-    def save_current_results(self, path: Optional[Union[str, os.PathLike]] = None):
-        if not path:
-            path = self._get_save_path()
-        if path is not None:
-            try:
-                last_gen_id = len(self.individuals) - 1
-                last_gen = self.individuals[last_gen_id]
-                last_gen_history = self.historical_fitness[last_gen_id]
-                for individual, ind_fitness in zip(last_gen, last_gen_history):
-                    ind_path = Path(path, str(last_gen_id), str(individual.uid))
-                    additional_info = \
-                        {'fitness_name': self._objective.metric_names,
-                         'fitness_value': ind_fitness}
-                    PipelineAdapter().restore_as_template(
-                        individual.graph, individual.metadata
-                    ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
-            except Exception as ex:
-                self._log.exception(ex)
+    def save_current_results(self, save_dir: os.PathLike):
+        # Create folder if it's not exists
+        if not os.path.isdir(save_dir):
+            os.makedirs(save_dir)
+            self._log.info(f"Created directory for saving optimization history: {save_dir}")
+
+        try:
+            last_gen_id = len(self.individuals) - 1
+            last_gen = self.individuals[last_gen_id]
+            last_gen_history = self.historical_fitness[last_gen_id]
+            for individual, ind_fitness in zip(last_gen, last_gen_history):
+                ind_path = Path(save_dir, str(last_gen_id), str(individual.uid))
+                additional_info = \
+                    {'fitness_name': self._objective.metric_names,
+                     'fitness_value': ind_fitness}
+                PipelineAdapter().restore_as_template(
+                    individual.graph, individual.metadata
+                ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
+        except Exception as ex:
+            self._log.exception(ex)
 
     def save(self, json_file_path: Union[str, os.PathLike] = None) -> Optional[str]:
         if json_file_path is None:
@@ -118,12 +116,12 @@ class OptHistory:
         except json.JSONDecodeError:
             return load_as_file_path()
 
-    def clean_results(self, path: Optional[str] = None):
-        if not path and self.save_folder is not None:
-            path = Path(default_fedot_data_dir(), self.save_folder)
-        if path is not None:
-            shutil.rmtree(path, ignore_errors=True)
-            os.mkdir(path)
+    @staticmethod
+    def clean_results(dir_path: Optional[str] = None):
+        """Clearn the directory tree with previously dumped history results."""
+        if dir_path and os.path.isdir(dir_path):
+            shutil.rmtree(dir_path, ignore_errors=True)
+            os.mkdir(dir_path)
 
     def show(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box,
              save_path: Optional[Union[os.PathLike, str]] = None,
@@ -230,21 +228,9 @@ class OptHistory:
             for ind in list(itertools.chain(*self.individuals))
         ]
 
-    def _get_save_path(self):
-        if self.save_folder is not None:
-            if os.path.sep in self.save_folder:
-                # Defined path is full - there is no need to use default dir
-                # Create folder if it's not exists
-                if os.path.isdir(self.save_folder) is False:
-                    os.makedirs(self.save_folder)
-                return self.save_folder
-            else:
-                return Path(default_fedot_data_dir(), self.save_folder)
-        return None
-
     def get_leaderboard(self, top_n: int = 10) -> str:
         """
-        Prints ordered description of best solutions in history
+        Prints ordered description of the best solutions in history
         :param top_n: number of solutions to print
         """
         # Take only the first graph's appearance in history
@@ -278,14 +264,18 @@ class OptHistory:
         return output.getvalue()
 
 
-def log_to_history(history: OptHistory, population: PopulationT, generations: GenerationKeeper):
+def log_to_history(population: PopulationT,
+                   generations: GenerationKeeper,
+                   history: OptHistory,
+                   save_dir: Optional[os.PathLike] = None):
     """
     Default variant of callback that preserves optimisation history
     :param history: OptHistory for logging
     :param population: list of individuals obtained in last iteration
     :param generations: keeper of the best individuals from all iterations
+    :param save_dir: directory for saving history to. None if saving to a file is not required.
     """
     history.add_to_history(population)
     history.add_to_archive_history(generations.best_individuals)
-    if history.save_folder:
-        history.save_current_results()
+    if save_dir:
+        history.save_current_results(save_dir)

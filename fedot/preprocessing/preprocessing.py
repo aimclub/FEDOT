@@ -332,6 +332,7 @@ class DataPreprocessor:
     def cut_dataset(self, data: InputData, border: int):
         """ Cutting large dataset based on border (number of objects to remain) """
         self.log.info("Cut dataset due to it size is large")
+        # TODO: don't shuffle the data here, because it is done in GPComposer
         data.shuffle()
         data.idx = data.idx[:border]
         data.features = data.features[:border]
