@@ -25,13 +25,13 @@ Content
    introduction/index
    basics/index
    advanced/index
-   faq/index
    examples/index
    tutorials/index
    benchmarks/index
    api/index
    contribution
    about
+   faq/index
 
 
 Indices and tables
