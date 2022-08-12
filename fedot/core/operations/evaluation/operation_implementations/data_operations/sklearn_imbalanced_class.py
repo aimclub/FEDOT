@@ -22,10 +22,10 @@ class ResampleImplementation(DataOperationImplementation):
 
     :param balance: balance strategy to transformation of data. Balance can be 'expand_minority' or 'reduce_majority'.
     In case of expand_minority elements of minor class are expanding to n_samples or to the shape of major class.
-    If reduce_majority, elements of major class are reduce to n_samples or to the shape of minor class.
+    If reduce_majority, elements of major class are reducing to n_samples or to the shape of minor class.
     :param replace: implements resampling with replacement. If False, this will implement (sliced) random permutations.
     :param n_samples: Number of samples to generate.
-    If None number of samples will be equal to the shape of opposite selected transformed class.
+    If None numbers of samples will be equal to the shape of opposite selected transformed class.
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -146,9 +146,15 @@ class ResampleImplementation(DataOperationImplementation):
         self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to absolute values')
 
         if self.balance == 'expand_minority':
+            if self.n_samples is None:
+                self.n_samples = maj_data.shape[0]
+
             return round(min_data.shape[0] * self.n_samples)
 
         elif self.balance == 'reduce_majority':
+            if self.n_samples is None:
+                self.n_samples = min_data.shape[0]
+
             return round(maj_data.shape[0] * self.n_samples)
 
     def _convert_to_relative(self, min_data: np.array, maj_data: np.array) -> float:

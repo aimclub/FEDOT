@@ -1,12 +1,15 @@
 import os
 
 import numpy as np
+
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.time_series_forecasting.gapfilling import generate_synthetic_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
+    ResampleImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
@@ -549,3 +552,52 @@ def test_poly_features_on_big_datasets():
 
     n_rows, n_cols = transformed_features.predict.shape
     assert n_cols == 85
+
+
+def test_correctness_of_resample_operation():
+    features = np.array([
+        [0, 1, 'a'],
+        [1, 2, 'b'],
+        [0, 3, 'a'],
+        [0, 4, 'b'],
+        [1, 5, 'a'],
+        [0, 6, 'b'],
+        [0, 7, 'a'],
+        [1, 8, 'b'],
+        [0, 9, 'a'],
+        [0, 10, 'b'],
+    ])
+
+    target_1dim = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+    target_2dim = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
+
+    first_case = InputData(
+        idx=np.arange(features.shape[0]),
+        features=features,
+        target=target_1dim,
+        data_type=DataTypesEnum.table,
+        task=Task(TaskTypesEnum.classification)
+    )
+
+    second_case = InputData(
+        idx=np.arange(features.shape[0]),
+        features=features,
+        target=target_2dim,
+        data_type=DataTypesEnum.table,
+        task=Task(TaskTypesEnum.classification)
+    )
+
+    params = {
+        'balance': 'expand_minority',
+        'replace': False
+    }
+
+    resample = ResampleImplementation(**params)
+
+    first_case_out = resample.transform(first_case, is_fit_pipeline_stage=True)
+    second_case_out = resample.transform(second_case, is_fit_pipeline_stage=True)
+    third_case_out = resample.transform(first_case, is_fit_pipeline_stage=False)
+
+    assert first_case_out.predict.shape == (4, 1)
+    assert second_case_out.predict.shape == (4, 1)
+    assert third_case_out == first_case
