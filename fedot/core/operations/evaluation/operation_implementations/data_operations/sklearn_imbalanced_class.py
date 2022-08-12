@@ -123,8 +123,8 @@ class ResampleImplementation(DataOperationImplementation):
             min_idx = np.where(target == fst_class)[0]
             maj_idx = np.where(target == snd_class)[0]
 
-        minority_data = np.hstack((features[min_idx], target[min_idx]))
-        majority_data = np.hstack((features[maj_idx], target[maj_idx]))
+        minority_data = np.hstack((features[min_idx], target[min_idx].reshape(-1, 1)))
+        majority_data = np.hstack((features[maj_idx], target[maj_idx].reshape(-1, 1)))
 
         return minority_data, majority_data
 
