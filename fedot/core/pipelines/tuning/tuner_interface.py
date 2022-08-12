@@ -7,14 +7,17 @@ from typing import Callable, ClassVar
 import numpy as np
 from hyperopt.early_stop import no_progress_loss
 
-from fedot.core.data.data import data_type_is_ts, OutputData, InputData
+from fedot.core.data.data import InputData, OutputData, data_type_is_ts
 from fedot.core.log import default_log
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import TaskTypesEnum, Task
-from fedot.core.validation.tune.simple import fit_predict_one_fold
-from fedot.core.validation.tune.cv_prediction import calculate_loss_function, cv_tabular_predictions, \
+from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.validation.tune.cv_prediction import (
+    calculate_loss_function,
+    cv_tabular_predictions,
     cv_time_series_predictions
+)
+from fedot.core.validation.tune.simple import fit_predict_one_fold
 
 MAX_METRIC_VALUE = sys.maxsize
 
@@ -23,11 +26,11 @@ class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
-    :attribute pipeline: pipeline to optimize
-    :attribute task: task (classification, regression, ts_forecasting, clustering)
-    :attribute iterations: max number of iterations
-    :attribute search_space: SearchSpace instance
-    :attribute algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
+    :param pipeline: pipeline to optimize
+    :param task: task (classification, regression, ts_forecasting, clustering)
+    :param iterations: max number of iterations
+    :param search_space: SearchSpace instance
+    :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
     def __init__(self, pipeline, task,
@@ -60,9 +63,9 @@ class HyperoptTuner(ABC):
 
         :param input_data: data used for hyperparameter searching
         :param loss_function: loss function to minimize (or maximize) during pipeline tuning,
-        such function should take InputData with true values as the first input and
-        OutputData with model prediction as the second
-        :param cv_folds: number of folds for cross validation
+            such function should take InputData with true values as the first input and
+            OutputData with model prediction as the second
+        :param cv_folds: number of cross-validation folds
         :param validation_blocks: number of validation blocks for time series forecasting
 
         :return fitted_pipeline: pipeline with optimized hyperparameters

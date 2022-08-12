@@ -1,5 +1,5 @@
-Contribution
-============
+How to contribute
+=================
 
 We welcome you to `check the existing
 issues <https://github.com/nccr-itmo/FEDOT/issues>`__ for bugs or
@@ -12,7 +12,7 @@ Make sure to familiarize yourself with the project layout before making
 any major contributions.
 
 Instructions
------------------
+------------
 
 There is a presentation to help you to take your first steps to become a FEDOT contributor below.
 

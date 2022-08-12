@@ -1,5 +1,5 @@
 FEDOT API
-=====
+=========
 
 .. automodule:: fedot.api.main
    :members:

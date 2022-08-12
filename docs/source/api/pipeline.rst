@@ -1,5 +1,5 @@
 Pipeline
-=====
+========
 
 .. automodule:: fedot.core.pipelines.pipeline
    :members:

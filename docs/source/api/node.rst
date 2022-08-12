@@ -1,4 +1,4 @@
-GraphNode
+Node
 ====
 
 .. automodule:: fedot.core.pipelines.node

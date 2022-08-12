@@ -1,12 +1,12 @@
 Example of project import and export
-===================================================================
+====================================
 
 When you are working with the FEDOT framework, it becomes necessary to reproduce the created pipeline on another
-computer with the available data. To do this, there are simple functions for exporting and importing **`project'**
+computer with the available data. To do this, there are simple functions for exporting and importing **`project`**
 . **'Project'** in this context means: pipeline, data, and logs.
 
 Exporting a project
------------------------
+-------------------
 Creating a pipeline using the composer. We set parameters for the composer and after the evolutionary algorithm works,
 the composer returns the best generated pipeline.
 
@@ -23,7 +23,7 @@ pipeline will be converted to JSON format, InputData objects to CSV format. The 
 will be compressed to zipfile: ``~/Fedot/projects/project_name.zip``.
 
 Import project
------------------------
+--------------
 To convert *FEDOT pipeline* back into *Python Object* and turn *CSV* into a *InputData Object*
 that the framework is ready to work with, you need to call the function **'import_project_from_zip'**:
 

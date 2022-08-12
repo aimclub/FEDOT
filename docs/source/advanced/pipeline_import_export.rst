@@ -1,18 +1,18 @@
 How to save fitted models and interpreting the pipeline in JSON format
-===================================================================
+======================================================================
 
 FEDOT works mainly with the *'Pipeline'* object, which is a pipeline of models. For more
 convenient use of the framework, we provide the ability
 to upload and download pipelines, and their models for further editing, visual
-representation, or data transfer. Here are some simple steps to export 
+representation, or data transfer. Here are some simple steps to export
 and import pipeline structure.
 
-.. figure::  ../img/img_utilities/pipeline_json.png
+.. figure::  img_utilities/pipeline_json.png
    :align:   center
 
 Exporting a model pipeline
------------------------
-      
+--------------------------
+
 The Pipeline object has a *'save_pipeline'* method that takes a single argument,
 the path to where the JSON object and fitted models will be saved.
 You can specify the path to save files with the folder name:
@@ -42,19 +42,19 @@ this way your pipeline and trained models will be saved in a folder in the follo
 
     pipeline = Pipeline()
     node_logit = PrimaryNode('logit')
-    
+
     node_lda = PrimaryNode('lda')
     node_lda.custom_params = {'n_components': 1}
-    
+
     node_xgboost = PrimaryNode('xgboost')
-    
+
     node_knn_second = SecondaryNode('knn')
     node_knn_second.custom_params = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_logit, node_lda, node_xgboost]
-    
+
     pipeline.add_node(node_knn_second)
     pipeline.fit(train_data)
-    
+
     pipeline.save_pipeline("data/my_pipeline")
 
 The *'save_pipeline'* method:
@@ -141,8 +141,8 @@ The *'save_pipeline'* method:
 - standard model parameters in the framework
 
 Model Pipeline import
-------------------
-      
+---------------------
+
 To import a pipeline, you need to create an empty *'Pipeline'* object, or an
 already used one, but all data will be overwritten during import. The
 *'load_pipeline'* method takes the path to a file with the JSON extension
@@ -162,7 +162,7 @@ as an argument.
     actual_values = test_data.target
 
     mean_squared_error(predicted_values, actual_values)
- 
+
 **NOTE:** Required fields for loading the model are: **'model_id'**, **'model_type'**, **'preprocessor'**,
 **'params'**, **'nodes_from'**. The consequence is that you can
 create an unusual pipeline.

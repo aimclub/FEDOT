@@ -10,23 +10,24 @@ from fedot.core.log import default_log
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utils import default_fedot_data_dir
 from fedot.sensitivity.operations_hp_sensitivity.problem import MultiOperationsProblem, Problem
-from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods \
-    import analyze_method_by_name, sample_method_by_name
+from fedot.sensitivity.operations_hp_sensitivity.sa_and_sample_methods import (
+    analyze_method_by_name,
+    sample_method_by_name
+)
 from fedot.sensitivity.sa_requirements import HyperparamsAnalysisMetaParams, SensitivityAnalysisRequirements
 
 
 class MultiOperationsHPAnalyze:
-    """
-    Provides with analysis of all the Pipeline's operations hyperparameters
-    using sample and analyze methods from SALib.
+    """Provides with analysis of all the :class:`~fedot.core.pipelines.pipeline.Pipeline`'s operations hyperparameters
+        using sample and analyze methods from SALib.
 
     :param pipeline: pipeline object to analyze
     :param train_data: data used for Pipeline training
     :param test_data: data used for Pipeline validation
-    :param requirements: extra requirements to define specific details for different approaches.\
-    See SensitivityAnalysisRequirements class documentation.
-    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity/
-    Default: False
+    :param requirements: extra requirements to define specific details for different approaches.
+        See :class:`~fedot.sensitivity.sa_requirements.SensitivityAnalysisRequirements` class documentation.
+    :param path_to_save: path to save results to. Default: `~home/Fedot/sensitivity/`
+        Default: False
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,

@@ -92,16 +92,18 @@ class PipelineTemplate:
             self.operation_templates.append(operation_template)
             self.total_pipeline_operations[operation_template.operation_type] += 1
 
-    def export_pipeline(self, path: str = None, root_node: Node = None,
+    def export_pipeline(self, path: Optional[str] = None, root_node: Optional[Node] = None,
                         additional_info: Optional[dict] = None,
                         datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
-        Save JSON to path and return this JSON like object.
-        :param path: custom path to save
-        :param root_node: root node of exported pipeline
+        Save JSON to path and return this JSON like object
+
+        :param path: custom path to save JSON to
+        :param root_node: root node of the exported pipeline
         :param additional_info: dict with custom metadata that should be exported
-        :param datetime_in_path: is adding the datetime to path required
-        :return: Tuple: (1) JSON representation pipeline structure and (2) dict of paths to fitted models
+        :param datetime_in_path: is it required to add the datetime timestamp to the path
+
+        :return: <JSON representation of the pipeline structure>, <dict of paths to fitted models>
         """
 
         pipeline_template_dict = self.convert_to_dict(root_node)
@@ -196,12 +198,18 @@ class PipelineTemplate:
 
         return path_to_save
 
-    def import_pipeline(self, source: Union[str, dict], dict_fitted_operations: dict = None):
+    def import_pipeline(self, source: Union[str, dict], dict_fitted_operations: Optional[dict] = None):
+        """
+        Imports pipeline from source into the :attr:`link_to_empty_pipeline`
+
+        :param source: where to load the pipeline from
+        :param dict_fitted_operations: dictionary of the fitted operations
+        """
         path = None
 
         if source is None:
             raise ValueError('Cannot import pipeline: the source is None')
-        elif type(source) is str:
+        elif isinstance(source, str):
             path = source
             self._check_path_correct(path)
 

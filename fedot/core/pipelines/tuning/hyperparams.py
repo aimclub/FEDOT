@@ -10,8 +10,8 @@ class ParametersChanger:
     """
     Class for the hyperparameters changing in the operation
 
-    :attribute operation_name: name of operation to get hyperparameters for
-    :attribute current_params: current parameters value
+    :param operation_name: name of operation to get hyperparameters for
+    :param current_params: current parameters value
     """
 
     def __init__(self, operation_name, current_params):
