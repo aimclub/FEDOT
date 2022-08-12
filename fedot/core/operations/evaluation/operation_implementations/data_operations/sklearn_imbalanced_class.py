@@ -68,22 +68,18 @@ class ResampleImplementation(DataOperationImplementation):
         new_input_data = copy(input_data)
 
         if is_fit_pipeline_stage:
-            features = new_input_data.features
-            target = new_input_data.target
-
-            if len(np.unique(target)) != 2:
+            if len(np.unique(new_input_data.target)) != 2:
                 # Imbalanced multi-class balancing is not supported.
                 return self._return_source_data(input_data)
 
-            unique_class, counts_class = np.unique(target, return_counts=True)
+            unique_class, number_of_elements = np.unique(new_input_data.target, return_counts=True)
 
-            if counts_class[0] == counts_class[1]:
+            if number_of_elements[0] == number_of_elements[1]:
                 # Number of elements from each class are equal. Transformation is not required.
                 return self._return_source_data(input_data)
 
-            min_data, maj_data = self._get_data_by_target(features, target,
-                                                          unique_class[0], unique_class[1],
-                                                          counts_class[0], counts_class[1])
+            min_data, maj_data = self._get_data_by_target(new_input_data.features, new_input_data.target, unique_class,
+                                                          number_of_elements)
 
             self.n_samples = self._convert_to_absolute(min_data, maj_data)
 
@@ -114,21 +110,22 @@ class ResampleImplementation(DataOperationImplementation):
         return output_data
 
     @staticmethod
-    def _get_data_by_target(features, target, fst_class, snd_class, fst_class_values, snd_class_values):
+    def _get_data_by_target(features: np.array, target: np.array, unique: np.array,
+                            number_of_elements: np.array) -> np.array:
         """ Unify features and target in one array and split into classes """
-        if fst_class_values < snd_class_values:
-            min_idx = np.where(target == fst_class)[0]
-            maj_idx = np.where(target == snd_class)[0]
+        if number_of_elements[0] < number_of_elements[1]:
+            min_idx = np.where(target == unique[0])[0]
+            maj_idx = np.where(target == unique[1])[0]
         else:
-            min_idx = np.where(target == fst_class)[0]
-            maj_idx = np.where(target == snd_class)[0]
+            min_idx = np.where(target == unique[0])[0]
+            maj_idx = np.where(target == unique[1])[0]
 
         minority_data = np.hstack((features[min_idx], target[min_idx].reshape(-1, 1)))
         majority_data = np.hstack((features[maj_idx], target[maj_idx].reshape(-1, 1)))
 
         return minority_data, majority_data
 
-    def _check_and_correct_sample_size(self, min_data, maj_data):
+    def _check_and_correct_sample_size(self, min_data: np.array, maj_data: np.array) -> bool:
         """ Method checks if selected values in n_sample are incorrect - correct it otherwise
 
         :param min_data: minority data from input data
@@ -145,7 +142,7 @@ class ResampleImplementation(DataOperationImplementation):
 
         return was_changed
 
-    def _convert_to_absolute(self, min_data, maj_data):
+    def _convert_to_absolute(self, min_data: np.array, maj_data: np.array) -> float:
         self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to absolute values')
 
         if self.balance == 'expand_minority':
@@ -154,7 +151,7 @@ class ResampleImplementation(DataOperationImplementation):
         elif self.balance == 'reduce_majority':
             return round(maj_data.shape[0] * self.n_samples)
 
-    def _convert_to_relative(self, min_data, maj_data):
+    def _convert_to_relative(self, min_data: np.array, maj_data: np.array) -> float:
         self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to relative values')
 
         if self.balance == 'expand_minority':
@@ -163,17 +160,17 @@ class ResampleImplementation(DataOperationImplementation):
         elif self.balance == 'reduce_majority':
             return round(self.n_samples / maj_data.shape[0], 2)
 
-    def _set_sample_size(self, min_data, maj_data):
+    def _set_sample_size(self, min_data: np.array, maj_data: np.array) -> tuple:
         if self.balance == 'expand_minority':
             return maj_data.shape[0]
 
         elif self.balance == 'reduce_majority':
             return min_data.shape[0]
 
-    def _resample_data(self, data):
+    def _resample_data(self, data: np.array):
         return resample(data, replace=self.replace, n_samples=self.n_samples)
 
-    def _return_source_data(self, input_data):
+    def _return_source_data(self, input_data: Optional[InputData]) -> Optional[OutputData]:
         return OutputData(
             idx=input_data.idx,
             features=input_data.features,
