@@ -104,7 +104,7 @@ def _get_db_uid(pipeline: 'Pipeline', input_data: Union[InputData, MultiModalDat
     """
     pipeline_id = pipeline.root_node.descriptive_id
     if isinstance(input_data, InputData):
-        data_id = f'{hash(str(input_data.features))}'
+        data_id = f'{input_data.idx[0]}_{input_data.idx[-1]}'
     else:
-        data_id = ':'.join([f'{hash(str(x.features))}' for x in input_data.values()])
+        data_id = ':'.join([f'{x.idx[0]}_{x.idx[-1]}' for x in input_data.values()])
     return f'{pipeline_id}:{data_id}'
