@@ -88,7 +88,7 @@ class MultiModalData(dict):
 
     @classmethod
     def from_csv_time_series(cls,
-                             task: Task,
+                             task: Union[Task, str] = 'ts_forecasting',
                              file_path=None,
                              delimiter=',',
                              is_predict=False,
@@ -96,7 +96,8 @@ class MultiModalData(dict):
                              target_column: Optional[str] = '') -> MultiModalData:
         df = pd.read_csv(file_path, sep=delimiter)
         idx = get_indices_from_file(df, file_path)
-
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
         if not var_names:
             var_names = list(set(df.columns) - set('datetime'))
 
@@ -130,7 +131,7 @@ class MultiModalData(dict):
     def from_csv(cls,
                  file_path: Optional[Union[os.PathLike, str]] = None,
                  delimiter=',',
-                 task: Task = Task(TaskTypesEnum.classification),
+                 task: Union[Task, str] = 'classification',
                  text_columns: Optional[Union[str, List[str]]] = None,
                  columns_to_drop: Optional[List[str]] = None,
                  target_columns: Union[str, List[str]] = '',
@@ -152,6 +153,8 @@ class MultiModalData(dict):
             data_frame = data_frame.drop(columns_to_drop, axis=1)
 
         idx = data_frame.index.to_numpy()
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
         text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
 
         if not text_columns:
