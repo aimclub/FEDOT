@@ -30,7 +30,7 @@ class SequentialTuner(HyperoptTuner):
                          n_jobs=n_jobs)
         self.inverse_node_order = inverse_node_order
 
-    def tune(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate):
+    def tune(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> Pipeline:
         """ Function for hyperparameters tuning on the entire pipeline
 
         :param pipeline: Pipeline which hyperparameters will be tuned
@@ -82,7 +82,19 @@ class SequentialTuner(HyperoptTuner):
 
         return final_pipeline
 
-    def tune_node(self, pipeline, node_index, objective_evaluate):
+    def get_nodes_order(self, nodes_number: int) -> range:
+        """ Method returns list with indices of nodes in the pipeline """
+
+        if self.inverse_node_order is True:
+            # From source data to output
+            nodes_ids = range(nodes_number - 1, -1, -1)
+        else:
+            # From output to source data
+            nodes_ids = range(0, nodes_number)
+
+        return nodes_ids
+
+    def tune_node(self, pipeline: Pipeline, node_index: int, objective_evaluate: PipelineObjectiveEvaluate) -> Pipeline:
         """ Method for hyperparameters tuning for particular node
 
         :param pipeline: Pipeline which contains a node to be tuned
@@ -116,20 +128,8 @@ class SequentialTuner(HyperoptTuner):
                                           objective_evaluate=objective_evaluate)
         return final_pipeline
 
-    def get_nodes_order(self, nodes_number):
-        """ Method returns list with indices of nodes in the pipeline """
-
-        if self.inverse_node_order is True:
-            # From source data to output
-            nodes_ids = range(nodes_number - 1, -1, -1)
-        else:
-            # From output to source data
-            nodes_ids = range(0, nodes_number)
-
-        return nodes_ids
-
-    def _optimize_node(self, pipeline, node_id, node_params, iterations_per_node,
-                       seconds_per_node, objective_evaluate):
+    def _optimize_node(self, pipeline: Pipeline, node_id: int, node_params: dict, iterations_per_node: int,
+                       seconds_per_node: int, objective_evaluate: PipelineObjectiveEvaluate) -> Pipeline:
         """
         Method for node optimization
 
@@ -162,26 +162,8 @@ class SequentialTuner(HyperoptTuner):
                                           node_params=best_parameters)
         return self.pipeline
 
-    @staticmethod
-    def set_arg_node(pipeline, node_id, node_params):
-        """ Method for parameters setting to a pipeline
-
-        :param pipeline: pipeline which contains the node
-        :param node_id: id of the node to which parameters should be assigned
-        :param node_params: dictionary with labeled parameters to set
-
-        :return pipeline: pipeline with new hyperparameters in each node
-        """
-
-        # Remove label prefixes
-        node_params = convert_params(node_params)
-
-        # Update parameters in nodes
-        pipeline.nodes[node_id].custom_params = node_params
-
-        return pipeline
-
-    def _objective(self, node_params, pipeline, node_id, objective_evaluate):
+    def _objective(self, node_params: dict, pipeline: Pipeline, node_id: int,
+                   objective_evaluate: PipelineObjectiveEvaluate) -> float:
         """
         Objective function for minimization / maximization problem
 
@@ -200,3 +182,22 @@ class SequentialTuner(HyperoptTuner):
         metric_value = self.get_metric_value(pipeline=pipeline,
                                              objective_evaluate=objective_evaluate)
         return metric_value
+
+    @staticmethod
+    def set_arg_node(pipeline: Pipeline, node_id: int, node_params: dict) -> Pipeline:
+        """ Method for parameters setting to a pipeline
+
+        :param pipeline: pipeline which contains the node
+        :param node_id: id of the node to which parameters should be assigned
+        :param node_params: dictionary with labeled parameters to set
+
+        :return pipeline: pipeline with new hyperparameters in each node
+        """
+
+        # Remove label prefixes
+        node_params = convert_params(node_params)
+
+        # Update parameters in nodes
+        pipeline.nodes[node_id].custom_params = node_params
+
+        return pipeline

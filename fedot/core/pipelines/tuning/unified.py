@@ -82,9 +82,9 @@ class PipelineTuner(HyperoptTuner):
         """
         Objective function for minimization / maximization problem
 
+        :param parameters_dict: Dict which contains new hyperparameters of the pipeline
         :param pipeline: pipeline to optimize
         :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
-        :param parameters_dict: Dict which contains new hyperparameters of the pipeline
 
         :return metric_value: value of objective function
         """
@@ -97,7 +97,7 @@ class PipelineTuner(HyperoptTuner):
         return metric_value
 
     @staticmethod
-    def set_arg_pipeline(pipeline, parameters):
+    def set_arg_pipeline(pipeline: Pipeline, parameters: dict) -> Pipeline:
         """ Method for parameters setting to a pipeline
 
         :param pipeline: pipeline to which parameters should ba assigned

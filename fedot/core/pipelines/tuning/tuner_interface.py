@@ -7,31 +7,15 @@ from typing import Callable, ClassVar
 import numpy as np
 from hyperopt.early_stop import no_progress_loss
 
-from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, ObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
 MAX_METRIC_VALUE = sys.maxsize
 
 
-class ITuner(ABC):
-    """Interface for classes for hyperparameters optimization"""
-    @abstractmethod
-    def tune(self, graph: Graph, objective_evaluate: ObjectiveEvaluate):
-        """
-        Function for hyperparameters tuning on the pipeline
-
-        :param graph: Graph for which hyperparameters tuning is needed
-        :param objective_evaluate: ObjectiveEvaluate to calculate metric function to minimize
-
-        :return fitted_pipeline: graph with optimized hyperparameters
-        """
-        raise NotImplementedError()
-
-
-class HyperoptTuner(ITuner, ABC):
+class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
@@ -63,11 +47,24 @@ class HyperoptTuner(ITuner, ABC):
 
         self.log = default_log(self)
 
-    def get_metric_value(self, pipeline, objective_evaluate):
+    @abstractmethod
+    def tune(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> Pipeline:
+        """
+        Function for hyperparameters tuning on the pipeline
+
+        :param pipeline: Pipeline for which hyperparameters tuning is needed
+        :param objective_evaluate: PipelineObjectiveEvaluate to calculate metric function to minimize
+
+        :return fitted_pipeline: graph with optimized hyperparameters
+        """
+        raise NotImplementedError()
+
+    def get_metric_value(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> float:
         """
         Method calculates metric for algorithm validation
 
-        :param pipeline: pipeline to validate
+        :param pipeline: Pipeline to evaluate
+        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
 
         :return: value of loss function
         # """
@@ -82,7 +79,7 @@ class HyperoptTuner(ITuner, ABC):
         Method get metric on validation set before start optimization
 
         :param pipeline: Pipeline to calculate objective
-        :param objective_evaluate: ObjectiveEvaluate to evaluate the pipeline
+        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
         """
         self.log.info('Hyperparameters optimization start')
 
@@ -97,7 +94,7 @@ class HyperoptTuner(ITuner, ABC):
         Method propose final quality check after optimization process
 
         :param tuned_pipeline: Tuned pipeline to calculate objective
-        :param objective_evaluate: ObjectiveEvaluate to evaluate the pipeline
+        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
         """
 
         self.obtained_metric = self.get_metric_value(pipeline=tuned_pipeline,

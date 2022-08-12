@@ -248,7 +248,7 @@ class ApiComposer:
                             composer_requirements: PipelineComposerRequirements,
                             pipeline_gp_composed: Pipeline,
                             timeout_for_tuning: int,
-                            log: LoggerAdapter, n_jobs: int):
+                            log: LoggerAdapter, n_jobs: int) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
 
         if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
