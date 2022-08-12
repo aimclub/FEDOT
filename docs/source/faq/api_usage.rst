@@ -1,4 +1,4 @@
-Conceptual
+API Usage
 ==========
 
 Why *feature_name* is not supported?

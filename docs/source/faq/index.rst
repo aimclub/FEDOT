@@ -6,6 +6,6 @@ And answers for them
 .. toctree::
    :maxdepth: 1
 
-   conceptual
+   abstract
+   api_usage
    problem_solving
-   others

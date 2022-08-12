@@ -1,5 +1,5 @@
-Others
-======
+Abstract
+========
 
 .. topic:: What is Fedot?
 
