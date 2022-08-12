@@ -23,7 +23,7 @@ def test_classification_quality_improvement():
     baseline_metrics = baseline_model.get_metrics()
 
     # Define parameters for composing
-    timeout = 5.
+    timeout = 2.
     composer_params = {'max_depth': 3,
                        'max_arity': 3,
                        'pop_size': 20,

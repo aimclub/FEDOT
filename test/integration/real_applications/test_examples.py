@@ -70,10 +70,10 @@ def test_log_example():
     pth = Path(default_fedot_data_dir(), 'log.log')
     with pth.open() as f:
         lines_before = len(f.readlines())
-    run_log_example(pth.name)
-    with pth.open() as f:
+        run_log_example(pth.name)
         lines_after = len(f.readlines())
-    assert lines_after > lines_before
+    assert lines_before
+    assert lines_after == 2
 
 
 def test_pipeline_tuning_example():
