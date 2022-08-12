@@ -29,7 +29,7 @@ class GraphVerifier:
                 if rule(restored_graph) is False:
                     return False
             except ValueError as err:
-                self._log.info(f'Graph verification failed with error <{err}> '
-                               f'for rule={rule} on graph={restored_graph.root_node.descriptive_id}.')
+                self._log.debug(f'Graph verification failed with error <{err}> '
+                                f'for rule={rule} on graph={restored_graph.root_node.descriptive_id}.')
                 return False
         return True
