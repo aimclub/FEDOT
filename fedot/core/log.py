@@ -146,4 +146,4 @@ def default_log(class_object=None, prefix: str = 'default', logging_level: int =
     if class_object:
         prefix = class_object.__class__.__name__
 
-    return log.get_adapter(prefix=prefix, logging_level=logging_level)
+    return log.get_adapter(prefix=prefix, logging_level=log.logger.level)
