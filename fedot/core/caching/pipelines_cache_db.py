@@ -1,6 +1,7 @@
 import pickle
 import sqlite3
 from contextlib import closing
+from os import getpid
 from typing import List, Optional, Tuple, TypeVar
 
 from fedot.core.caching.base_cache_db import BaseCacheDB
@@ -32,9 +33,8 @@ class OperationsCacheDB(BaseCacheDB):
         :return tmp_name: str name of newly created temp table
         """
         _, *other = uids
-        tmp_name = 'tmp'
-        cur.execute(f'DROP TABLE IF EXISTS {tmp_name};')  # TODO: make truly temp table, not like that
-        query = f'CREATE TABLE {tmp_name} AS SELECT 1 as id1, ? as id2'
+        tmp_name = f'tmp_{getpid()}'
+        query = f'CREATE TEMP TABLE {tmp_name} AS SELECT 1 as id1, ? as id2'
         for num, _ in enumerate(other, 2):
             query += f' union SELECT {num} as id1, ? as id2'
         cur.execute(query, uids)
