@@ -27,13 +27,13 @@ class ObjectiveEvaluate(ABC, Generic[G]):
         self._objective = objective
         self._objective_kwargs = objective_kwargs
 
-    def __call__(self, graph: G) -> Fitness:
+    def __call__(self, graph: G, n_jobs: int = -1) -> Fitness:
         """Provides functional interface for ObjectiveEvaluate."""
-        return self.evaluate(graph)
+        return self.evaluate(graph, n_jobs)
 
-    def evaluate(self, graph: G) -> Fitness:
+    def evaluate(self, graph: G, n_jobs: int = -1) -> Fitness:
         """Evaluate graph and compute its fitness."""
-        return self._objective(graph, **self._objective_kwargs)
+        return self._objective(graph, n_jobs, **self._objective_kwargs)
 
     def evaluate_intermediate_metrics(self, graph: G):
         """Compute intermediate metrics for each graph node and store it there."""

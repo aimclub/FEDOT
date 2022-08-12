@@ -6,10 +6,10 @@ from numpy import random
 
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Node, Pipeline
 
@@ -24,8 +24,8 @@ class RandomSearchComposer(Composer):
         train_data = data
         test_data = data
 
-        def prepared_objective(pipeline: Pipeline) -> Fitness:
-            pipeline.fit(train_data)
+        def prepared_objective(pipeline: Pipeline, n_jobs: int = -1) -> Fitness:
+            pipeline.fit(train_data, n_jobs=n_jobs)
             return self.optimizer.objective(pipeline, reference_data=test_data)
 
         best_pipeline = self.optimizer.optimise(prepared_objective)[0]

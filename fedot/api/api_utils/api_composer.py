@@ -17,13 +17,13 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECON
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -140,10 +140,14 @@ class ApiComposer:
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
-        mutations = [boosting_mutation, parameter_change_mutation,
+        mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
                      MutationTypesEnum.single_add]
+
+        if task.task_type == TaskTypesEnum.ts_forecasting:
+            mutations.append(boosting_mutation)
+
         # TODO remove workaround after validation fix
         if task.task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
@@ -231,7 +235,7 @@ class ApiComposer:
                                      composer_requirements,
                                      best_pipeline,
                                      timeout_for_tuning,
-                                     log)
+                                     log, composer_requirements.n_jobs)
         # enforce memory cleaning
         gc.collect()
 
@@ -244,7 +248,7 @@ class ApiComposer:
                             composer_requirements: PipelineComposerRequirements,
                             pipeline_gp_composed: Pipeline,
                             timeout_for_tuning: int,
-                            log: LoggerAdapter):
+                            log: LoggerAdapter, n_jobs: int):
         """ Launch tuning procedure for obtained pipeline by composer """
 
         if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
@@ -266,7 +270,8 @@ class ApiComposer:
                                         iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
                                         timeout=timeout_for_tuning,
                                         cv_folds=folds,
-                                        validation_blocks=vb_number)
+                                        validation_blocks=vb_number,
+                                        n_jobs=n_jobs)
                 log.info('Hyperparameters tuning finished')
         return pipeline_gp_composed
 

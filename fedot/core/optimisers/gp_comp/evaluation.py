@@ -4,6 +4,7 @@ from typing import Dict, Optional
 
 import timeit
 from datetime import datetime
+from functools import partial
 from random import choice
 
 from joblib import Parallel, delayed
@@ -14,7 +15,6 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
@@ -84,11 +84,12 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         eval_inds = parallel(delayed(self.evaluate_single)(ind=ind) for ind in individuals)
+
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
         successful_evals = list(filter(None, eval_inds))
         if not successful_evals:
-            single = self.evaluate_single(choice(individuals), with_time_limit=False)
+            single = self.evaluate_single(choice(individuals), with_time_limit=False, n_jobs=n_jobs)
             if single:
                 successful_evals = [single]
             else:
@@ -96,7 +97,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
+    def evaluate_single(self, ind: Individual, with_time_limit=True, n_jobs: int = -1) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
@@ -105,12 +106,11 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         start_time = timeit.default_timer()
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
-        _restrict_n_jobs_in_nodes(graph)
         adapted_graph = self._graph_adapter.restore(graph)
 
-        ind_fitness = self._objective_eval(adapted_graph)
+        ind_fitness = self._objective_eval(adapted_graph, n_jobs)
         if self._post_eval_callback:
-            self._post_eval_callback(adapted_graph)
+            self._post_eval_callback(adapted_graph, n_jobs)
         if self._cleanup:
             self._cleanup(adapted_graph)
         gc.collect()
@@ -147,10 +147,12 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
     def __init__(self,
                  graph_adapter: BaseOptimizationAdapter,
-                 timer: Timer = None):
+                 timer: Timer = None,
+                 n_jobs: int = -1):
         self._objective_eval = None
         self._graph_adapter = graph_adapter
         self.timer = timer or get_forever_timer()
+        self._n_jobs = n_jobs
 
     def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
         """Return handler to this object that hides all details
@@ -175,7 +177,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
         graph = ind.graph
         adapted_graph = self._graph_adapter.restore(graph)
-        ind_fitness = self._objective_eval(adapted_graph)
+        ind_fitness = self._objective_eval(adapted_graph, self._n_jobs)
         ind_graph = self._graph_adapter.adapt(adapted_graph)
         ind.set_evaluation_result(ind_fitness, ind_graph)
         end_time = timeit.default_timer()
@@ -190,12 +192,3 @@ def determine_n_jobs(n_jobs=-1, logger=None):
     if logger:
         logger.info(f"Number of used CPU's: {n_jobs}")
     return n_jobs
-
-
-def _restrict_n_jobs_in_nodes(graph: OptGraph):
-    """ Function to prevent memory overflow due to many processes running in time"""
-    for node in graph.nodes:
-        if 'n_jobs' in node.content['params']:
-            node.content['params']['n_jobs'] = 1
-        if 'num_threads' in node.content['params']:
-            node.content['params']['num_threads'] = 1

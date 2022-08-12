@@ -14,7 +14,7 @@ def run_classification_example(timeout: float = None):
     baseline_model.predict(features=test_data_path)
     print(baseline_model.get_metrics())
 
-    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=-1,
+    auto_model = Fedot(problem=problem, seed=42, timeout=timeout, n_jobs=4,
                        max_pipeline_fit_time=1, metric='roc_auc')
     auto_model.fit(features=train_data_path, target='target')
     prediction = auto_model.predict_proba(features=test_data_path)

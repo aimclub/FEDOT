@@ -5,7 +5,6 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.graph import OptGraph
 
-
 # Validation rule can either return False or raise a ValueError to signal a failed check
 VerifierRuleType = Callable[..., bool]
 
@@ -29,7 +28,7 @@ class GraphVerifier:
                 if rule(restored_graph) is False:
                     return False
             except ValueError as err:
-                self._log.info(f'Graph verification failed with error <{err}> '
-                               f'for rule={rule} on graph={restored_graph.root_node.descriptive_id}.')
+                self._log.debug(f'Graph verification failed with error <{err}> '
+                                f'for rule={rule} on graph={restored_graph.root_node.descriptive_id}.')
                 return False
         return True

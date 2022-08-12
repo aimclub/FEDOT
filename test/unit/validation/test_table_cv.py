@@ -49,7 +49,7 @@ def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
     objective_eval = PipelineObjectiveEvaluate(Objective(metrics), cv_folds)
-    actual_values = objective_eval(pipeline).values
+    actual_values = objective_eval(pipeline, 1).values
     all_metrics_correct = all(0 < abs(x) <= 1 for x in actual_values)
 
     assert all_metrics_correct

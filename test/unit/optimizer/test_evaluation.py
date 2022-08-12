@@ -21,7 +21,7 @@ def set_up_tests():
     return adapter, population
 
 
-def prepared_objective(pipeline: Pipeline) -> Fitness:
+def prepared_objective(pipeline: Pipeline, *args, **kwargs) -> Fitness:
     train_data = get_classification_data()
     pipeline.fit(train_data)
 
@@ -30,7 +30,7 @@ def prepared_objective(pipeline: Pipeline) -> Fitness:
     return objective(pipeline, reference_data=train_data)
 
 
-def invalid_objective(pipeline: Pipeline) -> Fitness:
+def invalid_objective(pipeline: Pipeline, *args, **kwargs) -> Fitness:
     return null_fitness()
 
 

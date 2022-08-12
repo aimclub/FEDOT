@@ -22,7 +22,7 @@ class Objective:
         self.is_multi_objective = is_multi_objective
         self._log = default_log(self)
 
-    def __call__(self, graph: Graph, **kwargs: Any) -> Fitness:
+    def __call__(self, graph: Graph, *args: Any, **kwargs: Any) -> Fitness:
         evaluated_metrics = []
         for metric in self.metrics:
             metric_func = MetricsRepository().metric_by_id(metric, default_callable=metric)

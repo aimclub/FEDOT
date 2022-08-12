@@ -37,7 +37,8 @@ class HyperoptTuner(ABC):
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  search_space: ClassVar = SearchSpace(),
-                 algo: Callable = None):
+                 algo: Callable = None,
+                 n_jobs: int = -1):
         self.pipeline = pipeline
         self.task = task
         self.iterations = iterations
@@ -52,6 +53,7 @@ class HyperoptTuner(ABC):
         self.validation_blocks = None
         self.search_space = search_space
         self.algo = algo
+        self.n_jobs = n_jobs
 
         self.log = default_log(self)
 

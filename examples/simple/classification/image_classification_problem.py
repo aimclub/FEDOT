@@ -1,7 +1,10 @@
 import random
 
 import numpy as np
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ModuleNotFoundError:
+    pass
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.classification_pipelines import cnn_composite_pipeline

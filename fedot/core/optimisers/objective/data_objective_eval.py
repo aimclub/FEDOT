@@ -10,7 +10,6 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.preprocessing.preprocessing import DataPreprocessor
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -46,7 +45,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._preprocessing_cache = preprocessing_cache
         self._log = default_log(self)
 
-    def evaluate(self, graph: Pipeline) -> Fitness:
+    def evaluate(self, graph: Pipeline, n_jobs: int) -> Fitness:
         # Seems like a workaround for situation when logger is lost
         #  when adapting and restoring it to/from OptGraph.
         graph.log = self._log
@@ -57,7 +56,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
+                graph.unfit()
+                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, n_jobs)
             except Exception as ex:
                 self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
                 continue
@@ -77,18 +77,20 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             folds_metrics = None
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
-    def prepare_graph(self, graph: Pipeline, train_data: InputData, fold_id: Optional[int] = None) -> Pipeline:
+    def prepare_graph(self, graph: Pipeline, train_data: InputData,
+                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
         :param graph: pipeline for train & validation
         :param train_data: InputData for training pipeline
-        :param fold_id: Id of the fold in cross-validation, used for cache requests.
+        :param fold_id: id of the fold in cross-validation, used for cache requests.
+        :param n_jobs: number of parallel jobs for preparation
         """
         # load preprocessing
         graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
-
+            n_jobs=n_jobs,
             time_constraint=self._time_constraint
         )
 
@@ -98,7 +100,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         return graph
 
-    def evaluate_intermediate_metrics(self, graph: Pipeline):
+    def evaluate_intermediate_metrics(self, graph: Pipeline, n_jobs: int):
         """Evaluate intermediate metrics"""
         # Get the last fold
         last_fold = None
@@ -114,7 +116,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             intermediate_graph = Pipeline(node)
             intermediate_graph.fit(
                 train_data,
-                time_constraint=self._time_constraint
+                time_constraint=self._time_constraint,
+                n_jobs=n_jobs,
             )
             intermediate_fitness = self._objective(intermediate_graph,
                                                    reference_data=test_data,

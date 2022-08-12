@@ -1,7 +1,10 @@
 import os
 
 import numpy as np
-import tensorflow as tf
+try:
+    import tensorflow as tf
+except ModuleNotFoundError:
+    pass
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 

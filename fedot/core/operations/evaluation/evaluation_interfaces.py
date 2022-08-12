@@ -32,6 +32,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.utilities.logging import suppress_stdout
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -169,29 +170,31 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained Sklearn operation
         """
-        warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
-        else:
-            operation_implementation = self.operation_impl()
+        with suppress_stdout():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
 
-        # If model doesn't support multi-output and current task is ts_forecasting
-        current_task = train_data.task.task_type
-        models_repo = OperationTypesRepository()
-        non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
-                                                             tags=['non_multi'])
-        is_model_not_support_multi = self.operation_type in non_multi_models
+            if self.params_for_fit:
+                operation_implementation = self.operation_impl(**self.params_for_fit)
+            else:
+                operation_implementation = self.operation_impl()
 
-        # Multi-output task or not
-        is_multi_target = is_multi_output_task(train_data)
-        if is_model_not_support_multi and is_multi_target:
-            # Manually wrap the regressor into multi-output model
-            operation_implementation = convert_to_multivariate_model(operation_implementation,
-                                                                     train_data)
-        else:
-            operation_implementation.fit(train_data.features, train_data.target)
-        return operation_implementation
+            # If model doesn't support multi-output and current task is ts_forecasting
+            current_task = train_data.task.task_type
+            models_repo = OperationTypesRepository()
+            non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
+                                                                 tags=['non_multi'])
+            is_model_not_support_multi = self.operation_type in non_multi_models
+
+            # Multi-output task or not
+            is_multi_target = is_multi_output_task(train_data)
+            if is_model_not_support_multi and is_multi_target:
+                # Manually wrap the regressor into multi-output model
+                operation_implementation = convert_to_multivariate_model(operation_implementation,
+                                                                         train_data)
+            else:
+                operation_implementation.fit(train_data.features, train_data.target)
+            return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """

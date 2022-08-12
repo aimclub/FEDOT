@@ -4,6 +4,7 @@ from typing import Any, Optional, Sequence
 
 from tqdm import tqdm
 
+from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -35,7 +36,7 @@ class PopulationalOptimizer(GraphOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Pipeline],
+                 initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional['GPGraphOptimizerParameters'] = None):

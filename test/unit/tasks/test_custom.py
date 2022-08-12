@@ -33,7 +33,7 @@ class CustomNode(GraphNode):
         return f'custom_{str(self.content["name"])}'
 
 
-def custom_metric(custom_model: CustomModel):
+def custom_metric(custom_model: CustomModel, *args, **kwargs):
     _, labels = graph_structure_as_nx_graph(custom_model)
 
     return -len(labels) + custom_model.evaluate()
