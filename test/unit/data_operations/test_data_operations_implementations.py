@@ -217,6 +217,44 @@ def get_nan_binary_data(task=None):
     return input_data
 
 
+def get_unbalanced_dataset(target_dim=None):
+    """ Generate table with one numerical and one categorical features.
+        Target is binary and unbalanced: majority "1" class is more than minority "0" class.
+        It can be generated with two options: 1D or 2D representation of target.
+    """
+    features = np.array([
+        [0, 'minor'],
+        [1, 'minor'],
+        [2, 'minor'],
+        [3, 'minor'],
+        [4, 'major'],
+        [5, 'major'],
+        [6, 'major'],
+        [7, 'major'],
+        [8, 'major'],
+        [9, 'major'],
+    ])
+
+    target = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+
+    if target_dim == 2:
+        target = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
+
+    supp_data = SupplementaryData(column_types={
+        'features': [NAME_CLASS_INT, NAME_CLASS_STR],
+        'target': [NAME_CLASS_INT]
+    })
+
+    input_data = InputData(idx=np.arange(features.shape[0]),
+                           features=features,
+                           target=target,
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table,
+                           supplementary_data=supp_data)
+
+    return input_data
+
+
 def data_with_binary_int_features_and_equal_categories():
     """
     Generate table with binary integer features and nans there. Such a columns
@@ -554,50 +592,47 @@ def test_poly_features_on_big_datasets():
     assert n_cols == 85
 
 
-def test_correctness_of_resample_operation():
-    features = np.array([
-        [0, 1, 'a'],
-        [1, 2, 'b'],
-        [0, 3, 'a'],
-        [0, 4, 'b'],
-        [1, 5, 'a'],
-        [0, 6, 'b'],
-        [0, 7, 'a'],
-        [1, 8, 'b'],
-        [0, 9, 'a'],
-        [0, 10, 'b'],
-    ])
-
-    target_1dim = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
-    target_2dim = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
-
-    first_case = InputData(
-        idx=np.arange(features.shape[0]),
-        features=features,
-        target=target_1dim,
-        data_type=DataTypesEnum.table,
-        task=Task(TaskTypesEnum.classification)
-    )
-
-    second_case = InputData(
-        idx=np.arange(features.shape[0]),
-        features=features,
-        target=target_2dim,
-        data_type=DataTypesEnum.table,
-        task=Task(TaskTypesEnum.classification)
-    )
-
-    params = {
-        'balance': 'expand_minority',
-        'replace': False
-    }
-
+def test_correctness_resample_operation_with_expand_minority():
+    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': None}
     resample = ResampleImplementation(**params)
 
-    first_case_out = resample.transform(first_case, is_fit_pipeline_stage=True)
-    second_case_out = resample.transform(second_case, is_fit_pipeline_stage=True)
-    third_case_out = resample.transform(first_case, is_fit_pipeline_stage=False)
+    data_1dim = get_unbalanced_dataset(target_dim=1)
+    data_2dim = get_unbalanced_dataset(target_dim=2)
 
-    assert first_case_out.predict.shape == (4, 1)
-    assert second_case_out.predict.shape == (4, 1)
-    assert third_case_out == first_case
+    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (12, 2)
+    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (12, 2)
+
+    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': 0.5}
+    resample = ResampleImplementation(**params)
+
+    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (9, 2)
+    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (9, 2)
+
+    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': 1.5}
+    resample = ResampleImplementation(**params)
+
+    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (15, 2)
+    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (15, 2)
+
+
+def test_correctness_resample_operation_with_reduce_majority():
+    params = {'balance': 'reduce_majority', 'replace': True}
+    resample = ResampleImplementation(**params)
+
+    data_1dim = get_unbalanced_dataset(target_dim=1)
+    data_2dim = get_unbalanced_dataset(target_dim=2)
+
+    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (8, 2)
+    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (8, 2)
+
+    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': 0.5}
+    resample = ResampleImplementation(**params)
+
+    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (6, 2)
+    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (6, 2)
+
+    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': 1.5}
+    resample = ResampleImplementation(**params)
+
+    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (10, 2)
+    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (10, 2)

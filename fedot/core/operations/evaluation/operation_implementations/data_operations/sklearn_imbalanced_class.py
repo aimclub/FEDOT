@@ -36,6 +36,9 @@ class ResampleImplementation(DataOperationImplementation):
         self.n_samples = params.get('n_samples')
         self.parameters_changed = False
 
+        if self.n_samples is None:
+            self.n_samples = 1.0
+
         self.log = default_log(self)
 
     def fit(self, input_data: Optional[InputData]):
@@ -78,8 +81,8 @@ class ResampleImplementation(DataOperationImplementation):
                 # Number of elements from each class are equal. Transformation is not required.
                 return self._return_source_data(input_data)
 
-            min_data, maj_data = self._get_data_by_target(new_input_data.features, new_input_data.target, unique_class,
-                                                          number_of_elements)
+            min_data, maj_data = self._get_data_by_target(new_input_data.features, new_input_data.target,
+                                                          unique_class, number_of_elements)
 
             self.n_samples = self._convert_to_absolute(min_data, maj_data)
 
@@ -146,25 +149,19 @@ class ResampleImplementation(DataOperationImplementation):
         self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to absolute values')
 
         if self.balance == 'expand_minority':
-            if self.n_samples is None:
-                self.n_samples = maj_data.shape[0]
-
-            return round(min_data.shape[0] * self.n_samples)
+            return round(maj_data.shape[0] * self.n_samples)
 
         elif self.balance == 'reduce_majority':
-            if self.n_samples is None:
-                self.n_samples = min_data.shape[0]
-
-            return round(maj_data.shape[0] * self.n_samples)
+            return round(min_data.shape[0] * self.n_samples)
 
     def _convert_to_relative(self, min_data: np.array, maj_data: np.array) -> float:
         self.log.debug(f'{GLOBAL_PREFIX} n_samples was converted to relative values')
 
         if self.balance == 'expand_minority':
-            return round(self.n_samples / min_data.shape[0], 2)
+            return round(self.n_samples / maj_data.shape[0], 2)
 
         elif self.balance == 'reduce_majority':
-            return round(self.n_samples / maj_data.shape[0], 2)
+            return round(self.n_samples / min_data.shape[0], 2)
 
     def _set_sample_size(self, min_data: np.array, maj_data: np.array) -> tuple:
         if self.balance == 'expand_minority':
