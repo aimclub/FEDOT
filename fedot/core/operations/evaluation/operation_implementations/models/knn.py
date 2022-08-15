@@ -22,15 +22,21 @@ class KNeighborsImplementation(ModelImplementation):
 
         raise NotImplementedError()
 
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
+    def predict(self, input_data):
         """ Method for making prediction
 
         :param input_data: data with features to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         prediction = self.model.predict(input_data.features)
 
         return prediction
+
+    def predict_for_fit(self, input_data):
+        """ Method make prediction for pipeline fit stage
+
+        :param input_data: data with features to process
+        """
+        return self.predict(input_data)
 
     def check_and_correct_k_value(self, input_data, model_impl: Callable):
         """ Method check if the amount of neighbors is too big - clip it

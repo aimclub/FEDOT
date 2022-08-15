@@ -292,7 +292,7 @@ def test_glm_indexes_correct():
     input_data = generate_simple_series()
     glm_impl = GLMImplementation(family="gaussian", link="identity")
     glm_impl.fit(input_data)
-    predicted = glm_impl.predict(input_data, is_fit_pipeline_stage=True)
+    predicted = glm_impl.predict_for_fit(input_data)
     pred_values = predicted.predict
     for i in range(9):
         assert pred_values[i, 0] - i < 0.5

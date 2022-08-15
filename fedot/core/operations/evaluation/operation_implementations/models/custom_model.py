@@ -42,10 +42,10 @@ class CustomModelImplementation(ModelImplementation):
             self.fitted_model = self.model_fit(input_data.idx, input_data.features, input_data.target, self.params)
         return self.fitted_model
 
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data):
         output_type = input_data.data_type
-        # if there is no need in fitting custom model and it is fit call
-        if is_fit_pipeline_stage and not self.model_fit:
+        # if there is no need in fitting custom model
+        if not self.model_fit:
             predict = input_data.features
             # If custom model has exceptions inviolate train data goes to Output
         # make prediction if predict call or there is need to fit custom model
@@ -68,6 +68,9 @@ class CustomModelImplementation(ModelImplementation):
                                               predict=predict,
                                               data_type=output_type)
         return output_data
+
+    def predict_for_fit(self, input_data):
+        return input_data.features
 
     def get_params(self):
         return self.params

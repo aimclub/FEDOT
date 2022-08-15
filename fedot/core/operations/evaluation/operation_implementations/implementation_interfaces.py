@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.data import OutputData, InputData
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -187,11 +187,18 @@ class ModelImplementation(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data: InputData) -> OutputData:
         """ Method make prediction
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method make prediction while pipeline fitting
+
+        :param input_data: data with features, target and ids to process
         """
         raise NotImplementedError()
 

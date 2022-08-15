@@ -72,14 +72,12 @@ class FedotClassificationStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData):
         """
         Predict method for classification task
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
         n_classes = len(trained_operation.classes_)
