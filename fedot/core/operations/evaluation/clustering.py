@@ -36,18 +36,25 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         operation_implementation.fit(train_data.features)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for clustering task
+        Predict method for clustering task for predict stage
         :param trained_operation: operation object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return :
         """
         prediction = trained_operation.predict(predict_data.features)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
-        # Convert prediction to output (if it is required)
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Predict method for clustering task for fit stage
+        :param trained_operation: operation object
+        :param predict_data: data used for prediction
+        :return :
+        """
+        prediction = trained_operation.predict_for_fit(predict_data.features)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

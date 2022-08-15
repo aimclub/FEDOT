@@ -55,7 +55,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
 
         return H2OSerializationWrapper(models)
 
-    def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         res = []
         for model in trained_operation.get_estimators():
             frame = H2OFrame(predict_data.features)
@@ -65,6 +65,9 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         res = np.hstack(res)
         out = self._convert_to_output(res, predict_data)
         return out
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -121,7 +124,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         model.leader.classes_ = np.unique(train_data.target)
         return H2OSerializationWrapper([model.leader])
 
-    def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         frame = self._data_transform(predict_data)
         prediction = trained_operation.get_estimators()[0].predict(frame)
         prediction = prediction.as_data_frame().to_numpy()
@@ -134,6 +137,9 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
             raise ValueError(f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -186,7 +192,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         model = TPOTRegressionSerializationWrapper(models)
         return model
 
-    def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         res = []
         features = predict_data.features.astype(float)
         for model in trained_operation.get_estimators():
@@ -196,6 +202,9 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         res = np.hstack(res)
         out = self._convert_to_output(res, predict_data)
         return out
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -228,7 +237,7 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
 
         return model.fitted_pipeline_
 
-    def predict(self, trained_operation, predict_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         n_classes = len(trained_operation.classes_)
         if self.output_mode == 'labels':
             prediction = trained_operation.predict(predict_data.features.astype(float))
@@ -242,6 +251,9 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
             raise ValueError(f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

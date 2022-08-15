@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
@@ -24,14 +24,12 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     """ Strategy for applying classification algorithms from Sklearn library """
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for classification task
+        Predict method for classification task for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
 
@@ -41,6 +39,16 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Predict method for classification task for fit stage
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :return: prediction target
+        """
+        return self.predict(trained_operation, predict_data)
 
 
 class FedotClassificationStrategy(EvaluationStrategy):
@@ -72,9 +80,9 @@ class FedotClassificationStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for classification task
+        Predict method for classification task for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
@@ -95,6 +103,16 @@ class FedotClassificationStrategy(EvaluationStrategy):
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Predict method for classification task for fit stage
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :return: prediction target
+        """
+        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
@@ -136,20 +154,27 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Transform data
+        Transform data for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
-        # Convert prediction to output (if it is required)
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Transform data for fit stage
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :return:
+        """
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
