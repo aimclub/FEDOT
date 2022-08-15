@@ -27,7 +27,7 @@ class GraphVisualiser:
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
                   engine: str = 'matplotlib', nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
                   dpi: int = 300, edges_curvature: float = 0.3):
-        if len(graph.nodes) == 0:
+        if graph.nodes:
             raise ValueError('Empty graph can not be visualized.')
         # Define colors
         if not nodes_color:
@@ -60,7 +60,8 @@ class GraphVisualiser:
         return {label: palette[unique_labels.index(label)] for label in labels}
 
     @staticmethod
-    def draw_with_graphviz(graph, save_path, nodes_color=None, dpi=300):
+    def draw_with_graphviz(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+                           nodes_color=__get_colors_by_tags.__func__, dpi=300):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
         if callable(nodes_color):
@@ -91,7 +92,8 @@ class GraphVisualiser:
             remove_old_files_from_dir(save_path.parent)
 
     @staticmethod
-    def draw_with_pyvis(graph, save_path, nodes_color=__get_colors_by_tags):
+    def draw_with_pyvis(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+                        nodes_color=__get_colors_by_tags.__func__):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
