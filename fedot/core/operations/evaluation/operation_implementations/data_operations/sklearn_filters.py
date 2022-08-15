@@ -39,24 +39,28 @@ class FilterImplementation(DataOperationImplementation):
 
         return self.operation
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
-        """ Method for making prediction
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for making prediction for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by rows
         """
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features)
+        return output_data
 
-        if is_fit_pipeline_stage:
-            # For fit stage - filter data
-            mask = self.operation.inlier_mask_
-            if mask is not None:
-                # Update data
-                input_data = update_data(input_data, mask)
-            else:
-                self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method for making prediction for fit stage
 
-        # Convert it to OutputData
+        :param input_data: data with features, target and ids to process
+        :return output_data: filtered input data by rows
+        """
+        # For fit stage - filter data
+        mask = self.operation.inlier_mask_
+        if mask is not None:
+            input_data = update_data(input_data, mask)
+        else:
+            self.log.info("Filtering Algorithm: didn't fit correctly. Return all objects")
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
         return output_data
@@ -184,21 +188,26 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         mask = predictions == 1
         return mask
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
-        """ Method for making prediction
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for making prediction for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by rows
         """
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features)
+        return output_data
 
-        if is_fit_pipeline_stage:
-            # For fit stage - filter data
-            mask = self._get_inlier_mask(input_data)
-            # Update data
-            input_data = update_data(input_data, mask)
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method for making prediction for fit stage
 
-        # Convert it to OutputData
+        :param input_data: data with features, target and ids to process
+        :return output_data: filtered input data by rows
+        """
+        # For fit stage - filter data
+        mask = self._get_inlier_mask(input_data)
+        input_data = update_data(input_data, mask)
+
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
         return output_data
@@ -232,23 +241,18 @@ class IsolationForestClassImplementation(IsolationForestRegImplementation):
                 return False
         return True
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool) -> OutputData:
-        """ Method for making prediction
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method for making prediction for fit stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by rows
         """
+        # For fit stage - filter data
+        mask = self._get_inlier_mask(input_data)
+        modified_input_data = update_data(input_data, mask)
+        if self._is_inlier_mask_correct(input_data.target, modified_input_data.target):
+            input_data = modified_input_data
 
-        if is_fit_pipeline_stage:
-            # For fit stage - filter data
-            mask = self._get_inlier_mask(input_data)
-            # Update data
-            modified_input_data = update_data(input_data, mask)
-            if self._is_inlier_mask_correct(input_data.target, modified_input_data.target):
-                input_data = modified_input_data
-
-        # Convert it to OutputData
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
         return output_data

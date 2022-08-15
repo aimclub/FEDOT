@@ -60,56 +60,59 @@ class ResampleImplementation(DataOperationImplementation):
         else:
             return params_dict
 
-    def transform(self, input_data: Optional[InputData], is_fit_pipeline_stage: Optional[bool]) -> Optional[OutputData]:
-        """ Transformed input data via selected balance strategy
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Transformed input data via selected balance strategy for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: output_data: transformed input_data via strategy
         """
+        output_data = self._convert_to_output(input_data, input_data.features,
+                                              data_type=input_data.data_type)
+        return output_data
 
-        new_input_data = copy(input_data)
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Transformed input data via selected balance strategy for fit stage
 
-        if is_fit_pipeline_stage:
-            if len(np.unique(new_input_data.target)) != 2:
-                # Imbalanced multi-class balancing is not supported.
-                return self._return_source_data(input_data)
+        :param input_data: data with features, target and ids to process
+        :return: output_data: transformed input_data via strategy
+        """
+        copied_data = copy(input_data)
 
-            unique_class, number_of_elements = np.unique(new_input_data.target, return_counts=True)
+        if len(np.unique(copied_data.target)) != 2:
+            # Imbalanced multi-class balancing is not supported.
+            return self._convert_to_output(input_data, input_data.features)
 
-            if number_of_elements[0] == number_of_elements[1]:
-                # Number of elements from each class are equal. Transformation is not required.
-                return self._return_source_data(input_data)
+        unique_class, number_of_elements = np.unique(copied_data.target, return_counts=True)
 
-            min_data, maj_data = self._get_data_by_target(new_input_data.features, new_input_data.target,
-                                                          unique_class, number_of_elements)
+        if number_of_elements[0] == number_of_elements[1]:
+            # Number of elements from each class are equal. Transformation is not required.
+            return self._convert_to_output(input_data, input_data.features)
 
-            self.n_samples = self._convert_to_absolute(min_data, maj_data)
+        min_data, maj_data = self._get_data_by_target(copied_data.features, copied_data.target,
+                                                      unique_class, number_of_elements)
 
-            self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data)
+        self.n_samples = self._convert_to_absolute(min_data, maj_data)
 
-            if self.balance == 'expand_minority':
-                min_data = self._resample_data(min_data)
+        self.parameters_changed = self._check_and_correct_sample_size(min_data, maj_data)
 
-            elif self.balance == 'reduce_majority':
-                maj_data = self._resample_data(maj_data)
+        if self.balance == 'expand_minority':
+            min_data = self._resample_data(min_data)
 
-            self.n_samples = self._convert_to_relative(min_data, maj_data)
+        elif self.balance == 'reduce_majority':
+            maj_data = self._resample_data(maj_data)
 
-            transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
+        self.n_samples = self._convert_to_relative(min_data, maj_data)
 
-            output_data = OutputData(
-                idx=np.arange(transformed_data.shape[1]),
-                features=input_data.features,
-                predict=transformed_data[:-1].transpose(),
-                task=input_data.task,
-                target=transformed_data[-1],
-                data_type=input_data.data_type,
-                supplementary_data=input_data.supplementary_data)
+        transformed_data = np.concatenate((min_data, maj_data), axis=0).transpose()
 
-        else:
-            output_data = self._return_source_data(input_data)
-
+        output_data = OutputData(
+            idx=np.arange(transformed_data.shape[1]),
+            features=input_data.features,
+            predict=transformed_data[:-1].transpose(),
+            task=input_data.task,
+            target=transformed_data[-1],
+            data_type=input_data.data_type,
+            supplementary_data=input_data.supplementary_data)
         return output_data
 
     @staticmethod
