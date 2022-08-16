@@ -85,7 +85,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: Id of the fold in cross-validation, used for cache requests.
         """
         # load preprocessing
-        graph.fit_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_fit_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
 

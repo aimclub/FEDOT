@@ -27,31 +27,20 @@ class PreprocessingCache(BaseCache):
     def __init__(self, db_path: Optional[str] = None):
         super().__init__(PreprocessingCacheDB(db_path))
 
-    def try_find_preprocessor(self, pipeline: 'Pipeline', fold_id: Union[int, None]) -> Tuple[
-        Dict[str, OneHotEncodingImplementation], Dict[str, ImputationImplementation]
-    ]:
+    def try_load_preprocessor(self, pipeline: 'Pipeline', fold_id: Union[int, None]):
         """
-        Tries to find preprocessor in DB table or returns initial otherwise.
+        Tries to find preprocessor in DB table and oad it for pipeline
 
-        :param pipeline: pipeline to find preprocessor for
+        :param pipeline: pipeline to load preprocessor for
         :param fold_id: number of fold
-
-        :return encoder: loaded one-hot encoder if included in DB or initial otherwise
-        :return imputer: loaded imputer if included in DB or initial otherwise
         """
         try:
             structural_id = _get_db_uid(pipeline, fold_id)
             processors = self._db.get_preprocessor(structural_id)
-            if processors is None:
-                encoder = pipeline.preprocessor.features_encoders
-                imputer = pipeline.preprocessor.features_imputers
-            else:
-                encoder, imputer = processors
+            if processors:
+                pipeline.encoder, pipeline.imputer = processors
         except Exception as exc:
-            encoder = pipeline.preprocessor.features_encoders
-            imputer = pipeline.preprocessor.features_imputers
             self.log.warning(f'Preprocessor search error: {exc}')
-        return encoder, imputer
 
     def add_preprocessor(self, pipeline: 'Pipeline', fold_id: Optional[Union[int, None]] = None):
         """
@@ -73,6 +62,6 @@ def _get_db_uid(pipeline: 'Pipeline', fold_id: Union[int, None]) -> str:
 
     :return: unique pipeline plus related data identificator
     """
-    fold_id = fold_id if fold_id else ""
+    fold_id = fold_id if fold_id is not None else ""
     pipeline_id = pipeline.root_node.descriptive_id
     return f'{pipeline_id}_{fold_id}'

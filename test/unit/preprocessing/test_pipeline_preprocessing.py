@@ -136,14 +136,11 @@ def test_data_with_nans_in_target_process_correctly():
     single_target_data = data_with_nans_in_target_column()
     pipeline.fit(single_target_data)
     single_hyperparams = pipeline.nodes[0].custom_params
-    print(single_hyperparams)
     # Multi-target columns processing
     multi_target_data = data_with_nans_in_multi_target()
     pipeline.unfit()
     pipeline.fit(multi_target_data)
     multi_hyperparams = pipeline.nodes[0].custom_params
-    print(single_hyperparams)
-    print(multi_hyperparams)
     assert 2 == single_hyperparams['n_neighbors']
     assert 2 == multi_hyperparams['n_neighbors']
 

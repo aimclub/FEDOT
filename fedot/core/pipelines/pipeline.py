@@ -187,8 +187,8 @@ class Pipeline(Graph, Serializable):
     def unfit_preprocessor(self):
         self.preprocessor = DataPreprocessor()
 
-    def fit_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
-                       fold_id: Optional[int] = None):
+    def try_fit_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
+                           fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 
@@ -196,15 +196,11 @@ class Pipeline(Graph, Serializable):
         :param preprocessing_cache: preprocessing cacher
         :param fold_id: optional part of the cache item UID
                             (can be used to specify the number of CV fold)
-
-        :return: bool indicating if at least one node was loaded
         """
         if cache is not None:
             cache.try_load_into_pipeline(self, fold_id)
         if preprocessing_cache is not None:
-            encoder, imputer = preprocessing_cache.try_find_preprocessor(self, fold_id)
-            self.preprocessor.features_encoders = encoder
-            self.preprocessor.features_imputers = imputer
+            preprocessing_cache.try_load_preprocessor(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
         """
