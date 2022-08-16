@@ -1,7 +1,7 @@
 import os
 
 from copy import deepcopy
-from typing import Any, Callable, Iterable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph import Graph
@@ -234,8 +234,10 @@ class OptGraph:
         return self._operator.get_edges()
 
     @copy_doc(Graph.show)
-    def show(self, path: Optional[Union[os.PathLike, str]] = None):
-        GraphVisualiser().visualise(self, path)
+    def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
+             nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
+             edges_curvature: float = 0.3):
+        GraphVisualiser().visualise(self, save_path, engine, nodes_color, dpi, edges_curvature)
 
     @copy_doc(Graph.__eq__)
     def __eq__(self, other_graph: 'OptGraph') -> bool:

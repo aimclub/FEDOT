@@ -1,12 +1,12 @@
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph, pipeline_template_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 
-from fedot.core.visualisation.graph_viz import hierarchy_pos
+from fedot.core.visualisation.graph_viz import get_hierarchy_pos
 from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
 
 
@@ -66,13 +66,21 @@ def make_comparable_lists(pos, real_hierarchy_levels, node_labels, dim, reverse)
 
 def test_hierarchy_pos():
     pipeline = pipeline_first()
-    real_hierarchy_levels_y = {0: ['rf'], 1: ['rf', 'knn'],
-                               2: ['logit', 'lda', 'logit', 'lda']}
-    real_hierarchy_levels_x = {0: ['logit'], 1: ['rf'], 2: ['lda'],
-                               3: ['rf'], 4: ['logit'], 5: ['knn'], 6: ['lda']}
-    pipeline_template = PipelineTemplate(pipeline)
-    graph, node_labels = pipeline_template_as_nx_graph(pipeline=pipeline_template)
-    pos = hierarchy_pos(graph.to_undirected(), root=0)
+    real_hierarchy_levels_y = {0: ['logit'],
+                               1: ['lda', 'rf'],
+                               2: ['rf'],
+                               3: ['logit', 'knn'],
+                               4: ['lda']}
+    real_hierarchy_levels_x = {0: ['logit', 'lda', 'logit', 'lda'],
+                               1: ['rf', 'knn'],
+                               2: ['rf']}
+
+    graph, node_labels = graph_structure_as_nx_graph(pipeline)
+    for n, data in graph.nodes(data=True):
+        data['hierarchy_level'] = node_labels[n].distance_to_primary_level
+        node_labels[n] = str(node_labels[n])
+
+    pos, _ = get_hierarchy_pos(graph)
     comparable_lists_y = make_comparable_lists(pos, real_hierarchy_levels_y,
                                                node_labels, 1, reverse=True)
     comparable_lists_x = make_comparable_lists(pos, real_hierarchy_levels_x,

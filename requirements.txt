@@ -21,6 +21,7 @@ scikit-optimize >= 0.7.4
 # Plotting
 matplotlib == 3.0.2; python_version == '3.7'
 matplotlib >= 3.3.1; python_version >= '3.8'
+pyvis==0.2.1
 seaborn >= 0.9.*
 
 # Misc

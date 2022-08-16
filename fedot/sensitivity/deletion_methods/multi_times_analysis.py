@@ -113,7 +113,7 @@ class MultiTimesAnalyze:
 
     def _visualize(self, name, path):
         image_path = join(path, f'{name}.png')
-        self.pipeline.show(path=image_path)
+        self.pipeline.show(save_path=image_path)
 
     def get_metric(self):
         self.pipeline.fit(self.train_data, use_fitted=False)

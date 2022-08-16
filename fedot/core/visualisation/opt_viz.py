@@ -15,7 +15,7 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib import animation, cm, image as mpimg, pyplot as plt, ticker
+from matplotlib import animation, cm, pyplot as plt, ticker
 from matplotlib.colors import Normalize
 from matplotlib.widgets import Button
 
@@ -45,7 +45,7 @@ def with_alternate_matplotlib_backend(func):
             mpl.use('TKAgg')
             return func(*args, **kwargs)
         except ImportError as e:
-            default_log('Requirements').warning(f'{e} or ignore this warning')
+            default_log('Requirements').warning(e)
         finally:
             mpl.use(default_mpl_backend)
 
@@ -84,9 +84,8 @@ class PipelineEvolutionVisualiser:
         prev_fit = fitnesses[0]
         fig = plt.figure(figsize=(10, 10))
         for ch_id, pipeline in enumerate(pipelines):
-            self.graph_visualizer.draw_single_graph(pipeline,
-                                                    title='Current graph',
-                                                    in_graph_converter_function=pipeline_template_as_nx_graph)
+            self.graph_visualizer.draw_nx_dag(pipeline,
+                                              in_graph_converter_function=pipeline_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.pipelines_imgs.append(img)
@@ -97,9 +96,8 @@ class PipelineEvolutionVisualiser:
                 last_best_pipeline = pipeline
             prev_fit = fitnesses[ch_id]
             plt.clf()
-            self.graph_visualizer.draw_single_graph(last_best_pipeline,
-                                                    title=f'Best graph after {round(ch_id)} evals',
-                                                    in_graph_converter_function=pipeline_template_as_nx_graph)
+            self.graph_visualizer.draw_nx_dag(last_best_pipeline,
+                                              in_graph_converter_function=pipeline_template_as_nx_graph)
             fig.canvas.draw()
             img = figure_to_array(fig)
             self.best_pipelines_imgs.append(img)
@@ -324,14 +322,14 @@ class PipelineEvolutionVisualiser:
         for file in files:
             remove(file)
 
-    def __show_or_save_figure(self, figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]]):
+    def __show_or_save_figure(self, figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 300):
         if not save_path:
             plt.show()
         else:
             save_path = Path(save_path)
             if not save_path.is_absolute():
-                save_path = Path(os.getcwd(), save_path)
-            figure.savefig(save_path, dpi=300)
+                save_path = Path.cwd().joinpath(save_path)
+            figure.savefig(save_path, dpi=dpi)
             self.log.info(f'The figure was saved to "{save_path}".')
             plt.close()
 
@@ -435,7 +433,7 @@ class PipelineEvolutionVisualiser:
         axis.grid(axis='y')
 
     def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
-                               save_path: Optional[Union[os.PathLike, str]] = None):
+                               save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
         ax = plt.gca()
         if per_time:
             xlabel = 'Time, s'
@@ -444,11 +442,11 @@ class PipelineEvolutionVisualiser:
             xlabel = 'Generation'
             self.__plot_fitness_line_per_generations(ax, history.individuals)
         self.__setup_fitness_plot(ax, xlabel)
-        self.__show_or_save_figure(plt.gcf(), save_path)
+        self.__show_or_save_figure(plt.gcf(), save_path, dpi)
 
     @with_alternate_matplotlib_backend
     def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
-                                           save_path: Optional[Union[os.PathLike, str]] = None):
+                                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
 
@@ -481,7 +479,7 @@ class PipelineEvolutionVisualiser:
             def generate_graph_images(self):
                 for ind in self.best_individuals:
                     ind.graph.show(self.temp_path)
-                    self.graph_images.append(mpimg.imread(str(self.temp_path)))
+                    self.graph_images.append(plt.imread(str(self.temp_path)))
 
             def update_graph(self):
                 ax_graph.imshow(self.graph_images[self.index])
@@ -514,7 +512,7 @@ class PipelineEvolutionVisualiser:
             b_prev = Button(ax_prev, 'Previous')
             b_prev.on_clicked(callback.prev)
 
-        self.__show_or_save_figure(fig, save_path)
+        self.__show_or_save_figure(fig, save_path, dpi)
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
@@ -566,12 +564,13 @@ class PipelineEvolutionVisualiser:
         return df_history
 
     def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                              pct_best: Optional[float] = None):
+                              dpi: int = 300, pct_best: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
+        :param dpi: DPI if the output figure.
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
@@ -585,7 +584,7 @@ class PipelineEvolutionVisualiser:
 
         plot = sns.boxplot(data=df_history, x='generation', y='fitness', palette=fitness.map(colormap))
         fig = plot.figure
-        fig.set_dpi(110)
+        fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
 
@@ -600,22 +599,23 @@ class PipelineEvolutionVisualiser:
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
         ax.yaxis.grid(True)
 
-        self.__show_or_save_figure(fig, save_path)
+        self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None,
-                                 pct_best: Optional[float] = None):
+                                 dpi: int = 300, pct_best: Optional[float] = None,
+                                 tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
+        :param dpi: DPI of the output figure.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
-            Must be in the interval (0, 1].
         """
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
@@ -650,29 +650,30 @@ class PipelineEvolutionVisualiser:
             text.set_text(new_text)
 
         fig = plot.figure
-        fig.set_dpi(110)
+        fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
         str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
-        self.__show_or_save_figure(fig, save_path)
+        self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
-                                          tags_model: Optional[List[str]] = None,
-                                          tags_data: Optional[List[str]] = None,
-                                          pct_best: Optional[float] = None, show_fitness_color: bool = True):
+                                          dpi: int = 300, pct_best: Optional[float] = None,
+                                          show_fitness_color: bool = True, tags_model: Optional[List[str]] = None,
+                                          tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of animated bar plot.
 
-        :param history: OptHistory.
+        :param history: OptHistory instance.
         :param save_path: path to save the visualization.
+        :param dpi: DPI of the output figure.
+        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+            Must be in the interval (0, 1].
+        :param show_fitness_color: if False, the bar colors will not correspond to fitness.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
-            Must be in the interval (0, 1].
-        :param show_fitness_color: if False, the bar colors will not correspond to fitness.
         """
 
         def interpolate_points(point_1, point_2, smoothness=18, power=4) -> List[np.array]:
@@ -708,7 +709,6 @@ class PipelineEvolutionVisualiser:
         animation_frames_per_step = 18
         animation_interval_between_frames_ms = 40
         animation_interpolation_power = 4
-        animation_dpi = 200
         fitness_colormap = cm.get_cmap('YlOrRd')
         no_fitness_palette = 'crest'
 
@@ -815,7 +815,7 @@ class PipelineEvolutionVisualiser:
         plt.tight_layout()
 
         if not save_path.is_absolute():
-            save_path = Path(os.getcwd(), save_path)
+            save_path = Path.cwd().joinpath(save_path)
 
         ani = animation.FuncAnimation(
             fig,
@@ -824,7 +824,7 @@ class PipelineEvolutionVisualiser:
             interval=animation_interval_between_frames_ms,
             repeat=True
         )
-        ani.save(str(save_path), dpi=animation_dpi)
+        ani.save(str(save_path), dpi=dpi)
         self.log.info(f'The animation was saved to "{save_path}".')
         plt.close(fig=fig)
 
@@ -845,7 +845,7 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
         formatted_text = formatted_text.replace(' ', '\\;')
         return formatted_text
 
-    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, html_format_tag: str = 'it') -> List[str]:
+    def format_wrapped_text(wrapped_text: List[str], part_to_format: str, latex_format_tag: str = 'it') -> List[str]:
 
         long_text = ''.join(wrapped_text)
         first_tag_pos = long_text.find(part_to_format)
@@ -860,22 +860,23 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
         second_tag_char = second_tag_pos % line_len
 
         if first_tag_line == second_tag_line:
-            wrapped_text[first_tag_line] = \
-                wrapped_text[first_tag_line][:first_tag_char] + \
-                format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], html_format_tag) + \
-                wrapped_text[first_tag_line][second_tag_char:]
+            wrapped_text[first_tag_line] = (
+                    wrapped_text[first_tag_line][:first_tag_char] +
+                    format_text(wrapped_text[first_tag_line][first_tag_char:second_tag_char], latex_format_tag) +
+                    wrapped_text[first_tag_line][second_tag_char:]
+            )
         else:
             for line in range(first_tag_line + 1, second_tag_line):
-                wrapped_text[line] = format_text(wrapped_text[line], html_format_tag)
+                wrapped_text[line] = format_text(wrapped_text[line], latex_format_tag)
 
-            wrapped_text[first_tag_line] = \
-                wrapped_text[first_tag_line][:first_tag_char] + \
-                format_text(wrapped_text[first_tag_line][first_tag_char:], html_format_tag)
-
-            wrapped_text[second_tag_line] = \
-                format_text(wrapped_text[second_tag_line][:second_tag_char], html_format_tag) + \
+            wrapped_text[first_tag_line] = (
+                wrapped_text[first_tag_line][:first_tag_char] +
+                format_text(wrapped_text[first_tag_line][first_tag_char:], latex_format_tag)
+            )
+            wrapped_text[second_tag_line] = (
+                    format_text(wrapped_text[second_tag_line][:second_tag_char], latex_format_tag) +
                 wrapped_text[second_tag_line][second_tag_char:]
-
+            )
         return wrapped_text
 
     tag = make_text_fancy(tag)
