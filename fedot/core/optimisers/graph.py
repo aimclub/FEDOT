@@ -1,7 +1,7 @@
 import os
 
 from copy import deepcopy
-from typing import Any, Callable, Iterable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 
 from fedot.core.dag.graph import Graph

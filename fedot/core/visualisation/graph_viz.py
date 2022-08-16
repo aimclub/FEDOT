@@ -27,7 +27,7 @@ class GraphVisualiser:
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
                   engine: str = 'matplotlib', nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
                   dpi: int = 300, edges_curvature: float = 0.3):
-        if graph.nodes:
+        if not graph.nodes:
             raise ValueError('Empty graph can not be visualized.')
         # Define colors
         if not nodes_color:
