@@ -325,7 +325,7 @@ class DataPreprocessor:
                 # Store encoder to make prediction in the future
                 self.features_encoders.update({source_name: encoder})
                 self.use_label_encoder = True
-            encoder_output = encoder.transform(data, True)
+            encoder_output = encoder.transform_for_fit(data)
             data.features = encoder_output.predict
             data.supplementary_data = encoder_output.supplementary_data
 
@@ -366,8 +366,7 @@ class DataPreprocessor:
             encoder = LabelEncodingImplementation() if self.use_label_encoder else OneHotEncodingImplementation()
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
-        output_data = encoder.transform(data, True)
-
+        output_data = encoder.transform_for_fit(data)
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
         data.supplementary_data = output_data.supplementary_data

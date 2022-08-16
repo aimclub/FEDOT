@@ -35,20 +35,8 @@ class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
 
         prediction = self._sklearn_compatible_prediction(trained_operation=trained_operation,
                                                          features=predict_data.features)
-
-        # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
-
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Predict method for classification task for fit stage
-
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return: prediction target
-        """
-        return self.predict(trained_operation, predict_data)
 
 
 class FedotClassificationStrategy(EvaluationStrategy):

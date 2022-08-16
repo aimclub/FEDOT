@@ -197,14 +197,12 @@ class Node(GraphNode):
         if self.fitted_operation is None:
             with Timer() as t:
                 self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
-                                                                              data=input_data,
-                                                                              is_fit_pipeline_stage=True)
+                                                                              data=input_data)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       data=input_data,
-                                                       is_fit_pipeline_stage=True,
-                                                       params=self.content['params'])
+            operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
+                                                               data=input_data,
+                                                               params=self.content['params'])
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
@@ -225,8 +223,7 @@ class Node(GraphNode):
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        params=self.content['params'],
                                                        data=input_data,
-                                                       output_mode=output_mode,
-                                                       is_fit_pipeline_stage=False)
+                                                       output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 

@@ -26,13 +26,13 @@ class CustomModelStrategy(EvaluationStrategy):
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
 
-        prediction = trained_operation.transform(predict_data)
+        prediction = trained_operation.predict(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
 
-        prediction = trained_operation.transform_for_fit(predict_data)
+        prediction = trained_operation.predict_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

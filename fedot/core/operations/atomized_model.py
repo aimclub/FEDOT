@@ -23,7 +23,6 @@ class AtomizedModel(Operation):
         self.atomized_preprocessor = DataPreprocessor()
 
     def fit(self, params: Optional[Union[str, dict]], data: InputData,
-            is_fit_pipeline_stage: bool = True,
             use_cache: bool = True):
 
         copied_input_data = deepcopy(data)
@@ -34,7 +33,7 @@ class AtomizedModel(Operation):
 
         return fitted_atomized_operation, predicted_train
 
-    def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool = False,
+    def predict(self, fitted_operation, data: InputData,
                 params: Optional[Union[str, dict]] = None, output_mode: str = 'default'):
 
         # Preprocessing applied
@@ -44,6 +43,10 @@ class AtomizedModel(Operation):
         prediction = fitted_operation.predict(input_data=copied_input_data, output_mode=output_mode)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
+
+    def predict_for_fit(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                        output_mode: str = 'default'):
+        return self.predict(fitted_operation, data, params, output_mode)
 
     def fine_tune(self, loss_function: Callable,
                   input_data: InputData = None, iterations: int = 50,

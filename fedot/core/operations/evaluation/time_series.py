@@ -145,7 +145,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.predict(predict_data)
+        prediction = trained_operation.transform(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -158,7 +158,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.predict_for_fit(predict_data)
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

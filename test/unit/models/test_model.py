@@ -33,7 +33,7 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 def check_predict_correct(model, fitted_operation, test_data):
     return is_predict_ignores_target(
         predict_func=model.predict,
-        predict_args={'fitted_operation': fitted_operation, 'is_fit_pipeline_stage': False},
+        predict_args={'fitted_operation': fitted_operation},
         data_arg_name='data',
         input_data=test_data,
     )
@@ -147,7 +147,7 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
         logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
         fitted_operation, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
         if model_name not in ['bernb', 'multinb']:
@@ -172,7 +172,7 @@ def test_regression_models_fit_predict_correct():
         model = Model(operation_type=model_name)
 
         fitted_operation, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
         rmse_threshold = np.std(test_data.target) ** 2
@@ -197,7 +197,7 @@ def test_ts_models_fit_predict_correct():
             default_params = None
 
         fitted_operation, train_predicted = model.fit(params=default_params, data=deepcopy(train_data))
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
         mae_threshold = np.var(test_data.target) * 2
@@ -331,8 +331,8 @@ def test_ts_naive_average_forecast_correctly():
     train_input, predict_input, _ = synthetic_univariate_ts()
 
     model = NaiveAverageForecastImplementation(part_for_averaging=1.0)
-    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
-    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+    fit_forecast = model.predict_for_fit(train_input)
+    predict_forecast = model.predict(predict_input)
 
     # Check correctness during pipeline fit stage
     assert (10, 4) == fit_forecast.target.shape
@@ -349,8 +349,8 @@ def test_locf_forecast_correctly():
     model = RepeatLastValueImplementation(part_for_repeat=0.2)
 
     model.fit(train_input)
-    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
-    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+    fit_forecast = model.predict_for_fit(train_input)
+    predict_forecast = model.predict(predict_input)
 
     assert (8, 4) == fit_forecast.target.shape
     assert np.array_equal(fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))

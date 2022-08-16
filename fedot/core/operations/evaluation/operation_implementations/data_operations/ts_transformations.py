@@ -696,7 +696,7 @@ class CutImplementation(DataOperationImplementation):
 
         if reset_idx:
             input_copy.idx = np.arange(cut_len, input_values.shape[0])
-        return input_data
+        return input_copy
 
     def get_params(self):
         params_dict = {"cut_part": self.cut_part}

@@ -52,21 +52,6 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
 
         return converted
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Predict method for regression task for fit stage
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return:
-        """
-
-        features = cudf.DataFrame(predict_data.features.astype('float32'))
-
-        prediction = trained_operation.predict_for_fit(features)
-        converted = self._convert_to_output(prediction, predict_data)
-
-        return converted
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
