@@ -169,7 +169,7 @@ class NodeAnalyzeApproach(ABC):
         return changed_pipeline_metric / self._origin_metric
 
     def _get_metric_value(self, pipeline: Pipeline, metric: MetricByTask) -> float:
-        pipeline.fit(self._train_data, use_fitted=False)
+        pipeline.fit(self._train_data)
         predicted = pipeline.predict(self._test_data)
         metric_value = metric.get_value(true=self._test_data,
                                         predicted=predicted)

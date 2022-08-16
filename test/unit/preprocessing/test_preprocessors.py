@@ -144,7 +144,7 @@ def test_complicated_table_types_processed_correctly():
 
     pipeline = Pipeline(PrimaryNode('dt'))
     pipeline = correct_preprocessing_params(pipeline, categorical_max_classes_th=13)
-    train_predicted = pipeline.fit(train_data, use_fitted=True)
+    train_predicted = pipeline.fit(train_data)
     pipeline.predict(test_data)
 
     # Table types corrector after fitting

@@ -84,15 +84,17 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param train_data: InputData for training pipeline
         :param fold_id: Id of the fold in cross-validation, used for cache requests.
         """
+        # load preprocessing
+        graph.fit_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
-            use_fitted=graph.fit_from_cache(self._pipelines_cache, fold_id),
-            time_constraint=self._time_constraint,
-            preprocessing_cache=self._preprocessing_cache
+
+            time_constraint=self._time_constraint
         )
 
         if self._pipelines_cache is not None:
             self._pipelines_cache.save_pipeline(graph, fold_id)
+            self._preprocessing_cache.add_preprocessor(graph, fold_id)
 
         return graph
 

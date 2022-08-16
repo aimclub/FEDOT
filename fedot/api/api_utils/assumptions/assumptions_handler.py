@@ -56,13 +56,13 @@ class AssumptionsHandler:
         try:
             data_train, data_test = train_test_data_setup(self.data)
             self.log.info('Initial pipeline fitting started')
-            pipeline.fit(
-                data_train,
-                use_fitted=pipeline.fit_from_cache(pipelines_cache),
-                preprocessing_cache=preprocessing_cache
-            )
+            # load preprocessing
+            pipeline.fit_from_cache(pipelines_cache, preprocessing_cache)
+            pipeline.fit(data_train)
+
             if pipelines_cache is not None:
                 pipelines_cache.save_pipeline(pipeline)
+                preprocessing_cache.add_preprocessor(pipeline)
 
             pipeline.predict(data_test)
             self.log.info('Initial pipeline was fitted successfully')

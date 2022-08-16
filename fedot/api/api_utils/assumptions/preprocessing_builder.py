@@ -32,22 +32,9 @@ class PreprocessingBuilder:
             # so the whole data is reduced to the current data_source for an easier preprocessing
             data = data[str(initial_nodes[0])]
         preprocessing_builder = cls(task_type, data.data_type, *initial_nodes)
-        if data_has_missing_values(data):
-            preprocessing_builder = preprocessing_builder.with_gaps()
-        if data_has_categorical_features(data):
-            preprocessing_builder = preprocessing_builder.with_categorical()
         if data_has_text_features(data):
             preprocessing_builder = preprocessing_builder.with_text_vectorizer()
         return preprocessing_builder.to_builder()
-
-    def with_gaps(self):
-        self._builder.add_node('simple_imputation')
-        return self
-
-    def with_categorical(self):
-        if self.task_type is not TaskTypesEnum.ts_forecasting:
-            self._builder.add_node('one_hot_encoding')
-        return self
 
     def with_scaling(self):
         if self.task_type is not TaskTypesEnum.ts_forecasting and self.data_type is not DataTypesEnum.image:
