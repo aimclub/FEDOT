@@ -39,7 +39,7 @@ class RepeatLastValueImplementation(ModelImplementation):
             self.elements_to_repeat = input_data.task.task_params.forecast_length
         return self
 
-    def predict(self, input_data: InputData):
+    def predict(self, input_data: InputData) -> OutputData:
         input_data = copy(input_data)
         forecast_length = input_data.task.task_params.forecast_length
 
@@ -52,7 +52,7 @@ class RepeatLastValueImplementation(ModelImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def predict_for_fit(self, input_data: InputData):
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
         input_data = copy(input_data)
         forecast_length = input_data.task.task_params.forecast_length
         # Transform the predicted time series into a table
@@ -94,7 +94,7 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         """ Such a simple approach does not support fit method """
         pass
 
-    def predict(self, input_data: InputData):
+    def predict(self, input_data: InputData) -> OutputData:
         """ Get desired part of time series for averaging and calculate mean value """
         forecast_length = input_data.task.task_params.forecast_length
 

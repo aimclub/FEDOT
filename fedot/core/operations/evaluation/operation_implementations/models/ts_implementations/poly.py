@@ -48,7 +48,6 @@ class PolyfitImplementation(ModelImplementation):
         predict = np.array(predict).reshape(1, -1)
         new_idx = np.arange(start_id, end_id + 1)
 
-        # Update idx
         input_data.idx = new_idx
 
         output_data = self._convert_to_output(input_data,

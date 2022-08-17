@@ -148,7 +148,7 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :return:
+        :return: prediction target
         """
         prediction = trained_operation.transform(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
@@ -160,7 +160,7 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :return:
+        :return: prediction target
         """
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)

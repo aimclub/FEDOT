@@ -220,14 +220,11 @@ class STLForecastARIMAImplementation(ModelImplementation):
         end_id = start_id + forecast_length - 1
         predicted = self.model.get_prediction(start=start_id, end=end_id).predicted_mean
 
-        # Convert one-dim array as column
         predict = np.array(predicted).reshape(1, -1)
         new_idx = np.arange(start_id, end_id + 1)
 
-        # Update idx
         input_data.idx = new_idx
 
-        # Update idx and features
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
@@ -257,10 +254,8 @@ class STLForecastARIMAImplementation(ModelImplementation):
                                               time_series=target,
                                               window_size=forecast_length)
 
-        # Update idx and target
         input_data.idx = new_idx
         input_data.target = target_columns
-        # Update idx and features
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)

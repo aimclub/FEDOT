@@ -175,13 +175,3 @@ class ResampleImplementation(DataOperationImplementation):
 
     def _resample_data(self, data: np.array):
         return resample(data, replace=self.replace, n_samples=self.n_samples)
-
-    def _return_source_data(self, input_data: Optional[InputData]) -> Optional[OutputData]:
-        return OutputData(
-            idx=input_data.idx,
-            features=input_data.features,
-            predict=input_data.features,
-            task=input_data.task,
-            target=input_data.target,
-            data_type=input_data.data_type,
-            supplementary_data=input_data.supplementary_data)

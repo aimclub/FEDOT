@@ -1,5 +1,4 @@
 from copy import copy
-from typing import Optional
 
 import numpy as np
 import statsmodels.api as sm
@@ -10,7 +9,6 @@ from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.log import LoggerAdapter
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -96,7 +94,6 @@ class GLMImplementation(ModelImplementation):
         predict = np.array(predict).reshape(1, -1)
         new_idx = np.arange(start_id, end_id + 1)
 
-        # Update idx
         input_data.idx = new_idx
 
         output_data = self._convert_to_output(input_data,
@@ -118,7 +115,6 @@ class GLMImplementation(ModelImplementation):
                                               time_series=target,
                                               window_size=forecast_length)
 
-        # Update idx and target
         input_data.idx = new_idx
         input_data.target = target_columns
 
@@ -232,7 +228,6 @@ class AutoRegImplementation(ModelImplementation):
                                               time_series=target,
                                               window_size=forecast_length)
 
-        # Update idx and target
         input_data.idx = new_idx
         input_data.target = target_columns
         output_data = self._convert_to_output(input_data,
@@ -323,7 +318,6 @@ class ExpSmoothingImplementation(ModelImplementation):
         predict = np.array(predict).reshape(1, -1)
         new_idx = np.arange(start_id, end_id + 1)
 
-        # Update idx
         input_data.idx = new_idx
 
         output_data = self._convert_to_output(input_data,
@@ -350,7 +344,6 @@ class ExpSmoothingImplementation(ModelImplementation):
                                               time_series=target,
                                               window_size=forecast_length)
 
-        # Update idx and target
         input_data.idx = new_idx
         input_data.target = target_columns
 

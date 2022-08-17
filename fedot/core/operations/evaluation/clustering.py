@@ -24,7 +24,6 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         Fit method for clustering task
 
         :param train_data: data used for model training
-        :return:
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -38,10 +37,9 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for clustering task for predict stage
+        Predict method for clustering task
         :param trained_operation: operation object
         :param predict_data: data used for prediction
-        :return :
         """
         prediction = trained_operation.predict(predict_data.features)
         converted = self._convert_to_output(prediction, predict_data)
