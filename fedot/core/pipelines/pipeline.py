@@ -187,8 +187,8 @@ class Pipeline(Graph, Serializable):
     def unfit_preprocessor(self):
         self.preprocessor = DataPreprocessor()
 
-    def try_fit_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
-                           fold_id: Optional[int] = None):
+    def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
+                            fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 

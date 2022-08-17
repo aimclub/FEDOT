@@ -85,7 +85,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: Id of the fold in cross-validation, used for cache requests.
         """
         # load preprocessing
-        graph.try_fit_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
 
@@ -102,11 +102,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         """Evaluate intermediate metrics without any pipeline fit."""
         # Get the last fold on which pipeline was trained to avoid retraining
         last_fold = None
-        for last_fold in self._data_producer():
+        fold_id = None
+        for fold_id, last_fold in enumerate(self._data_producer()):
             pass
         # And so test only on the last fold
         train_data, test_data = last_fold
-
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
