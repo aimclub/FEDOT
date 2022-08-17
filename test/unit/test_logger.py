@@ -6,10 +6,10 @@ import pytest
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log, DEFAULT_LOG_PATH, LoggerAdapter
+from fedot.core.log import DEFAULT_LOG_PATH, Log, default_log
 from fedot.core.operations.model import Model
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.singleton_meta import SingletonMeta
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @pytest.fixture()
@@ -129,4 +129,4 @@ def test_logger_levels():
     adapter_2 = default_log(prefix='warning_logger', logging_level=logging.WARNING)
 
     assert adapter_2.extra['prefix'] == 'warning_logger'
-    assert adapter_2.logger.level == logging.WARNING
+    assert adapter_2.logger.level != logging.WARNING  # because Log is a singleton
