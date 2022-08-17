@@ -9,7 +9,6 @@ from pathlib import Path
 from textwrap import wrap
 from time import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
-from warnings import warn
 
 import matplotlib as mpl
 import numpy as np
@@ -404,19 +403,20 @@ class PipelineEvolutionVisualiser:
         axis.step(best_eval_times, best_fitnesses, where='post', label=label)
 
         if with_generation_limits:
-            prev_time = gen_start_times[0]
+            axis_gen = axis.twiny()
+            axis_gen.set_xlim(axis.get_xlim())
+            axis_gen.set_xticks(gen_start_times, list(range(len(gen_start_times) - 1)) + [''])
+            axis_gen.locator_params(nbins=10)
+            axis_gen.set_xlabel('Generation')
+
+            gen_ticks = axis_gen.get_xticks()
+            prev_time = gen_ticks[0]
             axis.axvline(prev_time, color='k', linestyle='--', alpha=0.3)
-            for i, next_time in enumerate(gen_start_times[1:]):
+            for i, next_time in enumerate(gen_ticks[1:]):
                 axis.axvline(next_time, color='k', linestyle='--', alpha=0.3)
                 if i % 2 == 0:
                     axis.axvspan(prev_time, next_time, color='k', alpha=0.05)
                 prev_time = next_time
-
-            axis_gen = axis.twiny()
-            axis_gen.set_xlim(axis.get_xlim())
-            axis_gen.set_xticks(gen_start_times)
-            axis_gen.set_xticklabels(list(range(len(gen_start_times) - 1)) + [''])
-            axis_gen.set_xlabel('Generation')
 
         return best_individuals
 
