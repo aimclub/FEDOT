@@ -1,17 +1,15 @@
 import gc
-from abc import ABC, abstractmethod
-from typing import Dict, Optional
-
-import timeit
-from datetime import datetime
-from functools import partial
-from random import choice
-
-from joblib import Parallel, delayed
 import multiprocessing
+import timeit
+
+from abc import ABC, abstractmethod
+from contextlib import nullcontext
+from datetime import datetime
+from random import choice
+from typing import Dict, Optional, Tuple
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import default_log
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
@@ -19,6 +17,7 @@ from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.remote.remote_evaluator import RemoteEvaluator
+from joblib import Parallel, delayed
 
 
 class ObjectiveEvaluationDispatcher(ABC):
@@ -83,8 +82,9 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind) for ind in individuals)
-
+        with Log.using_mp_listener() as shared_q:
+            eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, mp_items=(shared_q, Log().logger.level))
+                                 for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
         successful_evals = list(filter(None, eval_inds))
@@ -97,32 +97,40 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
+    def evaluate_single(self, ind: Individual, with_time_limit: bool = True,
+                        mp_items: Optional[Tuple[multiprocessing.Queue, int]] = None) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
+        if mp_items is not None:
+            # in case of multiprocessing run
+            shared_q, log_lvl = mp_items
+            context = Log.using_mp_worker(shared_q)
+            Log().reset_logging_level(log_lvl)
+        else:
+            context = nullcontext
+        with context:
+            start_time = timeit.default_timer()
 
-        start_time = timeit.default_timer()
+            graph = self.evaluation_cache.get(ind.uid, ind.graph)
+            adapted_graph = self._graph_adapter.restore(graph)
 
-        graph = self.evaluation_cache.get(ind.uid, ind.graph)
-        adapted_graph = self._graph_adapter.restore(graph)
+            ind_fitness = self._objective_eval(adapted_graph)
+            if self._post_eval_callback:
+                self._post_eval_callback(adapted_graph)
+            if self._cleanup:
+                self._cleanup(adapted_graph)
+            gc.collect()
 
-        ind_fitness = self._objective_eval(adapted_graph)
-        if self._post_eval_callback:
-            self._post_eval_callback(adapted_graph)
-        if self._cleanup:
-            self._cleanup(adapted_graph)
-        gc.collect()
+            ind_graph = self._graph_adapter.adapt(adapted_graph)
 
-        ind_graph = self._graph_adapter.adapt(adapted_graph)
+            ind.set_evaluation_result(ind_fitness, ind_graph)
 
-        ind.set_evaluation_result(ind_fitness, ind_graph)
-
-        end_time = timeit.default_timer()
-        ind.metadata['computation_time_in_seconds'] = end_time - start_time
-        ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
-        return ind if ind.fitness.valid else None
+            end_time = timeit.default_timer()
+            ind.metadata['computation_time_in_seconds'] = end_time - start_time
+            ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
+            return ind if ind.fitness.valid else None
 
     def _reset_eval_cache(self):
         self.evaluation_cache: Dict[str, Graph] = {}

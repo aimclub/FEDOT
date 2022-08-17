@@ -1,9 +1,12 @@
 import json
 import logging
+import multiprocessing
 import pathlib
 import sys
+from contextlib import contextmanager
 from logging.config import dictConfig
-from logging.handlers import RotatingFileHandler
+from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
+from typing import Optional, Iterator
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -13,7 +16,6 @@ DEFAULT_LOG_PATH = pathlib.Path(default_fedot_data_dir(), 'log.log')
 
 class Log(metaclass=SingletonMeta):
     """ Log object to store logger singleton and log adapters
-    :param logger_name: name of the logger
     :param config_json_file: json file from which to collect the logger if specified
     :param output_logging_level: logging levels are the same as in 'logging':
     critical -- 50, error -- 40, warning -- 30, info -- 20, debug -- 10, nonset -- 0.
@@ -22,43 +24,74 @@ class Log(metaclass=SingletonMeta):
 
     __log_adapters = {}
 
-    def __init__(self, logger_name: str,
+    @staticmethod
+    @contextmanager
+    def using_mp_listener() -> Iterator[multiprocessing.Queue]:
+        """
+        Used to prepare :class:`Log` for the multiprocessing records in the parent process
+
+        :return: queue managed by separate process across other potential worker-processes
+        """
+        queue = multiprocessing.Manager().Queue(-1)
+        listener = QueueListener(queue, *default_log().logger.handlers)
+        listener.start()
+        yield queue
+        listener.stop()
+
+    @staticmethod
+    @contextmanager
+    def using_mp_worker(shared_q: multiprocessing.Queue):
+        """
+        Used in pair with :method:`using_mp_listener` in the worker processes to redirect their logs to the listener
+
+        :param shared_q: queue shared across all worker-processes
+        """
+        logger = default_log().logger
+        orig_handlers = logger.handlers.copy()
+        logger.handlers.clear()
+        logger.addHandler(QueueHandler(shared_q))
+        yield
+        logger.handlers = orig_handlers
+
+    def __init__(self,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: str = None,
-                 write_logs: bool = True):
+                 log_file: str = None):
         if not log_file:
-            self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
+            self.log_file = DEFAULT_LOG_PATH
         else:
             self.log_file = log_file
-        self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
-                                       logging_level=output_logging_level,
-                                       write_logs=write_logs)
+        self.logger = self._get_logger(config_file=config_json_file,
+                                       logging_level=output_logging_level)
 
-    def get_adapter(self, prefix: str, logging_level: int = logging.INFO) -> 'LoggerAdapter':
+    def reset_logging_level(self, logging_level: int):
+        """ Resets logging level for logger and its handlers """
+        # Resets logging level is needed because before initialization with API params Singleton
+        # can be initialized somewhere else with default ones
+        self.logger.setLevel(logging_level)
+        for handler in self.handlers:
+            handler.setLevel(logging_level)
+
+    def get_adapter(self, prefix: str) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
         :param prefix: prefix to log messages with this adapter. Usually this prefix is the name of the class
-        where the log came from
-        :param logging_level: level of logging """
+        where the log came from """
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
-                                                        {'prefix': prefix},
-                                                        logging_level=logging_level)
+                                                        {'prefix': prefix})
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, logging_level: int, write_logs: bool) -> logging.Logger:
+    def _get_logger(self, config_file: str, logging_level: int) -> logging.Logger:
         """ Get logger object """
-        logger = logging.getLogger(name)
+        logger = logging.getLogger()
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger=logger, logging_level=logging_level, write_logs=write_logs)
+            logger = self._setup_default_logger(logger=logger, logging_level=logging_level)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, logging_level: int, write_logs: bool) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
         """ Define console and file handlers for logger """
-        if not write_logs or logging_level > logging.CRITICAL:
-            return logger
 
         console_handler = logging.StreamHandler(sys.stdout)
         console_formatter = logging.Formatter('%(asctime)s - %(message)s')
@@ -66,7 +99,7 @@ class Log(metaclass=SingletonMeta):
         logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
         logger.setLevel(logging_level)
@@ -110,10 +143,10 @@ class LoggerAdapter(logging.LoggerAdapter):
     """ This class looks like logger but used to pass contextual information
     to the output along with logging event information """
 
-    def __init__(self, logger: logging.Logger, extra: dict, logging_level: int = None):
+    def __init__(self, logger: logging.Logger, extra: dict):
         super().__init__(logger=logger, extra=extra)
-        self.setLevel(logging_level or logger.level)
-        self.logging_level = logging_level or logger.level
+        self.logging_level = logger.level
+        self.setLevel(self.logging_level)
 
     def process(self, msg, kwargs):
         self.logger.setLevel(self.logging_level)
@@ -126,24 +159,17 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO,
-                write_logs: bool = True) -> logging.LoggerAdapter:
+def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
     """
     Default logger
 
-    :param class_object: instance of class
-    :param prefix: adapter prefix to add it to log messages
-    :param logging_level: logging levels are the same as in 'logging'
-    :param write_logs: bool indicating whenever to write logs in console or not
+    :param prefix: str adapter prefix to add it to log messages or
+    instance of class to get prefix from
     :return: LoggerAdapter: LoggerAdapter object
     """
 
-    log = Log(logger_name='default',
-              config_json_file='default',
-              output_logging_level=logging_level,
-              write_logs=write_logs)
+    # get log prefix
+    if not isinstance(prefix, str):
+        prefix = prefix.__class__.__name__
 
-    if class_object:
-        prefix = class_object.__class__.__name__
-
-    return log.get_adapter(prefix=prefix, logging_level=logging_level)  # TODO: use log.logger.level instead
+    return Log().get_adapter(prefix=prefix)

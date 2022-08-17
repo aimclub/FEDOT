@@ -27,7 +27,7 @@ class PipelineTuner(HyperoptTuner):
                          n_jobs=n_jobs)
 
     def tune_pipeline(self, input_data, loss_function,
-                      cv_folds: int = None, validation_blocks: int = None):
+                      cv_folds: int = None, validation_blocks: int = None, show_progress: bool = True):
         """ Function for hyperparameters tuning on the entire pipeline """
 
         self.validation_blocks = validation_blocks
@@ -51,6 +51,7 @@ class PipelineTuner(HyperoptTuner):
                     parameters_dict,
                     algo=self.algo,
                     max_evals=self.iterations,
+                    show_progressbar=show_progress,
                     early_stop_fn=self.early_stop_fn,
                     timeout=self.max_seconds)
 

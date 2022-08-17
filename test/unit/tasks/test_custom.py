@@ -51,7 +51,7 @@ def test_custom_graph_opt():
         primary=nodes_types,
         secondary=nodes_types, max_arity=3,
         max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.9, logging_level_opt=logging.CRITICAL+1,
+        crossover_prob=0.8, mutation_prob=0.9,
         show_progress=False)
 
     optimiser_parameters = GPGraphOptimizerParameters(

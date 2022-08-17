@@ -9,9 +9,9 @@ from fedot.core.data.data import InputData
 from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
+from fedot.core.optimisers.objective.objective import Objective, to_fitness
+from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
-from .objective import Objective, to_fitness
-from .objective_eval import ObjectiveEvaluate
 
 DataSource = Callable[[], Iterable[Tuple[InputData, InputData]]]
 
@@ -98,6 +98,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         if self._pipelines_cache is not None:
             self._pipelines_cache.save_pipeline(graph, fold_id)
+        if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
 
         return graph

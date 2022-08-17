@@ -1,5 +1,5 @@
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
@@ -28,7 +28,7 @@ class ComposerRequirements:
     max_arity: int = 2
     min_arity: int = 2
     cv_folds: Optional[int] = None
-    advisor: Optional[PipelineChangeAdvisor] = PipelineChangeAdvisor()  # TODO: use factory to mutable object!
+    advisor: Optional[PipelineChangeAdvisor] = field(default_factory=lambda: PipelineChangeAdvisor())
 
     def __post_init__(self):
         if self.max_depth < 0:
