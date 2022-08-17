@@ -166,9 +166,8 @@ class GraphVisualiser:
         else:
             edge_colors = nodes_color
         # Define hierarchy_level
-        for u, v, e in nx_graph.edges(data=True):
-            for node_id in (u, v):
-                nx_graph.nodes[node_id]['hierarchy_level'] = nodes[node_id].distance_to_primary_level
+        for node_id, node_data in nx_graph.nodes(data=True):
+            node_data['hierarchy_level'] = nodes[node_id].distance_to_primary_level
         # Get nodes positions
         pos, longest_sequence = get_hierarchy_pos(nx_graph)
         node_size = get_scaled_node_size(longest_sequence)
