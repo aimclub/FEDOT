@@ -29,7 +29,7 @@ class PreprocessingCache(BaseCache):
 
     def try_load_preprocessor(self, pipeline: 'Pipeline', fold_id: Union[int, None]):
         """
-        Tries to find preprocessor in DB table and oad it for pipeline
+        Tries to find preprocessor in DB table and load it for pipeline
 
         :param pipeline: pipeline to load preprocessor for
         :param fold_id: number of fold

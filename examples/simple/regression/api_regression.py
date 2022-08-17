@@ -15,8 +15,8 @@ def run_regression_example():
     train, test = train_test_data_setup(data)
     problem = 'regression'
 
-    composer_params = {'history_folder': 'custom_history_folder', 'preset': 'auto', 'with_tuning': False}
-    auto_model = Fedot(problem=problem, seed=42, timeout=5, logging_level=logging.INFO,
+    composer_params = {'history_folder': 'custom_history_folder', 'preset': 'auto'}
+    auto_model = Fedot(problem=problem, seed=42, timeout=2, logging_level=logging.INFO,
                        **composer_params)
 
     auto_model.fit(features=train, target='target')

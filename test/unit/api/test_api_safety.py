@@ -99,7 +99,7 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_label_correct():
     pipeline.predict(data)
     model.predict(features=data)
 
-    # the should be only tree like models + data operations
+    # there should be only tree like models + data operations
     assert len(model.params.api_params['available_operations']) == 5
     assert 'logit' not in model.params.api_params['available_operations']
 
