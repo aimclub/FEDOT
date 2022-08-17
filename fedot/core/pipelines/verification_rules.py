@@ -38,7 +38,7 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
     if not isinstance(pipeline, Pipeline):
         pipeline = PipelineAdapter().restore(pipeline)
     root_node = pipeline.root_node
-
+    # TODO @YamLyubov refactor check for AtomizedModel (fix circular import)
     if type(root_node.operation) is not Model and root_node.operation.operation_type != atomized_model_type():
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 

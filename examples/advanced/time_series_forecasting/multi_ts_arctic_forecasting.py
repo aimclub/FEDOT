@@ -81,7 +81,7 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     objective = Objective(MAE.get_value)
     data_producer = DataSourceSplitter().build(train_data)
     objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-    tuner = PipelineTuner(task=task, iterations=50,)
+    tuner = PipelineTuner(task=task, iterations=50)
     obtained_pipeline_copy = tuner.tune(obtained_pipeline_copy, objective_evaluate)
     obtained_pipeline_copy.print_structure()
     # tuned pipeline fit and predict

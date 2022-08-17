@@ -6,10 +6,9 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.metrics import MAE
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -121,7 +120,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            objective = Objective(MAE.get_value)
+            objective = Objective(metric_function)
             data_producer = DataSourceSplitter().build(train_input)
             objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
             pipeline_tuner = tuner(task=data.task, iterations=100)

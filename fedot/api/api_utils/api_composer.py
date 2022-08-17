@@ -256,6 +256,7 @@ class ApiComposer:
                      f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
                      f'to tune the hyperparameters.')
             log.info('Composed pipeline returned without tuning.')
+            tuned_pipeline = pipeline_gp_composed
         else:
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
@@ -270,9 +271,9 @@ class ApiComposer:
                                       iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
                                       timeout=datetime.timedelta(minutes=timeout_for_tuning),
                                       n_jobs=n_jobs)
-                pipeline_gp_composed = tuner.tune(pipeline_gp_composed, objective_evaluate)
+                tuned_pipeline = tuner.tune(pipeline_gp_composed, objective_evaluate)
                 log.info('Hyperparameters tuning finished')
-        return pipeline_gp_composed
+        return tuned_pipeline
 
 
 def _divide_parameters(common_dict: dict) -> List[dict]:
