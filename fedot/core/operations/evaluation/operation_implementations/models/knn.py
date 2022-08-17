@@ -31,13 +31,6 @@ class KNeighborsImplementation(ModelImplementation):
 
         return prediction
 
-    def predict_for_fit(self, input_data):
-        """ Method make prediction for pipeline fit stage
-
-        :param input_data: data with features to process
-        """
-        return self.predict(input_data)
-
     def check_and_correct_k_value(self, input_data, model_impl: Callable):
         """ Method check if the amount of neighbors is too big - clip it
 

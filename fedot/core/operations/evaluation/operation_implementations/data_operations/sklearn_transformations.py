@@ -62,15 +62,6 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.update_column_types(output_data)
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """
-        Method for transformation tabular data using PCA for fit stage
-
-        :param input_data: data with features, target and ids for PCA applying
-        :return output_data: data with transformed features attribute
-        """
-        return self.transform(input_data)
-
     def check_and_correct_params(self):
         """ Method check if number of features in data enough for n_components
         parameter in PCA or not. And if not enough - fixes it
@@ -358,14 +349,6 @@ class ImputationImplementation(DataOperationImplementation):
 
         output_data = self._convert_to_output(input_data, transformed_features, data_type=input_data.data_type)
         return output_data
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """
-        Method for transformation tabular data using SimpleImputer for fit stage
-
-        :param input_data: data with features
-        """
-        return self.transform(input_data)
 
     def fit_transform(self, input_data: InputData) -> OutputData:
         """

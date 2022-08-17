@@ -362,14 +362,6 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for smoothing time series for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: output data with smoothed time series
-        """
-        return self.transform(input_data)
-
     def _apply_smoothing_to_series(self, ts):
         smoothed_ts = ts.rolling(window=self.window_size).mean()
         smoothed_ts = np.array(smoothed_ts)
@@ -489,14 +481,6 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for smoothing time series for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: output data with smoothed time series
-        """
-        return self.transform(input_data)
-
     def get_params(self):
         return {'sigma': self.sigma}
 
@@ -551,14 +535,6 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
                                                   data_type=input_data.data_type)
 
         return output_data
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for finding numerical derivative of time series for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: output data with smoothed time series
-        """
-        return self.transform(input_data)
 
     def _differential_filter(self, ts):
         """ NumericalDerivative filter """

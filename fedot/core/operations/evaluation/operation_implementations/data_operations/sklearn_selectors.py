@@ -72,14 +72,6 @@ class FeatureSelectionImplementation(DataOperationImplementation):
         self._update_column_types(source_features_shape, output_data)
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for making prediction for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: filtered input data by columns
-        """
-        return self.transform(input_data)
-
     def get_params(self):
         return self.operation.get_params()
 

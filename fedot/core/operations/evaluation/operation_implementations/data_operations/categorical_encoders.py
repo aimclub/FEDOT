@@ -72,16 +72,6 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         self._update_column_types(output_data)
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """
-        The method that transforms the categorical features in the original
-        dataset, but does not affect the rest features. Applicable during fit stage
-
-        :param input_data: data with features, target and ids for transformation
-        :return output_data: output data with transformed features table
-        """
-        return self.transform(input_data)
-
     def _update_column_types(self, output_data: OutputData):
         """ Update column types after encoding. Categorical columns becomes integer with extension """
         if self.categorical_ids:
@@ -164,12 +154,6 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
         self._update_column_types(output_data)
         return output_data
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Apply LabelEncoder on categorical features and doesn't process float or int ones.
-        Applicable during fit stage
-        """
-        return self.transform(input_data)
 
     def _update_column_types(self, output_data: OutputData):
         """ Update column types after encoding. Categorical becomes integer """

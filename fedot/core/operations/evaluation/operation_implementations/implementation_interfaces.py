@@ -33,13 +33,12 @@ class DataOperationImplementation(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def transform_for_fit(self, input_data: InputData) -> OutputData:
         """ Method apply transform operation on a dataset for fit stage
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError()
+        return self.transform(input_data)
 
     @abstractmethod
     def get_params(self):
@@ -112,15 +111,6 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(input_data, transformed_features)
         self._update_column_types(source_features_shape, output_data)
         return output_data
-
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """
-        The method that transforms the source features using "operation" for fit stage
-
-        :param input_data: tabular data with features, target and ids to process
-        :return output_data: output data with transformed features table
-        """
-        return self.transform(input_data)
 
     def _make_new_table(self, features):
         """
@@ -209,13 +199,12 @@ class ModelImplementation(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def predict_for_fit(self, input_data: InputData) -> OutputData:
         """ Method make prediction while pipeline fitting
 
         :param input_data: data with features, target and ids to process
         """
-        raise NotImplementedError()
+        return self.predict(input_data)
 
     @abstractmethod
     def get_params(self) -> dict:

@@ -34,15 +34,6 @@ class DecomposerImplementation(DataOperationImplementation):
         """
         raise NotImplementedError()
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """
-        Method for modifying input_data for fit stage
-        :param input_data: data with features, target and ids
-
-        :return input_data: data with transformed features attribute
-        """
-        return self.transform(input_data)
-
     @staticmethod
     def divide_inputs(input_data: InputData) -> (np.array, np.array):
         """ Method for dividing InputData into parts:

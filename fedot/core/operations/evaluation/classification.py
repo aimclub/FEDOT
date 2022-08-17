@@ -92,16 +92,6 @@ class FedotClassificationStrategy(EvaluationStrategy):
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Predict method for classification task for fit stage
-
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return: prediction target
-        """
-        return self.predict(trained_operation, predict_data)
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]

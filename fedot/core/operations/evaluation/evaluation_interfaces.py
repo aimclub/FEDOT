@@ -75,7 +75,6 @@ class EvaluationStrategy:
         """
         raise NotImplementedError()
 
-    @abstractmethod
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
         """
         Method to predict the target data for fit stage.
@@ -83,7 +82,7 @@ class EvaluationStrategy:
         :param InputData predict_data: data to predict
         :return OutputData: passed data with new predicted target
         """
-        raise NotImplementedError()
+        return self.predict(trained_operation, predict_data)
 
     @abstractmethod
     def _convert_to_operation(self, operation_type: str):
@@ -199,15 +198,6 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
-
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        This method used for prediction of the target data during fit stage.
-        :param trained_operation: operation object
-        :param predict_data: data to predict
-        :return OutputData: passed data with new predicted target
-        """
-        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

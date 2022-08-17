@@ -198,14 +198,6 @@ class FedotCNNImplementation(ModelImplementation):
         return predict_cnn(trained_model=self.model, predict_data=input_data,
                            output_mode='labels', logger=self.params['log'])
 
-    def predict_for_fit(self, input_data):
-        """ Method make prediction with labels of classes for fit stage
-
-        :param input_data: data with features to process
-        """
-
-        return self.predict(input_data)
-
     def predict_proba(self, input_data):
         """ Method make prediction with probabilities of classes
 

@@ -33,13 +33,6 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
         return prediction
 
-    def predict_for_fit(self, input_data):
-        """ Method make prediction for pipeline fit stage
-
-        :param input_data: data with features to process
-        """
-        return self.predict(input_data)
-
     def predict_proba(self, input_data):
         """ Method make prediction with probabilities of classes
 

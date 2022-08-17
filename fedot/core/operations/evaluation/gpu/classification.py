@@ -21,7 +21,8 @@ class CuMLClassificationStrategy(CuMLEvaluationStrategy):
 
         features = cudf.DataFrame(predict_data.features.astype('float32'))
 
-        prediction = trained_operation.predict(features)
+        prediction = self._sklearn_compatible_prediction(trained_operation,
+                                                         features)
         converted = self._convert_to_output(prediction, predict_data)
 
         return converted

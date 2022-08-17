@@ -47,9 +47,6 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
         converted = self._convert_to_output(predicted, predict_data)
         return converted
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        return self.predict(trained_operation, predict_data)
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]

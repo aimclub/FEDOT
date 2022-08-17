@@ -66,9 +66,6 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         out = self._convert_to_output(res, predict_data)
         return out
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        return self.predict(trained_operation, predict_data)
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
@@ -138,9 +135,6 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         out = self._convert_to_output(prediction, predict_data)
         return out
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        return self.predict(trained_operation, predict_data)
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
@@ -203,9 +197,6 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         out = self._convert_to_output(res, predict_data)
         return out
 
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        return self.predict(trained_operation, predict_data)
-
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
@@ -251,9 +242,6 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
             raise ValueError(f'Output model {self.output_mode} is not supported')
         out = self._convert_to_output(prediction, predict_data)
         return out
-
-    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
-        return self.predict(trained_operation, predict_data)
 
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():

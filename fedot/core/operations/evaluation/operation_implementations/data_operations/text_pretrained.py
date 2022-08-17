@@ -52,14 +52,6 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
                                               data_type=DataTypesEnum.table)
         return output_data
 
-    def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for transformation of the text data for fit stage
-
-        :param input_data: data with features, target and ids to process
-        :return output_data: output data with transformed features table
-        """
-        return self.transform(input_data)
-
     @staticmethod
     def vectorize_avg(text: str, embeddings):
         """ Method converts text to an average of token vectors
