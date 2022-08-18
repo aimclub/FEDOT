@@ -134,7 +134,7 @@ class GraphVisualiser:
                                                            [List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
                            dpi: int = 300, edges_curvature: float = 0.3,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(7, 7))
         fig.set_dpi(dpi)
         self.draw_nx_dag(graph, ax, nodes_color, edges_curvature, in_graph_converter_function)
         if not save_path:
@@ -150,8 +150,8 @@ class GraphVisualiser:
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 
         def get_scaled_node_size(nodes_amount):
-            min_size = 1000
-            max_size = 4000
+            min_size = 500
+            max_size = 5000
             size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
             return size
 
@@ -180,36 +180,37 @@ class GraphVisualiser:
         for u, v, e in nx_graph.edges(data=True):
             e['connectionstyle'] = connection_style
             p1, p2 = np.array(pos[u]), np.array(pos[v])
+            p = p2 - p1
+            segment_length = np.linalg.norm(p)
+            # Define the closest node to the edge
             min_distance = 1
             closest_node_id = None
             for node_id in nx_graph.nodes:
                 if node_id in (u, v):
                     continue
                 p3 = np.array(pos[node_id])
-                distance = abs(np.cross(p2 - p1, p1 - p3) / np.linalg.norm(p2 - p1))
-                if distance > 0.15:
+                if ((p3 - p1) @ p) < 0 or ((p3 - p2) @ -p) < 0:  # there's no perpendicular between edge and node
                     continue
-                min_x, max_x = min(p1[0], p2[0]), max(p1[0], p2[0])
-                min_y, max_y = min(p1[1], p2[1]), max(p1[1], p2[1])
-                if not (min_x <= p3[0] <= max_x and min_y <= p3[1] <= max_y):
-                    continue
-                if distance > min_distance:
+                distance = abs(np.cross(p, p3 - p1)) / segment_length
+                if distance > 0.15 or distance > min_distance:
                     continue
                 min_distance = distance
                 closest_node_id = node_id
 
             if closest_node_id is None:
                 continue
-            p3 = pos[closest_node_id]
-            curvature_factor = (1 / (min_distance + 1)) ** 2
+            p3 = np.array(pos[closest_node_id])
+            # Define curvature strength
+            curvature_strength = edges_curvature
+            # Define curvature direction
             if p1[1] == p2[1]:
-                curvature_sign = -1
+                curvature_direction = -1
             else:
                 k = np.divide(*(p1 - p2))
                 b = p1[1] - k * p1[0]
                 sign_pow = p3[1] > k * p3[0] + b
-                curvature_sign = (-1) ** sign_pow
-            e['connectionstyle'] = curved_connection_style.format(edges_curvature * curvature_factor * curvature_sign)
+                curvature_direction = (-1) ** sign_pow
+            e['connectionstyle'] = curved_connection_style.format(curvature_strength * curvature_direction)
         # Draw edges
         arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
         for u, v, e in nx_graph.edges(data=True):
@@ -232,8 +233,8 @@ class GraphVisualiser:
     @staticmethod
     def _draw_nx_labels(pos, node_labels, ax, max_sequence_length):
         def get_scaled_font_size(nodes_amount):
-            min_size = 6
-            max_size = 16
+            min_size = 2
+            max_size = 20
 
             size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
             return size
@@ -249,7 +250,7 @@ class GraphVisualiser:
 def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict[Any, Tuple[float, float]], int]:
     """By default, returns 'networkx.multipartite_layout' positions based on 'hierarchy_level` from node data - the
      property must be set beforehand.
-    If line of nodes reaches 'max_line_length', the result is the combination of 'networkx.shell_layout' and
+    If line of nodes reaches 'max_line_length', the result is the combination of 'networkx.multipartite_layout' and
     'networkx.spring_layout'.
     :param graph: the graph.
     :param max_line_length: the limit for common nodes horizontal or vertical line.
@@ -257,19 +258,18 @@ def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict
     longest_path = nx.dag_longest_path(graph, weight=None)
     longest_sequence = len(longest_path)
 
+    pos = nx.multipartite_layout(graph, subset_key='hierarchy_level')
+
+    y_level_nodes_count = {}
+    for x, _ in pos.values():
+        y_level_nodes_count[x] = y_level_nodes_count.get(x, 0) + 1
+        nodes_on_level = y_level_nodes_count[x]
+        if nodes_on_level > longest_sequence:
+            longest_sequence = nodes_on_level
+
     if longest_sequence > max_line_length:
-        layers = {}
-        for n, data in graph.nodes(data=True):
-            distance = data['hierarchy_level']
-            layers[distance] = layers.get(distance, []) + [n]
-        nlist = [layers[layer_num] for layer_num in sorted(layers.keys())]
-        pos = nx.shell_layout(graph, nlist=nlist)
-
-        pos = {n: np.array(x_y) + (np.random.random(2) - 0.5) * 0.01 for n, x_y in pos.items()}
-        pos = nx.spring_layout(graph, k=100, pos=pos, center=(0.5, 0.5), seed=42, scale=-1)
-
-    else:
-        pos = nx.multipartite_layout(graph, subset_key='hierarchy_level')
+        pos = {n: np.array(x_y) + (np.random.random(2) - 0.5) * 0.001 for n, x_y in pos.items()}
+        pos = nx.spring_layout(graph, k=2, iterations=5, pos=pos, seed=42)
 
     return pos, longest_sequence
 
