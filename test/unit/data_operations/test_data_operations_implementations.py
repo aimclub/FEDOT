@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pytest
 
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
@@ -591,48 +592,30 @@ def test_poly_features_on_big_datasets():
     n_rows, n_cols = transformed_features.predict.shape
     assert n_cols == 85
 
-
-def test_correctness_resample_operation_with_expand_minority():
-    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': None}
+@pytest.mark.parametrize(
+    'n_samples, target_dim, expected',
+    [(None, 1, (12, 2)), (None, 2, (12, 2)),
+     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
+     (1.5, 1, (15, 2)), (1.5, 2, (15, 2))]
+)
+def test_correctness_resample_operation_with_expand_minority(n_samples, target_dim, expected):
+    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': n_samples}
     resample = ResampleImplementation(**params)
 
-    data_1dim = get_unbalanced_dataset(target_dim=1)
-    data_2dim = get_unbalanced_dataset(target_dim=2)
+    data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (12, 2)
-    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (12, 2)
+    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
 
-    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': 0.5}
+@pytest.mark.parametrize(
+    'n_samples, target_dim, expected',
+    [(None, 1, (8, 2)), (None, 2, (8, 2)),
+     (0.5, 1, (6, 2)), (0.5, 2, (6, 2)),
+     (1.5, 1, (10, 2)), (1.5, 2, (10, 2))]
+)
+def test_correctness_resample_operation_with_reduce_majority(n_samples, target_dim, expected):
+    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': n_samples}
     resample = ResampleImplementation(**params)
 
-    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (9, 2)
-    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (9, 2)
+    data = get_unbalanced_dataset(target_dim=target_dim)
 
-    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': 1.5}
-    resample = ResampleImplementation(**params)
-
-    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (15, 2)
-    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (15, 2)
-
-
-def test_correctness_resample_operation_with_reduce_majority():
-    params = {'balance': 'reduce_majority', 'replace': True}
-    resample = ResampleImplementation(**params)
-
-    data_1dim = get_unbalanced_dataset(target_dim=1)
-    data_2dim = get_unbalanced_dataset(target_dim=2)
-
-    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (8, 2)
-    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (8, 2)
-
-    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': 0.5}
-    resample = ResampleImplementation(**params)
-
-    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (6, 2)
-    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (6, 2)
-
-    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': 1.5}
-    resample = ResampleImplementation(**params)
-
-    assert resample.transform(data_1dim, is_fit_pipeline_stage=True).predict.shape == (10, 2)
-    assert resample.transform(data_2dim, is_fit_pipeline_stage=True).predict.shape == (10, 2)
+    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
