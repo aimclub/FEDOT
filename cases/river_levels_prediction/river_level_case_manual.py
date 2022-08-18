@@ -11,6 +11,7 @@ from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
@@ -60,11 +61,10 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            objective = Objective(MAE.get_value)
-            data_producer = DataSourceSplitter().build(train_input)
-            objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-            pipeline_tuner = tuner(task=data.task, iterations=tuner_iterations, timeout=timedelta(seconds=30))
-            tuned_pipeline = pipeline_tuner.tune(current_pipeline, objective_evaluate)
+            pipeline_tuner = TunerBuilder(data.task).with_tuner(tuner).with_metric(MAE.get_value)\
+                .with_iterations(tuner_iterations).with_timeout(timedelta(seconds=30)) \
+                .build(train_input)
+            tuned_pipeline = pipeline_tuner.tune(current_pipeline)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

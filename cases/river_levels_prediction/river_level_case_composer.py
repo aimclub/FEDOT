@@ -12,6 +12,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -120,11 +121,9 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            objective = Objective(metric_function)
-            data_producer = DataSourceSplitter().build(train_input)
-            objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-            pipeline_tuner = tuner(task=data.task, iterations=100)
-            tuned_pipeline = pipeline_tuner.tune(obtained_pipeline, objective_evaluate)
+            pipeline_tuner = TunerBuilder(data.task).with_tuner(tuner).with_metric(metric_function).\
+                with_iterations(100).build(train_input)
+            tuned_pipeline = pipeline_tuner.tune(obtained_pipeline)
 
             preds_tuned = fit_predict_for_pipeline(pipeline=tuned_pipeline,
                                                    train_input=train_input,

@@ -4,7 +4,7 @@ from typing import Callable, ClassVar
 
 from hyperopt import fmin, space_eval, tpe
 
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
@@ -15,31 +15,33 @@ class PipelineTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes simultaneously
     """
 
-    def __init__(self, task,
+    def __init__(self, objective_evaluate: ObjectiveEvaluate,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest,
                  n_jobs: int = -1):
-        super().__init__(task=task,
+        super().__init__(objective_evaluate=objective_evaluate,
                          iterations=iterations, early_stopping_rounds=early_stopping_rounds,
                          timeout=timeout,
                          search_space=search_space,
                          algo=algo,
                          n_jobs=n_jobs)
 
-    def tune(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate,
-             show_progress: bool = True):
-        """ Function for hyperparameters tuning on the entire pipeline """
+    def tune(self, pipeline: Pipeline, show_progress: bool = True) -> Pipeline:
+        """ Function for hyperparameters tuning on the entire pipeline
 
+        :param pipeline: Pipeline which hyperparameters will be tuned
+        :param show_progress: shows progress of tuning if true
+        """
         parameters_dict = self._get_parameters_for_tune(pipeline)
 
         # Check source metrics for data
-        self.init_check(pipeline, objective_evaluate)
+        self.init_check(pipeline)
 
-        self.pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
+        pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
-        best = fmin(partial(self._objective, pipeline=pipeline, objective_evaluate=objective_evaluate),
+        best = fmin(partial(self._objective, pipeline=pipeline),
                     parameters_dict,
                     algo=self.algo,
                     max_evals=self.iterations,
@@ -53,7 +55,7 @@ class PipelineTuner(HyperoptTuner):
                                                parameters=best)
 
         # Validation is the optimization do well
-        final_pipeline = self.final_check(tuned_pipeline, objective_evaluate)
+        final_pipeline = self.final_check(tuned_pipeline)
 
         return final_pipeline
 
@@ -77,14 +79,13 @@ class PipelineTuner(HyperoptTuner):
 
         return parameters_dict
 
-    def _objective(self, parameters_dict: dict, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) \
+    def _objective(self, parameters_dict: dict, pipeline: Pipeline) \
             -> float:
         """
         Objective function for minimization / maximization problem
 
         :param parameters_dict: Dict which contains new hyperparameters of the pipeline
         :param pipeline: pipeline to optimize
-        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
 
         :return metric_value: value of objective function
         """
@@ -92,8 +93,7 @@ class PipelineTuner(HyperoptTuner):
         # Set hyperparameters for every node
         pipeline = self.set_arg_pipeline(pipeline=pipeline, parameters=parameters_dict)
 
-        metric_value = self.get_metric_value(pipeline=pipeline,
-                                             objective_evaluate=objective_evaluate)
+        metric_value = self.get_metric_value(pipeline=pipeline)
         return metric_value
 
     @staticmethod

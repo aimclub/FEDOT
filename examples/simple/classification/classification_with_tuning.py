@@ -6,6 +6,7 @@ from examples.simple.classification.classification_pipelines import classificati
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -119,11 +120,9 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            objective = Objective(ROCAUC.get_value)
-            data_producer = DataSourceSplitter().build(train_input)
-            objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-            pipeline_tuner = tuner(task=task, iterations=50)
-            tuned_pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
+            pipeline_tuner = TunerBuilder(task).with_tuner(tuner).with_metric(ROCAUC.get_value).with_iterations(50)\
+                .build(train_input)
+            tuned_pipeline = pipeline_tuner.tune(pipeline)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

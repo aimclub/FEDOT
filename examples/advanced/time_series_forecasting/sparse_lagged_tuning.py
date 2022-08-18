@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
 from fedot.core.composer.metrics import MAE
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -75,11 +76,10 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
     validation_blocks = 2
 
     start_time = timeit.default_timer()
-    objective = Objective(MAE.get_value)
-    data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(train_input)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
-    pipeline_tuner = PipelineTuner(task=task, iterations=20)
-    pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
+    pipeline_tuner = TunerBuilder(task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_cv_folds(cv_folds) \
+        .with_validation_blocks(validation_blocks).with_iterations(20) \
+        .build(train_input)
+    pipeline = pipeline_tuner.tune(pipeline)
     print(pipeline.print_structure())
     amount_of_seconds = timeit.default_timer() - start_time
     print(f'\nTuning pipline on {amount_of_seconds:.2f} seconds\n')

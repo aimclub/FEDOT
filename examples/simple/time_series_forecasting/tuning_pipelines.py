@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
@@ -71,12 +72,9 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
     plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
 
     if tuning:
-        objective = Objective(MSE.get_value)
-        data_producer = DataSourceSplitter().build(train_data)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-        tuner = PipelineTuner(task=train_data.task,
-                              iterations=100)
-        pipeline = tuner.tune(pipeline, objective_evaluate)
+        tuner = TunerBuilder(task).with_tuner(PipelineTuner).with_metric(MSE.get_value).with_iterations(100) \
+            .build(train_data)
+        pipeline = tuner.tune(pipeline)
 
         prediction_after = pipeline.predict(test_data)
         predict_after = np.ravel(np.array(prediction_after.predict))

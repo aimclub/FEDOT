@@ -11,6 +11,7 @@ from fedot.core.optimisers.objective import Objective, DataSourceSplitter, Pipel
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -100,13 +101,10 @@ def run_river_experiment(file_path, with_tuning=False):
     non_pipeline.fit(train_input)
 
     if with_tuning:
-        objective = Objective(MAE.get_value)
-        data_producer = DataSourceSplitter().build(train_input)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-        tuner = PipelineTuner(task=train_input.task,
-                              iterations=100)
-        r_pipeline = tuner.tune(r_pipeline, objective_evaluate)
-        non_pipeline = tuner.tune(non_pipeline, objective_evaluate)
+        tuner = TunerBuilder(task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_iterations(100)\
+            .build(train_input)
+        r_pipeline = tuner.tune(r_pipeline)
+        non_pipeline = tuner.tune(non_pipeline)
 
     # Predict
     predicted_values = r_pipeline.predict(predict_input)

@@ -7,6 +7,7 @@ from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 
 
@@ -38,12 +39,10 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
         print(f'current local iteration {iteration}')
 
         # Pipeline tuning
-        objective = Objective(ROCAUC.get_value)
-        data_producer = DataSourceSplitter().build(train_data)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-        tuner = PipelineTuner(task=train_data.task,
-                              iterations=tuner_iter_num)
-        tuned_pipeline = tuner.tune(pipeline, objective_evaluate)
+        tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(ROCAUC)\
+            .with_iterations(tuner_iter_num) \
+            .build(train_data)
+        tuned_pipeline = tuner.tune(pipeline)
 
         # After tuning prediction
         tuned_pipeline.fit(train_data)

@@ -18,6 +18,7 @@ from fedot.core.optimisers.objective.data_objective_advisor import DataObjective
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
@@ -87,13 +88,10 @@ def test_tuner_cv_classification_correct():
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
-    objective = Objective(ROCAUC.get_value)
-    data_producer = DataSourceSplitter(cv_folds=folds).build(dataset)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-    tuner = PipelineTuner(task=dataset.task,
-                          iterations=1,
-                          timeout=timedelta(minutes=1))
-    tuned = tuner.tune(simple_pipeline, objective_evaluate)
+    tuner = TunerBuilder(dataset.task).with_tuner(PipelineTuner).with_metric(ROCAUC.get_value).with_cv_folds(folds) \
+        .with_iterations(1) \
+        .with_timeout(timedelta(minutes=1)).build(dataset)
+    tuned = tuner.tune(simple_pipeline)
     assert tuned
 
 

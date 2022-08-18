@@ -11,6 +11,7 @@ from fedot.core.optimisers.objective import Objective, DataSourceSplitter, Pipel
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
@@ -112,16 +113,13 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     replace_default_search_space = True
     cv_folds = 3
     validation_blocks = 3
-
-    objective = Objective(RMSE.get_value)
-    data_producer = DataSourceSplitter(cv_folds, validation_blocks).build(train_input)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
-    pipeline_tuner = PipelineTuner(task=train_input.task,
-                                   iterations=10,
-                                   search_space=SearchSpace(custom_search_space=custom_search_space,
-                                                            replace_default_search_space=replace_default_search_space))
+    search_space = SearchSpace(custom_search_space=custom_search_space,
+                               replace_default_search_space=replace_default_search_space)
+    pipeline_tuner = TunerBuilder(train_input.task).with_tuner(PipelineTuner).with_metric(RMSE.get_value)\
+        .with_cv_folds(cv_folds).with_validation_blocks(validation_blocks).with_iterations(10)\
+        .with_search_space(search_space).build(train_input)
     # Tuning pipeline
-    pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
+    pipeline = pipeline_tuner.tune(pipeline)
     # Fit pipeline on the entire train data
     pipeline.fit_from_scratch(train_input)
     # Predict tuned pipeline

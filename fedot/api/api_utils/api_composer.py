@@ -22,6 +22,7 @@ from fedot.core.optimisers.objective import Objective, DataSourceSplitter, Pipel
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
@@ -264,14 +265,16 @@ class ApiComposer:
                 vb_number = composer_requirements.validation_blocks
                 folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
-                objective = Objective(metric_function)
-                data_producer = DataSourceSplitter(cv_folds=folds, validation_blocks=vb_number).build(train_data)
-                objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=vb_number)
-                tuner = PipelineTuner(task=task,
-                                      iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
-                                      timeout=datetime.timedelta(minutes=timeout_for_tuning),
-                                      n_jobs=n_jobs)
-                tuned_pipeline = tuner.tune(pipeline_gp_composed, objective_evaluate)
+                tuner = TunerBuilder(task)\
+                    .with_tuner(PipelineTuner)\
+                    .with_metric(metric_function)\
+                    .with_cv_folds(folds)\
+                    .with_validation_blocks(vb_number)\
+                    .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)\
+                    .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))\
+                    .with_n_jobs(n_jobs)\
+                    .build(train_data)
+                tuned_pipeline = tuner.tune(pipeline_gp_composed)
                 log.info('Hyperparameters tuning finished')
         return tuned_pipeline
 

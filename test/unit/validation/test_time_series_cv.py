@@ -9,6 +9,7 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
@@ -82,13 +83,10 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    objective = Objective(MAE.get_value)
-    data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
-    tuner = PipelineTuner(task=time_series.task,
-                          iterations=1,
-                          timeout=datetime.timedelta(minutes=1))
-    tuned = tuner.tune(simple_pipeline, objective_evaluate)
+    tuner = TunerBuilder(time_series.task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_cv_folds(folds) \
+        .with_validation_blocks(validation_blocks).with_iterations(1) \
+        .with_timeout(datetime.timedelta(minutes=1)).build(time_series)
+    tuned = tuner.tune(simple_pipeline)
     is_tune_succeeded = True
     assert is_tune_succeeded
 

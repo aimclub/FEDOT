@@ -18,6 +18,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -165,17 +166,11 @@ def run_pipeline_tuner(train_data,
                        algo=tpe.suggest,
                        iterations=1,
                        early_stopping_rounds=None):
-    objective = Objective(loss_function)
-    data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
-    pipeline_tuner = PipelineTuner(task=train_data.task,
-                                   iterations=iterations,
-                                   early_stopping_rounds=early_stopping_rounds,
-                                   search_space=search_space,
-                                   algo=algo)
-
-    _ = pipeline_tuner.tune(pipeline, objective_evaluate)
+    pipeline_tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(loss_function)\
+        .with_cv_folds(cv).with_iterations(iterations).with_early_stopping_rounds(early_stopping_rounds)\
+        .with_search_space(search_space).with_algo(algo).build(train_data)
+    _ = pipeline_tuner.tune(pipeline)
     return pipeline_tuner
 
 
@@ -187,17 +182,11 @@ def run_sequential_tuner(train_data,
                          algo=tpe.suggest,
                          iterations=1,
                          early_stopping_rounds=None):
-    objective = Objective(loss_function)
-    data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
-    sequential_tuner = SequentialTuner(task=train_data.task,
-                                       iterations=iterations,
-                                       early_stopping_rounds=early_stopping_rounds,
-                                       search_space=search_space,
-                                       algo=algo)
-    # Optimization will be performed on RMSE metric, so loss params are defined
-    _ = sequential_tuner.tune(pipeline, objective_evaluate)
+    sequential_tuner = TunerBuilder(train_data.task).with_tuner(SequentialTuner).with_metric(loss_function)\
+        .with_cv_folds(cv).with_iterations(iterations).with_early_stopping_rounds(early_stopping_rounds)\
+        .with_search_space(search_space).with_algo(algo).build(train_data)
+    _ = sequential_tuner.tune(pipeline)
     return sequential_tuner
 
 
@@ -210,16 +199,11 @@ def run_node_tuner(train_data,
                    algo=tpe.suggest,
                    iterations=1,
                    early_stopping_rounds=None):
-    objective = Objective(loss_function)
-    data_producer = DataSourceSplitter(cv_folds=cv).build(train_data)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
     # Pipeline tuning
-    node_tuner = SequentialTuner(task=train_data.task,
-                                 iterations=iterations,
-                                 early_stopping_rounds=early_stopping_rounds,
-                                 search_space=search_space,
-                                 algo=algo)
-    _ = node_tuner.tune_node(pipeline, node_index, objective_evaluate)
+    node_tuner = TunerBuilder(train_data.task).with_tuner(SequentialTuner).with_metric(loss_function)\
+        .with_cv_folds(cv).with_iterations(iterations).with_algo(algo).with_search_space(search_space)\
+        .with_early_stopping_rounds(early_stopping_rounds).build(train_data)
+    _ = node_tuner.tune_node(pipeline, node_index)
     return node_tuner
 
 
@@ -380,13 +364,10 @@ def test_ts_pipeline_with_stats_model(n_steps):
     ar_pipeline = Pipeline(PrimaryNode('ar'))
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
-        objective = Objective(MSE.get_value)
-        data_producer = DataSourceSplitter().build(train_data)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
         # Tune AR model
-        tuner_ar = PipelineTuner(task=train_data.task, iterations=3,
-                                 search_space=search_space, algo=rand.suggest)
-        tuned_ar_pipeline = tuner_ar.tune(ar_pipeline, objective_evaluate)
+        tuner_ar = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(MSE.get_value).with_iterations(3) \
+            .with_search_space(search_space).with_algo(rand.suggest).build(train_data)
+        tuned_ar_pipeline = tuner_ar.tune(ar_pipeline)
 
     is_tuning_finished = True
 
@@ -480,10 +461,7 @@ def test_complex_search_space_tuning_correct():
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
-    objective = Objective(MSE.get_value)
-    data_producer = DataSourceSplitter().build(train_data)
-    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-    tuner = PipelineTuner(task=train_data.task)
-    tuned_glm_pipeline = tuner.tune(glm_pipeline, objective_evaluate)
+    tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(MSE.get_value).build(train_data)
+    tuned_glm_pipeline = tuner.tune(glm_pipeline)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params

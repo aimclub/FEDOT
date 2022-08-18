@@ -8,7 +8,7 @@ import numpy as np
 from hyperopt.early_stop import no_progress_loss
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
@@ -25,13 +25,12 @@ class HyperoptTuner(ABC):
     :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
     """
 
-    def __init__(self, task,
+    def __init__(self, objective_evaluate: ObjectiveEvaluate,
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = None,
                  n_jobs: int = -1):
-        self.task = task
         self.iterations = iterations
         iteration_stop_count = early_stopping_rounds or max(100, int(np.sqrt(iterations) * 10))
         self.early_stop_fn = no_progress_loss(iteration_stop_count=iteration_stop_count)
@@ -39,7 +38,7 @@ class HyperoptTuner(ABC):
         self.init_pipeline = None
         self.init_metric = None
         self.obtained_metric = None
-        self.objective_evaluate = None
+        self.objective_evaluate = objective_evaluate
         self._default_metric_value = -MAX_METRIC_VALUE
         self.search_space = search_space
         self.algo = algo
@@ -48,57 +47,51 @@ class HyperoptTuner(ABC):
         self.log = default_log(self)
 
     @abstractmethod
-    def tune(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> Pipeline:
+    def tune(self, pipeline: Pipeline) -> Pipeline:
         """
         Function for hyperparameters tuning on the pipeline
 
         :param pipeline: Pipeline for which hyperparameters tuning is needed
-        :param objective_evaluate: PipelineObjectiveEvaluate to calculate metric function to minimize
 
         :return fitted_pipeline: graph with optimized hyperparameters
         """
         raise NotImplementedError()
 
-    def get_metric_value(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> float:
+    def get_metric_value(self, pipeline: Pipeline) -> float:
         """
         Method calculates metric for algorithm validation
 
         :param pipeline: Pipeline to evaluate
-        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
 
         :return: value of loss function
         # """
-        pipeline_fitness = objective_evaluate.evaluate(pipeline)
+        pipeline_fitness = self.objective_evaluate.evaluate(pipeline)
         metric_value = pipeline_fitness.value
         if not metric_value:
             return self._default_metric_value
         return metric_value
 
-    def init_check(self, pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate) -> None:
+    def init_check(self, pipeline: Pipeline) -> None:
         """
         Method get metric on validation set before start optimization
 
         :param pipeline: Pipeline to calculate objective
-        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
         """
         self.log.info('Hyperparameters optimization start')
 
         # Train pipeline
         self.init_pipeline = deepcopy(pipeline)
 
-        self.init_metric = self.get_metric_value(pipeline=self.init_pipeline,
-                                                 objective_evaluate=objective_evaluate)
+        self.init_metric = self.get_metric_value(pipeline=self.init_pipeline)
 
-    def final_check(self, tuned_pipeline: Pipeline, objective_evaluate: PipelineObjectiveEvaluate):
+    def final_check(self, tuned_pipeline: Pipeline):
         """
         Method propose final quality check after optimization process
 
         :param tuned_pipeline: Tuned pipeline to calculate objective
-        :param objective_evaluate: PipelineObjectiveEvaluate to evaluate the pipeline
         """
 
-        self.obtained_metric = self.get_metric_value(pipeline=tuned_pipeline,
-                                                     objective_evaluate=objective_evaluate)
+        self.obtained_metric = self.get_metric_value(pipeline=tuned_pipeline)
 
         if self.obtained_metric == self._default_metric_value:
             self.obtained_metric = None

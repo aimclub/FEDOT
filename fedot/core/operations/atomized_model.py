@@ -6,6 +6,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
@@ -51,17 +52,13 @@ class AtomizedModel(Operation):
                         output_mode: str = 'default'):
         return self.predict(fitted_operation, data, params, output_mode)
 
-    def fine_tune(self, loss_function: Callable,
+    def fine_tune(self, metric_function: Callable,
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
-        objective = Objective(loss_function)
-        data_producer = DataSourceSplitter().build(input_data)
-        objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-        tuner = PipelineTuner(task=input_data.task,
-                              iterations=iterations,
-                              timeout=timedelta(minutes=timeout))
-        tuned_pipeline = tuner.tune(self.pipeline, objective_evaluate)
+        tuner = TunerBuilder(input_data.task).with_tuner(PipelineTuner).with_metric(metric_function)\
+            .with_iterations(iterations).with_timeout(timedelta(minutes=timeout)).build(input_data)
+        tuned_pipeline = tuner.tune(self.pipeline)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)
         return tuned_atomized_model
 
