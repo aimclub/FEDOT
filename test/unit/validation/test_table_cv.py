@@ -23,8 +23,6 @@ from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, DataSourceSplitter
 from fedot.core.validation.split import tabular_cv_generator
 from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset

@@ -1,4 +1,3 @@
-import sys
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from datetime import timedelta
@@ -8,11 +7,11 @@ import numpy as np
 from hyperopt.early_stop import no_progress_loss
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate, ObjectiveEvaluate
+from fedot.core.optimisers.objective import ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 
-MAX_METRIC_VALUE = sys.maxsize
+MAX_METRIC_VALUE = np.inf
 
 
 class HyperoptTuner(ABC):

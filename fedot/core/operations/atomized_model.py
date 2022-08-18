@@ -4,7 +4,6 @@ from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner

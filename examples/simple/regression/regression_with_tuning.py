@@ -7,8 +7,8 @@ from sklearn.model_selection import train_test_split
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
 from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import regression_dataset
@@ -100,11 +100,9 @@ def run_experiment(pipeline, tuner):
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            objective = Objective(MAE.get_value)
-            data_producer = DataSourceSplitter().build(train_input)
-            objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer)
-            pipeline_tuner = tuner(task=task, iterations=50, timeout=timedelta(seconds=50))
-            tuned_pipeline = pipeline_tuner.tune(pipeline, objective_evaluate)
+            pipeline_tuner = TunerBuilder(task).with_tuner(tuner).with_metric(MAE.get_value).with_iterations(50) \
+                .with_timeout(timedelta(seconds=50)).build(train_input)
+            tuned_pipeline = pipeline_tuner.tune(pipeline)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

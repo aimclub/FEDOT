@@ -10,7 +10,6 @@ from examples.simple.classification.classification_pipelines import classificati
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum

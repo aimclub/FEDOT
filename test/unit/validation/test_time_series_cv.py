@@ -7,7 +7,6 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.metrics import MAE
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner

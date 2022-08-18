@@ -1,20 +1,19 @@
 import os
 import timeit
 import warnings
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.metrics import mean_absolute_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
 from fedot.core.composer.metrics import MAE
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
-from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from sklearn.metrics import mean_absolute_error
-
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')

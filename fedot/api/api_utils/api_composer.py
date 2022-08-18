@@ -18,7 +18,6 @@ from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, G
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
@@ -232,7 +231,7 @@ class ApiComposer:
         if with_tuning:
             timeout_for_tuning = self.timer.determine_resources_for_tuning()
             self.tune_final_pipeline(task, train_data,
-                                     metric_function,
+                                     metric_function[0],
                                      composer_requirements,
                                      best_pipeline,
                                      timeout_for_tuning,

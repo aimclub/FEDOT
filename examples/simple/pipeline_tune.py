@@ -5,7 +5,6 @@ from cases.data.data_utils import get_scoring_case_data_paths
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
