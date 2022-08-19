@@ -344,7 +344,7 @@ class DataPreprocessor:
         :param data: data for fill in the gaps
         """
         imputer = self.features_imputers.get(source_name)
-        if imputer is None:
+        if not imputer:
             imputer = ImputationImplementation()
             output_data = imputer.fit_transform(data)
             self.features_imputers[source_name] = imputer
@@ -367,6 +367,7 @@ class DataPreprocessor:
             encoder.fit(data)
             self.features_encoders[source_name] = encoder
         output_data = encoder.transform(data, True)
+
         output_data.predict = output_data.predict.astype(float)
         data.features = output_data.predict
         data.supplementary_data = output_data.supplementary_data

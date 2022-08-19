@@ -73,17 +73,16 @@ class Pipeline(Graph, Serializable):
         :param input_data: data used for operation training
         """
         # Clean all saved states and fit all operations
-        self.unfit(unfit_preprocessor=True)
-        self.fit(input_data, use_fitted=False)
+        self.unfit()
+        self.fit(input_data)
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations: bool = False,
+    def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
                              time: int = 3) -> OutputData:
         """
         Runs training process in all of the pipeline nodes starting with root with time limit.
             Create TODO: unresolved sentence
 
         :param input_data: data used for operations training
-        :param use_fitted_operations: flag defining whether to use saved information about previous executions or not
         :param time: time constraint for operations fitting process (in seconds)
 
         :return: values predicted on the provided ``input_data``
@@ -94,7 +93,7 @@ class Pipeline(Graph, Serializable):
         try:
             func_timeout.func_timeout(
                 time, self._fit,
-                args=(input_data, use_fitted_operations, process_state_dict, fitted_operations)
+                args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
@@ -104,13 +103,12 @@ class Pipeline(Graph, Serializable):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: Optional[InputData] = None, use_fitted_operations: bool = False,
+    def _fit(self, input_data: Optional[InputData] = None,
              process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
         """
         Runs training process in all of the pipeline nodes starting with root
 
         :param input_data: data used for operation training
-        :param use_fitted_operations: flag defining whether to use saved information about previous executions or not
         :param process_state_dict: dictionary used for saving required pipeline parameters
             (which were changed inside the process) in case of operations fit time control (when process created)
         :param fitted_operations: list used for saving fitted operations of pipeline nodes
@@ -120,7 +118,7 @@ class Pipeline(Graph, Serializable):
 
         with Timer() as t:
             computation_time_update = (
-                    not use_fitted_operations or not self.root_node.fitted_operation or self.computation_time is None
+                    not self.root_node.fitted_operation or self.computation_time is None
             )
             train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
@@ -134,14 +132,12 @@ class Pipeline(Graph, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted: bool = False,
-            time_constraint: Optional[timedelta] = None, n_jobs: int = 1,
-            preprocessing_cache: Optional[PreprocessingCache] = None) -> OutputData:
+    def fit(self, input_data: Union[InputData, MultiModalData],
+            time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
         """
         Runs training process in all of the pipeline nodes starting with root
 
         :param input_data: data used for operations training
-        :param use_fitted: flag defining whether to use saved information about previous fits or not
         :param time_constraint: time constraint for operations fitting (in seconds)
         :param n_jobs: number of threads for nodes fitting
 
@@ -149,30 +145,19 @@ class Pipeline(Graph, Serializable):
         """
         _replace_n_jobs_in_nodes(self, n_jobs)
 
-        if use_fitted:
-            self.unfit(mode='data_operations', unfit_preprocessor=False)
-        else:
-            self.unfit(mode='all', unfit_preprocessor=True)
-        with PreprocessingCache.manage(preprocessing_cache, self, input_data):
-            # Make copy of the input data to avoid performing inplace operations
-            copied_input_data = deepcopy(input_data)
-            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-            # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                           data=copied_input_data)
-
-            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                          data=copied_input_data)
-
+        copied_input_data = deepcopy(input_data)
+        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+        # Make additional preprocessing if it is needed
+        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                       data=copied_input_data)
+        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                      data=copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data,
-                                        use_fitted_operations=use_fitted)
+            train_predicted = self._fit(input_data=copied_input_data)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data,
-                                                        use_fitted_operations=use_fitted,
-                                                        time=time_constraint)
+            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
         return train_predicted
 
     @property
@@ -197,19 +182,25 @@ class Pipeline(Graph, Serializable):
                 node.unfit()
 
         if unfit_preprocessor:
-            self.preprocessor = DataPreprocessor()
+            self.unfit_preprocessor()
 
-    def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
+    def unfit_preprocessor(self):
+        self.preprocessor = DataPreprocessor()
+
+    def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
+                            fold_id: Optional[int] = None):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 
         :param cache: pipeline nodes cacher
-        :param fold_num: optional part of the cache item UID
+        :param preprocessing_cache: preprocessing cacher
+        :param fold_id: optional part of the cache item UID
                             (can be used to specify the number of CV fold)
-
-        :return: bool indicating if at least one node was loaded
         """
-        return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
+        if cache is not None:
+            cache.try_load_into_pipeline(self, fold_id)
+        if preprocessing_cache is not None:
+            preprocessing_cache.try_load_preprocessor(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
         """

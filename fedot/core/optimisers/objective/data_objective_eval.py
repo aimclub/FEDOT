@@ -10,6 +10,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.preprocessing.preprocessing import DataPreprocessor
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -68,7 +69,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             else:
                 self._log.warning(f'Continuing after objective evaluation error for graph: {graph_id}')
                 continue
-
+            graph.unfit_preprocessor()
         if folds_metrics:
             folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
@@ -83,30 +84,38 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param train_data: InputData for training pipeline
         :param fold_id: Id of the fold in cross-validation, used for cache requests.
         """
+        # load preprocessing
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
-            use_fitted=graph.fit_from_cache(self._pipelines_cache, fold_id),
-            time_constraint=self._time_constraint,
-            preprocessing_cache=self._preprocessing_cache
+
+            time_constraint=self._time_constraint
         )
+
         if self._pipelines_cache is not None:
             self._pipelines_cache.save_pipeline(graph, fold_id)
+            self._preprocessing_cache.add_preprocessor(graph, fold_id)
+
         return graph
 
     def evaluate_intermediate_metrics(self, graph: Pipeline):
-        """Evaluate intermediate metrics without any pipeline fit."""
-        # Get the last fold on which pipeline was trained to avoid retraining
+        """Evaluate intermediate metrics"""
+        # Get the last fold
         last_fold = None
-        for last_fold in self._data_producer():
+        fold_id = None
+        for fold_id, last_fold in enumerate(self._data_producer()):
             pass
         # And so test only on the last fold
-        test_data = last_fold[1]
-
+        train_data, test_data = last_fold
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         for node in graph.nodes:
             if not isinstance(node.operation, Model):
                 continue
             intermediate_graph = Pipeline(node)
-            intermediate_graph.preprocessor = graph.preprocessor
+            intermediate_graph.fit(
+                train_data,
+                time_constraint=self._time_constraint
+            )
             intermediate_fitness = self._objective(intermediate_graph,
                                                    reference_data=test_data,
                                                    validation_blocks=self._validation_blocks)

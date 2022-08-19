@@ -116,7 +116,7 @@ class MultiTimesAnalyze:
         self.pipeline.show(save_path=image_path)
 
     def get_metric(self):
-        self.pipeline.fit(self.train_data, use_fitted=False)
+        self.pipeline.fit(self.train_data)
         metric = MetricByTask(self.valid_data.task.task_type)
         predicted = self.pipeline.predict(self.valid_data)
         metric_value = metric.get_value(true=self.valid_data,

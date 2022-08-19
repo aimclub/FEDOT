@@ -130,7 +130,7 @@ def test_pipeline_sequential_fit_correct(data_setup):
     for node in [first, second, third, final]:
         pipeline.add_node(node)
 
-    train_predicted = pipeline.fit(input_data=train, use_fitted=False)
+    train_predicted = pipeline.fit(input_data=train)
 
     assert pipeline.root_node.descriptive_id == (
         '(((/n_logit_default_params;)/'
