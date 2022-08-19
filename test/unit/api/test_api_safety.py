@@ -112,6 +112,8 @@ def test_api_fit_predict_with_pseudo_large_dataset_with_onehot_correct():
     model.data_analyser.max_size = 1000
     data = get_small_cat_data()
     model.fit(features=data, predefined_model='auto')
+
     model.predict(features=data)
     # there should be all light models + data operations
     assert 'logit' in model.params.api_params['available_operations']
+

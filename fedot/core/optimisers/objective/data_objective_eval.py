@@ -99,7 +99,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         return graph
 
     def evaluate_intermediate_metrics(self, graph: Pipeline):
-        """Evaluate intermediate metrics without any pipeline fit."""
+        """Evaluate intermediate metrics"""
         # Get the last fold on which pipeline was trained to avoid retraining
         last_fold = None
         fold_id = None

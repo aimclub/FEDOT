@@ -2,6 +2,8 @@ from copy import copy
 from typing import Optional, Dict, Any
 
 import numpy as np
+import sklearn
+from pkg_resources import parse_version
 
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.pipeline import make_pipeline
@@ -106,10 +108,16 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
 
         if not params:
             # Default parameters
-            self.operation = RANSACRegressor(estimator=self.inner_model)
+            # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+                self.operation = RANSACRegressor(base_estimator=self.inner_model)
+            else:
+                self.operation = RANSACRegressor(estimator=self.inner_model)
         else:
-            self.operation = RANSACRegressor(estimator=self.inner_model,
-                                             **params)
+            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params)
+            else:
+                self.operation = RANSACRegressor(estimator=self.inner_model, **params)
         self.params = params
 
 
@@ -124,10 +132,16 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
         self.inner_model = DecisionTreeRegressor()
         if not params:
             # Default parameters
-            self.operation = RANSACRegressor(estimator=self.inner_model)
+            # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+                self.operation = RANSACRegressor(base_estimator=self.inner_model)
+            else:
+                self.operation = RANSACRegressor(estimator=self.inner_model)
         else:
-            self.operation = RANSACRegressor(estimator=self.inner_model,
-                                             **params)
+            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params)
+            else:
+                self.operation = RANSACRegressor(estimator=self.inner_model, **params)
         self.params = params
 
 

@@ -48,8 +48,6 @@ class OperationsCache(BaseCache):
         :param nodes: nodes which fitted state should be loaded from cache
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
-
-        :return cache_was_used: bool indicating if at least one item was loaded
         """
         try:
             nodes_lst = ensure_wrapped_in_sequence(nodes)
@@ -66,10 +64,7 @@ class OperationsCache(BaseCache):
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
         :param pipeline: pipeline for loading into from cache
-        :param fold_id: optional part of cache item UID
-                            (number of the CV fold)
-
-        :return: bool indicating if at least one item was loaded
+        :param fold_id: optional part of cache item UID (number of the CV fold)
         """
         self.try_load_nodes(pipeline.nodes, fold_id)
 
