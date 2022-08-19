@@ -106,7 +106,7 @@ class Pipeline(Graph, Serializable):
     def _fit(self, input_data: Optional[InputData] = None,
              process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
         """
-        Runs training process in all of the pipeline nodes starting with root
+        Runs training process in all the pipeline nodes starting with root
 
         :param input_data: data used for operation training
         :param process_state_dict: dictionary used for saving required pipeline parameters

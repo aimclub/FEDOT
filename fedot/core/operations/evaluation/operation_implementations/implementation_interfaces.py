@@ -34,7 +34,9 @@ class DataOperationImplementation(ABC):
         raise NotImplementedError()
 
     def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method apply transform operation on a dataset for fit stage
+        """ Method apply transform operation on a dataset for fit stage.
+        Allows to implement transform method different from main transform method
+        if another behaviour for fit graph stage is needed.
 
         :param input_data: data with features, target and ids to process
         """
@@ -200,7 +202,9 @@ class ModelImplementation(ABC):
         raise NotImplementedError()
 
     def predict_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method make prediction while pipeline fitting
+        """ Method make prediction while graph fitting.
+        Allows to implement predict method different from main predict method
+        if another behaviour for fit graph stage is needed.
 
         :param input_data: data with features, target and ids to process
         """

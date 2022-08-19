@@ -78,6 +78,9 @@ class EvaluationStrategy:
     def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
         """
         Method to predict the target data for fit stage.
+        Allows to implement predict method different from main predict method
+        if another behaviour for fit graph stage is needed.
+
         :param trained_operation: trained operation object
         :param InputData predict_data: data to predict
         :return OutputData: passed data with new predicted target
