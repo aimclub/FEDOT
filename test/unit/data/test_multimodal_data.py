@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
+from fedot.api.main import Fedot
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -116,3 +117,22 @@ def test_table_data_only():
     assert file_mm_data['data_source_table'].data_type is DataTypesEnum.table
     assert file_mm_data['data_source_table'].features.all() == file_data.features.all()
     assert file_mm_data['data_source_table'].target.all() == file_data.target.all()
+
+
+def test_multimodal_data_with_complicated_types():
+    """
+    For more detailed description of the table part
+    of dataset look at data_with_complicated_types.
+    Combines complicated table data with some text columns.
+    """
+    # TODO check file content
+    file_path = 'test/data/multimodal_data_with_complicated_types.csv'
+    path = Path(fedot_project_root(), file_path)
+    df = pd.read_csv(path)
+    file_mm_data = MultiModalData.from_csv(path)
+    model = Fedot(problem='classification')
+    model.fit(features=file_mm_data,
+              target=file_mm_data.target,
+              predefined_model='auto')
+    model.predict(file_mm_data)
+    assert len(file_mm_data) == 3

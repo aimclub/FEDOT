@@ -205,7 +205,8 @@ def _column_contains_text(column: pd.Series) -> bool:
     :return: True if column contains text
     """
     if column.dtype == object and not _is_float_compatible(column):
-        return len(column.unique()) / len(column) > 0.95
+        return len(column.unique()) / len(column) > 0.95 if pd.isna(column).sum() == 0 \
+            else (len(column.unique()) - 1) / (len(column) - pd.isna(column).sum()) > 0.95
     return False
 
 
@@ -214,11 +215,13 @@ def _is_float_compatible(column: pd.Series) -> bool:
     :param column: pandas series with data
     :return: True if column contains only float or nan values
     """
-    try:
-        column.astype(float)
-        return True
-    except ValueError:
-        return False
+    nans_number = column.isna().sum()
+    converted_column = pd.to_numeric(column, errors='coerce')
+    result_nans_number = converted_column.isna().sum()
+    failed_objects_number = result_nans_number - nans_number
+    non_nan_all_objects_number = len(column) - nans_number
+    failed_ratio = failed_objects_number / non_nan_all_objects_number
+    return failed_ratio < 0.5
 
 
 def _prepare_multimodal_text_data(dataframe: pd.DataFrame, text_columns: List[str]) -> dict:

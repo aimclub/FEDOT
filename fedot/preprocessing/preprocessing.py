@@ -10,7 +10,8 @@ from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
     find_categorical_columns,
-    replace_inf_with_nans
+    replace_inf_with_nans,
+    replace_nans_with_empty_strings
 )
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -190,12 +191,13 @@ class DataPreprocessor:
         if data_type_is_text(data) or data_type_is_table(data):
             # Fix tables / time series sizes
             data = self._correct_shapes(data)
-            if data_type_is_table(data):
-                replace_inf_with_nans(data)
-                # Find incorrect features which must be removed
-                self._find_features_full_of_nans(data, source_name)
-                self.take_only_correct_features(data, source_name)
-
+            replace_inf_with_nans(data)
+            # Find incorrect features which must be removed
+            self._find_features_full_of_nans(data, source_name)
+            self.take_only_correct_features(data, source_name)
+            # TODO andreygetmanov to new class text preprocessing?
+            if data_type_is_text(data):
+                replace_nans_with_empty_strings(data)
             data = self._drop_rows_with_nan_in_target(data)
 
             # Column types processing - launch after correct features selection
@@ -211,9 +213,10 @@ class DataPreprocessor:
             # Wrap indices in numpy array
             data.idx = np.array(data.idx)
 
-            # Process binary categorical features
-            self.binary_categorical_processors[source_name].fit(data)
-            data = self.binary_categorical_processors[source_name].transform(data)
+            if data_type_is_table(data):
+                # Process binary categorical features
+                self.binary_categorical_processors[source_name].fit(data)
+                data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
 
@@ -228,15 +231,15 @@ class DataPreprocessor:
         # Wrap indices in numpy array
         data.idx = np.array(data.idx)
         if data_type_is_table(data) or data_type_is_text(data):
-            if data_type_is_table(data):
-                replace_inf_with_nans(data)
-                self.take_only_correct_features(data, source_name)
-
+            replace_inf_with_nans(data)
+            self.take_only_correct_features(data, source_name)
+            if data_type_is_text(data):
+                replace_nans_with_empty_strings(data)
             # Perform preprocessing for types - launch after correct features selection
             self.types_correctors[source_name].convert_data_for_predict(data)
             if data_type_is_table(data):
                 data = self._clean_extra_spaces(data)
-            data = self.binary_categorical_processors[source_name].transform(data)
+                data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
 

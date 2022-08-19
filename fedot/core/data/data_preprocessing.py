@@ -20,6 +20,15 @@ def replace_inf_with_nans(input_data: InputData):
     input_data.features = features_with_replaced_inf
 
 
+def replace_nans_with_empty_strings(input_data: InputData):
+    """
+    Replace NaNs with empty strings in input_data.features
+    """
+    input_data.features = np.where(pd.isna(input_data.features),
+                                   '',
+                                   input_data.features)
+
+
 def convert_into_column(array: np.array):
     """ Perform conversion for data if it is necessary """
     if len(array.shape) == 1:
