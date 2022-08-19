@@ -125,7 +125,8 @@ class OptHistory:
 
     def show(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box,
              save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-             pct_best: Optional[float] = None, show_fitness: bool = True, per_time: bool = True):
+             pct_best: Optional[float] = None, show_fitness: bool = True, per_time: bool = True,
+             use_repos_tags: bool = True):
         """ Visualizes fitness values or operations used across generations.
 
         :param plot_type: visualization to show. Expected values are listed in
@@ -138,6 +139,9 @@ class OptHistory:
         :param show_fitness: if False, visualizations that support this parameter will not display fitness.
         :param per_time: Shows time axis instead of generations axis. Currently, supported for plot types:
             'show_fitness_line', 'show_fitness_line_interactive'.
+        :param use_repos_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
+            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
+            independently.
         """
 
         def check_args_constraints():
@@ -175,13 +179,13 @@ class OptHistory:
         if plot_type is PlotTypesEnum.fitness_line:
             viz.visualize_fitness_line(self, per_time, save_path, dpi)
         elif plot_type is PlotTypesEnum.fitness_line_interactive:
-            viz.visualize_fitness_line_interactive(self, per_time, save_path, dpi)
+            viz.visualize_fitness_line_interactive(self, per_time, save_path, dpi, color_as_pipelines=use_repos_tags)
         elif plot_type is PlotTypesEnum.fitness_box:
             viz.visualise_fitness_box(self, save_path, dpi, pct_best)
         elif plot_type is PlotTypesEnum.operations_kde:
-            viz.visualize_operations_kde(self, save_path, dpi, pct_best)
+            viz.visualize_operations_kde(self, save_path, dpi, pct_best, use_repos_tags)
         elif plot_type is PlotTypesEnum.operations_animated_bar:
-            viz.visualize_operations_animated_bar(self, save_path, dpi, pct_best, show_fitness)
+            viz.visualize_operations_animated_bar(self, save_path, dpi, pct_best, show_fitness, use_repos_tags)
         else:
             raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 

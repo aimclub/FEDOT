@@ -18,6 +18,7 @@ from matplotlib import animation, cm, pyplot as plt, ticker
 from matplotlib.colors import Normalize
 from matplotlib.widgets import Button
 
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -446,7 +447,8 @@ class PipelineEvolutionVisualiser:
 
     @with_alternate_matplotlib_backend
     def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
-                                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
+                                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
+                                           color_as_pipelines: bool = True):
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
 
@@ -478,7 +480,10 @@ class PipelineEvolutionVisualiser:
 
             def generate_graph_images(self):
                 for ind in self.best_individuals:
-                    ind.graph.show(self.temp_path)
+                    graph = ind.graph
+                    if color_as_pipelines:
+                        graph = PipelineAdapter().restore(ind.graph)
+                    graph.show(self.temp_path)
                     self.graph_images.append(plt.imread(str(self.temp_path)))
 
             def update_graph(self):
@@ -602,7 +607,7 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                                 dpi: int = 300, pct_best: Optional[float] = None,
+                                 dpi: int = 300, pct_best: Optional[float] = None, use_tags: bool = True,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
@@ -612,6 +617,9 @@ class PipelineEvolutionVisualiser:
         :param dpi: DPI of the output figure.
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
+            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
+            independently.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
@@ -624,28 +632,33 @@ class PipelineEvolutionVisualiser:
         tags_all = [*tags_model, *tags_data]
 
         generation_column_name = 'Generation'
-        tag_column_name = 'Operation'
+        operation_column_name = 'Operation'
+        column_for_operation = 'tag' if use_tags else 'node'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
-        df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
-        tags_found = df_history[tag_column_name].unique()
-        tags_found = [t for t in tags_all if t in tags_found]
-        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
-
-        palette = get_palette_based_on_default_tags()
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best, use_tags)
+        df_history = df_history.rename({'generation': generation_column_name,
+                                        column_for_operation: operation_column_name}, axis='columns')
+        operations_found = df_history[operation_column_name].unique()
+        if use_tags:
+            operations_found = [t for t in tags_all if t in operations_found]
+            nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
+            legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in operations_found]
+            palette = get_palette_based_on_default_tags()
+        else:
+            legend = operations_found
+            palette = sns.color_palette('tab10', n_colors=len(operations_found))
 
         plot = sns.displot(
             data=df_history,
             x=generation_column_name,
-            hue=tag_column_name,
-            hue_order=tags_found,
+            hue=operation_column_name,
+            hue_order=operations_found,
             kind='kde',
             clip=(0, max(df_history[generation_column_name])),
             multiple='fill',
             palette=palette
         )
 
-        legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in tags_found]
         for text, new_text in zip(plot.legend.texts, legend):
             text.set_text(new_text)
 
@@ -660,7 +673,8 @@ class PipelineEvolutionVisualiser:
 
     def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
                                           dpi: int = 300, pct_best: Optional[float] = None,
-                                          show_fitness_color: bool = True, tags_model: Optional[List[str]] = None,
+                                          show_fitness_color: bool = True, use_tags: bool = True,
+                                          tags_model: Optional[List[str]] = None,
                                           tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of animated bar plot.
 
@@ -670,6 +684,9 @@ class PipelineEvolutionVisualiser:
         :param pct_best: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         :param show_fitness_color: if False, the bar colors will not correspond to fitness.
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
+            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
+            independently.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
@@ -710,7 +727,6 @@ class PipelineEvolutionVisualiser:
         animation_interval_between_frames_ms = 40
         animation_interpolation_power = 4
         fitness_colormap = cm.get_cmap('YlOrRd')
-        no_fitness_palette = 'crest'
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
@@ -719,21 +735,30 @@ class PipelineEvolutionVisualiser:
 
         generation_column_name = 'Generation'
         fitness_column_name = 'Fitness'
-        tag_column_name = 'Operation'
+        operation_column_name = 'Operation'
+        column_for_operation = 'tag' if use_tags else 'node'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best, use_tags)
         df_history = df_history.rename({
             'generation': generation_column_name,
             'fitness': fitness_column_name,
-            'tag': tag_column_name,
+            column_for_operation: operation_column_name,
         }, axis='columns')
-        tags_found = df_history[tag_column_name].unique()
-        tags_found = [tag for tag in tags_all if tag in tags_found]
-        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
+        operations_found = df_history[operation_column_name].unique()
+        if use_tags:
+            operations_found = [tag for tag in tags_all if tag in operations_found]
+            nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
+            bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in operations_found]
+            no_fitness_palette = get_palette_based_on_default_tags()
+        else:
+            bars_labels = operations_found
+            no_fitness_palette = sns.color_palette('tab10', n_colors=len(operations_found))
+            no_fitness_palette = {o: no_fitness_palette[i] for i, o in enumerate(operations_found)}
+
         # Getting normed fraction of individuals  per generation that contain operations given.
         generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
         operations_with_individuals_count = df_history.groupby(
-            [generation_column_name, tag_column_name],
+            [generation_column_name, operation_column_name],
             as_index=False
         ).aggregate({'individual': 'nunique'})
         operations_with_individuals_count['individual'] = operations_with_individuals_count.apply(
@@ -750,18 +775,18 @@ class PipelineEvolutionVisualiser:
                     df_history[
                         (df_history[generation_column_name] == row[generation_column_name]) &
                         (df_history['individual'] == row['individual'])
-                        ][tag_column_name])),
+                        ][operation_column_name])),
                 axis='columns')
             # Getting mean fitness of individuals with the operations given.
             operations_with_individuals_count[fitness_column_name] = operations_with_individuals_count.apply(
                 lambda row: individuals_fitness[
                     (individuals_fitness[generation_column_name] == row[generation_column_name]) &
-                    (individuals_fitness['operations'].str.contains(f'.{row[tag_column_name]}.'))
+                    (individuals_fitness['operations'].str.contains(f'.{row[operation_column_name]}.'))
                     ][fitness_column_name].mean(),
                 axis='columns')
             del individuals_fitness
         # Replacing the initial DataFrame with the processed one
-        df_history = operations_with_individuals_count.set_index([generation_column_name, tag_column_name])
+        df_history = operations_with_individuals_count.set_index([generation_column_name, operation_column_name])
         del operations_with_individuals_count
 
         min_fitness = df_history[fitness_column_name].min() if show_fitness_color else None
@@ -772,10 +797,10 @@ class PipelineEvolutionVisualiser:
         bar_color = []
         # Getting data by tags through all generations and filling with zeroes where no such tag
         for gen_num in generations:
-            bar_data.append([df_history.loc[gen_num]['individual'].get(tag, 0) for tag in tags_found])
+            bar_data.append([df_history.loc[gen_num]['individual'].get(tag, 0) for tag in operations_found])
             if not show_fitness_color:
                 continue
-            fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
+            fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in operations_found]
             # Transfer fitness to color
             bar_color.append([
                 fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
@@ -792,14 +817,11 @@ class PipelineEvolutionVisualiser:
             sm = cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap)
             sm.set_array([])
             fig.colorbar(sm, label=fitness_column_name)
-        else:
-            no_fitness_palette = get_palette_based_on_default_tags()
 
         count = bar_data[0]
-        color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in tags_found]
+        color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in operations_found]
         title = bar_title[0]
 
-        bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in tags_found]
         label_size = 10
         if any(len(label.split('\n')) > 2 for label in bars_labels):
             label_size = 8
@@ -810,7 +832,7 @@ class PipelineEvolutionVisualiser:
         ax.set_xlim(0, 1)
         ax.set_xlabel(f'Fraction of pipelines containing the operation')
         ax.xaxis.grid(True)
-        ax.set_ylabel(tag_column_name)
+        ax.set_ylabel(operation_column_name)
         ax.invert_yaxis()
         plt.tight_layout()
 
