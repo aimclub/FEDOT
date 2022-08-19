@@ -20,6 +20,7 @@ from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
@@ -29,28 +30,28 @@ np.random.seed(1)
 @pytest.fixture(scope='package')
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../../data', 'simple_regression_train.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/simple_regression_train.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../../data', 'simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def tiny_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../../data', 'tiny_simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/tiny_simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def multi_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../../data', 'multiclass_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/multiclass_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
