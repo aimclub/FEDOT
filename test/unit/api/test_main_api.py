@@ -9,7 +9,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
 from cases.metocean_forecasting_problem import prepare_input_data
-from examples.advanced.multi_modal_pipeline import prepare_multi_modal_data
 from fedot.api.api_utils.api_composer import _divide_parameters
 from fedot.api.api_utils.api_data import ApiDataProcessor
 from fedot.api.main import Fedot

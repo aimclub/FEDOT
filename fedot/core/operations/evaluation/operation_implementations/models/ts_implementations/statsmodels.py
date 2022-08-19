@@ -82,7 +82,7 @@ class GLMImplementation(ModelImplementation):
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
-        if forecast_length == 1 :
+        if forecast_length == 1:
             predictions = self.model.predict(np.concatenate([np.array([1]),
                                                              input_data.idx.astype("float64")]).reshape(-1, 2))
         else:

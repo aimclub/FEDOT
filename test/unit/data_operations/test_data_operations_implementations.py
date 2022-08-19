@@ -604,7 +604,7 @@ def test_correctness_resample_operation_with_expand_minority(n_samples, target_d
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
+    assert resample.transform_for_fit(data).predict.shape == expected
 
 @pytest.mark.parametrize(
     'n_samples, target_dim, expected',
@@ -618,4 +618,4 @@ def test_correctness_resample_operation_with_reduce_majority(n_samples, target_d
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
+    assert resample.transform_for_fit(data).predict.shape == expected
