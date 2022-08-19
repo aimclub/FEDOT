@@ -31,7 +31,7 @@ class GraphVisualiser:
             raise ValueError('Empty graph can not be visualized.')
         # Define colors
         if not nodes_color:
-            if type(graph).__name__ in ('Pipeline', 'OptGraph'):
+            if type(graph).__name__ == 'Pipeline':
                 nodes_color = self.__get_colors_by_tags
             else:
                 nodes_color = self.__get_colors_by_labels
