@@ -25,22 +25,24 @@ class GraphVisualiser:
         self.log = default_log(self)
 
     def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
-                  engine: str = 'matplotlib', nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None,
-                  dpi: int = 300, edges_curvature: float = 0.3):
+                  engine: str = 'matplotlib', node_color: Optional[Union[str, Tuple[float, float, float]]] = None,
+                  dpi: int = 300, node_size_factor: float = 1.0, font_size_factor: float = 1.0,
+                  edge_curvature_factor: float = 1.0):
         if not graph.nodes:
             raise ValueError('Empty graph can not be visualized.')
         # Define colors
-        if not nodes_color:
+        if not node_color:
             if type(graph).__name__ == 'Pipeline':
-                nodes_color = self.__get_colors_by_tags
+                node_color = self.__get_colors_by_tags
             else:
-                nodes_color = self.__get_colors_by_labels
+                node_color = self.__get_colors_by_labels
         if engine == 'matplotlib':
-            self.draw_with_networkx(graph, save_path, nodes_color, dpi, edges_curvature)
+            self.draw_with_networkx(graph, save_path, node_color, dpi, node_size_factor, font_size_factor,
+                                    edge_curvature_factor)
         elif engine == 'pyvis':
-            self.draw_with_pyvis(graph, save_path, nodes_color)
+            self.draw_with_pyvis(graph, save_path, node_color)
         elif engine == 'graphviz':
-            self.draw_with_graphviz(graph, save_path, nodes_color, dpi)
+            self.draw_with_graphviz(graph, save_path, node_color, dpi)
         else:
             raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
                                       'Possible values: matplotlib, pyvis, graphviz.')
@@ -129,14 +131,16 @@ class GraphVisualiser:
         remove_old_files_from_dir(save_path.parent)
 
     def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
-                           nodes_color: Optional[Union[str, Tuple[float, float, float],
-                                                       Callable[
+                           node_color: Optional[Union[str, Tuple[float, float, float],
+                                                      Callable[
                                                            [List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
-                           dpi: int = 300, edges_curvature: float = 0.3,
+                           dpi: int = 300, node_size_factor: float = 1.0, font_size_factor: float = 1.0,
+                           edge_curvature_factor: float = 1.0,
                            in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots(figsize=(7, 7))
         fig.set_dpi(dpi)
-        self.draw_nx_dag(graph, ax, nodes_color, edges_curvature, in_graph_converter_function)
+        self.draw_nx_dag(graph, ax, node_color, node_size_factor, font_size_factor, edge_curvature_factor,
+                         in_graph_converter_function)
         if not save_path:
             plt.show()
         else:
@@ -144,9 +148,9 @@ class GraphVisualiser:
             plt.close()
 
     def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
-                    nodes_color: Optional[Union[str, Tuple[float, float, float],
-                                                Callable[[List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
-                    edges_curvature: float = 0.3,
+                    node_color: Optional[Union[str, Tuple[float, float, float],
+                                               Callable[[List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
+                    node_size_factor: float = 1, font_size_factor: float = 1, edge_curvature_factor: float = 1,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 
         def get_scaled_node_size(nodes_amount):
@@ -160,25 +164,26 @@ class GraphVisualiser:
 
         nx_graph, nodes = in_graph_converter_function(graph)
         # Define colors
-        if callable(nodes_color):
-            colors = nodes_color([str(node) for node in nodes.values()])
+        if callable(node_color):
+            colors = node_color([str(node) for node in nodes.values()])
             edge_colors = [colors[str(node)] for node in nodes.values()]
         else:
-            edge_colors = nodes_color
+            edge_colors = node_color
         # Define hierarchy_level
         for node_id, node_data in nx_graph.nodes(data=True):
             node_data['hierarchy_level'] = nodes[node_id].distance_to_primary_level
         # Get nodes positions
         pos, longest_sequence = get_hierarchy_pos(nx_graph)
-        node_size = get_scaled_node_size(longest_sequence)
+        node_size = get_scaled_node_size(longest_sequence) * node_size_factor
         # Draw nodes
         nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
                                edgecolors=edge_colors)
         # Define edges curvature
-        connection_style = 'arc3'
-        curved_connection_style = connection_style + ',rad={}'
+        CONNECTION_STYLE = 'arc3'
+        CONNECTION_STYLE_CURVED = CONNECTION_STYLE + ',rad={}'
+        EDGE_CURVATURE = 0.3
         for u, v, e in nx_graph.edges(data=True):
-            e['connectionstyle'] = connection_style
+            e['connectionstyle'] = CONNECTION_STYLE
             p_1, p_2 = np.array(pos[u]), np.array(pos[v])
             p_1_2 = p_2 - p_1
             p_1_2_length = np.linalg.norm(p_1_2)
@@ -202,14 +207,14 @@ class GraphVisualiser:
             p_3 = np.array(pos[closest_node_id])
             p_1_3 = p_3 - p_1
             # Define curvature strength
-            curvature_strength = edges_curvature
+            curvature_strength = EDGE_CURVATURE * edge_curvature_factor
             # Define curvature direction
             cos_alpha = p_1_2[0] / p_1_2_length  # angle from OX to the edge
             sin_alpha = np.sqrt(1 - cos_alpha**2) * (-1)**(p_1_2[1] < 0)
             M_inv = np.array([[cos_alpha, sin_alpha], [-sin_alpha, cos_alpha]])  # matrix of coordinates rotation
             p_1_3_rotated = M_inv @ p_1_3  # position of the closest node compared to the edge
             curvature_direction = (-1)**(p_1_3_rotated[1] < 0)  # 1 is a "boat", -1 is a "cat"
-            e['connectionstyle'] = curved_connection_style.format(curvature_strength * curvature_direction)
+            e['connectionstyle'] = CONNECTION_STYLE_CURVED.format(curvature_strength * curvature_direction)
         # Draw edges
         arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
         for u, v, e in nx_graph.edges(data=True):
@@ -225,12 +230,13 @@ class GraphVisualiser:
         ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
         ax.axis('off')
 
-        self._draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence)
+        self._draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
+                             font_size_factor)
 
         plt.tight_layout()
 
     @staticmethod
-    def _draw_nx_labels(pos, node_labels, ax, max_sequence_length):
+    def _draw_nx_labels(pos, node_labels, ax, max_sequence_length, font_size_factor=1.0):
         def get_scaled_font_size(nodes_amount):
             min_size = 2
             max_size = 20
@@ -242,7 +248,8 @@ class GraphVisualiser:
             ax = plt.gca()
         for node, (x, y) in pos.items():
             text = '\n'.join(wrap(node_labels[node].replace('_', ' ').replace('-', ' '), 10))
-            ax.text(x, y, text, ha='center', va='center', fontsize=get_scaled_font_size(max_sequence_length),
+            ax.text(x, y, text, ha='center', va='center',
+                    fontsize=get_scaled_font_size(max_sequence_length) * font_size_factor,
                     bbox=dict(alpha=0.9, color='w', boxstyle='round'))
 
 

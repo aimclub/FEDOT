@@ -235,9 +235,10 @@ class OptGraph:
 
     @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
-             nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
-             edges_curvature: float = 0.3):
-        GraphVisualiser().visualise(self, save_path, engine, nodes_color, dpi, edges_curvature)
+             node_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
+             node_size_factor: float = 1.0, font_size_factor: float = 1.0, edge_curvature_factor: float = 1.0):
+        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_factor,
+                                    font_size_factor, edge_curvature_factor)
 
     @copy_doc(Graph.__eq__)
     def __eq__(self, other_graph: 'OptGraph') -> bool:

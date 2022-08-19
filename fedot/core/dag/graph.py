@@ -90,17 +90,20 @@ class Graph:
         return self._operator.get_edges()
 
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
-             nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
-             edges_curvature: float = 0.3):
+             node_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
+             node_size_factor: float = 1.0, font_size_factor: float = 1.0, edge_curvature_factor: float = 1.0):
         """Visualizes graph or saves its picture to the specified ``path``
 
         :param save_path: optional, save location of the graph visualization image.
         :param engine: engine to visualize the graph.
-        :param nodes_color: color of nodes to use.
-        :param edges_curvature: used make edges more or less curved.
+        :param node_color: color of nodes to use.
+        :param node_size_factor: use to make node size bigger or lesser.
+        :param font_size_factor: use to make font size bigger or lesser.
+        :param edge_curvature_factor: use to make edges more or less curved.
         :param dpi: DPI of the output image. Not used if engine='pyvis'.
         """
-        GraphVisualiser().visualise(self, save_path, engine, nodes_color, dpi, edges_curvature)
+        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_factor, font_size_factor,
+                                    edge_curvature_factor)
 
     def __eq__(self, other_graph: 'Graph') -> bool:
         """Compares this graph with the ``other_graph``
