@@ -3,7 +3,6 @@ from typing import ClassVar, Callable, Type
 
 from hyperopt import tpe
 
-from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -11,6 +10,7 @@ from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricType
 from fedot.core.repository.tasks import Task
+from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 class TunerBuilder:
@@ -18,7 +18,7 @@ class TunerBuilder:
         self.tuner_class = PipelineTuner
         self.cv_folds = None
         self.validation_blocks = None
-        self.metric: MetricsEnum = ComposerBuilder._get_default_quality_metrics(task)[0]
+        self.metric: MetricsEnum = MetricByTask(task.task_type).get_default_quality_metrics()[0]
         self.iterations = 100
         self.early_stopping_rounds = None
         self.timeout = timedelta(minutes=5)

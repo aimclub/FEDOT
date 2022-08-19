@@ -18,7 +18,6 @@ class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
 
-    :param task: task (classification, regression, ts_forecasting, clustering)
     :param iterations: max number of iterations
     :param search_space: SearchSpace instance
     :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest

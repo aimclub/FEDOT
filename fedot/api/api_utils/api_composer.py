@@ -41,7 +41,7 @@ class ApiComposer:
     def obtain_metric(self, task: Task, metric: Union[str, Callable]):
         """Chooses metric to use for quality assessment of pipeline during composition"""
         if metric is None:
-            metric = MetricByTask(task.task_type).metric_cls.get_value
+            metric = MetricByTask(task.task_type).get_default_quality_metrics()
 
         if isinstance(metric, (str, Callable)):
             metric = [metric]

@@ -13,7 +13,6 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
@@ -27,31 +26,31 @@ seed(1)
 np.random.seed(1)
 
 
-@pytest.fixture()
+@pytest.fixture(scope='package')
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'simple_regression_train.csv')
+    file = os.path.join('../../../data', 'simple_regression_train.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'simple_classification.csv')
+    file = os.path.join('../../../data', 'simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def tiny_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'tiny_simple_classification.csv')
+    file = os.path.join('../../../data', 'tiny_simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def multi_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'multiclass_classification.csv')
+    file = os.path.join('../../../data', 'multiclass_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 

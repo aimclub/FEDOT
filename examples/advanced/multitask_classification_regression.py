@@ -68,7 +68,7 @@ def launch_multitask_example(with_tuning: bool = False):
 
     if with_tuning:
         tuner = TunerBuilder(train_input.task).with_tuner(PipelineTuner).with_metric(MAE.get_value)\
-            .with_iterations(100) .with_timeout(timedelta(minutes=2)).build(train_input)
+            .with_iterations(100).with_timeout(timedelta(minutes=2)).build(train_input)
         multitask_pipeline = tuner.tune(multitask_pipeline)
 
     multitask_pipeline.fit(train_input)
