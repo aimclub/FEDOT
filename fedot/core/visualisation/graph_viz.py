@@ -179,19 +179,19 @@ class GraphVisualiser:
         curved_connection_style = connection_style + ',rad={}'
         for u, v, e in nx_graph.edges(data=True):
             e['connectionstyle'] = connection_style
-            p1, p2 = np.array(pos[u]), np.array(pos[v])
-            p = p2 - p1
-            segment_length = np.linalg.norm(p)
+            p_1, p_2 = np.array(pos[u]), np.array(pos[v])
+            p_1_2 = p_2 - p_1
+            p_1_2_length = np.linalg.norm(p_1_2)
             # Define the closest node to the edge
             min_distance = 1
             closest_node_id = None
             for node_id in nx_graph.nodes:
                 if node_id in (u, v):
                     continue
-                p3 = np.array(pos[node_id])
-                if ((p3 - p1) @ p) < 0 or ((p3 - p2) @ -p) < 0:  # there's no perpendicular between edge and node
-                    continue
-                distance = abs(np.cross(p, p3 - p1)) / segment_length
+                p_3 = np.array(pos[node_id])
+                if ((p_3 - p_1) @ p_1_2) < 0 or ((p_3 - p_2) @ -p_1_2) < 0:
+                    continue  # there's no perpendicular that lies on the edge
+                distance = abs(np.cross(p_1_2, p_3 - p_1)) / p_1_2_length
                 if distance > 0.15 or distance > min_distance:
                     continue
                 min_distance = distance
@@ -199,17 +199,16 @@ class GraphVisualiser:
 
             if closest_node_id is None:
                 continue
-            p3 = np.array(pos[closest_node_id])
+            p_3 = np.array(pos[closest_node_id])
+            p_1_3 = p_3 - p_1
             # Define curvature strength
             curvature_strength = edges_curvature
             # Define curvature direction
-            if p1[1] == p2[1]:
-                curvature_direction = -1
-            else:
-                k = np.divide(*(p1 - p2))
-                b = p1[1] - k * p1[0]
-                sign_pow = p3[1] > k * p3[0] + b
-                curvature_direction = (-1) ** sign_pow
+            cos_alpha = p_1_2[0] / p_1_2_length  # angle from OX to the edge
+            sin_alpha = np.sqrt(1 - cos_alpha**2) * (-1)**(p_1_2[1] < 0)
+            M_inv = np.array([[cos_alpha, sin_alpha], [-sin_alpha, cos_alpha]])  # matrix of coordinates rotation
+            p_1_3_rotated = M_inv @ p_1_3  # position of the closest node compared to the edge
+            curvature_direction = (-1)**(p_1_3_rotated[1] < 0)  # 1 is a "boat", -1 is a "cat"
             e['connectionstyle'] = curved_connection_style.format(curvature_strength * curvature_direction)
         # Draw edges
         arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
