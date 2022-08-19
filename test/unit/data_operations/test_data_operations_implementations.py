@@ -1,12 +1,16 @@
 import os
 
 import numpy as np
+import pytest
+
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.time_series_forecasting.gapfilling import generate_synthetic_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
+    ResampleImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
@@ -209,6 +213,44 @@ def get_nan_binary_data(task=None):
     input_data = InputData(idx=[0, 1, 2, 3], features=features,
                            target=np.array([[0], [0], [1], [1]]),
                            task=task, data_type=DataTypesEnum.table,
+                           supplementary_data=supp_data)
+
+    return input_data
+
+
+def get_unbalanced_dataset(target_dim=None):
+    """ Generate table with one numerical and one categorical features.
+        Target is binary and unbalanced: majority "1" class is more than minority "0" class.
+        It can be generated with two options: 1D or 2D representation of target.
+    """
+    features = np.array([
+        [0, 'minor'],
+        [1, 'minor'],
+        [2, 'minor'],
+        [3, 'minor'],
+        [4, 'major'],
+        [5, 'major'],
+        [6, 'major'],
+        [7, 'major'],
+        [8, 'major'],
+        [9, 'major'],
+    ])
+
+    target = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+
+    if target_dim == 2:
+        target = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
+
+    supp_data = SupplementaryData(column_types={
+        'features': [NAME_CLASS_INT, NAME_CLASS_STR],
+        'target': [NAME_CLASS_INT]
+    })
+
+    input_data = InputData(idx=np.arange(features.shape[0]),
+                           features=features,
+                           target=target,
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table,
                            supplementary_data=supp_data)
 
     return input_data
@@ -549,3 +591,31 @@ def test_poly_features_on_big_datasets():
 
     n_rows, n_cols = transformed_features.predict.shape
     assert n_cols == 85
+
+@pytest.mark.parametrize(
+    'n_samples, target_dim, expected',
+    [(None, 1, (12, 2)), (None, 2, (12, 2)),
+     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
+     (1.5, 1, (15, 2)), (1.5, 2, (15, 2))]
+)
+def test_correctness_resample_operation_with_expand_minority(n_samples, target_dim, expected):
+    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': n_samples}
+    resample = ResampleImplementation(**params)
+
+    data = get_unbalanced_dataset(target_dim=target_dim)
+
+    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
+
+@pytest.mark.parametrize(
+    'n_samples, target_dim, expected',
+    [(None, 1, (8, 2)), (None, 2, (8, 2)),
+     (0.5, 1, (6, 2)), (0.5, 2, (6, 2)),
+     (1.5, 1, (10, 2)), (1.5, 2, (10, 2))]
+)
+def test_correctness_resample_operation_with_reduce_majority(n_samples, target_dim, expected):
+    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': n_samples}
+    resample = ResampleImplementation(**params)
+
+    data = get_unbalanced_dataset(target_dim=target_dim)
+
+    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
