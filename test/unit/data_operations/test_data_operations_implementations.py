@@ -333,7 +333,7 @@ def test_ts_forecasting_cut_data_operation():
     horizon = train_input.task.task_params.forecast_length
     operation_cut = CutImplementation(cut_part=0.5)
 
-    transformed_input = operation_cut.transform(train_input, is_fit_pipeline_stage=True)
+    transformed_input = operation_cut.transform_for_fit(train_input)
     assert train_input.idx.shape[0] == 2 * transformed_input.idx.shape[0] - horizon
 
 
@@ -520,8 +520,8 @@ def test_lagged_with_multivariate_time_series():
     input_data = get_multivariate_time_series()
     lagged = LaggedTransformationImplementation(**{'window_size': 2})
 
-    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
-    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+    transformed_for_fit = lagged.transform_for_fit(input_data)
+    transformed_for_predict = lagged.transform(input_data)
 
     # Check correctness on fit stage
     lagged_features = transformed_for_fit.predict
@@ -555,8 +555,8 @@ def test_lagged_with_multi_ts_type():
     correct_predict_output = np.array([[8, 9]])
     input_data = get_multivariate_time_series(mutli_ts=True)
     lagged = LaggedTransformationImplementation(**{'window_size': 2})
-    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
-    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+    transformed_for_fit = lagged.transform_for_fit(input_data)
+    transformed_for_predict = lagged.transform(input_data)
 
     # Check correctness on fit stage
     lagged_features = transformed_for_fit.predict
@@ -604,7 +604,7 @@ def test_correctness_resample_operation_with_expand_minority(n_samples, target_d
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
+    assert resample.transform_for_fit(data).predict.shape == expected
 
 @pytest.mark.parametrize(
     'n_samples, target_dim, expected',
@@ -618,4 +618,4 @@ def test_correctness_resample_operation_with_reduce_majority(n_samples, target_d
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
-    assert resample.transform(data, is_fit_pipeline_stage=True).predict.shape == expected
+    assert resample.transform_for_fit(data).predict.shape == expected

@@ -1,5 +1,5 @@
 import random
-from typing import Optional
+from typing import Optional, Union, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -29,7 +29,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         self.parameters_changed = False
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """
         The method trains the PCA model
 
@@ -44,13 +44,11 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         return self.pca
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """
-        Method for transformation tabular data using PCA
+        Method for transformation tabular data using PCA for predict stage
 
         :param input_data: data with features, target and ids for PCA applying
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return input_data: data with transformed features attribute
         """
 
         if self.number_of_features > 1:
@@ -91,7 +89,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             return self.pca.get_params()
 
     @staticmethod
-    def update_column_types(output_data: OutputData):
+    def update_column_types(output_data: OutputData) -> OutputData:
         """ Update column types after applying PCA operations """
         n_rows, n_cols = output_data.predict.shape
         output_data.supplementary_data.column_types['features'] = [str(float) * n_cols]
@@ -169,7 +167,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         self.params = params
         self.columns_to_take = None
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method for fit Poly features operation """
         # Check the number of columns in source dataset
         n_rows, n_cols = input_data.features.shape
@@ -181,12 +179,13 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
         return super().fit(input_data)
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """ Firstly perform filtration of columns """
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Firstly perform filtration of columns
+        """
         clipped_input_data = input_data
         if self.columns_to_take is not None:
             clipped_input_data = input_data.subset_features(self.columns_to_take)
-        output_data = super().transform(clipped_input_data, is_fit_pipeline_stage)
+        output_data = super().transform(clipped_input_data)
 
         if self.columns_to_take is not None:
             # Get generated features from poly function
@@ -196,7 +195,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             output_data.predict = all_features
         return output_data
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
     def _update_column_types(self, source_features_shape, output_data: OutputData):
@@ -229,7 +228,7 @@ class ScalingImplementation(EncodedInvariantImplementation):
             self.operation = StandardScaler(**params)
         self.params = params
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
 
@@ -250,7 +249,7 @@ class NormalizationImplementation(EncodedInvariantImplementation):
             self.operation = MinMaxScaler(**params)
         self.params = params
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
 
@@ -306,13 +305,11 @@ class ImputationImplementation(DataOperationImplementation):
             input_data.features = convert_into_column(input_data.features)
             self.imputer_num.fit(input_data.features)
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
+    def transform(self, input_data: InputData) -> OutputData:
         """
-        Method for transformation tabular data using SimpleImputer
+        Method for transformation tabular data using SimpleImputer for predict stage
 
         :param input_data: data with features
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return input_data: data with transformed features attribute
         """
         replace_inf_with_nans(input_data)
 
@@ -353,19 +350,18 @@ class ImputationImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(input_data, transformed_features, data_type=input_data.data_type)
         return output_data
 
-    def fit_transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
+    def fit_transform(self, input_data: InputData) -> OutputData:
         """
         Method for training and transformation tabular data using SimpleImputer
 
         :param input_data: data with features
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
         self.fit(input_data)
-        output_data = self.transform(input_data)
+        output_data = self.transform_for_fit(input_data)
         return output_data
 
-    def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array):
+    def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array) -> np.array:
         """ Merge numerical and categorical features in right order (as it was in source table) """
         categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_ids)
         numerical_df = pd.DataFrame(numerical_features, columns=self.non_categorical_ids)

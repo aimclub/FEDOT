@@ -1,5 +1,4 @@
 from copy import copy
-from typing import Optional
 
 import numpy as np
 from sklearn.preprocessing import StandardScaler
@@ -104,39 +103,46 @@ class CLSTMImplementation(ModelImplementation):
                 final_output = output
         return final_output
 
-    def predict(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data: InputData):
         """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
         self.model.eval()
-        input_data_new = copy(input_data)
-        old_idx = input_data_new.idx
+        input_data = copy(input_data)
         forecast_length = input_data.task.task_params.forecast_length
 
-        if is_fit_pipeline_stage:
-            new_idx, lagged_table = ts_to_table(idx=old_idx,
-                                                time_series=input_data_new.features,
-                                                window_size=self.window_size,
-                                                is_lag=True)
+        input_data.features = input_data.features[-self.window_size:].reshape(1, -1)
+        input_data.idx = input_data.idx[-forecast_length:]
 
-            final_idx, features_columns, final_target = prepare_target(all_idx=old_idx,
-                                                                       idx=new_idx,
-                                                                       features_columns=lagged_table,
-                                                                       target=input_data_new.target,
-                                                                       forecast_length=forecast_length)
-            input_data_new.idx = final_idx
-            input_data_new.features = features_columns
-            input_data_new.target = final_target
-        else:
-            input_data_new.features = input_data_new.features[-self.window_size:].reshape(1, -1)
-            input_data_new.idx = input_data_new.idx[-forecast_length:]
+        predict = self._out_of_sample_ts_forecast(input_data)
 
-        predict = self._out_of_sample_ts_forecast(input_data_new)
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
 
-        output_data = self._convert_to_output(input_data_new,
+    def predict_for_fit(self, input_data: InputData):
+        self.model.eval()
+        input_data = copy(input_data)
+        forecast_length = input_data.task.task_params.forecast_length
+        new_idx, lagged_table = ts_to_table(idx=input_data.idx,
+                                            time_series=input_data.features,
+                                            window_size=self.window_size,
+                                            is_lag=True)
+
+        final_idx, features_columns, final_target = prepare_target(all_idx=input_data.idx,
+                                                                   idx=new_idx,
+                                                                   features_columns=lagged_table,
+                                                                   target=input_data.target,
+                                                                   forecast_length=forecast_length)
+        input_data.idx = final_idx
+        input_data.features = features_columns
+        input_data.target = final_target
+        predict = self._out_of_sample_ts_forecast(input_data)
+
+        output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data

@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
@@ -45,19 +45,27 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Transform method for preprocessing task
+        Transform method for preprocessing task for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
-        # Convert prediction to output (if it is required)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Transform method for preprocessing task for fit stage
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :return:
+        """
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

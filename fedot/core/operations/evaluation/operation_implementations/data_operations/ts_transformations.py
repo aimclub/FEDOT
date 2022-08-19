@@ -36,17 +36,18 @@ class LaggedImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
-        """ Method for transformation of time series to lagged form
+    def get_params(self):
+        raise NotImplementedError()
+
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for transformation of time series to lagged form for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
 
         new_input_data = copy(input_data)
         forecast_length = new_input_data.task.task_params.forecast_length
-        old_idx = new_input_data.idx
 
         # Correct window size parameter
         self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
@@ -54,21 +55,41 @@ class LaggedImplementation(DataOperationImplementation):
                                                                                    forecast_length,
                                                                                    self.window_size_minimum,
                                                                                    self.log)
-        if is_fit_pipeline_stage:
-            # Transformation for fit stage of the pipeline
-            target = np.array(new_input_data.target)
-            features = np.array(new_input_data.features)
 
-            new_target, new_idx = self._apply_transformation_for_fit(new_input_data, features,
-                                                                     target, forecast_length, old_idx)
+        self._apply_transformation_for_predict(new_input_data)
 
-            # Update target for Input Data
-            new_input_data.target = new_target
-            new_input_data.idx = new_idx
-        else:
-            # Transformation for predict stage of the pipeline
-            self._apply_transformation_for_predict(new_input_data, forecast_length)
+        output_data = self._convert_to_output(new_input_data,
+                                              self.features_columns,
+                                              data_type=DataTypesEnum.table)
+        self._update_column_types(output_data)
+        return output_data
 
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method for transformation of time series to lagged form for fit stage
+
+        :param input_data: data with features, target and ids to process
+        :return output_data: output data with transformed features table
+        """
+        new_input_data = copy(input_data)
+        forecast_length = new_input_data.task.task_params.forecast_length
+
+        # Correct window size parameter
+        self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
+                                                                                   self.window_size,
+                                                                                   forecast_length,
+                                                                                   self.window_size_minimum,
+                                                                                   self.log)
+
+        target = np.array(new_input_data.target)
+        features = np.array(new_input_data.features)
+        old_idx = new_input_data.idx
+
+        new_target, new_idx = self._apply_transformation_for_fit(new_input_data, features,
+                                                                 target, forecast_length, old_idx)
+
+        # Update target for Input Data
+        new_input_data.target = new_target
+        new_input_data.idx = new_idx
         output_data = self._convert_to_output(new_input_data,
                                               self.features_columns,
                                               data_type=DataTypesEnum.table)
@@ -198,7 +219,7 @@ class LaggedImplementation(DataOperationImplementation):
             # if multivariable case
             return target
 
-    def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
+    def _apply_transformation_for_predict(self, input_data: InputData):
         """ Apply lagged transformation for every column (time series) in the dataset """
         if self.sparse_transform:
             self.log.debug(f'Sparse lagged transformation applied. If new data were used. Call fit method')
@@ -308,18 +329,17 @@ class TsSmoothingImplementation(DataOperationImplementation):
         else:
             self.window_size = round(params.get('window_size'))
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
 
         :param input_data: data with features, target and ids to process
         """
         pass
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
-        """ Method for smoothing time series
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for smoothing time series for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
 
@@ -359,18 +379,37 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
     def __init__(self, **params):
         super().__init__()
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
 
         :param input_data: data with features, target and ids to process
         """
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
-        """ Method for representing time series as column
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for representing time series as column for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+        :return output_data: output data with features as columns
+        """
+        copied_data = copy(input_data)
+        parameters = copied_data.task.task_params
+        forecast_length = parameters.forecast_length
+
+        features_columns = np.array(copied_data.features)[-forecast_length:]
+        copied_data.idx = copied_data.idx[-forecast_length:]
+        features_columns = features_columns.reshape(1, -1)
+
+        output_data = self._convert_to_output(copied_data,
+                                              features_columns,
+                                              data_type=DataTypesEnum.table)
+
+        return output_data
+
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method for representing time series as column for fit stage
+
+        :param input_data: data with features, target and ids to process
         :return output_data: output data with features as columns
         """
         copied_data = copy(input_data)
@@ -378,28 +417,21 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
         old_idx = copied_data.idx
         forecast_length = parameters.forecast_length
 
-        if is_fit_pipeline_stage is True:
-            # Transform features in "target-like way"
-            _, _, features_columns = prepare_target(all_idx=input_data.idx,
-                                                    idx=old_idx,
-                                                    features_columns=copied_data.features,
-                                                    target=copied_data.features,
-                                                    forecast_length=forecast_length)
+        # Transform features in "target-like way"
+        _, _, features_columns = prepare_target(all_idx=input_data.idx,
+                                                idx=old_idx,
+                                                features_columns=copied_data.features,
+                                                target=copied_data.features,
+                                                forecast_length=forecast_length)
 
-            # Transform target
-            new_idx, _, new_target = prepare_target(all_idx=input_data.idx,
-                                                    idx=old_idx,
-                                                    features_columns=copied_data.features,
-                                                    target=copied_data.target,
-                                                    forecast_length=forecast_length)
-            # Update target for Input Data
-            copied_data.target = new_target
-            copied_data.idx = new_idx
-        else:
-            # Transformation for predict stage of the pipeline
-            features_columns = np.array(copied_data.features)[-forecast_length:]
-            copied_data.idx = copied_data.idx[-forecast_length:]
-            features_columns = features_columns.reshape(1, -1)
+        # Transform target
+        new_idx, _, new_target = prepare_target(all_idx=input_data.idx,
+                                                idx=old_idx,
+                                                features_columns=copied_data.features,
+                                                target=copied_data.target,
+                                                forecast_length=forecast_length)
+        copied_data.target = new_target
+        copied_data.idx = new_idx
 
         output_data = self._convert_to_output(copied_data,
                                               features_columns,
@@ -421,18 +453,17 @@ class GaussianFilterImplementation(DataOperationImplementation):
         else:
             self.sigma = round(params.get('sigma'))
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
 
         :param input_data: data with features, target and ids to process
         """
         pass
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
-        """ Method for smoothing time series
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for smoothing time series for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
 
@@ -472,18 +503,17 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         self.window_size = int(self.params['window_size'])
         self._correct_params()
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
 
         :param input_data: data with features, target and ids to process
         """
         pass
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: bool):
-        """ Method for finding numerical derivative of time series
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for finding numerical derivative of time series for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
 
@@ -601,27 +631,48 @@ class CutImplementation(DataOperationImplementation):
         """
         pass
 
-    def transform(self, input_data: InputData, is_fit_pipeline_stage: Optional[bool]) -> OutputData:
-        """ Cut first cut_part from time series
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Cut first cut_part from time series for predict stage
             new_len = len - int(self.cut_part * (input_values.shape[0]-horizon))
 
             :param input_data: data with features, target and ids to process
-            :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
             :return output_data: output data with cutted time series
         """
+        input_data = self._cut_input_data(input_data)
+
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features,
+                                              data_type=input_data.data_type)
+        return output_data
+
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Cut first cut_part from time series for fit stage
+            new_len = len - int(self.cut_part * (input_values.shape[0]-horizon))
+
+            :param input_data: data with features, target and ids to process
+            :return output_data: output data with cutted time series
+        """
+        input_data = self._cut_input_data(input_data, reset_idx=True)
+
+        output_data = self._convert_to_output(input_data,
+                                              input_data.features,
+                                              data_type=input_data.data_type)
+        return output_data
+
+    def _cut_input_data(self, input_data: InputData, reset_idx: bool = False) -> InputData:
         horizon = input_data.task.task_params.forecast_length
         input_copy = copy(input_data)
         input_values = input_copy.features
+
         cut_len = int(self.cut_part * (input_values.shape[0] - horizon))
         output_values = input_values[cut_len::]
-        if is_fit_pipeline_stage:
-            input_copy.idx = np.arange(cut_len, input_values.shape[0])
+
         input_copy.features = output_values
         input_copy.target = output_values
-        output_data = self._convert_to_output(input_copy,
-                                              output_values,
-                                              data_type=input_data.data_type)
-        return output_data
+
+        if reset_idx:
+            input_copy.idx = np.arange(cut_len, input_values.shape[0])
+        return input_copy
 
     def get_params(self):
         params_dict = {"cut_part": self.cut_part}

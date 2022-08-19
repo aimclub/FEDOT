@@ -63,7 +63,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict, None], data: InputData, is_fit_pipeline_stage: bool = True):
+    def fit(self, params: Union[str, dict, None], data: InputData):
         """
         This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
@@ -71,38 +71,59 @@ class Operation:
         :param params: hyperparameters for operation
         :param data: data used for operation training
         :return: tuple of trained operation and prediction on train data
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
 
         self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage, params)
+        predict_train = self.predict_for_fit(self.fitted_operation, data, params)
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool,
-                params: Union[str, dict, None] = None, output_mode: str = 'default'):
+    def predict(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                output_mode: str = 'default'):
         """
         This method is used for defining and running of the evaluation strategy
-        to predict with the data provided
+        to predict with the data provided during predict stage
 
         :param fitted_operation: trained operation object
         :param data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :param params: hyperparameters for operation
         :param output_mode: string with information about output of operation,
         for example, is the operation predict probabilities or class labels
         """
+        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False)
+
+    def predict_for_fit(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                        output_mode: str = 'default'):
+        """
+        This method is used for defining and running of the evaluation strategy
+        to predict with the data provided during fit stage
+
+        :param fitted_operation: trained operation object
+        :param data: data used for prediction
+        :param params: hyperparameters for operation
+        :param output_mode: string with information about output of operation,
+        for example, is the operation predict probabilities or class labels
+        """
+        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True)
+
+    def _predict(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                 output_mode: str = 'default', is_fit_stage: bool = False):
+
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params)
 
-        prediction = self._eval_strategy.predict(
-            trained_operation=fitted_operation,
-            predict_data=data,
-            is_fit_pipeline_stage=is_fit_pipeline_stage)
+        if is_fit_stage:
+            prediction = self._eval_strategy.predict_for_fit(
+                trained_operation=fitted_operation,
+                predict_data=data)
+        else:
+            prediction = self._eval_strategy.predict(
+                trained_operation=fitted_operation,
+                predict_data=data)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
 
         if is_main_target is False:

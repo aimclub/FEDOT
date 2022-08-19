@@ -66,16 +66,26 @@ class EvaluationStrategy:
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Main method to predict the target data.
+        Method to predict the target data for predict stage.
         :param trained_operation: trained operation object
         :param InputData predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Method to predict the target data for fit stage.
+        Allows to implement predict method different from main predict method
+        if another behaviour for fit graph stage is needed.
+
+        :param trained_operation: trained operation object
+        :param InputData predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+        return self.predict(trained_operation, predict_data)
 
     @abstractmethod
     def _convert_to_operation(self, operation_type: str):
@@ -183,13 +193,11 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        This method used for prediction of the target data.
+        This method used for prediction of the target data during predict stage.
         :param trained_operation: operation object
         :param predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
         raise NotImplementedError()

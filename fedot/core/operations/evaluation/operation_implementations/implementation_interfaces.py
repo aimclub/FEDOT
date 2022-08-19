@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.data import OutputData, InputData
 from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 
@@ -18,7 +18,7 @@ class DataOperationImplementation(ABC):
         pass
 
     @abstractmethod
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method fit operation on a dataset
 
         :param input_data: data with features, target and ids to process
@@ -26,13 +26,21 @@ class DataOperationImplementation(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """ Method apply transform operation on a dataset
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method apply transform operation on a dataset for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         raise NotImplementedError()
+
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method apply transform operation on a dataset for fit stage.
+        Allows to implement transform method different from main transform method
+        if another behaviour for fit graph stage is needed.
+
+        :param input_data: data with features, target and ids to process
+        """
+        return self.transform(input_data)
 
     @abstractmethod
     def get_params(self):
@@ -42,8 +50,8 @@ class DataOperationImplementation(ABC):
         raise NotImplementedError()
 
     @staticmethod
-    def _convert_to_output(input_data, predict,
-                           data_type=DataTypesEnum.table):
+    def _convert_to_output(input_data: InputData, predict: np.ndarray,
+                           data_type: DataTypesEnum = DataTypesEnum.table) -> OutputData:
         """ Method prepare prediction of operation as OutputData object """
 
         converted = _convert_to_output_function(input_data, predict, data_type)
@@ -64,7 +72,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         self.bool_ids = None
         self.params = params
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method for fit transformer with automatic determination
         of boolean features, with which there is no need to make transformation
 
@@ -87,12 +95,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         return self.operation
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """
-        The method that transforms the source features using "operation"
+        The method that transforms the source features using "operation" for predict stage
 
         :param input_data: tabular data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
         source_features_shape = input_data.features.shape
@@ -130,10 +137,10 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         return transformed_features
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
-    def _update_column_types(self, source_features_shape, output_data: OutputData):
+    def _update_column_types(self, source_features_shape, output_data: OutputData) -> OutputData:
         """
         Update column types after applying operations.
         If new columns added, new type for them are defined
@@ -179,7 +186,7 @@ class ModelImplementation(ABC):
         self.log = default_log(self)
 
     @abstractmethod
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method fit model on a dataset
 
         :param input_data: data with features, target and ids to process
@@ -187,32 +194,40 @@ class ModelImplementation(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data: InputData) -> OutputData:
         """ Method make prediction
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         """
         raise NotImplementedError()
 
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
+        """ Method make prediction while graph fitting.
+        Allows to implement predict method different from main predict method
+        if another behaviour for fit graph stage is needed.
+
+        :param input_data: data with features, target and ids to process
+        """
+        return self.predict(input_data)
+
     @abstractmethod
-    def get_params(self):
+    def get_params(self) -> dict:
         """ Method return parameters, which can be optimized for particular
         operation
         """
         raise NotImplementedError()
 
     @staticmethod
-    def _convert_to_output(input_data, predict,
-                           data_type=DataTypesEnum.table):
+    def _convert_to_output(input_data: InputData, predict: np.array,
+                           data_type: DataTypesEnum = DataTypesEnum.table):
         """ Method prepare prediction of operation as OutputData object """
 
         converted = _convert_to_output_function(input_data, predict, data_type)
         return converted
 
 
-def _convert_to_output_function(input_data, transformed_features,
-                                data_type=DataTypesEnum.table):
+def _convert_to_output_function(input_data: InputData, transformed_features: np.array,
+                                data_type: DataTypesEnum = DataTypesEnum.table):
     """ Function prepare prediction of operation as OutputData object
 
     :param input_data: data with features, target and ids to process

@@ -24,8 +24,7 @@ def test_vectorize_tfidf_strategy():
     vectorizer_fitted = vectorizer.fit(train_data)
 
     predicted = vectorizer.predict(trained_operation=vectorizer_fitted,
-                                   predict_data=test_data,
-                                   is_fit_pipeline_stage=False)
+                                   predict_data=test_data)
     predicted_labels = predicted.predict
 
     assert isinstance(vectorizer_fitted, TfidfVectorizer)

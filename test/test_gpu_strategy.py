@@ -31,7 +31,6 @@ def test_gpu_evaluation_strategy_predict():
                                           params=dict(kernel='rbf', C=10, gamma=1, cache_size=2000, probability=True))
 
     operation = strategy.fit(train_data)
-    prediction = strategy.predict(operation, test_data,
-                                  is_fit_pipeline_stage=False)
+    prediction = strategy.predict(operation, test_data)
 
     assert isinstance(prediction, OutputData)
