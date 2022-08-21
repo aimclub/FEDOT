@@ -175,52 +175,63 @@ class GraphVisualiser:
         # Get nodes positions
         pos, longest_sequence = get_hierarchy_pos(nx_graph)
         node_size = get_scaled_node_size(longest_sequence) * node_size_factor
-        # Draw nodes
+        # Draw the graph's nodes.
         nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
                                edgecolors=edge_colors)
-        # Define edges curvature
+        # Draw the graph's node labels.
+        self._draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
+                             font_size_factor)
+        # The ongoing section defines curvature for all edges.
+        #   This is 'connection style' for an edge that does not intersect any nodes.
         CONNECTION_STYLE = 'arc3'
-        CONNECTION_STYLE_CURVED = CONNECTION_STYLE + ',rad={}'
-        EDGE_CURVATURE = 0.3
+        #   This is 'connection style' template for an edge that is too close to any node and nust bend around it.
+        #   The curvature value is defined individually for each edge.
+        CONNECTION_STYLE_CURVED_TEMPLATE = CONNECTION_STYLE + ',rad={}'
+        DEFAULT_EDGE_CURVATURE = 0.3
+        #   The minimum distance from a node to an edge on which the edge must bend around the node.
+        NODE_DISTANCE_GAP = 0.15
         for u, v, e in nx_graph.edges(data=True):
             e['connectionstyle'] = CONNECTION_STYLE
             p_1, p_2 = np.array(pos[u]), np.array(pos[v])
             p_1_2 = p_2 - p_1
             p_1_2_length = np.linalg.norm(p_1_2)
-            # Define the closest node to the edge
-            min_distance = 1
+            # Finding the closest node to the edge.
+            min_distance_found = NODE_DISTANCE_GAP * 2  # It just must be bigger than the gap.
             closest_node_id = None
             for node_id in nx_graph.nodes:
                 if node_id in (u, v):
-                    continue
+                    continue  # The node is adjacent to the edge.
                 p_3 = np.array(pos[node_id])
-                if ((p_3 - p_1) @ p_1_2) < 0 or ((p_3 - p_2) @ -p_1_2) < 0:
-                    continue  # there's no perpendicular that lies on the edge
-                distance = abs(np.cross(p_1_2, p_3 - p_1)) / p_1_2_length
-                if distance > 0.15 or distance > min_distance:
+                distance_to_node = abs(np.cross(p_1_2, p_3 - p_1)) / p_1_2_length
+                if (distance_to_node > min(NODE_DISTANCE_GAP, min_distance_found)  # The node is too far.
+                        or ((p_3 - p_1) @ p_1_2) < 0  # There's no perpendicular from the node to the edge.
+                        or ((p_3 - p_2) @ -p_1_2) < 0):
                     continue
-                min_distance = distance
+                min_distance_found = distance_to_node
                 closest_node_id = node_id
 
             if closest_node_id is None:
-                continue
+                continue  # There's no node to bend around.
+            # Finally, define the edge's curvature based on the closest node position.
             p_3 = np.array(pos[closest_node_id])
             p_1_3 = p_3 - p_1
-            # Define curvature strength
-            curvature_strength = EDGE_CURVATURE * edge_curvature_factor
-            # Define curvature direction
-            cos_alpha = p_1_2[0] / p_1_2_length  # angle from OX to the edge
-            sin_alpha = np.sqrt(1 - cos_alpha**2) * (-1)**(p_1_2[1] < 0)
-            M_inv = np.array([[cos_alpha, sin_alpha], [-sin_alpha, cos_alpha]])  # matrix of coordinates rotation
-            p_1_3_rotated = M_inv @ p_1_3  # position of the closest node compared to the edge
-            curvature_direction = (-1)**(p_1_3_rotated[1] < 0)  # 1 is a "boat", -1 is a "cat"
-            e['connectionstyle'] = CONNECTION_STYLE_CURVED.format(curvature_strength * curvature_direction)
-        # Draw edges
+            curvature_strength = DEFAULT_EDGE_CURVATURE * edge_curvature_factor
+            # 'alpha' denotes the angle between the abscissa and the edge.
+            cos_alpha = p_1_2[0] / p_1_2_length
+            sin_alpha = np.sqrt(1 - cos_alpha ** 2) * (-1) ** (p_1_2[1] < 0)
+            # The closest node is placed as if the edge matched the abscissa.
+            # Then, its ordinate shows on which side of the edge it is, "on the left" or "on the right".
+            rotation_matrix = np.array([[cos_alpha, sin_alpha], [-sin_alpha, cos_alpha]])
+            p_1_3_rotated = rotation_matrix @ p_1_3
+            curvature_direction = (-1) ** (p_1_3_rotated[1] < 0)  # +1 is a "boat" \/, -1 is a "cat" /\.
+            edge_curvature = curvature_direction * curvature_strength
+            e['connectionstyle'] = CONNECTION_STYLE_CURVED_TEMPLATE.format(edge_curvature)
+        # Draw the graph's edges.
         arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
         for u, v, e in nx_graph.edges(data=True):
             nx.draw_networkx_edges(nx_graph, pos, edgelist=[(u, v)], node_size=node_size, ax=ax, arrowsize=10,
                                    arrowstyle=arrow_style, connectionstyle=e['connectionstyle'])
-        # Rescale graph for all nodes to fit in
+        # Rescale the figure for all nodes to fit in.
         x_1, x_2 = ax.get_xlim()
         y_1, y_2 = ax.get_ylim()
         offset = 0.2
@@ -229,10 +240,6 @@ class GraphVisualiser:
         ax.set_xlim(x_1 - x_offset, x_2 + x_offset)
         ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
         ax.axis('off')
-
-        self._draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
-                             font_size_factor)
-
         plt.tight_layout()
 
     @staticmethod
