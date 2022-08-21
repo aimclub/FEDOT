@@ -2,7 +2,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import TypeVar, Generic, Type, Optional, Dict, Any
 
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 
 AdapteeType = TypeVar('AdapteeType')
@@ -12,9 +12,8 @@ AdapteeNodeType = TypeVar('AdapteeNodeType')
 class BaseOptimizationAdapter(Generic[AdapteeType, AdapteeNodeType]):
     def __init__(self,
                  base_graph_class: Type[AdapteeType],
-                 base_node_class: Type[AdapteeNodeType],
-                 log: Optional[Log] = None):
-        self._log = log or default_log('adapter_logger')
+                 base_node_class: Type[AdapteeNodeType]):
+        self._log = default_log(self)
         self._base_graph_class = base_graph_class
         self._base_node_class = base_node_class
 
@@ -44,10 +43,9 @@ class DirectAdapter(BaseOptimizationAdapter[AdapteeType, AdapteeNodeType]):
     """ Naive optimization adapter for arbitrary class that just overwrites __class__. """
 
     def __init__(self,
-                 base_graph_class: Type[AdapteeType] = None,
-                 base_node_class: Type[AdapteeNodeType] = None,
-                 log: Log = None):
-        super().__init__(base_graph_class or OptGraph, base_node_class or OptNode, log)
+                 base_graph_class: Type[AdapteeType] = OptGraph,
+                 base_node_class: Type[AdapteeNodeType] = OptNode):
+        super().__init__(base_graph_class, base_node_class)
 
     def _adapt(self, adaptee: AdapteeType) -> OptGraph:
         opt_graph = deepcopy(adaptee)

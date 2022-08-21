@@ -3,7 +3,7 @@ from typing import Optional, Callable, Any, Tuple
 
 from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.utilities.singleton import SingletonMeta
+from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
 # TODO: tests for

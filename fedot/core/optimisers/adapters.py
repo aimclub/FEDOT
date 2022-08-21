@@ -3,7 +3,6 @@ from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.log import default_log
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
