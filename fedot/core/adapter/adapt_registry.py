@@ -22,23 +22,28 @@ class AdaptRegistry(metaclass=SingletonMeta):
     Adaptation Registry enables automatic transformation
     between internal and domain graph representations.
 
-    Singleton; requires initialisation with specific adapter before usage.
+    Optimiser operates with generic graph representation.
+    Because of this any domain function requires adaptation
+    of its graph arguments. Adapter can automatically adapt
+    arguments to generic form in such cases.
 
-    Aimed at usage inside the context of Optimiser that internally
-    operates with generic graph representation. Because of this
-    any domain function requires adaptation of its arguments.
-
-    'Domain' functions operate with domain-specific graphs.
-    'Native' functions operate with generic graphs used by optimiser.
-    'External' functions are functions defined by users of optimiser.
+    Important notions:
+    - 'Domain' functions operate with domain-specific graphs.
+    - 'Native' functions operate with generic graphs used by optimiser.
+    - 'External' functions are functions defined by users of optimiser.
     (most notably, custom mutations and custom verifier rules).
-    'Internal' functions are those defined by graph optimiser.
+    - 'Internal' functions are those defined by graph optimiser.
     (most notably, the default set of mutations and verifier rules).
+    All internal functions are native.
 
-    All internal functions are native. Native functions avoid automatic
-    adaptation, while arguments to domain functions are adapted by default.
-    Users of optimiser can register external functions as 'native'
-    to exclude them from the process of automatic adaptation.
+    Adaptation registry usage and behavior:
+    - Registry requires initialisation with specific adapter before usage.
+    - Domain functions are adapted by default.
+    - Native functions don't require adaptation of their arguments.
+    - External functions are considered 'domain' functions by default.
+    Hence, they're their arguments are adapted, unless users of optimiser
+    exclude them from the process of automatic adaptation. It can be done
+    by registering them as 'native'.
     """
 
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None):
@@ -47,24 +52,42 @@ class AdaptRegistry(metaclass=SingletonMeta):
         self._graph_cls = OptGraph
         self._native_opt_functions = set()
 
-    def is_native(self, fun: Callable):
+    def is_native(self, fun: Callable) -> bool:
         return fun in self._native_opt_functions
 
-    def register_native(self, fun: Callable):
+    def register_native(self, fun: Callable) -> Callable:
         """Registers callable object as an internal function that doesn't
         require adapt/restore mechanics when called inside the optimiser.
-        Can be used as a decorator."""
+        Can be used as a decorator.
+
+        :param fun: function or callable to be registered as native
+
+        :return: same function without changes
+        """
         self._native_opt_functions.add(fun)
         return fun
 
-    def adapt(self, fun: Callable):
-        return _transform(fun, self._maybe_adapt, self._maybe_restore)
+    def adapt(self, fun: Callable) -> Callable:
+        """Adapts native function so that it could accept domain args.
 
-    def restore(self, fun: Callable):
-        """Conditionally restores function if it wasn't registered as native."""
+        :param fun: native function that accepts native args (i.e. optimization graph)
+         and requires adaptation of domain graph.
+
+        :return: domain function that can be used inside Optimizer
+        """
+        return _transform(fun, f_args=self._maybe_adapt, f_ret=self._maybe_restore)
+
+    def restore(self, fun: Callable) -> Callable:
+        """Restores domain function so that it could accept native args,
+        unless the function wasn't registered as native.
+
+        :param fun: domain function that accepts domain args and required call to restore
+
+        :return: native function that can be used inside Optimizer
+        """
         if fun in self._native_opt_functions:
             return fun
-        return _transform(fun, self._maybe_restore, self._maybe_adapt)
+        return _transform(fun, f_args=self._maybe_restore, f_ret=self._maybe_adapt)
 
     def _maybe_adapt(self, item):
         return self.adapter.adapt(item) if isinstance(item, self._adaptee_cls) else item
@@ -85,7 +108,16 @@ def restore(fun: Callable) -> Callable:
     return AdaptRegistry().restore(fun)
 
 
-def _transform(fun, f_args, f_ret):
+def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
+    """Transforms function in such a way that ``f_args`` is called on ``fun`` arguments
+    and ``f_ret`` is called on the return value of original function.
+
+    :param fun: function to be transformed
+    :param f_args: arguments transformation function
+    :param f_ret: return value transformation function
+    :return: transformed function
+    """
+
     if not isinstance(fun, Callable):
         raise ValueError(f'Expected Callable, got {type(fun)}')
 
