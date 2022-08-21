@@ -1,4 +1,3 @@
-from inspect import signature, Parameter
 from typing import Optional, Callable, Any, Tuple
 
 from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
@@ -100,6 +99,10 @@ def init_adapter(adapter: BaseOptimizationAdapter):
     AdaptRegistry(adapter)
 
 
+def register_native(fun: Callable) -> Callable:
+    return AdaptRegistry().register_native(fun)
+
+
 def adapt(fun: Callable) -> Callable:
     return AdaptRegistry().adapt(fun)
 
@@ -123,11 +126,13 @@ def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
 
     def adapted_fun(*args, **kwargs):
         adapted_args = (f_args(arg) for arg in args)
-        adapted_kwargs = dict((kw, f_args(arg)) for kw, arg in kwargs)
+        adapted_kwargs = dict((kw, f_args(arg)) for kw, arg in kwargs.items())
 
         result = fun(*adapted_args, **adapted_kwargs)
 
-        if isinstance(result, Tuple):
+        if result is None:
+            adapted_result = None
+        elif isinstance(result, Tuple):
             # In case when function returns not only Graph
             adapted_result = (f_ret(result_item) for result_item in result)
         else:
