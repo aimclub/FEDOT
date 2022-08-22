@@ -129,4 +129,4 @@ def test_logger_levels():
     adapter_2 = default_log(prefix='warning_logger', logging_level=logging.WARNING)
 
     assert adapter_2.extra['prefix'] == 'warning_logger'
-    assert adapter_2.logger.level != logging.WARNING  # because Log is a singleton
+    assert adapter_2.logger.level == logging.WARNING

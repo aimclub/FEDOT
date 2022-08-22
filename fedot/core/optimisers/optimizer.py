@@ -1,6 +1,6 @@
+import logging
 from abc import abstractmethod
 from dataclasses import dataclass
-import logging
 from typing import (Any, Callable, Optional, Sequence)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
@@ -87,8 +87,8 @@ class GraphOptimizer:
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None):
-        self.log = default_log(self, self, logging_level=requirements.logging_level_opt if requirements else
-                               logging.CRITICAL+1)
+        self.log = default_log(self,
+                               logging_level=requirements.logging_level_opt if requirements else logging.CRITICAL + 1)
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements
