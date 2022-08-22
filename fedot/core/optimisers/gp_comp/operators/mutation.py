@@ -107,6 +107,7 @@ class Mutation(Operator):
             if self._will_mutation_be_applied(mutation_type):
                 # get the mutation function and adapt it
                 mutation_func = mutation_type if is_custom_mutation else self.mutation_by_type(mutation_type)
+                mutation_func = restore(mutation_func)
 
                 new_graph = mutation_func(new_graph, requirements=self.requirements,
                                           params=self.graph_generation_params,
