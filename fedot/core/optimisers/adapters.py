@@ -9,11 +9,11 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 
 
-class PipelineAdapter(BaseOptimizationAdapter[Pipeline, Node]):
+class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
     """ Optimization adapter for Pipeline class """
 
     def __init__(self):
-        super().__init__(base_graph_class=Pipeline, base_node_class=Node)
+        super().__init__(base_graph_class=Pipeline)
 
     def _transform_to_opt_node(self, node, *args, **params):
         # Prepare content for nodes
