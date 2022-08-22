@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import Callable, List, Union, Tuple, TYPE_CHECKING
+from typing import Callable, List, Union, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -89,6 +89,17 @@ class Mutation(Operator):
                        'Please check composer requirements for correctness.')
 
         return individual
+
+    @staticmethod
+    def _update_parent_operators(individual: Individual,
+                                 mutation_names: Sequence[str]) -> Tuple[ParentOperator]:
+        new_parent_operators = tuple(
+            ParentOperator(operator_type='mutation',
+                           operator_name=str(mutation_name),
+                           parent_individuals=(individual,))
+            for mutation_name in mutation_names
+        )
+        return tuple(individual.parent_operators) + new_parent_operators
 
     def _adapt_and_apply_mutations(self, new_graph: OptGraph, num_mut: int) -> Tuple[OptGraph, List[str]]:
         """Apply mutation in several iterations with specific adaptation of each graph"""
