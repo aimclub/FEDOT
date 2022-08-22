@@ -11,7 +11,7 @@ DomainStructureType = TypeVar('DomainStructureType')
 class BaseOptimizationAdapter(Generic[DomainStructureType]):
     def __init__(self, base_graph_class: Type[DomainStructureType]):
         self._log = default_log(self)
-        self._base_graph_class = base_graph_class
+        self.domain_graph_class = base_graph_class
 
     def adapt(self, adaptee: DomainStructureType) -> OptGraph:
         if isinstance(adaptee, OptGraph):
@@ -19,7 +19,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         return self._adapt(adaptee)
 
     def restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
-        if isinstance(opt_graph, self._base_graph_class):
+        if isinstance(opt_graph, self.domain_graph_class):
             return opt_graph
         return self._restore(opt_graph, metadata)
 
@@ -54,7 +54,7 @@ class DirectAdapter(BaseOptimizationAdapter[DomainStructureType]):
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
         obj = deepcopy(opt_graph)
-        obj.__class__ = self._base_graph_class
+        obj.__class__ = self.domain_graph_class
         for node in obj.nodes:
             node.__class__ = self._base_node_class
         return obj

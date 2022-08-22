@@ -1,15 +1,10 @@
 from typing import Optional, Callable, Any, Tuple
 
 from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
+from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
-
-# TODO: tests for
-#  - decorator before init; with normal call
-#  - decorator before init; with too-early call
-
-# TODO: registration of all native functions
 
 class AdaptRegistry(metaclass=SingletonMeta):
     """Registry of functions that require adapter.
@@ -40,11 +35,15 @@ class AdaptRegistry(metaclass=SingletonMeta):
     by registering them as 'native'.
     """
 
-    def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None):
-        self.adapter = adapter or DirectAdapter()
-        self._adaptee_cls = self.adapter._base_graph_class
-        self._graph_cls = OptGraph
+    def __init__(self):
+        self.adapter = DirectAdapter(Graph)
+        self._domain_struct_cls = Graph
+        self._opt_graph_cls = OptGraph
         self._native_opt_functions = set()
+
+    def init_adapter(self, adapter: BaseOptimizationAdapter):
+        self.adapter = adapter
+        self._domain_struct_cls = self.adapter.domain_graph_class
 
     def is_native(self, fun: Callable) -> bool:
         return fun in self._native_opt_functions
@@ -84,14 +83,14 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return _transform(fun, f_args=self._maybe_restore, f_ret=self._maybe_adapt)
 
     def _maybe_adapt(self, item):
-        return self.adapter.adapt(item) if isinstance(item, self._adaptee_cls) else item
+        return self.adapter.adapt(item) if isinstance(item, self._domain_struct_cls) else item
 
     def _maybe_restore(self, item):
-        return self.adapter.restore(item) if isinstance(item, self._graph_cls) else item
+        return self.adapter.restore(item) if isinstance(item, self._opt_graph_cls) else item
 
 
 def init_adapter(adapter: BaseOptimizationAdapter):
-    AdaptRegistry(adapter)
+    AdaptRegistry().init_adapter(adapter)
 
 
 def register_native(fun: Callable) -> Callable:
