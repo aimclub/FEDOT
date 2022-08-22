@@ -125,14 +125,15 @@ def test_multimodal_data_with_complicated_types():
     of dataset look at data_with_complicated_types.
     Combines complicated table data with some text columns.
     """
-    # TODO check file content
     file_path = 'test/data/multimodal_data_with_complicated_types.csv'
     path = Path(fedot_project_root(), file_path)
-    df = pd.read_csv(path)
     file_mm_data = MultiModalData.from_csv(path)
     model = Fedot(problem='classification')
     model.fit(features=file_mm_data,
               target=file_mm_data.target,
               predefined_model='auto')
     model.predict(file_mm_data)
-    assert len(file_mm_data) == 3
+
+    assert len(file_mm_data) == 2
+    assert 'data_source_text/5' in file_mm_data
+    assert file_mm_data['data_source_table'].features.shape == (18, 11)

@@ -10,6 +10,8 @@ from fedot.core.data.data import process_target_and_features, get_indices_from_f
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+ALLOWED_NAN_PERCENT = 0.8
+
 
 class MultiModalData(dict):
     """ Dictionary with InputData as values and primary node names as keys """
@@ -167,10 +169,10 @@ class MultiModalData(dict):
         data_part_transformation_func = partial(_array_to_input_data, idx=idx,
                                                 target_array=target, task=task)
 
-        # create labels for text data sources
+        # create labels for text data sources and remove source if there are many nans
         sources = dict((_new_key_name_text(data_part_key),
                         data_part_transformation_func(features_array=data_part, data_type=DataTypesEnum.text))
-                       for (data_part_key, data_part) in data_text.items())
+                       for (data_part_key, data_part) in data_text.items() if not _full_of_nans(data_part))
 
         # add table features if they exist
         if table_features.size != 0:
@@ -197,16 +199,19 @@ def _define_text_columns(data_frame: pd.DataFrame) -> List[str]:
 def _column_contains_text(column: pd.Series) -> bool:
     """
     Column contains text if:
-    1. it's not numerical or latent numerical
-    (e.g. ['1.2', '2.3', '3.4', ...] is numerical too)
-    2. fraction of unique values is more than 0.95
+    1. it's not float or float compatible
+    (e.g. ['1.2', '2.3', '3.4', ...] is float too)
+    2. fraction of unique values (except nans) is more than 0.95
 
     :param column: pandas series with data
     :return: True if column contains text
     """
     if column.dtype == object and not _is_float_compatible(column):
-        return len(column.unique()) / len(column) > 0.95 if pd.isna(column).sum() == 0 \
-            else (len(column.unique()) - 1) / (len(column) - pd.isna(column).sum()) > 0.95
+        unique_frac = 0.95
+        unique_num = len(column.unique())
+        nan_num = pd.isna(column).sum()
+        return unique_num / len(column) > unique_frac if nan_num == 0 \
+            else (unique_num - 1) / (len(column) - nan_num) > unique_frac
     return False
 
 
@@ -222,6 +227,12 @@ def _is_float_compatible(column: pd.Series) -> bool:
     non_nan_all_objects_number = len(column) - nans_number
     failed_ratio = failed_objects_number / non_nan_all_objects_number
     return failed_ratio < 0.5
+
+
+def _full_of_nans(text_data: np.array) -> bool:
+    if np.sum(pd.isna(text_data)) / len(text_data) > ALLOWED_NAN_PERCENT:
+        return True
+    return False
 
 
 def _prepare_multimodal_text_data(dataframe: pd.DataFrame, text_columns: List[str]) -> dict:
