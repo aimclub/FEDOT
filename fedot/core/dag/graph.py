@@ -5,7 +5,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.utils import copy_doc
-from fedot.core.visualisation.graph_viz import GraphVisualiser
+from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
@@ -90,7 +90,7 @@ class Graph:
         return self._operator.get_edges()
 
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
-             node_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
+             node_color: Optional[NodeColorType] = None, dpi: int = 300,
              node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
         """Visualizes graph or saves its picture to the specified ``path``
 
