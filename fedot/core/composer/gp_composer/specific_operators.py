@@ -9,7 +9,7 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_params, **kwargs) -> Any:
+def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_params, **kwargs) -> Pipeline:
     """
     This type of mutation is passed over all nodes and changes
     hyperparameters of the operations with probability - 'node mutation probability'
@@ -33,7 +33,7 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_para
     return pipeline
 
 
-def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any:
+def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Pipeline:
     """ This type of mutation adds the additional 'boosting' cascade to the existing pipeline """
 
     # TODO: refactor next line to get task_type more obviously
@@ -89,7 +89,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
     return pipeline
 
 
-def choose_new_model(boosting_model_candidates: List[str]):
+def choose_new_model(boosting_model_candidates: List[str]) -> str:
     """ Since 'linear' and 'dtreg' operations are suitable for solving the problem
     and they are simpler than others, they are preferred """
 

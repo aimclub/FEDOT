@@ -7,7 +7,7 @@ import pandas as pd
 
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
-from fedot.core.adapter import DirectAdapter
+from fedot.core.adapter import DirectAdapter, register_native
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
     EvoGraphOptimizer,
     GeneticSchemeTypesEnum
@@ -52,6 +52,7 @@ def _has_no_duplicates(graph):
     return True
 
 
+@register_native
 def custom_mutation(graph: OptGraph, **kwargs):
     num_mut = 10
     try:
