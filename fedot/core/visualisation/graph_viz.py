@@ -30,9 +30,9 @@ class GraphVisualiser:
                   edge_curvature_scale: float = 1.0):
         if not graph.nodes:
             raise ValueError('Empty graph can not be visualized.')
-        # Define colors
+        # Define colors.
         if not node_color:
-            if type(graph).__name__ == 'Pipeline':
+            if type(graph).__name__ == 'Pipeline':  # This type check avoids circular imports.
                 node_color = self.__get_colors_by_tags
             else:
                 node_color = self.__get_colors_by_labels
