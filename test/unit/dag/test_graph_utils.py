@@ -1,17 +1,17 @@
-from typing import Tuple, List, Optional, Iterable, Callable
+from typing import Tuple, List, Optional, Iterable, Callable, Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 
 
-def nodes_same(left_nodes: Iterable[GraphNode], right_nodes: Iterable[GraphNode]) -> bool:
+def nodes_same(left_nodes: Sequence[GraphNode], right_nodes: Sequence[GraphNode]) -> bool:
     left_set = set(map(lambda n: n.descriptive_id, left_nodes))
     right_set = set(map(lambda n: n.descriptive_id, right_nodes))
-    return left_set == right_set
+    return left_set == right_set and len(left_nodes) == len(right_nodes)
 
 
 def graphs_same(left: Graph, right: Graph) -> bool:
-    return nodes_same(left.nodes, right.nodes)
+    return left == right
 
 
 def find_same_node(nodes: List[GraphNode], target: GraphNode) -> Optional[GraphNode]:

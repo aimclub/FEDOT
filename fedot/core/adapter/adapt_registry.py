@@ -6,11 +6,6 @@ from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
 # TODO: tests for
-#  - graph argument in different places .
-#  - no graph argument
-#  - several graph arguments
-#  - already adapted graph arg
-# TODO: tests for
 #  - decorator before init; with normal call
 #  - decorator before init; with too-early call
 
