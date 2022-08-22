@@ -12,7 +12,7 @@ def run_pipeline_and_history_visualization(with_pipeline_visualization=True):
     pipeline = PipelineAdapter().restore(history.individuals[-1][-1].graph)
 
     history.show('fitness_line')
-    history.show('fitness_box', pct_best=0.5)
+    history.show('fitness_box', best_fraction=0.5)
     history.show('operations_kde')
     history.show('operations_animated_bar', save_path='example_animation.gif', show_fitness=True)
     if with_pipeline_visualization:

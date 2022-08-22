@@ -125,7 +125,7 @@ class OptHistory:
 
     def show(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box,
              save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-             pct_best: Optional[float] = None, show_fitness: bool = True, per_time: bool = True,
+             best_fraction: Optional[float] = None, show_fitness: bool = True, per_time: bool = True,
              use_repos_tags: bool = True):
         """ Visualizes fitness values or operations used across generations.
 
@@ -134,7 +134,7 @@ class OptHistory:
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed. Essential for animations.
         :param dpi: DPI of the output figure.
-        :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
+        :param best_fraction: fraction of individuals with the best fitness per generation. The value should be in the
             interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
         :param show_fitness: if False, visualizations that support this parameter will not display fitness.
         :param per_time: Shows time axis instead of generations axis. Currently, supported for plot types:
@@ -146,10 +146,10 @@ class OptHistory:
 
         def check_args_constraints():
             nonlocal per_time
-            # Check supported cases for `pct_best`.
-            if pct_best is not None and \
-                    (pct_best <= 0 or pct_best > 1):
-                raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
+            # Check supported cases for `best_fraction`.
+            if best_fraction is not None and \
+                    (best_fraction <= 0 or best_fraction > 1):
+                raise ValueError('`best_fraction` parameter should be in the interval (0, 1].')
             # Check supported cases for show_fitness == False.
             if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
                 self._log.warning(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
@@ -181,11 +181,11 @@ class OptHistory:
         elif plot_type is PlotTypesEnum.fitness_line_interactive:
             viz.visualize_fitness_line_interactive(self, per_time, save_path, dpi, color_as_pipelines=use_repos_tags)
         elif plot_type is PlotTypesEnum.fitness_box:
-            viz.visualise_fitness_box(self, save_path, dpi, pct_best)
+            viz.visualise_fitness_box(self, save_path, dpi, best_fraction)
         elif plot_type is PlotTypesEnum.operations_kde:
-            viz.visualize_operations_kde(self, save_path, dpi, pct_best, use_repos_tags)
+            viz.visualize_operations_kde(self, save_path, dpi, best_fraction, use_repos_tags)
         elif plot_type is PlotTypesEnum.operations_animated_bar:
-            viz.visualize_operations_animated_bar(self, save_path, dpi, pct_best, show_fitness, use_repos_tags)
+            viz.visualize_operations_animated_bar(self, save_path, dpi, best_fraction, show_fitness, use_repos_tags)
         else:
             raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
 

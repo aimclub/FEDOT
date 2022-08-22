@@ -521,7 +521,7 @@ class PipelineEvolutionVisualiser:
 
     @staticmethod
     def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
-                                tags_data: Optional[List[str]] = None, pct_best: Optional[float] = None,
+                                tags_data: Optional[List[str]] = None, best_fraction: Optional[float] = None,
                                 get_tags: bool = True):
         history_data = {
             'generation': [],
@@ -548,7 +548,7 @@ class PipelineEvolutionVisualiser:
 
         df_history = pd.DataFrame.from_dict(history_data)
 
-        if pct_best is not None:
+        if best_fraction is not None:
             generation_sizes = df_history.groupby('generation')['individual'].nunique()
 
             df_individuals = df_history[['generation', 'individual', 'fitness']] \
@@ -559,7 +559,7 @@ class PipelineEvolutionVisualiser:
 
             best_individuals = df_individuals[
                 df_individuals.apply(
-                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * pct_best,
+                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * best_fraction,
                     axis='columns'
                 )
             ]['individual']
@@ -569,17 +569,17 @@ class PipelineEvolutionVisualiser:
         return df_history
 
     def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                              dpi: int = 300, pct_best: Optional[float] = None):
+                              dpi: int = 300, best_fraction: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param dpi: DPI if the output figure.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
-        df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
+        df_history = self.__get_history_dataframe(history, get_tags=False, best_fraction=best_fraction)
         columns_needed = ['generation', 'individual', 'fitness']
         df_history = df_history[columns_needed].drop_duplicates(ignore_index=True)
         # Get color palette by mean fitness per generation
@@ -600,14 +600,14 @@ class PipelineEvolutionVisualiser:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
             ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
             ax.xaxis.grid(True)
-        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
+        str_fraction_of_pipelines = 'all' if best_fraction is None else f'top {best_fraction * 100}% of'
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
         ax.yaxis.grid(True)
 
         self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                                 dpi: int = 300, pct_best: Optional[float] = None, use_tags: bool = True,
+                                 dpi: int = 300, best_fraction: Optional[float] = None, use_tags: bool = True,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
@@ -615,7 +615,7 @@ class PipelineEvolutionVisualiser:
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param dpi: DPI of the output figure.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
             repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
@@ -635,7 +635,7 @@ class PipelineEvolutionVisualiser:
         operation_column_name = 'Operation'
         column_for_operation = 'tag' if use_tags else 'node'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best, use_tags)
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, best_fraction, use_tags)
         df_history = df_history.rename({'generation': generation_column_name,
                                         column_for_operation: operation_column_name}, axis='columns')
         operations_found = df_history[operation_column_name].unique()
@@ -666,13 +666,13 @@ class PipelineEvolutionVisualiser:
         fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
-        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
+        str_fraction_of_pipelines = 'all' if best_fraction is None else f'top {best_fraction * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
         self.__show_or_save_figure(fig, save_path, dpi)
 
     def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
-                                          dpi: int = 300, pct_best: Optional[float] = None,
+                                          dpi: int = 300, best_fraction: Optional[float] = None,
                                           show_fitness_color: bool = True, use_tags: bool = True,
                                           tags_model: Optional[List[str]] = None,
                                           tags_data: Optional[List[str]] = None):
@@ -681,7 +681,7 @@ class PipelineEvolutionVisualiser:
         :param history: OptHistory instance.
         :param save_path: path to save the visualization.
         :param dpi: DPI of the output figure.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         :param show_fitness_color: if False, the bar colors will not correspond to fitness.
         :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
@@ -738,7 +738,7 @@ class PipelineEvolutionVisualiser:
         operation_column_name = 'Operation'
         column_for_operation = 'tag' if use_tags else 'node'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best, use_tags)
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, best_fraction, use_tags)
         df_history = df_history.rename({
             'generation': generation_column_name,
             'fitness': fitness_column_name,
@@ -807,8 +807,8 @@ class PipelineEvolutionVisualiser:
 
         bar_data = smoothen_frames_data(bar_data, animation_frames_per_step, animation_interpolation_power)
         title_template = 'Generation {}'
-        if pct_best is not None:
-            title_template += f', top {pct_best * 100}%'
+        if best_fraction is not None:
+            title_template += f', top {best_fraction * 100}%'
         bar_title = [i for gen_num in generations for i in [title_template.format(gen_num)] * animation_frames_per_step]
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
