@@ -16,6 +16,7 @@ from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
+from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.remote.remote_evaluator import RemoteEvaluator
 
 
@@ -83,8 +84,9 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if n_jobs == 1:
             mapped_evals = map(self.evaluate_single, individuals)
         else:
-            with closing(multiprocessing.Pool(n_jobs)) as pool:
-                mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
+            with SingletonMeta.using_mp():
+                with closing(multiprocessing.Pool(n_jobs)) as pool:
+                    mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
 
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
