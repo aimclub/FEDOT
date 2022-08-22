@@ -17,7 +17,7 @@ from fedot.core.optimisers.gp_comp.parameters.population_size import init_adapti
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizerParameters
-from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer
+from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, EvaluationAttemptsError
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -189,6 +189,6 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             iter_num += 1
 
         if not new_population:
-            raise AttributeError('Too many fitness evaluation errors.')
+            raise EvaluationAttemptsError()
 
         return new_population

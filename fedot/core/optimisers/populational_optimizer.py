@@ -85,7 +85,7 @@ class PopulationalOptimizer(GraphOptimizer):
             while not self.stop_optimization():
                 try:
                     new_population = self._evolve_population(evaluator=evaluator)
-                except AttributeError as ex:
+                except EvaluationAttemptsError as ex:
                     self.log.warning(f'Composition process was stopped due to: {ex}')
                     return self.best_graphs
                 # Adding of new population to history
@@ -147,3 +147,18 @@ class EmptyProgressBar:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         return True
+
+
+class EvaluationAttemptsError(Exception):
+    """ Number of evaluation attempts exceeded """
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+
+    def __str__(self):
+        if self.message:
+            return self.message
+        else:
+            return 'Too many fitness evaluation errors.'
