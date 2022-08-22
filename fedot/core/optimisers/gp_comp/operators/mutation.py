@@ -96,38 +96,31 @@ class Mutation(Operator):
 
         mutation_types = self.parameters.mutation_types
         is_static_mutation_type = random() < self.parameters.static_mutation_prob
-        static_mutation_type = choice(mutation_types)
+        mutation_type = choice(mutation_types)
         mutation_names = []
         for _ in range(num_mut):
-            mutation_type = static_mutation_type \
-                if is_static_mutation_type else choice(mutation_types)
+            # determine mutation type
+            if not is_static_mutation_type:
+                mutation_type = choice(mutation_types)
             is_custom_mutation = isinstance(mutation_type, Callable)
 
-            new_graph = self._apply_mutation(new_graph, mutation_type, is_custom_mutation)
+            if self._will_mutation_be_applied(mutation_type):
+                # get the mutation function and adapt it
+                mutation_func = mutation_type if is_custom_mutation else self.mutation_by_type(mutation_type)
 
-            mutation_names.append(str(mutation_type))
-            if is_custom_mutation:
-                # custom mutation occurs once
-                break
+                new_graph = mutation_func(new_graph, requirements=self.requirements,
+                                          params=self.graph_generation_params,
+                                          opt_params=self.parameters)
+
+                # log mutation
+                mutation_names.append(str(mutation_type))
+                if is_custom_mutation:
+                    # custom mutation occurs once
+                    break
         return new_graph, mutation_names
 
-    def _apply_mutation(self, new_graph: Union[Graph, OptGraph], mutation_type: Union[MutationTypesEnum, Callable],
-                        is_custom_mutation: bool) -> Union[Graph, OptGraph]:
-        """Apply mutation for adapted graph."""
-        if self._will_mutation_be_applied(self.parameters.mutation_prob, mutation_type):
-            graph_copy = deepcopy(new_graph)
-
-            mutation_func = mutation_type if is_custom_mutation else self.mutation_by_type(mutation_type)
-            new_graph = mutation_func(new_graph, requirements=self.requirements,
-                                      params=self.graph_generation_params,
-                                      opt_params=self.parameters)
-            if not new_graph.nodes:
-                return graph_copy
-        return new_graph
-
-    @staticmethod
-    def _will_mutation_be_applied(mutation_prob: float, mutation_type: Union[MutationTypesEnum, Callable]) -> bool:
-        return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
+    def _will_mutation_be_applied(self, mutation_type: Union[MutationTypesEnum, Callable]) -> bool:
+        return random() <= self.parameters.mutation_prob and mutation_type is not MutationTypesEnum.none
 
     @register_native
     def _simple_mutation(self, graph: OptGraph, **kwargs) -> OptGraph:
