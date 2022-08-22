@@ -1,8 +1,10 @@
+from __future__ import annotations
+
 import datetime
 import os
 from pathlib import Path
 from textwrap import wrap
-from typing import Optional, Union, Callable, Any, Tuple, List, Dict
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence, Tuple, Union, Iterable
 from uuid import uuid4
 
 import networkx as nx
@@ -17,6 +19,17 @@ from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
+    from fedot.core.optimisers.graph import OptGraph
+
+    GraphType = Union[Graph, OptGraph]
+
+MatplotlibColorType = Union[str, Sequence[float]]
+LabelsColorMapType = Dict[str, MatplotlibColorType]
+NodeColorFunctionType = Callable[[Iterable[str]], LabelsColorMapType]
+NodeColorType = Union[MatplotlibColorType, NodeColorFunctionType]
+
 
 class GraphVisualiser:
     def __init__(self):
@@ -24,8 +37,8 @@ class GraphVisualiser:
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         self.log = default_log(self)
 
-    def visualise(self, graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
-                  engine: str = 'matplotlib', node_color: Optional[Union[str, Tuple[float, float, float]]] = None,
+    def visualise(self, graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
+                  engine: str = 'matplotlib', node_color: Optional[NodeColorType] = None,
                   dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
                   edge_curvature_scale: float = 1.0):
         if not graph.nodes:
@@ -48,7 +61,7 @@ class GraphVisualiser:
                                       'Possible values: matplotlib, pyvis, graphviz.')
 
     @staticmethod
-    def __get_colors_by_tags(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
+    def __get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
         from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
         from fedot.core.repository.operation_types_repository import get_opt_node_tag
 
@@ -56,13 +69,13 @@ class GraphVisualiser:
         return {label: palette[get_opt_node_tag(label)] for label in labels}
 
     @staticmethod
-    def __get_colors_by_labels(labels: List[str]) -> Dict[str, Tuple[float, float, float]]:
+    def __get_colors_by_labels(labels: Iterable[str]) -> LabelsColorMapType:
         unique_labels = list(set(labels))
         palette = color_palette('tab10', len(unique_labels))
         return {label: palette[unique_labels.index(label)] for label in labels}
 
     @staticmethod
-    def __draw_with_graphviz(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+    def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
                              nodes_color=__get_colors_by_tags.__func__, dpi=300):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
@@ -94,7 +107,7 @@ class GraphVisualiser:
             remove_old_files_from_dir(save_path.parent)
 
     @staticmethod
-    def __draw_with_pyvis(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+    def __draw_with_pyvis(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
                           nodes_color=__get_colors_by_tags.__func__):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
@@ -130,11 +143,8 @@ class GraphVisualiser:
         net.show(str(save_path))
         remove_old_files_from_dir(save_path.parent)
 
-    def __draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
-                             node_color: Optional[Union[str, Tuple[float, float, float],
-                                                        Callable[
-                                                            [List[str]], Dict[
-                                                                str, Tuple[float, float, float]]]]] = None,
+    def __draw_with_networkx(self, graph: GraphType, save_path=None,
+                             node_color: Optional[NodeColorType] = None,
                              dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
                              edge_curvature_scale: float = 1.0,
                              in_graph_converter_function: Callable = graph_structure_as_nx_graph):
@@ -149,9 +159,8 @@ class GraphVisualiser:
             plt.close()
 
     @staticmethod
-    def draw_nx_dag(graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
-                    node_color: Optional[Union[str, Tuple[float, float, float],
-                                               Callable[[List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
+    def draw_nx_dag(graph: GraphType, ax: Optional[plt.Axes] = None,
+                    node_color: Optional[NodeColorType] = None,
                     node_size_scale: float = 1, font_size_scale: float = 1, edge_curvature_scale: float = 1,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
 

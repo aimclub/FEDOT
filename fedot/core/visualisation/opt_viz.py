@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import os
 from copy import deepcopy
@@ -8,7 +10,7 @@ from os import remove
 from pathlib import Path
 from textwrap import wrap
 from time import time
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import matplotlib as mpl
 import numpy as np
@@ -18,12 +20,10 @@ from matplotlib import animation, cm, pyplot as plt, ticker
 from matplotlib.colors import Normalize
 from matplotlib.widgets import Button
 
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import PIL
-
     from PIL import Image
 except ModuleNotFoundError:
     warn_requirement('Pillow')
@@ -31,11 +31,15 @@ except ModuleNotFoundError:
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness import null_fitness
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.opt_history import OptHistory
 
 
 def with_alternate_matplotlib_backend(func):
@@ -433,7 +437,7 @@ class PipelineEvolutionVisualiser:
         axis.set_title(title)
         axis.grid(axis='y')
 
-    def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
+    def visualize_fitness_line(self, history: OptHistory, per_time: bool = True,
                                save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
         ax = plt.gca()
         if per_time:
@@ -446,7 +450,7 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(plt.gcf(), save_path, dpi)
 
     @with_alternate_matplotlib_backend
-    def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
+    def visualize_fitness_line_interactive(self, history: OptHistory, per_time: bool = True,
                                            save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
                                            use_tags: bool = True):
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
@@ -521,7 +525,7 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(fig, save_path, dpi)
 
     @staticmethod
-    def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
+    def __get_history_dataframe(history: OptHistory, tags_model: Optional[List[str]] = None,
                                 tags_data: Optional[List[str]] = None, best_fraction: Optional[float] = None,
                                 get_tags: bool = True):
         history_data = {
@@ -569,7 +573,7 @@ class PipelineEvolutionVisualiser:
 
         return df_history
 
-    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
+    def visualise_fitness_box(self, history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None,
                               dpi: int = 300, best_fraction: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
@@ -607,7 +611,7 @@ class PipelineEvolutionVisualiser:
 
         self.__show_or_save_figure(fig, save_path, dpi)
 
-    def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
+    def visualize_operations_kde(self, history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None,
                                  dpi: int = 300, best_fraction: Optional[float] = None, use_tags: bool = True,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
@@ -672,7 +676,7 @@ class PipelineEvolutionVisualiser:
 
         self.__show_or_save_figure(fig, save_path, dpi)
 
-    def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
+    def visualize_operations_animated_bar(self, history: OptHistory, save_path: Union[os.PathLike, str],
                                           dpi: int = 300, best_fraction: Optional[float] = None,
                                           show_fitness_color: bool = True, use_tags: bool = True,
                                           tags_model: Optional[List[str]] = None,
