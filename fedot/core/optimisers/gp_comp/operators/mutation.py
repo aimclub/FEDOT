@@ -90,17 +90,6 @@ class Mutation(Operator):
 
         return individual
 
-    @staticmethod
-    def _update_parent_operators(individual: Individual,
-                                 mutation_names: Sequence[str]) -> Tuple[ParentOperator]:
-        new_parent_operators = tuple(
-            ParentOperator(operator_type='mutation',
-                           operator_name=str(mutation_name),
-                           parent_individuals=(individual,))
-            for mutation_name in mutation_names
-        )
-        return tuple(individual.parent_operators) + new_parent_operators
-
     def _adapt_and_apply_mutations(self, new_graph: OptGraph, num_mut: int) -> Tuple[OptGraph, List[str]]:
         """Apply mutation in several iterations with specific adaptation of each graph"""
 
@@ -114,6 +103,7 @@ class Mutation(Operator):
             is_custom_mutation = isinstance(mutation_type, Callable)
 
             new_graph = self._apply_mutation(new_graph, mutation_type, is_custom_mutation)
+
             mutation_names.append(str(mutation_type))
             if is_custom_mutation:
                 # custom mutation occurs once
@@ -122,15 +112,10 @@ class Mutation(Operator):
 
     def _apply_mutation(self, new_graph: Union[Graph, OptGraph], mutation_type: Union[MutationTypesEnum, Callable],
                         is_custom_mutation: bool) -> Union[Graph, OptGraph]:
-        """
-          Apply mutation for adapted graph
-        """
+        """Apply mutation for adapted graph."""
         if self._will_mutation_be_applied(self.parameters.mutation_prob, mutation_type):
-            if is_custom_mutation:
-                mutation_func = mutation_type
-            else:
-                mutation_func = self.mutation_by_type(mutation_type)
             graph_copy = deepcopy(new_graph)
+            mutation_func = mutation_type if is_custom_mutation else self.mutation_by_type(mutation_type)
             new_graph = mutation_func(new_graph, requirements=self.requirements,
                                       params=self.graph_generation_params,
                                       opt_params=self.parameters)
@@ -154,7 +139,7 @@ class Mutation(Operator):
         exchange_node = self.graph_generation_params.node_factory.exchange_node
         visited_nodes = set()
 
-        def replace_node_to_random_recursive(node: OptGraph) -> OptGraph:
+        def replace_node_to_random_recursive(node: OptNode) -> OptGraph:
             if node not in visited_nodes and random() < node_mutation_probability:
                 new_node = exchange_node(node)
                 if new_node:
@@ -370,7 +355,7 @@ class Mutation(Operator):
     def _no_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         return graph
 
-    def mutation_by_type(self, mutation_type: MutationTypesEnum):
+    def mutation_by_type(self, mutation_type: MutationTypesEnum) -> Callable:
         mutations = {
             MutationTypesEnum.none: self._no_mutation,
             MutationTypesEnum.simple: self._simple_mutation,
