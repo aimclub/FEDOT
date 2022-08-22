@@ -17,13 +17,13 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECON
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -266,7 +266,8 @@ class ApiComposer:
                                         iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
                                         timeout=timeout_for_tuning,
                                         cv_folds=folds,
-                                        validation_blocks=vb_number)
+                                        validation_blocks=vb_number,
+                                        show_progress=composer_requirements.show_progress)
                 log.info('Hyperparameters tuning finished')
         return pipeline_gp_composed
 

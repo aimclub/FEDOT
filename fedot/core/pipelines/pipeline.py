@@ -244,7 +244,8 @@ class Pipeline(Graph, Serializable):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations: int = 50, timeout: Optional[float] = 5.,
-                            cv_folds: Optional[int] = None, validation_blocks: int = 3) -> 'Pipeline':
+                            cv_folds: Optional[int] = None, validation_blocks: int = 3,
+                            show_progress: bool = True) -> 'Pipeline':
         """
         Tunes all nodes hyperparameters simultaneously via black-box
             optimization using PipelineTuner. For details, see
@@ -257,6 +258,7 @@ class Pipeline(Graph, Serializable):
         :param timeout: max time spent on tuning
         :param cv_folds: number of cross-validation folds
         :param validation_blocks: number of validation blocks for time series forecasting
+        :param show_progress: bool indicating whether to show progress bar
 
         :return: pipeline with tuned hyperparameters
         """
@@ -274,7 +276,8 @@ class Pipeline(Graph, Serializable):
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                                       loss_function=loss_function,
                                                       cv_folds=cv_folds,
-                                                      validation_blocks=validation_blocks)
+                                                      validation_blocks=validation_blocks,
+                                                      show_progress=show_progress)
         self.log.info('Tuning was finished')
 
         return tuned_pipeline

@@ -1,13 +1,12 @@
-import logging
 from abc import abstractmethod
 from typing import Any, Optional, Sequence
 
 from tqdm import tqdm
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
@@ -76,10 +75,7 @@ class PopulationalOptimizer(GraphOptimizer):
         # eval_dispatcher defines how to evaluate objective on the whole population
         evaluator = self.eval_dispatcher.dispatch(objective)
 
-        with self.timer, tqdm(total=self.requirements.num_of_generations,
-                              desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.logging_level == logging.NOTSET):
-
+        with self.timer, self._progressbar(show_progress):
             self._initial_population(evaluator=evaluator)
 
             while not self.stop_optimization():
