@@ -448,7 +448,7 @@ class PipelineEvolutionVisualiser:
     @with_alternate_matplotlib_backend
     def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
                                            save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-                                           color_as_pipelines: bool = True):
+                                           use_tags: bool = True):
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
 
@@ -481,7 +481,7 @@ class PipelineEvolutionVisualiser:
             def generate_graph_images(self):
                 for ind in self.best_individuals:
                     graph = ind.graph
-                    if color_as_pipelines:
+                    if use_tags:
                         graph = PipelineAdapter().restore(ind.graph)
                     graph.show(self.temp_path)
                     self.graph_images.append(plt.imread(str(self.temp_path)))
