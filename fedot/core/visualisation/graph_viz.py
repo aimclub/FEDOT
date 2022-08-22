@@ -37,12 +37,12 @@ class GraphVisualiser:
             else:
                 node_color = self.__get_colors_by_labels
         if engine == 'matplotlib':
-            self.draw_with_networkx(graph, save_path, node_color, dpi, node_size_scale, font_size_scale,
-                                    edge_curvature_scale)
+            self.__draw_with_networkx(graph, save_path, node_color, dpi, node_size_scale, font_size_scale,
+                                      edge_curvature_scale)
         elif engine == 'pyvis':
-            self.draw_with_pyvis(graph, save_path, node_color)
+            self.__draw_with_pyvis(graph, save_path, node_color)
         elif engine == 'graphviz':
-            self.draw_with_graphviz(graph, save_path, node_color, dpi)
+            self.__draw_with_graphviz(graph, save_path, node_color, dpi)
         else:
             raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
                                       'Possible values: matplotlib, pyvis, graphviz.')
@@ -62,8 +62,8 @@ class GraphVisualiser:
         return {label: palette[unique_labels.index(label)] for label in labels}
 
     @staticmethod
-    def draw_with_graphviz(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
-                           nodes_color=__get_colors_by_tags.__func__, dpi=300):
+    def __draw_with_graphviz(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+                             nodes_color=__get_colors_by_tags.__func__, dpi=300):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
         if callable(nodes_color):
@@ -94,8 +94,8 @@ class GraphVisualiser:
             remove_old_files_from_dir(save_path.parent)
 
     @staticmethod
-    def draw_with_pyvis(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
-                        nodes_color=__get_colors_by_tags.__func__):
+    def __draw_with_pyvis(graph: Union['Graph', 'OptGraph'], save_path: Optional[Union[os.PathLike, str]] = None,
+                          nodes_color=__get_colors_by_tags.__func__):
         net = Network('500px', '1000px', directed=True)
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
@@ -130,13 +130,14 @@ class GraphVisualiser:
         net.show(str(save_path))
         remove_old_files_from_dir(save_path.parent)
 
-    def draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
-                           node_color: Optional[Union[str, Tuple[float, float, float],
-                                                      Callable[
-                                                           [List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
-                           dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
-                           edge_curvature_scale: float = 1.0,
-                           in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+    def __draw_with_networkx(self, graph: Union['Graph', 'OptGraph'], save_path=None,
+                             node_color: Optional[Union[str, Tuple[float, float, float],
+                                                        Callable[
+                                                            [List[str]], Dict[
+                                                                str, Tuple[float, float, float]]]]] = None,
+                             dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
+                             edge_curvature_scale: float = 1.0,
+                             in_graph_converter_function: Callable = graph_structure_as_nx_graph):
         fig, ax = plt.subplots(figsize=(7, 7))
         fig.set_dpi(dpi)
         self.draw_nx_dag(graph, ax, node_color, node_size_scale, font_size_scale, edge_curvature_scale,
@@ -147,11 +148,28 @@ class GraphVisualiser:
             plt.savefig(save_path, dpi=dpi)
             plt.close()
 
-    def draw_nx_dag(self, graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
+    @staticmethod
+    def draw_nx_dag(graph: Union['Graph', 'OptGraph'], ax: Optional[plt.Axes] = None,
                     node_color: Optional[Union[str, Tuple[float, float, float],
                                                Callable[[List[str]], Dict[str, Tuple[float, float, float]]]]] = None,
                     node_size_scale: float = 1, font_size_scale: float = 1, edge_curvature_scale: float = 1,
                     in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+
+        def draw_nx_labels(pos, node_labels, ax, max_sequence_length, font_size_scale=1.0):
+            def get_scaled_font_size(nodes_amount):
+                min_size = 2
+                max_size = 20
+
+                size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
+                return size
+
+            if ax is None:
+                ax = plt.gca()
+            for node, (x, y) in pos.items():
+                text = '\n'.join(wrap(node_labels[node].replace('_', ' ').replace('-', ' '), 10))
+                ax.text(x, y, text, ha='center', va='center',
+                        fontsize=get_scaled_font_size(max_sequence_length) * font_size_scale,
+                        bbox=dict(alpha=0.9, color='w', boxstyle='round'))
 
         def get_scaled_node_size(nodes_amount):
             min_size = 500
@@ -179,8 +197,8 @@ class GraphVisualiser:
         nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
                                edgecolors=edge_colors)
         # Draw the graph's node labels.
-        self._draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
-                             font_size_scale)
+        draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
+                       font_size_scale)
         # The ongoing section defines curvature for all edges.
         #   This is 'connection style' for an edge that does not intersect any nodes.
         CONNECTION_STYLE = 'arc3'
@@ -241,23 +259,6 @@ class GraphVisualiser:
         ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
         ax.axis('off')
         plt.tight_layout()
-
-    @staticmethod
-    def _draw_nx_labels(pos, node_labels, ax, max_sequence_length, font_size_scale=1.0):
-        def get_scaled_font_size(nodes_amount):
-            min_size = 2
-            max_size = 20
-
-            size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
-            return size
-
-        if ax is None:
-            ax = plt.gca()
-        for node, (x, y) in pos.items():
-            text = '\n'.join(wrap(node_labels[node].replace('_', ' ').replace('-', ' '), 10))
-            ax.text(x, y, text, ha='center', va='center',
-                    fontsize=get_scaled_font_size(max_sequence_length) * font_size_scale,
-                    bbox=dict(alpha=0.9, color='w', boxstyle='round'))
 
 
 def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict[Any, Tuple[float, float]], int]:
