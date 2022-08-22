@@ -211,7 +211,7 @@ class GraphVisualiser:
         # The ongoing section defines curvature for all edges.
         #   This is 'connection style' for an edge that does not intersect any nodes.
         CONNECTION_STYLE = 'arc3'
-        #   This is 'connection style' template for an edge that is too close to any node and nust bend around it.
+        #   This is 'connection style' template for an edge that is too close to any node and must bend around it.
         #   The curvature value is defined individually for each edge.
         CONNECTION_STYLE_CURVED_TEMPLATE = CONNECTION_STYLE + ',rad={}'
         DEFAULT_EDGE_CURVATURE = 0.3
