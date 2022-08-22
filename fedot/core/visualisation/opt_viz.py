@@ -485,6 +485,7 @@ class PipelineEvolutionVisualiser:
                         graph = PipelineAdapter().restore(ind.graph)
                     graph.show(self.temp_path)
                     self.graph_images.append(plt.imread(str(self.temp_path)))
+                self.temp_path.unlink()
 
             def update_graph(self):
                 ax_graph.imshow(self.graph_images[self.index])
