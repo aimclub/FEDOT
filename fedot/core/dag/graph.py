@@ -95,12 +95,12 @@ class Graph:
         """Visualizes graph or saves its picture to the specified ``path``
 
         :param save_path: optional, save location of the graph visualization image.
-        :param engine: engine to visualize the graph.
+        :param engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
         :param node_color: color of nodes to use.
-        :param node_size_scale: use to make node size bigger or lesser.
-        :param font_size_scale: use to make font size bigger or lesser.
-        :param edge_curvature_scale: use to make edges more or less curved.
-        :param dpi: DPI of the output image. Not used if engine='pyvis'.
+        :param node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
+        :param font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
+        :param edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
+        :param dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
         GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
                                     edge_curvature_scale)
