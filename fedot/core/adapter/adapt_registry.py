@@ -89,19 +89,18 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return self.adapter.restore(item) if isinstance(item, self._opt_graph_cls) else item
 
 
-def init_adapter(adapter: BaseOptimizationAdapter):
-    AdaptRegistry().init_adapter(adapter)
-
-
 def register_native(fun: Callable) -> Callable:
+    """Out-of-class version of the function intended to be used as decorator."""
     return AdaptRegistry().register_native(fun)
 
 
 def adapt(fun: Callable) -> Callable:
+    """Out-of-class version of the function intended to be used as decorator."""
     return AdaptRegistry().adapt(fun)
 
 
 def restore(fun: Callable) -> Callable:
+    """Out-of-class version of the function intended to be used as decorator."""
     return AdaptRegistry().restore(fun)
 
 

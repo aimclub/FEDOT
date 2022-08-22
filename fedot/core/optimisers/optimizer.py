@@ -6,7 +6,7 @@ from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import default_log
-from fedot.core.adapter import BaseOptimizationAdapter, DirectAdapter, init_adapter
+from fedot.core.adapter import BaseOptimizationAdapter, DirectAdapter, AdaptRegistry
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
@@ -64,7 +64,7 @@ class GraphGenerationParams:
         self.verifier = GraphVerifier(rules_for_constraint)
         self.advisor = advisor or DefaultChangeAdvisor()
         self.node_factory = node_factory or DefaultOptNodeFactory()
-        init_adapter(self.adapter)
+        AdaptRegistry().init_adapter(self.adapter)
 
 
 class GraphOptimizer:

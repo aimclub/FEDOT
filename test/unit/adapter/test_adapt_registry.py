@@ -12,7 +12,7 @@ from test.unit.dag.test_graph_utils import graphs_same
 
 @pytest.fixture(scope='module', autouse=True)
 def init_test_adapter():
-    init_adapter(MockAdapter())
+    AdaptRegistry().init_adapter(MockAdapter())
 
 
 @register_native
