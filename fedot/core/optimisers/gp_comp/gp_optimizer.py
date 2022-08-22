@@ -189,6 +189,6 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             iter_num += 1
 
         if not new_population:
-            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+            raise AttributeError('Too many fitness evaluation errors.')
 
         return new_population
