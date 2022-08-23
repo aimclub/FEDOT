@@ -297,7 +297,7 @@ def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict
     return pos, longest_sequence
 
 
-def remove_old_files_from_dir(dir: Path, time_interval=datetime.timedelta(minutes=10)):
-    for path in dir.iterdir():
+def remove_old_files_from_dir(dir_: Path, time_interval=datetime.timedelta(minutes=10)):
+    for path in dir_.iterdir():
         if datetime.datetime.now() - datetime.datetime.fromtimestamp(path.stat().st_ctime) > time_interval:
             path.unlink()
