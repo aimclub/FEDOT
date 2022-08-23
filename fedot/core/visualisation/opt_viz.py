@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import os
 from enum import Enum
 from functools import partial
@@ -32,10 +33,7 @@ class OptHistoryVisualizer:
 
         self.log = default_log(self)
 
-    def __call__(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box,
-                 save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-                 best_fraction: Optional[float] = None, show_fitness: bool = True, per_time: bool = True,
-                 use_tags: bool = True):
+    def __call__(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box, **kwargs):
         """ Visualizes fitness values or operations used across generations.
 
         :param plot_type: visualization to show. Expected values are listed in
@@ -45,7 +43,7 @@ class OptHistoryVisualizer:
         :param dpi: DPI of the output figure.
         :param best_fraction: fraction of individuals with the best fitness per generation. The value should be in the
             interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
-        :param show_fitness: if False, visualizations that support this parameter will not display fitness.
+        :param show_fitness: if False, visualizations that support this argument will not display fitness.
         :param per_time: Shows time axis instead of generations axis. Currently, supported for plot types:
             'show_fitness_line', 'show_fitness_line_interactive'.
         :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
@@ -54,22 +52,27 @@ class OptHistoryVisualizer:
         """
 
         def check_args_constraints():
-            nonlocal per_time
+            nonlocal kwargs
+            kwargs_to_ignore = []
+            for argument in kwargs.keys():
+                if argument not in visualization_parameters:
+                    self.log.warning(f'Argument `{argument}` is not supported for "{plot_type.name}". It is ignored.')
+                    kwargs_to_ignore.append(argument)
+            kwargs = {key: value for key, value in kwargs.items() if key not in kwargs_to_ignore}
             # Check supported cases for `best_fraction`.
-            if best_fraction is not None and \
-                    (best_fraction <= 0 or best_fraction > 1):
-                raise ValueError('`best_fraction` parameter should be in the interval (0, 1].')
-            # Check supported cases for show_fitness == False.
-            if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
-                default_log().warning(
-                    f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
+            best_fraction = kwargs.get('best_fraction')
+            if (best_fraction is not None and
+                    (best_fraction <= 0 or best_fraction > 1)):
+                raise ValueError('`best_fraction` argument should be in the interval (0, 1].')
             # Check plot_type-specific cases
-            if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
-                    per_time and self.history.individuals[0][0].metadata.get('evaluation_time_iso') is None:
-                default_log().warning('Evaluation time not found in optimization history. '
-                                      'Showing fitness plot per generations...')
-                per_time = False
+            per_time = kwargs.get('per_time')
+            if (plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and
+                    per_time and self.history.individuals[0][0].metadata.get('evaluation_time_iso') is None):
+                self.log.warning('Evaluation time not found in optimization history. '
+                                 'Showing fitness plot per generations...')
+                kwargs['per_time'] = False
             elif plot_type is PlotTypesEnum.operations_animated_bar:
+                save_path = kwargs.get('save_path')
                 if not save_path:
                     raise ValueError('Argument `save_path` is required to save the animation.')
 
@@ -81,20 +84,15 @@ class OptHistoryVisualizer:
                     f'Visualization "{plot_type}" is not supported. Expected values: '
                     f'{", ".join(PlotTypesEnum.member_names())}.')
 
+        signature = inspect.signature(plot_type.value)
+        visualization_parameters = signature.parameters
+        default_kwargs = {p_name: p.default for p_name, p in visualization_parameters.items()
+                          if p.default is not p.empty}
+        default_kwargs.update(kwargs)
+        kwargs = default_kwargs
         check_args_constraints()
 
-        default_log().info(
+        self.log.info(
             'Visualizing optimization history... It may take some time, depending on the history size.')
 
-        if plot_type is PlotTypesEnum.fitness_line:
-            visualize_fitness_line(self.history, per_time, save_path, dpi)
-        elif plot_type is PlotTypesEnum.fitness_line_interactive:
-            visualize_fitness_line_interactive(self.history, per_time, save_path, dpi, use_tags)
-        elif plot_type is PlotTypesEnum.fitness_box:
-            visualise_fitness_box(self.history, save_path, dpi, best_fraction)
-        elif plot_type is PlotTypesEnum.operations_kde:
-            visualize_operations_kde(self.history, save_path, dpi, best_fraction, use_tags)
-        elif plot_type is PlotTypesEnum.operations_animated_bar:
-            visualize_operations_animated_bar(self.history, save_path, dpi, best_fraction, show_fitness, use_tags)
-        else:
-            raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
+        plot_type.value(self.history, **kwargs)

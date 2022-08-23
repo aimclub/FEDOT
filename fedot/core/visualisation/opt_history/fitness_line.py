@@ -135,8 +135,8 @@ def plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Option
     return best_individuals
 
 
-def visualize_fitness_line(history: OptHistory, per_time: bool = True,
-                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
+def visualize_fitness_line(history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
+                           per_time: bool = True):
     ax = plt.gca()
     if per_time:
         xlabel = 'Time, s'
@@ -149,9 +149,8 @@ def visualize_fitness_line(history: OptHistory, per_time: bool = True,
 
 
 @with_alternate_matplotlib_backend
-def visualize_fitness_line_interactive(history: OptHistory, per_time: bool = True,
-                                       save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-                                       use_tags: bool = True):
+def visualize_fitness_line_interactive(history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None,
+                                       dpi: int = 300, per_time: bool = True, use_tags: bool = True):
     fig, axes = plt.subplots(1, 2, figsize=(15, 10))
     ax_fitness, ax_graph = axes
 
