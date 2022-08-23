@@ -1,4 +1,5 @@
 from copy import deepcopy
+from functools import partial
 
 import pytest
 from typing import Tuple
@@ -35,6 +36,27 @@ def domain_func_add_node(struct: MockDomainStructure):
     new_struct = MockDomainStructure(struct.nodes)
     new_struct.nodes.append(OptNode({'name': 'knn'}))
     return new_struct
+
+
+class CustomOperator:
+    @register_native
+    def decorated_native_func_add_node(self, graph: OptGraph):
+        assert isinstance(graph, OptGraph)
+        new_graph = deepcopy(graph)
+        new_graph.add_node(OptNode({'name': 'knn'}))
+        return new_graph
+
+    def native_func_add_node(self, graph: OptGraph):
+        assert isinstance(graph, OptGraph)
+        new_graph = deepcopy(graph)
+        new_graph.add_node(OptNode({'name': 'scaling'}))
+        return new_graph
+
+    def domain_func_add_node(self, struct: MockDomainStructure):
+        assert isinstance(struct, MockDomainStructure)
+        new_struct = MockDomainStructure(struct.nodes)
+        new_struct.nodes.append(OptNode({'name': 'knn'}))
+        return new_struct
 
 
 def domain_func_1arg(struct: MockDomainStructure):
@@ -125,17 +147,27 @@ def test_restore_returned_many():
     assert isinstance(fitness, Fitness)
 
 
-def test_restore_registered():
+@pytest.mark.parametrize('mutation', (
+        decorated_native_func_add_node,
+        domain_func_add_node,
+        register_native(native_func_add_node),
+
+        CustomOperator().decorated_native_func_add_node,
+        CustomOperator().domain_func_add_node,
+        register_native(CustomOperator().native_func_add_node),
+
+        partial(decorated_native_func_add_node),
+        partial(domain_func_add_node),
+        partial(register_native(native_func_add_node)),
+))
+def test_restore_registered_functions(mutation):
     """Demonstrates how both native & domain mutations are handled
     uniformly by adapter registry thanks to @register_native decorator."""
 
     opt_graph, dom_struct = get_graphs()
-    mutations = [decorated_native_func_add_node, domain_func_add_node, native_func_add_node]
 
-    register_native(native_func_add_node)
+    restored_mutation = restore(mutation)
+    mutated_graph = restored_mutation(opt_graph)
 
-    for mutation in mutations:
-        restored_mutation = restore(mutation)
-        mutated_graph = restored_mutation(opt_graph)
-        assert isinstance(mutated_graph, OptGraph)
-        assert not graphs_same(mutated_graph, opt_graph)
+    assert isinstance(mutated_graph, OptGraph)
+    assert not graphs_same(mutated_graph, opt_graph)
