@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 MatplotlibColorType = Union[str, Sequence[float]]
 LabelsColorMapType = Dict[str, MatplotlibColorType]
 NodeColorFunctionType = Callable[[Iterable[str]], LabelsColorMapType]
-NodeColorType = Union[MatplotlibColorType, NodeColorFunctionType]
+NodeColorType = Union[MatplotlibColorType, LabelsColorMapType, NodeColorFunctionType]
 
 
 class GraphVisualiser:
@@ -76,17 +76,19 @@ class GraphVisualiser:
 
     @staticmethod
     def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
-                             nodes_color=__get_colors_by_tags.__func__, dpi=300):
+                             node_color=__get_colors_by_tags.__func__, dpi=300):
         nx_graph, nodes = graph_structure_as_nx_graph(graph)
         # Define colors
-        if callable(nodes_color):
-            colors = nodes_color([str(node) for node in nodes.values()])
+        if callable(node_color):
+            colors = node_color([str(node) for node in nodes.values()])
+        elif isinstance(node_color, dict):
+            colors = node_color
         else:
-            colors = {str(node): nodes_color for node in nodes.values()}
+            colors = {str(node): node_color for node in nodes.values()}
         for n, data in nx_graph.nodes(data=True):
             label = str(nodes[n])
             data['label'] = label.replace('_', ' ')
-            data['color'] = to_hex(colors[label])
+            data['color'] = to_hex(colors.get(label, colors.get(None)))
 
         gv_graph = nx.nx_agraph.to_agraph(nx_graph)
         kwargs = {'prog': 'dot', 'args': f'-Gnodesep=0.5 -Gdpi={dpi} -Grankdir="LR"'}
@@ -114,6 +116,8 @@ class GraphVisualiser:
         # Define colors
         if callable(nodes_color):
             colors = nodes_color([str(node) for node in nodes.values()])
+        elif isinstance(nodes_color, dict):
+            colors = nodes_color
         else:
             colors = {str(node): nodes_color for node in nodes.values()}
         for n, data in nx_graph.nodes(data=True):
@@ -126,7 +130,7 @@ class GraphVisualiser:
                 params = str(params)[1:-1]
             data['title'] = params
             data['level'] = operation.distance_to_primary_level
-            data['color'] = to_hex(colors[label])
+            data['color'] = to_hex(colors.get(label, colors.get(None)))
             data['font'] = '20px'
             data['labelHighlightBold'] = True
 
@@ -192,10 +196,9 @@ class GraphVisualiser:
         nx_graph, nodes = in_graph_converter_function(graph)
         # Define colors
         if callable(node_color):
-            colors = node_color([str(node) for node in nodes.values()])
-            edge_colors = [colors[str(node)] for node in nodes.values()]
-        else:
-            edge_colors = node_color
+            node_color = node_color([str(node) for node in nodes.values()])
+        if isinstance(node_color, dict):
+            node_color = [node_color.get(str(node), node_color.get(None)) for node in nodes.values()]
         # Define hierarchy_level
         for node_id, node_data in nx_graph.nodes(data=True):
             node_data['hierarchy_level'] = nodes[node_id].distance_to_primary_level
@@ -204,7 +207,7 @@ class GraphVisualiser:
         node_size = get_scaled_node_size(longest_sequence) * node_size_scale
         # Draw the graph's nodes.
         nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
-                               edgecolors=edge_colors)
+                               edgecolors=node_color)
         # Draw the graph's node labels.
         draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
                        font_size_scale)
