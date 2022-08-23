@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Optional, Callable, Any, Tuple
 
 from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
@@ -35,30 +36,42 @@ class AdaptRegistry(metaclass=SingletonMeta):
     by registering them as 'native'.
     """
 
+    _native_flag_attr_name_ = '_fedot_is_optimizer_native'
+
     def __init__(self):
         self.adapter = DirectAdapter(Graph)
         self._domain_struct_cls = Graph
         self._opt_graph_cls = OptGraph
-        self._native_opt_functions = set()
 
     def init_adapter(self, adapter: BaseOptimizationAdapter):
         self.adapter = adapter
         self._domain_struct_cls = self.adapter.domain_graph_class
 
-    def is_native(self, fun: Callable) -> bool:
-        return fun in self._native_opt_functions
-
-    def register_native(self, fun: Callable) -> Callable:
+    @staticmethod
+    def register_native(fun: Callable) -> Callable:
         """Registers callable object as an internal function that doesn't
         require adapt/restore mechanics when called inside the optimiser.
-        Can be used as a decorator.
+        Allows callable to receive non-adapted OptGraph used by the optimiser.
 
         :param fun: function or callable to be registered as native
 
         :return: same function without changes
         """
-        self._native_opt_functions.add(fun)
+        original_function = AdaptRegistry._get_underlying_func(fun)
+        setattr(original_function, AdaptRegistry._native_flag_attr_name_, True)
         return fun
+
+    @staticmethod
+    def is_native(fun: Callable) -> bool:
+        """Tests callable object for a presence of specific attribute
+        that tells that this function must not be restored with Adapter.
+
+        :param fun: tested Callable (function, method, functools.partial, or any callable object)
+        :return: True if the callable was registered as native, False otherwise."""
+
+        original_function = AdaptRegistry._get_underlying_func(fun)
+        is_native = getattr(original_function, AdaptRegistry._native_flag_attr_name_, False)
+        return is_native
 
     def adapt(self, fun: Callable) -> Callable:
         """Adapts native function so that it could accept domain args.
@@ -78,9 +91,24 @@ class AdaptRegistry(metaclass=SingletonMeta):
 
         :return: native function that can be used inside Optimizer
         """
-        if fun in self._native_opt_functions:
+        if AdaptRegistry.is_native(fun):
             return fun
         return _transform(fun, f_args=self._maybe_restore, f_ret=self._maybe_adapt)
+
+    @staticmethod
+    def _get_underlying_func(obj: Callable) -> Callable:
+        """Recursively unpacks 'partial' and 'method' objects to get underlying function.
+
+        :param obj: callable to try unpacking
+        :return: unpacked function that underlies the callable, or the unchanged object itself
+        """
+        while True:
+            if isinstance(obj, partial):  # if it is a 'partial'
+                obj = obj.func
+            elif hasattr(obj, '__func__'):  # if it is a 'method'
+                obj = obj.__func__
+            else:
+                return obj  # return unpacked the underlying function or original object
 
     def _maybe_adapt(self, item):
         return self.adapter.adapt(item) if isinstance(item, self._domain_struct_cls) else item
@@ -91,7 +119,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
 
 def register_native(fun: Callable) -> Callable:
     """Out-of-class version of the function intended to be used as decorator."""
-    return AdaptRegistry().register_native(fun)
+    return AdaptRegistry.register_native(fun)
 
 
 def adapt(fun: Callable) -> Callable:
