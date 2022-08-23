@@ -69,7 +69,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             else:
                 self._log.warning(f'Continuing after objective evaluation error for graph: {graph_id}')
                 continue
-            graph.unfit_preprocessor()
+            graph.unfit()
         if folds_metrics:
             folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
