@@ -7,7 +7,7 @@ from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
+from fedot.core.log import default_log, Log
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 
 
@@ -77,7 +77,11 @@ class ApiParams:
 
     def _parse_input_params(self, input_params: Dict[str, Any]):
         """ Parses input params into different class fields """
-        self.log = default_log(prefix='FEDOT logger', logging_level=input_params['logging_level'])
+
+        # reset logging level for Singleton
+        Log(logger_name='main').reset_logging_level(input_params['logging_level'])
+        self.log = default_log(prefix='FEDOT logger')
+
         simple_keys = ['problem', 'n_jobs', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
 
