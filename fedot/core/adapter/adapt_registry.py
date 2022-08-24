@@ -42,23 +42,33 @@ class AdaptRegistry(metaclass=SingletonMeta):
         self.adapter = DirectAdapter(Graph)
         self._domain_struct_cls = Graph
         self._opt_graph_cls = OptGraph
+        self._registered_native_callables = []
 
     def init_adapter(self, adapter: BaseOptimizationAdapter):
+        """Initialize Adapter Registry with specific Adapter"""
         self.adapter = adapter
         self._domain_struct_cls = self.adapter.domain_graph_class
 
-    @staticmethod
-    def register_native(fun: Callable) -> Callable:
+    def register_native(self, fun: Callable) -> Callable:
         """Registers callable object as an internal function that doesn't
         require adapt/restore mechanics when called inside the optimiser.
         Allows callable to receive non-adapted OptGraph used by the optimiser.
 
         :param fun: function or callable to be registered as native
 
-        :return: same function without changes
+        :return: same function with special private attribute set
         """
         original_function = AdaptRegistry._get_underlying_func(fun)
         setattr(original_function, AdaptRegistry._native_flag_attr_name_, True)
+        self._registered_native_callables.append(original_function)
+        return fun
+
+    def unregister_native(self, fun: Callable) -> Callable:
+        """Unregisters callable object. See ``register_native``."""
+        original_function = AdaptRegistry._get_underlying_func(fun)
+        if hasattr(original_function, AdaptRegistry._native_flag_attr_name_):
+            delattr(original_function, AdaptRegistry._native_flag_attr_name_)
+        self._registered_native_callables.remove(original_function)
         return fun
 
     @staticmethod
@@ -73,8 +83,14 @@ class AdaptRegistry(metaclass=SingletonMeta):
         is_native = getattr(original_function, AdaptRegistry._native_flag_attr_name_, False)
         return is_native
 
+    def clear_registered_callables(self):
+        for f in self._registered_native_callables:
+            self.unregister_native(f)
+
     def adapt(self, fun: Callable) -> Callable:
-        """Adapts native function so that it could accept domain args.
+        """Wraps native function so that it could accept domain graphs as arguments.
+
+        Behavior: `adapt( f(OptGraph) ) => f'(DomainGraph)`
 
         :param fun: native function that accepts native args (i.e. optimization graph)
          and requires adaptation of domain graph.
@@ -84,8 +100,10 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return _transform(fun, f_args=self._maybe_adapt, f_ret=self._maybe_restore)
 
     def restore(self, fun: Callable) -> Callable:
-        """Restores domain function so that it could accept native args,
-        unless the function wasn't registered as native.
+        """Wraps domain function so that it could accept native optimization graphs
+        as arguments. If the function was registered as native, it is returned as-is.
+
+        Behavior: `restore( f(DomainGraph) ) => f'(OptGraph)`
 
         :param fun: domain function that accepts domain args and required call to restore
 
@@ -119,7 +137,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
 
 def register_native(fun: Callable) -> Callable:
     """Out-of-class version of the function intended to be used as decorator."""
-    return AdaptRegistry.register_native(fun)
+    return AdaptRegistry().register_native(fun)
 
 
 def adapt(fun: Callable) -> Callable:

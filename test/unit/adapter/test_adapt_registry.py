@@ -18,21 +18,24 @@ def init_test_adapter():
 
 @register_native
 def decorated_native_func_add_node(graph: OptGraph):
-    assert isinstance(graph, OptGraph)
+    if not isinstance(graph, OptGraph):
+        raise TypeError()
     new_graph = deepcopy(graph)
     new_graph.add_node(OptNode({'name': 'knn'}))
     return new_graph
 
 
 def native_func_add_node(graph: OptGraph):
-    assert isinstance(graph, OptGraph)
+    if not isinstance(graph, OptGraph):
+        raise TypeError()
     new_graph = deepcopy(graph)
     new_graph.add_node(OptNode({'name': 'scaling'}))
     return new_graph
 
 
 def domain_func_add_node(struct: MockDomainStructure):
-    assert isinstance(struct, MockDomainStructure)
+    if not isinstance(struct, MockDomainStructure):
+        raise TypeError()
     new_struct = MockDomainStructure(struct.nodes)
     new_struct.nodes.append(OptNode({'name': 'knn'}))
     return new_struct
@@ -41,19 +44,22 @@ def domain_func_add_node(struct: MockDomainStructure):
 class CustomOperator:
     @register_native
     def decorated_native_func_add_node(self, graph: OptGraph):
-        assert isinstance(graph, OptGraph)
+        if not isinstance(graph, OptGraph):
+            raise TypeError()
         new_graph = deepcopy(graph)
         new_graph.add_node(OptNode({'name': 'knn'}))
         return new_graph
 
     def native_func_add_node(self, graph: OptGraph):
-        assert isinstance(graph, OptGraph)
+        if not isinstance(graph, OptGraph):
+            raise TypeError()
         new_graph = deepcopy(graph)
         new_graph.add_node(OptNode({'name': 'scaling'}))
         return new_graph
 
     def domain_func_add_node(self, struct: MockDomainStructure):
-        assert isinstance(struct, MockDomainStructure)
+        if not isinstance(struct, MockDomainStructure):
+            raise TypeError()
         new_struct = MockDomainStructure(struct.nodes)
         new_struct.nodes.append(OptNode({'name': 'knn'}))
         return new_struct
@@ -171,3 +177,26 @@ def test_restore_registered_functions(mutation):
 
     assert isinstance(mutated_graph, OptGraph)
     assert not graphs_same(mutated_graph, opt_graph)
+
+
+@pytest.mark.parametrize('mutation', (
+        native_func_add_node,
+        CustomOperator().native_func_add_node,
+        partial(native_func_add_node),
+))
+def test_restore_unregistered_fail(mutation):
+    opt_graph, dom_struct = get_graphs()
+
+    was_registered = AdaptRegistry().is_native(mutation)
+    if was_registered:
+        AdaptRegistry().unregister_native(mutation)  # clear registration by previous tests
+
+    restored_mutation = restore(mutation)
+
+    with pytest.raises(TypeError) as e:
+        mutated_dom_graph = restored_mutation(dom_struct)
+    with pytest.raises(TypeError) as e:
+        mutated_graph = restored_mutation(opt_graph)
+
+    if was_registered:
+        AdaptRegistry().register_native(mutation)
