@@ -5,7 +5,7 @@ from typing import Callable, List, Union, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from fedot.core.adapter import restore, register_native
+from fedot.core.adapter import adapt, register_native
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -107,7 +107,7 @@ class Mutation(Operator):
             if self._will_mutation_be_applied(mutation_type):
                 # get the mutation function and adapt it
                 mutation_func = mutation_type if is_custom_mutation else self.mutation_by_type(mutation_type)
-                mutation_func = restore(mutation_func)
+                mutation_func = adapt(mutation_func)
 
                 new_graph = mutation_func(new_graph, requirements=self.requirements,
                                           params=self.graph_generation_params,

@@ -2,7 +2,7 @@ from typing import Sequence, Optional, Callable
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.adapter.adapt_registry import restore
+from fedot.core.adapter.adapt_registry import adapt
 
 # Validation rule can either return False or raise a ValueError to signal a failed check
 VerifierRuleType = Callable[..., bool]
@@ -20,7 +20,7 @@ class GraphVerifier:
         # Check if all rules pass
         for rule in self._rules:
             try:
-                if restore(rule)(graph) is False:
+                if adapt(rule)(graph) is False:
                     return False
             except ValueError as err:
                 self._log.debug(f'Graph verification failed with error <{err}> '

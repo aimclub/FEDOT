@@ -21,7 +21,7 @@ def has_no_cycle(graph: Graph):
     return True
 
 
-def has_no_isolated_nodes(graph: 'Graph'):
+def has_no_isolated_nodes(graph: Graph):
     nx_graph, _ = graph_structure_as_nx_graph(graph)
     isolated = list(isolates(nx_graph))
     if len(isolated) > 0 and graph.length != 1:

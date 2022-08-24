@@ -11,7 +11,8 @@ from joblib import Parallel, delayed, cpu_count
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.adapter import BaseOptimizationAdapter
+from fedot.core.adapter import BaseOptimizationAdapter, adapt
+from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
@@ -120,7 +121,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
-    @restore
+    @adapt
     def _evaluate_graph(self, domain_graph: Graph) -> Tuple[Fitness, Graph]:
         fitness = self._objective_eval(domain_graph)
 
@@ -192,7 +193,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
-    @restore
+    @adapt
     def _evaluate_graph(self, graph: Graph) -> Tuple[Fitness, Graph]:
         fitness = self._objective_eval(graph)
         return fitness, graph

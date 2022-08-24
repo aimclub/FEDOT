@@ -87,7 +87,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
         for f in self._registered_native_callables:
             self.unregister_native(f)
 
-    def adapt(self, fun: Callable) -> Callable:
+    def restore(self, fun: Callable) -> Callable:
         """Wraps native function so that it could accept domain graphs as arguments.
 
         Behavior: `adapt( f(OptGraph) ) => f'(DomainGraph)`
@@ -99,7 +99,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
         """
         return _transform(fun, f_args=self._maybe_adapt, f_ret=self._maybe_restore)
 
-    def restore(self, fun: Callable) -> Callable:
+    def adapt(self, fun: Callable) -> Callable:
         """Wraps domain function so that it could accept native optimization graphs
         as arguments. If the function was registered as native, it is returned as-is.
 
@@ -140,14 +140,14 @@ def register_native(fun: Callable) -> Callable:
     return AdaptRegistry().register_native(fun)
 
 
-def adapt(fun: Callable) -> Callable:
-    """Out-of-class version of the function intended to be used as decorator."""
-    return AdaptRegistry().adapt(fun)
-
-
 def restore(fun: Callable) -> Callable:
     """Out-of-class version of the function intended to be used as decorator."""
     return AdaptRegistry().restore(fun)
+
+
+def adapt(fun: Callable) -> Callable:
+    """Out-of-class version of the function intended to be used as decorator."""
+    return AdaptRegistry().adapt(fun)
 
 
 def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
