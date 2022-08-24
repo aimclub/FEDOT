@@ -9,9 +9,9 @@ from fedot.core.visualisation.opt_history.operations_kde import OperationsKDE
 
 
 class PlotTypesEnum(Enum):
+    fitness_box = FitnessBox
     fitness_line = FitnessLine
     fitness_line_interactive = FitnessLineInteractive
-    fitness_box = FitnessBox
     operations_kde = OperationsKDE
     operations_animated_bar = OperationsAnimatedBar
 
