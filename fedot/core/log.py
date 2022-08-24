@@ -127,7 +127,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', logging_level: Optional[int] = None,
+def default_log(class_object=None, prefix: str = 'default', logging_level: Optional[int] = logging.INFO,
                 write_logs: bool = True) -> logging.LoggerAdapter:
     """
     Default logger
@@ -140,10 +140,10 @@ def default_log(class_object=None, prefix: str = 'default', logging_level: Optio
     """
     log = Log(logger_name='default',
               config_json_file='default',
-              output_logging_level=logging.INFO if logging_level is None else logging_level,
+              output_logging_level=logging_level,
               write_logs=write_logs)
 
     if class_object:
         prefix = class_object.__class__.__name__
 
-    return log.get_adapter(prefix=prefix, logging_level=log.logger.level if logging_level is None else logging_level)
+    return log.get_adapter(prefix=prefix, logging_level=log.logger.level)

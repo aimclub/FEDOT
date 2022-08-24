@@ -118,15 +118,3 @@ def test_multiple_adapters_with_one_prefix():
 
     assert f'prefix_1 - {info_1}' in content
     assert f'prefix_1 - {info_2}' in content
-
-
-def test_logger_levels():
-    adapter_1 = default_log(prefix='debug_logger', logging_level=logging.DEBUG)
-
-    assert adapter_1.extra['prefix'] == 'debug_logger'
-    assert adapter_1.logger.level == logging.DEBUG
-
-    adapter_2 = default_log(prefix='warning_logger', logging_level=logging.WARNING)
-
-    assert adapter_2.extra['prefix'] == 'warning_logger'
-    assert adapter_2.logger.level == logging.WARNING
