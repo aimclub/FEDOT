@@ -84,7 +84,7 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
         return text.replace('_', ' ')
 
     def format_text(text_to_wrap: str, latex_format_tag: str = 'it') -> str:
-        formatted_text = '$\\' + latex_format_tag + '{' + text_to_wrap + '}$'
+        formatted_text = f'$\\{latex_format_tag}{{{text_to_wrap}}}$'
         formatted_text = formatted_text.replace(' ', '\\;')
         return formatted_text
 

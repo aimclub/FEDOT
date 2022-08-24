@@ -15,7 +15,7 @@ class FitnessBox(HistoryVisualization):
 
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
-        :param dpi: DPI if the output figure.
+        :param dpi: DPI of the output figure.
         :param best_fraction: fraction of the best individuals of each generation that included in
             the visualization. Must be in the interval (0, 1].
         """
