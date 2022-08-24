@@ -1,4 +1,3 @@
-import inspect
 from enum import Enum
 from typing import Union
 
@@ -50,27 +49,6 @@ class OptHistoryVisualizer:
             independently.
         """
 
-        def check_args_constraints():
-            nonlocal kwargs
-            kwargs_to_ignore = []
-            for argument in kwargs.keys():
-                if argument not in visualization_parameters:
-                    self.log.warning(f'Argument `{argument}` is not supported for "{plot_type.name}". It is ignored.')
-                    kwargs_to_ignore.append(argument)
-            kwargs = {key: value for key, value in kwargs.items() if key not in kwargs_to_ignore}
-            # Check supported cases for `best_fraction`.
-            best_fraction = kwargs.get('best_fraction')
-            if (best_fraction is not None and
-                    (best_fraction <= 0 or best_fraction > 1)):
-                raise ValueError('`best_fraction` argument should be in the interval (0, 1].')
-            # Check plot_type-specific cases
-            per_time = kwargs.get('per_time')
-            if (plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and
-                    per_time and self.history.individuals[0][0].metadata.get('evaluation_time_iso') is None):
-                self.log.warning('Evaluation time not found in optimization history. '
-                                 'Showing fitness plot per generations...')
-                kwargs['per_time'] = False
-
         if isinstance(plot_type, str):
             try:
                 plot_type = PlotTypesEnum[plot_type]
@@ -80,15 +58,5 @@ class OptHistoryVisualizer:
                     f'{", ".join(PlotTypesEnum.member_names())}.')
 
         visualize_function = plot_type.value(self.history).visualize
-        signature = inspect.signature(visualize_function)
-        visualization_parameters = signature.parameters
-        default_kwargs = {p_name: p.default for p_name, p in visualization_parameters.items()
-                          if p.default is not p.empty}
-        default_kwargs.update(kwargs)
-        kwargs = default_kwargs
-        check_args_constraints()
-
-        self.log.info(
-            'Visualizing optimization history... It may take some time, depending on the history size.')
 
         visualize_function(**kwargs)

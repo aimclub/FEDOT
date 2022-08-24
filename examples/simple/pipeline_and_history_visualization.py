@@ -6,11 +6,11 @@ from fedot.core.utils import fedot_project_root
 
 
 def run_pipeline_and_history_visualization(with_pipeline_visualization=True):
-    """ Function run visualization of composing history and pipeline """
-    # Generate pipeline and history
+    """ The function runs visualization of the composing history and the best pipeline. """
+    # Gather pipeline and history.
     history = OptHistory.load(Path(fedot_project_root(), 'examples', 'data', 'history', 'opt_history.json'))
     pipeline = PipelineAdapter().restore(history.individuals[-1][-1].graph)
-
+    # Show visualizations.
     history.show.fitness_line()
     history.show.fitness_box(best_fraction=0.5)
     history.show.operations_kde()
