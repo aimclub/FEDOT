@@ -21,11 +21,23 @@ def per_time(visualization, **kwargs):
 def best_fraction(visualization, **kwargs):
     value = kwargs.get('best_fraction')
     if value is not None and (value <= 0 or value > 1):
-        raise ValueError('`value` argument should be in the interval (0, 1].')
+        raise ValueError('`best_fraction` argument should be in the interval (0, 1].')
     return kwargs
 
 
 class ArgConstraintWrapper(type):
+    """ Metaclass that wraps '.visualize' method into a constraint checkers series.
+
+    The program behaviour due to the bad keyword arguments values is fully up to the checkers.
+    The only required and *necessary* returning value of the constraint checkers is `kwargs` that
+    may have been modified.
+
+    The attribute `DEFAULT_CONSTRAINTS` is a map from kwarg names to their default constraint functions
+    that will be applied across any visualization with this argument.
+
+    Note that the checkers have all the `kwargs` of `visualize()` fully available , including the default
+    ones, as well as the HistoryVisualization instance itself.
+    """
     DEFAULT_CONSTRAINTS = {
         'best_fraction': best_fraction,
         'per_time': per_time
@@ -77,7 +89,7 @@ class ArgConstraintWrapper(type):
                 # Class-defined checkers
                 for constraint_checker in attrs['constraint_checkers']:
                     constraint_checkers.append(constraint_checker)
-
+            # Pass the checkers (or empty list) to the wrapper anyway.
             attrs['visualize'] = mcs.wrap_constraints(constraint_checkers)(attrs['visualize'])
 
         return super(ArgConstraintWrapper, mcs).__new__(mcs, name, bases, attrs)

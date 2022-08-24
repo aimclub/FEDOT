@@ -136,6 +136,13 @@ def plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Option
 class FitnessLine(HistoryVisualization):
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
                   per_time: bool = True):
+        """ Visualizes the best fitness values during the evolution in the form of line.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed.
+        :param dpi: DPI of the output figure.
+        :param per_time: defines whether to show time grid if it is available in history.
+        """
+
         ax = plt.gca()
         if per_time:
             xlabel = 'Time, s'
@@ -152,6 +159,16 @@ class FitnessLineInteractive(HistoryVisualization):
     @with_alternate_matplotlib_backend
     def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
                   dpi: int = 300, per_time: bool = True, use_tags: bool = True):
+        """ Visualizes the best fitness values during the evolution in the form of line.
+        Additionally, shows the structure of the best individuals and the moment of their discovering.
+        :param save_path: path to save the visualization. If set, then the image will be saved,
+            and if not, it will be displayed.
+        :param dpi: DPI of the output figure.
+        :param per_time: defines whether to show time grid if it is available in history.
+        :param use_tags: defines whether the evolutionary graphs should be coloured according to FEDOT
+            ML repositories tags.
+        """
+
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
 
