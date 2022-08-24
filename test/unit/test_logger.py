@@ -12,6 +12,14 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
+@pytest.fixture(scope="session", autouse=True)
+def logging_configure():
+    import logging
+    logging_level = logging.CRITICAL + 1
+    logging.getLogger().setLevel(logging_level)
+    Log(logger_name='unit_test', console_logging_level=logging_level, file_logging_level=logging_level)
+
+
 @pytest.fixture()
 def get_config_file():
     test_file_path = str(os.path.dirname(__file__))
@@ -121,12 +129,12 @@ def test_multiple_adapters_with_one_prefix():
 
 
 def test_logger_levels():
-    adapter_1 = default_log(prefix='debug_logger', logging_level=logging.DEBUG)
+    adapter_1 = default_log(prefix='debug_logger', console_logging_level=logging.DEBUG)
 
     assert adapter_1.extra['prefix'] == 'debug_logger'
     assert adapter_1.logger.level == logging.DEBUG
 
-    adapter_2 = default_log(prefix='warning_logger', logging_level=logging.WARNING)
+    adapter_2 = default_log(prefix='warning_logger', console_logging_level=logging.WARNING)
 
     assert adapter_2.extra['prefix'] == 'warning_logger'
     assert adapter_2.logger.level == logging.WARNING

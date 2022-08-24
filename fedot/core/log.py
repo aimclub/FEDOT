@@ -56,6 +56,11 @@ class Log(metaclass=SingletonMeta):
                     write_logs: bool) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger(name)
+
+        # due to in test_log.py after every test SingletonMeta resets to zero,
+        # but already created loggers in `logging` continue to exist, so there is a layering of handlers
+        if logger.handlers:
+            return logger
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
@@ -68,7 +73,7 @@ class Log(metaclass=SingletonMeta):
                               console_logging_level: int, file_logging_level: int,
                               write_logs: bool) -> logging.Logger:
         """ Define console and file handlers for logger """
-        if not write_logs or logging_level > logging.CRITICAL:
+        if not write_logs or console_logging_level > logging.CRITICAL:
             return logger
 
         console_handler = logging.StreamHandler(sys.stdout)
@@ -130,8 +135,8 @@ class LoggerAdapter(logging.LoggerAdapter):
 
     def _set_levels(self, logger: logging.Logger, console_logging_level: int, file_logging_level: int):
         """ Set logging levels for handlers and adapter itself """
-        self._get_handler(handler_type=logging.StreamHandler).setLevel(console_logging_level)
-        self._get_handler(handler_type=RotatingFileHandler).setLevel(file_logging_level)
+        # self._get_handler(handler_type=logging.StreamHandler).setLevel(console_logging_level)
+        # self._get_handler(handler_type=RotatingFileHandler).setLevel(file_logging_level)
         self.setLevel(logger.level)
         self.logging_level = logger.level
 
