@@ -6,6 +6,7 @@ from typing import Any, List, Optional, Sequence, Union
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
+from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
@@ -113,6 +114,9 @@ class EvoGraphOptimiser(GraphOptimiser):
             ).add_condition(
                 lambda: self.generations.stagnation_duration >= max_stagnation_length,
                 'Optimisation finished: Early stopping criteria was satisfied'
+            ).add_condition(
+                lambda: len({self.population[i].fitness.value[0] for i in range(len(self.population))}) == 1 if self.generations.generation_num !=0 else False,
+                'Optimisation finished: Population converged'
             )
 
         # Define parameters
@@ -194,10 +198,18 @@ class EvoGraphOptimiser(GraphOptimiser):
 
             # Adding of initial assumptions to history as zero generation
             if self.initial_individuals:
-                self._next_population(evaluator(self.initial_individuals))
+                self._next_population(evaluator(self.initial_individuals))      
 
             pop_size = self._pop_size.initial
             self._next_population(evaluator(self._init_population(pop_size, self._graph_depth.initial)))
+
+            # BN niching
+            check_nich = []
+            # if type(self.parameters.niching)==list and len(self.parameters.niching)!=0:
+            #     for ind in self.population:
+            #         if round(ind.fitness.value[0],6) not in self.parameters.niching:
+            #             check_nich.append(ind)     
+            #     self.population = check_nich    
 
             while not self.stop_optimisation():
                 pop_size = self._pop_size.next(self.population)
@@ -217,6 +229,17 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 new_population = evaluator(new_population)
 
+                # BN niching
+                check_nich = []
+                print(self.parameters.niching)
+                if type(self.parameters.niching)==list and len(self.parameters.niching)!=0:
+                    for ind in new_population:
+                        if round(ind.fitness.value[0],6) not in self.parameters.niching:
+                            check_nich.append(ind)     
+                    new_population = check_nich
+                                               
+
+                # print([i.fitness for i in new_population])
                 new_population = self._inheritance(new_population, pop_size)
 
                 self._next_population(new_population)
