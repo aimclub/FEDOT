@@ -51,12 +51,11 @@ class OptHistoryVisualizer:
 
         if isinstance(plot_type, str):
             try:
-                plot_type = PlotTypesEnum[plot_type]
+                visualize_function = vars(self)[plot_type]
             except KeyError:
                 raise NotImplementedError(
                     f'Visualization "{plot_type}" is not supported. Expected values: '
                     f'{", ".join(PlotTypesEnum.member_names())}.')
-
-        visualize_function = plot_type.value(self.history).visualize
-
+        else:
+            visualize_function = vars(self)[plot_type.name]
         visualize_function(**kwargs)
