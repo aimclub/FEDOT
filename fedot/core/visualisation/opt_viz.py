@@ -1,24 +1,22 @@
 from __future__ import annotations
 
 import inspect
-import os
 from enum import Enum
 from functools import partial
-from typing import Optional, Union
+from typing import Union
 
 from fedot.core.log import default_log
-from fedot.core.utils import copy_doc
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
 from fedot.core.visualisation.opt_history.fitness_line import FitnessLine, FitnessLineInteractive
 from fedot.core.visualisation.opt_history.operations_animated_bar import visualize_operations_animated_bar
-from fedot.core.visualisation.opt_history.operations_kde import visualize_operations_kde
+from fedot.core.visualisation.opt_history.operations_kde import OperationsKDE
 
 
 class PlotTypesEnum(Enum):
     fitness_line = FitnessLine
     fitness_line_interactive = FitnessLineInteractive
     fitness_box = FitnessBox
-    operations_kde = partial(visualize_operations_kde)
+    operations_kde = OperationsKDE
     operations_animated_bar = partial(visualize_operations_animated_bar)
 
     @classmethod
@@ -32,6 +30,7 @@ class OptHistoryVisualizer:
         self.fitness_box = FitnessBox(self.history).visualize
         self.fitness_line = FitnessLine(self.history).visualize
         self.fitness_line_interactive = FitnessLineInteractive(self.history).visualize
+        self.operations_kde = OperationsKDE(self.history).visualize
         for plot_type in PlotTypesEnum:
             if not inspect.isclass(plot_type.value):
                 self.__setattr__(plot_type.name, partial(plot_type.value, history=self.history))
