@@ -7,8 +7,10 @@ from functools import partial
 from typing import Optional, Union
 
 from fedot.core.log import default_log
-from fedot.core.visualisation.opt_history.fitness_box import visualise_fitness_box
+from fedot.core.utils import copy_doc
+from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
 from fedot.core.visualisation.opt_history.fitness_line import visualize_fitness_line, visualize_fitness_line_interactive
+from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 from fedot.core.visualisation.opt_history.operations_animated_bar import visualize_operations_animated_bar
 from fedot.core.visualisation.opt_history.operations_kde import visualize_operations_kde
 
@@ -16,7 +18,7 @@ from fedot.core.visualisation.opt_history.operations_kde import visualize_operat
 class PlotTypesEnum(Enum):
     fitness_line = partial(visualize_fitness_line)
     fitness_line_interactive = partial(visualize_fitness_line_interactive)
-    fitness_box = partial(visualise_fitness_box)
+    fitness_box = FitnessBox
     operations_kde = partial(visualize_operations_kde)
     operations_animated_bar = partial(visualize_operations_animated_bar)
 
@@ -28,8 +30,10 @@ class PlotTypesEnum(Enum):
 class OptHistoryVisualizer:
     def __init__(self, history):
         self.history = history
-        for function in PlotTypesEnum:
-            self.__setattr__(function.name, partial(function.value, history=self.history))
+        self.fitness_box = FitnessBox(self.history).visualize
+        for plot_type in PlotTypesEnum:
+            if not inspect.isclass(plot_type.value):
+                self.__setattr__(plot_type.name, partial(plot_type.value, history=self.history))
 
         self.log = default_log(self)
 
@@ -84,7 +88,12 @@ class OptHistoryVisualizer:
                     f'Visualization "{plot_type}" is not supported. Expected values: '
                     f'{", ".join(PlotTypesEnum.member_names())}.')
 
-        signature = inspect.signature(plot_type.value)
+        if inspect.isclass(plot_type.value):
+            visualize_function = plot_type.value(self.history).visualize
+        else:
+            visualize_function = plot_type.value
+            kwargs['history'] = self.history
+        signature = inspect.signature(visualize_function)
         visualization_parameters = signature.parameters
         default_kwargs = {p_name: p.default for p_name, p in visualization_parameters.items()
                           if p.default is not p.empty}
@@ -95,4 +104,4 @@ class OptHistoryVisualizer:
         self.log.info(
             'Visualizing optimization history... It may take some time, depending on the history size.')
 
-        plot_type.value(self.history, **kwargs)
+        visualize_function(**kwargs)
