@@ -25,7 +25,7 @@ from sklearn.naive_bayes import BernoulliNB as SklearnBernoulliNB, MultinomialNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVR as SklearnSVR
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from xgboost import XGBClassifier, XGBRegressor
+# from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
@@ -131,7 +131,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
     :param dict params: hyperparameters to fit the operation with
     """
     __operations_by_types = {
-        'xgbreg': XGBRegressor,
+        # 'xgbreg': XGBRegressor,
         'adareg': AdaBoostRegressor,
         'gbr': GradientBoostingRegressor,
         'dtreg': DecisionTreeRegressor,
@@ -145,7 +145,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'lgbmreg': LGBMRegressor,
         'catboostreg': CatBoostRegressor,
 
-        'xgboost': XGBClassifier,
+        # 'xgboost': XGBClassifier,
         'logit': SklearnLogReg,
         'bernb': SklearnBernoulliNB,
         'multinb': SklearnMultinomialNB,

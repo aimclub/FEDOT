@@ -126,7 +126,6 @@ def test_composer_cv_correct():
         timeout=datetime.timedelta(seconds=5),
         cv_folds=folds,
         validation_blocks=validation_blocks,
-        logging_level_opt=logging.CRITICAL+1,
         show_progress=False)
 
     init_pipeline = get_simple_ts_pipeline()
@@ -152,7 +151,6 @@ def test_api_cv_correct():
                        'cv_folds': folds,
                        'num_of_generations': 1,
                        'validation_blocks': validation_blocks,
-                       'logging_level_opt': logging.CRITICAL+1,
                        'show_progress': False}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 

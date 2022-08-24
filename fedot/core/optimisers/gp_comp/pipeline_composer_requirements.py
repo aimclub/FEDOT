@@ -44,6 +44,5 @@ class PipelineComposerRequirements(ComposerRequirements):
     validation_blocks: int = None
     n_jobs: int = 1
     show_progress: bool = True
-    logging_level_opt: int = logging.INFO
     collect_intermediate_metric: bool = False
     keep_n_best: int = 1

@@ -43,7 +43,9 @@ class Log(metaclass=SingletonMeta):
                     console_logging_level: int, file_logging_level: int) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
         :param prefix: prefix to log messages with this adapter. Usually this prefix is the name of the class
-        where the log came from """
+        where the log came from
+        :param console_logging_level: logging level to console.
+        :param file_logging_level: logging level to file. """
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
                                                         {'prefix': prefix},
