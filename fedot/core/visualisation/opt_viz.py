@@ -9,15 +9,14 @@ from typing import Optional, Union
 from fedot.core.log import default_log
 from fedot.core.utils import copy_doc
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
-from fedot.core.visualisation.opt_history.fitness_line import visualize_fitness_line, visualize_fitness_line_interactive
-from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
+from fedot.core.visualisation.opt_history.fitness_line import FitnessLine, FitnessLineInteractive
 from fedot.core.visualisation.opt_history.operations_animated_bar import visualize_operations_animated_bar
 from fedot.core.visualisation.opt_history.operations_kde import visualize_operations_kde
 
 
 class PlotTypesEnum(Enum):
-    fitness_line = partial(visualize_fitness_line)
-    fitness_line_interactive = partial(visualize_fitness_line_interactive)
+    fitness_line = FitnessLine
+    fitness_line_interactive = FitnessLineInteractive
     fitness_box = FitnessBox
     operations_kde = partial(visualize_operations_kde)
     operations_animated_bar = partial(visualize_operations_animated_bar)
@@ -31,6 +30,8 @@ class OptHistoryVisualizer:
     def __init__(self, history):
         self.history = history
         self.fitness_box = FitnessBox(self.history).visualize
+        self.fitness_line = FitnessLine(self.history).visualize
+        self.fitness_line_interactive = FitnessLineInteractive(self.history).visualize
         for plot_type in PlotTypesEnum:
             if not inspect.isclass(plot_type.value):
                 self.__setattr__(plot_type.name, partial(plot_type.value, history=self.history))

@@ -1,9 +1,8 @@
-from __future__ import annotations
-
+import functools
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Union, TYPE_CHECKING
+from typing import Optional, List, Dict, Union
 
 import matplotlib as mpl
 import numpy as np
@@ -11,17 +10,16 @@ from matplotlib import pyplot as plt
 from matplotlib.widgets import Button
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.fitness import null_fitness
 from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.fitness import null_fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utils import default_fedot_data_dir
+from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 from fedot.core.visualisation.opt_history.utils import show_or_save_figure
-
-if TYPE_CHECKING:
-    from fedot.core.optimisers.opt_history import OptHistory
 
 
 def with_alternate_matplotlib_backend(func):
+    @functools.wraps(func)
     def wrapper(*args, **kwargs):
         default_mpl_backend = mpl.get_backend()
         try:
@@ -135,89 +133,92 @@ def plot_fitness_line_per_generations(axis: plt.Axes, generations, label: Option
     return best_individuals
 
 
-def visualize_fitness_line(history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
-                           per_time: bool = True):
-    ax = plt.gca()
-    if per_time:
-        xlabel = 'Time, s'
-        plot_fitness_line_per_time(ax, history.individuals)
-    else:
-        xlabel = 'Generation'
-        plot_fitness_line_per_generations(ax, history.individuals)
-    setup_fitness_plot(ax, xlabel)
-    show_or_save_figure(plt.gcf(), save_path, dpi)
+class FitnessLine(HistoryVisualization):
+    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
+                  per_time: bool = True):
+        ax = plt.gca()
+        if per_time:
+            xlabel = 'Time, s'
+            plot_fitness_line_per_time(ax, self.history.individuals)
+        else:
+            xlabel = 'Generation'
+            plot_fitness_line_per_generations(ax, self.history.individuals)
+        setup_fitness_plot(ax, xlabel)
+        show_or_save_figure(plt.gcf(), save_path, dpi)
 
 
-@with_alternate_matplotlib_backend
-def visualize_fitness_line_interactive(history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None,
-                                       dpi: int = 300, per_time: bool = True, use_tags: bool = True):
-    fig, axes = plt.subplots(1, 2, figsize=(15, 10))
-    ax_fitness, ax_graph = axes
+class FitnessLineInteractive(HistoryVisualization):
 
-    if per_time:
-        x_label = 'Time, s'
-        x_template = 'time {} s'
-        plot_func = plot_fitness_line_per_time
-    else:
-        x_label = 'Generation'
-        x_template = 'generation {}'
-        plot_func = plot_fitness_line_per_generations
+    @with_alternate_matplotlib_backend
+    def visualize(self, save_path: Optional[Union[os.PathLike, str]] = None,
+                  dpi: int = 300, per_time: bool = True, use_tags: bool = True):
+        fig, axes = plt.subplots(1, 2, figsize=(15, 10))
+        ax_fitness, ax_graph = axes
 
-    best_individuals = plot_func(ax_fitness, history.individuals)
-    setup_fitness_plot(ax_fitness, x_label)
+        if per_time:
+            x_label = 'Time, s'
+            x_template = 'time {} s'
+            plot_func = plot_fitness_line_per_time
+        else:
+            x_label = 'Generation'
+            x_template = 'generation {}'
+            plot_func = plot_fitness_line_per_generations
 
-    ax_graph.axis('off')
+        best_individuals = plot_func(ax_fitness, self.history.individuals)
+        setup_fitness_plot(ax_fitness, x_label)
 
-    class InteractivePlot:
-        temp_path = Path(default_fedot_data_dir(), 'current_graph.png')
+        ax_graph.axis('off')
 
-        def __init__(self, best_individuals: Dict[int, Individual]):
-            self.best_x: List[int] = list(best_individuals.keys())
-            self.best_individuals: List[Individual] = list(best_individuals.values())
-            self.index: int = len(self.best_individuals) - 1
-            self.time_line = ax_fitness.axvline(self.best_x[self.index], color='r', alpha=0.7)
-            self.graph_images: List[np.ndarray] = []
-            self.generate_graph_images()
-            self.update_graph()
+        class InteractivePlot:
+            temp_path = Path(default_fedot_data_dir(), 'current_graph.png')
 
-        def generate_graph_images(self):
-            for ind in self.best_individuals:
-                graph = ind.graph
-                if use_tags:
-                    graph = PipelineAdapter().restore(ind.graph)
-                graph.show(self.temp_path)
-                self.graph_images.append(plt.imread(str(self.temp_path)))
-            self.temp_path.unlink()
+            def __init__(self, best_individuals: Dict[int, Individual]):
+                self.best_x: List[int] = list(best_individuals.keys())
+                self.best_individuals: List[Individual] = list(best_individuals.values())
+                self.index: int = len(self.best_individuals) - 1
+                self.time_line = ax_fitness.axvline(self.best_x[self.index], color='r', alpha=0.7)
+                self.graph_images: List[np.ndarray] = []
+                self.generate_graph_images()
+                self.update_graph()
 
-        def update_graph(self):
-            ax_graph.imshow(self.graph_images[self.index])
-            x = self.best_x[self.index]
-            fitness = self.best_individuals[self.index].fitness
-            ax_graph.set_title(f'The best pipeline at {x_template.format(x)}, fitness={fitness}')
+            def generate_graph_images(self):
+                for ind in self.best_individuals:
+                    graph = ind.graph
+                    if use_tags:
+                        graph = PipelineAdapter().restore(ind.graph)
+                    graph.show(self.temp_path)
+                    self.graph_images.append(plt.imread(str(self.temp_path)))
+                self.temp_path.unlink()
 
-        def update_time_line(self):
-            self.time_line.set_xdata(self.best_x[self.index])
+            def update_graph(self):
+                ax_graph.imshow(self.graph_images[self.index])
+                x = self.best_x[self.index]
+                fitness = self.best_individuals[self.index].fitness
+                ax_graph.set_title(f'The best pipeline at {x_template.format(x)}, fitness={fitness}')
 
-        def step_index(self, step: int):
-            self.index = (self.index + step) % len(self.best_individuals)
-            self.update_graph()
-            self.update_time_line()
-            plt.draw()
+            def update_time_line(self):
+                self.time_line.set_xdata(self.best_x[self.index])
 
-        def next(self, event):
-            self.step_index(1)
+            def step_index(self, step: int):
+                self.index = (self.index + step) % len(self.best_individuals)
+                self.update_graph()
+                self.update_time_line()
+                plt.draw()
 
-        def prev(self, event):
-            self.step_index(-1)
+            def next(self, event):
+                self.step_index(1)
 
-    callback = InteractivePlot(best_individuals)
+            def prev(self, event):
+                self.step_index(-1)
 
-    if not save_path:  # display buttons only for an interactive plot
-        ax_prev = plt.axes([0.7, 0.05, 0.1, 0.075])
-        ax_next = plt.axes([0.81, 0.05, 0.1, 0.075])
-        b_next = Button(ax_next, 'Next')
-        b_next.on_clicked(callback.next)
-        b_prev = Button(ax_prev, 'Previous')
-        b_prev.on_clicked(callback.prev)
+        callback = InteractivePlot(best_individuals)
 
-    show_or_save_figure(fig, save_path, dpi)
+        if not save_path:  # display buttons only for an interactive plot
+            ax_prev = plt.axes([0.7, 0.05, 0.1, 0.075])
+            ax_next = plt.axes([0.81, 0.05, 0.1, 0.075])
+            b_next = Button(ax_next, 'Next')
+            b_next.on_clicked(callback.next)
+            b_prev = Button(ax_prev, 'Previous')
+            b_prev.on_clicked(callback.prev)
+
+        show_or_save_figure(fig, save_path, dpi)
