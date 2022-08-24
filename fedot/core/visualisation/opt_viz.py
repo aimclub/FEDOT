@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import itertools
 import os
 from copy import deepcopy
@@ -8,8 +10,7 @@ from os import remove
 from pathlib import Path
 from textwrap import wrap
 from time import time
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
-from warnings import warn
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import matplotlib as mpl
 import numpy as np
@@ -23,7 +24,6 @@ from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import PIL
-
     from PIL import Image
 except ModuleNotFoundError:
     warn_requirement('Pillow')
@@ -31,11 +31,15 @@ except ModuleNotFoundError:
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness import null_fitness
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.opt_history import OptHistory
 
 
 def with_alternate_matplotlib_backend(func):
@@ -404,19 +408,20 @@ class PipelineEvolutionVisualiser:
         axis.step(best_eval_times, best_fitnesses, where='post', label=label)
 
         if with_generation_limits:
-            prev_time = gen_start_times[0]
+            axis_gen = axis.twiny()
+            axis_gen.set_xlim(axis.get_xlim())
+            axis_gen.set_xticks(gen_start_times, list(range(len(gen_start_times) - 1)) + [''])
+            axis_gen.locator_params(nbins=10)
+            axis_gen.set_xlabel('Generation')
+
+            gen_ticks = axis_gen.get_xticks()
+            prev_time = gen_ticks[0]
             axis.axvline(prev_time, color='k', linestyle='--', alpha=0.3)
-            for i, next_time in enumerate(gen_start_times[1:]):
+            for i, next_time in enumerate(gen_ticks[1:]):
                 axis.axvline(next_time, color='k', linestyle='--', alpha=0.3)
                 if i % 2 == 0:
                     axis.axvspan(prev_time, next_time, color='k', alpha=0.05)
                 prev_time = next_time
-
-            axis_gen = axis.twiny()
-            axis_gen.set_xlim(axis.get_xlim())
-            axis_gen.set_xticks(gen_start_times)
-            axis_gen.set_xticklabels(list(range(len(gen_start_times) - 1)) + [''])
-            axis_gen.set_xlabel('Generation')
 
         return best_individuals
 
@@ -432,7 +437,7 @@ class PipelineEvolutionVisualiser:
         axis.set_title(title)
         axis.grid(axis='y')
 
-    def visualize_fitness_line(self, history: 'OptHistory', per_time: bool = True,
+    def visualize_fitness_line(self, history: OptHistory, per_time: bool = True,
                                save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
         ax = plt.gca()
         if per_time:
@@ -445,8 +450,9 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(plt.gcf(), save_path, dpi)
 
     @with_alternate_matplotlib_backend
-    def visualize_fitness_line_interactive(self, history: 'OptHistory', per_time: bool = True,
-                                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300):
+    def visualize_fitness_line_interactive(self, history: OptHistory, per_time: bool = True,
+                                           save_path: Optional[Union[os.PathLike, str]] = None, dpi: int = 300,
+                                           use_tags: bool = True):
         fig, axes = plt.subplots(1, 2, figsize=(15, 10))
         ax_fitness, ax_graph = axes
 
@@ -478,8 +484,12 @@ class PipelineEvolutionVisualiser:
 
             def generate_graph_images(self):
                 for ind in self.best_individuals:
-                    ind.graph.show(self.temp_path)
+                    graph = ind.graph
+                    if use_tags:
+                        graph = PipelineAdapter().restore(ind.graph)
+                    graph.show(self.temp_path)
                     self.graph_images.append(plt.imread(str(self.temp_path)))
+                self.temp_path.unlink()
 
             def update_graph(self):
                 ax_graph.imshow(self.graph_images[self.index])
@@ -515,8 +525,8 @@ class PipelineEvolutionVisualiser:
         self.__show_or_save_figure(fig, save_path, dpi)
 
     @staticmethod
-    def __get_history_dataframe(history: 'OptHistory', tags_model: Optional[List[str]] = None,
-                                tags_data: Optional[List[str]] = None, pct_best: Optional[float] = None,
+    def __get_history_dataframe(history: OptHistory, tags_model: Optional[List[str]] = None,
+                                tags_data: Optional[List[str]] = None, best_fraction: Optional[float] = None,
                                 get_tags: bool = True):
         history_data = {
             'generation': [],
@@ -543,7 +553,7 @@ class PipelineEvolutionVisualiser:
 
         df_history = pd.DataFrame.from_dict(history_data)
 
-        if pct_best is not None:
+        if best_fraction is not None:
             generation_sizes = df_history.groupby('generation')['individual'].nunique()
 
             df_individuals = df_history[['generation', 'individual', 'fitness']] \
@@ -554,7 +564,7 @@ class PipelineEvolutionVisualiser:
 
             best_individuals = df_individuals[
                 df_individuals.apply(
-                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * pct_best,
+                    lambda row: row['rank_per_generation'] < generation_sizes[row['generation']] * best_fraction,
                     axis='columns'
                 )
             ]['individual']
@@ -563,18 +573,18 @@ class PipelineEvolutionVisualiser:
 
         return df_history
 
-    def visualise_fitness_box(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                              dpi: int = 300, pct_best: Optional[float] = None):
+    def visualise_fitness_box(self, history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None,
+                              dpi: int = 300, best_fraction: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
         :param history: OptHistory.
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param dpi: DPI if the output figure.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         """
-        df_history = self.__get_history_dataframe(history, get_tags=False, pct_best=pct_best)
+        df_history = self.__get_history_dataframe(history, get_tags=False, best_fraction=best_fraction)
         columns_needed = ['generation', 'individual', 'fitness']
         df_history = df_history[columns_needed].drop_duplicates(ignore_index=True)
         # Get color palette by mean fitness per generation
@@ -595,14 +605,14 @@ class PipelineEvolutionVisualiser:
             ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
             ax.xaxis.set_major_formatter(ticker.ScalarFormatter())
             ax.xaxis.grid(True)
-        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
+        str_fraction_of_pipelines = 'all' if best_fraction is None else f'top {best_fraction * 100}% of'
         ax.set_ylabel(f'Fitness of {str_fraction_of_pipelines} generation pipelines')
         ax.yaxis.grid(True)
 
         self.__show_or_save_figure(fig, save_path, dpi)
 
-    def visualize_operations_kde(self, history: 'OptHistory', save_path: Optional[Union[os.PathLike, str]] = None,
-                                 dpi: int = 300, pct_best: Optional[float] = None,
+    def visualize_operations_kde(self, history: OptHistory, save_path: Optional[Union[os.PathLike, str]] = None,
+                                 dpi: int = 300, best_fraction: Optional[float] = None, use_tags: bool = True,
                                  tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
@@ -610,8 +620,11 @@ class PipelineEvolutionVisualiser:
         :param save_path: path to save the visualization. If set, then the image will be saved,
             and if not, it will be displayed.
         :param dpi: DPI of the output figure.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
+            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
+            independently.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
@@ -624,28 +637,33 @@ class PipelineEvolutionVisualiser:
         tags_all = [*tags_model, *tags_data]
 
         generation_column_name = 'Generation'
-        tag_column_name = 'Operation'
+        operation_column_name = 'Operation'
+        column_for_operation = 'tag' if use_tags else 'node'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
-        df_history = df_history.rename({'generation': generation_column_name, 'tag': tag_column_name}, axis='columns')
-        tags_found = df_history[tag_column_name].unique()
-        tags_found = [t for t in tags_all if t in tags_found]
-        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
-
-        palette = get_palette_based_on_default_tags()
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, best_fraction, use_tags)
+        df_history = df_history.rename({'generation': generation_column_name,
+                                        column_for_operation: operation_column_name}, axis='columns')
+        operations_found = df_history[operation_column_name].unique()
+        if use_tags:
+            operations_found = [t for t in tags_all if t in operations_found]
+            nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
+            legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in operations_found]
+            palette = get_palette_based_on_default_tags()
+        else:
+            legend = operations_found
+            palette = sns.color_palette('tab10', n_colors=len(operations_found))
 
         plot = sns.displot(
             data=df_history,
             x=generation_column_name,
-            hue=tag_column_name,
-            hue_order=tags_found,
+            hue=operation_column_name,
+            hue_order=operations_found,
             kind='kde',
             clip=(0, max(df_history[generation_column_name])),
             multiple='fill',
             palette=palette
         )
 
-        legend = [get_description_of_operations_by_tag(tag, nodes_per_tag[tag]) for tag in tags_found]
         for text, new_text in zip(plot.legend.texts, legend):
             text.set_text(new_text)
 
@@ -653,23 +671,27 @@ class PipelineEvolutionVisualiser:
         fig.set_dpi(dpi)
         fig.set_facecolor('w')
         ax = plt.gca()
-        str_fraction_of_pipelines = 'all' if pct_best is None else f'top {pct_best * 100}% of'
+        str_fraction_of_pipelines = 'all' if best_fraction is None else f'top {best_fraction * 100}% of'
         ax.set_ylabel(f'Fraction in {str_fraction_of_pipelines} generation pipelines')
 
         self.__show_or_save_figure(fig, save_path, dpi)
 
-    def visualize_operations_animated_bar(self, history: 'OptHistory', save_path: Union[os.PathLike, str],
-                                          dpi: int = 300, pct_best: Optional[float] = None,
-                                          show_fitness_color: bool = True, tags_model: Optional[List[str]] = None,
+    def visualize_operations_animated_bar(self, history: OptHistory, save_path: Union[os.PathLike, str],
+                                          dpi: int = 300, best_fraction: Optional[float] = None,
+                                          show_fitness_color: bool = True, use_tags: bool = True,
+                                          tags_model: Optional[List[str]] = None,
                                           tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of animated bar plot.
 
         :param history: OptHistory instance.
         :param save_path: path to save the visualization.
         :param dpi: DPI of the output figure.
-        :param pct_best: fraction of the best individuals of each generation that included in the visualization.
+        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
             Must be in the interval (0, 1].
         :param show_fitness_color: if False, the bar colors will not correspond to fitness.
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
+            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
+            independently.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.
@@ -710,7 +732,6 @@ class PipelineEvolutionVisualiser:
         animation_interval_between_frames_ms = 40
         animation_interpolation_power = 4
         fitness_colormap = cm.get_cmap('YlOrRd')
-        no_fitness_palette = 'crest'
 
         tags_model = tags_model or OperationTypesRepository.DEFAULT_MODEL_TAGS
         tags_data = tags_data or OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS
@@ -719,21 +740,30 @@ class PipelineEvolutionVisualiser:
 
         generation_column_name = 'Generation'
         fitness_column_name = 'Fitness'
-        tag_column_name = 'Operation'
+        operation_column_name = 'Operation'
+        column_for_operation = 'tag' if use_tags else 'node'
 
-        df_history = self.__get_history_dataframe(history, tags_model, tags_data, pct_best)
+        df_history = self.__get_history_dataframe(history, tags_model, tags_data, best_fraction, use_tags)
         df_history = df_history.rename({
             'generation': generation_column_name,
             'fitness': fitness_column_name,
-            'tag': tag_column_name,
+            column_for_operation: operation_column_name,
         }, axis='columns')
-        tags_found = df_history[tag_column_name].unique()
-        tags_found = [tag for tag in tags_all if tag in tags_found]
-        nodes_per_tag = df_history.groupby(tag_column_name)['node'].unique()
+        operations_found = df_history[operation_column_name].unique()
+        if use_tags:
+            operations_found = [tag for tag in tags_all if tag in operations_found]
+            nodes_per_tag = df_history.groupby(operation_column_name)['node'].unique()
+            bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in operations_found]
+            no_fitness_palette = get_palette_based_on_default_tags()
+        else:
+            bars_labels = operations_found
+            no_fitness_palette = sns.color_palette('tab10', n_colors=len(operations_found))
+            no_fitness_palette = {o: no_fitness_palette[i] for i, o in enumerate(operations_found)}
+
         # Getting normed fraction of individuals  per generation that contain operations given.
         generation_sizes = df_history.groupby(generation_column_name)['individual'].nunique()
         operations_with_individuals_count = df_history.groupby(
-            [generation_column_name, tag_column_name],
+            [generation_column_name, operation_column_name],
             as_index=False
         ).aggregate({'individual': 'nunique'})
         operations_with_individuals_count['individual'] = operations_with_individuals_count.apply(
@@ -750,18 +780,18 @@ class PipelineEvolutionVisualiser:
                     df_history[
                         (df_history[generation_column_name] == row[generation_column_name]) &
                         (df_history['individual'] == row['individual'])
-                        ][tag_column_name])),
+                        ][operation_column_name])),
                 axis='columns')
             # Getting mean fitness of individuals with the operations given.
             operations_with_individuals_count[fitness_column_name] = operations_with_individuals_count.apply(
                 lambda row: individuals_fitness[
                     (individuals_fitness[generation_column_name] == row[generation_column_name]) &
-                    (individuals_fitness['operations'].str.contains(f'.{row[tag_column_name]}.'))
+                    (individuals_fitness['operations'].str.contains(f'.{row[operation_column_name]}.'))
                     ][fitness_column_name].mean(),
                 axis='columns')
             del individuals_fitness
         # Replacing the initial DataFrame with the processed one
-        df_history = operations_with_individuals_count.set_index([generation_column_name, tag_column_name])
+        df_history = operations_with_individuals_count.set_index([generation_column_name, operation_column_name])
         del operations_with_individuals_count
 
         min_fitness = df_history[fitness_column_name].min() if show_fitness_color else None
@@ -772,18 +802,18 @@ class PipelineEvolutionVisualiser:
         bar_color = []
         # Getting data by tags through all generations and filling with zeroes where no such tag
         for gen_num in generations:
-            bar_data.append([df_history.loc[gen_num]['individual'].get(tag, 0) for tag in tags_found])
+            bar_data.append([df_history.loc[gen_num]['individual'].get(tag, 0) for tag in operations_found])
             if not show_fitness_color:
                 continue
-            fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in tags_found]
+            fitnesses = [df_history.loc[gen_num][fitness_column_name].get(tag, 0) for tag in operations_found]
             # Transfer fitness to color
             bar_color.append([
                 fitness_colormap((fitness - min_fitness) / (max_fitness - min_fitness)) for fitness in fitnesses])
 
         bar_data = smoothen_frames_data(bar_data, animation_frames_per_step, animation_interpolation_power)
         title_template = 'Generation {}'
-        if pct_best is not None:
-            title_template += f', top {pct_best * 100}%'
+        if best_fraction is not None:
+            title_template += f', top {best_fraction * 100}%'
         bar_title = [i for gen_num in generations for i in [title_template.format(gen_num)] * animation_frames_per_step]
 
         fig, ax = plt.subplots(figsize=(8, 5), facecolor='w')
@@ -792,14 +822,11 @@ class PipelineEvolutionVisualiser:
             sm = cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap)
             sm.set_array([])
             fig.colorbar(sm, label=fitness_column_name)
-        else:
-            no_fitness_palette = get_palette_based_on_default_tags()
 
         count = bar_data[0]
-        color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in tags_found]
+        color = bar_color[0] if show_fitness_color else [no_fitness_palette[tag] for tag in operations_found]
         title = bar_title[0]
 
-        bars_labels = [get_description_of_operations_by_tag(t, nodes_per_tag[t], 22) for t in tags_found]
         label_size = 10
         if any(len(label.split('\n')) > 2 for label in bars_labels):
             label_size = 8
@@ -810,7 +837,7 @@ class PipelineEvolutionVisualiser:
         ax.set_xlim(0, 1)
         ax.set_xlabel(f'Fraction of pipelines containing the operation')
         ax.xaxis.grid(True)
-        ax.set_ylabel(tag_column_name)
+        ax.set_ylabel(operation_column_name)
         ax.invert_yaxis()
         plt.tight_layout()
 

@@ -5,7 +5,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.utils import copy_doc
-from fedot.core.visualisation.graph_viz import GraphVisualiser
+from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
 
 if TYPE_CHECKING:
     from fedot.core.dag.graph_node import GraphNode
@@ -90,17 +90,20 @@ class Graph:
         return self._operator.get_edges()
 
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
-             nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
-             edges_curvature: float = 0.3):
+             node_color: Optional[NodeColorType] = None, dpi: int = 300,
+             node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
         """Visualizes graph or saves its picture to the specified ``path``
 
         :param save_path: optional, save location of the graph visualization image.
-        :param engine: engine to visualize the graph.
-        :param nodes_color: color of nodes to use.
-        :param edges_curvature: used make edges more or less curved.
-        :param dpi: DPI of the output image. Not used if engine='pyvis'.
+        :param engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
+        :param node_color: color of nodes to use.
+        :param node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
+        :param font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
+        :param edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
+        :param dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
-        GraphVisualiser().visualise(self, save_path, engine, nodes_color, dpi, edges_curvature)
+        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
+                                    edge_curvature_scale)
 
     def __eq__(self, other_graph: 'Graph') -> bool:
         """Compares this graph with the ``other_graph``

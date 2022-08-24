@@ -11,7 +11,7 @@ from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.log import default_log
 from fedot.core.utilities.data_structures import UniqueList, ensure_wrapped_in_sequence
 from fedot.core.utils import DEFAULT_PARAMS_STUB, copy_doc
-from fedot.core.visualisation.graph_viz import GraphVisualiser
+from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
 
 
 def node_ops_adaptation(func: Callable) -> Callable:
@@ -235,9 +235,10 @@ class OptGraph:
 
     @copy_doc(Graph.show)
     def show(self, save_path: Optional[Union[os.PathLike, str]] = None, engine: str = 'matplotlib',
-             nodes_color: Optional[Union[str, Tuple[float, float, float]]] = None, dpi: int = 300,
-             edges_curvature: float = 0.3):
-        GraphVisualiser().visualise(self, save_path, engine, nodes_color, dpi, edges_curvature)
+             node_color: Optional[NodeColorType] = None, dpi: int = 300,
+             node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
+        GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale,
+                                    font_size_scale, edge_curvature_scale)
 
     @copy_doc(Graph.__eq__)
     def __eq__(self, other_graph: 'OptGraph') -> bool:
