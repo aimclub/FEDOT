@@ -4,7 +4,6 @@ import pathlib
 import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
-from typing import Optional
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -127,7 +126,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', logging_level: Optional[int] = logging.INFO,
+def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO,
                 write_logs: bool = True) -> logging.LoggerAdapter:
     """
     Default logger
