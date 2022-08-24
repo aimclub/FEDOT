@@ -85,7 +85,6 @@ def test_export_import_api_correctly():
                 with_tuning=False,
                 num_of_generations=1,
                 pop_size=3,
-                logging_level_opt=logging.CRITICAL+1,
                 show_progress=False)
 
     api.fit(train_data)

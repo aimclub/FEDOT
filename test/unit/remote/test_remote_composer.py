@@ -48,7 +48,6 @@ def test_pseudo_remote_composer_classification():
         'cv_folds': None,
         'with_tuning': False,
         'preset': 'best_quality',
-        'logging_level_opt': logging.CRITICAL+1,
         'show_progress': False
     }
 
@@ -91,7 +90,6 @@ def test_pseudo_remote_composer_ts_forecasting():
         'pop_size': 10,
         'cv_folds': None,
         'with_tuning': False,
-        'logging_level_opt': logging.CRITICAL+1,
         'show_progress': False
     }
 
