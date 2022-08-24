@@ -1,14 +1,11 @@
-from __future__ import annotations
-
 import inspect
 from enum import Enum
-from functools import partial
 from typing import Union
 
 from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
 from fedot.core.visualisation.opt_history.fitness_line import FitnessLine, FitnessLineInteractive
-from fedot.core.visualisation.opt_history.operations_animated_bar import visualize_operations_animated_bar
+from fedot.core.visualisation.opt_history.operations_animated_bar import OperationsAnimatedBar
 from fedot.core.visualisation.opt_history.operations_kde import OperationsKDE
 
 
@@ -17,7 +14,7 @@ class PlotTypesEnum(Enum):
     fitness_line_interactive = FitnessLineInteractive
     fitness_box = FitnessBox
     operations_kde = OperationsKDE
-    operations_animated_bar = partial(visualize_operations_animated_bar)
+    operations_animated_bar = OperationsAnimatedBar
 
     @classmethod
     def member_names(cls):
@@ -31,9 +28,7 @@ class OptHistoryVisualizer:
         self.fitness_line = FitnessLine(self.history).visualize
         self.fitness_line_interactive = FitnessLineInteractive(self.history).visualize
         self.operations_kde = OperationsKDE(self.history).visualize
-        for plot_type in PlotTypesEnum:
-            if not inspect.isclass(plot_type.value):
-                self.__setattr__(plot_type.name, partial(plot_type.value, history=self.history))
+        self.operations_animated_bar = OperationsAnimatedBar(self.history).visualize
 
         self.log = default_log(self)
 
@@ -75,10 +70,6 @@ class OptHistoryVisualizer:
                 self.log.warning('Evaluation time not found in optimization history. '
                                  'Showing fitness plot per generations...')
                 kwargs['per_time'] = False
-            elif plot_type is PlotTypesEnum.operations_animated_bar:
-                save_path = kwargs.get('save_path')
-                if not save_path:
-                    raise ValueError('Argument `save_path` is required to save the animation.')
 
         if isinstance(plot_type, str):
             try:
@@ -88,11 +79,7 @@ class OptHistoryVisualizer:
                     f'Visualization "{plot_type}" is not supported. Expected values: '
                     f'{", ".join(PlotTypesEnum.member_names())}.')
 
-        if inspect.isclass(plot_type.value):
-            visualize_function = plot_type.value(self.history).visualize
-        else:
-            visualize_function = plot_type.value
-            kwargs['history'] = self.history
+        visualize_function = plot_type.value(self.history).visualize
         signature = inspect.signature(visualize_function)
         visualization_parameters = signature.parameters
         default_kwargs = {p_name: p.default for p_name, p in visualization_parameters.items()
