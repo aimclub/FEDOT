@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 from textwrap import wrap
-from typing import Optional, Union, List, Dict, Tuple, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict, List, Optional, Sequence, Union
 
 import numpy as np
 import pandas as pd
@@ -11,22 +11,25 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from fedot.core.log import default_log
-from fedot.core.repository.operation_types_repository import get_opt_node_tag, OperationTypesRepository
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.opt_history import OptHistory
 
+MatplotlibColorType = Union[str, Sequence[float]]
+LabelsColorMapType = Dict[str, MatplotlibColorType]
 
-def show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 300):
-    if not save_path:
-        plt.show()
-    else:
-        save_path = Path(save_path)
-        if not save_path.is_absolute():
-            save_path = Path.cwd().joinpath(save_path)
-        figure.savefig(save_path, dpi=dpi)
-        default_log().info(f'The figure was saved to "{save_path}".')
-        plt.close()
+
+def get_palette_based_on_default_tags() -> LabelsColorMapType:
+    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
+    p_1 = sns.color_palette('tab20')
+    colour_period = 2  # diverge similar nearby colors
+    p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
+    p_2 = sns.color_palette('Set3')
+    palette = np.vstack([p_1, p_2])
+    palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
+    palette_map.update({None: 'mediumaquamarine'})
+    return palette_map
 
 
 def get_history_dataframe(history: OptHistory, tags_model: Optional[List[str]] = None,
@@ -132,13 +135,13 @@ def get_description_of_operations_by_tag(tag: str, operations_by_tag: List[str],
     return description
 
 
-def get_palette_based_on_default_tags() -> Dict[str, Tuple[float, float, float]]:
-    default_tags = [*OperationTypesRepository.DEFAULT_MODEL_TAGS, *OperationTypesRepository.DEFAULT_DATA_OPERATION_TAGS]
-    p_1 = sns.color_palette('tab20')
-    colour_period = 2  # diverge similar nearby colors
-    p_1 = [p_1[i // (len(p_1) // colour_period) + i * colour_period % len(p_1)] for i in range(len(p_1))]
-    p_2 = sns.color_palette('Set3')
-    palette = np.vstack([p_1, p_2])
-    palette_map = {tag: palette[i] for i, tag in enumerate(default_tags)}
-    palette_map.update({None: 'mediumaquamarine'})
-    return palette_map
+def show_or_save_figure(figure: plt.Figure, save_path: Optional[Union[os.PathLike, str]], dpi: int = 300):
+    if not save_path:
+        plt.show()
+    else:
+        save_path = Path(save_path)
+        if not save_path.is_absolute():
+            save_path = Path.cwd().joinpath(save_path)
+        figure.savefig(save_path, dpi=dpi)
+        default_log().info(f'The figure was saved to "{save_path}".')
+        plt.close()

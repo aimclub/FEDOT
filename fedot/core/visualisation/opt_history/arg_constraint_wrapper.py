@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Callable, Dict, List
 if TYPE_CHECKING:
     from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 
+ArgConstraintChecker = Callable[..., Dict[str, Any]]
 
 def per_time(visualization, **kwargs):
     value = kwargs.get('per_time')
@@ -18,7 +19,7 @@ def per_time(visualization, **kwargs):
     return kwargs
 
 
-def best_fraction(visualization, **kwargs):
+def best_fraction(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
     value = kwargs.get('best_fraction')
     if value is not None and (value <= 0 or value > 1):
         raise ValueError('`best_fraction` argument should be in the interval (0, 1].')
@@ -43,7 +44,7 @@ class ArgConstraintWrapper(type):
     }
 
     @staticmethod
-    def wrap_constraints(constraint_checkers: List[Callable[[HistoryVisualization, Dict[str, Any]], Dict[str, Any]]]):
+    def wrap_constraints(constraint_checkers: List[ArgConstraintChecker]):
         def decorator(visualize_function):
             """Return a wrapped instance method"""
 
