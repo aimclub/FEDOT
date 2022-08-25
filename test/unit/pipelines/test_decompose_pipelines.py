@@ -123,9 +123,7 @@ def test_finding_side_root_node():
 
 
 def test_pipeline_for_side_task_predict():
-    """ The function checks whether the pipeline for the side task
-    gives correct predictions
-    """
+    """ Checks whether the pipeline for the side task gives correct predictions """
 
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
 

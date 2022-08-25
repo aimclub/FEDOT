@@ -351,6 +351,7 @@ class DataPreprocessor:
         else:
             output_data = imputer.transform(data)
         data.features = output_data.predict
+        # TODO: fix supplementary data column types after simple imputer
         return data
 
     def _apply_categorical_encoding(self, data: InputData, source_name: str):

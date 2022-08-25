@@ -53,13 +53,14 @@ def data_with_complicated_types():
     Column description by indices:
         0) int column with single np.nan value - nans must be filled in
         1) int column with nans more than 90% - column must be removed
-        2) int column with categorical values (number of unique values = 12) -
+        column must be removed due to the fact that inf will be replaced with nans
+        2) int-float column with categorical values (number of unique values = 12) -
         categorical indices must be converted into integers, then due to number
         of unique values less than 13 - perform converting column into str type
         3) int column the same as 2) column but with additional 13th label in the test part
-        4) str-int column with words and numerical cells - must be removed because cann not
+        4) int column (number of unique values = 4) - must be converted into string
+        5) str-int column with words and numerical cells - must be removed because can not
         be converted into integers
-        5) int column (number of unique values = 4) - must be converted into string
         6) str column with unique categories 'a', 'b', 'c' and spaces in labels.
         New category 'd' arise in the test part. Categories will be converted into float
         7) str binary column - must be converted into integer
