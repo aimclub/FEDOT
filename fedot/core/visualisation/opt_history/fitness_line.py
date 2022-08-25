@@ -26,7 +26,7 @@ def with_alternate_matplotlib_backend(func):
             mpl.use('TKAgg')
             return func(*args, **kwargs)
         except ImportError as e:
-            default_log('Requirements').warning(e)
+            default_log(prefix='Requirements').warning(e)
         finally:
             mpl.use(default_mpl_backend)
 
