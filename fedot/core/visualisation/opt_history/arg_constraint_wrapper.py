@@ -4,13 +4,13 @@ import inspect
 
 from typing import TYPE_CHECKING, Any, Callable, Dict, List
 
-
 if TYPE_CHECKING:
     from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 
 ArgConstraintChecker = Callable[..., Dict[str, Any]]
 
-def per_time(visualization, **kwargs):
+
+def per_time(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
     value = kwargs.get('per_time')
     if value and visualization.history.individuals[0][0].metadata.get('evaluation_time_iso') is None:
         visualization.log.warning('Evaluation time not found in optimization history. '
@@ -21,21 +21,21 @@ def per_time(visualization, **kwargs):
 
 def best_fraction(visualization: HistoryVisualization, **kwargs) -> Dict[str, Any]:
     value = kwargs.get('best_fraction')
-    if value is not None and (value <= 0 or value > 1):
+    if value is not None and not 0 < value <= 1:
         raise ValueError('`best_fraction` argument should be in the interval (0, 1].')
     return kwargs
 
 
 class ArgConstraintWrapper(type):
-    """ Metaclass that wraps '.visualize' method into a constraint checkers series.
+    """ Metaclass that wraps '.visualize' method into a series of argument constraint checkers.
 
-    The program behaviour due to the bad keyword arguments values is fully up to the checkers.
+    The behavior of the program due to invalid keyword argument values is entirely up to the checkers.
     Constraint checkers must return `kwargs` that may be modified during the check.
 
-    The attribute `DEFAULT_CONSTRAINTS` is a map from kwarg names to their default constraint functions
-    that will be applied across any visualization with this argument.
+    The `DEFAULT_CONSTRAINTS` attribute is a mapping of argument names to their default constraint functions
+    that will apply to any visualizations with this argument.
 
-    Note that the checkers have all the `kwargs` of `visualize()` fully available , including the default
+    Note that the checkers have all the `kwargs` of `visualize()` fully available, including the default
     ones, as well as the HistoryVisualization instance itself.
     """
     DEFAULT_CONSTRAINTS = {

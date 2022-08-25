@@ -29,5 +29,5 @@ class HistoryVisualization(metaclass=ArgConstraintWrapper):
         self.history = history
 
     @abstractmethod
-    def visualize(self):
-        raise NotImplementedError
+    def visualize(self, *args, **kwargs):
+        raise NotImplementedError()

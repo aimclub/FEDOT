@@ -2,7 +2,7 @@ import functools
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Union
+from typing import Dict, List, Optional, Union
 
 import matplotlib as mpl
 import numpy as np
