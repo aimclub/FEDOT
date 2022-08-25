@@ -33,7 +33,7 @@ class CustomNode(GraphNode):
         return f'custom_{str(self.content["name"])}'
 
 
-def custom_metric(custom_model: CustomModel, *args, **kwargs):
+def custom_metric(custom_model: CustomModel):
     _, labels = graph_structure_as_nx_graph(custom_model)
 
     return -len(labels) + custom_model.evaluate()
@@ -76,7 +76,7 @@ def test_custom_graph_opt():
         requirements=requirements,
         initial_graphs=init_population)
 
-    objective_eval = ObjectiveEvaluate(objective)
+    objective_eval = ObjectiveEvaluate(objective, n_jobs=1)
     optimized_graphs = optimiser.optimise(objective_eval, show_progress=requirements.show_progress)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
