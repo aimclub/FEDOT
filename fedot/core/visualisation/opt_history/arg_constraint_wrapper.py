@@ -48,8 +48,12 @@ class ArgConstraintWrapper(type):
         def decorator(visualize_function):
             """Return a wrapped instance method"""
 
-            def outer(visualization, **kwargs):
+            def outer(visualization, *args, **kwargs):
                 visualization_parameters = inspect.signature(visualize_function).parameters
+                # Turn args into kwargs.
+                parameter_names = list(visualization_parameters.keys())[1:]  # Skip `self`.
+                args = {parameter_names[arg_num]: arg_value for arg_num, arg_value in enumerate(args)}
+                kwargs.update(args)
                 # Get default values and add them to the kwargs.
                 default_kwargs = {p_name: p.default for p_name, p in visualization_parameters.items()
                                   if p.default is not p.empty}
