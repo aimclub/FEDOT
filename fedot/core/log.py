@@ -26,7 +26,6 @@ def get_handlers():
 
 class Log(metaclass=SingletonMeta):
     """ Log object to store logger singleton and log adapters
-    :param logger_name: name of the logger
     :param config_json_file: json file from which to collect the logger if specified
     :param output_logging_level: logging levels are the same as in 'logging':
     critical -- 50, error -- 40, warning -- 30, info -- 20, debug -- 10, nonset -- 0.
@@ -44,7 +43,7 @@ class Log(metaclass=SingletonMeta):
         yield queue
         listener.stop()
 
-    def __init__(self, logger_name: str = 'default',
+    def __init__(self,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
                  log_file: str = None):
@@ -52,7 +51,7 @@ class Log(metaclass=SingletonMeta):
             self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
         else:
             self.log_file = log_file
-        self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
+        self.logger = self._get_logger(config_file=config_json_file,
                                        logging_level=output_logging_level)
 
     def reset_logging_level(self, logging_level: int):
@@ -72,9 +71,9 @@ class Log(metaclass=SingletonMeta):
                                                         {'prefix': prefix})
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, logging_level: int) -> logging.Logger:
+    def _get_logger(self, config_file: str, logging_level: int) -> logging.Logger:
         """ Get logger object """
-        logger = logging.getLogger(name)
+        logger = logging.getLogger()
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
@@ -90,7 +89,7 @@ class Log(metaclass=SingletonMeta):
         logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
         logger.setLevel(logging_level)
@@ -158,10 +157,11 @@ def default_log(class_object=None, prefix: str = 'default') -> logging.LoggerAda
     :param prefix: adapter prefix to add it to log messages
     :return: LoggerAdapter: LoggerAdapter object
     """
-    log = Log(logger_name='default',
-              config_json_file='default')
 
-    if class_object:
+    # get log prefix
+    if isinstance(class_object, str):
+        prefix = class_object
+    elif class_object:
         prefix = class_object.__class__.__name__
 
-    return log.get_adapter(prefix=prefix)
+    return Log().get_adapter(prefix=prefix)

@@ -25,7 +25,7 @@ def test_compose_fedot_model_with_tuning():
     task = Task(task_type=TaskTypesEnum.classification)
     operations = get_operations_for_task(task=task, mode='model')
 
-    logger = Log('test_logger', log_file='test_logger_file')
+    logger = Log(log_file='test_logger_file')
     generations = 1
 
     _, _, history = api_composer.compose_fedot_model(api_params=dict(train_data=train_input,

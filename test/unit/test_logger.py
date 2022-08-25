@@ -51,7 +51,7 @@ def test_default_logger_setup_correctly():
 def test_logger_from_config_file_setup_correctly(data_fixture, request):
     expected_logger_error_level = logging.ERROR
     test_config_file = request.getfixturevalue(data_fixture)
-    log = Log('test_logger', config_json_file=test_config_file)
+    log = Log(config_json_file=test_config_file)
 
     assert log.logger.getEffectiveLevel() == expected_logger_error_level
 
@@ -83,14 +83,14 @@ def test_logger_from_config_file_raise_exception(data_fixture, request):
     test_bad_config_file = request.getfixturevalue(data_fixture)
 
     with pytest.raises(Exception) as exc:
-        assert Log('test_logger', config_json_file=test_bad_config_file)
+        assert Log(config_json_file=test_bad_config_file)
 
     assert 'Can not open the log config file because of' in str(exc.value)
 
 
 def test_log_str():
-    logger_name = 'test_logger_name'
-    log = Log(logger_name=logger_name)
+    logger_name = ''
+    log = Log()
 
     assert logger_name in str(log)
 
