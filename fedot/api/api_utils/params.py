@@ -79,7 +79,7 @@ class ApiParams:
         """ Parses input params into different class fields """
 
         # reset logging level for Singleton
-        Log(logger_name='main').reset_logging_level(input_params['logging_level'])
+        Log().reset_logging_level(input_params['logging_level'])
         self.log = default_log(prefix='FEDOT logger')
 
         simple_keys = ['problem', 'n_jobs', 'timeout']

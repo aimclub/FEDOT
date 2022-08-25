@@ -44,7 +44,7 @@ class Log(metaclass=SingletonMeta):
         yield queue
         listener.stop()
 
-    def __init__(self, logger_name: str,
+    def __init__(self, logger_name: str = 'default',
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
                  log_file: str = None):
