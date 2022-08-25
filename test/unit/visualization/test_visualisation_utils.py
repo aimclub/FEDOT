@@ -7,7 +7,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.template import PipelineTemplate
 
 from fedot.core.visualisation.graph_viz import get_hierarchy_pos
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.visualisation.opt_viz_extra import extract_objectives
 
 
 def pipeline_first():  # tested pipeline
@@ -90,7 +90,6 @@ def test_hierarchy_pos():
 
 
 def test_extract_objectives():
-    visualiser = PipelineEvolutionVisualiser()
     num_of_inds = 5
     opt_graph = PipelineAdapter().adapt(pipeline_first())
     individuals = [Individual(opt_graph) for _ in range(num_of_inds)]
@@ -100,6 +99,6 @@ def test_extract_objectives():
         ind.set_evaluation_result(MultiObjFitness(values=fitness, weights=weights))
     populations_num = 3
     individuals_history = [individuals for _ in range(populations_num)]
-    all_objectives = visualiser.extract_objectives(individuals=individuals_history, transform_from_minimization=True)
+    all_objectives = extract_objectives(individuals=individuals_history, transform_from_minimization=True)
     assert all_objectives[0][0] > 0 and all_objectives[0][2] > 0
     assert all_objectives[1][0] > 0 and all_objectives[1][2] > 0

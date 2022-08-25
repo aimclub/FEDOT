@@ -62,7 +62,7 @@ class GraphVisualiser:
 
     @staticmethod
     def __get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
-        from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
+        from fedot.core.visualisation.opt_history.utils import get_palette_based_on_default_tags
         from fedot.core.repository.operation_types_repository import get_opt_node_tag
 
         palette = get_palette_based_on_default_tags()
