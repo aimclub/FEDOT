@@ -21,12 +21,12 @@ class OperationsAnimatedBar(HistoryVisualization):
 
         :param save_path: path to save the visualization.
         :param dpi: DPI of the output figure.
-        :param best_fraction: fraction of the best individuals of each generation that included in the visualization.
-            Must be in the interval (0, 1].
+        :param best_fraction: fraction of the best individuals of each generation that included in the
+            visualization. Must be in the interval (0, 1].
         :param show_fitness: if False, the bar colors will not correspond to fitness.
-        :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
-            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
-            independently.
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on
+            FEDOT repo tags. If False, operations are not grouped, colors are picked by fixed colormap for
+            every history independently.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.

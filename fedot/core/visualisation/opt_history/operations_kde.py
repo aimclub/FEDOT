@@ -16,16 +16,14 @@ class OperationsKDE(HistoryVisualization):
                   tags_model: Optional[List[str]] = None, tags_data: Optional[List[str]] = None):
         """ Visualizes operations used across generations in the form of KDE.
 
-        :param save_path: path to save the visualization. If set, then the image will be saved,
-            and if not, it will be displayed.
+        :param save_path: path to save the visualization. If set, then the image will be saved, and if not,
+            it will be displayed.
         :param dpi: DPI of the output figure.
         :param best_fraction: fraction of the best individuals of each generation that included in the
-            visualization.
-            Must be in the interval (0, 1].
-        :param use_tags: if True (default), all operations in the history are colored and grouped based
-            on FEDOT
-            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every
-            history independently.
+            visualization. Must be in the interval (0, 1].
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on
+            FEDOT repo tags. If False, operations are not grouped, colors are picked by fixed colormap for
+            every history independently.
         :param tags_model: tags for OperationTypesRepository('model') to map the history operations.
             The later the tag, the higher its priority in case of intersection.
         :param tags_data: tags for OperationTypesRepository('data_operation') to map the history operations.

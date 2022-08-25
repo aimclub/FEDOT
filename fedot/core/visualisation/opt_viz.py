@@ -36,17 +36,17 @@ class OptHistoryVisualizer:
 
         :param plot_type: visualization to show. Expected values are listed in
             'fedot.core.visualisation.opt_viz.PlotTypesEnum'.
-        :param save_path: path to save the visualization. If set, then the image will be saved,
-            and if not, it will be displayed. Essential for animations.
+        :param save_path: path to save the visualization. If set, then the image will be saved, and if not,
+        it will be displayed. Essential for animations.
         :param dpi: DPI of the output figure.
-        :param best_fraction: fraction of individuals with the best fitness per generation. The value should be in the
-            interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
+        :param best_fraction: fraction of the best individuals of each generation that included in the
+            visualization. Must be in the interval (0, 1].
         :param show_fitness: if False, visualizations that support this argument will not display fitness.
         :param per_time: Shows time axis instead of generations axis. Currently, supported for plot types:
             'show_fitness_line', 'show_fitness_line_interactive'.
-        :param use_tags: if True (default), all operations in the history are colored and grouped based on FEDOT
-            repo tags. If False, operations are not grouped, colors are picked by fixed colormap for every history
-            independently.
+        :param use_tags: if True (default), all operations in the history are colored and grouped based on
+            FEDOT repo tags. If False, operations are not grouped, colors are picked by fixed colormap for
+            every history independently.
         """
 
         if isinstance(plot_type, str):

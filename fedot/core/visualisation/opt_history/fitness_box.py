@@ -13,11 +13,11 @@ class FitnessBox(HistoryVisualization):
                   dpi: int = 300, best_fraction: Optional[float] = None):
         """ Visualizes fitness values across generations in the form of boxplot.
 
-        :param save_path: path to save the visualization. If set, then the image will be saved,
-            and if not, it will be displayed.
+        :param save_path: path to save the visualization. If set, then the image will be saved, and if not,
+            it will be displayed.
         :param dpi: DPI of the output figure.
-        :param best_fraction: fraction of the best individuals of each generation that included in
-            the visualization. Must be in the interval (0, 1].
+        :param best_fraction: fraction of the best individuals of each generation that included in the
+            visualization. Must be in the interval (0, 1].
         """
         df_history = get_history_dataframe(self.history, get_tags=False, best_fraction=best_fraction)
         columns_needed = ['generation', 'individual', 'fitness']

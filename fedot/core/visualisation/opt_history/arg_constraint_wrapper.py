@@ -29,8 +29,7 @@ class ArgConstraintWrapper(type):
     """ Metaclass that wraps '.visualize' method into a constraint checkers series.
 
     The program behaviour due to the bad keyword arguments values is fully up to the checkers.
-    The only required and *necessary* returning value of the constraint checkers is `kwargs` that
-    may have been modified.
+    Constraint checkers must return `kwargs` that may be modified during the check.
 
     The attribute `DEFAULT_CONSTRAINTS` is a map from kwarg names to their default constraint functions
     that will be applied across any visualization with this argument.
