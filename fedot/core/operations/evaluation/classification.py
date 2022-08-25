@@ -17,7 +17,6 @@ from fedot.core.operations.evaluation.operation_implementations.models.knn impor
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
     import IsolationForestClassImplementation
-from fedot.utilities.logging import suppress_stdout
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
