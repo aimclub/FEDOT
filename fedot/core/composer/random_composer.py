@@ -24,8 +24,8 @@ class RandomSearchComposer(Composer):
         train_data = data
         test_data = data
 
-        def prepared_objective(pipeline: Pipeline, n_jobs: int = -1) -> Fitness:
-            pipeline.fit(train_data, n_jobs=n_jobs)
+        def prepared_objective(pipeline: Pipeline) -> Fitness:
+            pipeline.fit(train_data)
             return self.optimizer.objective(pipeline, reference_data=test_data)
 
         best_pipeline = self.optimizer.optimise(prepared_objective)[0]

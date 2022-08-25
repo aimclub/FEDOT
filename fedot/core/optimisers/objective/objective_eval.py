@@ -23,17 +23,18 @@ class ObjectiveEvaluate(ABC, Generic[G]):
       redirected keyword arguments :param objective_kwargs:
     """
 
-    def __init__(self, objective: Objective, **objective_kwargs):
+    def __init__(self, objective: Objective, n_jobs: int, **objective_kwargs):
         self._objective = objective
         self._objective_kwargs = objective_kwargs
+        self._n_jobs = n_jobs
 
-    def __call__(self, graph: G, n_jobs: int = -1) -> Fitness:
+    def __call__(self, graph: G,) -> Fitness:
         """Provides functional interface for ObjectiveEvaluate."""
-        return self.evaluate(graph, n_jobs)
+        return self.evaluate(graph)
 
-    def evaluate(self, graph: G, n_jobs: int = -1) -> Fitness:
+    def evaluate(self, graph: G) -> Fitness:
         """Evaluate graph and compute its fitness."""
-        return self._objective(graph, n_jobs, **self._objective_kwargs)
+        return self._objective(graph, **self._objective_kwargs)
 
     def evaluate_intermediate_metrics(self, graph: G):
         """Compute intermediate metrics for each graph node and store it there."""

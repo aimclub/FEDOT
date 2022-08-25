@@ -28,6 +28,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
     :param pipelines_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
+    :param n_jobs: number of jobs used to evaluate the objective.
     """
 
     def __init__(self,
@@ -36,8 +37,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None):
-        super().__init__(objective)
+                 preprocessing_cache: Optional[PreprocessingCache] = None,
+                 n_jobs: int = 1):
+        super().__init__(objective, n_jobs=n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
@@ -45,7 +47,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._preprocessing_cache = preprocessing_cache
         self._log = default_log(self)
 
-    def evaluate(self, graph: Pipeline, n_jobs: int) -> Fitness:
+    def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
         #  when adapting and restoring it to/from OptGraph.
         graph.log = self._log
@@ -57,7 +59,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
                 graph.unfit()
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, n_jobs)
+                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._n_jobs)
             except Exception as ex:
                 self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
                 continue
@@ -100,7 +102,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         return graph
 
-    def evaluate_intermediate_metrics(self, graph: Pipeline, n_jobs: int):
+    def evaluate_intermediate_metrics(self, graph: Pipeline):
         """Evaluate intermediate metrics"""
         # Get the last fold
         last_fold = None
@@ -117,7 +119,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             intermediate_graph.fit(
                 train_data,
                 time_constraint=self._time_constraint,
-                n_jobs=n_jobs,
+                n_jobs=self._n_jobs,
             )
             intermediate_fitness = self._objective(intermediate_graph,
                                                    reference_data=test_data,

@@ -145,6 +145,7 @@ class ApiComposer:
                      MutationTypesEnum.single_drop,
                      MutationTypesEnum.single_add]
 
+        # TODO remove workaround after boosting mutation fix
         if task.task_type == TaskTypesEnum.ts_forecasting:
             mutations.append(boosting_mutation)
 

@@ -89,7 +89,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         # even if time limit was reached
         successful_evals = list(filter(None, eval_inds))
         if not successful_evals:
-            single = self.evaluate_single(choice(individuals), with_time_limit=False, n_jobs=n_jobs)
+            single = self.evaluate_single(choice(individuals), with_time_limit=False)
             if single:
                 successful_evals = [single]
             else:
@@ -97,7 +97,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit=True, n_jobs: int = -1) -> Optional[Individual]:
+    def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
@@ -108,9 +108,9 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
         adapted_graph = self._graph_adapter.restore(graph)
 
-        ind_fitness = self._objective_eval(adapted_graph, n_jobs)
+        ind_fitness = self._objective_eval(adapted_graph)
         if self._post_eval_callback:
-            self._post_eval_callback(adapted_graph, n_jobs)
+            self._post_eval_callback(adapted_graph)
         if self._cleanup:
             self._cleanup(adapted_graph)
         gc.collect()
@@ -147,12 +147,10 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
     def __init__(self,
                  graph_adapter: BaseOptimizationAdapter,
-                 timer: Timer = None,
-                 n_jobs: int = -1):
+                 timer: Timer = None):
         self._objective_eval = None
         self._graph_adapter = graph_adapter
         self.timer = timer or get_forever_timer()
-        self._n_jobs = n_jobs
 
     def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
         """Return handler to this object that hides all details
@@ -177,7 +175,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
         graph = ind.graph
         adapted_graph = self._graph_adapter.restore(graph)
-        ind_fitness = self._objective_eval(adapted_graph, self._n_jobs)
+        ind_fitness = self._objective_eval(adapted_graph)
         ind_graph = self._graph_adapter.adapt(adapted_graph)
         ind.set_evaluation_result(ind_fitness, ind_graph)
         end_time = timeit.default_timer()

@@ -29,7 +29,6 @@ class GPComposer(Composer):
                  history: Optional[OptHistory] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None):
-
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
@@ -44,10 +43,13 @@ class GPComposer(Composer):
                                            self.composer_requirements.validation_blocks,
                                            shuffle=True).build(data)
         # Define objective function
+        local_n_jobs = 1
+        # TODO implement dispatcher selection
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,
                                                         self.composer_requirements.validation_blocks,
-                                                        self.pipelines_cache, self.preprocessing_cache)
+                                                        self.pipelines_cache, self.preprocessing_cache,
+                                                        n_jobs=local_n_jobs)
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
