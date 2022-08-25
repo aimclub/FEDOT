@@ -1,11 +1,14 @@
 from enum import Enum
-from typing import Union
+from typing import TYPE_CHECKING, Union
 
 from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.fitness_box import FitnessBox
 from fedot.core.visualisation.opt_history.fitness_line import FitnessLine, FitnessLineInteractive
 from fedot.core.visualisation.opt_history.operations_animated_bar import OperationsAnimatedBar
 from fedot.core.visualisation.opt_history.operations_kde import OperationsKDE
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.opt_history import OptHistory
 
 
 class PlotTypesEnum(Enum):
@@ -21,7 +24,23 @@ class PlotTypesEnum(Enum):
 
 
 class OptHistoryVisualizer:
-    def __init__(self, history):
+    """ Implements optimization history visualizations available via `OptHistory.show()`.
+
+    `OptHistory.show` points to the initialized instance of this class.
+    Thus, supported visualizations can be called directly via `OptHistory.show.<vis_name>(...)` or
+    indirectly via `OptHistory.show(...)`.
+
+    This implies that all supported visualizations are listed in two places:
+        1. `PlotTypesEnum` members
+
+        `<vis_name> = <VisClass>`
+
+        2. assigned as the class attributes in `OptHistoryVisualizer.__init__`
+
+        `self.<vis_name> = <VizClass>(self.history).visualize`
+    """
+
+    def __init__(self, history: OptHistory):
         self.history = history
         self.fitness_box = FitnessBox(self.history).visualize
         self.fitness_line = FitnessLine(self.history).visualize
@@ -31,20 +50,20 @@ class OptHistoryVisualizer:
 
         self.log = default_log(self)
 
-    def __call__(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box, **kwargs):
-        """ Visualizes fitness values or operations used across generations.
+    def __call__(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_line, **kwargs):
+        """ Visualizes the OptHistory with one of the supported methods.
 
         :param plot_type: visualization to show. Expected values are listed in
             'fedot.core.visualisation.opt_viz.PlotTypesEnum'.
-        :param save_path: path to save the visualization. If set, then the image will be saved, and if not,
-        it will be displayed. Essential for animations.
-        :param dpi: DPI of the output figure.
-        :param best_fraction: fraction of the best individuals of each generation that included in the
+        :keyword save_path: path to save the visualization. If set, then the image will be saved, and if not,
+            it will be displayed. Essential for animations.
+        :keyword dpi: DPI of the output figure.
+        :keyword best_fraction: fraction of the best individuals of each generation that included in the
             visualization. Must be in the interval (0, 1].
-        :param show_fitness: if False, visualizations that support this argument will not display fitness.
-        :param per_time: Shows time axis instead of generations axis. Currently, supported for plot types:
+        :keyword show_fitness: if False, visualizations that support this argument will not display fitness.
+        :keyword per_time: Shows time axis instead of generations axis. Currently, supported for plot types:
             'show_fitness_line', 'show_fitness_line_interactive'.
-        :param use_tags: if True (default), all operations in the history are colored and grouped based on
+        :keyword use_tags: if True (default), all operations in the history are colored and grouped based on
             FEDOT repo tags. If False, operations are not grouped, colors are picked by fixed colormap for
             every history independently.
         """

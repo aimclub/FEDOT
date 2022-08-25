@@ -27,6 +27,8 @@ except ModuleNotFoundError:
 
 
 class OptHistoryExtraVisualizer:
+    """ Implements legacy history visualizations that are not available via `history.show()` """
+
     def __init__(self):
         default_data_dir = default_fedot_data_dir()
 
