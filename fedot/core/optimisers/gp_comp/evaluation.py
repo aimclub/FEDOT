@@ -1,14 +1,13 @@
 import gc
-import multiprocessing
-import timeit
 from abc import ABC, abstractmethod
-from contextlib import closing
-from copy import deepcopy
-from datetime import datetime
-from random import choice
 from typing import Dict, Optional
 
+import timeit
+from datetime import datetime
+from random import choice
+
 from joblib import Parallel, delayed
+import multiprocessing
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
@@ -134,9 +133,6 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if fitter.use_remote:
             self.logger.info('Remote fit used')
             restored_graphs = [self._graph_adapter.restore(ind.graph) for ind in population]
-            _ = [True for i in restored_graphs if i is None]
-            if _:
-                raise ValueError()
             verifier = verifier_for_task(task_type=None, adapter=self._graph_adapter)
             computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
