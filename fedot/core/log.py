@@ -1,14 +1,36 @@
 import json
 import logging
+import multiprocessing
 import pathlib
 import sys
+from contextlib import contextmanager
 from logging.config import dictConfig
-from logging.handlers import RotatingFileHandler
+from logging.handlers import RotatingFileHandler, QueueHandler
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
 
 DEFAULT_LOG_PATH = pathlib.Path(default_fedot_data_dir(), 'log.log')
+
+
+def listener_process(queue: multiprocessing.Queue):
+    while True:
+        try:
+            record = queue.get()
+            if record is None:  # We send this as a sentinel to tell the listener to quit.
+                break
+            logger = logging.getLogger(record.name)
+            logger.handle(record)
+        except Exception:
+            import sys, traceback
+            print('Whoops! Problem:', file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
+
+
+def worker_configurer(queue: multiprocessing.Queue):
+    h = QueueHandler(queue)
+    root = Log().logger  # gather created instance
+    root.addHandler(h)
 
 
 class Log(metaclass=SingletonMeta):
@@ -21,6 +43,17 @@ class Log(metaclass=SingletonMeta):
     :param log_file: file to write logs in """
 
     __log_adapters = {}
+
+    @staticmethod
+    @contextmanager
+    def using_mp():
+        queue = multiprocessing.Queue(-1)
+        listener = multiprocessing.Process(target=listener_process, args=(queue,))
+        listener.start()
+        worker_configurer(queue)
+        yield
+        queue.put_nowait(None)
+        listener.join()
 
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',

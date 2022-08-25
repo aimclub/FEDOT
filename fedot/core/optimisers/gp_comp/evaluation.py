@@ -8,7 +8,7 @@ from random import choice
 from typing import Dict, Optional
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import default_log
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
@@ -84,9 +84,10 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if n_jobs == 1:
             mapped_evals = map(self.evaluate_single, individuals)
         else:
-            with SingletonMeta.using_mp():
-                with closing(multiprocessing.Pool(n_jobs)) as pool:
-                    mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
+            with Log.using_mp():
+                with SingletonMeta.using_mp():
+                    with closing(multiprocessing.Pool(n_jobs)) as pool:
+                        mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
 
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
