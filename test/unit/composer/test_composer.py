@@ -330,7 +330,6 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
         max_depth=max_depth,
         max_arity=2,
         cv_folds=None,
-        advisor=PipelineChangeAdvisor(task=task),
         pop_size=10,
         num_of_generations=5,
         crossover_prob=0.8,
