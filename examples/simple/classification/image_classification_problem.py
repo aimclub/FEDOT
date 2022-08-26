@@ -1,10 +1,14 @@
 import random
 
 import numpy as np
+
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    pass
+    warn_requirement('tensorflow')
+
 from sklearn.metrics import roc_auc_score as roc_auc
 
 from examples.simple.classification.classification_pipelines import cnn_composite_pipeline

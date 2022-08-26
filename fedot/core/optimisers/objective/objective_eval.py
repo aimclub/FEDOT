@@ -28,7 +28,7 @@ class ObjectiveEvaluate(ABC, Generic[G]):
         self._objective_kwargs = objective_kwargs
         self._n_jobs = n_jobs
 
-    def __call__(self, graph: G,) -> Fitness:
+    def __call__(self, graph: G) -> Fitness:
         """Provides functional interface for ObjectiveEvaluate."""
         return self.evaluate(graph)
 

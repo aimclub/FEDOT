@@ -1,10 +1,14 @@
 import os
 
 import numpy as np
+
+from fedot.utilities.requirements_notificator import warn_requirement
+
 try:
     import tensorflow as tf
 except ModuleNotFoundError:
-    pass
+    warn_requirement('tensorflow')
+
 from sklearn.datasets import load_iris
 from sklearn.metrics import roc_auc_score as roc_auc
 
