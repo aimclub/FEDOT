@@ -102,8 +102,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             init_adaptive_pop_size(parameters.genetic_scheme_type, requirements, self.generations)
         self._operators_prob = \
             init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
-        start_depth = requirements.start_depth or requirements.max_depth
-        self._graph_depth = AdaptiveGraphDepth(self.generations, start_depth=start_depth,
+        self._graph_depth = AdaptiveGraphDepth(self.generations,
+                                               start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
                                                max_stagnated_generations=parameters.depth_increase_step,
                                                adaptive=parameters.with_auto_depth_configuration)

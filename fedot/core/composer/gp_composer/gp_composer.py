@@ -17,7 +17,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 class GPComposer(Composer):
     """
     Genetic programming based composer
-    :param optimizer: optimiser generated in ComposerBuilder.
+    :param optimizer: optimizer generated in ComposerBuilder.
     :param composer_requirements: requirements for composition process.
     :param history: optimization history
     :param pipelines_cache: Cache manager for fitted models, optional.
