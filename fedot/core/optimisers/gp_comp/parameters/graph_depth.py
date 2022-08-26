@@ -11,13 +11,13 @@ class AdaptiveGraphDepth(AdaptiveParameter[int]):
      Can also play a role of static value if :param adaptive: is False."""
 
     def __init__(self, improvements: ImprovementWatcher,
-                 start_depth: int = 1, max_depth: int = 10, max_stagnated_generations: int = 1,
+                 start_depth: int = 1, max_depth: int = 10, stagnation_threshold: int = 1,
                  adaptive: bool = True):
         self._improvements = improvements
         self._start_depth = start_depth
         self._max_depth = max_depth
         self._current_depth = start_depth
-        self._max_stagnated_gens = max_stagnated_generations
+        self._stagnation_threshold = stagnation_threshold
         self._adaptive = adaptive
 
     @property
@@ -29,6 +29,6 @@ class AdaptiveGraphDepth(AdaptiveParameter[int]):
             return self._max_depth
         if self._current_depth >= self._max_depth:
             return self._current_depth
-        if self._improvements.stagnation_duration >= self._max_stagnated_gens:
+        if self._improvements.stagnation_duration >= self._stagnation_threshold:
             self._current_depth += 1
         return self._current_depth

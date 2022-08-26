@@ -27,8 +27,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
 
     :param adaptive_depth: flag to enable adaptive configuration of tree depth
-    :param depth_increase_step: the step of depth increase in automated depth configuration
-    if false). Value is defined in ComposerBuilder. Default False.
+    :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
 
     :param validation_blocks: number of validation blocks for time series validation
     :param logging_level_opt: level of logging in optimizer
@@ -45,7 +44,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
 
     adaptive_depth: bool = False
-    depth_increase_step: int = 3
+    adaptive_depth_max_stagnation: int = 3
 
     validation_blocks: int = None
     logging_level_opt: int = logging.INFO
