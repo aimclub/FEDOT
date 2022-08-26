@@ -36,8 +36,7 @@ class GPGraphOptimizerParameters(GraphOptimizerParameters):
     :param elitism_type: type of elitism operator evolution
     """
 
-    selection_types: Sequence[SelectionTypesEnum] = \
-        (SelectionTypesEnum.tournament,)
+    selection_types: Sequence[SelectionTypesEnum] = ()
     crossover_types: Sequence[Union[CrossoverTypesEnum, Any]] = \
         (CrossoverTypesEnum.subtree,
          CrossoverTypesEnum.one_point)
