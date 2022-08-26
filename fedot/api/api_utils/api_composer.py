@@ -126,7 +126,7 @@ class ApiComposer:
             cv_folds=composer_params['cv_folds'],
             validation_blocks=composer_params['validation_blocks'],
             timeout=datetime_composing,
-            stopping_after_n_generation=composer_params.get('stopping_after_n_generation', None),
+            early_stopping_generations=composer_params.get('early_stopping_generations', None),
             n_jobs=api_params['n_jobs'],
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
@@ -296,7 +296,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,
                                 validation_blocks=None, cv_folds=None, genetic_scheme=None, history_folder=None,
-                                stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
+                                early_stopping_generations=None, optimizer=None, optimizer_external_params=None,
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
                                 preset='auto', use_pipelines_cache=True, use_preprocessing_cache=True)
 

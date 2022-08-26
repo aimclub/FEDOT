@@ -445,7 +445,7 @@ def test_api_params():
                   'task_params': TsForecastingParams(forecast_length=default_int_value), 'seed': default_int_value,
                   'logging_level': default_int_value, 'safe_mode': False, 'n_jobs': default_int_value,
                   'max_depth': default_int_value, 'max_arity': default_int_value,
-                  'stopping_after_n_generation': default_int_value, 'pop_size': default_int_value,
+                  'early_stopping_generations': default_int_value, 'pop_size': default_int_value,
                   'num_of_generations': default_int_value, 'keep_n_best': default_int_value,
                   'available_operations': ['lagged', 'ridge'], 'with_tuning': True, 'cv_folds': default_int_value,
                   'max_pipeline_fit_time': default_int_value,
@@ -476,7 +476,7 @@ def test_api_params():
                                'optimizer': None,
                                'pop_size': default_int_value,
                                'preset': 'fast_train',
-                               'stopping_after_n_generation': default_int_value,
+                               'early_stopping_generations': default_int_value,
                                'validation_blocks': default_int_value,
                                'optimizer_external_params': {'path': default_int_value},
                                'use_pipelines_cache': True, 'use_preprocessing_cache': True}
