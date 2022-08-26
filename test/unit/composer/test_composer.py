@@ -251,7 +251,7 @@ def test_multi_objective_composer(data_fixture, request):
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
-def test_gp_composer_with_start_depth(data_fixture, request):
+def test_gp_composer_with_adaptive_depth(data_fixture, request):
     random.seed(1)
     np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
@@ -261,7 +261,7 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
                                        crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
-                                       with_auto_depth_configuration=True)
+                                       adaptive_depth=True)
     scheme_type = GeneticSchemeTypesEnum.steady_state
     optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type)
 

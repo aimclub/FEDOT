@@ -89,7 +89,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
                                                start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
                                                max_stagnated_generations=requirements.depth_increase_step,
-                                               adaptive=requirements.with_auto_depth_configuration)
+                                               adaptive=requirements.adaptive_depth)
 
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
