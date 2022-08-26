@@ -6,6 +6,7 @@ import sys
 from contextlib import contextmanager
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler, QueueListener
+from typing import Optional
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -149,19 +150,17 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default') -> logging.LoggerAdapter:
+def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
     """
     Default logger
 
-    :param class_object: instance of class
-    :param prefix: adapter prefix to add it to log messages
+    :param prefix: str adapter prefix to add it to log messages or
+    instance of class to get prefix from
     :return: LoggerAdapter: LoggerAdapter object
     """
 
     # get log prefix
-    if isinstance(class_object, str):
-        prefix = class_object
-    elif class_object:
-        prefix = class_object.__class__.__name__
+    if not isinstance(prefix, str):
+        prefix = prefix.__class__.__name__
 
     return Log().get_adapter(prefix=prefix)
