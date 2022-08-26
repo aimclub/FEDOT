@@ -1,9 +1,7 @@
 import datetime
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional, Sequence
-
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 
 
 @dataclass
@@ -41,7 +39,6 @@ class ComposerRequirements:
     show_progress: bool = True
 
     cv_folds: Optional[int] = None
-    advisor: Optional[PipelineChangeAdvisor] = field(default_factory=PipelineChangeAdvisor)
 
     def __post_init__(self):
         if self.cv_folds is not None and self.cv_folds <= 1:
