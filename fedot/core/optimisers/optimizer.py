@@ -8,6 +8,7 @@ from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
@@ -72,7 +73,7 @@ class GraphOptimizer:
     def __init__(self,
                  objective: Objective,
                  initial_graphs: Optional[Sequence[Graph]] = None,
-                 requirements: Optional[Any] = None,
+                 requirements: Optional[ComposerRequirements] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None):
         self.log = default_log(self)
