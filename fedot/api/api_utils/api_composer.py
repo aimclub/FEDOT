@@ -115,22 +115,23 @@ class ApiComposer:
         primary_operations, secondary_operations = \
             ApiComposer.divide_operations(available_operations, task)
 
-        composer_requirements = PipelineComposerRequirements(primary=primary_operations,
-                                                             secondary=secondary_operations,
-                                                             max_arity=composer_params['max_arity'],
-                                                             max_depth=composer_params['max_depth'],
-                                                             pop_size=composer_params['pop_size'],
-                                                             max_pipeline_fit_time=composer_params[
-                                                                 'max_pipeline_fit_time'],
-                                                             num_of_generations=composer_params['num_of_generations'],
-                                                             cv_folds=composer_params['cv_folds'],
-                                                             validation_blocks=composer_params['validation_blocks'],
-                                                             timeout=datetime_composing,
-                                                             n_jobs=api_params['n_jobs'],
-                                                             show_progress=api_params['show_progress'],
-                                                             collect_intermediate_metric=composer_params[
-                                                                 'collect_intermediate_metric'],
-                                                             keep_n_best=composer_params['keep_n_best'])
+        composer_requirements = PipelineComposerRequirements(
+            primary=primary_operations,
+            secondary=secondary_operations,
+            max_arity=composer_params['max_arity'],
+            max_depth=composer_params['max_depth'],
+            pop_size=composer_params['pop_size'],
+            max_pipeline_fit_time=composer_params['max_pipeline_fit_time'],
+            num_of_generations=composer_params['num_of_generations'],
+            cv_folds=composer_params['cv_folds'],
+            validation_blocks=composer_params['validation_blocks'],
+            timeout=datetime_composing,
+            stopping_after_n_generation=composer_params.get('stopping_after_n_generation', None),
+            n_jobs=api_params['n_jobs'],
+            show_progress=api_params['show_progress'],
+            collect_intermediate_metric=composer_params['collect_intermediate_metric'],
+            keep_n_best=composer_params['keep_n_best']
+        )
         return composer_requirements
 
     @staticmethod
@@ -157,7 +158,6 @@ class ApiComposer:
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=mutations,
             crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
-            stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
         )
         return optimiser_parameters
 

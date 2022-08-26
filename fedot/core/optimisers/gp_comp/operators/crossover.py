@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Callable, List, Union, Iterable, Tuple
+from typing import Callable, List, Union, Iterable, Tuple, Sequence
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.log import default_log
@@ -19,7 +19,7 @@ class CrossoverTypesEnum(Enum):
 
 
 class Crossover(Operator):
-    def __init__(self, crossover_types: List[Union[CrossoverTypesEnum, Callable]],
+    def __init__(self, crossover_types: Sequence[Union[CrossoverTypesEnum, Callable]],
                  requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams,
                  max_number_of_attempts: int = 100):
         self.crossover_types = crossover_types

@@ -1,7 +1,7 @@
 import math
 from copy import deepcopy
 from random import choice, randint
-from typing import List, Callable
+from typing import List, Callable, Sequence
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
@@ -14,7 +14,7 @@ class SelectionTypesEnum(Enum):
 
 
 class Selection(Operator):
-    def __init__(self, selection_types: List[SelectionTypesEnum], requirements: PipelineComposerRequirements):
+    def __init__(self, selection_types: Sequence[SelectionTypesEnum], requirements: PipelineComposerRequirements):
         self.selection_types = selection_types
         self.requirements = requirements
 

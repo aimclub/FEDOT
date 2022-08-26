@@ -137,6 +137,7 @@ class ComposerBuilder:
             self.graph_generation_params = self._get_default_graph_generation_params()
 
         if len(self.metrics) > 1:
+            # TODO: avoid post-init of optimiz
             # TODO add possibility of using regularization in MO alg
             self.optimiser_parameters.multi_objective = True
             self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none

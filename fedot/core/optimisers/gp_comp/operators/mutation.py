@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import Callable, List, Union, Tuple
+from typing import Callable, List, Union, Tuple, Sequence
 
 import numpy as np
 
@@ -33,7 +33,7 @@ class MutationTypesEnum(Enum):
 
 
 class Mutation(Operator):
-    def __init__(self, mutation_types: List[Union[MutationTypesEnum, Callable]],
+    def __init__(self, mutation_types: Sequence[Union[MutationTypesEnum, Callable]],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  max_num_of_mutation_attempts: int = 100,

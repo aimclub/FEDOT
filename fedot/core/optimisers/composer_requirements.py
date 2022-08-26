@@ -15,6 +15,9 @@ class ComposerRequirements:
     :param secondary: operation types for :class:`~fedot.core.pipelines.node.SecondaryNode`s
 
     :param timeout: max time in minutes available for composition process
+    :param stopping_after_n_generation: optional max number of stagnating populations for early stopping.
+    Do not use early stopping if None.
+
     :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
     :param n_jobs: num of n_jobs
     :param show_progress: bool indicating whether to show progress using tqdm or not
@@ -31,6 +34,8 @@ class ComposerRequirements:
     secondary: Sequence[str] = tuple()
 
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
+    stopping_after_n_generation: Optional[int] = 10
+
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = 1
     show_progress: bool = True

@@ -260,10 +260,11 @@ def test_gp_composer_with_start_depth(data_fixture, request):
     quality_metric = ClassificationMetricsEnum.ROCAUC
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2)
+                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
+                                       with_auto_depth_configuration=True)
     scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type,
-                                                      with_auto_depth_configuration=True)
+    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type)
+
     builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \

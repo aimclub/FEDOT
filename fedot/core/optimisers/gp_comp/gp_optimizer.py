@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from random import choice
 from typing import Any, List, Optional, Sequence, Union, Callable
 
@@ -22,57 +23,39 @@ from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, 
 from fedot.core.pipelines.pipeline import Pipeline
 
 
+@dataclass
 class GPGraphOptimizerParameters(GraphOptimizerParameters):
     """
     This class is for defining the parameters of optimiser
 
-    :param selection_types: List of selection operators types
-    :param crossover_types: List of crossover operators types
-    :param mutation_types: List of mutation operators types
+    :param selection_types: Sequence of selection operators types
+    :param crossover_types: Sequence of crossover operators types
+    :param mutation_types: Sequence of mutation operators types
     :param regularization_type: type of regularization operator
     :param genetic_scheme_type: type of genetic evolutionary scheme
-    :param elitism_type: type of elitism operator
-    evolution. Default False.
+    :param elitism_type: type of elitism operator evolution
     """
 
-    def set_default_params(self):
-        """
-        Choose default configuration of the evolutionary operators
-        """
+    selection_types: Sequence[SelectionTypesEnum] = \
+        (SelectionTypesEnum.tournament,)
+    crossover_types: Sequence[Union[CrossoverTypesEnum, Any]] = \
+        (CrossoverTypesEnum.subtree,
+         CrossoverTypesEnum.one_point)
+    mutation_types: Sequence[Union[MutationTypesEnum, Any]] = \
+        (MutationTypesEnum.simple,
+         MutationTypesEnum.reduce,
+         MutationTypesEnum.growth,
+         MutationTypesEnum.local_growth)
+    regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none
+    genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational
+    elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best
+
+    def __post_init__(self):
         if not self.selection_types:
             if self.multi_objective:
-                self.selection_types = [SelectionTypesEnum.spea2]
+                self.selection_types = (SelectionTypesEnum.spea2,)
             else:
-                self.selection_types = [SelectionTypesEnum.tournament]
-
-        if not self.crossover_types:
-            self.crossover_types = [CrossoverTypesEnum.subtree, CrossoverTypesEnum.one_point]
-
-        if not self.mutation_types:
-            # default mutation types
-            self.mutation_types = [MutationTypesEnum.simple,
-                                   MutationTypesEnum.reduce,
-                                   MutationTypesEnum.growth,
-                                   MutationTypesEnum.local_growth]
-
-    def __init__(self, selection_types: List[SelectionTypesEnum] = None,
-                 crossover_types: List[Union[CrossoverTypesEnum, Any]] = None,
-                 mutation_types: List[Union[MutationTypesEnum, Any]] = None,
-                 regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
-                 genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
-                 elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best,
-                 *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        self.selection_types = selection_types
-        self.crossover_types = crossover_types
-        self.mutation_types = mutation_types
-        self.regularization_type = regularization_type
-        self.genetic_scheme_type = genetic_scheme_type
-        self.elitism_type = elitism_type
-
-        self.set_default_params()  # always initialize in proper state
+                self.selection_types = (SelectionTypesEnum.tournament,)
 
 
 class EvoGraphOptimizer(PopulationalOptimizer):
@@ -105,8 +88,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         self._graph_depth = AdaptiveGraphDepth(self.generations,
                                                start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
-                                               max_stagnated_generations=parameters.depth_increase_step,
-                                               adaptive=parameters.with_auto_depth_configuration)
+                                               max_stagnated_generations=requirements.depth_increase_step,
+                                               adaptive=requirements.with_auto_depth_configuration)
 
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial

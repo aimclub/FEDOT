@@ -26,6 +26,10 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param mutation_prob: mutation probability
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
 
+    :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration
+    :param depth_increase_step: the step of depth increase in automated depth configuration
+    if false). Value is defined in ComposerBuilder. Default False.
+
     :param validation_blocks: number of validation blocks for time series validation
     :param logging_level_opt: level of logging in optimizer
     :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
@@ -39,6 +43,9 @@ class PipelineComposerRequirements(ComposerRequirements):
     crossover_prob: float = 0.8
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
+
+    with_auto_depth_configuration: bool = False
+    depth_increase_step: int = 3
 
     validation_blocks: int = None
     logging_level_opt: int = logging.INFO

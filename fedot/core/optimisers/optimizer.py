@@ -20,25 +20,14 @@ def do_nothing_callback(*args, **kwargs):
     pass
 
 
+@dataclass
 class GraphOptimizerParameters:
-    """
-        It is base class for defining the parameters of optimizer
+    """Base class for definition of optimizer parameters. Can be extended for custom optimizers.
 
-        :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
-        evolution. Default False.
-        :param depth_increase_step: the step of depth increase in automated depth configuration
-        :param multi_objective: flag used for of algorithm type definition (multi-objective if true or single-objective
-        if false). Value is defined in ComposerBuilder. Default False.
+    :param multi_objective: flag defining
     """
-
-    def __init__(self,
-                 with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 multi_objective: bool = False, history_folder: str = None,
-                 stopping_after_n_generation: int = 10):
-        self.with_auto_depth_configuration = with_auto_depth_configuration
-        self.depth_increase_step = depth_increase_step
-        self.multi_objective = multi_objective
-        self.stopping_after_n_generation = stopping_after_n_generation
+    # TODO: move/remove, because not actually used from API
+    multi_objective: bool = False
 
 
 @dataclass
