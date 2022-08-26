@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import logging
+
 from typing import Optional
 
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
@@ -45,6 +47,10 @@ class PipelineComposerRequirements(ComposerRequirements):
 
     adaptive_depth: bool = False
     adaptive_depth_max_stagnation: int = 3
+    start_depth: int = 3
+    max_depth: int = 3
+    max_arity: int = 2
+    min_arity: int = 2
 
     validation_blocks: int = None
     logging_level_opt: int = logging.INFO
