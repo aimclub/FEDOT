@@ -5,7 +5,7 @@ import pathlib
 import sys
 from contextlib import contextmanager
 from logging.config import dictConfig
-from logging.handlers import QueueHandler, RotatingFileHandler, QueueListener
+from logging.handlers import RotatingFileHandler, QueueListener
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -22,11 +22,6 @@ def get_handlers():
     file_handler = RotatingFileHandler(log_file, maxBytes=100000000, backupCount=1)
     file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
     return console_handler, file_handler
-
-
-def worker_configurer(queue: multiprocessing.Queue, name: str):
-    h = QueueHandler(queue)
-    default_log(prefix=name).logger.addHandler(h)
 
 
 class Log(metaclass=SingletonMeta):

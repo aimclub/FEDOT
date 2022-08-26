@@ -1,34 +1,39 @@
 import multiprocessing
 import pathlib
 import time
-
 from contextlib import closing
 from functools import partial
+from logging.handlers import QueueHandler
 from multiprocessing import Pool
 from random import random
 
-from fedot.core.log import Log, default_log, worker_configurer
+from fedot.core.log import Log, default_log
 
 
-def write_to_log(message: str, mp_queue: multiprocessing.Queue):
+def worker_configurer(shared_q: multiprocessing.Queue, name: str):
+    h = QueueHandler(shared_q)
+    default_log(prefix=name).logger.addHandler(h)
+
+
+def write_to_log(message: str, shared_q: multiprocessing.Queue):
     name = multiprocessing.current_process().name
-    worker_configurer(mp_queue, name)
+    worker_configurer(shared_q, name)
     time.sleep(random())
     default_log(prefix=name).info(message)
 
 
-def preinit(shared_q: multiprocessing.Queue):
-    global mp_queue
-    mp_queue = shared_q
+# def preinit(q: multiprocessing.Queue):  # Needed for the alternate solution with globals...too dirty
+#     global shared_q
+#     shared_q = q
 
 
 if __name__ == '__main__':
     messages = [f'PRINT {i}' for i in range(100)]
 
     processes = []
-    with Log.using_mp() as queue:
+    with Log.using_mp() as shared_q:
         with closing(Pool(4)) as p:
-            list(p.imap_unordered(partial(write_to_log, mp_queue=queue), messages))
+            list(p.imap_unordered(partial(write_to_log, shared_q=shared_q), messages))
         # with closing(Pool(4, preinit, [queue])) as p:
         #     list(p.imap_unordered(write_to_log, messages))
     # with closing(Pool(4)) as p:
