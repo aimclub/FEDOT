@@ -1,5 +1,4 @@
 import os
-import pickle
 
 from contextlib import contextmanager
 from threading import RLock
@@ -20,18 +19,21 @@ class SingletonMeta(type):
     @staticmethod
     @contextmanager
     def using_mp():
-        pickled = str(pickle.dumps(SingletonMeta._instances, 0), 'ascii')
-        os.environ[SingletonMeta._mp_name] = pickled
+        # with pathlib.Path(default_fedot_data_dir(), 'dumped').open(mode='w+') as file:
+        #   saved_instance = json.dumps(SingletonMeta._instances, cls=Serializer)
+        # os.environ[SingletonMeta._mp_name] = saved_instance
         yield
         del os.environ[SingletonMeta._mp_name]
 
     def __call__(cls, *args, **kwargs):
         with cls._lock:
             if cls not in cls._instances:
-                saved_instances = os.getenv(SingletonMeta._mp_name)
-                if saved_instances:
-                    cls._instances = pickle.loads(bytes(saved_instances, 'ascii'))
-                else:
-                    instance = super().__call__(*args, **kwargs)
-                    cls._instances[cls] = instance
+                # mp_enabled = os.getenv(SingletonMeta._mp_name)
+                # if mp_enabled:
+                #     from fedot.core.serializers import Serializer
+                #     with pathlib.Path(default_fedot_data_dir(), 'dumped').open(mode='r') as file:
+                #         cls._instances = json.load(file, cls=Serializer)
+                # else:
+                instance = super().__call__(*args, **kwargs)
+                cls._instances[cls] = instance
         return cls._instances[cls]
