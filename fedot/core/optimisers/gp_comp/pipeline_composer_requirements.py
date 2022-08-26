@@ -55,3 +55,8 @@ class PipelineComposerRequirements(ComposerRequirements):
     validation_blocks: int = None
     logging_level_opt: int = logging.INFO
     collect_intermediate_metric: bool = False
+
+    def __post_init__(self):
+        for field_name, field_value in dataclasses.asdict(self).items():
+            if isinstance(field_value, Number) and field_value < 0:
+                raise ValueError(f'Value of {field_name} must be non-negative')
