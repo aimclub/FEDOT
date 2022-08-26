@@ -21,7 +21,7 @@ def get_handlers():
 
     log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
     file_handler = RotatingFileHandler(log_file, maxBytes=100000000, backupCount=1)
-    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     return console_handler, file_handler
 
 
