@@ -5,7 +5,7 @@ import pathlib
 import sys
 from contextlib import contextmanager
 from logging.config import dictConfig
-from logging.handlers import RotatingFileHandler, QueueHandler
+from logging.handlers import QueueHandler, RotatingFileHandler, QueueListener
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -13,24 +13,20 @@ from fedot.core.utils import default_fedot_data_dir
 DEFAULT_LOG_PATH = pathlib.Path(default_fedot_data_dir(), 'log.log')
 
 
-def listener_process(queue: multiprocessing.Queue):
-    while True:
-        try:
-            record = queue.get()
-            if record is None:  # We send this as a sentinel to tell the listener to quit.
-                break
-            logger = logging.getLogger(record.name)
-            logger.handle(record)
-        except Exception:
-            import sys, traceback
-            print('Whoops! Problem:', file=sys.stderr)
-            traceback.print_exc(file=sys.stderr)
+def get_handlers():
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_formatter = logging.Formatter('%(asctime)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+
+    log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
+    file_handler = RotatingFileHandler(log_file, maxBytes=100000000, backupCount=1)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    return console_handler, file_handler
 
 
-def worker_configurer(queue: multiprocessing.Queue):
+def worker_configurer(queue: multiprocessing.Queue, name: str):
     h = QueueHandler(queue)
-    root = Log().logger  # gather created instance
-    root.addHandler(h)
+    default_log(prefix=name).logger.addHandler(h)
 
 
 class Log(metaclass=SingletonMeta):
@@ -47,13 +43,11 @@ class Log(metaclass=SingletonMeta):
     @staticmethod
     @contextmanager
     def using_mp():
-        queue = multiprocessing.Queue(-1)
-        listener = multiprocessing.Process(target=listener_process, args=(queue,))
+        queue = multiprocessing.Manager().Queue(-1)
+        listener = QueueListener(queue, *get_handlers())
         listener.start()
-        worker_configurer(queue)
-        yield
-        queue.put_nowait(None)
-        listener.join()
+        yield queue
+        listener.stop()
 
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
