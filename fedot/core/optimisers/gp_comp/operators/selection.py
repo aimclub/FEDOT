@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Iterable, Sequence, Tuple
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
+from itertools import permutations
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphGenerationParams
@@ -70,22 +71,43 @@ def random_selection(individuals: List[Individual], pop_size: int) -> List[Indiv
     return chosen
 
 
+# def tournament_selection(individuals: List[Individual], pop_size: int, fraction: float = 0.1) -> List[Individual]:
+#     group_size = math.ceil(len(individuals) * fraction)
+#     min_group_size = 2 if len(individuals) > 1 else 1
+#     group_size = max(group_size, min_group_size)
+#     chosen = []
+#     n_iter = 0
+
+#     while len(chosen) < pop_size and n_iter < pop_size * 10:
+#         group = random_selection(individuals, group_size)
+#         best = max(group, key=lambda ind: ind.fitness)
+#         if best.uid not in (c.uid for c in chosen):
+#             chosen.append(best)
+#         n_iter += 1
+
+#     return chosen
+
+# bamt
 def tournament_selection(individuals: List[Individual], pop_size: int, fraction: float = 0.1) -> List[Individual]:
     group_size = math.ceil(len(individuals) * fraction)
     min_group_size = 2 if len(individuals) > 1 else 1
     group_size = max(group_size, min_group_size)
     chosen = []
     n_iter = 0
-
     while len(chosen) < pop_size and n_iter < pop_size * 10:
-        group = random_selection(individuals, group_size)
-        best = max(group, key=lambda ind: ind.fitness)
-        if best.uid not in (c.uid for c in chosen):
-            chosen.append(best)
-        n_iter += 1
-
+        fl = True
+        while fl:
+            group = random_selection(individuals, group_size)
+            best = max(group, key=lambda ind: ind.fitness)
+            if not len(chosen) % 2:
+                chosen.append(best)
+                fl = False
+            elif not check_iequv(best, chosen[-1]):
+                chosen.append(best)           
+                fl = False
+            n_iter += 1
+    
     return chosen
-
 
 # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
 def spea2_selection(individuals: List[Individual], pop_size: int) -> List[Individual]:
@@ -246,3 +268,48 @@ def _partition(array: List[float], begin: int, end: int) -> int:
             array[i], array[j] = array[j], array[i]
         else:
             return j
+
+# bamt
+def check_iequv(ind1, ind2):
+
+    ## skeletons and immoralities
+    (ske1, immor1) = get_skeleton_immor(ind1)
+    (ske2, immor2) = get_skeleton_immor(ind2)
+
+    ## comparison. 
+    if len(ske1) != len(ske2) or len(immor1) != len(immor2):
+        return False
+
+    ## Note that the edges are undirected so we need to check both ordering
+    for (n1, n2) in immor1:
+        if (n1, n2) not in immor2 and (n2, n1) not in immor2:
+            return False
+    for (n1, n2) in ske1:
+        if (n1, n2) not in ske2 and (n2, n1) not in ske2:
+            return False
+    return True
+
+def get_skeleton_immor(ind):
+    ## skeleton: a list of edges (undirected)
+    skeleton = get_skeleton(ind)
+    ## find immoralities
+    immoral = set()
+    for n in ind.graph.nodes:
+        if n.nodes_from != None and len(n.nodes_from) > 1:
+            perm = list(permutations(n.nodes_from, 2))
+            for (per1, per2) in perm:
+                p1 = per1.content["name"]
+                p2 = per2.content["name"]
+                if ((p1, p2) not in skeleton and (p2, p1) not in skeleton 
+                    and (p1, p2) not in immoral and (p2, p1) not in immoral):
+                    immoral.add((p1, p2))
+
+    return (skeleton, immoral)    
+
+def get_skeleton(ind):
+    skeleton = set()
+    edges = ind.graph.operator.get_all_edges()
+    for e in edges:
+        skeleton.add((e[0].content["name"], e[1].content["name"]))
+        skeleton.add((e[1].content["name"], e[0].content["name"]))
+    return skeleton

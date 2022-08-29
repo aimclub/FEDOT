@@ -1519,7 +1519,7 @@ if __name__ == '__main__':
     # ['earthquake','healthcare','sangiovese','cancer']
     # [asia_bnln, sachs_bnln, sprinkler_bnln, alarm_bnln, andes_bnln]
     
-    files = ['cancer']
+    files = ['earthquake']
 
 
     sequential = True

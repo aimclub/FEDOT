@@ -6,7 +6,6 @@ from typing import Any, List, Optional, Sequence, Union
 from tqdm import tqdm
 
 from fedot.core.composer.gp_composer.gp_composer import PipelineComposerRequirements
-from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
@@ -231,7 +230,6 @@ class EvoGraphOptimiser(GraphOptimiser):
 
                 # BN niching
                 check_nich = []
-                print(self.parameters.niching)
                 if type(self.parameters.niching)==list and len(self.parameters.niching)!=0:
                     for ind in new_population:
                         if round(ind.fitness.value[0],6) not in self.parameters.niching:
