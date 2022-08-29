@@ -174,3 +174,29 @@ def test_numerical_column_with_string_nans():
 
     n_rows, n_cols = data.features.shape
     assert n_cols == 1
+
+
+def test_binary_pseudo_string_column_process_correctly():
+    """ Checks if pseudo strings with int/float values in it process correctly with binary classification """
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([['1'],
+                         ['1.0'],
+                         ['0.0'],
+                         ['1'],
+                         ['1.0'],
+                         ['0'],
+                         ['0.0'],
+                         ['1']], dtype=object)
+    target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no']])
+    input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7],
+                           features=features, target=target, task=task, data_type=DataTypesEnum.table)
+
+    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
+
+    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = correct_preprocessing_params(pipeline)
+    train_predicted = pipeline.fit(train_data)
+
+    assert train_predicted.features.shape[1] == 1
+    assert len(list(filter(lambda feature: isinstance(feature[0], float), train_predicted.features))) \
+           == len(train_predicted.features)
