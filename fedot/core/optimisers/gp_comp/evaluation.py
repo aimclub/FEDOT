@@ -109,7 +109,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
             context = Log.using_mp_worker(shared_q)
             Log().reset_logging_level(log_lvl)
         else:
-            context = nullcontext
+            context = nullcontext()
         with context:
             start_time = timeit.default_timer()
 
