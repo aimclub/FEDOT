@@ -82,7 +82,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
-        parallel = Parallel(n_jobs=n_jobs, verbose=1, pre_dispatch="2*n_jobs")
+        parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         eval_inds = parallel(delayed(self.evaluate_single)(ind=ind) for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
