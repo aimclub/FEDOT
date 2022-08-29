@@ -23,6 +23,7 @@ from copy import deepcopy
 import itertools
 from fedot.core.dag.graph_node import GraphNode
  
+import numpy as np
 import pandas as pd
 import random
 from functools import partial
@@ -51,7 +52,9 @@ from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
-from pgmpy.models import BayesianModel
+# from pgmpy.models import BayesianModel, BayesianNetwork
+from pgmpy.models import BayesianNetwork as BayesianNetwork_pgmpy
+from pgmpy.metrics import structure_score, log_likelihood_score
 from pgmpy.estimators import K2Score, BicScore, BDeuScore
 from sklearn.metrics import mean_squared_error, accuracy_score
 import matplotlib.pyplot as plt
@@ -61,7 +64,7 @@ from datetime import timedelta
 from random import randint, sample
 from pomegranate import *
 import networkx as nx
-
+from pgmpy.estimators import MaximumLikelihoodEstimator
 
 class CustomGraphModel(Graph):
 
@@ -75,6 +78,62 @@ class CustomGraphNode(OptNode):
     def __str__(self):
         return self.content["name"]
  
+
+def new_meric_structure_score(graph: CustomGraphModel, data: pd.DataFrame):
+    score = 0
+    nodes = data.columns.to_list()
+    graph_nx, labels = graph_structure_as_nx_graph(graph)
+    data_values=data.values
+    struct = []
+    for pair in graph_nx.edges():
+        l1 = str(labels[pair[0]])
+        l2 = str(labels[pair[1]])
+        struct.append([l1, l2])
+   
+    
+    bn_model = BayesianNetwork_pgmpy(struct)
+    bn_model.add_nodes_from(nodes)
+
+    score = structure_score(bn_model, data, scoring_method="k2")
+
+    return [-score]
+
+
+def new_meric_LL(graph: CustomGraphModel, data: pd.DataFrame):
+    score = 0
+    nodes = data.columns.to_list()
+    graph_nx, labels = graph_structure_as_nx_graph(graph)
+    data_values=data.values
+    struct = []
+    for pair in graph_nx.edges():
+        l1 = str(labels[pair[0]])
+        l2 = str(labels[pair[1]])
+        struct.append([l1, l2])
+
+    new_struct=[ [] for _ in range(len(vertices))]
+    for pair in struct:
+        i=dir_of_vertices[pair[1]]
+        j=dir_of_vertices[pair[0]]
+        new_struct[i].append(j)
+    
+    new_struct=tuple(map(lambda x: tuple(x), new_struct))   
+    
+    bn_model = BayesianNetwork_pgmpy(struct)
+    bn_model.add_nodes_from(data.columns)
+    bn_model.fit(data, estimator=MaximumLikelihoodEstimator)
+    LL = log_likelihood_score(bn_model, data)
+
+    Dim = 0
+    for i in nodes:
+        unique = (unique_values[i])
+        for j in new_struct[dir_of_vertices[i]]:
+            unique = unique * unique_values[dir_of_vertices_rev[j]]
+        Dim += unique
+    score = LL - (percent*Dim)*log10(len(data))*Dim    
+
+    return [-score]
+
+
 
 def custom_metric_LL(graph: CustomGraphModel, data: pd.DataFrame):
     score = 0
@@ -659,8 +718,6 @@ def custom_crossover_exchange_parents_both(graph_first, graph_second, max_depth)
 
 # исправить функцию
 def custom_crossover_exchange_parents_deep(graph_first, graph_second, max_depth):
-    graph_first.show()
-    graph_second.show()
     def find_node(graph: OptGraph, node):
         return graph.nodes[dir_of_nodes[node.content['name']]]
 
@@ -739,8 +796,6 @@ def custom_crossover_exchange_parents_deep(graph_first, graph_second, max_depth)
 
     except Exception as ex:
         print(ex)
-    new_graph_first.show()
-    new_graph_second.show()
     return new_graph_first, new_graph_second
 
 
@@ -951,7 +1006,8 @@ def run_example():
 
     if 'cont' in types and ('disc' in types or 'disc_num' in types):
         bn = Nets.HybridBN(has_logit=False, use_mixture=False)
-        rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates, _has_disc_parents]
+        # rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates, _has_disc_parents]
+        rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
     elif 'disc' in types or 'disc_num' in types:
         bn = Nets.DiscreteBN()
         rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
@@ -977,21 +1033,16 @@ def run_example():
         for n2 in initial[0].nodes:
             if str(n2) in parents:
                 node.nodes_from.append(n2)
-                
+         
     BAMT_network = deepcopy(initial[0])
     structure_BAMT = opt_graph_to_structure(BAMT_network)
     Score_BAMT = round(metric(BAMT_network, data=discretized_data)[0],6)
-
-
-
     true_fdt = structure_to_opt_graph(true_net)
+    Score_true = round(metric(true_fdt, data=discretized_data)[0],6)
 
-    print('пустой', metric(init,discretized_data))
-    print('bamt', metric(BAMT_network,discretized_data))
-    print('true', metric(true_fdt,discretized_data))
+    print('bamt score', Score_BAMT)
+    print('true score', Score_true)
 
-    Score_true = round(metric(structure_to_opt_graph(true_net), data=discretized_data)[0],6)
-    print(Score_true)
 
     from fedot.core.optimisers.adapters import PipelineAdapter
     from fedot.core.optimisers.opt_history import OptHistory
@@ -1119,9 +1170,14 @@ def run_example():
         start_time = time.perf_counter()
         requirements = PipelineComposerRequirements(
             primary=vertices,
-            secondary=vertices, max_arity=100,
-            max_depth=100, pop_size=pop_size, num_of_generations=n_generation,
-            crossover_prob=crossover_probability, mutation_prob=mutation_probability
+            secondary=vertices, 
+            max_arity=100,
+            max_depth=100, 
+            pop_size=pop_size, 
+            num_of_generations=n_generation,
+            crossover_prob=crossover_probability, 
+            mutation_prob=mutation_probability,
+            timeout=timedelta(minutes=time_m)
             )
     
         optimiser_parameters = GPGraphOptimiserParameters(
@@ -1130,7 +1186,7 @@ def run_example():
             mutation_types=mutation_fun,
             crossover_types=crossover_fun,
             regularization_type=RegularizationTypesEnum.none,
-            stopping_after_n_generation=20
+            stopping_after_n_generation=stopping_after
         )
 
         graph_generation_params = GraphGenerationParams(
@@ -1155,52 +1211,56 @@ def run_example():
         l_n = 0
         last = 0
         it = 0
-        while l_n <=10 and elapsed_time < time_m and it < max_numb_nich:
+        nich_result = []
+        nich_list = []
+        while l_n <=sequential_count and elapsed_time < time_m and it < max_numb_nich:
             it+=1
-            res_opt = optimiser.optimise(partial(metric, data=discretized_data))
+            res_opt = optimiser.optimise(objective_eval)[0]
             score = round(metric(res_opt, data=discretized_data)[0],6)
-
             
+            # для seq сохр посл граф и структ
+            # optimized_graph = res_opt
+            # optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
+            # optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+            # structure = opt_graph_to_structure(optimized_network)
 
             if nich:
-                optimiser_parameters.niching = optimiser_parameters.niching + [score]
+                nich_list = optimiser_parameters.niching + [score]
+                print(nich_list)
+                optimized_graph = res_opt
+                optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))                
+                optimized_graph.show(path=('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(it-1) + str(crossover_fun[0].__name__)+'.png')) 
+                optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+                structure = opt_graph_to_structure(optimized_network)
+                OF=round(metric(optimized_network, data=discretized_data)[0],6)
+                # SHD=precision_recall(structure, true_net)['SHD']
+                
+                nich_result = nich_result + [[optimized_graph, structure, OF]]                
+                
+                # Score_true = round(metric(structure_to_opt_graph(true_net), data=discretized_data)[0],6)
+                # SHD_BAMT=precision_recall(structure_BAMT, true_net)['SHD']    
+                
+                # pdf.add_page()
+                # pdf.set_font("Arial", size = 14)
+                # pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')
+                # for_pdf('pop_size', requirements.pop_size)
+                # for_pdf('mutation_prob', requirements.mutation_prob)
+                # for_pdf('crossover_prob', requirements.crossover_prob)
+                # for_pdf('genetic_scheme_type', optimiser_parameters.genetic_scheme_type.name)
+                # for_pdf('selection_types', optimiser_parameters.selection_types[0].name)
+                # for_pdf('mutation_types', [i.__name__ for i in optimiser_parameters.mutation_types])
+                # for_pdf('crossover_types', [i.__name__ for i in optimiser_parameters.crossover_types])
+                # for_pdf('stopping_after_n_generation', optimiser_parameters.stopping_after_n_generation)
+                # for_pdf('actual_generation_num', optimiser.current_generation_num-1)
+                # for_pdf('timeout', time_m)         
+                # pdf.image('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(it) + str(crossover_fun[0].__name__)+'.png',w=165, h=165)
+                # for_pdf('structure', structure)
+                # for_pdf('SHD', SHD)
+                # for_pdf('GA',precision_recall(structure, true_net))
+                # for_pdf('BAMT',precision_recall(structure_BAMT, true_net))
+                # for_pdf('SHD BAMT', SHD_BAMT)
+                # for_pdf('Score true', Score_true)
 
-            optimized_graph = res_opt
-            optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
-            optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
-            structure = opt_graph_to_structure(optimized_network)
-            optimized_graph.show(path=('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(it) + str(crossover_fun[0].__name__)+'.png')) 
-            OF=round(metric(optimized_network, data=discretized_data)[0],6)
-            Score_true = round(metric(structure_to_opt_graph(true_net), data=discretized_data)[0],6)
-            SHD=precision_recall(structure, true_net)['SHD']
-            SHD_BAMT=precision_recall(structure_BAMT, true_net)['SHD']    
-            
-            pdf.add_page()
-            pdf.set_font("Arial", size = 14)
-            pdf.cell(150, 5, txt = str(OF), ln = 1, align = 'C')
-            for_pdf('pop_size', requirements.pop_size)
-            for_pdf('mutation_prob', requirements.mutation_prob)
-            for_pdf('crossover_prob', requirements.crossover_prob)
-            for_pdf('genetic_scheme_type', optimiser_parameters.genetic_scheme_type.name)
-            for_pdf('selection_types', optimiser_parameters.selection_types[0].name)
-            for_pdf('mutation_types', [i.__name__ for i in optimiser_parameters.mutation_types])
-            for_pdf('crossover_types', [i.__name__ for i in optimiser_parameters.crossover_types])
-            for_pdf('stopping_after_n_generation', optimiser_parameters.stopping_after_n_generation)
-            for_pdf('actual_generation_num', optimiser.current_generation_num-1)
-            for_pdf('timeout', time_m)         
-            pdf.image('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(it) + str(crossover_fun[0].__name__)+'.png',w=165, h=165)
-            for_pdf('structure', structure)
-            for_pdf('SHD', SHD)
-            for_pdf('GA',precision_recall(structure, true_net))
-            for_pdf('BAMT',precision_recall(structure_BAMT, true_net))
-            for_pdf('SHD BAMT', SHD_BAMT)
-            for_pdf('Score true', Score_true)
-            # for_pdf('Score BAMT', Score_BAMT)
-            # for_pdf('time', elapsed_time)
-            # for_pdf('sequential', sequential)
-            # if nich:
-            #     for_pdf('niching', optimiser_parameters.niching)
-            #     for_pdf('min nich', min(optimiser_parameters.niching))   
 
             
             print('_______________________________________________________________')
@@ -1208,12 +1268,55 @@ def run_example():
             initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=[],
                                                       content={'name': v}) for v in vertices])]
             init=deepcopy(initial[0])
+            initial=[] 
             
-            initial=[]            
-            initial.append(res_opt)
-
-            initial = deepcopy(create_population(pop_size-1, initial)) 
+            if nich:
+                initial = deepcopy(create_population(pop_size, initial)) 
+            else:      
+                initial.append(res_opt)
+                initial = deepcopy(create_population(pop_size-1, initial)) 
          
+
+            del requirements
+            del optimiser_parameters
+            del graph_generation_params
+            del optimiser
+            requirements = PipelineComposerRequirements(
+                primary=vertices,
+                secondary=vertices, 
+                max_arity=100,
+                max_depth=100, 
+                pop_size=pop_size, 
+                num_of_generations=n_generation,
+                crossover_prob=crossover_probability, 
+                mutation_prob=mutation_probability,
+                timeout=timedelta(minutes=time_m)
+                )
+        
+            optimiser_parameters = GPGraphOptimiserParameters(
+                genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+                selection_types=[SelectionTypesEnum.tournament],
+                mutation_types=mutation_fun,
+                crossover_types=crossover_fun,
+                regularization_type=RegularizationTypesEnum.none,
+                stopping_after_n_generation=stopping_after
+            )
+
+            graph_generation_params = GraphGenerationParams(
+                adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
+                rules_for_constraint=rules)
+
+            optimiser_parameters.custom = discretized_data
+
+            optimiser_parameters.niching = nich_list
+
+            optimiser = EvoGraphOptimiser(
+                graph_generation_params=graph_generation_params,
+                parameters=optimiser_parameters,
+                requirements=requirements,
+                initial_graph=initial,
+                objective=objective)
+
             optimiser = EvoGraphOptimiser(
                 graph_generation_params=graph_generation_params,
                 parameters=optimiser_parameters,
@@ -1230,21 +1333,31 @@ def run_example():
                 last=score
                 l_n = 0
             
+        if nich:
+            # results of sequential niching
+            index_min = np.argmin(nich_list)
+            optimized_graph = nich_result[index_min][0]
+            time_passed = elapsed_time 
+            # optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
+            # optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+            structure = nich_result[index_min][1]
+            # optimized_graph.show(path=('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(index_min) + str(crossover_fun[0].__name__)+ '.png')) 
+            OF=nich_result[index_min][2]
             
-        optimized_graph = res_opt
-        time_passed = elapsed_time 
-        optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
-        optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
-        structure = opt_graph_to_structure(optimized_network)
-        optimized_graph.show(path=('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(it) + str(crossover_fun[0].__name__)+ '.png')) 
-        OF=round(metric(optimized_network, data=discretized_data)[0],6)
-        
-        fitness = OF
-        print('Score GA = ', fitness)
-        print('Score BAMT = ', Score_BAMT)
-        Score_true = round(metric(structure_to_opt_graph(true_net), data=discretized_data)[0],6)    
-        print('Score true = ', Score_true)
-        print('niching', optimiser_parameters.niching)     
+            
+            print('niching', nich_list)
+        else:
+            # results of sequential 
+            optimized_graph = res_opt
+            time_passed = elapsed_time 
+            optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
+            optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
+            structure = opt_graph_to_structure(optimized_network)
+            optimized_graph.show(path=('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(count) + str(crossover_fun[0].__name__)+ '.png')) 
+            OF=round(metric(optimized_network, data=discretized_data)[0],6)
+
+
+                 
             
     else:
 
@@ -1266,7 +1379,7 @@ def run_example():
             # crossover_types=[custom_crossover_parents1, custom_crossover_parents],
             regularization_type=RegularizationTypesEnum.none,
             # если улучшение не происходит в течении ... поколений -> выход
-            stopping_after_n_generation=n_generation
+            stopping_after_n_generation=stopping_after
             # stopping_after_n_generation=10
         )
         optimiser_parameters.custom = discretized_data
@@ -1285,22 +1398,24 @@ def run_example():
             objective=objective)
 
 
-        optimized_graph = optimiser.optimise(objective_eval)[0]
         start_time = time.perf_counter()
-        # optimized_graph = optimiser.optimise(partial(metric, data=discretized_data))
-        
+
+        optimized_graph = optimiser.optimise(objective_eval)[0]
+
         elapsed_time =(time.perf_counter() - start_time)/60 
         time_passed = elapsed_time     
         optimized_graph.nodes=deepcopy(sorted(optimized_graph.nodes, key=lambda x: dir_of_vertices[x.content['name']]))
         optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graph)
         structure = opt_graph_to_structure(optimized_network)
-        # optimized_graph.show()
 
         optimized_graph.show(path=('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(count) + str(crossover_fun[0].__name__)+'.png')) 
         OF=round(metric(optimized_network, data=discretized_data)[0],6)
         
-        fitness = OF
-        Score_true = round(metric(structure_to_opt_graph(true_net), data=discretized_data)[0],6)
+    
+    fitness = OF 
+    print('Score GA = ', fitness)
+    print('Score BAMT = ', Score_BAMT)
+    print('Score true = ', Score_true)
         
         
     
@@ -1360,7 +1475,10 @@ def run_example():
     for_pdf('stopping_after_n_generation', optimiser_parameters.stopping_after_n_generation)
     for_pdf('actual_generation_num', optimiser.current_generation_num-1)
     for_pdf('timeout', time_m)
-    pdf.image('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(count) + str(crossover_fun[0].__name__)+'.png',w=165, h=165)
+    if nich:
+        pdf.image('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(index_min) + str(crossover_fun[0].__name__)+'.png',w=165, h=165)
+    else:
+        pdf.image('C:/Users/anaxa/Documents/Projects/FEDOT/examples/pictures/V' + str(count) + str(crossover_fun[0].__name__)+'.png',w=165, h=165)
     for_pdf('structure', structure)
     for_pdf('SHD', SHD)
     for_pdf('SHD BAMT', SHD_BAMT)
@@ -1370,8 +1488,8 @@ def run_example():
     for_pdf('sequential', sequential)
     for_pdf('nich', nich)
     if nich:
-        for_pdf('niching', optimiser_parameters.niching)
-        for_pdf('min nich', min(optimiser_parameters.niching))    
+        for_pdf('niching', nich_list)
+        for_pdf('min nich', min(nich_list))    
 
     for_pdf('GA',precision_recall(structure, true_net))
     for_pdf('BAMT',precision_recall(structure_BAMT, true_net))
@@ -1397,49 +1515,38 @@ def run_example():
 ##############################    
 
 if __name__ == '__main__':
-    # data = pd.read_csv(r'examples/data/asia.csv')
-    # data.drop(['Unnamed: 0'], axis=1, inplace=True)
-    # nodes = list(data.columns)
     #files = ['asia', 'sachs', 'magic-niab', 'ecoli70', 'child']
-    # ['earthquake','healthcare','sangiovese']
+    # ['earthquake','healthcare','sangiovese','cancer']
     # [asia_bnln, sachs_bnln, sprinkler_bnln, alarm_bnln, andes_bnln]
-    files = ['asia']
-    sequential = False    
+    
+    files = ['cancer']
+
+
+    sequential = True
+    sequential_count = 5    
     nich = False
-    pop_size = 20
+    max_numb_nich = 100
+    pop_size = 40
     n_generation = 100
     crossover_probability = 0.8
     mutation_probability = 0.9
-    #[custom_crossover_exchange_edges, 
-    # custom_crossover_exchange_parents_one, 
-    # custom_crossover_exchange_parents_both]
-    # crossover_fun = [custom_crossover_exchange_edges]
+    stopping_after = 10
     mutation_fun = [custom_mutation_add, custom_mutation_delete, custom_mutation_reverse]
-    max_numb_nich = 100
-    crossover_fun =[
+    crossover_funs = [[
         custom_crossover_exchange_edges, 
     custom_crossover_exchange_parents_one, 
     custom_crossover_exchange_parents_both
-    ]
+    ]]
 
-    
-# files = ['data_asia']
+
     for file in files:
-        if file == 'asia' or file == 'earthquake':
-            percent = 0.02
-        elif file == 'healthcare':
-            percent = 0.005
-        elif file == 'cancer':
-            percent = 0.01
-            
+        percent = 0.02    
         data = pd.read_csv('examples/data/'+file+'.csv')
-        # data = bn.import_example(data='sachs')
         if file!='credit_card_anomaly' and file!='custom_encoded' and file!='10nodes_cont' and file!='data_asia':
             data.drop(['Unnamed: 0'], axis=1, inplace=True)
-            
-        # print(data.isna().sum())
         data.dropna(inplace=True)
         data.reset_index(inplace=True, drop=True)
+        print(data.columns)
 
         if file == 'mehra-complete':
             for i in data.columns:
@@ -1454,42 +1561,50 @@ if __name__ == '__main__':
             e1 = l.split()[1].split('\n')[0]
             true_net.append((e0, e1))
 
-        # pdf = FPDF()  
-        
-        # for j in [1, 2]+list(range(5, 40, 5)):
-        # 086
-            # pdf = FPDF()
-            # time_m=j
-            # structure = run_example()
-            # pdf.output("f_Experiment_empty_"+file + str(j) + ".pdf")
-            #  [custom_crossover_exchange_edges, 
-        # custom_crossover_exchange_parents_one, 
-        # custom_crossover_exchange_parents_both]
-
         
         try:
-            # for selected_crossover in crossover_funs:
-            #     crossover_fun = [selected_crossover] 
-            for count in range(1):
-                time_m=10
-
-                # [custom_metric_LL, custom_metric_pass, custom_metric_mi, 
-                # custom_metric_cmi, custom_metric_cmi_new, custom_metric_DJS]
-
-                metric = custom_metric_LL
-
-                pdf = FPDF()  
-                
-                structure = run_example()           
-                textfile = open(file+"_p_"+str(percent)+"_LL_"+"sequential_"+str(sequential)+"_nich_"+str(nich)+"_"+str(crossover_fun[0].__name__)+".txt", "a")
-                textfile.write(str(fitness)+';'+str(shd)+';'+str(time_passed))
-                textfile.write('\n')
-                textfile.close()  
-            
-                if sequential:
-                    pdf.output("p_"+str(percent)+"_LL_"+file+str(count)+"_sequential_"+"_"+str(sequential)+"_nich_"+str(nich)+"_"+str(crossover_fun[0].__name__)+".pdf")
+            for selected_crossover in crossover_funs:
+                if type(selected_crossover) == list:
+                    crossover_fun = selected_crossover 
                 else:
-                    pdf.output("p_"+str(percent)+"_LL_"+file+"_"+str(count)+"_"+str(crossover_fun[0].__name__)+".pdf")
+                    crossover_fun = [selected_crossover] 
+                for count in range(10):
+                    time_m=10
+
+                    # [custom_metric_LL, custom_metric_pass, custom_metric_mi, 
+                    # [custom_metric_cmi, custom_metric_cmi_new, custom_metric_DJS]
+                    # [new_meric_structure_score]
+
+                    metric = custom_metric_LL
+
+                    pdf = FPDF()  
+                    
+                    structure = run_example()          
+                    if type(crossover_funs[0]) == list:
+                        textfile = open("C:/Users/anaxa/Desktop/article/" + 
+                    file+'_p_'+str(percent)+"_LL_"+"sequential_"+str(sequential)+"_nich_"+str(nich)+'_custom_crossover_all'+".txt", "a")
+                    else:
+                        textfile = open("C:/Users/anaxa/Desktop/article/" + 
+                    file+'_p_'+str(percent)+"_LL_"+"sequential_"+str(sequential)+"_nich_"+str(nich)+"_"+str(crossover_fun[0].__name__)+".txt", "a")
+                    
+                    textfile.write(str(fitness)+';'+str(shd)+';'+str(time_passed))
+                    textfile.write('\n')
+                    textfile.close()  
+                
+                    if sequential:
+                        if type(crossover_funs[0]) == list:
+                            pdf.output("C:/Users/anaxa/Desktop/article/" +
+                        'p_'+str(percent)+"_LL_"+file+'_'+str(count)+"_sequential_"+str(sequential)+"_nich_"+str(nich)+'_custom_crossover_all'+".pdf")
+                        else:                        
+                            pdf.output("C:/Users/anaxa/Desktop/article/" +
+                        'p_'+str(percent)+"_LL_"+file+'_'+str(count)+"_sequential_"+str(sequential)+"_nich_"+str(nich)+"_"+str(crossover_fun[0].__name__)+".pdf")
+                    else:
+                        if type(crossover_funs[0]) == list:
+                            pdf.output("C:/Users/anaxa/Desktop/article/" +
+                        'p_'+str(percent)+"_LL_"+file+"_"+str(count)+'_custom_crossover_all'+".pdf")
+                        else:
+                            pdf.output("C:/Users/anaxa/Desktop/article/" +
+                        'p_'+str(percent)+"_LL_"+file+"_"+str(count)+"_"+str(crossover_fun[0].__name__)+".pdf")
         except Exception as ex:
             print(ex)
 
