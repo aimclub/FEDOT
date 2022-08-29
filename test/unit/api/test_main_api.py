@@ -346,7 +346,7 @@ def test_multivariate_ts():
     fedot = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     fedot.fit(features=historical_data, target=target_history)
-    forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
+    forecast = fedot.predict(historical_data)
     assert forecast is not None
 
 

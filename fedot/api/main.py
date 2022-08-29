@@ -238,41 +238,6 @@ class Fedot:
 
         return self.prediction.predict
 
-    def forecast(self,
-                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict],
-                 forecast_length: int = 1,
-                 save_predictions: bool = False) -> np.ndarray:
-        """Forecasts the new values of time series
-
-        :param pre_history: the array with features for pre-history of the forecast
-        :param forecast_length: num of steps to forecast
-        :param save_predictions: if True-save predictions as csv-file in working directory.
-
-        :return: the array with prediction values
-        """
-
-        # TODO use forecast length
-
-        if self.current_pipeline is None:
-            raise ValueError(NOT_FITTED_ERR_MSG)
-
-        if self.params.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
-            raise ValueError('Forecasting can be used only for the time series')
-
-        self.test_data = self.data_processor.define_data(target=self.target,
-                                                         features=pre_history,
-                                                         is_predict=True)
-
-        self.current_pipeline = Pipeline(self.current_pipeline.root_node)
-        # TODO add incremental forecast
-        self.prediction = self.current_pipeline.predict(self.test_data)
-        if len(self.prediction.predict.shape) > 1:
-            self.prediction.predict = np.squeeze(self.prediction.predict)
-
-        if save_predictions:
-            self.save_predict(self.prediction)
-        return self.prediction.predict
-
     def load(self, path):
         """Loads saved graph from disk
 
