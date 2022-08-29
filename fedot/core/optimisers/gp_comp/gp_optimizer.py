@@ -55,6 +55,9 @@ class GPGraphOptimizerParameters(GraphOptimizerParameters):
                 self.selection_types = (SelectionTypesEnum.spea2,)
             else:
                 self.selection_types = (SelectionTypesEnum.tournament,)
+        if self.multi_objective:
+            # TODO add possibility of using regularization in MO alg
+            self.regularization_type = RegularizationTypesEnum.none
 
 
 class EvoGraphOptimizer(PopulationalOptimizer):

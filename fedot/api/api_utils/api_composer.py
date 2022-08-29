@@ -16,7 +16,6 @@ from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
@@ -38,7 +37,7 @@ class ApiComposer:
         self.preset_name = None
         self.timer = None
 
-    def obtain_metric(self, task: Task, metric: Union[str, Callable]):
+    def obtain_metric(self, task: Task, metric: Union[str, Callable]) -> Sequence[MetricType]:
         """Chooses metric to use for quality assessment of pipeline during composition"""
         if metric is None:
             metric = MetricByTask(task.task_type).get_default_quality_metrics()
@@ -46,7 +45,7 @@ class ApiComposer:
         if isinstance(metric, (str, Callable)):
             metric = [metric]
 
-        metric_function = []
+        metric_functions = []
         for specific_metric in metric:
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
@@ -56,8 +55,8 @@ class ApiComposer:
                 if metric_id is None:
                     raise ValueError(f'Incorrect metric {specific_metric}')
                 specific_metric_function = MetricsRepository().metric_by_id(metric_id)
-            metric_function.append(specific_metric_function)
-        return metric_function
+            metric_functions.append(specific_metric_function)
+        return metric_functions
 
     def obtain_model(self, **common_dict):
         # Prepare parameters
@@ -135,7 +134,9 @@ class ApiComposer:
         return composer_requirements
 
     @staticmethod
-    def _init_optimiser_params(task: Task, composer_params: dict) -> GPGraphOptimizerParameters:
+    def _init_optimizer_params(task: Task,
+                               composer_params: dict,
+                               is_multi_objective: bool) -> GPGraphOptimizerParameters:
 
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
@@ -155,9 +156,9 @@ class ApiComposer:
             mutations.append(MutationTypesEnum.single_edge)
 
         optimiser_parameters = GPGraphOptimizerParameters(
+            multi_objective=is_multi_objective,
             genetic_scheme_type=genetic_scheme_type,
             mutation_types=mutations,
-            crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
         )
         return optimiser_parameters
 
@@ -192,13 +193,15 @@ class ApiComposer:
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
                                                                  self.timer.timedelta_composing, self.preset_name)
 
-        # Get optimiser, its parameters, and composer
-        metric_function = self.obtain_metric(task, composer_params['metric'])
-
         log.info(f"AutoML configured."
-                 f" Parameters tuning: {with_tuning}."
-                 f" Time limit: {timeout} min."
-                 f" Set of candidate models: {available_operations}.")
+                 f" Parameters tuning: {with_tuning}"
+                 f" Time limit: {timeout} min"
+                 f" Set of candidate models: {available_operations}")
+
+        # Get optimiser, its parameters, and composer
+        metric_functions = self.obtain_metric(task, composer_params['metric'])
+        is_multi_objective = len(metric_functions) > 1
+        optimizer_params = self._init_optimizer_params(task, composer_params, is_multi_objective)
 
         best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
                                                                                      fitted_assumption, metric_function,
@@ -227,9 +230,9 @@ class ApiComposer:
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
             .with_optimiser(composer_params.get('optimizer')) \
-            .with_optimiser_params(parameters=self._init_optimiser_params(task, composer_params),
+            .with_optimiser_params(parameters=optimizer_params,
                                    external_parameters=composer_params.get('optimizer_external_params')) \
-            .with_metrics(metric_function) \
+            .with_metrics(metric_functions) \
             .with_history(composer_params.get('history_folder')) \
             .with_cache(self.pipelines_cache, self.preprocessing_cache)
         gp_composer: GPComposer = builder.build()

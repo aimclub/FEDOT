@@ -22,7 +22,8 @@ from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (
     ComplexityMetricsEnum,
-    MetricsEnum
+    MetricsEnum,
+    RegressionMetricsEnum, MetricType
 )
 from fedot.core.repository.tasks import Task
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -89,7 +90,7 @@ class ComposerBuilder:
         self.graph_generation_params = graph_generation_params
         return self
 
-    def with_metrics(self, metrics: Union[MetricsEnum, List[MetricsEnum]]):
+    def with_metrics(self, metrics: Union[MetricType, List[MetricType]]):
         self.metrics = ensure_wrapped_in_sequence(metrics)
         return self
 
@@ -136,15 +137,11 @@ class ComposerBuilder:
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
 
-        if len(self.metrics) > 1:
-            # TODO: avoid post-init of optimiz
-            # TODO add possibility of using regularization in MO alg
-            self.optimiser_parameters.multi_objective = True
-            self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
-        else:
+        if not self.optimiser_parameters.multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
-            self.optimiser_parameters.multi_objective = False
             self.metrics = self.metrics + self._get_default_complexity_metrics()
+        elif len(self.metrics) == 1:
+            self.log.warning('Multi-objective optimization is set up, but only single metric is given.')
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
 
