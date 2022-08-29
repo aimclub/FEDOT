@@ -1,11 +1,13 @@
 import gc
-import multiprocessing
-import timeit
 from abc import ABC, abstractmethod
-from contextlib import closing
+from typing import Dict, Optional
+
+import timeit
 from datetime import datetime
 from random import choice
-from typing import Dict, Optional
+
+from joblib import Parallel, delayed
+import multiprocessing
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
@@ -80,15 +82,11 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
-        if n_jobs == 1:
-            mapped_evals = map(self.evaluate_single, individuals)
-        else:
-            with closing(multiprocessing.Pool(n_jobs)) as pool:
-                mapped_evals = list(pool.imap_unordered(self.evaluate_single, individuals))
-
+        parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
+        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind) for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
-        successful_evals = list(filter(None, mapped_evals))
+        successful_evals = list(filter(None, eval_inds))
         if not successful_evals:
             single = self.evaluate_single(choice(individuals), with_time_limit=False)
             if single:
