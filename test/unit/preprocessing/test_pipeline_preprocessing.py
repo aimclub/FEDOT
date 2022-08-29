@@ -182,7 +182,7 @@ def test_pipeline_with_imputer():
     # Coefficients for ridge regression
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
     # Linear must use 17 features - several of them are encoded ones
-    assert 17 == coefficients.shape[1]
+    assert coefficients.shape[1] == 12
 
 
 def test_pipeline_with_encoder():
@@ -262,6 +262,6 @@ def test_data_with_mixed_types_per_column_processed_correctly():
     importances = pipeline.nodes[0].operation.fitted_operation.feature_importances_
 
     # Finally, seven features were used to give a forecast
-    assert len(importances) == 6
+    assert len(importances) == 2
     # Target must contain 4 labels
     assert predicted.predict.shape[-1] == 4

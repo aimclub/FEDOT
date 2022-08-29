@@ -55,14 +55,14 @@ def data_with_complicated_types():
         1) int column with nans more than 90% - column must be removed
         column must be removed due to the fact that inf will be replaced with nans
         2) int-float column with categorical values (number of unique values = 12) -
-        categorical indices must be converted into integers, then due to number
+        categorical indices must be converted into float, then due to number
         of unique values less than 13 - perform converting column into str type
         3) int column the same as 2) column but with additional 13th label in the test part
         4) int column (number of unique values = 4) - must be converted into string
         5) str-int column with words and numerical cells - must be removed because can not
         be converted into integers
         6) str column with unique categories 'a', 'b', 'c' and spaces in labels.
-        New category 'd' arise in the test part. Categories will be converted into float
+        New category 'd' arise in the test part. Categories will be encoded using OHE
         7) str binary column - must be converted into integer
         8) int binary column and nans - nan cells must be filled in
         9) str column with truly int values as strings - must be converted into float column
@@ -150,7 +150,7 @@ def test_complicated_table_types_processed_correctly():
 
     # Table types corrector after fitting
     types_correctors = pipeline.preprocessor.types_correctors
-    assert train_predicted.features.shape[1] == 52
+    assert train_predicted.features.shape[1] == 50
     # Column with id 2 was removed be data preprocessor and column with source id 5 became 4th
     assert types_correctors[DEFAULT_SOURCE_NAME].columns_to_del[0] == 4
     # Source id 9 became 7th - column must be converted into float

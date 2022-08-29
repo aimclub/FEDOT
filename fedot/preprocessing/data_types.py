@@ -72,8 +72,8 @@ class TableTypesCorrector:
                                                                               task=data.task)
 
         # Launch conversion float and integer features into categorical
-        self._into_categorical_features_transformation_for_fit(data)
         self._into_numeric_features_transformation_for_fit(data)
+        self._into_categorical_features_transformation_for_fit(data)
         # Save info about features and target types
         self.features_types = copy(data.supplementary_data.column_types['features'])
         self.target_types = copy(data.supplementary_data.column_types['target'])
@@ -93,8 +93,8 @@ class TableTypesCorrector:
                                                                               task=data.task)
 
         # Convert column types
-        self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
+        self._into_categorical_features_transformation_for_predict(data)
         self._retain_columns_info_without_types_conflicts(data)
         return data
 
@@ -132,7 +132,7 @@ class TableTypesCorrector:
         for mixed_column_id in features_with_mixed_types:
             column_info = self.features_columns_info[mixed_column_id]
 
-            if column_info.get('str_number') > 0:
+            if column_info.get('str_number') > 0 or column_info.get('float_number') > 0:
                 # There are string elements in the array
                 mixed_column = features[:, mixed_column_id]
                 updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
@@ -338,32 +338,42 @@ class TableTypesCorrector:
                 string_column = pd.Series(data.features[:, column_id])
                 unique_numbers = len(string_column.dropna().unique())
 
-                if unique_numbers > self.categorical_max_classes_th:
-                    # Number of nans in the column
-                    nans_number = string_column.isna().sum()
+                # Number of nans in the column
+                nans_number = string_column.isna().sum()
 
-                    # Column probably not an "actually categorical" but a column with an incorrectly defined type
-                    converted_column = pd.to_numeric(string_column, errors='coerce')
-                    # Calculate applied nans
-                    result_nans_number = converted_column.isna().sum()
-                    failed_objects_number = result_nans_number - nans_number
-                    non_nan_all_objects_number = n_rows - nans_number
-                    failed_ratio = failed_objects_number / non_nan_all_objects_number
+                # Column probably not an "actually categorical" but a column with an incorrectly defined type
+                converted_column = pd.to_numeric(string_column, errors='coerce')
+                # Calculate applied nans
+                result_nans_number = converted_column.isna().sum()
+                failed_objects_number = result_nans_number - nans_number
+                non_nan_all_objects_number = n_rows - nans_number
+                failed_ratio = failed_objects_number / non_nan_all_objects_number
 
-                    # If all objects are truly strings - all objects transform into nan
-                    is_column_contain_numerical_objects = failed_ratio != 1
-                    if failed_ratio < 0.5:
-                        # The majority of objects can be converted into numerical
-                        data.features[:, column_id] = converted_column.values
+                # If all objects are truly strings - all objects transform into nan
+                is_column_contain_numerical_objects = failed_ratio != 1
+                if failed_ratio == 0:
+                    # The majority of objects can be converted into numerical
+                    data.features[:, column_id] = converted_column.values
 
-                        # Update information about column types (in-place)
-                        self.categorical_into_float.append(column_id)
-                        features_types = data.supplementary_data.column_types['features']
-                        features_types[column_id] = NAME_CLASS_FLOAT
-                    elif failed_ratio >= 0.5 and is_column_contain_numerical_objects:
-                        # Probably numerical column contains '?' or 'x' as nans equivalents
-                        # Add columns to remove list
-                        self.string_columns_transformation_failed.update({column_id: 'removed'})
+                    # Update information about column types (in-place)
+                    self.categorical_into_float.append(column_id)
+                    features_types = data.supplementary_data.column_types['features']
+                    features_types[column_id] = NAME_CLASS_FLOAT
+                # elif failed_ratio < 0.5 and unique_numbers > MAX_CATEGORIES_TH:
+                elif failed_ratio < 0.5:
+                    # The majority of objects can be converted into numerical
+                    data.features[:, column_id] = converted_column.values
+
+                    # Update information about column types (in-place)
+                    self.categorical_into_float.append(column_id)
+                    features_types = data.supplementary_data.column_types['features']
+                    features_types[column_id] = NAME_CLASS_FLOAT
+                elif failed_ratio >= 0.5 \
+                        and is_column_contain_numerical_objects:
+                    # Probably numerical column contains '?' or 'x' as nans equivalents
+                    # Add columns to remove list
+                    self.string_columns_transformation_failed.update({column_id: 'removed'})
+                    # TODO: is it necessary to remove?
 
     def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
         """ Apply conversion into float string column for every signed column """
