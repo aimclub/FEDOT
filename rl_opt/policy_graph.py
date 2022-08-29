@@ -12,10 +12,13 @@ from torch.distributions import Categorical
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.log import default_log
 
 ObsType = TypeVar('ObsType', bound=Space)
 ActionType = TypeVar('ActionType')
+
+StateKeyType = Hashable
+ACTION = 'action'
+ACT_PROB = 'probability'
 
 
 class PolicyMutationEnum(Enum):
@@ -37,7 +40,7 @@ class ModelFactory:
             nn.Linear(in_size*3, in_size),
             nn.Tanh(),
             nn.Linear(in_size, num_outputs),
-            nn.Softmax()
+            nn.Tanh(),
         )
         return model
 
@@ -56,24 +59,21 @@ class PolicyNode:
 
     def predict(self, observation) -> ActionType:
         # TODO: computation of action probs by the model
-        action_probs: Sequence[float] = [1.0 / float(len(self._actions))]  # uniform distrib
+        #  and saving of intermediate info for local learning step
+        action_logits = self.model.forward(observation)
+        action_probs = nn.Softmax()(action_logits)
+
+        # uniform distribution
+        action_probs: Sequence[float] = [1.0 / float(len(self._actions))]
 
         action_distrib = Categorical(action_probs)
         action_index = action_distrib.sample(1)
         action = self._actions[action_index]
         return action
 
-    def transition(self, observation):
-        pass
-
     # TODO: add hash for networkx OR come up with some persistent hash-like node keys
     def __hash__(self):
         pass
-
-
-StateKeyType = Hashable
-ACTION = 'action'
-ACT_PROB = 'probability'
 
 
 class PolicyGraph(Graph, Generic[ObsType]):
@@ -85,7 +85,7 @@ class PolicyGraph(Graph, Generic[ObsType]):
 
     # TODO: how will this look like with learning? Like, we fit on the rollout history?
     def fit(self, observation):
-        action = self._state_node.predict(observation)
+        action = self.predict(observation)
         self.transition(action)
 
         # ...
@@ -93,6 +93,9 @@ class PolicyGraph(Graph, Generic[ObsType]):
         # ...
 
         pass
+
+    def predict(self, observation) -> ActionType:
+        return self._state_node.predict(observation)
 
     def transition(self, action: ActionType):
         """On each observation transitions to another state
@@ -125,14 +128,28 @@ class PolicyGraph(Graph, Generic[ObsType]):
 def evaluate_policy_graph():
     env = gym.make("LunarLander-v2")
 
+    n_rollouts = 100
+    max_steps = 1000
     policy = PolicyGraph(env.action_space, env.observation_space)
 
-    observation, info = env.reset(seed=42)
-    for _ in range(1000):
-        # env.render()
-        action = policy.transition(observation)  # User-defined policy function
-        observation, reward, done, info = env.step(action)
+    for i_rollout in range(n_rollouts):
+        observations = []
+        actions = []
+        rewards = []
+        observation, info = env.reset(seed=42)
 
-        if done:
-            observation, info = env.reset()
+        for i in range(max_steps):
+            action = policy.predict(observation)  # User-defined policy function
+            policy.transition(action)
+
+            observation, reward, done, info = env.step(action)
+            # env.render()
+            observations.append(observation)
+            actions.append(action)
+            rewards.append(reward)
+
+            if done: break
+
+        # TODO: do some learning
+
     env.close()
