@@ -25,7 +25,8 @@
     "learning_rate": 0.03,
     "n_estimators": 100,
     "verbose": -1,
-    "num_threads": 1
+    "num_threads": 1,
+    "silent": true
   },
   "lgbmreg": {
     "num_leaves": 32,
@@ -35,7 +36,8 @@
     "learning_rate": 0.03,
     "n_estimators": 100,
     "verbose": -1,
-    "num_threads": 1
+    "num_threads": 1,
+    "silent": true
   },
   "lagged": {
     "window_size": 10
