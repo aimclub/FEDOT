@@ -255,16 +255,16 @@ class SearchSpace:
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
-                'lambda_l1': (hp.loguniform, [np.log(1e-8), np.log(10)]),
-                'lambda_l2': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'lgbmreg': {
                 'num_leaves': (hp.uniformint, [2, 256]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
-                'lambda_l1': (hp.loguniform, [np.log(1e-8), np.log(10)]),
-                'lambda_l2': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'catboost': {
                 'max_depth': (hp.uniformint, [1, 11]),
