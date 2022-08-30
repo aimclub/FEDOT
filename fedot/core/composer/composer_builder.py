@@ -164,14 +164,18 @@ class ComposerBuilder:
 
     @staticmethod
     def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
-        mutations = [boosting_mutation,
-                     parameter_change_mutation,
+        mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
                      MutationTypesEnum.single_add]
+
+        # TODO remove workaround after boosting mutation fix
+        if task_type == TaskTypesEnum.ts_forecasting:
+            mutations.append(boosting_mutation)
         # TODO remove workaround after validation fix
         if task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
+
         return mutations
 
     @staticmethod
