@@ -106,11 +106,11 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if mp_items is not None:
             # in case of multiprocessing run
             shared_q, log_lvl = mp_items
-            context = Log.using_mp_worker(shared_q)
+            logger_context = Log.using_mp_worker(shared_q)
             Log().reset_logging_level(log_lvl)
         else:
-            context = nullcontext()
-        with context:
+            logger_context = nullcontext()
+        with logger_context:
             start_time = timeit.default_timer()
 
             graph = self.evaluation_cache.get(ind.uid, ind.graph)
