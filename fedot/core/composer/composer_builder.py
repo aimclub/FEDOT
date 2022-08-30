@@ -137,11 +137,15 @@ class ComposerBuilder:
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
 
-        if not self.optimiser_parameters.multi_objective:
+        if len(self.metrics) > 1:
+            # TODO: avoid post-init of optimiz
+            # TODO add possibility of using regularization in MO alg
+            self.optimiser_parameters.multi_objective = True
+            self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
+        else:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
+            self.optimiser_parameters.multi_objective = False
             self.metrics = self.metrics + self._get_default_complexity_metrics()
-        elif len(self.metrics) == 1:
-            self.log.warning('Multi-objective optimization is set up, but only single metric is given.')
 
         objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
 
