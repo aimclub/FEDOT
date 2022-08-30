@@ -11,31 +11,64 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 
 
+def test_multi_modal_data():
+    """
+    Checking basic functionality of MultiModalData class.
+    """
+    num_samples = 5
+    target = np.asarray([0, 0, 1, 0, 1])
+    image_data = InputData(idx=range(num_samples),
+                           features=None,  # in test the real data is not passed
+                           target=target,
+                           data_type=DataTypesEnum.text,
+                           task=Task(TaskTypesEnum.classification))
+    table_data = InputData(idx=range(num_samples),
+                           features=None,  # in test the real data is not passed
+                           target=target,
+                           data_type=DataTypesEnum.table,
+                           task=Task(TaskTypesEnum.classification))
+
+    multi_modal = MultiModalData({
+        'data_source_img': image_data,
+        'data_source_table': table_data,
+    })
+
+    assert multi_modal.task.task_type == TaskTypesEnum.classification
+    assert len(multi_modal.idx) == 5
+    assert multi_modal.num_classes == 2
+    assert np.array_equal(multi_modal.target, target)
+
+    # check setter
+    new_target = np.asarray([1, 1, 1, 1, 1])
+    multi_modal.target = new_target
+    assert np.array_equal(multi_modal.target, new_target)
+
+
 def test_multimodal_data_from_csv():
-    task = Task(TaskTypesEnum.classification)
+    """
+    Checking correctness of MultiModalData import from csv file.
+    """
     file_path = 'test/data/simple_multimodal_classification.csv'
     path = Path(fedot_project_root(), file_path)
     df = pd.read_csv(path)
     text_data = np.array(df['description'])
     table_data = np.array(df.drop(columns=['id', 'description', 'variety']))
-    target = np.array(df['variety'])
-    idx = df['id']
-    expected_text_features = InputData(features=text_data, target=target,
-                                       idx=idx,
-                                       task=task,
-                                       data_type=DataTypesEnum.text).features
-    expected_table_features = InputData(features=table_data, target=target,
-                                        idx=idx,
-                                        task=task,
-                                        data_type=DataTypesEnum.table).features
+    target = np.array(df['variety']).reshape(-1, 1)
     actual_data = MultiModalData.from_csv(path)
     actual_text_features = actual_data['data_source_text/description'].features
     actual_table_features = actual_data['data_source_table'].features
-    assert np.array_equal(expected_text_features, actual_text_features)
-    assert np.array_equal(expected_table_features, actual_table_features)
+    actual_target = actual_data.target
+
+    assert np.array_equal(actual_text_features, text_data)
+    assert np.array_equal(actual_table_features, table_data)
+    assert np.array_equal(actual_target, target)
 
 
 def test_multimodal_data_with_custom_target():
+    """
+    Checking that MultiModalData imports last column as target by default
+    and that manual set of target and redundant columns works as expected.
+    """
     file_path = 'test/data/simple_multimodal_classification.csv'
     path = Path(fedot_project_root(), file_path)
     file_data = MultiModalData.from_csv(path)
@@ -62,38 +95,11 @@ def test_multimodal_data_with_custom_target():
     assert np.array_equal(expected_target, actual_target)
 
 
-def test_multi_modal_data():
-    num_samples = 5
-    target = np.asarray([0, 0, 1, 0, 1])
-    img_data = InputData(idx=range(num_samples),
-                         features=None,  # in test the real data is not passed
-                         target=target,
-                         data_type=DataTypesEnum.text,
-                         task=Task(TaskTypesEnum.classification))
-    tbl_data = InputData(idx=range(num_samples),
-                         features=None,  # in test the real data is not passed
-                         target=target,
-                         data_type=DataTypesEnum.table,
-                         task=Task(TaskTypesEnum.classification))
-
-    multi_modal = MultiModalData({
-        'data_source_img': img_data,
-        'data_source_table': tbl_data,
-    })
-
-    assert multi_modal.task.task_type == TaskTypesEnum.classification
-    assert len(multi_modal.idx) == 5
-    assert multi_modal.num_classes == 2
-    assert np.array_equal(multi_modal.target, target)
-
-    # check setter
-    new_target = np.asarray([1, 1, 1, 1, 1])
-    multi_modal.target = new_target
-    assert np.array_equal(multi_modal.target, new_target)
-
-
 @pytest.mark.parametrize('data_type', [DataTypesEnum.text, DataTypesEnum.table])
 def test_text_data_only(data_type):
+    """
+    Checking cases when there is only one data source.
+    """
     if data_type is DataTypesEnum.text:
         # Case when there is no table data in csv, but MultiModalData.from_csv() is used
         file_path = 'test/data/simple_multimodal_classification_text.csv'
@@ -115,9 +121,9 @@ def test_text_data_only(data_type):
 
 def test_multimodal_data_with_complicated_types():
     """
+    Combines complicated table data with some text columns.
     For more detailed description of the table part
     of dataset look at data_with_complicated_types.
-    Combines complicated table data with some text columns.
     """
     file_path = 'test/data/multimodal_data_with_complicated_types.csv'
     path = Path(fedot_project_root(), file_path)
