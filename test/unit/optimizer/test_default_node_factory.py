@@ -13,8 +13,7 @@ def test_default_node_factory():
     secondary_operations = ['dt', 'logit', 'rf', 'scaling']
     requirements = PipelineComposerRequirements(primary=primary_operations,
                                                 secondary=secondary_operations)
-    node_factory = DefaultOptNodeFactory(requirements=requirements,
-                                         advisor=advisor)
+    node_factory = DefaultOptNodeFactory(requirements=requirements)
 
     primary_node = OptNode(content={'name': 'pca',
                                     'params': DEFAULT_PARAMS_STUB})

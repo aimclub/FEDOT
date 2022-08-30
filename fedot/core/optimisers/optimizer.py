@@ -49,7 +49,7 @@ class GraphGenerationParams:
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
                  rules_for_constraint: Sequence[VerifierRuleType] = (),
                  advisor: Optional[DefaultChangeAdvisor] = None,
-                 node_factory: OptNodeFactory = None):
+                 node_factory: Optional[OptNodeFactory] = None):
         self.adapter = adapter or DirectAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
