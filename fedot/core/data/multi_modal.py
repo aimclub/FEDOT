@@ -107,7 +107,7 @@ class MultiModalData(dict):
             raise NotImplementedError(
                 'Multivariate predict not supported in this function yet.')
         else:
-            train_data, _ = \
+            data = \
                 preparer.prepare_multimodal_ts_data(dataframe=df,
                                                     features=var_names,
                                                     forecast_length=0)
@@ -124,10 +124,10 @@ class MultiModalData(dict):
 
             sources = dict((preparer.new_key_name(data_part_key),
                             data_part_transformation_func(features_array=data_part))
-                           for (data_part_key, data_part) in train_data.items())
-            input_data = MultiModalData(sources)
+                           for (data_part_key, data_part) in data.items())
+            multi_modal_data = MultiModalData(sources)
 
-        return input_data
+        return multi_modal_data
 
     @classmethod
     def from_csv(cls,

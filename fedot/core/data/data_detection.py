@@ -140,11 +140,9 @@ class TimeSeriesDataDetector(DataDetector):
         :param features: columns, which should be used as features in forecasting
         :param forecast_length: length of forecast
 
-        :return multi_modal_train: dictionary with numpy arrays for train
-        :return multi_modal_test: dictionary with numpy arrays for test
+        :return multi_modal_ts_data: dictionary with numpy arrays
         """
-        multi_modal_train = {}
-        multi_modal_test = {}
+        multi_modal_ts_data = {}
         for feature in features:
             if forecast_length > 0:
                 feature_ts = np.array(dataframe[feature])[:-forecast_length]
@@ -154,13 +152,11 @@ class TimeSeriesDataDetector(DataDetector):
                 idx = list(dataframe['datetime'])
 
             # Will be the same
-            multi_modal_train.update({feature: feature_ts})
-            multi_modal_test.update({feature: feature_ts})
+            multi_modal_ts_data.update({feature: feature_ts})
 
-        multi_modal_test['idx'] = np.asarray(idx)
-        multi_modal_train['idx'] = np.asarray(idx)
+        multi_modal_ts_data['idx'] = np.asarray(idx)
 
-        return multi_modal_train, multi_modal_test
+        return multi_modal_ts_data
 
     @staticmethod
     def new_key_name(data_part_key: str) -> str:
