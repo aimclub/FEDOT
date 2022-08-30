@@ -143,7 +143,7 @@ class Pipeline(Graph, Serializable):
 
         :return: values predicted on the provided ``input_data``
         """
-        _replace_n_jobs_in_nodes(self, n_jobs)
+        self.replace_n_jobs_in_nodes(n_jobs)
 
         copied_input_data = deepcopy(input_data)
         copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
@@ -244,7 +244,8 @@ class Pipeline(Graph, Serializable):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations: int = 50, timeout: Optional[float] = 5.,
-                            cv_folds: Optional[int] = None, validation_blocks: int = 3) -> 'Pipeline':
+                            cv_folds: Optional[int] = None, validation_blocks: int = 3,
+                            n_jobs: int = -1) -> 'Pipeline':
         """
         Tunes all nodes hyperparameters simultaneously via black-box
             optimization using PipelineTuner. For details, see
@@ -257,6 +258,7 @@ class Pipeline(Graph, Serializable):
         :param timeout: max time spent on tuning
         :param cv_folds: number of cross-validation folds
         :param validation_blocks: number of validation blocks for time series forecasting
+        :param n_jobs: number of parallel threads for tuner
 
         :return: pipeline with tuned hyperparameters
         """
@@ -268,7 +270,8 @@ class Pipeline(Graph, Serializable):
         pipeline_tuner = PipelineTuner(pipeline=self,
                                        task=copied_input_data.task,
                                        iterations=iterations,
-                                       timeout=timeout)
+                                       timeout=timeout,
+                                       n_jobs=n_jobs)
         self.log.info('Start pipeline tuning')
 
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
@@ -393,6 +396,21 @@ class Pipeline(Graph, Serializable):
             sep='\n'
         )
 
+    def replace_n_jobs_in_nodes(self, n_jobs: int):
+        """
+        Changes number of jobs for nodes
+
+        :param n_jobs: required number of the jobs to assign to the nodes
+        """
+        for node in self.nodes:
+            for param in ['n_jobs', 'num_threads']:
+                if param in node.content['params']:
+                    node.content['params'][param] = n_jobs
+                    # workaround for lgbm paramaters
+                    if node.content['name'] == 'lgbm':
+                        node.content['params']['num_threads'] = n_jobs
+                        node.content['params']['n_jobs'] = n_jobs
+
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     """
@@ -408,16 +426,3 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     appropriate_nodes = filter(lambda x: x.operation.operation_type == operation_name, pipeline.nodes)
 
     return list(appropriate_nodes)
-
-
-def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
-    """
-    Changes number of jobs for nodes
-
-    :param pipeline: pipeline which nodes to update
-    :param n_jobs: required number of the jobs to assign to the nodes
-    """
-    for node in pipeline.nodes:
-        for param in ['n_jobs', 'num_threads']:
-            if param in node.content['params']:
-                node.content['params'][param] = n_jobs

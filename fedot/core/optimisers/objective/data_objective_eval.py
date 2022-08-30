@@ -10,7 +10,6 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.preprocessing.preprocessing import DataPreprocessor
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -29,6 +28,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
     :param validation_blocks: Number of validation blocks, optional, used only for time series validation.
     :param pipelines_cache: Cache manager for fitted models, optional.
     :param preprocessing_cache: Cache manager for optional preprocessing encoders and imputers, optional.
+    :param eval_n_jobs: number of jobs used to evaluate the objective.
     """
 
     def __init__(self,
@@ -37,8 +37,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  time_constraint: Optional[timedelta] = None,
                  validation_blocks: Optional[int] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
-                 preprocessing_cache: Optional[PreprocessingCache] = None):
-        super().__init__(objective)
+                 preprocessing_cache: Optional[PreprocessingCache] = None,
+                 eval_n_jobs: int = 1):
+        super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
         self._validation_blocks = validation_blocks
@@ -57,7 +58,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
-                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id)
+                graph.unfit()
+                prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
                 self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
                 continue
@@ -77,18 +79,20 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             folds_metrics = None
         return to_fitness(folds_metrics, self._objective.is_multi_objective)
 
-    def prepare_graph(self, graph: Pipeline, train_data: InputData, fold_id: Optional[int] = None) -> Pipeline:
+    def prepare_graph(self, graph: Pipeline, train_data: InputData,
+                      fold_id: Optional[int] = None, n_jobs: int = -1) -> Pipeline:
         """
         Fit pipeline before metric evaluation can be performed.
         :param graph: pipeline for train & validation
         :param train_data: InputData for training pipeline
-        :param fold_id: Id of the fold in cross-validation, used for cache requests.
+        :param fold_id: id of the fold in cross-validation, used for cache requests.
+        :param n_jobs: number of parallel jobs for preparation
         """
         # load preprocessing
         graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
             train_data,
-
+            n_jobs=n_jobs,
             time_constraint=self._time_constraint
         )
 
@@ -114,7 +118,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
             intermediate_graph = Pipeline(node)
             intermediate_graph.fit(
                 train_data,
-                time_constraint=self._time_constraint
+                time_constraint=self._time_constraint,
+                n_jobs=self._eval_n_jobs,
             )
             intermediate_fitness = self._objective(intermediate_graph,
                                                    reference_data=test_data,

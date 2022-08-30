@@ -23,9 +23,10 @@ class ObjectiveEvaluate(ABC, Generic[G]):
       redirected keyword arguments :param objective_kwargs:
     """
 
-    def __init__(self, objective: Objective, **objective_kwargs):
+    def __init__(self, objective: Objective, eval_n_jobs: int, **objective_kwargs):
         self._objective = objective
         self._objective_kwargs = objective_kwargs
+        self._eval_n_jobs = eval_n_jobs
 
     def __call__(self, graph: G) -> Fitness:
         """Provides functional interface for ObjectiveEvaluate."""

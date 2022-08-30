@@ -10,4 +10,4 @@ def warn_requirement(name: str, default_install_path: str = '.[extra]', *, shoul
     if should_raise:
         raise ImportError(msg)
     else:
-        default_log(prefix='Requirements').warning(f'{msg} or ignore this warning')
+        default_log(prefix='Requirements').debug(f'{msg} or ignore this warning')

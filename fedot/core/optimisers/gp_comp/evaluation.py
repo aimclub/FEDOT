@@ -4,6 +4,7 @@ from typing import Dict, Optional
 
 import timeit
 from datetime import datetime
+from functools import partial
 from random import choice
 
 from joblib import Parallel, delayed
@@ -14,7 +15,6 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
@@ -84,6 +84,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         eval_inds = parallel(delayed(self.evaluate_single)(ind=ind) for ind in individuals)
+
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
         successful_evals = list(filter(None, eval_inds))
@@ -105,7 +106,6 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         start_time = timeit.default_timer()
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
-        _restrict_n_jobs_in_nodes(graph)
         adapted_graph = self._graph_adapter.restore(graph)
 
         ind_fitness = self._objective_eval(adapted_graph)
@@ -190,12 +190,3 @@ def determine_n_jobs(n_jobs=-1, logger=None):
     if logger:
         logger.info(f"Number of used CPU's: {n_jobs}")
     return n_jobs
-
-
-def _restrict_n_jobs_in_nodes(graph: OptGraph):
-    """ Function to prevent memory overflow due to many processes running in time"""
-    for node in graph.nodes:
-        if 'n_jobs' in node.content['params']:
-            node.content['params']['n_jobs'] = 1
-        if 'num_threads' in node.content['params']:
-            node.content['params']['num_threads'] = 1

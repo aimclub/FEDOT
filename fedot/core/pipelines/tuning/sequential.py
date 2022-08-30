@@ -1,6 +1,6 @@
 from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar, Optional, Union
+from typing import Callable, ClassVar
 
 from hyperopt import fmin, space_eval, tpe
 
@@ -18,12 +18,14 @@ class SequentialTuner(HyperoptTuner):
                  timeout: timedelta = timedelta(minutes=5),
                  inverse_node_order=False,
                  search_space: ClassVar = SearchSpace(),
-                 algo: Callable = tpe.suggest):
+                 algo: Callable = tpe.suggest,
+                 n_jobs: int = -1):
         super().__init__(pipeline=pipeline, task=task,
                          iterations=iterations, early_stopping_rounds=early_stopping_rounds,
                          timeout=timeout,
                          search_space=search_space,
-                         algo=algo)
+                         algo=algo,
+                         n_jobs=n_jobs)
         self.inverse_node_order = inverse_node_order
 
     def tune_pipeline(self, input_data, loss_function,
@@ -37,6 +39,8 @@ class SequentialTuner(HyperoptTuner):
 
         # Check source metrics for data
         self.init_check(input_data, loss_function)
+
+        self.pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
         # Calculate amount of iterations we can apply per node
         nodes_amount = self.pipeline.length
@@ -128,7 +132,7 @@ class SequentialTuner(HyperoptTuner):
         return nodes_ids
 
     def _optimize_node(self, node_id, data, node_params, iterations_per_node,
-                       seconds_per_node,  loss_function: Callable):
+                       seconds_per_node, loss_function: Callable):
         """
         Method for node optimization
 
