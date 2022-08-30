@@ -351,16 +351,7 @@ class TableTypesCorrector:
 
                 # If all objects are truly strings - all objects transform into nan
                 is_column_contain_numerical_objects = failed_ratio != 1
-                if failed_ratio == 0:
-                    # The majority of objects can be converted into numerical
-                    data.features[:, column_id] = converted_column.values
-
-                    # Update information about column types (in-place)
-                    self.categorical_into_float.append(column_id)
-                    features_types = data.supplementary_data.column_types['features']
-                    features_types[column_id] = NAME_CLASS_FLOAT
-                # elif failed_ratio < 0.5 and unique_numbers > MAX_CATEGORIES_TH:
-                elif failed_ratio < 0.5:
+                if failed_ratio < 0.5:
                     # The majority of objects can be converted into numerical
                     data.features[:, column_id] = converted_column.values
 
@@ -373,7 +364,6 @@ class TableTypesCorrector:
                     # Probably numerical column contains '?' or 'x' as nans equivalents
                     # Add columns to remove list
                     self.string_columns_transformation_failed.update({column_id: 'removed'})
-                    # TODO: is it necessary to remove?
 
     def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
         """ Apply conversion into float string column for every signed column """

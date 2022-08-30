@@ -26,7 +26,7 @@ class BinaryCategoricalPreprocessor:
         features_types = input_data.supplementary_data.column_types['features']
         categorical_ids, non_categorical_ids = find_categorical_columns(table=input_data.features,
                                                                         column_types=features_types)
-        if len(categorical_ids) < 0:
+        if len(categorical_ids) == 0:
             # There is no need to process categorical features
             return self
 
