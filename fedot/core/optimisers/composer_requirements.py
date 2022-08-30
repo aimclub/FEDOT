@@ -20,7 +20,9 @@ class ComposerRequirements:
     Populational optimization options
     :param pop_size: initial population size; if unspecified, default value is used.
     :param max_pop_size: maximum population size; optional, if unspecified, then population size is unbound.
-    :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
+    :param keep_n_best: number of the best individuals of previous generation to keep in next generation.
+    :param adaptive_depth: flag to enable adaptive configuration of graph depth
+    :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
 
     Infrastructure options (logging, performance)
     :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
@@ -43,6 +45,8 @@ class ComposerRequirements:
     pop_size: int = 20
     max_pop_size: Optional[int] = 55
     keep_n_best: int = 1
+    adaptive_depth: bool = False
+    adaptive_depth_max_stagnation: int = 3
 
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = 1

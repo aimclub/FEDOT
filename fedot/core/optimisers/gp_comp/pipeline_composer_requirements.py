@@ -24,8 +24,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
 
     Graph generation options
-    :param adaptive_depth: flag to enable adaptive configuration of tree depth
-    :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
     :param start_depth: start value of adaptive tree depth
     :param max_depth: max depth of the resulting pipeline
 
@@ -37,8 +35,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
 
-    adaptive_depth: bool = False
-    adaptive_depth_max_stagnation: int = 3
     start_depth: int = 3
     max_depth: int = 3
 
