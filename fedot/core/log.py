@@ -6,7 +6,7 @@ import sys
 from contextlib import contextmanager
 from logging.config import dictConfig
 from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
-from typing import Optional, Iterator
+from typing import Iterator, Optional
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -171,5 +171,8 @@ def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
     # get log prefix
     if not isinstance(prefix, str):
         prefix = prefix.__class__.__name__
+    cur_proc_name = multiprocessing.current_process().name
+    if 'Main' not in cur_proc_name:  # TODO: if Py37 version will be OTS, make use of `.parent_process()` instead
+        prefix += f'_{cur_proc_name}'
 
     return Log().get_adapter(prefix=prefix)
