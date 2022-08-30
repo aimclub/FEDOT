@@ -187,36 +187,39 @@ class DataPreprocessor:
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
-        # TODO target encoding must be obligatory for all data types
-        if data_type_is_text(data) or data_type_is_table(data):
-            # Fix tables / time series sizes
-            data = self._correct_shapes(data)
-            replace_inf_with_nans(data)
-            # Find incorrect features which must be removed
-            self._find_features_full_of_nans(data, source_name)
-            self.take_only_correct_features(data, source_name)
-            # TODO andreygetmanov to new class text preprocessing?
-            if data_type_is_text(data):
-                replace_nans_with_empty_strings(data)
+        if not (data_type_is_text(data) or data_type_is_table(data)):
+            # Time series or image - do nothing
+            return data
+        # Wrap indices in numpy array
+        data.idx = np.array(data.idx)
+
+        # Fix tables / time series sizes
+        data = self._correct_shapes(data)
+        replace_inf_with_nans(data)
+
+        # Find incorrect features which must be removed
+        self._find_features_full_of_nans(data, source_name)
+        self.take_only_correct_features(data, source_name)
+        data = self._drop_rows_with_nan_in_target(data)
+
+        # Column types processing - launch after correct features selection
+        self.types_correctors[source_name].convert_data_for_fit(data)
+        if self.types_correctors[source_name].target_converting_has_errors:
             data = self._drop_rows_with_nan_in_target(data)
 
-            # Column types processing - launch after correct features selection
-            self.types_correctors[source_name].convert_data_for_fit(data)
-            if self.types_correctors[source_name].target_converting_has_errors:
-                data = self._drop_rows_with_nan_in_target(data)
+        # Train Label Encoder for categorical target if necessary and apply it
+        self._train_target_encoder(data, source_name)
+        data.target = self._apply_target_encoding(data, source_name)
 
-            # Train Label Encoder for categorical target if necessary and apply it
-            self._train_target_encoder(data, source_name)
-            data.target = self._apply_target_encoding(data, source_name)
-            if data_type_is_table(data):
-                data = self._clean_extra_spaces(data)
-            # Wrap indices in numpy array
-            data.idx = np.array(data.idx)
-
-            if data_type_is_table(data):
-                # Process binary categorical features
-                self.binary_categorical_processors[source_name].fit(data)
-                data = self.binary_categorical_processors[source_name].transform(data)
+        # TODO andreygetmanov target encoding must be obligatory for all data types
+        if data_type_is_text(data):
+            # TODO andreygetmanov to new class text preprocessing?
+            replace_nans_with_empty_strings(data)
+        elif data_type_is_table(data):
+            data = self._clean_extra_spaces(data)
+            # Process binary categorical features
+            self.binary_categorical_processors[source_name].fit(data)
+            data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
 
@@ -225,21 +228,23 @@ class DataPreprocessor:
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
-
+        if not (data_type_is_text(data) or data_type_is_table(data)):
+            return data
         data = self._correct_shapes(data)
+        replace_inf_with_nans(data)
 
         # Wrap indices in numpy array
         data.idx = np.array(data.idx)
-        if data_type_is_table(data) or data_type_is_text(data):
-            replace_inf_with_nans(data)
-            self.take_only_correct_features(data, source_name)
-            if data_type_is_text(data):
-                replace_nans_with_empty_strings(data)
-            # Perform preprocessing for types - launch after correct features selection
-            self.types_correctors[source_name].convert_data_for_predict(data)
-            if data_type_is_table(data):
-                data = self._clean_extra_spaces(data)
-                data = self.binary_categorical_processors[source_name].transform(data)
+
+        # Perform preprocessing for types - launch after correct features selection
+        self.take_only_correct_features(data, source_name)
+        self.types_correctors[source_name].convert_data_for_predict(data)
+
+        if data_type_is_text(data):
+            replace_nans_with_empty_strings(data)
+        if data_type_is_table(data):
+            data = self._clean_extra_spaces(data)
+            data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
 
