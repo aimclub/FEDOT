@@ -24,12 +24,13 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
 
     Graph generation options
-    :param start_depth: start value of tree depth
-    :param max_depth: max depth of the result pipeline
-    :param max_arity: max number of parents for node
-    :param min_arity: min number of parents for node
     :param adaptive_depth: flag to enable adaptive configuration of tree depth
     :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
+    :param start_depth: start value of adaptive tree depth
+    :param max_depth: max depth of the resulting pipeline
+
+    :param max_arity: max number of parents for node
+    :param min_arity: min number of parents for node
     """
     offspring_rate: float = 0.5
     crossover_prob: float = 0.8
@@ -40,6 +41,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     adaptive_depth_max_stagnation: int = 3
     start_depth: int = 3
     max_depth: int = 3
+
     max_arity: int = 2
     min_arity: int = 2
 
