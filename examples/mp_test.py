@@ -9,7 +9,7 @@ from joblib import Parallel, delayed
 from fedot.core.log import Log, default_log
 
 
-def write_to_log(message: str, shared_q: multiprocessing.Queue, log_lvl: int):
+def write_to_log(message: str, shared_q: multiprocessing.Queue = None, log_lvl: int = None):
     Log().reset_logging_level(log_lvl)
     with Log.using_mp_worker(shared_q):
         time.sleep(random())
@@ -22,7 +22,7 @@ def write_to_log(message: str, shared_q: multiprocessing.Queue, log_lvl: int):
 
 
 if __name__ == '__main__':
-    messages = [f'PRINT {i}' for i in range(100)]
+    messages = [f'PRINT {i}' for i in range(20)]
     n_jobs = 4
     log = Log(output_logging_level=logging.INFO)
 
@@ -36,13 +36,12 @@ if __name__ == '__main__':
 
     # check if every message was written to the log
     log_path = Log().log_file
-    content = pathlib.Path(log_path).read_text()
-    all_msgs = True
-    for mes in messages:
-        if mes not in content:
-            all_msgs = False
-            print(f'{mes} NOT IN CONTENT')
-    if all_msgs:
-        print('OK')
-    else:
-        print('NOT OK')
+    content = pathlib.Path(log_path).read_text().splitlines()
+    for msg in messages:
+        exist = False
+        for line in content:
+            if line and line.endswith(msg):
+                exist = True
+                break
+        if not exist:
+            print(f'{msg} NOT IN CONTENT')
