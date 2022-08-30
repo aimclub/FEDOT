@@ -43,13 +43,13 @@ class GPComposer(Composer):
                                            self.composer_requirements.validation_blocks,
                                            shuffle=True).build(data)
         # Define objective function
-        local_n_jobs = 1
+        n_jobs_for_evaluation = 1
         # TODO implement dispatcher selection
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,
                                                         self.composer_requirements.validation_blocks,
                                                         self.pipelines_cache, self.preprocessing_cache,
-                                                        n_jobs=local_n_jobs)
+                                                        eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
