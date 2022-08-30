@@ -71,8 +71,8 @@ class TableTypesCorrector:
                                                                               target=data.target,
                                                                               task=data.task)
 
-        # Launch conversion float and integer features into categorical
         self._into_numeric_features_transformation_for_fit(data)
+        # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
         # Save info about features and target types
         self.features_types = copy(data.supplementary_data.column_types['features'])
@@ -219,6 +219,19 @@ class TableTypesCorrector:
             # There is an incorrect types calculation
             self.log.warning('Columns number and types numbers do not match.')
 
+    @staticmethod
+    def _remove_pseudo_str_values_from_str_column(data: pd.DataFrame, column_id: int):
+        """ Removes from truly str column all pseudo str values """
+        cur_column = data.features[:, column_id]
+        converted_column = []
+        for i in range(len(cur_column)):
+            try:
+                float(cur_column[i])
+                converted_column.append(np.nan)
+            except ValueError as _:
+                converted_column.append(cur_column[i])
+        data.features[:, column_id] = pd.Series(converted_column).values
+
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
 
@@ -235,7 +248,7 @@ class TableTypesCorrector:
         all_elements_number = string_objects_number + column_info['int_number'] + column_info['float_number']
         string_ratio = string_objects_number / all_elements_number
 
-        if string_ratio > 0.5:
+        if string_ratio > 0:
             suggested_type = str
         else:
             suggested_type = _obtain_new_column_type(column_info)
@@ -336,7 +349,6 @@ class TableTypesCorrector:
             column_type = data.supplementary_data.column_types['features'][column_id]
             if 'str' in column_type:
                 string_column = pd.Series(data.features[:, column_id])
-                unique_numbers = len(string_column.dropna().unique())
 
                 # Number of nans in the column
                 nans_number = string_column.isna().sum()
@@ -351,7 +363,7 @@ class TableTypesCorrector:
 
                 # If all objects are truly strings - all objects transform into nan
                 is_column_contain_numerical_objects = failed_ratio != 1
-                if failed_ratio < 0.5:
+                if failed_ratio < 0.4:
                     # The majority of objects can be converted into numerical
                     data.features[:, column_id] = converted_column.values
 
@@ -359,9 +371,12 @@ class TableTypesCorrector:
                     self.categorical_into_float.append(column_id)
                     features_types = data.supplementary_data.column_types['features']
                     features_types[column_id] = NAME_CLASS_FLOAT
-                elif failed_ratio >= 0.5 \
+                elif failed_ratio >= 0.65 \
                         and is_column_contain_numerical_objects:
-                    # Probably numerical column contains '?' or 'x' as nans equivalents
+                    # The column consists mostly truly ints and has a few ints in it
+                    self._remove_pseudo_str_values_from_str_column(data, column_id)
+                elif 0.65 > failed_ratio >= 0.4:
+                    # Probably numerical column contains a lot of '?' or 'x' as nans equivalents
                     # Add columns to remove list
                     self.string_columns_transformation_failed.update({column_id: 'removed'})
 

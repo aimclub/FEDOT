@@ -16,6 +16,26 @@ from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_
     correct_preprocessing_params
 
 
+def get_mixed_data_with_str_and_float_values(idx: int = None):
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([['exal', 'exal', 'exal'],
+                         ['greka', 0, 'greka'],
+                         ['cherez', 1, 'cherez'],
+                         ['reku', 0, 0],
+                         ['vidit', 1, 1],
+                         [1, 0, 1],
+                         [1, 1, 0],
+                         [0, 0, 0]], dtype=object)
+    target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no']])
+    if isinstance(idx, int):
+        input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7],
+                               features=features[:, idx], target=target, task=task, data_type=DataTypesEnum.table)
+    else:
+        input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7],
+                               features=features, target=target, task=task, data_type=DataTypesEnum.table)
+    return input_data
+
+
 def get_data_with_string_columns():
     file_path = os.path.join(project_root_path, 'test/data/data_with_mixed_column.csv')
     df = pd.read_csv(file_path)
@@ -59,14 +79,15 @@ def data_with_complicated_types():
         of unique values less than 13 - perform converting column into str type
         3) int column the same as 2) column but with additional 13th label in the test part
         4) int column (number of unique values = 4) - must be converted into string
-        5) str-int column with words and numerical cells - must be removed because can not
-        be converted into integers
+        5) str-int column with words and numerical cells - must be converted to int,
+        true str values replaced with nans and filled
         6) str column with unique categories 'a', 'b', 'c' and spaces in labels.
         New category 'd' arise in the test part. Categories will be encoded using OHE
-        7) str binary column - must be converted into integer
+        7) str binary column - must be converted into integer, nan cells must be filled in
         8) int binary column and nans - nan cells must be filled in
-        9) str column with truly int values as strings - must be converted into float column
-        10) str column with truly categorical values - must stay remained
+        9) str column with truly int values as strings - must be converted into float column,
+        '?' and 'error' must be replaced with nans and then filled in
+        10) str column with truly categorical values - must stay remained and encoded using OHE
     """
 
     task = Task(TaskTypesEnum.classification)
@@ -111,9 +132,11 @@ def test_column_types_converting_correctly():
     features_types = data.supplementary_data.column_types['features']
     target_types = data.supplementary_data.column_types['target']
 
-    assert len(features_types) == len(target_types) == 2
+    assert len(features_types) == 3
+    assert len(target_types) == 2
     assert features_types[0] == "<class 'str'>"
     assert features_types[1] == "<class 'str'>"
+    assert features_types[2] == "<class 'str'>"
     assert target_types[0] == target_types[0] == "<class 'str'>"
 
 
@@ -150,13 +173,11 @@ def test_complicated_table_types_processed_correctly():
 
     # Table types corrector after fitting
     types_correctors = pipeline.preprocessor.types_correctors
-    assert train_predicted.features.shape[1] == 50
-    # Column with id 2 was removed be data preprocessor and column with source id 5 became 4th
-    assert types_correctors[DEFAULT_SOURCE_NAME].columns_to_del[0] == 4
+    assert train_predicted.features.shape[1] == 57
     # Source id 9 became 7th - column must be converted into float
-    assert types_correctors[DEFAULT_SOURCE_NAME].categorical_into_float[0] == 7
+    assert types_correctors[DEFAULT_SOURCE_NAME].categorical_into_float[0] == 1
     # Three columns in the table must be converted into string
-    assert len(types_correctors[DEFAULT_SOURCE_NAME].numerical_into_str) == 3
+    assert len(types_correctors[DEFAULT_SOURCE_NAME].numerical_into_str) == 4
 
 
 def test_numerical_column_with_string_nans():
@@ -200,3 +221,35 @@ def test_binary_pseudo_string_column_process_correctly():
     assert train_predicted.features.shape[1] == 1
     assert len(list(filter(lambda feature: isinstance(feature[0], float), train_predicted.features))) \
            == len(train_predicted.features)
+
+
+def fit_predict_cycle_for_testing(idx: int):
+    input_data = get_mixed_data_with_str_and_float_values(idx=idx)
+    train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
+
+    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = correct_preprocessing_params(pipeline)
+    train_predicted = pipeline.fit(train_data)
+    return train_predicted
+
+
+def test_mixed_column_with_str_and_float_values():
+    """ Checks if columns with different data type ratio process correctly """
+
+    # column with index 0 must be converted to string and encoded with OHE
+    train_predicted = fit_predict_cycle_for_testing(idx=0)
+    assert train_predicted.features.shape[1] == 5
+    assert len(list(filter(lambda feature: isinstance(feature, np.ndarray), train_predicted.features))) \
+           == len(train_predicted.features)
+
+    # column with index 1 must be converted to float and the gaps must be filled
+    train_predicted = fit_predict_cycle_for_testing(idx=1)
+    assert train_predicted.features.shape[1] == 1
+    assert len(list(filter(lambda feature: isinstance(feature[0], float), train_predicted.features))) \
+           == len(train_predicted.features)
+
+    # column with index 2 must be removed due to unclear type of data
+    try:
+        _ = fit_predict_cycle_for_testing(idx=2)
+    except ValueError as _:
+        pass
