@@ -35,6 +35,12 @@ def to_numerical(categorical_ids: np.ndarray):
     return encoded
 
 
+@pytest.fixture(autouse=True)
+def seed():
+    random.seed(1)
+    np.random.seed(1)
+
+
 @pytest.fixture()
 def file_data_setup():
     test_file_path = str(os.path.dirname(__file__))
@@ -60,8 +66,6 @@ def get_unimproveable_data():
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_random_composer(data_fixture, request):
-    random.seed(1)
-    np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
@@ -86,8 +90,6 @@ def test_random_composer(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_build_pipeline_correct(data_fixture, request):
-    random.seed(1)
-    np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
@@ -129,8 +131,6 @@ def baseline_pipeline():
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_composition_time(data_fixture, request):
-    random.seed(1)
-    np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     task = Task(TaskTypesEnum.classification)
     models_impl = ['mlp', 'knn']
@@ -174,8 +174,6 @@ def test_composition_time(data_fixture, request):
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     """ Checks that when a metric stagnates, the number of individuals in the population increases """
-    random.seed(1)
-    np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
@@ -209,8 +207,6 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_multi_objective_composer(data_fixture, request):
-    random.seed(1)
-    np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
@@ -247,8 +243,6 @@ def test_multi_objective_composer(data_fixture, request):
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
-    random.seed(1)
-    np.random.seed(1)
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_model_types = ['rf', 'knn']
