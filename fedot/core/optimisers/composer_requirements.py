@@ -28,6 +28,7 @@ class ComposerRequirements:
     :param cv_folds: number of cross-validation folds
     :param validation_blocks: number of validation blocks for time series validation
     """
+    # TODO: remove these Pipeline-specific requirements from
     primary: Sequence[str] = tuple()
     secondary: Sequence[str] = tuple()
 

@@ -26,7 +26,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 @dataclass
 class GPGraphOptimizerParameters(GraphOptimizerParameters):
     """
-    This class is for defining the parameters of optimiser
+    This class is for defining the operators and algorithm details of genetic optimizer.
 
     :param selection_types: Sequence of selection operators types
     :param crossover_types: Sequence of crossover operators types
@@ -36,7 +36,8 @@ class GPGraphOptimizerParameters(GraphOptimizerParameters):
     :param elitism_type: type of elitism operator evolution
     """
 
-    selection_types: Sequence[SelectionTypesEnum] = ()
+    selection_types: Sequence[SelectionTypesEnum] = \
+        (SelectionTypesEnum.tournament,)
     crossover_types: Sequence[Union[CrossoverTypesEnum, Any]] = \
         (CrossoverTypesEnum.subtree,
          CrossoverTypesEnum.one_point)
@@ -48,16 +49,6 @@ class GPGraphOptimizerParameters(GraphOptimizerParameters):
     regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none
     genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational
     elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best
-
-    def __post_init__(self):
-        if not self.selection_types:
-            if self.multi_objective:
-                self.selection_types = (SelectionTypesEnum.spea2,)
-            else:
-                self.selection_types = (SelectionTypesEnum.tournament,)
-        if self.multi_objective:
-            # TODO add possibility of using regularization in MO alg
-            self.regularization_type = RegularizationTypesEnum.none
 
 
 class EvoGraphOptimizer(PopulationalOptimizer):

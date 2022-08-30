@@ -236,7 +236,7 @@ def test_multi_objective_composer(data_fixture, request):
 
     assert type(pipelines_evo_composed) is list
     assert len(composer.optimizer.objective.metrics) > 1
-    assert composer.optimizer.parameters.multi_objective
+    assert composer.optimizer.objective.is_multi_objective
 
     for pipeline_evo_composed in pipelines_evo_composed:
         pipeline_evo_composed.fit_from_scratch(input_data=dataset_to_compose)

@@ -8,8 +8,13 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
+from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
@@ -45,9 +50,14 @@ class ComposerBuilder:
         self.task: Task = task
         self.metrics: Sequence[MetricsEnum] = MetricByTask(task.task_type).get_default_quality_metrics()
 
-        self.optimiser_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
-        self.optimiser_parameters: GPGraphOptimizerParameters = GPGraphOptimizerParameters()
+        self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
+        self.optimizer_parameters: Optional[GraphOptimizerParameters] = None
+        # TODO: remove optimizer_external_parameters or specify why it's needed
         self.optimizer_external_parameters: dict = {}
+        self.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
+        self.regularization_type = RegularizationTypesEnum.none
+        self.mutations = ComposerBuilder._get_default_mutations(task.task_type)
+        self.selection_types = [SelectionTypesEnum.tournament]
 
         self.composer_cls: Type[Composer] = GPComposer  # default composer class
         self.composer_requirements: Optional[PipelineComposerRequirements] = None
@@ -67,15 +77,15 @@ class ComposerBuilder:
             self.composer_cls = composer_cls
         return self
 
-    def with_optimiser(self, optimiser_cls: Optional[Type[GraphOptimizer]] = None):
-        if optimiser_cls is not None:
-            self.optimiser_cls = optimiser_cls
+    def with_optimizer(self, optimizer_cls: Optional[Type[GraphOptimizer]]):
+        if optimizer_cls:
+            self.optimizer_cls = optimizer_cls
         return self
 
-    def with_optimiser_params(self, parameters: Optional[GraphOptimizerParameters] = None,
+    def with_optimizer_params(self, parameters: Optional[GraphOptimizerParameters] = None,
                               external_parameters: Optional[Dict] = None):
         if parameters is not None:
-            self.optimiser_parameters = parameters
+            self.optimizer_parameters = parameters
         if external_parameters is not None:
             self.optimizer_external_parameters = external_parameters
         return self
@@ -115,6 +125,55 @@ class ComposerBuilder:
         self.preprocessing_cache = preprocessing_cache
         return self
 
+    def with_genetic_scheme(self, genetic_scheme_type: GeneticSchemeTypesEnum):
+        self.genetic_scheme_type = genetic_scheme_type
+        return self
+
+    def with_regularization_type(self, regularization_type: RegularizationTypesEnum):
+        self.regularization_type = regularization_type
+        return self
+
+    def with_mutations(self, mutations: Sequence[MutationTypesEnum]):
+        self.mutations = mutations
+        return self
+
+    def with_selection_types(self, selection_types: Sequence[SelectionTypesEnum]):
+        self.selection_types = selection_types
+        return self
+
+    def _get_gp_optimizer_params(self, is_multi_objective: bool = False) -> GPGraphOptimizerParameters:
+        if is_multi_objective and self.regularization_type != RegularizationTypesEnum.none:
+            # TODO add possibility of using regularization in MO alg
+            self.regularization_type = RegularizationTypesEnum.none
+            self.log.warning('Not using regularization because it is '
+                             'not implemented for multi-objective optimization.')
+
+        if not self.selection_types:
+            if is_multi_objective:
+                self.selection_types = (SelectionTypesEnum.spea2,)
+            else:
+                self.selection_types = (SelectionTypesEnum.tournament,)
+
+        optimiser_parameters = GPGraphOptimizerParameters(
+            genetic_scheme_type=self.genetic_scheme_type,
+            mutation_types=self.mutations,
+            selection_types=self.selection_types,
+            regularization_type=self.regularization_type,
+        )
+        return optimiser_parameters
+
+    @staticmethod
+    def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
+        mutations = [boosting_mutation,
+                     parameter_change_mutation,
+                     MutationTypesEnum.single_change,
+                     MutationTypesEnum.single_drop,
+                     MutationTypesEnum.single_add]
+        # TODO remove workaround after validation fix
+        if task_type is not TaskTypesEnum.ts_forecasting:
+            mutations.append(MutationTypesEnum.single_edge)
+        return mutations
+
     @staticmethod
     def _get_default_composer_params(task: Task) -> PipelineComposerRequirements:
         # Get all available operations for task
@@ -125,39 +184,36 @@ class ComposerBuilder:
         return get_pipeline_generation_params(
             rules_for_constraint=rules_by_task(self.task.task_type),
             task=self.task,
-            requirements=self.composer_requirements)
+            requirements=self.composer_requirements
+        )
 
     @staticmethod
     def _get_default_complexity_metrics() -> List[MetricsEnum]:
         return [ComplexityMetricsEnum.node_num]
 
     def build(self) -> Composer:
+        multi_objective = len(self.metrics) > 1
         if not self.composer_requirements:
             self.composer_requirements = self._get_default_composer_params(self.task)
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
-
-        if len(self.metrics) > 1:
-            # TODO: avoid post-init of optimiz
-            # TODO add possibility of using regularization in MO alg
-            self.optimiser_parameters.multi_objective = True
-            self.optimiser_parameters.regularization_type = RegularizationTypesEnum.none
-        else:
+        if not self.optimizer_parameters:
+            self.optimizer_parameters = self._get_gp_optimizer_params(multi_objective)
+        if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
-            self.optimiser_parameters.multi_objective = False
             self.metrics = self.metrics + self._get_default_complexity_metrics()
 
-        objective = Objective(self.metrics, self.optimiser_parameters.multi_objective)
+        objective = Objective(self.metrics, multi_objective)
 
         initial_population = InitialPopulationGenerator(self.graph_generation_params, self.composer_requirements) \
             .with_initial_graphs(self.initial_population) \
             .with_custom_generation_function(self.initial_population_generation_function)()
 
-        optimiser = self.optimiser_cls(objective=objective,
+        optimiser = self.optimizer_cls(objective=objective,
                                        initial_graphs=initial_population,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=self.graph_generation_params,
-                                       parameters=self.optimiser_parameters,
+                                       parameters=self.optimizer_parameters,
                                        **self.optimizer_external_parameters)
         history = None
         if self._keep_history:

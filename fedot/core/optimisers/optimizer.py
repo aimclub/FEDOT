@@ -23,12 +23,8 @@ def do_nothing_callback(*args, **kwargs):
 
 @dataclass
 class GraphOptimizerParameters:
-    """Base class for definition of optimizer parameters. Can be extended for custom optimizers.
-
-    :param multi_objective: flag defining
-    """
-    # TODO: move/remove, because not actually used from API
-    multi_objective: bool = False
+    """Base class for definition of optimizer parameters. Can be extended for custom optimizers."""
+    pass
 
 
 @dataclass

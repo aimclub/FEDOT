@@ -133,35 +133,6 @@ class ApiComposer:
         )
         return composer_requirements
 
-    @staticmethod
-    def _init_optimizer_params(task: Task,
-                               composer_params: dict,
-                               is_multi_objective: bool) -> GPGraphOptimizerParameters:
-
-        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if composer_params['genetic_scheme'] == 'steady_state':
-            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
-
-        mutations = [parameter_change_mutation,
-                     MutationTypesEnum.single_change,
-                     MutationTypesEnum.single_drop,
-                     MutationTypesEnum.single_add]
-
-        # TODO remove workaround after boosting mutation fix
-        if task.task_type == TaskTypesEnum.ts_forecasting:
-            mutations.append(boosting_mutation)
-
-        # TODO remove workaround after validation fix
-        if task.task_type is not TaskTypesEnum.ts_forecasting:
-            mutations.append(MutationTypesEnum.single_edge)
-
-        optimiser_parameters = GPGraphOptimizerParameters(
-            multi_objective=is_multi_objective,
-            genetic_scheme_type=genetic_scheme_type,
-            mutation_types=mutations,
-        )
-        return optimiser_parameters
-
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -200,16 +171,15 @@ class ApiComposer:
 
         # Get optimiser, its parameters, and composer
         metric_functions = self.obtain_metric(task, composer_params['metric'])
-        is_multi_objective = len(metric_functions) > 1
-        optimizer_params = self._init_optimizer_params(task, composer_params, is_multi_objective)
 
         best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
-                                                                                     fitted_assumption, metric_function,
+                                                                                     fitted_assumption,
+                                                                                     metric_functions,
                                                                                      composer_requirements,
                                                                                      composer_params, log)
         if with_tuning:
             self.tune_final_pipeline(task, train_data,
-                                     metric_function[0],
+                                     metric_functions[0],
                                      composer_requirements,
                                      best_pipeline,
                                      log)
@@ -222,16 +192,21 @@ class ApiComposer:
     def compose_pipeline(self, task: Task,
                          train_data: InputData,
                          fitted_assumption: Pipeline,
-                         metric_function: Sequence[MetricsEnum],
+                         metric_functions: Sequence[MetricsEnum],
                          composer_requirements: PipelineComposerRequirements,
                          composer_params: dict,
                          log: LoggerAdapter) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+
+        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
+        if composer_params['genetic_scheme'] == 'steady_state':
+            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
-            .with_optimiser(composer_params.get('optimizer')) \
-            .with_optimiser_params(parameters=optimizer_params,
-                                   external_parameters=composer_params.get('optimizer_external_params')) \
+            .with_genetic_scheme(genetic_scheme_type) \
+            .with_optimizer(composer_params.get('optimizer')) \
+            .with_optimizer_params(external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_functions) \
             .with_history(composer_params.get('history_folder')) \
             .with_cache(self.pipelines_cache, self.preprocessing_cache)
