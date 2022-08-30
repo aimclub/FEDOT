@@ -60,17 +60,13 @@ def run_credit_scoring_problem(train_file_path, test_file_path,
         crossover_prob=0.8, mutation_prob=0.8, timeout=timeout,
         start_depth=2)
 
-    # GP optimiser parameters choice
-    scheme_type = GeneticSchemeTypesEnum.parameter_free
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type,
-                                                      selection_types=[SelectionTypesEnum.spea2])
-
-    # Create builder for composer and set composer params
-    builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metrics).with_optimiser_params(parameters=optimiser_parameters)
-
-    # Create GP-based composer
-    composer = builder.build()
+    # Create composer and with required composer params
+    composer = ComposerBuilder(task=task). \
+        with_requirements(composer_requirements). \
+        with_metrics(metrics). \
+        with_genetic_scheme(GeneticSchemeTypesEnum.parameter_free). \
+        with_selection_types([SelectionTypesEnum.spea2]). \
+        build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)

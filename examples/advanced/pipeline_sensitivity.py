@@ -29,16 +29,12 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
         max_depth=3, pop_size=20, num_of_generations=20,
         crossover_prob=0.8, mutation_prob=0.8)
 
-    # GP optimiser parameters choice
-    scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type)
-
-    # Create builder for composer and set composer params
-    builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser_params(parameters=optimiser_parameters)
-
-    # Create GP-based composer
-    composer = builder.build()
+    # Create composer and with required composer params
+    composer = ComposerBuilder(task=task). \
+        with_requirements(composer_requirements). \
+        with_metrics(metric_function). \
+        with_genetic_scheme(GeneticSchemeTypesEnum.steady_state). \
+        build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)

@@ -182,19 +182,16 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     available_model_types = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
 
-    metric_function = ClassificationMetricsEnum.ROCAUC
-
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, pop_size=2, num_of_generations=3,
                                        crossover_prob=0.4, mutation_prob=0.5)
 
-    opt_params = GPGraphOptimizerParameters(genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
+    gp_composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
-        .with_metrics(metric_function) \
-        .with_optimiser_params(parameters=opt_params)
-    gp_composer = builder.build()
+        .with_metrics(ClassificationMetricsEnum.ROCAUC) \
+        .with_genetic_scheme(GeneticSchemeTypesEnum.parameter_free) \
+        .build()
     pipeline_gp_composed = gp_composer.compose_pipeline(data=dataset_to_compose)
 
     pipeline_gp_composed.fit_from_scratch(input_data=dataset_to_compose)
@@ -217,20 +214,18 @@ def test_multi_objective_composer(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
-    available_model_types = OperationTypesRepository().suitable_operation(
-        task_type=TaskTypesEnum.classification)
-    quality_metric = ClassificationMetricsEnum.ROCAUC
-    complexity_metric = ComplexityMetricsEnum.node_num
-    metrics = [quality_metric, complexity_metric]
+    task_type = TaskTypesEnum.classification
+    available_model_types = OperationTypesRepository().suitable_operation(task_type=task_type)
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
                                        crossover_prob=0.4, mutation_prob=0.5)
-    scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type,
-                                                      selection_types=[SelectionTypesEnum.spea2])
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)).with_requirements(req).with_metrics(
-        metrics).with_optimiser_params(parameters=optimiser_parameters)
-    composer = builder.build()
+
+    composer = ComposerBuilder(task=Task(task_type))\
+        .with_requirements(req)\
+        .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))\
+        .with_genetic_scheme(GeneticSchemeTypesEnum.steady_state)\
+        .with_selection_types(SelectionTypesEnum.spea2)\
+        .build()
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
 
@@ -257,19 +252,17 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_model_types = ['rf', 'knn']
-    quality_metric = ClassificationMetricsEnum.ROCAUC
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                        max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
                                        crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
                                        adaptive_depth=True)
-    scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type)
-
-    builder = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
+    composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
-        .with_metrics(quality_metric).with_optimiser_params(parameters=optimiser_parameters)
-    composer = builder.build()
+        .with_metrics(ClassificationMetricsEnum.ROCAUC) \
+        .with_genetic_scheme(GeneticSchemeTypesEnum.steady_state) \
+        .build()
+
     composer.compose_pipeline(data=dataset_to_compose)
     assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
     assert composer.optimizer.requirements.max_depth == 2

@@ -44,13 +44,12 @@ def compose_pipeline(pipeline, train_data, task):
                       MutationTypesEnum.single_change,
                       MutationTypesEnum.single_drop,
                       MutationTypesEnum.single_add]
-    optimiser_parameters = GPGraphOptimizerParameters(mutation_types=mutation_types)
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
-    builder = ComposerBuilder(task=task). \
-        with_optimiser_params(parameters=optimiser_parameters). \
+    composer = ComposerBuilder(task=task). \
+        with_mutations(mutation_types). \
         with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_pipelines([pipeline])
-    composer = builder.build()
+        with_metrics(RegressionMetricsEnum.MAE). \
+        with_initial_pipelines([pipeline]). \
+        build()
     obtained_pipeline = composer.compose_pipeline(data=train_data)
     obtained_pipeline.show()
     return obtained_pipeline

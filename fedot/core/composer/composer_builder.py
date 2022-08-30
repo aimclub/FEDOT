@@ -137,8 +137,8 @@ class ComposerBuilder:
         self.mutations = mutations
         return self
 
-    def with_selection_types(self, selection_types: Sequence[SelectionTypesEnum]):
-        self.selection_types = selection_types
+    def with_selection_types(self, selection_types: Union[SelectionTypesEnum, Sequence[SelectionTypesEnum]]):
+        self.selection_types = ensure_wrapped_in_sequence(selection_types)
         return self
 
     def _get_gp_optimizer_params(self, is_multi_objective: bool = False) -> GPGraphOptimizerParameters:

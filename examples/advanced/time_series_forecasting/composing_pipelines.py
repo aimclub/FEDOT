@@ -99,14 +99,12 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
 
     mutation_types = [parameter_change_mutation, MutationTypesEnum.growth, MutationTypesEnum.reduce,
                       MutationTypesEnum.simple]
-    optimiser_parameters = GPGraphOptimizerParameters(mutation_types=mutation_types)
-
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
-    builder = ComposerBuilder(task=task). \
-        with_optimiser_params(parameters=optimiser_parameters). \
+    composer = ComposerBuilder(task). \
         with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_pipelines([pipeline])
-    composer = builder.build()
+        with_mutations(mutation_types). \
+        with_metrics(RegressionMetricsEnum.RMSE). \
+        with_initial_pipelines([pipeline]). \
+        build()
 
     obtained_pipeline = composer.compose_pipeline(data=train_data)
 
