@@ -18,7 +18,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     """Defines options of evolutionary optimization algorithm.
 
     Evolutionary optimization options
-    :param offspring_rate: offspring rate used on next population
     :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
     :param mutation_prob: mutation probability
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
@@ -30,7 +29,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param max_arity: max number of parents for node
     :param min_arity: min number of parents for node
     """
-    offspring_rate: float = 0.5
     crossover_prob: float = 0.8
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
