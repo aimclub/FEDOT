@@ -23,9 +23,7 @@
     "subsample": 0.8,
     "subsample_freq": 10,
     "learning_rate": 0.03,
-    "n_estimators": 100,
-    "verbose": -1,
-    "num_threads": 1
+    "n_estimators": 100
   },
   "lgbmreg": {
     "num_leaves": 32,
@@ -33,9 +31,7 @@
     "subsample": 0.8,
     "subsample_freq": 10,
     "learning_rate": 0.03,
-    "n_estimators": 100,
-    "verbose": -1,
-    "num_threads": 1
+    "n_estimators": 100
   },
   "lagged": {
     "window_size": 10
