@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
@@ -14,6 +14,9 @@ from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 from tqdm import tqdm
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
 
 
 class PopulationalOptimizer(GraphOptimizer):
@@ -45,6 +48,7 @@ class PopulationalOptimizer(GraphOptimizer):
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,
                                                          n_jobs=requirements.n_jobs,
+                                                         sync_logs=requirements.sync_logs_in_mp,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
         # stopping_after_n_generation may be None, so use some obvious max number
@@ -146,6 +150,7 @@ class EmptyProgressBar:
 
 class EvaluationAttemptsError(Exception):
     """ Number of evaluation attempts exceeded """
+
     def __init__(self, *args):
         if args:
             self.message = args[0]

@@ -51,6 +51,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
                  graph_adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  n_jobs: int = 1,
+                 sync_logs: bool = False,
                  graph_cleanup_fn: Optional[GraphFunction] = None):
         self._objective_eval = None
         self._graph_adapter = graph_adapter
@@ -60,6 +61,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         self.timer = timer or get_forever_timer()
         self.logger = default_log(self)
         self._n_jobs = n_jobs
+        self._sync_logs = sync_logs
         self._reset_eval_cache()
 
     def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
@@ -82,8 +84,12 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        with Log.using_mp_listener() as shared_q:
-            eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, mp_items=(shared_q, Log().logger.level))
+        if self._sync_logs:
+            with Log.using_mp_listener() as shared_q:
+                eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, mp_items=(shared_q, Log().logger.level))
+                                     for ind in individuals)
+        else:
+            eval_inds = parallel(delayed(self.evaluate_single)(ind=ind)
                                  for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached

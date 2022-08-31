@@ -127,6 +127,7 @@ class ApiComposer:
                                                              timeout=datetime_composing,
                                                              n_jobs=api_params['n_jobs'],
                                                              show_progress=api_params['show_progress'],
+                                                             sync_logs_in_mp=api_params['sync_logs_in_mp'],
                                                              collect_intermediate_metric=composer_params[
                                                                  'collect_intermediate_metric'],
                                                              keep_n_best=composer_params['keep_n_best'])
@@ -297,7 +298,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     :param common_dict: dictionary with parameters for all AutoML modules
     """
     api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
-                           show_progress=True)
+                           show_progress=True, sync_logs_in_mp=False)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,
