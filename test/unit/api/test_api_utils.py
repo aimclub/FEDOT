@@ -13,8 +13,8 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from ..api.test_main_api import get_dataset
-from ..tasks.test_classification import get_binary_classification_data
+from test.unit.api.test_main_api import get_dataset
+from test.unit.tasks.test_classification import get_binary_classification_data
 
 
 def test_compose_fedot_model_with_tuning():
@@ -33,7 +33,8 @@ def test_compose_fedot_model_with_tuning():
                                                                      logger=logger.get_adapter('test_log'),
                                                                      timeout=0.1,
                                                                      n_jobs=1,
-                                                                     show_progress=False),
+                                                                     show_progress=False,
+                                                                     sync_logs_in_mp=False),
                                                      composer_params=dict(max_depth=1,
                                                                           max_arity=1,
                                                                           pop_size=2,
