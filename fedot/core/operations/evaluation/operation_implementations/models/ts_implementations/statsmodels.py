@@ -39,19 +39,6 @@ class GLMImplementation(ModelImplementation):
                                                  'inverse_power': inverse_power()
                                                  }
                              },
-        "poisson": {'distribution': Poisson,
-                    'default_link': 'log',
-                    'available_links': {'log': lg(),
-                                        'identity': identity(),
-                                        'sqrt': sqrt()
-                                        }
-                    },
-        "tweedie": {'distribution': Tweedie,
-                    'default_link': 'log',
-                    'available_links': {'log': lg(),
-                                        'power': Power(),
-                                        }
-                    },
         "default": Gaussian(identity())
     }
 
@@ -72,9 +59,9 @@ class GLMImplementation(ModelImplementation):
     def fit(self, input_data):
         self.model = GLM(
             exog=sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2),
-            endog=input_data.target.astype("float64").reshape(-1, 1),
+            endog=input_data.target.astype("float64").reshape(-1, 1)+1e-6,
             family=self.family_link
-        ).fit()
+        ).fit(method="lbfgs")
         return self.model
 
     def predict(self, input_data):
@@ -84,9 +71,9 @@ class GLMImplementation(ModelImplementation):
         old_idx = input_data.idx
         if forecast_length == 1:
             predictions = self.model.predict(np.concatenate([np.array([1]),
-                                                             input_data.idx.astype("float64")]).reshape(-1, 2))
+                                                             input_data.idx.astype("float64")]).reshape(-1, 2)+1e-6)
         else:
-            predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
+            predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2)+1e-6)
 
         start_id = old_idx[-1] - forecast_length + 1
         end_id = old_idx[-1]
@@ -107,7 +94,7 @@ class GLMImplementation(ModelImplementation):
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
         target = input_data.target
-        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
+        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2)+1e-6)
         _, predict = ts_to_table(idx=old_idx,
                                  time_series=predictions,
                                  window_size=forecast_length)
