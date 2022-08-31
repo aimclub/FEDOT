@@ -181,7 +181,7 @@ def test_pipeline_with_imputer():
 
     # Coefficients for ridge regression
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
-    # Linear must use 17 features - several of them are encoded ones
+    # Linear must use 12 features - several of them are encoded ones
     assert coefficients.shape[1] == 12
 
 

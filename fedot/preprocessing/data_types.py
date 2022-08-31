@@ -13,7 +13,10 @@ NAME_CLASS_NONE = "<class 'NoneType'>"
 FEDOT_STR_NAN = 'fedot_nan'
 # If unique values in the feature column is less than 13 - convert column into string type
 CATEGORICAL_UNIQUE_TH = 13
-MAX_CATEGORIES_TH = 30
+# column must be removed if failed rate is between these constants below
+# because it means that in the column there are approximately the same number of truly string and ints/floats
+ACCEPTABLE_CONVERSION_FAILED_RATE_BOTTOM = 0.4
+ACCEPTABLE_CONVERSION_FAILED_RATE_TOP = 0.65
 
 
 class TableTypesCorrector:
@@ -22,10 +25,11 @@ class TableTypesCorrector:
     """
 
     def __init__(self):
-        # Maximum allowed unique categories in categorical table (if more - transform it into float)
-        self.categorical_max_classes_th = MAX_CATEGORIES_TH
         # Threshold to convert numerical into categorical column
         self.numerical_min_uniques = CATEGORICAL_UNIQUE_TH
+
+        self.acceptable_failed_rate_bottom = ACCEPTABLE_CONVERSION_FAILED_RATE_BOTTOM
+        self.acceptable_failed_rate_top = ACCEPTABLE_CONVERSION_FAILED_RATE_TOP
 
         self.features_columns_info = {}
         self.target_columns_info = {}
@@ -363,7 +367,7 @@ class TableTypesCorrector:
 
                 # If all objects are truly strings - all objects transform into nan
                 is_column_contain_numerical_objects = failed_ratio != 1
-                if failed_ratio < 0.4:
+                if failed_ratio < self.acceptable_failed_rate_bottom:
                     # The majority of objects can be converted into numerical
                     data.features[:, column_id] = converted_column.values
 
@@ -371,11 +375,11 @@ class TableTypesCorrector:
                     self.categorical_into_float.append(column_id)
                     features_types = data.supplementary_data.column_types['features']
                     features_types[column_id] = NAME_CLASS_FLOAT
-                elif failed_ratio >= 0.65 \
+                elif failed_ratio >= self.acceptable_failed_rate_top \
                         and is_column_contain_numerical_objects:
-                    # The column consists mostly truly ints and has a few ints in it
+                    # The column consists mostly truly str values and has a few ints/floats in it
                     self._remove_pseudo_str_values_from_str_column(data, column_id)
-                elif 0.65 > failed_ratio >= 0.4:
+                elif self.acceptable_failed_rate_top > failed_ratio >= self.acceptable_failed_rate_bottom:
                     # Probably numerical column contains a lot of '?' or 'x' as nans equivalents
                     # Add columns to remove list
                     self.string_columns_transformation_failed.update({column_id: 'removed'})
