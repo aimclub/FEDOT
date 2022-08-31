@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from contextlib import nullcontext
 from datetime import datetime
 from random import choice
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 from joblib import Parallel, delayed
 
@@ -84,12 +84,13 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
+        logger_lvl = Log().logger.level
         if self._sync_logs:
             with Log.using_mp_listener() as shared_q:
-                eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, mp_items=(shared_q, Log().logger.level))
+                eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_queue=shared_q, logs_lvl=logger_lvl)
                                      for ind in individuals)
         else:
-            eval_inds = parallel(delayed(self.evaluate_single)(ind=ind)
+            eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_lvl=logger_lvl)
                                  for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
@@ -103,17 +104,18 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit: bool = True,
-                        mp_items: Optional[Tuple[multiprocessing.Queue, int]] = None) -> Optional[Individual]:
+    def evaluate_single(self, ind: Individual, with_time_limit: bool = True, logs_lvl: Optional[int] = None,
+                        logs_queue: Optional[multiprocessing.Queue] = None) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
-        if mp_items is not None:
+        if logs_lvl is not None:
             # in case of multiprocessing run
-            shared_q, log_lvl = mp_items
-            logger_context = Log.using_mp_worker(shared_q)
-            Log().reset_logging_level(log_lvl)
+            Log().reset_logging_level(logs_lvl)
+        if logs_queue is not None:
+            # in case of multiprocessing run
+            logger_context = Log.using_mp_worker(logs_queue)
         else:
             logger_context = nullcontext()
         with logger_context:
