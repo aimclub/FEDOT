@@ -139,9 +139,9 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, fitted_operation = repo.suitable_operation(task_type=TaskTypesEnum.classification,
-                                                                data_type=data.data_type,
-                                                                tags=['ml'])
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.classification,
+                                              data_type=data.data_type,
+                                              tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
@@ -165,7 +165,7 @@ def test_regression_models_fit_predict_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
-                                                 tags=['ml'])
+                                              tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test regression model: {model_name}.")
@@ -186,7 +186,7 @@ def test_ts_models_fit_predict_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                 tags=['time_series'])
+                                              tags=['time_series'])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
@@ -212,7 +212,7 @@ def test_ts_models_dt_idx_fit_correct():
 
     with OperationTypesRepository() as repo:
         model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                 tags=['time_series'])
+                                              tags=['time_series'])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")

@@ -61,7 +61,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
     boosting_model_candidates = requirements.secondary
     if task_type == TaskTypesEnum.classification:
         # the regression models are required
-        boosting_model_candidates, _ = \
+        boosting_model_candidates = \
             OperationTypesRepository('model').suitable_operation(
                 task_type=TaskTypesEnum.regression, forbidden_tags=['non_lagged'])
         if not boosting_model_candidates:

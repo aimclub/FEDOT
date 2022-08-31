@@ -5,9 +5,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from fedot.core.dag.graph_node import GraphNode
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
+from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.adapters import DirectAdapter, PipelineAdapter
@@ -18,6 +17,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
@@ -35,7 +35,7 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.composer.test_composer import to_numerical
-from test.unit.dag.test_graph_utils import find_same_node, find_first
+from test.unit.dag.test_graph_utils import find_first
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third
 from test.unit.pipelines.test_node_cache import pipeline_fourth, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -196,7 +196,7 @@ def test_mutation():
     ind = Individual(adapter.adapt(pipeline_first()))
     mutation_types = [MutationTypesEnum.none]
     task = Task(TaskTypesEnum.classification)
-    primary_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    primary_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     secondary_model_types = ['xgboost', 'knn', 'lda', 'qda']
     composer_requirements = PipelineComposerRequirements(primary=primary_model_types,
                                                          secondary=secondary_model_types, mutation_prob=1,
