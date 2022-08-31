@@ -1,4 +1,5 @@
 import logging
+
 from copy import deepcopy
 from inspect import signature
 from typing import Any, List, Optional, Sequence, Tuple, Union
@@ -62,6 +63,7 @@ class Fedot:
         instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
     :param sync_logs_in_mp: whether to synchronize logs while using multiprocessing evaluation
+        Decreases (up to 25%) performance but guarantees all logs will be saved to a file and displayed in a console
 
     :Keywords arguments:
     :param max_depth: max depth of the pipeline
