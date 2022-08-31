@@ -52,7 +52,8 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
             'cd': CD
         }
     except NameError:
-        warn_requirement('cuml')
+        # if cuML not installed
+        __operations_by_types = {}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
@@ -76,7 +77,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
         non_multi_models = models_repo.suitable_operation(task_type=current_task,
-                                                             tags=['non_multi'])
+                                                          tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
         features = cudf.DataFrame(train_data.features.astype('float32'))
         target = cudf.Series(train_data.target.flatten().astype('float32'))
