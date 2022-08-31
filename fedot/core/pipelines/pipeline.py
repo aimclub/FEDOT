@@ -234,7 +234,7 @@ class Pipeline(GraphDelegate, Serializable):
         :param cv_folds: number of cross-validation folds
         :param validation_blocks: number of validation blocks for time series forecasting
         :param n_jobs: number of parallel threads for tuner
-        :show_progress: :param show_progress: bool indicating whether to show progress using tuner or not
+        :param show_progress: bool indicating whether to show progress using tuner or not
 
         :return: pipeline with tuned hyperparameters
         """
