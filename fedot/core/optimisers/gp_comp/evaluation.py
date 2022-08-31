@@ -1,12 +1,13 @@
 import gc
 import multiprocessing
 import timeit
-
 from abc import ABC, abstractmethod
 from contextlib import nullcontext
 from datetime import datetime
 from random import choice
 from typing import Dict, Optional, Tuple
+
+from joblib import Parallel, delayed
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import Log, default_log
@@ -17,7 +18,6 @@ from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.remote.remote_evaluator import RemoteEvaluator
-from joblib import Parallel, delayed
 
 
 class ObjectiveEvaluationDispatcher(ABC):

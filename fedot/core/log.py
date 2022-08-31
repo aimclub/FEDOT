@@ -75,7 +75,7 @@ class Log(metaclass=SingletonMeta):
     def get_adapter(self, prefix: str) -> 'LoggerAdapter':
         """ Get adapter to pass contextual information to log messages.
         :param prefix: prefix to log messages with this adapter. Usually this prefix is the name of the class
-        where the log came from """
+            where the log came from """
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
                                                         {'prefix': prefix})
@@ -164,7 +164,7 @@ def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
     Default logger
 
     :param prefix: str adapter prefix to add it to log messages or
-    instance of class to get prefix from
+        instance of class to get prefix from
     :return: LoggerAdapter: LoggerAdapter object
     """
 

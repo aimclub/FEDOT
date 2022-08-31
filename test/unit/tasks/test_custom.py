@@ -1,4 +1,3 @@
-import logging
 import random
 
 import numpy as np
@@ -9,14 +8,14 @@ from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters, \
     GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.objective.objective_eval import ObjectiveEvaluate
+from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 
 random.seed(1)

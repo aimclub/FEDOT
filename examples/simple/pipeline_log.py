@@ -1,5 +1,4 @@
 import os
-
 import pathlib
 
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline

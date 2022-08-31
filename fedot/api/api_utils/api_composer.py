@@ -1,6 +1,5 @@
 import datetime
 import gc
-
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler

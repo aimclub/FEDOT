@@ -1,6 +1,8 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Any, Optional, Sequence
 
+from tqdm import tqdm
+
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -13,7 +15,6 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimize
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
-from tqdm import tqdm
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
