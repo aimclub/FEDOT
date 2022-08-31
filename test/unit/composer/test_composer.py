@@ -67,7 +67,7 @@ def test_random_composer(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
 
-    available_model_types, _ = OperationTypesRepository().suitable_operation(
+    available_model_types = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     objective = Objective(ClassificationMetricsEnum.ROCAUC)
@@ -93,7 +93,7 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
     dataset_to_compose = data
     dataset_to_validate = data
     task = Task(TaskTypesEnum.classification)
-    available_model_types, _ = OperationTypesRepository().suitable_operation(
+    available_model_types = OperationTypesRepository().suitable_operation(
         task_type=task.task_type)
 
     metric_function = ClassificationMetricsEnum.ROCAUC
@@ -180,7 +180,7 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
-    available_model_types, _ = OperationTypesRepository().suitable_operation(
+    available_model_types = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     metric_function = ClassificationMetricsEnum.ROCAUC
@@ -218,7 +218,7 @@ def test_multi_objective_composer(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     dataset_to_validate = data
-    available_model_types, _ = OperationTypesRepository().suitable_operation(
+    available_model_types = OperationTypesRepository().suitable_operation(
         task_type=TaskTypesEnum.classification)
     quality_metric = ClassificationMetricsEnum.ROCAUC
     complexity_metric = ComplexityMetricsEnum.node_num

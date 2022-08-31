@@ -241,9 +241,16 @@ class OperationTypesRepository:
         return operations_with_id[0]
 
     def operations_with_tag(self, tags: List[str], is_full_match: bool = False):
+        """ Method returns operations from repository with specific tags
+
+                :param tags: list of required tags
+                :param is_full_match: are all tags are required
+
+                :return list of suitable operations names
+        """
         operations_info = [m for m in self._repo if
                            _is_operation_contains_tag(tags, m.tags, is_full_match)]
-        return [m.id for m in operations_info], operations_info
+        return [m.id for m in operations_info]
 
     def suitable_operation(self, task_type: TaskTypesEnum = None,
                            data_type: DataTypesEnum = None,
@@ -258,6 +265,8 @@ class OperationTypesRepository:
         :param is_full_match: requires all tags to match, or at least one
         :param forbidden_tags: operations with such tags shouldn't be returned
         :param preset: return operations from desired preset
+
+        :return list of suitable operations names
         """
 
         if not forbidden_tags:
@@ -282,7 +291,7 @@ class OperationTypesRepository:
         if data_type:
             operations_info = [o for o in operations_info if data_type in o.input_types]
 
-        return [m.id for m in operations_info], operations_info
+        return [m.id for m in operations_info]
 
     @property
     def operations(self):
@@ -401,8 +410,8 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     task_type = task.task_type if task else None
     if mode in AVAILABLE_REPO_NAMES:
         repo = OperationTypesRepository(mode)
-        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
-                                                 preset=preset)
+        model_types = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
+                                              preset=preset)
         return model_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')

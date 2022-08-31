@@ -73,7 +73,7 @@ def test_kfold_advisor_works_correct_in_imbalanced_case():
 def test_cv_min_kfolds_raise():
     task = Task(task_type=TaskTypesEnum.classification)
     models_repo = OperationTypesRepository()
-    available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
     with pytest.raises(ValueError):
         PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types, cv_folds=1)
@@ -96,7 +96,7 @@ def test_composer_with_cv_optimization_correct():
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
 
     models_repo = OperationTypesRepository()
-    available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
     metric_function = [ClassificationMetricsEnum.ROCAUC_penalty,
                        ClassificationMetricsEnum.accuracy,

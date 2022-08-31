@@ -26,7 +26,7 @@ def test_lazy_load():
 
 def test_search_in_repository_by_tag_and_metainfo_correct():
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
                                                  tags=['ml'])
 
         assert 'linear' in model_names
@@ -35,15 +35,15 @@ def test_search_in_repository_by_tag_and_metainfo_correct():
 
 def test_search_in_repository_by_tag_correct():
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'], is_full_match=True)
+        model_names = repo.operations_with_tag(tags=['simple', 'linear'], is_full_match=True)
         assert {'linear', 'logit', 'lasso', 'ridge'}.issubset(model_names)
         assert len(model_names) > 0
 
-        model_names, _ = repo.operations_with_tag(tags=['simple', 'linear'])
+        model_names = repo.operations_with_tag(tags=['simple', 'linear'])
         assert {'linear', 'logit', 'knn', 'lda', 'lasso', 'ridge', 'polyfit'}.issubset(model_names)
         assert len(model_names) > 0
 
-        model_names, _ = repo.operations_with_tag(tags=['non_real_tag'])
+        model_names = repo.operations_with_tag(tags=['non_real_tag'])
         assert len(model_names) == 0
 
 

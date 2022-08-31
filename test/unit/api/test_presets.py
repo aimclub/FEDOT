@@ -4,7 +4,7 @@ from fedot.api.main import Fedot
 from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.operation_types_repository import get_operations_for_task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.api.test_main_api import data_with_binary_features_and_categorical_target
 
@@ -99,3 +99,13 @@ def test_auto_preset_converted_correctly():
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
     assert fedot_model.api_composer.preset_name == FAST_TRAIN_PRESET_NAME
+
+
+def test_gpu_preset():
+    task = Task(TaskTypesEnum.classification)
+    preset_gpu = OperationsPreset(task=task, preset_name='gpu')
+    operations_for_gpu = preset_gpu.filter_operations_by_preset()
+    assert len(operations_for_gpu) > 0
+
+    # return repository state after test
+    OperationTypesRepository.assign_repo('model', 'model_repository.json')

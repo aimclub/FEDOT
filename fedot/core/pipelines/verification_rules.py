@@ -50,7 +50,7 @@ def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
     if not isinstance(pipeline, Pipeline):
         pipeline = PipelineAdapter().restore(pipeline)
     operation_repo = OperationTypesRepository(operation_type='data_operation')
-    forbidden_parents_combination, _ = operation_repo.suitable_operation()
+    forbidden_parents_combination = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
     for node in pipeline.nodes:

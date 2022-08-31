@@ -279,7 +279,7 @@ def data_with_binary_int_features_and_equal_categories():
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
-    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository('data_operation').suitable_operation(
         task_type=TaskTypesEnum.regression)
 
     for data_operation in operation_names:
@@ -298,7 +298,7 @@ def test_regression_data_operations():
 def test_classification_data_operations():
     train_input, predict_input, y_test = get_small_classification_dataset()
 
-    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository('data_operation').suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     for data_operation in operation_names:
@@ -340,7 +340,7 @@ def test_ts_forecasting_cut_data_operation():
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    model_names, _ = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
+    model_names = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
 
     for smoothing_operation in model_names:
         node_smoothing = PrimaryNode(smoothing_operation)
@@ -376,7 +376,7 @@ def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform()
 def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
-    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
 
     for model_name in model_names:
         node_data_operation = PrimaryNode(model_name)
@@ -394,7 +394,7 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
 def test_feature_selection_of_single_features():
     for task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
-        model_names, _ = OperationTypesRepository(operation_type='data_operation') \
+        model_names = OperationTypesRepository(operation_type='data_operation') \
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)

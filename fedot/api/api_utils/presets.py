@@ -1,10 +1,8 @@
-import datetime
 from copy import copy
-from typing import Union
 
 from fedot.api.time import ApiTime
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
-    FAST_TRAIN_PRESET_NAME, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+    FAST_TRAIN_PRESET_NAME
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 

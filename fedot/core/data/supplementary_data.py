@@ -53,7 +53,7 @@ class SupplementaryData:
         if not isinstance(self.previous_operations, list) or len(self.previous_operations) == 1:
             raise ValueError(f'Data was received from one node but at least two nodes are required')
 
-        data_operations, _ = OperationTypesRepository('data_operation').suitable_operation(task_type=task)
+        data_operations = OperationTypesRepository('data_operation').suitable_operation(task_type=task)
 
         # Which data operations was in pipeline before decompose operation
         previous_data_operation = None

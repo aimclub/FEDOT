@@ -1,7 +1,15 @@
 import warnings
 
-from cuml import KMeans
-import cudf
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    from cuml import KMeans
+    import cudf
+except ModuleNotFoundError:
+    warn_requirement('cudf / cuml')
+    cudf = None
+    KMeans = None
+
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -11,7 +19,7 @@ from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):
     __operations_by_types = {
-        'kmeans': KMeans,
+        'kmeans': KMeans
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):

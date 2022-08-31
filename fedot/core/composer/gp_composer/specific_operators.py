@@ -38,13 +38,13 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
 
     # TODO: refactor next line to get task_type more obviously
     task_type = params.advisor.task.task_type
-    decompose_operations, _ = OperationTypesRepository('data_operation').suitable_operation(
+    decompose_operations = OperationTypesRepository('data_operation').suitable_operation(
         task_type=task_type, tags=['decompose'])
     decompose_operation = decompose_operations[0]
 
     existing_pipeline = pipeline
 
-    all_data_operations, _ = OperationTypesRepository('data_operation').suitable_operation(
+    all_data_operations = OperationTypesRepository('data_operation').suitable_operation(
         task_type=task_type)
     preprocessing_primary_nodes = [n for n in existing_pipeline.nodes if str(n) in all_data_operations]
 
@@ -61,7 +61,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
     boosting_model_candidates = requirements.secondary
     if task_type == TaskTypesEnum.classification:
         # the regression models are required
-        boosting_model_candidates, _ = \
+        boosting_model_candidates = \
             OperationTypesRepository('model').suitable_operation(
                 task_type=TaskTypesEnum.regression, forbidden_tags=['non_lagged'])
         if not boosting_model_candidates:
@@ -70,7 +70,7 @@ def boosting_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any
     new_model = choose_new_model(boosting_model_candidates)
 
     if task_type == TaskTypesEnum.ts_forecasting:
-        non_lagged_ts_models, _ = OperationTypesRepository('model').operations_with_tag(['non_lagged'])
+        non_lagged_ts_models = OperationTypesRepository('model').operations_with_tag(['non_lagged'])
         is_non_lagged_ts_models_in_node = \
             str(existing_pipeline.root_node) in non_lagged_ts_models
 
