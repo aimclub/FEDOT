@@ -6,8 +6,9 @@ try:
     from cuml import KMeans
     import cudf
 except ModuleNotFoundError:
-    warn_requirement('cudf')
+    warn_requirement('cudf / cuml')
     cudf = None
+    KMeans = None
 
 from typing import Optional
 
@@ -17,12 +18,9 @@ from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):
-    try:
-        __operations_by_types = {
-            'kmeans': KMeans,
-        }
-    except NameError:
-        warn_requirement('cuml')
+    __operations_by_types = {
+        'kmeans': KMeans
+    }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)

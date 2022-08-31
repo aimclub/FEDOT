@@ -15,7 +15,7 @@ try:
     from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
         MultinomialNB as CuMlMultinomialNB
 except ModuleNotFoundError:
-    warn_requirement('cuml')
+    warn_requirement('cudf / cuml')
     cudf = None
     cuml = None
 
@@ -75,7 +75,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
-        non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
+        non_multi_models = models_repo.suitable_operation(task_type=current_task,
                                                              tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
         features = cudf.DataFrame(train_data.features.astype('float32'))

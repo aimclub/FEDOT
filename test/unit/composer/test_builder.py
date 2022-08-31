@@ -12,7 +12,7 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 def prepare_builder_with_custom_params(return_all: bool):
     task = Task(TaskTypesEnum.classification)
 
-    available_model_types, _ = OperationTypesRepository().suitable_operation(
+    available_model_types = OperationTypesRepository().suitable_operation(
         task_type=task.task_type)
 
     metric_function = ClassificationMetricsEnum.ROCAUC

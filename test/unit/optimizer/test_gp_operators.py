@@ -539,7 +539,7 @@ def test_mutation_with_single_node():
     adapter = PipelineAdapter()
     individual = Individual(adapter.adapt(generate_pipeline_with_single_node()))
     task = Task(TaskTypesEnum.classification)
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+    available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                                          max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
@@ -564,7 +564,8 @@ def test_no_opt_or_graph_nodes_after_mutation():
     graph = adapter.adapt(generate_pipeline_with_single_node())
     task = Task(TaskTypesEnum.classification)
     mutation_types = [MutationTypesEnum.growth]
-    available_model_types, _ = OperationTypesRepository().suitable_operation(task_type=task.task_type)
+
+    available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
                                                          max_arity=3, max_depth=2, pop_size=5, num_of_generations=4,
                                                          crossover_prob=.8, mutation_prob=1)

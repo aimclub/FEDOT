@@ -75,7 +75,7 @@ class OperationsPreset:
 
         if 'gpu' in self.preset_name:
             repository = OperationTypesRepository().assign_repo('model', 'gpu_models_repository.json')
-            available_operations, _ = repository.suitable_operation(task_type=self.task.task_type)
+            available_operations = repository.suitable_operation(task_type=self.task.task_type)
 
         filtered_operations = set(available_operations).difference(set(excluded_tree))
         available_operations = list(filtered_operations)

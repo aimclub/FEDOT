@@ -42,7 +42,7 @@ def pipeline_contains_any(pipeline: Pipeline, *operation_name: str) -> bool:
 
 
 def get_suitable_operations_for_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo='model'):
-    operations, _ = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
+    operations = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
     return operations
 
 

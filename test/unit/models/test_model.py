@@ -164,7 +164,7 @@ def test_regression_models_fit_predict_correct():
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
                                                  tags=['ml'])
 
     for model_name in model_names:
@@ -185,7 +185,7 @@ def test_ts_models_fit_predict_correct():
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
                                                  tags=['time_series'])
 
     for model_name in model_names:
@@ -211,7 +211,7 @@ def test_ts_models_dt_idx_fit_correct():
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
                                                  tags=['time_series'])
 
     for model_name in model_names:
