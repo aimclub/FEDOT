@@ -62,7 +62,7 @@ class Fedot:
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
         instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
-    :param sync_logs_in_mp: whether to synchronize logs while using multiprocessing evaluation
+    :param debug_mode: whether to respect every log (displaying, saving, etc), especially when using multiprocessing
         Decreases (up to 25%) performance but guarantees all logs will be saved to a file and displayed in a console
 
     :Keywords arguments:
@@ -105,7 +105,7 @@ class Fedot:
                  seed=None, logging_level: int = logging.ERROR,
                  safe_mode=False,
                  n_jobs: int = 1,
-                 sync_logs_in_mp: bool = False,
+                 debug_mode: bool = False,
                  **composer_tuner_params
                  ):
 
@@ -118,7 +118,7 @@ class Fedot:
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
                         'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs,
-                        'sync_logs_in_mp': sync_logs_in_mp}
+                        'debug_mode': debug_mode}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams

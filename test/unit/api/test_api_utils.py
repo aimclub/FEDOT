@@ -1,6 +1,9 @@
 import logging
 import random
+
 from copy import deepcopy
+from test.unit.api.test_main_api import get_dataset
+from test.unit.tasks.test_classification import get_binary_classification_data
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -13,8 +16,6 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
-from test.unit.api.test_main_api import get_dataset
-from test.unit.tasks.test_classification import get_binary_classification_data
 
 
 def test_compose_fedot_model_with_tuning():
@@ -34,7 +35,7 @@ def test_compose_fedot_model_with_tuning():
                                                                      timeout=0.1,
                                                                      n_jobs=1,
                                                                      show_progress=False,
-                                                                     sync_logs_in_mp=False),
+                                                                     debug_mode=False),
                                                      composer_params=dict(max_depth=1,
                                                                           max_arity=1,
                                                                           pop_size=2,
