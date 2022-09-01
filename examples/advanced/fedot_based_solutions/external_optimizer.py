@@ -3,10 +3,10 @@ from random import choice
 from typing import Any, Optional, Sequence, Union
 
 from fedot.api.main import Fedot
+from fedot.core.adapter import adapt_population, restore_population
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
@@ -35,12 +35,11 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
     def optimise(self, objective: ObjectiveFunction):
 
         timer = OptimisationTimer(timeout=self.requirements.timeout)
-        dispatcher = SimpleDispatcher(self.graph_generation_params.adapter, timer)
+        dispatcher = SimpleDispatcher(timer)
         evaluator = dispatcher.dispatch(objective)
 
         num_iter = 0
-        initial_graph = self.graph_generation_params.adapter.adapt(choice(self.initial_graphs))
-        best = Individual(initial_graph)
+        best = choice(adapt_population(self.initial_graphs))
         evaluator([best])
 
         with timer as t:
@@ -52,7 +51,7 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
                     best = new
                 num_iter += 1
 
-        return [self.graph_generation_params.adapter.restore(best.graph)]
+        return restore_population(best)
 
 
 def run_with_random_search_composer():

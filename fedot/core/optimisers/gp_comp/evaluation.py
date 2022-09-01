@@ -11,7 +11,7 @@ from joblib import Parallel, delayed, cpu_count
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.adapter import BaseOptimizationAdapter, adapt
+from fedot.core.adapter import adapt, restore_population
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
@@ -45,18 +45,15 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
     Usage: call `dispatch(objective_function)` to get evaluation function.
 
-    :param graph_adapter: adapter for mapping between OptGraph and Graph.
     :param n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
     :param graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
     """
 
     def __init__(self,
-                 graph_adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  n_jobs: int = 1,
                  graph_cleanup_fn: Optional[GraphFunction] = None):
         self._objective_eval = None
-        self._graph_adapter = graph_adapter
         self._cleanup = graph_cleanup_fn
         self._post_eval_callback = None
 
@@ -141,8 +138,8 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         fitter = RemoteEvaluator()  # singleton
         if fitter.use_remote:
             self.logger.info('Remote fit used')
-            restored_graphs = [self._graph_adapter.restore(ind.graph) for ind in population]
-            verifier = verifier_for_task(task_type=None, adapter=self._graph_adapter)
+            restored_graphs = restore_population(population)
+            verifier = verifier_for_task(task_type=None)
             computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
@@ -152,15 +149,11 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
     Usage: call `dispatch(objective_function)` to get evaluation function.
 
-    :param graph_adapter: adapter for mapping between OptGraph and Graph.
     :param timer: timer to set timeout for evaluation of population
     """
 
-    def __init__(self,
-                 graph_adapter: BaseOptimizationAdapter,
-                 timer: Timer = None):
+    def __init__(self, timer: Timer = None):
         self._objective_eval = None
-        self._graph_adapter = graph_adapter
         self.timer = timer or get_forever_timer()
 
     def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
