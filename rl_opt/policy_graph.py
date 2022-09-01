@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Dict, Sequence, Optional, Hashable, Tuple
+from typing import TypeVar, Generic, Dict, Sequence, Optional, Hashable, Tuple, Any
 
 import networkx as nx
 import numpy as np
@@ -21,7 +21,7 @@ ACT_PROB = 'probability'
 
 
 class ModelFactory:
-    def get_model(self, obs_shape: th.Size, num_outputs: int) -> nn.Module:
+    def get_model(self, obs_shape: th.Size, num_outputs: int, output_activation=nn.Identity) -> nn.Module:
         in_size = int(np.prod(obs_shape))
         model = nn.Sequential(
             nn.Linear(in_size, in_size*2),
@@ -31,7 +31,7 @@ class ModelFactory:
             nn.Linear(in_size*3, in_size),
             nn.Tanh(),
             nn.Linear(in_size, num_outputs),
-            nn.Tanh(),
+            output_activation()
         )
         return model
 
@@ -52,15 +52,18 @@ class PolicyNode:
         # TODO: computation of action probs by the model
         #  and saving of intermediate info for local learning step
         logits = self.model.forward(observation)
-        probs = nn.Softmax()(logits)
 
         # uniform distribution
-        probs: Sequence[float] = [1.0 / float(len(self.transitions))]
+        # probs: Sequence[float] = [1.0 / float(len(self.transitions))]
 
-        distrib = Categorical(probs)
-        index = distrib.sample(1)
-        transition = self.transitions[index]
+        distrib = Categorical(logits=logits)
+        transition_index = distrib.sample(1)
+        logprob = distrib.log_prob(transition_index)
+        transition = self.transitions[transition_index]
         return transition
+
+    def parameters(self) -> Any:
+        return self.model.parameters()
 
 
 class PolicyGraph(Generic[ObsType]):
