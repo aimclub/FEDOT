@@ -1,8 +1,10 @@
 from functools import partial
-from typing import Optional, Callable, Any, Tuple
+from typing import Optional, Callable, Any, Tuple, Sequence
 
 from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.dag.graph import Graph
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
@@ -148,6 +150,18 @@ def restore(fun: Callable) -> Callable:
 def adapt(fun: Callable) -> Callable:
     """Out-of-class version of the function intended to be used as decorator."""
     return AdaptRegistry().adapt(fun)
+
+
+def restore_population(population: PopulationT) -> Sequence[Graph]:
+    _restore = AdaptRegistry().adapter.restore
+    domain_graphs = [_restore(ind.graph) for ind in population]
+    return domain_graphs
+
+
+def adapt_population(population: Sequence[Graph]) -> PopulationT:
+    _adapt = AdaptRegistry().adapter.adapt
+    individuals = [Individual(_adapt(graph)) for graph in population]
+    return individuals
 
 
 def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
