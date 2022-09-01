@@ -47,6 +47,8 @@ class ModelFactory:
         return model
 
 
+
+
 class PolicyNode:
     def __init__(self,
                  obs_shape: th.Size,
@@ -107,6 +109,7 @@ class PolicyGraph(Generic[ObsType]):
         nx.set_node_attributes(model_graph, state_attrs)
         return model_graph
 
+    # TODO: policy graph modification
     def add_transition(self,
                        source_state: StateKeyType,
                        action: ActionType,
@@ -157,12 +160,18 @@ class PolicyGraph(Generic[ObsType]):
         return self._graph[self._state][NODE]
 
 
-def evaluate_policy_graph():
-    env = gym.make("LunarLander-v2")
+def get_initial_graph(observation_space: ObsType, action_space: Discrete) -> PolicyGraph:
+    """Returns single-state graph with all actions leading to the same state."""
+    S0 = 'S0'
+    state_graph = nx.DiGraph(S0)
+    for action in range(action_space.n):
+        state_graph.add_edge(S0, S0, **{ACTION: action})
+    return PolicyGraph(observation_space, action_space, state_graph, initial_state=S0)
 
+
+def evaluate_policy_graph(env: Env, policy: PolicyGraph):
     n_rollouts = 100
     max_steps = 1000
-    policy = PolicyGraph(env.observation_space, env.action_space)
 
     for i_rollout in range(n_rollouts):
         observations = []
@@ -185,3 +194,9 @@ def evaluate_policy_graph():
         # TODO: do some learning
 
     env.close()
+
+
+def test_initial_graph():
+    # env = gym.make("LunarLander-v2")
+    env = gym.make("CartPole-v1", new_step_api=True)
+    policy = get_initial_graph(env.observation_space, env.action_space)
