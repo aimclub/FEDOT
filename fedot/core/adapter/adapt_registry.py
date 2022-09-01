@@ -90,7 +90,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
     def restore(self, fun: Callable) -> Callable:
         """Wraps native function so that it could accept domain graphs as arguments.
 
-        Behavior: `adapt( f(OptGraph) ) => f'(DomainGraph)`
+        Behavior: `restore( f(OptGraph) ) => f'(DomainGraph)`
 
         :param fun: native function that accepts native args (i.e. optimization graph)
          and requires adaptation of domain graph.
@@ -103,7 +103,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
         """Wraps domain function so that it could accept native optimization graphs
         as arguments. If the function was registered as native, it is returned as-is.
 
-        Behavior: `restore( f(DomainGraph) ) => f'(OptGraph)`
+        Behavior: `adapt( f(DomainGraph) ) => f'(OptGraph)`
 
         :param fun: domain function that accepts domain args and required call to restore
 
