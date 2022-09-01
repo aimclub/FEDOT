@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 
-from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
@@ -23,7 +23,8 @@ random.seed(1)
 np.random.seed(1)
 
 
-class CustomModel(Graph):
+class CustomModel(GraphDelegate):
+
     def evaluate(self):
         return 0
 
@@ -77,7 +78,7 @@ def test_custom_graph_opt():
         initial_graphs=init_population)
 
     objective_eval = ObjectiveEvaluate(objective, eval_n_jobs=1)
-    optimized_graphs = optimiser.optimise(objective_eval, show_progress=requirements.show_progress)
+    optimized_graphs = optimiser.optimise(objective_eval)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
     assert optimized_network is not None

@@ -11,7 +11,7 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 def create_individual(fitness: Fitness = None) -> Individual:
-    first = OptNode(content={'name': 'logit', 'params': DEFAULT_PARAMS_STUB})
+    first = OptNode(content={'name': 'logit'})
     graph = OptGraph(first)
     individual = Individual(graph)
     individual.set_evaluation_result(fitness or null_fitness())

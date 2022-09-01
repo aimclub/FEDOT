@@ -24,7 +24,7 @@ def get_pipeline() -> Pipeline:
 
 def test_pipeline_operator_init():
     pipeline = get_pipeline()
-    assert type(pipeline._operator) is GraphOperator
+    assert type(pipeline.operator) is GraphOperator
 
 
 def test_distance_to_root_level():
@@ -58,8 +58,8 @@ def test_actualise_old_node_children():
     new_node = PrimaryNode('knnreg')
 
     # when
-    pipeline._operator.actualise_old_node_children(old_node=selected_node,
-                                                   new_node=new_node)
+    pipeline.operator.actualise_old_node_children(old_node=selected_node,
+                                                  new_node=new_node)
     updated_parent = pipeline.nodes[1]
 
     # then
@@ -76,7 +76,7 @@ def test_sort_nodes():
 
     # when
     selected_node.nodes_from.append(new_subroot)
-    pipeline._operator.sort_nodes()
+    pipeline.operator.sort_nodes()
 
     # then
     assert pipeline.length == original_length + 2
