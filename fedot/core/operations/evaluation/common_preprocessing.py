@@ -3,11 +3,12 @@ from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
+    OneHotEncodingImplementation, LabelEncodingImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import \
-    OneHotEncodingImplementation, LabelEncodingImplementation
+from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -41,8 +42,8 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-
-        operation_implementation.fit(train_data)
+        with RandomStateHandler(MODEL_FITTING_SEED):
+            operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

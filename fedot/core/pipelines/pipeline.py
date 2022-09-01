@@ -117,6 +117,7 @@ class Pipeline(GraphDelegate, Serializable):
         :return: values predicted on the provided ``input_data``
         """
         self.replace_n_jobs_in_nodes(n_jobs)
+        self._set_fitting_seed(0)
 
         copied_input_data = deepcopy(input_data)
         copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
@@ -370,6 +371,12 @@ class Pipeline(GraphDelegate, Serializable):
             *(f'{node.operation.operation_type} - {node.custom_params}' for node in self.nodes),
             sep='\n'
         )
+
+    def _set_fitting_seed(self, seed: int):
+        pass
+        # for node in self.nodes:
+        #    if isinstance(node.content['params'], dict):
+        #        node.content['params']['random_state'] = seed
 
     def replace_n_jobs_in_nodes(self, n_jobs: int):
         """

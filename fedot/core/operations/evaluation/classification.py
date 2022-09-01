@@ -5,6 +5,8 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
+    import IsolationForestClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
     ResampleImplementation
 from fedot.core.operations.evaluation.operation_implementations. \
@@ -15,8 +17,7 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
     keras import FedotCNNImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
-    import IsolationForestClassImplementation
+from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -66,7 +67,8 @@ class FedotClassificationStrategy(EvaluationStrategy):
         else:
             operation_implementation = self.operation_impl()
 
-        operation_implementation.fit(train_data)
+        with RandomStateHandler(MODEL_FITTING_SEED):
+            operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -129,8 +131,8 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-
-        operation_implementation.fit(train_data)
+        with RandomStateHandler(MODEL_FITTING_SEED):
+            operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

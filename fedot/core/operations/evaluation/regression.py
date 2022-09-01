@@ -5,13 +5,14 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerRegImplementation
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
+    import IsolationForestRegImplementation
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_filters import LinearRegRANSACImplementation, NonLinearRegRANSACImplementation
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_filters \
-    import IsolationForestRegImplementation
+from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -61,8 +62,8 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-
-        operation_implementation.fit(train_data)
+        with RandomStateHandler(MODEL_FITTING_SEED):
+            operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
@@ -117,8 +118,8 @@ class FedotRegressionStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-
-        operation_implementation.fit(train_data)
+        with RandomStateHandler(MODEL_FITTING_SEED):
+            operation_implementation.fit(train_data)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

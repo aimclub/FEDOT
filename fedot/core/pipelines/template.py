@@ -13,7 +13,6 @@ from fedot.core.log import default_log
 from fedot.core.operations.atomized_template import AtomizedModelTemplate
 from fedot.core.operations.operation_template import OperationTemplate, check_existing_path
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
-from fedot.core.utils import default_fedot_data_dir
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -304,18 +303,17 @@ class PipelineTemplate:
                    'fitted_operation_path') and operation_object.fitted_operation_path and path is not None:
             path_to_operation = os.path.join(path, operation_object.fitted_operation_path)
 
-            if "h2o" in operation_object.operation_type:
+            if 'h2o' in operation_object.operation_type:
                 fitted_operation = load_h2o(path, self.log)
 
             elif not os.path.isfile(path_to_operation):
                 message = f"Fitted operation on the path: {path_to_operation} does not exist."
                 self.log.error(message)
-                raise FileNotFoundError(message)
             else:
                 fitted_operation = joblib.load(path_to_operation)
         elif dict_fitted_operations is not None:
-            if "h2o" in operation_object.operation_type:
-                message = f"Loading h2o models from dict is not supported"
+            if 'h2o' in operation_object.operation_type:
+                message = f'Loading h2o models from dict is not supported'
                 self.log.error(message)
                 raise TypeError(message)
             else:

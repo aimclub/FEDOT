@@ -1,6 +1,7 @@
 import warnings
 from typing import Optional
 
+from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -86,7 +87,8 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
             raise NotImplementedError('Not supported for GPU yet')
             # TODO Manually wrap the regressor into multi-output model
         else:
-            operation_implementation.fit(features, target)
+            with RandomStateHandler(MODEL_FITTING_SEED):
+                operation_implementation.fit(features, target)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
