@@ -1,10 +1,7 @@
-from enum import Enum, auto
 from typing import TypeVar, Generic, Dict, Sequence, Optional, Hashable, Tuple
 
-import gym
 import networkx as nx
 import numpy as np
-from gym import Env
 from gym.spaces import Space, Discrete
 import torch as th
 import torch.nn as nn
@@ -23,14 +20,6 @@ NODE = 'node'
 ACT_PROB = 'probability'
 
 
-class PolicyMutationEnum(Enum):
-    AddAction = auto()
-    RemoveAction = auto()
-    AddState = auto()
-    RemoveState = auto()
-    MergeStates = auto()
-
-
 class ModelFactory:
     def get_model(self, obs_shape: th.Size, num_outputs: int) -> nn.Module:
         in_size = int(np.prod(obs_shape))
@@ -45,8 +34,6 @@ class ModelFactory:
             nn.Tanh(),
         )
         return model
-
-
 
 
 class PolicyNode:
@@ -167,36 +154,3 @@ def get_initial_graph(observation_space: ObsType, action_space: Discrete) -> Pol
     for action in range(action_space.n):
         state_graph.add_edge(S0, S0, **{ACTION: action})
     return PolicyGraph(observation_space, action_space, state_graph, initial_state=S0)
-
-
-def evaluate_policy_graph(env: Env, policy: PolicyGraph):
-    n_rollouts = 100
-    max_steps = 1000
-
-    for i_rollout in range(n_rollouts):
-        observations = []
-        actions = []
-        rewards = []
-        observation, info = env.reset(seed=42)
-
-        for i in range(max_steps):
-            next_state = policy.predict(observation)  # User-defined policy function
-            action = policy.transition(next_state)
-
-            observation, reward, done, info = env.step(action)
-            # env.render()
-            observations.append(observation)
-            actions.append(action)
-            rewards.append(reward)
-
-            if done: break
-
-        # TODO: do some learning
-
-    env.close()
-
-
-def test_initial_graph():
-    # env = gym.make("LunarLander-v2")
-    env = gym.make("CartPole-v1", new_step_api=True)
-    policy = get_initial_graph(env.observation_space, env.action_space)
