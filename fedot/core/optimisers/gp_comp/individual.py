@@ -13,7 +13,7 @@ INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
                                       'and should be fixed.'
 
 
-G = TypeVar('G', bound=Graph)
+G = TypeVar('G')
 
 
 @dataclass(frozen=True)
