@@ -11,8 +11,7 @@ from fedot.core.composer.metrics import MAE, MSE
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
 from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
@@ -84,11 +83,11 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
-                                                input_data=time_series,
-                                                iterations=1, timeout=1,
-                                                cv_folds=folds,
-                                                validation_blocks=validation_blocks)
+    simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
+                                        input_data=time_series,
+                                        iterations=1, timeout=1,
+                                        cv_folds=folds,
+                                        validation_blocks=validation_blocks)
     is_tune_succeeded = True
     assert is_tune_succeeded
 

@@ -210,7 +210,7 @@ class ApiComposer:
         if self.timer.have_time_for_composing(composer_params['pop_size']):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
-                log.info(f'Pipeline composition started.')
+                log.info('Pipeline composition started.')
                 best_pipelines = gp_composer.compose_pipeline(data=train_data)
                 best_pipeline_candidates = gp_composer.best_models
         else:

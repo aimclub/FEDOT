@@ -3,8 +3,11 @@ import numpy as np
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    prepare_target, ts_to_table, _sparse_matrix
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
+    _sparse_matrix,
+    prepare_target,
+    ts_to_table
+)
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -161,7 +164,7 @@ def test_forecast_with_sparse_lagged():
 
     pipeline.fit(input_data=MultiModalData({'sparse_lagged': train_source_ts}))
 
-    forecast = pipeline.predict(input_data=MultiModalData({'sparse_lagged': predict_source_ts}))
+    pipeline.predict(input_data=MultiModalData({'sparse_lagged': predict_source_ts}))
     is_forecasted = True
 
     assert is_forecasted

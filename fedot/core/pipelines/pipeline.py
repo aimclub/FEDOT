@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union, Sequence
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 import func_timeout
 
@@ -71,7 +71,7 @@ class Pipeline(GraphDelegate, Serializable):
                 args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
-            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
+            raise TimeoutError('Pipeline fitness evaluation time limit is expired')
 
         self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, _ in enumerate(self.nodes):
@@ -92,9 +92,7 @@ class Pipeline(GraphDelegate, Serializable):
         """
 
         with Timer() as t:
-            computation_time_update = (
-                    not self.root_node.fitted_operation or self.computation_time is None
-            )
+            computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
             train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
@@ -334,9 +332,9 @@ class Pipeline(GraphDelegate, Serializable):
         max_distance = 0
         side_root_node = None
         for node in self.nodes:
-            if (task_type in node.operation.acceptable_task_types
-                    and isinstance(node.operation, Model)
-                    and node.distance_to_primary_level >= max_distance):
+            if (task_type in node.operation.acceptable_task_types and
+                    isinstance(node.operation, Model) and
+                    node.distance_to_primary_level >= max_distance):
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
 

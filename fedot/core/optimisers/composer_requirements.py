@@ -32,10 +32,10 @@ class ComposerRequirements:
 
     def __post_init__(self):
         if self.max_depth < 0:
-            raise ValueError(f'invalid max_depth value')
+            raise ValueError('invalid max_depth value')
         if self.max_arity < 0:
-            raise ValueError(f'invalid max_arity value')
+            raise ValueError('invalid max_arity value')
         if self.min_arity < 0:
-            raise ValueError(f'invalid min_arity value')
+            raise ValueError('invalid min_arity value')
         if self.cv_folds is not None and self.cv_folds <= 1:
-            raise ValueError(f'Number of folds for KFold cross validation must be 2 or more.')
+            raise ValueError('Number of folds for KFold cross validation must be 2 or more.')
