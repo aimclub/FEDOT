@@ -5,8 +5,7 @@ import pathlib
 import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
-from os import PathLike
-from typing import Optional, Union
+from typing import Optional, Tuple
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -25,29 +24,29 @@ class Log(metaclass=SingletonMeta):
     __log_adapters = {}
 
     @staticmethod
-    def setup_in_mp(logging_level: int, logs_dir: Union[PathLike, str]):
+    def setup_in_mp(logging_level: int, logs_dir: pathlib.Path):
         """
         Preserves logger level and its records in a separate file for each process only if it's a child one
 
+        :param logging_level: level of the logger from the main process
         :param logs_dir: path to the logs directory
-        :param logging_level: level of logger from the main process
         """
         cur_proc = multiprocessing.current_process().name
-        log_file_name = pathlib.Path(logs_dir, f'log_{cur_proc}.log')
+        log_file_name = logs_dir.joinpath(f'log_{cur_proc}.log')
         Log(output_logging_level=logging_level, log_file=log_file_name, use_console=False)
 
     def __init__(self,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: str = None,
+                 log_file: Optional[str] = None,
                  use_console: bool = True):
-        if not log_file:
-            self.log_file = DEFAULT_LOG_PATH
-        else:
-            self.log_file = log_file
+        self.log_file = log_file or DEFAULT_LOG_PATH
         self.logger = self._get_logger(config_file=config_json_file,
                                        logging_level=output_logging_level,
                                        use_console=use_console)
+
+    def get_parameters(self) -> Tuple[int, pathlib.Path]:
+        return self.logger.level, pathlib.Path(self.log_file).parent
 
     def reset_logging_level(self, logging_level: int):
         """ Resets logging level for logger and its handlers """

@@ -4,9 +4,8 @@ import pathlib
 import timeit
 from abc import ABC, abstractmethod
 from datetime import datetime
-from os import PathLike
 from random import choice
-from typing import Dict, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 from joblib import Parallel, delayed
 
@@ -85,9 +84,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        logger_lvl = Log().logger.level
-        logs_dir = pathlib.Path(Log().log_file).parent
-        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_initializer=(logger_lvl, logs_dir))
+        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_initializer=Log().get_parameters())
                              for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
@@ -102,7 +99,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         return successful_evals
 
     def evaluate_single(self, ind: Individual, with_time_limit: bool = True,
-                        logs_initializer: Optional[Tuple[int, Union[PathLike, str]]] = None) -> Optional[Individual]:
+                        logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
