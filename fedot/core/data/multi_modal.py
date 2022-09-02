@@ -6,7 +6,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import process_target_and_features, get_indices_from_file
+from fedot.core.data.data import process_target_and_features, get_indices_from_file, array_to_input_data
 from fedot.core.data.data_detection import TextDataDetector, TimeSeriesDataDetector
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -95,7 +95,7 @@ class MultiModalData(dict):
                              is_predict=False,
                              var_names=None,
                              target_column: Optional[str] = '') -> MultiModalData:
-        preparer = TimeSeriesDataDetector()
+        ts_data_detector = TimeSeriesDataDetector()
         df = pd.read_csv(file_path, sep=delimiter)
         idx = get_indices_from_file(df, file_path)
         if isinstance(task, str):
@@ -107,10 +107,8 @@ class MultiModalData(dict):
             raise NotImplementedError(
                 'Multivariate predict not supported in this function yet.')
         else:
-            data = \
-                preparer.prepare_multimodal_ts_data(dataframe=df,
-                                                    features=var_names,
-                                                    forecast_length=0)
+            data = ts_data_detector.prepare_multimodal_data(dataframe=df,
+                                                            columns=var_names)
 
             if target_column is not None:
                 target = np.array(df[target_column])
@@ -118,11 +116,11 @@ class MultiModalData(dict):
                 target = np.array(df[df.columns[-1]])
 
             # create labels for data sources
-            data_part_transformation_func = partial(preparer.array_to_input_data, idx=idx,
-                                                    target_array=target, task=task,
+            data_part_transformation_func = partial(array_to_input_data,
+                                                    idx=idx, target_array=target, task=task,
                                                     data_type=DataTypesEnum.ts)
 
-            sources = dict((preparer.new_key_name(data_part_key),
+            sources = dict((ts_data_detector.new_key_name(data_part_key),
                             data_part_transformation_func(features_array=data_part))
                            for (data_part_key, data_part) in data.items())
             multi_modal_data = MultiModalData(sources)
@@ -150,7 +148,7 @@ class MultiModalData(dict):
         :return: MultiModalData object with text and table data sources as InputData
         """
 
-        preparer = TextDataDetector()
+        text_data_detector = TextDataDetector()
         data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
         if columns_to_drop:
             data_frame = data_frame.drop(columns_to_drop, axis=1)
@@ -161,19 +159,20 @@ class MultiModalData(dict):
         text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
 
         if not text_columns:
-            text_columns = preparer.define_text_columns(data_frame)
+            text_columns = text_data_detector.define_text_columns(data_frame)
 
-        data_text = preparer.prepare_multimodal_text_data(data_frame, text_columns)
+        data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
         data_frame_table = data_frame.drop(columns=text_columns)
         table_features, target = process_target_and_features(data_frame_table, target_columns)
 
-        data_part_transformation_func = partial(preparer.array_to_input_data, idx=idx,
-                                                target_array=target, task=task)
+        data_part_transformation_func = partial(array_to_input_data,
+                                                idx=idx, target_array=target, task=task)
 
         # create labels for text data sources and remove source if there are many nans
-        sources = dict((preparer.new_key_name(data_part_key),
+        sources = dict((text_data_detector.new_key_name(data_part_key),
                         data_part_transformation_func(features_array=data_part, data_type=DataTypesEnum.text))
-                       for (data_part_key, data_part) in data_text.items() if not preparer.full_of_nans(data_part))
+                       for (data_part_key, data_part) in data_text.items()
+                       if not text_data_detector.is_full_of_nans(data_part))
 
         # add table features if they exist
         if table_features.size != 0:

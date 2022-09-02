@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
+from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text, \
+    data_type_is_multi_ts, data_type_is_image
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
@@ -26,11 +27,37 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
+from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
-from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
-
 ALLOWED_NAN_PERCENT = 0.9
+
+
+def exclude_ts(preprocessing_function):
+    """ Decorator for time series type checking """
+    def wrapper(self, input_data, source_name, *args, **kwargs):
+        if data_type_is_ts(input_data):
+            return input_data
+        return preprocessing_function(self, input_data, source_name, *args, **kwargs)
+    return wrapper
+
+
+def exclude_multi_ts(preprocessing_function):
+    """ Decorator for multivariate time series type checking """
+    def wrapper(self, input_data, source_name, *args, **kwargs):
+        if data_type_is_multi_ts(input_data):
+            return input_data
+        return preprocessing_function(self, input_data, source_name, *args, **kwargs)
+    return wrapper
+
+
+def exclude_image(preprocessing_function):
+    """ Decorator for image type checking """
+    def wrapper(self, input_data, source_name, *args, **kwargs):
+        if data_type_is_image(input_data):
+            return input_data
+        return preprocessing_function(self, input_data, source_name, *args, **kwargs)
+    return wrapper
 
 
 class DataPreprocessor:
@@ -182,14 +209,15 @@ class DataPreprocessor:
         if current_relevant_ids:
             data.features = data.features[:, current_relevant_ids]
 
+    @exclude_ts
+    @exclude_multi_ts
+    @exclude_image
     def _prepare_obligatory_unimodal_for_fit(self, data: InputData, source_name: str) -> InputData:
         """ Method process InputData for pipeline fit method """
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
-        if not (data_type_is_text(data) or data_type_is_table(data)):
-            # Time series or image - do nothing
-            return data
+
         # Wrap indices in numpy array
         data.idx = np.array(data.idx)
 
@@ -223,18 +251,21 @@ class DataPreprocessor:
 
         return data
 
+    @exclude_ts
+    @exclude_multi_ts
+    @exclude_image
     def _prepare_obligatory_unimodal_for_predict(self, data: InputData, source_name: str) -> InputData:
         """ Method process InputData for pipeline predict method """
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
-        if not (data_type_is_text(data) or data_type_is_table(data)):
-            return data
-        data = self._correct_shapes(data)
-        replace_inf_with_nans(data)
 
         # Wrap indices in numpy array
         data.idx = np.array(data.idx)
+
+        # Fix tables / time series sizes
+        data = self._correct_shapes(data)
+        replace_inf_with_nans(data)
 
         # Perform preprocessing for types - launch after correct features selection
         self.take_only_correct_features(data, source_name)

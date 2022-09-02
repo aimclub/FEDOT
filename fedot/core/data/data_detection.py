@@ -1,27 +1,23 @@
-from typing import List, Optional
+from abc import abstractmethod
+from typing import List
 
 import numpy as np
 import pandas as pd
-
-from fedot.core.data.data import InputData
-from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 ALLOWED_NAN_PERCENT = 0.9
 
 
 class DataDetector:
-    @staticmethod
-    def array_to_input_data(features_array: np.array,
-                            target_array: np.array,
-                            idx: Optional[np.array] = None,
-                            task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
-        pass
 
     @staticmethod
+    @abstractmethod
+    def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
+        raise NotImplementedError()
+
+    @staticmethod
+    @abstractmethod
     def new_key_name(data_part_key: str) -> str:
-        pass
+        raise NotImplementedError()
 
 
 class TextDataDetector(DataDetector):
@@ -40,41 +36,27 @@ class TextDataDetector(DataDetector):
         return text_columns
 
     @staticmethod
-    def full_of_nans(text_data: np.array) -> bool:
+    def is_full_of_nans(text_data: np.array) -> bool:
         if np.sum(pd.isna(text_data)) / len(text_data) > ALLOWED_NAN_PERCENT:
             return True
         return False
 
     @staticmethod
-    def prepare_multimodal_text_data(dataframe: pd.DataFrame, text_columns: List[str]) -> dict:
+    def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
         """ Prepares MultiModal text data in a form of dictionary
 
         :param dataframe: pandas DataFrame to process
-        :param text_columns: list of text columns' names
+        :param columns: list of text columns' names
 
         :return multimodal_text_data: dictionary with numpy arrays of text data
         """
         multi_modal_text_data = {}
 
-        for column_name in text_columns:
+        for column_name in columns:
             text_feature = np.array(dataframe[column_name])
             multi_modal_text_data.update({column_name: text_feature})
 
         return multi_modal_text_data
-
-    @staticmethod
-    def array_to_input_data(features_array: np.array,
-                            target_array: np.array,
-                            idx: Optional[np.array] = None,
-                            task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
-        """
-        Transforms numpy array to InputData object
-        """
-        if idx is None:
-            idx = np.arange(len(features_array))
-
-        return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
     @staticmethod
     def new_key_name(data_part_key: str) -> str:
@@ -117,42 +99,23 @@ class TimeSeriesDataDetector(DataDetector):
     """
     Class for detecting time series data during its import.
     """
-    @staticmethod
-    def array_to_input_data(features_array: np.array,
-                            target_array: np.array,
-                            idx: Optional[np.array] = None,
-                            task: Task = Task(TaskTypesEnum.classification),
-                            data_type: DataTypesEnum = DataTypesEnum.table) -> InputData:
-        """
-        Transforms numpy array to InputData object
-        """
-        if idx is None:
-            idx = np.arange(len(features_array))
-
-        return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
     @staticmethod
-    def prepare_multimodal_ts_data(dataframe: pd.DataFrame, features: list, forecast_length: int) -> dict:
-        """ Prepare MultiModal data for time series forecasting task in a form of
-        dictionary
+    def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
+        """ Prepares MultiModal data for time series forecasting task in a form of dictionary
 
         :param dataframe: pandas DataFrame to process
-        :param features: columns, which should be used as features in forecasting
-        :param forecast_length: length of forecast
+        :param columns: column names, which should be used as features in forecasting
 
         :return multi_modal_ts_data: dictionary with numpy arrays
         """
         multi_modal_ts_data = {}
-        for feature in features:
-            if forecast_length > 0:
-                feature_ts = np.array(dataframe[feature])[:-forecast_length]
-                idx = list(dataframe['datetime'])[:-forecast_length]
-            else:
-                feature_ts = np.array(dataframe[feature])
-                idx = list(dataframe['datetime'])
+        for column_name in columns:
+            feature_ts = np.array(dataframe[column_name])
+            idx = list(dataframe['datetime'])
 
             # Will be the same
-            multi_modal_ts_data.update({feature: feature_ts})
+            multi_modal_ts_data.update({column_name: feature_ts})
 
         multi_modal_ts_data['idx'] = np.asarray(idx)
 
