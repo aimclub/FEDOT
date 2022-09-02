@@ -496,7 +496,7 @@ def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         idx: Optional[np.array] = None,
                         task: Task = Task(TaskTypesEnum.classification),
-                        data_type: DataTypesEnum = None):
+                        data_type: Optional[DataTypesEnum] = None):
     if idx is None:
         idx = np.arange(len(features_array))
     if data_type is None:
