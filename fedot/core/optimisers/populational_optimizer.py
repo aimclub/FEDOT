@@ -49,7 +49,6 @@ class PopulationalOptimizer(GraphOptimizer):
         self.eval_dispatcher = MultiprocessingDispatcher(graph_adapter=graph_generation_params.adapter,
                                                          timer=self.timer,
                                                          n_jobs=requirements.n_jobs,
-                                                         sync_logs=requirements.debug_mode,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
         # stopping_after_n_generation may be None, so use some obvious max number

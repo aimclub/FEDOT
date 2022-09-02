@@ -1,5 +1,4 @@
 import logging
-
 from copy import deepcopy
 from inspect import signature
 from typing import Any, List, Optional, Sequence, Tuple, Union
@@ -62,8 +61,6 @@ class Fedot:
     :param safe_mode: if set True it will cut large datasets to prevent memory overflow and use label encoder
         instead of oneHot encoder if summary cardinality of categorical features is high.
     :param n_jobs: num of n_jobs for parallelization (-1 for use all cpu's)
-    :param debug_mode: whether to respect every log (displaying, saving, etc), especially when using multiprocessing
-        Decreases (up to 25%) performance but guarantees all logs will be saved to a file and displayed in a console
 
     :Keywords arguments:
     :param max_depth: max depth of the pipeline
@@ -105,7 +102,6 @@ class Fedot:
                  seed=None, logging_level: int = logging.ERROR,
                  safe_mode=False,
                  n_jobs: int = 1,
-                 debug_mode: bool = False,
                  **composer_tuner_params
                  ):
 
@@ -117,8 +113,7 @@ class Fedot:
         # Define parameters, that were set via init in init
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
-                        'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs,
-                        'debug_mode': debug_mode}
+                        'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs}
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
