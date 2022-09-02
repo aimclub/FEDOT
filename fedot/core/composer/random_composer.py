@@ -10,6 +10,7 @@ from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.fitness import Fitness, SingleObjFitness
 from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
@@ -85,7 +86,7 @@ class RandomSearchOptimizer(GraphOptimizer):
         self._history = []
         super().__init__(objective)
 
-    def optimise(self, objective: ObjectiveFunction) -> Sequence[Individual]:
+    def optimise(self, objective: ObjectiveFunction) -> PopulationT[Pipeline]:
         self._history = []
         best_fitness = SingleObjFitness(np.inf)
         best_set = None
