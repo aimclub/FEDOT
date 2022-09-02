@@ -6,6 +6,8 @@ import pytest
 from fedot.api.main import Fedot
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.pipelines.node import PrimaryNode
@@ -23,7 +25,7 @@ class StaticOptimizer(GraphOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graph: Union[Graph, Sequence[Graph]] = (),
+                 initial_graph: Sequence[Graph] = (),
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None,
@@ -32,9 +34,9 @@ class StaticOptimizer(GraphOptimizer):
         self.change_types = []
         self.node_name = kwargs.get('node_name') or 'logit'
 
-    def optimise(self, objective: ObjectiveFunction):
+    def optimise(self, objective: ObjectiveFunction) -> PopulationT:
         graph = OptGraph(OptNode(self.node_name))
-        return [graph]
+        return [Individual(graph)]
 
 
 @pytest.mark.parametrize('data_fixture', ['classification_dataset'])

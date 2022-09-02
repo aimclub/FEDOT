@@ -101,7 +101,7 @@ class GraphOptimizer:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> PopulationT:
         """
         Method for running of optimization using specified algorithm.
         :param objective: objective function that specifies optimization target

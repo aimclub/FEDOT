@@ -2,12 +2,14 @@ from copy import copy
 from random import randint
 from typing import (Any, Callable, List, Optional, Sequence)
 
+import numpy as np
 from numpy import random
 
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
-from fedot.core.optimisers.fitness import Fitness
+from fedot.core.optimisers.fitness import Fitness, SingleObjFitness
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
@@ -28,7 +30,7 @@ class RandomSearchComposer(Composer):
             pipeline.fit(train_data)
             return self.optimizer.objective(pipeline, reference_data=test_data)
 
-        best_pipeline = self.optimizer.optimise(prepared_objective)[0]
+        best_pipeline = self.optimizer.optimise(prepared_objective)[0].graph
         return best_pipeline
 
 
@@ -80,21 +82,21 @@ class RandomSearchOptimizer(GraphOptimizer):
                  iter_num: int = 1):
         self._factory = random_pipeline_factory
         self._iter_num = iter_num
+        self._history = []
         super().__init__(objective)
 
-    def optimise(self, objective: ObjectiveFunction) -> Sequence[Pipeline]:
-        best_metric_value = 1000
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[Individual]:
+        self._history = []
+        best_fitness = SingleObjFitness(np.inf)
         best_set = None
-        history = []
         for i in range(self._iter_num):
             new_pipeline = self._factory()
-            new_metric_value = objective(new_pipeline).value
-            new_metric_value = round(new_metric_value, 3)
-            if new_metric_value < best_metric_value:
-                best_metric_value = new_metric_value
-                best_set = new_pipeline
+            fitness = objective(new_pipeline)
+            if fitness > best_fitness:
+                best_fitness = fitness
+                best_set = Individual(new_pipeline, fitness=fitness, native_generation=i)
 
-            history.append((new_pipeline, new_metric_value))
-            self.log.info(f'Iter {i}: best metric {best_metric_value},'
-                          f'try {new_metric_value} with num nodes {new_pipeline.length}')
+            self._history.append((new_pipeline, fitness))
+            self.log.info(f'Iter {i}: best metric {best_fitness},'
+                          f'try {fitness.value:.3f} with num nodes {new_pipeline.length}')
         return [best_set]
