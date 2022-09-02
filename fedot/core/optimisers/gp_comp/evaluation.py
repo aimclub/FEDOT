@@ -1,11 +1,12 @@
 import gc
 import multiprocessing
+import pathlib
 import timeit
 from abc import ABC, abstractmethod
-from contextlib import nullcontext
 from datetime import datetime
+from os import PathLike
 from random import choice
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple, Union
 
 from joblib import Parallel, delayed
 
@@ -85,13 +86,9 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         logger_lvl = Log().logger.level
-        if self._sync_logs:
-            with Log.using_mp_listener() as shared_q:
-                eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_queue=shared_q, logs_lvl=logger_lvl)
-                                     for ind in individuals)
-        else:
-            eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_lvl=logger_lvl)
-                                 for ind in individuals)
+        logs_dir = pathlib.Path(Log().log_file).parent
+        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_initializer=(logger_lvl, logs_dir))
+                             for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
         successful_evals = list(filter(None, eval_inds))
@@ -104,41 +101,35 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit: bool = True, logs_lvl: Optional[int] = None,
-                        logs_queue: Optional[multiprocessing.Queue] = None) -> Optional[Individual]:
+    def evaluate_single(self, ind: Individual, with_time_limit: bool = True,
+                        logs_initializer: Optional[Tuple[int, Union[PathLike, str]]] = None) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
-        if logs_lvl is not None:
+        if logs_initializer is not None:
             # in case of multiprocessing run
-            Log().reset_logging_level(logs_lvl)
-        if logs_queue is not None:
-            # in case of multiprocessing run
-            logger_context = Log.using_mp_worker(logs_queue)
-        else:
-            logger_context = nullcontext()
-        with logger_context:
-            start_time = timeit.default_timer()
+            Log.setup_in_mp(*logs_initializer)
+        start_time = timeit.default_timer()
 
-            graph = self.evaluation_cache.get(ind.uid, ind.graph)
-            adapted_graph = self._graph_adapter.restore(graph)
+        graph = self.evaluation_cache.get(ind.uid, ind.graph)
+        adapted_graph = self._graph_adapter.restore(graph)
 
-            ind_fitness = self._objective_eval(adapted_graph)
-            if self._post_eval_callback:
-                self._post_eval_callback(adapted_graph)
-            if self._cleanup:
-                self._cleanup(adapted_graph)
-            gc.collect()
+        ind_fitness = self._objective_eval(adapted_graph)
+        if self._post_eval_callback:
+            self._post_eval_callback(adapted_graph)
+        if self._cleanup:
+            self._cleanup(adapted_graph)
+        gc.collect()
 
-            ind_graph = self._graph_adapter.adapt(adapted_graph)
+        ind_graph = self._graph_adapter.adapt(adapted_graph)
 
-            ind.set_evaluation_result(ind_fitness, ind_graph)
+        ind.set_evaluation_result(ind_fitness, ind_graph)
 
-            end_time = timeit.default_timer()
-            ind.metadata['computation_time_in_seconds'] = end_time - start_time
-            ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
-            return ind if ind.fitness.valid else None
+        end_time = timeit.default_timer()
+        ind.metadata['computation_time_in_seconds'] = end_time - start_time
+        ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
+        return ind if ind.fitness.valid else None
 
     def _reset_eval_cache(self):
         self.evaluation_cache: Dict[str, Graph] = {}

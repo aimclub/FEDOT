@@ -3,10 +3,10 @@ import logging
 import multiprocessing
 import pathlib
 import sys
-from contextlib import contextmanager
 from logging.config import dictConfig
-from logging.handlers import QueueHandler, QueueListener, RotatingFileHandler
-from typing import Iterator, Optional
+from logging.handlers import RotatingFileHandler
+from os import PathLike
+from typing import Optional, Union
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -25,44 +25,29 @@ class Log(metaclass=SingletonMeta):
     __log_adapters = {}
 
     @staticmethod
-    @contextmanager
-    def using_mp_listener() -> Iterator[multiprocessing.Queue]:
+    def setup_in_mp(logging_level: int, logs_dir: Union[PathLike, str]):
         """
-        Used to prepare :class:`Log` for the multiprocessing records in the parent process
+        Preserves logger level and its records in a separate file for each process only if it's a child one
 
-        :return: queue managed by separate process across other potential worker-processes
+        :param logs_dir: path to the logs directory
+        :param logging_level: level of logger from the main process
         """
-        queue = multiprocessing.Manager().Queue(-1)
-        listener = QueueListener(queue, *default_log().logger.handlers)
-        listener.start()
-        yield queue
-        listener.stop()
-
-    @staticmethod
-    @contextmanager
-    def using_mp_worker(shared_q: multiprocessing.Queue):
-        """
-        Used in pair with :method:`using_mp_listener` in the worker processes to redirect their logs to the listener
-
-        :param shared_q: queue shared across all worker-processes
-        """
-        logger = default_log().logger
-        orig_handlers = logger.handlers.copy()
-        logger.handlers.clear()
-        logger.addHandler(QueueHandler(shared_q))
-        yield
-        logger.handlers = orig_handlers
+        cur_proc = multiprocessing.current_process().name
+        log_file_name = pathlib.Path(logs_dir, f'log_{cur_proc}.log')
+        Log(output_logging_level=logging_level, log_file=log_file_name, use_console=False)
 
     def __init__(self,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: str = None):
+                 log_file: str = None,
+                 use_console: bool = True):
         if not log_file:
             self.log_file = DEFAULT_LOG_PATH
         else:
             self.log_file = log_file
         self.logger = self._get_logger(config_file=config_json_file,
-                                       logging_level=output_logging_level)
+                                       logging_level=output_logging_level,
+                                       use_console=use_console)
 
     def reset_logging_level(self, logging_level: int):
         """ Resets logging level for logger and its handlers """
@@ -81,24 +66,28 @@ class Log(metaclass=SingletonMeta):
                                                         {'prefix': prefix})
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, config_file: str, logging_level: int) -> logging.Logger:
+    def _get_logger(self, config_file: str, logging_level: int, use_console: bool = True) -> logging.Logger:
         """ Get logger object """
         logger = logging.getLogger()
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger=logger, logging_level=logging_level)
+            logger = self._setup_default_logger(logger=logger, logging_level=logging_level, use_console=use_console)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, logging_level: int) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int,
+                              use_console: bool = True) -> logging.Logger:
         """ Define console and file handlers for logger """
 
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_formatter = logging.Formatter('%(asctime)s - %(message)s')
-        console_handler.setFormatter(console_formatter)
-        logger.addHandler(console_handler)
+        if use_console:
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setLevel(logging_level)
+            console_formatter = logging.Formatter('%(asctime)s - %(message)s')
+            console_handler.setFormatter(console_formatter)
+            logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
+        file_handler.setLevel(logging_level)
         file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
