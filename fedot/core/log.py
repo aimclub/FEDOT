@@ -160,8 +160,5 @@ def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
     # get log prefix
     if not isinstance(prefix, str):
         prefix = prefix.__class__.__name__
-    cur_proc_name = multiprocessing.current_process().name
-    if 'Main' not in cur_proc_name:  # TODO: if Py37 version will be OTS, make use of `.parent_process()` instead
-        prefix += f'_{cur_proc_name}'
 
     return Log().get_adapter(prefix=prefix)
