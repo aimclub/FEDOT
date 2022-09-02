@@ -1,5 +1,5 @@
 scanner:
-  diff_only: False
+  diff_only: False  # The entire file touched by the PR will be scanned for errors
   linter: flake8
 
 flake8:
