@@ -78,8 +78,8 @@ def test_custom_graph_opt():
         initial_graphs=init_population)
 
     objective_eval = ObjectiveEvaluate(objective, eval_n_jobs=1)
-    optimized_graphs = optimiser.optimise(objective_eval)
-    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
+    best_inds = optimiser.optimise(objective_eval)
+    optimized_network = optimiser.graph_generation_params.adapter.restore(best_inds[0].graph)
 
     assert optimized_network is not None
     assert isinstance(optimized_network, CustomModel)

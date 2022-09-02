@@ -8,7 +8,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
@@ -71,7 +71,7 @@ class PopulationalOptimizer(GraphOptimizer):
         # Redirect callback to evaluation dispatcher
         self.eval_dispatcher.set_evaluation_callback(callback)
 
-    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> PopulationT:
 
         # eval_dispatcher defines how to evaluate objective on the whole population
         evaluator = self.eval_dispatcher.dispatch(objective)
@@ -82,27 +82,22 @@ class PopulationalOptimizer(GraphOptimizer):
 
             while not self.stop_optimization():
                 try:
-                    new_population = self._evolve_population(evaluator=evaluator)
+                    new_population = self._evolve_population(self.population, evaluator)
                 except EvaluationAttemptsError as ex:
                     self.log.warning(f'Composition process was stopped due to: {ex}')
-                    return self.best_graphs
+                    break
                 # Adding of new population to history
                 self._update_population(new_population)
 
-        return self.best_graphs
-
-    @property
-    def best_graphs(self):
-        all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
-        return all_best_graphs
+        return self.generations.best_individuals
 
     @abstractmethod
-    def _initial_population(self, *args, **kwargs):
+    def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """
         raise NotImplementedError()
 
     @abstractmethod
-    def _evolve_population(self, *args, **kwargs) -> PopulationT:
+    def _evolve_population(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
         """ Method realizing full evolution cycle """
         raise NotImplementedError()
 

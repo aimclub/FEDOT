@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional, Union
+from typing import Optional, Union, Sequence
 
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
@@ -23,7 +23,7 @@ class Composer(ABC):
         self.log = default_log(self)
 
     @abstractmethod
-    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, List[Pipeline]]:
+    def compose_pipeline(self, data: Union[InputData, MultiModalData]) -> Union[Pipeline, Sequence[Pipeline]]:
         """
         Run composition process for optimal pipeline structure search
 

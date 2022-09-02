@@ -6,6 +6,7 @@ import pytest
 from fedot.api.main import Fedot
 from fedot.core.dag.graph import Graph
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
@@ -26,7 +27,7 @@ class StaticOptimizer(GraphOptimizer):
     def __init__(self,
                  objective: Objective,
                  initial_graph: Sequence[Graph] = (),
-                 requirements: Optional[Any] = None,
+                 requirements: Optional[ComposerRequirements] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None,
                  **kwargs):

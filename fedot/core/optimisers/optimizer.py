@@ -1,7 +1,7 @@
-from abc import abstractmethod
+from abc import abstractmethod, ABC
 from dataclasses import dataclass
 import logging
-from typing import (Any, Callable, Optional, Sequence)
+from typing import (Any, Callable, Optional, Sequence, TypeVar, Generic)
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
@@ -10,7 +10,6 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory, DefaultOptNodeFactory
 
@@ -67,7 +66,10 @@ class GraphGenerationParams:
         self.node_factory = node_factory or DefaultOptNodeFactory()
 
 
-class GraphOptimizer:
+G = TypeVar('G', bound=Graph)
+
+
+class GraphOptimizer(ABC, Generic[G]):
     """
     Base class of graph optimizer. It allows to find the optimal solution using specified metric (one or several).
     To implement the specific optimisation method,
@@ -101,7 +103,7 @@ class GraphOptimizer:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective: ObjectiveFunction) -> PopulationT:
+    def optimise(self, objective: ObjectiveFunction[G]) -> PopulationT[G]:
         """
         Method for running of optimization using specified algorithm.
         :param objective: objective function that specifies optimization target

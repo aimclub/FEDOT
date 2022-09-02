@@ -9,7 +9,7 @@ from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, Inheritance
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, Regularization
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
 from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
@@ -114,7 +114,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
-    def _initial_population(self, evaluator: Callable):
+    def _initial_population(self, evaluator: EvaluationOperator):
         """ Initializes the initial population """
         # Adding of initial assumptions to history as zero generation
         self._update_population(evaluator(self.initial_individuals))
@@ -124,8 +124,9 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             # Adding of extended population to history
             self._update_population(evaluator(self.initial_individuals))
 
-    def _extend_population(self, initial_individuals) -> PopulationT:
+    def _extend_population(self, initial_individuals: PopulationT) -> PopulationT:
         iter_num = 0
+        initial_individuals = list(initial_individuals)
         initial_graphs = [ind.graph for ind in initial_individuals]
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
@@ -145,11 +146,11 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         self.mutation.update_requirements(self.requirements)
         return initial_individuals
 
-    def _evolve_population(self, evaluator: Callable) -> PopulationT:
+    def _evolve_population(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
         """ Method realizing full evolution cycle """
         self._update_requirements()
 
-        individuals_to_select = self.regularization(self.population, evaluator)
+        individuals_to_select = self.regularization(population, evaluator)
         selected_individuals = self.selection(individuals_to_select)
         new_population = self._spawn_evaluated_population(selected_individuals=selected_individuals,
                                                           evaluator=evaluator)

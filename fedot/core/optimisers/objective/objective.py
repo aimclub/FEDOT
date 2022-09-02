@@ -12,7 +12,7 @@ GraphFunction = Callable[[G], R]
 ObjectiveFunction = GraphFunction[G, Fitness]
 
 
-class Objective:
+class Objective(ObjectiveFunction):
     """Represents objective function for computing metric values
     on Graphs and keeps information about metrics used."""
 

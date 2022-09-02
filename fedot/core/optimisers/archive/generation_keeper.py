@@ -66,7 +66,7 @@ class GenerationKeeper(ImprovementWatcher):
             self.append(initial_generation)
 
     @property
-    def best_individuals(self) -> Sequence[Individual]:
+    def best_individuals(self) -> PopulationT:
         return self.archive.items
 
     @property
