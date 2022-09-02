@@ -15,6 +15,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
 
+TESTING_LINT = True
 
 class PreprocessingCache(BaseCache):
     """
