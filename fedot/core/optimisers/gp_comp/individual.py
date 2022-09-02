@@ -1,11 +1,11 @@
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple, TypeVar, Generic
 from uuid import uuid4
 
+from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
-from fedot.core.optimisers.graph import OptGraph
 
 INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
                                       'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n' \
@@ -13,9 +13,16 @@ INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
                                       'and should be fixed.'
 
 
+G = TypeVar('G', bound=Graph)
+
+
 @dataclass(frozen=True)
-class Individual:
-    graph: OptGraph
+class Individual(Generic[G]):
+    """Generic immutable container dataclass for Graphs.
+    It is used during optimization process for keeping
+    fitness and various metadata e.g. computation time."""
+
+    graph: G
     parent_operators: Tuple['ParentOperator', ...] = field(default=())
     metadata: Dict[str, Any] = field(default_factory=dict)
     native_generation: Optional[int] = None
@@ -26,7 +33,7 @@ class Individual:
         if self.native_generation is None:
             super().__setattr__('native_generation', native_generation)
 
-    def set_evaluation_result(self, fitness: Fitness, updated_graph: Optional[OptGraph] = None):
+    def set_evaluation_result(self, fitness: Fitness, updated_graph: Optional[G] = None):
         if self.fitness.valid:
             raise ValueError('The individual has valid fitness and can not be evaluated again.')
         super().__setattr__('fitness', fitness)
