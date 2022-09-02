@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Callable
+from typing import Sequence, Callable, TypeVar
 
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 
-PopulationT = Sequence[Individual]  # TODO: provisional
+
+G = TypeVar('G')
+
+PopulationT = Sequence[Individual[G]]  # TODO: provisional
 EvaluationOperator = Callable[[PopulationT], PopulationT]
 
 
