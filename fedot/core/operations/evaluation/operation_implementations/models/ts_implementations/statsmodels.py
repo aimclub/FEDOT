@@ -16,6 +16,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 class GLMImplementation(ModelImplementation):
     """ Generalized linear models implementation """
+    # some models are dropped due to instability
     family_distribution = {
         "gaussian": {'distribution': Gaussian,
                      'default_link': 'identity',
@@ -59,7 +60,7 @@ class GLMImplementation(ModelImplementation):
     def fit(self, input_data):
         self.model = GLM(
             exog=sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2),
-            endog=input_data.target.astype("float64").reshape(-1, 1)+1e-6,
+            endog=input_data.target.astype("float64").reshape(-1, 1),
             family=self.family_link
         ).fit(method="lbfgs")
         return self.model
@@ -71,9 +72,9 @@ class GLMImplementation(ModelImplementation):
         old_idx = input_data.idx
         if forecast_length == 1:
             predictions = self.model.predict(np.concatenate([np.array([1]),
-                                                             input_data.idx.astype("float64")]).reshape(-1, 2)+1e-6)
+                                                             input_data.idx.astype("float64")]).reshape(-1, 2))
         else:
-            predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2)+1e-6)
+            predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
 
         start_id = old_idx[-1] - forecast_length + 1
         end_id = old_idx[-1]
@@ -94,7 +95,7 @@ class GLMImplementation(ModelImplementation):
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
         target = input_data.target
-        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2)+1e-6)
+        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
         _, predict = ts_to_table(idx=old_idx,
                                  time_series=predictions,
                                  window_size=forecast_length)
