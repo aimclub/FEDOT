@@ -124,8 +124,7 @@ class GLMImplementation(ModelImplementation):
         self.family_link = self.family_distribution['default']
         self.params_changed = True
         self.family = 'gaussian'
-        self.log.info(
-            f"Invalid family. Changed to default value")
+        self.log.info("Invalid family. Changed to default value")
 
     def correct_params(self):
         """ Correct params if they are not correct """
