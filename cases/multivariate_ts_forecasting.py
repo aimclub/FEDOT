@@ -1,7 +1,8 @@
 import os
-import pandas as pd
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 
 from fedot.api.main import Fedot
 from fedot.core.repository.tasks import TsForecastingParams
@@ -52,7 +53,7 @@ def launch_fedot_forecasting(target_column: int = 1, forecast_horizon: int = 50,
 
     # Configure AutoML
     task_parameters = TsForecastingParams(forecast_length=forecast_horizon)
-    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=30,
+    model = Fedot(problem='ts_forecasting', task_params=task_parameters, timeout=5,
                   cv_folds=2, validation_blocks=2)
     target_series = train_df[train_df['label'] == target_column]
     obtained_pipeline = model.fit(features=train_data,
