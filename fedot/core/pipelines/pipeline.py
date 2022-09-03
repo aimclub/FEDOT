@@ -25,7 +25,7 @@ from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_f
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-class Pipeline(Graph, Serializable):
+class Pipeline(GraphDelegate, Serializable):
     """Base class used for composite model structure definition
 
     Args:
