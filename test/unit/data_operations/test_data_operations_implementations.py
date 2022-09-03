@@ -218,28 +218,19 @@ def get_nan_binary_data(task=None):
     return input_data
 
 
-def get_unbalanced_dataset(target_dim=None):
-    """ Generate table with one numerical and one categorical features.
+def get_unbalanced_dataset(size=10, disbalance=0.4, target_dim=None):
+    """ Generate table with one numerical and one categorical features by selected size and class disbalance
         Target is binary and unbalanced: majority "1" class is more than minority "0" class.
         It can be generated with two options: 1D or 2D representation of target.
     """
-    features = np.array([
-        [0, 'minor'],
-        [1, 'minor'],
-        [2, 'minor'],
-        [3, 'minor'],
-        [4, 'major'],
-        [5, 'major'],
-        [6, 'major'],
-        [7, 'major'],
-        [8, 'major'],
-        [9, 'major'],
-    ])
+    minor_size = round(size * disbalance)
+    major_size = size - minor_size
 
-    target = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+    features = np.array([[np.random.rand(), 'minor']] * minor_size + [[np.random.rand(), 'major']] * major_size)
+    target = np.array([0] * minor_size + [1] * major_size)
 
     if target_dim == 2:
-        target = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
+        target = target.reshape(-1, 1)
 
     supp_data = SupplementaryData(column_types={
         'features': [NAME_CLASS_INT, NAME_CLASS_STR],
@@ -595,11 +586,11 @@ def test_poly_features_on_big_datasets():
 @pytest.mark.parametrize(
     'n_samples, target_dim, expected',
     [(None, 1, (12, 2)), (None, 2, (12, 2)),
-     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
-     (1.5, 1, (15, 2)), (1.5, 2, (15, 2))]
+     (0.5, 1, (11, 2)), (0.5, 2, (11, 2)),
+     (1.5, 1, (13, 2)), (1.5, 2, (13, 2))]
 )
 def test_correctness_resample_operation_with_expand_minority(n_samples, target_dim, expected):
-    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': n_samples}
+    params = {'balance': 'expand_minority', 'replace': False, 'n_samples': n_samples}
     resample = ResampleImplementation(**params)
 
     data = get_unbalanced_dataset(target_dim=target_dim)
@@ -609,13 +600,37 @@ def test_correctness_resample_operation_with_expand_minority(n_samples, target_d
 @pytest.mark.parametrize(
     'n_samples, target_dim, expected',
     [(None, 1, (8, 2)), (None, 2, (8, 2)),
-     (0.5, 1, (6, 2)), (0.5, 2, (6, 2)),
-     (1.5, 1, (10, 2)), (1.5, 2, (10, 2))]
+     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
+     (1.5, 1, (7, 2)), (1.5, 2, (7, 2))]
 )
 def test_correctness_resample_operation_with_reduce_majority(n_samples, target_dim, expected):
-    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': n_samples}
+    params = {'balance': 'reduce_majority', 'replace': False, 'n_samples': n_samples}
     resample = ResampleImplementation(**params)
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
     assert resample.transform_for_fit(data).predict.shape == expected
+
+@pytest.mark.parametrize(
+    'strategy, n_samples, disbalance, expected',
+    [('expand_minority', 0.5, 0.4, True), ('expand_minority', 0.5, 0.2, True),
+     ('expand_minority', 1, 0.4, True), ('expand_minority', 1, 0.2, True),
+     ('expand_minority', 1.5, 0.4, True), ('expand_minority', 1.5, 0.2, True),
+     ('reduce_majority', 0.5, 0.4, False), ('reduce_majority', 0.5, 0.2, False),
+     ('reduce_majority', 1, 0.4, False), ('reduce_majority', 1, 0.2, False),
+     ('reduce_majority', 1.5, 0.4, False), ('reduce_majority', 1.5, 0.2, False)]
+)
+def test_correctness_resample_operation_with_dynamic_replace_param(strategy, n_samples, disbalance, expected):
+    """
+    Default params for replace is False.
+    In case of expanding strategy it causes difficulties and needed to change replace param to True.
+    It is required to avoid error in sklearn method, which cannot reuse data if replace is False.
+    """
+    params = {'balance': strategy, 'replace': False, 'n_samples': n_samples}
+
+    resample = ResampleImplementation(**params)
+
+    data = get_unbalanced_dataset(size=10, disbalance=disbalance)
+    resample.transform_for_fit(data)
+
+    assert resample.replace == expected

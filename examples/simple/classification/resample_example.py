@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing,\
     classification_pipeline_with_balancing
+from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -82,7 +83,7 @@ def run_resample_example(path_to_data=None, tune=False):
         tuned_pipeline = pipeline.fine_tune_all_nodes(iterations=50,
                                                       timeout=1,
                                                       input_data=train_input,
-                                                      loss_function=roc_auc)
+                                                      loss_function=ROCAUC.metric)
 
         # Predict
         predicted_values_tuned = tuned_pipeline.predict(predict_input)
