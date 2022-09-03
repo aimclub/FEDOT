@@ -173,7 +173,7 @@ class NodeAnalyzeApproach(ABC):
         return changed_pipeline_metric / self._origin_metric
 
     def _get_metric_value(self, pipeline: Pipeline, metric: MetricByTask) -> float:
-        pipeline.fit(self._train_data, use_fitted=False)
+        pipeline.fit(self._train_data)
         predicted = pipeline.predict(self._test_data)
         metric_value = metric.get_value(true=self._test_data,
                                         predicted=predicted)
@@ -308,7 +308,7 @@ class NodeReplaceOperationAnalyze(NodeAnalyzeApproach):
         # Get models
         app_models, _ = OperationTypesRepository().suitable_operation(task_type=task)
         # Get data operations for such task
-        app_data_operations, _ = OperationTypesRepository('data_operation').suitable_operation(
+        app_data_operations = OperationTypesRepository('data_operation').suitable_operation(
             task_type=task)
 
         # Unit two lists

@@ -48,13 +48,12 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         return self.encoder
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """
         The method that transforms the categorical features in the original
-        dataset, but does not affect the rest features
+        dataset, but does not affect the rest features. Applicable during predict stage
 
         :param input_data: data with features, target and ids for transformation
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
         copied_data = deepcopy(input_data)
@@ -86,7 +85,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
             output_data.supplementary_data.column_types['features'] = numerical_columns
 
-    def _apply_one_hot_encoding(self, features: np.array):
+    def _apply_one_hot_encoding(self, features: np.array) -> np.array:
         """
         The method creates a table based on categorical and real features after One Hot Encoding transformation
 
@@ -108,7 +107,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         return transformed_features
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.encoder.get_params()
 
 
@@ -133,8 +132,10 @@ class LabelEncodingImplementation(DataOperationImplementation):
             self._fit_label_encoders(input_data)
         return self.encoders
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """ Apply LabelEncoder on categorical features and doesn't process float or int ones """
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Apply LabelEncoder on categorical features and doesn't process float or int ones
+        Applicable during predict stage
+        """
         copied_data = deepcopy(input_data)
         if self.categorical_ids:
             # If categorical features are exists - transform them inplace in InputData
@@ -148,11 +149,8 @@ class LabelEncodingImplementation(DataOperationImplementation):
                 transformed = self._apply_label_encoder(categorical_column, categorical_id, gap_ids)
                 copied_data.features[:, categorical_id] = transformed
 
-        # Update features
-        output_data = self._convert_to_output(copied_data,
+        output_data = self._convert_to_output(input_data,
                                               copied_data.features)
-        # Store source features values
-        output_data.features = input_data.features
 
         self._update_column_types(output_data)
         return output_data
@@ -177,7 +175,7 @@ class LabelEncodingImplementation(DataOperationImplementation):
             self.encoders.update({categorical_id: le})
 
     def _apply_label_encoder(self, categorical_column: np.array, categorical_id: int,
-                             gap_ids: Union[np.array, None]):
+                             gap_ids: Union[np.array, None]) -> np.array:
         """ Apply fitted LabelEncoder for column transformation
 
         :param categorical_column: numpy array with categorical features
@@ -203,6 +201,6 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
         return transformed_column
 
-    def get_params(self):
+    def get_params(self) -> dict:
         """ Due to LabelEncoder has no parameters - return empty set """
         return {}

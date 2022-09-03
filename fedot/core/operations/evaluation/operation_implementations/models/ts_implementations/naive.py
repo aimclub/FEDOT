@@ -2,7 +2,7 @@ from copy import copy
 
 import numpy as np
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
     transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
@@ -39,23 +39,29 @@ class RepeatLastValueImplementation(ModelImplementation):
             self.elements_to_repeat = input_data.task.task_params.forecast_length
         return self
 
-    def predict(self, input_data: InputData, is_fit_pipeline_stage: bool):
+    def predict(self, input_data: InputData) -> OutputData:
         input_data = copy(input_data)
         forecast_length = input_data.task.task_params.forecast_length
 
-        if is_fit_pipeline_stage:
-            # Transform the predicted time series into a table
-            new_idx, transformed_cols, new_target = transform_features_and_target_into_lagged(input_data,
-                                                                                              forecast_length,
-                                                                                              self.elements_to_repeat)
-            input_data.idx = new_idx
-            input_data.target = new_target
-            forecast = self._generate_repeated_forecast(transformed_cols, forecast_length)
-        else:
-            # Get last known value from history
-            last_observations = input_data.features[-self.elements_to_repeat:].reshape(1, -1)
-            forecast = self._generate_repeated_forecast(last_observations, forecast_length)
+        # Get last known value from history
+        last_observations = input_data.features[-self.elements_to_repeat:].reshape(1, -1)
+        forecast = self._generate_repeated_forecast(last_observations, forecast_length)
 
+        output_data = self._convert_to_output(input_data,
+                                              predict=forecast,
+                                              data_type=DataTypesEnum.table)
+        return output_data
+
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
+        input_data = copy(input_data)
+        forecast_length = input_data.task.task_params.forecast_length
+        # Transform the predicted time series into a table
+        new_idx, transformed_cols, new_target = transform_features_and_target_into_lagged(input_data,
+                                                                                          forecast_length,
+                                                                                          self.elements_to_repeat)
+        input_data.idx = new_idx
+        input_data.target = new_target
+        forecast = self._generate_repeated_forecast(transformed_cols, forecast_length)
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,
                                               data_type=DataTypesEnum.table)
@@ -88,30 +94,36 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         """ Such a simple approach does not support fit method """
         pass
 
-    def predict(self, input_data: InputData, is_fit_pipeline_stage: bool):
+    def predict(self, input_data: InputData) -> OutputData:
         """ Get desired part of time series for averaging and calculate mean value """
         forecast_length = input_data.task.task_params.forecast_length
-        if is_fit_pipeline_stage:
-            parts = split_rolling_slices(input_data)
-            mean_values_for_chunks = self.average_by_axis(parts)
-            forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
-            forecast = forecast[:-forecast_length, :]
 
-            # Update target
-            _, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,
-                                                window_size=forecast_length, is_lag=True)
-            input_data.target = transformed_target[1:, :]
+        elements_to_take = self._how_many_elements_use_for_averaging(input_data.features)
+        # Prepare single forecast
+        mean_value = np.nanmean(input_data.features[-elements_to_take:])
+        forecast = np.array([mean_value] * forecast_length).reshape((1, -1))
 
-            # Update indices - there is no forecast for first element and skip last out of boundaries predictions
-            last_threshold = forecast_length - 1
-            new_idx = input_data.idx[1: -last_threshold]
-            input_data.idx = new_idx
-        else:
-            elements_to_take = self._how_many_elements_use_for_averaging(input_data.features)
-            # Prepare single forecast
-            mean_value = np.nanmean(input_data.features[-elements_to_take:])
-            forecast = np.array([mean_value] * forecast_length).reshape((1, -1))
+        output_data = self._convert_to_output(input_data,
+                                              predict=forecast,
+                                              data_type=DataTypesEnum.table)
+        return output_data
 
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
+        forecast_length = input_data.task.task_params.forecast_length
+        parts = split_rolling_slices(input_data)
+        mean_values_for_chunks = self.average_by_axis(parts)
+        forecast = np.repeat(mean_values_for_chunks.reshape((-1, 1)), forecast_length, axis=1)
+        forecast = forecast[:-forecast_length, :]
+
+        # Update target
+        _, transformed_target = ts_to_table(idx=input_data.idx, time_series=input_data.target,
+                                            window_size=forecast_length, is_lag=True)
+        input_data.target = transformed_target[1:, :]
+
+        # Update indices - there is no forecast for first element and skip last out of boundaries predictions
+        last_threshold = forecast_length - 1
+        new_idx = input_data.idx[1: -last_threshold]
+        input_data.idx = new_idx
         output_data = self._convert_to_output(input_data,
                                               predict=forecast,
                                               data_type=DataTypesEnum.table)

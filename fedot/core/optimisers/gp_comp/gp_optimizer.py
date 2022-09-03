@@ -3,6 +3,7 @@ from random import choice
 from typing import Any, List, Optional, Sequence, Union, Callable
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
+from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
@@ -17,7 +18,7 @@ from fedot.core.optimisers.gp_comp.parameters.population_size import init_adapti
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizerParameters
-from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer
+from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, EvaluationAttemptsError
 from fedot.core.pipelines.pipeline import Pipeline
 
 
@@ -81,7 +82,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Pipeline],
+                 initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional[GPGraphOptimizerParameters] = None):
@@ -189,6 +190,6 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             iter_num += 1
 
         if not new_population:
-            raise AttributeError('Too many fitness evaluation errors. Composing stopped.')
+            raise EvaluationAttemptsError()
 
         return new_population

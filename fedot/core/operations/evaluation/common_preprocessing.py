@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
@@ -80,7 +80,6 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         Returns:
             prediction
         """
-
         prediction = trained_operation.transform(predict_data,
                                                  is_fit_pipeline_stage)
         # Convert prediction to output (if it is required)

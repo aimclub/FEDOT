@@ -20,7 +20,7 @@ def run_log_example(log_file):
     pipeline = classification_complex_pipeline()
 
     log.info('start fitting pipeline')
-    pipeline.fit(train_data, use_fitted=False)
+    pipeline.fit(train_data)
 
 
 if __name__ == '__main__':

@@ -1,5 +1,4 @@
 from copy import copy
-from typing import Optional
 
 import numpy as np
 import statsmodels.api as sm
@@ -9,8 +8,7 @@ from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
-from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -79,39 +77,46 @@ class GLMImplementation(ModelImplementation):
         ).fit()
         return self.model
 
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data):
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
         old_idx = input_data.idx
-        target = input_data.target
-        if forecast_length == 1 and not is_fit_pipeline_stage:
+        if forecast_length == 1:
             predictions = self.model.predict(np.concatenate([np.array([1]),
                                                              input_data.idx.astype("float64")]).reshape(-1, 2))
         else:
             predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
 
-        if is_fit_pipeline_stage:
-            _, predict = ts_to_table(idx=old_idx,
-                                     time_series=predictions,
-                                     window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=old_idx,
-                                                  time_series=target,
-                                                  window_size=forecast_length)
+        start_id = old_idx[-1] - forecast_length + 1
+        end_id = old_idx[-1]
+        predict = predictions
+        predict = np.array(predict).reshape(1, -1)
+        new_idx = np.arange(start_id, end_id + 1)
 
-            # Update idx and target
-            input_data.idx = new_idx
-            input_data.target = target_columns
+        input_data.idx = new_idx
 
-        else:
-            start_id = old_idx[-1] - forecast_length + 1
-            end_id = old_idx[-1]
-            predict = predictions
-            predict = np.array(predict).reshape(1, -1)
-            new_idx = np.arange(start_id, end_id + 1)
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
 
-            # Update idx
-            input_data.idx = new_idx
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
+        input_data = copy(input_data)
+        parameters = input_data.task.task_params
+        forecast_length = parameters.forecast_length
+        old_idx = input_data.idx
+        target = input_data.target
+        predictions = self.model.predict(sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2))
+        _, predict = ts_to_table(idx=old_idx,
+                                 time_series=predictions,
+                                 window_size=forecast_length)
+        new_idx, target_columns = ts_to_table(idx=old_idx,
+                                              time_series=target,
+                                              window_size=forecast_length)
+
+        input_data.idx = new_idx
+        input_data.target = target_columns
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
@@ -183,44 +188,48 @@ class AutoRegImplementation(ModelImplementation):
 
         return self.autoreg
 
-    def predict(self, input_data, is_fit_pipeline_stage: bool):
+    def predict(self, input_data):
         """ Method for time series prediction on forecast length
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with smoothed time series
         """
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
+
+        # in case in(out) sample forecasting
+        self.handle_new_data(input_data)
+        start_id = self.actual_ts_len
+        end_id = start_id + forecast_length - 1
+        predicted = self.autoreg.predict(start=start_id, end=end_id)
+        predict = np.array(predicted).reshape(1, -1)
+
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
+
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
+        input_data = copy(input_data)
+        parameters = input_data.task.task_params
+        forecast_length = parameters.forecast_length
         idx = input_data.idx
         target = input_data.target
+        predicted = self.autoreg.predict(start=idx[0], end=idx[-1])
+        # adding nan to target as in predicted
+        nan_mask = np.isnan(predicted)
+        target = target.astype(float)
+        target[nan_mask] = np.nan
+        _, predict = ts_to_table(idx=idx,
+                                 time_series=predicted,
+                                 window_size=forecast_length)
+        new_idx, target_columns = ts_to_table(idx=idx,
+                                              time_series=target,
+                                              window_size=forecast_length)
 
-        if is_fit_pipeline_stage:
-            predicted = self.autoreg.predict(start=idx[0], end=idx[-1])
-            # adding nan to target as in predicted
-            nan_mask = np.isnan(predicted)
-            target = target.astype(float)
-            target[nan_mask] = np.nan
-            _, predict = ts_to_table(idx=idx,
-                                     time_series=predicted,
-                                     window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=idx,
-                                                  time_series=target,
-                                                  window_size=forecast_length)
-
-            # Update idx and target
-            input_data.idx = new_idx
-            input_data.target = target_columns
-
-        else:
-            # in case in(out) sample forecasting
-            self.handle_new_data(input_data)
-            start_id = self.actual_ts_len
-            end_id = start_id + forecast_length - 1
-            predicted = self.autoreg.predict(start=start_id, end=end_id)
-            predict = np.array(predicted).reshape(1, -1)
-
+        input_data.idx = new_idx
+        input_data.target = target_columns
         output_data = self._convert_to_output(input_data,
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
@@ -297,39 +306,46 @@ class ExpSmoothingImplementation(ModelImplementation):
         self.model = self.model.fit(disp=False)
         return self.model
 
-    def predict(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def predict(self, input_data):
+        input_data = copy(input_data)
+        idx = input_data.idx
+
+        start_id = idx[0]
+        end_id = idx[-1]
+        predictions = self.model.predict(start=start_id,
+                                         end=end_id)
+        predict = predictions
+        predict = np.array(predict).reshape(1, -1)
+        new_idx = np.arange(start_id, end_id + 1)
+
+        input_data.idx = new_idx
+
+        output_data = self._convert_to_output(input_data,
+                                              predict=predict,
+                                              data_type=DataTypesEnum.table)
+        return output_data
+
+    def predict_for_fit(self, input_data: InputData) -> OutputData:
         input_data = copy(input_data)
         parameters = input_data.task.task_params
         forecast_length = parameters.forecast_length
         idx = input_data.idx
         target = input_data.target
 
-        if is_fit_pipeline_stage:
-            # Indexing for statsmodels is different
-            predictions = self.model.predict(start=idx[0],
-                                             end=idx[-1])
-            _, predict = ts_to_table(idx=idx,
-                                     time_series=predictions,
-                                     window_size=forecast_length)
-            new_idx, target_columns = ts_to_table(idx=idx,
-                                                  time_series=target,
-                                                  window_size=forecast_length)
+        # Indexing for statsmodels is different
+        start_id = idx[0]
+        end_id = idx[-1]
+        predictions = self.model.predict(start=start_id,
+                                         end=end_id)
+        _, predict = ts_to_table(idx=idx,
+                                 time_series=predictions,
+                                 window_size=forecast_length)
+        new_idx, target_columns = ts_to_table(idx=idx,
+                                              time_series=target,
+                                              window_size=forecast_length)
 
-            # Update idx and target
-            input_data.idx = new_idx
-            input_data.target = target_columns
-
-        else:
-            start_id = idx[0]
-            end_id = idx[-1]
-            predictions = self.model.predict(start=start_id,
-                                             end=end_id)
-            predict = predictions
-            predict = np.array(predict).reshape(1, -1)
-            new_idx = np.arange(start_id, end_id + 1)
-
-            # Update idx
-            input_data.idx = new_idx
+        input_data.idx = new_idx
+        input_data.target = target_columns
 
         output_data = self._convert_to_output(input_data,
                                               predict=predict,

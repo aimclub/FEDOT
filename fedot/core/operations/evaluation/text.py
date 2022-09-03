@@ -38,8 +38,7 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
 
         return self.vectorizer
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
 
         features_list = self._convert_to_one_dim(predict_data.features)
         predicted = trained_operation.transform(features_list).toarray()
@@ -94,20 +93,28 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
         self.text_processor.fit(train_data)
         return self.text_processor
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        This method used for prediction of the target data.
+        This method used for prediction of the target data during predict stage.
 
         :param trained_operation: trained operation object
         :param predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
-        # Convert prediction to output (if it is required)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data during fit stage.
+
+        :param trained_operation: trained operation object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -141,12 +148,15 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
         self.vectorizer.fit(train_data)
         return self.vectorizer
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
 
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
-        # Convert prediction to output (if it is required)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

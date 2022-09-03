@@ -1,5 +1,5 @@
 import random
-from typing import Optional
+from typing import Optional, Union, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -183,7 +183,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         self.params = params
         self.columns_to_take = None
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method for fit Poly features operation """
         # Check the number of columns in source dataset
         n_rows, n_cols = input_data.features.shape
@@ -202,7 +202,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         clipped_input_data = input_data
         if self.columns_to_take is not None:
             clipped_input_data = input_data.subset_features(self.columns_to_take)
-        output_data = super().transform(clipped_input_data, is_fit_pipeline_stage)
+        output_data = super().transform(clipped_input_data)
 
         if self.columns_to_take is not None:
             # Get generated features from poly function
@@ -212,7 +212,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             output_data.predict = all_features
         return output_data
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
     def _update_column_types(self, source_features_shape, output_data: OutputData):
@@ -248,7 +248,7 @@ class ScalingImplementation(EncodedInvariantImplementation):
             self.operation = StandardScaler(**params)
         self.params = params
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
 
@@ -270,7 +270,7 @@ class NormalizationImplementation(EncodedInvariantImplementation):
             self.operation = MinMaxScaler(**params)
         self.params = params
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return self.operation.get_params()
 
 
@@ -389,7 +389,7 @@ class ImputationImplementation(DataOperationImplementation):
         """
 
         self.fit(input_data)
-        output_data = self.transform(input_data)
+        output_data = self.transform_for_fit(input_data)
         return output_data
 
     def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array):

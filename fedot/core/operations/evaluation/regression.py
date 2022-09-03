@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerRegImplementation
@@ -17,18 +17,15 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for regression task
+        Predict method for regression task for predict stage
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
 
         prediction = trained_operation.predict(predict_data.features)
-        # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
 
         return converted
@@ -68,19 +65,27 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Transform method for preprocessing
+        Transform method for preprocessing for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return:
         """
-        prediction = trained_operation.transform(predict_data, is_fit_pipeline_stage)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
-        # Convert prediction to output (if it is required)
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Transform method for preprocessing for fit stage
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :return:
+        """
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -116,12 +121,15 @@ class FedotRegressionStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
-        """ Predict method for regression models """
-        prediction = trained_operation.predict(predict_data, is_fit_pipeline_stage)
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
 
-        # Convert prediction to output (if it is required)
+        prediction = trained_operation.predict(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+
+        prediction = trained_operation.predict_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

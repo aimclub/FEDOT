@@ -1,12 +1,12 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple, Union, Sequence
 
 import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData, OutputData
@@ -32,39 +32,14 @@ class Pipeline(Graph, Serializable):
         nodes: :obj:`Node` object(s)
     """
 
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
+    def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
+        super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
+
         self.computation_time = None
         self.log = default_log(self)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor()
-        super().__init__(nodes)
-        self._operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
-
-    def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
-        """Method to update nodes type after performing some action on the pipeline
-        via :obj:`GraphOperator`, if any of them are of ``GraphNode`` type
-
-        Args:
-            nodes: :obj:`Node` object(s)
-        """
-
-        if not nodes:
-            nodes = self.nodes
-
-        for node in nodes:
-            if not isinstance(node, GraphNode):
-                continue
-            if node.nodes_from and not isinstance(node, SecondaryNode):
-                self.update_node(old_node=node,
-                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
-                                                        content=node.content))
-            elif not node.nodes_from:
-                if not self.node_children(node) and node != self.root_node:
-                    self.nodes.remove(node)
-                elif not isinstance(node, PrimaryNode):
-                    self.update_node(old_node=node,
-                                     new_node=PrimaryNode(content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """[Obsolete] Method used for training the pipeline without using saved information
@@ -74,10 +49,10 @@ class Pipeline(Graph, Serializable):
         """
 
         # Clean all saved states and fit all operations
-        self.unfit(unfit_preprocessor=True)
-        self.fit(input_data, use_fitted=False)
+        self.unfit()
+        self.fit(input_data)
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData] = None, use_fitted_operations: bool = False,
+    def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
                              time: int = 3) -> OutputData:
         """Runs training process in all of the pipeline nodes starting with root with time limit.
         
@@ -99,7 +74,7 @@ class Pipeline(Graph, Serializable):
         try:
             func_timeout.func_timeout(
                 time, self._fit,
-                args=(input_data, use_fitted_operations, process_state_dict, fitted_operations)
+                args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
             raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
@@ -109,7 +84,7 @@ class Pipeline(Graph, Serializable):
             self.nodes[node_num].fitted_operation = fitted_operations[node_num]
         return process_state_dict['train_predicted']
 
-    def _fit(self, input_data: Optional[InputData] = None, use_fitted_operations: bool = False,
+    def _fit(self, input_data: Optional[InputData] = None,
              process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
         """Runs training process in all of the pipeline nodes starting with root
 
@@ -126,7 +101,7 @@ class Pipeline(Graph, Serializable):
 
         with Timer() as t:
             computation_time_update = (
-                    not use_fitted_operations or not self.root_node.fitted_operation or self.computation_time is None
+                    not self.root_node.fitted_operation or self.computation_time is None
             )
             train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
@@ -140,10 +115,10 @@ class Pipeline(Graph, Serializable):
             for node in self.nodes:
                 fitted_operations.append(node.fitted_operation)
 
-    def fit(self, input_data: Union[InputData, MultiModalData], use_fitted: bool = False,
-            time_constraint: Optional[timedelta] = None, n_jobs: int = 1,
-            preprocessing_cache: Optional[PreprocessingCache] = None) -> OutputData:
-        """Runs training process in all of the pipeline nodes starting with root
+    def fit(self, input_data: Union[InputData, MultiModalData],
+            time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
+        """
+        Runs training process in all of the pipeline nodes starting with root
 
         Args:
             input_data: data used for operations training
@@ -154,33 +129,21 @@ class Pipeline(Graph, Serializable):
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
+        self.replace_n_jobs_in_nodes(n_jobs)
 
-        _replace_n_jobs_in_nodes(self, n_jobs)
-
-        if use_fitted:
-            self.unfit(mode='data_operations', unfit_preprocessor=False)
-        else:
-            self.unfit(mode='all', unfit_preprocessor=True)
-        with PreprocessingCache.manage(preprocessing_cache, self, input_data):
-            # Make copy of the input data to avoid performing inplace operations
-            copied_input_data = deepcopy(input_data)
-            copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
-            # Make additional preprocessing if it is needed
-            copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
-                                                                           data=copied_input_data)
-
-            copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
-                                                                          data=copied_input_data)
-
+        copied_input_data = deepcopy(input_data)
+        copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
+        # Make additional preprocessing if it is needed
+        copied_input_data = self.preprocessor.optional_prepare_for_fit(pipeline=self,
+                                                                       data=copied_input_data)
+        copied_input_data = self.preprocessor.convert_indexes_for_fit(pipeline=self,
+                                                                      data=copied_input_data)
         copied_input_data = self._assign_data_to_nodes(copied_input_data)
 
         if time_constraint is None:
-            train_predicted = self._fit(input_data=copied_input_data,
-                                        use_fitted_operations=use_fitted)
+            train_predicted = self._fit(input_data=copied_input_data)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data,
-                                                        use_fitted_operations=use_fitted,
-                                                        time=time_constraint)
+            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
         return train_predicted
 
     @property
@@ -212,10 +175,15 @@ class Pipeline(Graph, Serializable):
                 node.unfit()
 
         if unfit_preprocessor:
-            self.preprocessor = DataPreprocessor()
+            self.unfit_preprocessor()
 
-    def fit_from_cache(self, cache: Optional[OperationsCache], fold_num: Optional[int] = None) -> bool:
-        """Tries to load pipeline nodes if ``cache`` is provided
+    def unfit_preprocessor(self):
+        self.preprocessor = DataPreprocessor()
+
+    def try_load_from_cache(self, cache: Optional[OperationsCache], preprocessing_cache: Optional[PreprocessingCache],
+                            fold_id: Optional[int] = None):
+        """
+        Tries to load pipeline nodes if ``cache`` is provided
 
         Args:
             cache: pipeline nodes cacher
@@ -225,8 +193,10 @@ class Pipeline(Graph, Serializable):
         Returns:
             bool: indicating if at least one node was loaded
         """
-
-        return cache.try_load_into_pipeline(self, fold_num) if cache is not None else False
+        if cache is not None:
+            cache.try_load_into_pipeline(self, fold_id)
+        if preprocessing_cache is not None:
+            preprocessing_cache.try_load_preprocessor(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
         """Runs the predict process in all of the pipeline nodes starting with root
@@ -273,9 +243,10 @@ class Pipeline(Graph, Serializable):
     def fine_tune_all_nodes(self, loss_function: Callable,
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations: int = 50, timeout: Optional[float] = 5.,
-                            cv_folds: Optional[int] = None, validation_blocks: int = 3) -> 'Pipeline':
+                            cv_folds: Optional[int] = None, validation_blocks: int = 3,
+                            n_jobs: int = -1) -> 'Pipeline':
         """Tunes all nodes hyperparameters simultaneously via black-box
-        optimization using ``PipelineTuner``.\n
+        optimization using PipelineTuner.\n 
         For details, see :obj:`PipelineTuner.tune_pipeline`
 
         Args:
@@ -286,6 +257,7 @@ class Pipeline(Graph, Serializable):
             timeout: max time spent on tuning
             cv_folds: number of cross-validation folds
             validation_blocks: number of validation blocks for time series forecasting
+        :param n_jobs: number of parallel threads for tuner
 
         Returns:
             Pipeline: pipeline with tuned hyperparameters
@@ -299,7 +271,8 @@ class Pipeline(Graph, Serializable):
         pipeline_tuner = PipelineTuner(pipeline=self,
                                        task=copied_input_data.task,
                                        iterations=iterations,
-                                       timeout=timeout)
+                                       timeout=timeout,
+                                       n_jobs=n_jobs)
         self.log.info('Start pipeline tuning')
 
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
@@ -434,6 +407,21 @@ class Pipeline(Graph, Serializable):
             sep='\n'
         )
 
+    def replace_n_jobs_in_nodes(self, n_jobs: int):
+        """
+        Changes number of jobs for nodes
+
+        :param n_jobs: required number of the jobs to assign to the nodes
+        """
+        for node in self.nodes:
+            for param in ['n_jobs', 'num_threads']:
+                if param in node.content['params']:
+                    node.content['params'][param] = n_jobs
+                    # workaround for lgbm paramaters
+                    if node.content['name'] == 'lgbm':
+                        node.content['params']['num_threads'] = n_jobs
+                        node.content['params']['n_jobs'] = n_jobs
+
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     """Returns list of nodes with the required ``operation_name``
@@ -452,15 +440,25 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     return list(appropriate_nodes)
 
 
-def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
-    """Changes number of jobs for nodes
+def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node]):
+    """
+    Method to update nodes type after performing some action on the pipeline
+        via GraphOperator, if any of them are of GraphNode type
 
-    Args:
-        pipeline: pipeline which nodes to update
-        n_jobs: required number of the jobs to assign to the nodes
+    :param nodes: Node object(s)
     """
 
-    for node in pipeline.nodes:
-        for param in ['n_jobs', 'num_threads']:
-            if param in node.content['params']:
-                node.content['params'][param] = n_jobs
+    for node in nodes:
+        if not isinstance(node, GraphNode):
+            continue
+        if node.nodes_from and not isinstance(node, SecondaryNode):
+            operator.update_node(old_node=node,
+                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
+                                                        content=node.content))
+        # TODO: avoid internal access use operator.delete_node
+        elif not node.nodes_from and not operator.node_children(node) and node != operator.root_node:
+            operator.nodes.remove(node)
+        elif not node.nodes_from and not isinstance(node, PrimaryNode):
+            operator.update_node(old_node=node,
+                                 new_node=PrimaryNode(nodes_from=node.nodes_from,
+                                                      content=node.content))

@@ -1,12 +1,16 @@
 import os
 
 import numpy as np
+import pytest
+
 from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from examples.simple.regression.regression_with_tuning import get_regression_dataset
 from examples.simple.time_series_forecasting.gapfilling import generate_synthetic_data
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.data.supplementary_data import SupplementaryData
+from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_imbalanced_class import \
+    ResampleImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations. \
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
@@ -214,6 +218,44 @@ def get_nan_binary_data(task=None):
     return input_data
 
 
+def get_unbalanced_dataset(target_dim=None):
+    """ Generate table with one numerical and one categorical features.
+        Target is binary and unbalanced: majority "1" class is more than minority "0" class.
+        It can be generated with two options: 1D or 2D representation of target.
+    """
+    features = np.array([
+        [0, 'minor'],
+        [1, 'minor'],
+        [2, 'minor'],
+        [3, 'minor'],
+        [4, 'major'],
+        [5, 'major'],
+        [6, 'major'],
+        [7, 'major'],
+        [8, 'major'],
+        [9, 'major'],
+    ])
+
+    target = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+
+    if target_dim == 2:
+        target = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
+
+    supp_data = SupplementaryData(column_types={
+        'features': [NAME_CLASS_INT, NAME_CLASS_STR],
+        'target': [NAME_CLASS_INT]
+    })
+
+    input_data = InputData(idx=np.arange(features.shape[0]),
+                           features=features,
+                           target=target,
+                           task=Task(TaskTypesEnum.classification),
+                           data_type=DataTypesEnum.table,
+                           supplementary_data=supp_data)
+
+    return input_data
+
+
 def data_with_binary_int_features_and_equal_categories():
     """
     Generate table with binary integer features and nans there. Such a columns
@@ -237,7 +279,7 @@ def data_with_binary_int_features_and_equal_categories():
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
-    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository('data_operation').suitable_operation(
         task_type=TaskTypesEnum.regression)
 
     for data_operation in operation_names:
@@ -256,7 +298,7 @@ def test_regression_data_operations():
 def test_classification_data_operations():
     train_input, predict_input, y_test = get_small_classification_dataset()
 
-    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository('data_operation').suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     for data_operation in operation_names:
@@ -291,14 +333,14 @@ def test_ts_forecasting_cut_data_operation():
     horizon = train_input.task.task_params.forecast_length
     operation_cut = CutImplementation(cut_part=0.5)
 
-    transformed_input = operation_cut.transform(train_input, is_fit_pipeline_stage=True)
+    transformed_input = operation_cut.transform_for_fit(train_input)
     assert train_input.idx.shape[0] == 2 * transformed_input.idx.shape[0] - horizon
 
 
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    model_names, _ = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
+    model_names = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
 
     for smoothing_operation in model_names:
         node_smoothing = PrimaryNode(smoothing_operation)
@@ -334,7 +376,7 @@ def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform()
 def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
-    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
 
     for model_name in model_names:
         node_data_operation = PrimaryNode(model_name)
@@ -352,7 +394,7 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
 def test_feature_selection_of_single_features():
     for task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
-        model_names, _ = OperationTypesRepository(operation_type='data_operation') \
+        model_names = OperationTypesRepository(operation_type='data_operation') \
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)
@@ -478,8 +520,8 @@ def test_lagged_with_multivariate_time_series():
     input_data = get_multivariate_time_series()
     lagged = LaggedTransformationImplementation(**{'window_size': 2})
 
-    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
-    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+    transformed_for_fit = lagged.transform_for_fit(input_data)
+    transformed_for_predict = lagged.transform(input_data)
 
     # Check correctness on fit stage
     lagged_features = transformed_for_fit.predict
@@ -513,8 +555,8 @@ def test_lagged_with_multi_ts_type():
     correct_predict_output = np.array([[8, 9]])
     input_data = get_multivariate_time_series(mutli_ts=True)
     lagged = LaggedTransformationImplementation(**{'window_size': 2})
-    transformed_for_fit = lagged.transform(input_data, is_fit_pipeline_stage=True)
-    transformed_for_predict = lagged.transform(input_data, is_fit_pipeline_stage=False)
+    transformed_for_fit = lagged.transform_for_fit(input_data)
+    transformed_for_predict = lagged.transform(input_data)
 
     # Check correctness on fit stage
     lagged_features = transformed_for_fit.predict
@@ -549,3 +591,31 @@ def test_poly_features_on_big_datasets():
 
     n_rows, n_cols = transformed_features.predict.shape
     assert n_cols == 85
+
+@pytest.mark.parametrize(
+    'n_samples, target_dim, expected',
+    [(None, 1, (12, 2)), (None, 2, (12, 2)),
+     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
+     (1.5, 1, (15, 2)), (1.5, 2, (15, 2))]
+)
+def test_correctness_resample_operation_with_expand_minority(n_samples, target_dim, expected):
+    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': n_samples}
+    resample = ResampleImplementation(**params)
+
+    data = get_unbalanced_dataset(target_dim=target_dim)
+
+    assert resample.transform_for_fit(data).predict.shape == expected
+
+@pytest.mark.parametrize(
+    'n_samples, target_dim, expected',
+    [(None, 1, (8, 2)), (None, 2, (8, 2)),
+     (0.5, 1, (6, 2)), (0.5, 2, (6, 2)),
+     (1.5, 1, (10, 2)), (1.5, 2, (10, 2))]
+)
+def test_correctness_resample_operation_with_reduce_majority(n_samples, target_dim, expected):
+    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': n_samples}
+    resample = ResampleImplementation(**params)
+
+    data = get_unbalanced_dataset(target_dim=target_dim)
+
+    assert resample.transform_for_fit(data).predict.shape == expected

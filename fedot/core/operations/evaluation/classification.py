@@ -1,7 +1,7 @@
 import warnings
 from typing import Optional
 
-from fedot.core.data.data import InputData
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy, SkLearnEvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.data_operations.decompose \
     import DecomposerClassImplementation
@@ -24,21 +24,17 @@ warnings.filterwarnings("ignore", category=UserWarning)
 class SkLearnClassificationStrategy(SkLearnEvaluationStrategy):
     """ Strategy for applying classification algorithms from Sklearn library """
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for classification task
+        Predict method for classification task for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
 
         prediction = self._sklearn_compatible_prediction(trained_operation=trained_operation,
                                                          features=predict_data.features)
-
-        # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -64,6 +60,7 @@ class FedotClassificationStrategy(EvaluationStrategy):
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
+
         if self.params_for_fit:
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
@@ -72,14 +69,12 @@ class FedotClassificationStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for classification task
+        Predict method for classification task for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return: prediction target
         """
         n_classes = len(trained_operation.classes_)
@@ -138,20 +133,27 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
         operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Transform data
+        Transform data for predict stage
 
         :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return:
+        :return: prediction target
         """
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
 
-        # Convert prediction to output (if it is required)
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Transform data for fit stage
+
+        :param trained_operation: model object
+        :param predict_data: data used for prediction
+        :return: prediction target
+        """
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

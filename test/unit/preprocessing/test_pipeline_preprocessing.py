@@ -96,7 +96,7 @@ def test_nans_columns_process_correctly():
     data_with_nans = data_with_too_much_nans()
 
     pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
-    pipeline.fit(data_with_nans, use_fitted=True)
+    pipeline.fit(data_with_nans)
 
     # Ridge should use only one feature to make prediction
     fitted_ridge = pipeline.nodes[0]
@@ -136,12 +136,11 @@ def test_data_with_nans_in_target_process_correctly():
     single_target_data = data_with_nans_in_target_column()
     pipeline.fit(single_target_data)
     single_hyperparams = pipeline.nodes[0].custom_params
-
     # Multi-target columns processing
     multi_target_data = data_with_nans_in_multi_target()
+    pipeline.unfit()
     pipeline.fit(multi_target_data)
     multi_hyperparams = pipeline.nodes[0].custom_params
-
     assert 2 == single_hyperparams['n_neighbors']
     assert 2 == multi_hyperparams['n_neighbors']
 
@@ -178,7 +177,7 @@ def test_pipeline_with_imputer():
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
-    pipeline.fit(mixed_input, use_fitted=True)
+    pipeline.fit(mixed_input)
 
     # Coefficients for ridge regression
     coefficients = pipeline.nodes[0].operation.fitted_operation.coef_
@@ -257,7 +256,7 @@ def test_data_with_mixed_types_per_column_processed_correctly():
 
     pipeline = Pipeline(PrimaryNode('dt'))
     pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
-    pipeline.fit(train_data, use_fitted=True)
+    pipeline.fit(train_data)
     predicted = pipeline.predict(test_data)
 
     importances = pipeline.nodes[0].operation.fitted_operation.feature_importances_

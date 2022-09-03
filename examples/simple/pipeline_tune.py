@@ -62,7 +62,7 @@ if __name__ == '__main__':
     pipeline = classification_complex_pipeline()
 
     # Before tuning prediction
-    pipeline.fit(train_data, use_fitted=False)
+    pipeline.fit(train_data)
     before_tuning_predicted = pipeline.predict(test_data)
     bfr_tun_roc_auc = roc_auc(y_true=test_data.target,
                               y_score=before_tuning_predicted.predict)

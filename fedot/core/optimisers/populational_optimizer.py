@@ -4,6 +4,7 @@ from typing import Any, Optional, Sequence
 
 from tqdm import tqdm
 
+from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
@@ -35,7 +36,7 @@ class PopulationalOptimizer(GraphOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Pipeline],
+                 initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  parameters: Optional['GPGraphOptimizerParameters'] = None):
@@ -50,7 +51,7 @@ class PopulationalOptimizer(GraphOptimizer):
 
         # stopping_after_n_generation may be None, so use some obvious max number
         max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
-        self.stop_optimisation = \
+        self.stop_optimization = \
             GroupedCondition().add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),
                 'Optimisation stopped: Time limit is reached'
@@ -70,23 +71,28 @@ class PopulationalOptimizer(GraphOptimizer):
         # Redirect callback to evaluation dispatcher
         self.eval_dispatcher.set_evaluation_callback(callback)
 
-    def optimise(self, objective: ObjectiveFunction,
-                 show_progress: bool = True) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
 
         # eval_dispatcher defines how to evaluate objective on the whole population
         evaluator = self.eval_dispatcher.dispatch(objective)
 
-        with self.timer, tqdm(total=self.requirements.num_of_generations,
-                              desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.logging_level == logging.NOTSET):
+        with self.timer, self._progressbar:
 
             self._initial_population(evaluator=evaluator)
 
-            while not self.stop_optimisation():
-                new_population = self._evolve_population(evaluator=evaluator)
+            while not self.stop_optimization():
+                try:
+                    new_population = self._evolve_population(evaluator=evaluator)
+                except EvaluationAttemptsError as ex:
+                    self.log.warning(f'Composition process was stopped due to: {ex}')
+                    return self.best_graphs
                 # Adding of new population to history
                 self._update_population(new_population)
 
+        return self.best_graphs
+
+    @property
+    def best_graphs(self):
         all_best_graphs = [ind.graph for ind in self.generations.best_individuals]
         return all_best_graphs
 
@@ -115,16 +121,15 @@ class PopulationalOptimizer(GraphOptimizer):
         for individual in population:
             individual.set_native_generation(self.current_generation_num)
 
-    def _progressbar(self, show_progress: bool = True):
-        disable = not show_progress
-        if disable:
-            # disable call to tqdm.__init__ completely
-            # to avoid access to stdout/stderr inside it
-            # workaround for https://github.com/nccr-itmo/FEDOT/issues/765
-            bar = EmptyProgressBar()
-        else:
+    @property
+    def _progressbar(self):
+        if self.requirements.show_progress:
             bar = tqdm(total=self.requirements.num_of_generations,
-                       desc='Generations', unit='gen', initial=1, disable=disable)
+                       desc='Generations', unit='gen', initial=1)
+        else:
+            # disable call to tqdm.__init__ to avoid stdout/stderr access inside it
+            # part of a workaround for https://github.com/nccr-itmo/FEDOT/issues/765
+            bar = EmptyProgressBar()
         return bar
 
 
@@ -139,3 +144,18 @@ class EmptyProgressBar:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         return True
+
+
+class EvaluationAttemptsError(Exception):
+    """ Number of evaluation attempts exceeded """
+    def __init__(self, *args):
+        if args:
+            self.message = args[0]
+        else:
+            self.message = None
+
+    def __str__(self):
+        if self.message:
+            return self.message
+        else:
+            return 'Too many fitness evaluation errors.'

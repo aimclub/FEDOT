@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
+from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
     EvoGraphOptimizer,
@@ -62,12 +63,10 @@ def custom_mutation(graph: OptGraph, **kwargs):
                                  [n.descriptive_id for n in other_random_node.ordered_subnodes_hierarchy()] and
                                  other_random_node.descriptive_id not in
                                  [n.descriptive_id for n in random_node.ordered_subnodes_hierarchy()])
-            if random_node.nodes_from is not None and len(random_node.nodes_from) == 0:
-                random_node.nodes_from = None
             if nodes_not_cycling:
                 graph.connect_nodes(random_node, other_random_node)
     except Exception as ex:
-        graph.log.warning(f'Incorrect connection: {ex}')
+        default_log(prefix='custom_mutation').warning(f'Incorrect connection: {ex}')
     return graph
 
 

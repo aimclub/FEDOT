@@ -5,7 +5,7 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import Any, List, Optional, Sequence, Union
+from typing import List, Optional, Sequence, Union
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -19,7 +19,7 @@ from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.serializers import Serializer
 from fedot.core.utils import default_fedot_data_dir
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser, PlotTypesEnum
+from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
 
 
 class OptHistory:
@@ -123,68 +123,6 @@ class OptHistory:
             shutil.rmtree(dir_path, ignore_errors=True)
             os.mkdir(dir_path)
 
-    def show(self, plot_type: Union[PlotTypesEnum, str] = PlotTypesEnum.fitness_box,
-             save_path: Optional[Union[os.PathLike, str]] = None,
-             pct_best: Optional[float] = None, show_fitness: bool = True, per_time: bool = True):
-        """ Visualizes fitness values or operations used across generations.
-
-        :param plot_type: visualization to show. Expected values are listed in
-            'fedot.core.visualisation.opt_viz.PlotTypesEnum'.
-        :param save_path: path to save the visualization. If set, then the image will be saved,
-            and if not, it will be displayed. Essential for animations.
-        :param pct_best: fraction of individuals with the best fitness per generation. The value should be in the
-            interval (0, 1]. The other individuals are filtered out. The fraction will also be mentioned on the plot.
-        :param show_fitness: if False, visualizations that support this parameter will not display fitness.
-        :param per_time: Shows time axis instead of generations axis.
-            Currently, supported for plot_type = 'show_fitness_line'.
-        """
-
-        def check_args_constraints():
-            nonlocal per_time
-            # Check supported cases for `pct_best`.
-            if pct_best is not None and \
-                    (pct_best <= 0 or pct_best > 1):
-                raise ValueError('`pct_best` parameter should be in the interval (0, 1].')
-            # Check supported cases for show_fitness == False.
-            if not show_fitness and plot_type is not PlotTypesEnum.operations_animated_bar:
-                self._log.warning(f'Argument `show_fitness` is not supported for "{plot_type.name}". It is ignored.')
-            # Check plot_type-specific cases
-            if plot_type in (PlotTypesEnum.fitness_line, PlotTypesEnum.fitness_line_interactive) and \
-                    per_time and self.individuals[0][0].metadata.get('evaluation_time_iso') is None:
-                self._log.warning('Evaluation time not found in optimization history. '
-                                  'Showing fitness plot per generations...')
-                per_time = False
-            elif plot_type is PlotTypesEnum.operations_animated_bar:
-                if not save_path:
-                    raise ValueError('Argument `save_path` is required to save the animation.')
-
-        if isinstance(plot_type, str):
-            try:
-                plot_type = PlotTypesEnum[plot_type]
-            except KeyError:
-                raise NotImplementedError(
-                    f'Visualization "{plot_type}" is not supported. Expected values: '
-                    f'{", ".join(PlotTypesEnum.member_names())}.')
-
-        check_args_constraints()
-
-        self._log.info('Visualizing optimization history... It may take some time, depending on the history size.')
-
-        viz = PipelineEvolutionVisualiser()
-        if plot_type is PlotTypesEnum.fitness_line:
-            viz.visualize_fitness_line(self, per_time, save_path)
-        elif plot_type is PlotTypesEnum.fitness_line_interactive:
-            viz.visualize_fitness_line_interactive(self, per_time, save_path)
-        elif plot_type is PlotTypesEnum.fitness_box:
-            viz.visualise_fitness_box(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type is PlotTypesEnum.operations_kde:
-            viz.visualize_operations_kde(self, save_path=save_path, pct_best=pct_best)
-        elif plot_type is PlotTypesEnum.operations_animated_bar:
-            viz.visualize_operations_animated_bar(
-                self, save_path=save_path, pct_best=pct_best, show_fitness_color=show_fitness)
-        else:
-            raise NotImplementedError(f'Oops, plot type {plot_type.name} has no function to show!')
-
     @property
     def historical_fitness(self) -> Sequence[Sequence[Union[float, Sequence[float]]]]:
         """Return sequence of histories of generations per each metric"""
@@ -227,6 +165,10 @@ class OptHistory:
             adapter.restore_as_template(ind.graph, ind.metadata)
             for ind in list(itertools.chain(*self.individuals))
         ]
+
+    @property
+    def show(self):
+        return OptHistoryVisualizer(self)
 
     def get_leaderboard(self, top_n: int = 10) -> str:
         """

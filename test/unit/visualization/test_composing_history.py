@@ -22,7 +22,9 @@ def create_individual():
     return individual
 
 
-def generate_history(generations_quantity, pop_size):
+@pytest.fixture(scope='module')
+def generate_history(request):
+    generations_quantity, pop_size = request.param
     history = OptHistory()
     for gen_num in range(generations_quantity):
         new_pop = []
@@ -34,47 +36,49 @@ def generate_history(generations_quantity, pop_size):
     return history
 
 
-def test_history_adding():
+@pytest.mark.parametrize('generate_history', [[2, 10]], indirect=True)
+def test_history_adding(generate_history):
     generations_quantity = 2
     pop_size = 10
-    history = generate_history(generations_quantity, pop_size)
+    history = generate_history
 
     assert len(history.individuals) == generations_quantity
     for gen in range(generations_quantity):
         assert len(history.individuals[gen]) == pop_size
 
 
-def test_individual_graph_type_is_optgraph():
+@pytest.mark.parametrize('generate_history', [[2, 10]], indirect=True)
+def test_individual_graph_type_is_optgraph(generate_history):
     generations_quantity = 2
     pop_size = 10
-    history = generate_history(generations_quantity, pop_size)
+    history = generate_history
     for gen in range(generations_quantity):
         for ind in range(pop_size):
             assert type(history.individuals[gen][ind].graph) == OptGraph
 
 
-def test_prepare_for_visualisation():
+@pytest.mark.parametrize('generate_history', [[2, 10]], indirect=True)
+def test_prepare_for_visualisation(generate_history):
     generations_quantity = 2
     pop_size = 10
-    history = generate_history(generations_quantity, pop_size)
+    history = generate_history
     assert len(history.historical_pipelines) == pop_size * generations_quantity
     assert len(history.all_historical_fitness) == pop_size * generations_quantity
 
     leaderboard = history.get_leaderboard()
-    assert 'n_lda_default_params' in leaderboard
+    assert OptNode('lda').descriptive_id in leaderboard
     assert 'Position' in leaderboard
 
     dumped_history = history.save()
     loaded_history = OptHistory.load(dumped_history)
     leaderboard = loaded_history.get_leaderboard()
-    assert 'n_lda_default_params' in leaderboard
+    assert OptNode('lda').descriptive_id in leaderboard
     assert 'Position' in leaderboard
 
 
-def test_all_historical_quality():
-    pop_size = 4
-    generations_quantity = 3
-    history = generate_history(generations_quantity, pop_size)
+@pytest.mark.parametrize('generate_history', [[3, 4]], indirect=True)
+def test_all_historical_quality(generate_history):
+    history = generate_history
     eval_fitness = [[0.9, 0.8], [0.8, 0.6], [0.2, 0.4], [0.9, 0.9]]
     weights = (-1, 1)
     for pop_num, population in enumerate(history.individuals):
@@ -87,14 +91,13 @@ def test_all_historical_quality():
     assert all_quality[0] == -0.9 and all_quality[4] == -1.4 and all_quality[5] == -1.3 and all_quality[10] == -1.2
 
 
+@pytest.mark.parametrize('generate_history', [[3, 4]], indirect=True)
 @pytest.mark.parametrize('plot_type', PlotTypesEnum)
-def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum):
-    generations_quantity = 2
-    pop_size = 5
+def test_history_show_saving_plots(tmp_path, plot_type: PlotTypesEnum, generate_history):
     save_path = Path(tmp_path, plot_type.name)
     save_path = save_path.with_suffix('.gif') if plot_type is PlotTypesEnum.operations_animated_bar \
         else save_path.with_suffix('.png')
-    history = generate_history(generations_quantity, pop_size)
-    history.show(plot_type=plot_type, save_path=str(save_path), pct_best=0.1)
+    history = generate_history
+    history.show(plot_type=plot_type, save_path=str(save_path), best_fraction=0.1, dpi=100)
     if plot_type is not PlotTypesEnum.fitness_line_interactive:
         assert save_path.exists()

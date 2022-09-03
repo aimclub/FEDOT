@@ -17,12 +17,14 @@ class PipelineTuner(HyperoptTuner):
                  iterations=100, early_stopping_rounds=None,
                  timeout: timedelta = timedelta(minutes=5),
                  search_space: ClassVar = SearchSpace(),
-                 algo: Callable = tpe.suggest):
+                 algo: Callable = tpe.suggest,
+                 n_jobs: int = -1):
         super().__init__(pipeline=pipeline, task=task,
                          iterations=iterations, early_stopping_rounds=early_stopping_rounds,
                          timeout=timeout,
                          search_space=search_space,
-                         algo=algo)
+                         algo=algo,
+                         n_jobs=n_jobs)
 
     def tune_pipeline(self, input_data, loss_function,
                       cv_folds: int = None, validation_blocks: int = None):
@@ -39,6 +41,8 @@ class PipelineTuner(HyperoptTuner):
 
         # Check source metrics for data
         self.init_check(input_data, loss_function)
+
+        self.pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
         best = fmin(partial(self._objective,
                             pipeline=self.pipeline,

@@ -3,6 +3,7 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
@@ -31,18 +32,17 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         self._download_model_resources()
         super().__init__()
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
 
         :param input_data: data with features, target and ids to process
         """
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """ Method for transformation of the text data
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for transformation of the text data for predict stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: output data with transformed features table
         """
 

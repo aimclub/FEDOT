@@ -29,7 +29,6 @@ class GPComposer(Composer):
                  history: Optional[OptHistory] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None):
-
         super().__init__(optimizer, composer_requirements)
         self.composer_requirements = composer_requirements
         self.pipelines_cache: Optional[OperationsCache] = pipelines_cache
@@ -44,10 +43,13 @@ class GPComposer(Composer):
                                            self.composer_requirements.validation_blocks,
                                            shuffle=True).build(data)
         # Define objective function
+        n_jobs_for_evaluation = 1
+        # TODO implement dispatcher selection
         objective_evaluator = PipelineObjectiveEvaluate(self.optimizer.objective, data_producer,
                                                         self.composer_requirements.max_pipeline_fit_time,
                                                         self.composer_requirements.validation_blocks,
-                                                        self.pipelines_cache, self.preprocessing_cache)
+                                                        self.pipelines_cache, self.preprocessing_cache,
+                                                        eval_n_jobs=n_jobs_for_evaluation)
         objective_function = objective_evaluator.evaluate
 
         # Define callback for computing intermediate metrics if needed
@@ -55,8 +57,7 @@ class GPComposer(Composer):
             self.optimizer.set_evaluation_callback(objective_evaluator.evaluate_intermediate_metrics)
 
         # Finally, run optimization process
-        opt_result = self.optimizer.optimise(objective_function,
-                                             show_progress=self.composer_requirements.show_progress)
+        opt_result = self.optimizer.optimise(objective_function)
 
         best_model, self.best_models = self._convert_opt_results_to_pipeline(opt_result)
         self.log.info('GP composition finished')

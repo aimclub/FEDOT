@@ -33,7 +33,7 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 def check_predict_correct(model, fitted_operation, test_data):
     return is_predict_ignores_target(
         predict_func=model.predict,
-        predict_args={'fitted_operation': fitted_operation, 'is_fit_pipeline_stage': False},
+        predict_args={'fitted_operation': fitted_operation},
         data_arg_name='data',
         input_data=test_data,
     )
@@ -139,15 +139,15 @@ def test_classification_models_fit_predict_correct(data_fixture, request):
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, fitted_operation = repo.suitable_operation(task_type=TaskTypesEnum.classification,
-                                                                data_type=data.data_type,
-                                                                tags=['ml'])
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.classification,
+                                              data_type=data.data_type,
+                                              tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test classification model: {model_name}.")
         model = Model(operation_type=model_name)
         fitted_operation, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         roc_on_test = get_roc_auc(valid_data=test_data,
                                   predicted_data=test_pred)
         if model_name not in ['bernb', 'multinb']:
@@ -164,15 +164,15 @@ def test_regression_models_fit_predict_correct():
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.regression,
-                                                 tags=['ml'])
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.regression,
+                                              tags=['ml'])
 
     for model_name in model_names:
         logger.info(f"Test regression model: {model_name}.")
         model = Model(operation_type=model_name)
 
         fitted_operation, train_predicted = model.fit(params=None, data=train_data)
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         rmse_value_test = mean_squared_error(y_true=test_data.target, y_pred=test_pred.predict)
 
         rmse_threshold = np.std(test_data.target) ** 2
@@ -185,8 +185,8 @@ def test_ts_models_fit_predict_correct():
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                 tags=['time_series'])
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                              tags=['time_series'])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
@@ -197,7 +197,7 @@ def test_ts_models_fit_predict_correct():
             default_params = None
 
         fitted_operation, train_predicted = model.fit(params=default_params, data=deepcopy(train_data))
-        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data, is_fit_pipeline_stage=False)
+        test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
         mae_threshold = np.var(test_data.target) * 2
@@ -211,8 +211,8 @@ def test_ts_models_dt_idx_fit_correct():
     logger = default_log(prefix='default_test_logger')
 
     with OperationTypesRepository() as repo:
-        model_names, _ = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
-                                                 tags=['time_series'])
+        model_names = repo.suitable_operation(task_type=TaskTypesEnum.ts_forecasting,
+                                              tags=['time_series'])
 
     for model_name in model_names:
         logger.info(f"Test time series model: {model_name}.")
@@ -292,7 +292,7 @@ def test_glm_indexes_correct():
     input_data = generate_simple_series()
     glm_impl = GLMImplementation(family="gaussian", link="identity")
     glm_impl.fit(input_data)
-    predicted = glm_impl.predict(input_data, is_fit_pipeline_stage=True)
+    predicted = glm_impl.predict_for_fit(input_data)
     pred_values = predicted.predict
     for i in range(9):
         assert pred_values[i, 0] - i < 0.5
@@ -331,8 +331,8 @@ def test_ts_naive_average_forecast_correctly():
     train_input, predict_input, _ = synthetic_univariate_ts()
 
     model = NaiveAverageForecastImplementation(part_for_averaging=1.0)
-    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
-    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+    fit_forecast = model.predict_for_fit(train_input)
+    predict_forecast = model.predict(predict_input)
 
     # Check correctness during pipeline fit stage
     assert (10, 4) == fit_forecast.target.shape
@@ -349,8 +349,8 @@ def test_locf_forecast_correctly():
     model = RepeatLastValueImplementation(part_for_repeat=0.2)
 
     model.fit(train_input)
-    fit_forecast = model.predict(train_input, is_fit_pipeline_stage=True)
-    predict_forecast = model.predict(predict_input, is_fit_pipeline_stage=False)
+    fit_forecast = model.predict_for_fit(train_input)
+    predict_forecast = model.predict(predict_input)
 
     assert (8, 4) == fit_forecast.target.shape
     assert np.array_equal(fit_forecast.idx, np.array([3, 4, 5, 6, 7, 8, 9, 10]))

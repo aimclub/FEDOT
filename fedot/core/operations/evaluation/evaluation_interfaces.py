@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 from catboost import CatBoostClassifier, CatBoostRegressor
-from lightgbm import LGBMClassifier, LGBMRegressor
+from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
     AdaBoostRegressor,
@@ -72,17 +72,30 @@ class EvaluationStrategy:
     @abstractmethod
     def predict(self, trained_operation, predict_data: InputData,
                 is_fit_pipeline_stage: bool) -> OutputData:
-        """Main method to predict the target data
+        """Method to predict the target data for predict stage.
 
         Args:
             trained_operation: trained operation object
             predict_data: data to predict
             is_fit_pipeline_stage: is this fit or predict stage for pipeline
         
-        Returns: passed data with new predicted target
+        Returns:
+            passed data with new predicted target
         """
-
         raise NotImplementedError()
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """Method to predict the target data for fit stage.
+        Allows to implement predict method different from main predict method
+        if another behaviour for fit graph stage is needed.
+
+        Args:
+            trained_operation: trained operation object
+            predict_data: data to predict
+        Returns:
+            passed data with new predicted target
+        """
+        return self.predict(trained_operation, predict_data)
 
     @abstractmethod
     def _convert_to_operation(self, operation_type: str):
@@ -210,7 +223,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
-        non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
+        non_multi_models = models_repo.suitable_operation(task_type=current_task,
                                                              tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
 

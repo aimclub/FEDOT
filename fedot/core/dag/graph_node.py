@@ -1,9 +1,13 @@
-
+from copy import copy
 from typing import Iterable, List, Optional, Union
 from uuid import uuid4
-NoneType = type(None)
+
 from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.utilities.data_structures import UniqueList
+from fedot.core.utils import DEFAULT_PARAMS_STUB
+
+
+MAX_DEPTH = 1000
 
 
 class GraphNode:
@@ -22,14 +26,12 @@ class GraphNode:
 
     def __init__(self, content: Union[dict, str],
                  nodes_from: Optional[List['GraphNode']] = None):
-        self._nodes_from = None
-        if nodes_from is not None:
-            self._nodes_from = UniqueList(nodes_from)
         # Wrap string into dict if it is necessary
         if isinstance(content, str):
             content = {'name': content}
+
         self.content = content
-        self._operator = NodeOperator(self)
+        self._nodes_from = UniqueList(nodes_from or ())
         self.uid = str(uuid4())
 
     def __str__(self):
@@ -77,8 +79,7 @@ class GraphNode:
         Returns: 
             str: text description of the content in the node and its parameters
         """
-
-        return self._operator.descriptive_id()
+        return _descriptive_id_recursive(self)
 
     def ordered_subnodes_hierarchy(self, visited: Optional[List['GraphNode']] = None) -> List['GraphNode']:
         """Gets hierarchical subnodes representation of the graph starting from the bounded node
@@ -89,8 +90,18 @@ class GraphNode:
         Returns:
             List['GraphNode']: hierarchical subnodes list starting from the bounded node
         """
+        if visited is None:
+            visited = []
 
-        return self._operator.ordered_subnodes_hierarchy(visited)
+        if len(visited) > MAX_DEPTH:
+            raise ValueError('Graph has cycle')
+        nodes = [self]
+        for parent in self.nodes_from:
+            if parent not in visited:
+                visited.append(parent)
+                nodes.extend(parent.ordered_subnodes_hierarchy(visited))
+
+        return nodes
 
     @property
     def distance_to_primary_level(self) -> int:
@@ -99,5 +110,43 @@ class GraphNode:
         Returns:
             int: max depth to the primary level
         """
+        if not self.nodes_from:
+            return 0
+        else:
+            return 1 + max([next_node.distance_to_primary_level for next_node in self.nodes_from])
 
-        return self._operator.distance_to_primary_level()
+
+def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
+    """Method returns verbal description of the content in the node
+    and its parameters
+    """
+
+    if visited_nodes is None:
+        visited_nodes = []
+
+    node_operation = current_node.content['name']
+    params = current_node.content.get('params')
+    if isinstance(node_operation, str):
+        # If there is a string: name of operation (as in json repository)
+        node_label = str(node_operation)
+        if params and params != DEFAULT_PARAMS_STUB:
+            node_label = f'n_{node_label}_{params}'
+    else:
+        # If instance of Operation is placed in 'name'
+        node_label = node_operation.description(params)
+
+    full_path_items = []
+    if current_node in visited_nodes:
+        return 'ID_CYCLED'
+    visited_nodes.append(current_node)
+    if current_node.nodes_from:
+        previous_items = []
+        for parent_node in current_node.nodes_from:
+            previous_items.append(f'{_descriptive_id_recursive(copy(parent_node), copy(visited_nodes))};')
+        previous_items.sort()
+        previous_items_str = ';'.join(previous_items)
+
+        full_path_items.append(f'({previous_items_str})')
+    full_path_items.append(f'/{node_label}')
+    full_path = ''.join(full_path_items)
+    return full_path

@@ -43,12 +43,13 @@ class Node(GraphNode):
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
             default_params = get_default_params(operation.operation_type)
-            if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
+            passed_params = passed_content.get('params', DEFAULT_PARAMS_STUB)
+            if passed_params == DEFAULT_PARAMS_STUB and default_params is not None:
                 # Replace 'default_params' with params from json file
                 default_params = get_default_params(operation.operation_type)
             else:
                 # Store passed
-                default_params = passed_content['params']
+                default_params = passed_params
 
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
@@ -219,14 +220,12 @@ class Node(GraphNode):
         if self.fitted_operation is None:
             with Timer() as t:
                 self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
-                                                                              data=input_data,
-                                                                              is_fit_pipeline_stage=True)
+                                                                              data=input_data)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
-            operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       data=input_data,
-                                                       is_fit_pipeline_stage=True,
-                                                       params=self.content['params'])
+            operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
+                                                               data=input_data,
+                                                               params=self.content['params'])
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
@@ -250,8 +249,7 @@ class Node(GraphNode):
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
                                                        params=self.content['params'],
                                                        data=input_data,
-                                                       output_mode=output_mode,
-                                                       is_fit_pipeline_stage=False)
+                                                       output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 
@@ -424,8 +422,6 @@ class SecondaryNode(Node):
 
     def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
                  nodes_from: Optional[List['Node']] = None, **kwargs):
-        if nodes_from is None:
-            nodes_from = []
         super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
 
     def fit(self, input_data: InputData, **kwargs) -> OutputData:
@@ -496,10 +492,7 @@ class SecondaryNode(Node):
         Returns:
             sorted :attr:`nodes_from` by :obj:`GraphNode.descriptive_id` or ``None``
         """
-
-        if self.nodes_from is not None:
-            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
-        return None
+        return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
 
 def _combine_parents(parent_nodes: List[Node],

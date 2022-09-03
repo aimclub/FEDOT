@@ -179,7 +179,7 @@ def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilde
         return following
 
     lhs_nodes_final = previous.to_nodes()
-    rhs_tmp_graph = Graph(following.to_nodes())
+    rhs_tmp_graph = GraphOperator(following.to_nodes())
     rhs_nodes_initial = list(filter(lambda node: not node.nodes_from, rhs_tmp_graph.nodes))
 
     # If merging one-to-one or one-to-many
@@ -201,7 +201,5 @@ def merge_pipeline_builders(previous: PipelineBuilder, following: PipelineBuilde
     if not all(map(lambda n: isinstance(n, Node), rhs_tmp_graph.nodes)):
         raise ValueError("Expected Graph only with nodes of type 'Node'")
 
-    # Need all root_nodes, hence GraphOperator (Pipeline.root_node returns just a single node or throws)
-    root_nodes = GraphOperator(rhs_tmp_graph).root_node()
-    merged_builder = PipelineBuilder(root_nodes) if isinstance(root_nodes, Node) else PipelineBuilder(*root_nodes)
+    merged_builder = PipelineBuilder(*rhs_tmp_graph.root_nodes())
     return merged_builder

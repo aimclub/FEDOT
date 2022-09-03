@@ -1,6 +1,5 @@
 import datetime
 import random
-from pathlib import Path
 
 import numpy as np
 from sklearn.metrics import roc_auc_score as roc_auc
@@ -9,21 +8,20 @@ from cases.credit_scoring.credit_scoring_problem import get_scoring_data
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters, GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum, ComplexityMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import default_fedot_data_dir
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.visualisation.opt_viz_extra import OptHistoryExtraVisualizer
 
 random.seed(12)
 np.random.seed(12)
 
 
 def results_visualization(history, composed_pipelines):
-    visualiser = PipelineEvolutionVisualiser()
+    visualiser = OptHistoryExtraVisualizer()
     visualiser.visualise_history(history)
     visualiser.pareto_gif_create(history.archive_history, history.individuals)
     visualiser.boxplots_gif_create(history.individuals)

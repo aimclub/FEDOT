@@ -87,7 +87,7 @@ class GraphOptimizer:
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None):
-        self.log = default_log(self, self, logging_level=requirements.logging_level_opt if requirements else
+        self.log = default_log(self, logging_level=requirements.logging_level_opt if requirements else
                                logging.CRITICAL+1)
         self.initial_graphs = initial_graphs
         self._objective = objective
@@ -101,12 +101,10 @@ class GraphOptimizer:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective: ObjectiveFunction,
-                 show_progress: bool = True) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
         """
         Method for running of optimization using specified algorithm.
         :param objective: objective function that specifies optimization target
-        :param show_progress: print output the describes the progress during iterations
         :return: sequence of the best graphs
         """
         pass

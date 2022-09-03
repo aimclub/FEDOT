@@ -80,7 +80,7 @@ class Operation:
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
 
-        predict_train = self.predict(self.fitted_operation, data, is_fit_pipeline_stage, params)
+        predict_train = self.predict_for_fit(self.fitted_operation, data, params)
 
         return self.fitted_operation, predict_train
 
@@ -97,15 +97,33 @@ class Operation:
             output_mode: string with information about output of operation,
             for example, is the operation predict probabilities or class labels
         """
+        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False)
 
+    def predict_for_fit(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                        output_mode: str = 'default'):
+        """This method is used for defining and running of the evaluation strategy
+        to predict with the data provided during fit stage
+
+        Args:
+            fitted_operation: trained operation object
+            data: data used for prediction
+            is_fit_pipeline_stage: is this fit or predict stage for pipeline
+            params: hyperparameters for operation
+            output_mode: string with information about output of operation,
+                for example, is the operation predict probabilities or class labels
+        """
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params)
 
-        prediction = self._eval_strategy.predict(
-            trained_operation=fitted_operation,
-            predict_data=data,
-            is_fit_pipeline_stage=is_fit_pipeline_stage)
+        if is_fit_stage:
+            prediction = self._eval_strategy.predict_for_fit(
+                trained_operation=fitted_operation,
+                predict_data=data)
+        else:
+            prediction = self._eval_strategy.predict(
+                trained_operation=fitted_operation,
+                predict_data=data)
         prediction = self.assign_tabular_column_types(prediction, output_mode)
 
         if is_main_target is False:

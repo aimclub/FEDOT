@@ -25,7 +25,7 @@ def run_pipeline_explain():
     pipeline = classification_complex_pipeline()
 
     # Pipeline fitting
-    pipeline.fit(train_data, use_fitted=False)
+    pipeline.fit(train_data)
 
     # Pipeline explaining
     explainer = explain_pipeline(pipeline, data=train_data, method='surrogate_dt', visualize=False)

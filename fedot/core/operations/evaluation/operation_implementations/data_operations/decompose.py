@@ -3,6 +3,7 @@ from typing import Optional
 import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -18,23 +19,23 @@ class DecomposerImplementation(DataOperationImplementation):
         super().__init__()
         self.params = None
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """
         The decompose operation doesn't support fit method
         """
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """
-        Method for modifying input_data
+        Method for modifying input_data for predict stage
         :param input_data: data with features, target and ids
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
         :return input_data: data with transformed features attribute
         """
         raise NotImplementedError()
 
     @staticmethod
-    def divide_inputs(input_data):
+    def divide_inputs(input_data: InputData) -> (np.array, np.array):
         """ Method for dividing InputData into parts:
         first came from Model parent and second came from Data parent
 
@@ -78,7 +79,7 @@ class DecomposerImplementation(DataOperationImplementation):
 
         return prev_prediction, prev_features
 
-    def get_params(self):
+    def get_params(self) -> dict:
         return {}
 
 
@@ -89,37 +90,41 @@ class DecomposerRegImplementation(DecomposerImplementation):
         super().__init__()
         self.params = None
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """
-        Method for modifying input_data
+        Method for modifying input_data for predict stage
         :param input_data: data with features, target and ids
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
+
         :return input_data: data with transformed features attribute
         """
+        prev_prediction, prev_features = self.divide_inputs(input_data)
+        output_data = self._get_output_data(input_data, prev_features)
+        return output_data
 
-        # Get inputs from Data and Model parent
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """
+        Method for modifying input_data for fit stage
+        :param input_data: data with features, target and ids
+
+        :return input_data: data with transformed features attribute
+        """
         prev_prediction, prev_features = self.divide_inputs(input_data)
 
-        if is_fit_pipeline_stage:
-            # Target must be a column or table, not one-dimensional array
-            target = np.array(input_data.target)
-            if len(target.shape) < 2:
-                target = target.reshape((-1, 1))
+        # Target must be a column or table, not one-dimensional array
+        target = np.array(input_data.target)
+        if len(target.shape) < 2:
+            target = target.reshape((-1, 1))
 
-            # Calculate difference between prediction of model and current target
-            diff = target - prev_prediction
+        diff = target - prev_prediction
+        input_data.target = diff
 
-            # Update target
-            input_data.target = diff
-            # Create OutputData
-            output_data = self._convert_to_output(input_data, prev_features)
-            # We decompose the target, so in the future we need to ignore
-            output_data.supplementary_data.is_main_target = False
-        else:
-            # For predict stage there is no need to worry about target
-            output_data = self._convert_to_output(input_data, prev_features)
-            output_data.supplementary_data.is_main_target = False
+        output_data = self._get_output_data(input_data, prev_features)
+        return output_data
 
+    def _get_output_data(self, input_data: InputData, prev_features: np.array) -> OutputData:
+        output_data = self._convert_to_output(input_data, prev_features)
+        # We decompose the target, so in the future we need to ignore
+        output_data.supplementary_data.is_main_target = False
         return output_data
 
 
@@ -132,50 +137,54 @@ class DecomposerClassImplementation(DecomposerImplementation):
         super().__init__()
         self.params = None
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """
-        Method for modifying input_data
+        Method for modifying input_data for predict stage
         :param input_data: data with features, target and ids
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return input_data: data with transformed features attribute
         """
-
-        # Task since that model - regression
-        regression_task = Task(TaskTypesEnum.regression)
-
-        # Get inputs from Data and Model parent
         prev_prediction, prev_features = self.divide_inputs(input_data)
-
-        if is_fit_pipeline_stage:
-            # Target must be a column or table, not one-dimensional array
-            target = np.array(input_data.target)
-            if len(target.shape) < 2:
-                target = target.reshape((-1, 1))
-
-            classes = np.unique(target)
-            if len(classes) > 2:
-                diff = self._multi_difference(target, prev_prediction)
-            else:
-                # Binary classification task
-                diff = self._binary_difference(classes, target, prev_prediction)
-
-            # Update target
-            input_data.target = diff
-            # Create OutputData
-            output_data = self._convert_to_output(input_data, prev_features)
-            # We decompose the target, so in the future we need to ignore
-            output_data.supplementary_data.is_main_target = False
-            output_data.task = regression_task
-        else:
-            # For predict stage there is no need to worry about target
-            output_data = self._convert_to_output(input_data, prev_features)
-            output_data.supplementary_data.is_main_target = False
-            output_data.task = regression_task
-
+        output_data = self._get_output_data(input_data, prev_features)
         return output_data
 
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """
+        Method for modifying input_data for fit stage
+        :param input_data: data with features, target and ids
+        :return input_data: data with transformed features attribute
+        """
+        prev_prediction, prev_features = self.divide_inputs(input_data)
+
+        target = np.array(input_data.target)
+        if len(target.shape) < 2:
+            target = target.reshape((-1, 1))
+
+        input_data.target = self._get_difference(target, prev_prediction)
+        output_data = self._get_output_data(input_data, prev_features)
+        return output_data
+
+    def _get_output_data(self, input_data: InputData, prev_features: np.array) -> OutputData:
+        regression_task = Task(TaskTypesEnum.regression)
+        output_data = self._convert_to_output(input_data, prev_features)
+        output_data.supplementary_data.is_main_target = False
+        output_data.task = regression_task
+        return output_data
+
+    def _get_difference(self, target: np.array, prev_prediction: np.array) -> np.array:
+        """ Calculates difference between predictions (probabilities) and target
+        :param target: class labels
+        :param prev_prediction: predictions from previous classification model
+        :return diff: difference between probabilities of classes
+        """
+        classes = np.unique(target)
+        if len(classes) > 2:
+            diff = self._multi_difference(target, prev_prediction)
+        else:
+            diff = self._binary_difference(classes, target, prev_prediction)
+        return diff
+
     @staticmethod
-    def _binary_difference(classes, target, prev_prediction):
+    def _binary_difference(classes: np.array, target: np.array, prev_prediction: np.array) -> np.array:
         """ Calculates difference between predictions (probabilities) and target
         for binary classification task
         :param classes: which classes are in the target
@@ -199,7 +208,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
         return diff
 
     @staticmethod
-    def _multi_difference(target, prev_prediction):
+    def _multi_difference(target: np.array, prev_prediction: np.array) -> np.array:
         """ Calculates difference between predictions (probabilities) and target
         for multiclass classification task
 

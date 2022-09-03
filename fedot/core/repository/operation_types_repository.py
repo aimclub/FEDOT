@@ -246,9 +246,16 @@ class OperationTypesRepository:
         return operations_with_id[0]
 
     def operations_with_tag(self, tags: List[str], is_full_match: bool = False):
+        """ Method returns operations from repository with specific tags
+
+                :param tags: list of required tags
+                :param is_full_match: are all tags are required
+
+                :return list of suitable operations names
+        """
         operations_info = [m for m in self._repo if
                            _is_operation_contains_tag(tags, m.tags, is_full_match)]
-        return [m.id for m in operations_info], operations_info
+        return [m.id for m in operations_info]
 
     def suitable_operation(self, task_type: TaskTypesEnum = None,
                            data_type: DataTypesEnum = None,
@@ -275,30 +282,21 @@ class OperationTypesRepository:
                 # Forbidden tags by default
                 forbidden_tags.append(excluded_default_tag)
 
-        if task_type is None:
-            operations_info = []
-            for o in self._repo:
-                # Perform filtering for every operation in the repository
-                tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
-                tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
-                is_desired_preset = _is_operation_contains_preset(o.presets, preset)
-                if tags_good and tags_bad and is_desired_preset:
-                    operations_info.append(o)
+        no_task = task_type is None
+        operations_info = []
+        for o in self._repo:
+            is_desired_task = task_type in o.task_type or no_task
+            tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
+            tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
+            is_desired_preset = _is_operation_contains_preset(o.presets, preset)
+            if is_desired_task and tags_good and tags_bad and is_desired_preset:
+                operations_info.append(o)
 
-        else:
-            operations_info = []
-            for o in self._repo:
-                is_desired_task = task_type in o.task_type
-                tags_good = not tags or _is_operation_contains_tag(tags, o.tags, is_full_match)
-                tags_bad = not forbidden_tags or not _is_operation_contains_tag(forbidden_tags, o.tags, False)
-                is_desired_preset = _is_operation_contains_preset(o.presets, preset)
-                if is_desired_task and tags_good and tags_bad and is_desired_preset:
-                    operations_info.append(o)
-
+        # TODO: too many operations are filtered out, because only a small number of operations defines `input_types`
         if data_type:
             operations_info = [o for o in operations_info if data_type in o.input_types]
 
-        return [m.id for m in operations_info], operations_info
+        return [m.id for m in operations_info]
 
     @property
     def operations(self):
@@ -433,8 +431,8 @@ def get_operations_for_task(task: Optional[Task], mode='all', tags=None, forbidd
     task_type = task.task_type if task else None
     if mode in AVAILABLE_REPO_NAMES:
         repo = OperationTypesRepository(mode)
-        model_types, _ = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
-                                                 preset=preset)
+        model_types = repo.suitable_operation(task_type, tags=tags, forbidden_tags=forbidden_tags,
+                                              preset=preset)
         return model_types
     else:
         raise ValueError(f'Such mode "{mode}" is not supported')

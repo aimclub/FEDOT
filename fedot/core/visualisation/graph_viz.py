@@ -1,13 +1,34 @@
+from __future__ import annotations
+
+import datetime
 import os
-from math import ceil, log2
-from typing import Optional
+from pathlib import Path
+from textwrap import wrap
+from typing import TYPE_CHECKING, Any, Callable, Dict, Optional, Sequence, Tuple, Union, Iterable
+from uuid import uuid4
 
 import networkx as nx
+import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.colors import to_hex
+from matplotlib.patches import ArrowStyle
+from pyvis.network import Network
+from seaborn import color_palette
 
 from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
+
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
+    from fedot.core.optimisers.graph import OptGraph
+
+    GraphType = Union[Graph, OptGraph]
+
+MatplotlibColorType = Union[str, Sequence[float]]
+LabelsColorMapType = Dict[str, MatplotlibColorType]
+NodeColorFunctionType = Callable[[Iterable[str]], LabelsColorMapType]
+NodeColorType = Union[MatplotlibColorType, LabelsColorMapType, NodeColorFunctionType]
 
 
 class GraphVisualiser:
@@ -16,128 +37,270 @@ class GraphVisualiser:
         self.temp_path = os.path.join(default_data_dir, 'composing_history')
         self.log = default_log(self)
 
-    def visualise(self, pipeline: 'Graph', save_path: Optional[str] = None):
-        try:
-            fig, axs = plt.subplots(figsize=(9, 9))
-            fig.suptitle('Current graph')
-            self.draw_single_graph(pipeline, axs)
-            if not save_path:
-                plt.show()
+    def visualise(self, graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
+                  engine: str = 'matplotlib', node_color: Optional[NodeColorType] = None,
+                  dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
+                  edge_curvature_scale: float = 1.0):
+        if not graph.nodes:
+            raise ValueError('Empty graph can not be visualized.')
+        # Define colors.
+        if not node_color:
+            if type(graph).__name__ == 'Pipeline':  # This type check avoids circular imports.
+                node_color = self.__get_colors_by_tags
             else:
-                plt.savefig(save_path)
-                plt.close()
-        except Exception as ex:
-            self.log.error(f'Visualisation failed with {ex}')
-
-    def draw_single_graph(self, graph: 'Graph', ax=None, title=None,
-                          in_graph_converter_function=graph_structure_as_nx_graph):
-        if type(graph).__name__ == 'Pipeline':
-            pos, node_labels = self._draw_tree(graph, ax, title, in_graph_converter_function)
+                node_color = self.__get_colors_by_labels
+        if engine == 'matplotlib':
+            self.__draw_with_networkx(graph, save_path, node_color, dpi, node_size_scale, font_size_scale,
+                                      edge_curvature_scale)
+        elif engine == 'pyvis':
+            self.__draw_with_pyvis(graph, save_path, node_color)
+        elif engine == 'graphviz':
+            self.__draw_with_graphviz(graph, save_path, node_color, dpi)
         else:
-            pos, node_labels = self._draw_dag(graph, ax, title, in_graph_converter_function)
+            raise NotImplementedError(f'Unexpected visualization engine: {engine}. '
+                                      'Possible values: matplotlib, pyvis, graphviz.')
 
-        self._draw_labels(pos, node_labels, ax)
+    @staticmethod
+    def __get_colors_by_tags(labels: Iterable[str]) -> LabelsColorMapType:
+        from fedot.core.visualisation.opt_history.utils import get_palette_based_on_default_tags
+        from fedot.core.repository.operation_types_repository import get_opt_node_tag
 
-    def _draw_tree(self, graph: 'Graph', ax=None, title=None,
-                   in_graph_converter_function=graph_structure_as_nx_graph):
-        nx_graph, node_labels = in_graph_converter_function(graph)
-        word_labels = [str(node) for node in node_labels.values()]
-        inv_map = {v: k for k, v in node_labels.items()}
-        if type(graph).__name__ == 'Pipeline':
-            root = inv_map[graph.root_node]
-            color_kwargs = {'node_color': colors_by_node_labels(node_labels)}
+        palette = get_palette_based_on_default_tags()
+        return {label: palette[get_opt_node_tag(label)] for label in labels}
+
+    @staticmethod
+    def __get_colors_by_labels(labels: Iterable[str]) -> LabelsColorMapType:
+        unique_labels = list(set(labels))
+        palette = color_palette('tab10', len(unique_labels))
+        return {label: palette[unique_labels.index(label)] for label in labels}
+
+    @staticmethod
+    def __draw_with_graphviz(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
+                             node_color=__get_colors_by_tags.__func__, dpi=300):
+        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        # Define colors
+        if callable(node_color):
+            colors = node_color([str(node) for node in nodes.values()])
+        elif isinstance(node_color, dict):
+            colors = node_color
         else:
-            root = 0
-            color_kwargs = {'cmap': 'Set3'}
+            colors = {str(node): node_color for node in nodes.values()}
+        for n, data in nx_graph.nodes(data=True):
+            label = str(nodes[n])
+            data['label'] = label.replace('_', ' ')
+            data['color'] = to_hex(colors.get(label, colors.get(None)))
 
-        minimum_spanning_tree = nx.minimum_spanning_tree(nx_graph.to_undirected())
-        pos = hierarchy_pos(minimum_spanning_tree, root=root)
-        min_size = 3000
-        node_sizes = [min_size for _ in word_labels]
-        if title:
-            plt.title(title)
-        nx.draw(nx_graph, pos=pos, with_labels=False,
-                node_size=node_sizes, width=2.0, ax=ax,
-                **color_kwargs)
-        return pos, node_labels
+        gv_graph = nx.nx_agraph.to_agraph(nx_graph)
+        kwargs = {'prog': 'dot', 'args': f'-Gnodesep=0.5 -Gdpi={dpi} -Grankdir="LR"'}
 
-    def _draw_dag(self, graph: 'Graph', ax=None, title=None,
-                  in_graph_converter_function=graph_structure_as_nx_graph):
-        nx_graph, node_labels = in_graph_converter_function(graph)
-        word_labels = [str(node) for node in node_labels.values()]
+        if save_path:
+            gv_graph.draw(save_path, **kwargs)
+        else:
+            save_path = Path(default_fedot_data_dir(), 'graph_plots', str(uuid4()) + '.png')
+            save_path.parent.mkdir(exist_ok=True)
+            gv_graph.draw(save_path, **kwargs)
 
-        pos = nx.circular_layout(nx_graph)
+            img = plt.imread(str(save_path))
+            plt.imshow(img)
+            plt.gca().axis('off')
+            plt.gcf().set_dpi(dpi)
+            plt.tight_layout()
+            plt.show()
+            remove_old_files_from_dir(save_path.parent)
 
-        min_size = 3000
-        node_sizes = [min_size for _ in word_labels]
-        if title:
-            plt.title(title)
-        colors = colors_by_node_labels(node_labels)
-        nx.draw(nx_graph, pos=pos, with_labels=False,
-                node_size=node_sizes, width=2.0,
-                node_color=colors, cmap='Set3', ax=ax)
-        return pos, node_labels
+    @staticmethod
+    def __draw_with_pyvis(graph: GraphType, save_path: Optional[Union[os.PathLike, str]] = None,
+                          nodes_color=__get_colors_by_tags.__func__):
+        net = Network('500px', '1000px', directed=True)
+        nx_graph, nodes = graph_structure_as_nx_graph(graph)
+        # Define colors
+        if callable(nodes_color):
+            colors = nodes_color([str(node) for node in nodes.values()])
+        elif isinstance(nodes_color, dict):
+            colors = nodes_color
+        else:
+            colors = {str(node): nodes_color for node in nodes.values()}
+        for n, data in nx_graph.nodes(data=True):
+            operation = nodes[n]
+            label = str(operation)
+            data['n_id'] = str(n)
+            data['label'] = label.replace('_', ' ')
+            params = operation.content.get('params')
+            if isinstance(params, dict):
+                params = str(params)[1:-1]
+            data['title'] = params
+            data['level'] = operation.distance_to_primary_level
+            data['color'] = to_hex(colors.get(label, colors.get(None)))
+            data['font'] = '20px'
+            data['labelHighlightBold'] = True
 
-    def _draw_labels(self, pos, node_labels, ax):
-        for node, (x, y) in pos.items():
-            text = '\n'.join(str(node_labels[node]).split('_'))
+        for _, data in nx_graph.nodes(data=True):
+            net.add_node(**data)
+        for u, v in nx_graph.edges:
+            net.add_edge(str(u), str(v))
+
+        if save_path:
+            net.save_graph(str(save_path))
+            return
+        save_path = Path(default_fedot_data_dir(), 'graph_plots', str(uuid4()) + '.html')
+        save_path.parent.mkdir(exist_ok=True)
+        net.show(str(save_path))
+        remove_old_files_from_dir(save_path.parent)
+
+    def __draw_with_networkx(self, graph: GraphType, save_path=None,
+                             node_color: Optional[NodeColorType] = None,
+                             dpi: int = 300, node_size_scale: float = 1.0, font_size_scale: float = 1.0,
+                             edge_curvature_scale: float = 1.0,
+                             in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+        fig, ax = plt.subplots(figsize=(7, 7))
+        fig.set_dpi(dpi)
+        self.draw_nx_dag(graph, ax, node_color, node_size_scale, font_size_scale, edge_curvature_scale,
+                         in_graph_converter_function)
+        if not save_path:
+            plt.show()
+        else:
+            plt.savefig(save_path, dpi=dpi)
+            plt.close()
+
+    @staticmethod
+    def draw_nx_dag(graph: GraphType, ax: Optional[plt.Axes] = None,
+                    node_color: Optional[NodeColorType] = None,
+                    node_size_scale: float = 1, font_size_scale: float = 1, edge_curvature_scale: float = 1,
+                    in_graph_converter_function: Callable = graph_structure_as_nx_graph):
+
+        def draw_nx_labels(pos, node_labels, ax, max_sequence_length, font_size_scale=1.0):
+            def get_scaled_font_size(nodes_amount):
+                min_size = 2
+                max_size = 20
+
+                size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
+                return size
+
             if ax is None:
-                ax = plt
-            ax.text(x, y, text, ha='center', va='center')
+                ax = plt.gca()
+            for node, (x, y) in pos.items():
+                text = '\n'.join(wrap(node_labels[node].replace('_', ' ').replace('-', ' '), 10))
+                ax.text(x, y, text, ha='center', va='center',
+                        fontsize=get_scaled_font_size(max_sequence_length) * font_size_scale,
+                        bbox=dict(alpha=0.9, color='w', boxstyle='round'))
+
+        def get_scaled_node_size(nodes_amount):
+            min_size = 500
+            max_size = 5000
+            size = min_size + int((max_size - min_size) / np.log2(max(nodes_amount, 2)))
+            return size
+
+        if ax is None:
+            ax = plt.gca()
+
+        nx_graph, nodes = in_graph_converter_function(graph)
+        # Define colors
+        if callable(node_color):
+            node_color = node_color([str(node) for node in nodes.values()])
+        if isinstance(node_color, dict):
+            node_color = [node_color.get(str(node), node_color.get(None)) for node in nodes.values()]
+        # Define hierarchy_level
+        for node_id, node_data in nx_graph.nodes(data=True):
+            node_data['hierarchy_level'] = nodes[node_id].distance_to_primary_level
+        # Get nodes positions
+        pos, longest_sequence = get_hierarchy_pos(nx_graph)
+        node_size = get_scaled_node_size(longest_sequence) * node_size_scale
+        # Draw the graph's nodes.
+        nx.draw_networkx_nodes(nx_graph, pos, node_size=node_size, ax=ax, node_color='w', linewidths=3,
+                               edgecolors=node_color)
+        # Draw the graph's node labels.
+        draw_nx_labels(pos, {node_id: str(node) for node_id, node in nodes.items()}, ax, longest_sequence,
+                       font_size_scale)
+        # The ongoing section defines curvature for all edges.
+        #   This is 'connection style' for an edge that does not intersect any nodes.
+        connection_style = 'arc3'
+        #   This is 'connection style' template for an edge that is too close to any node and must bend around it.
+        #   The curvature value is defined individually for each edge.
+        connection_style_curved_template = connection_style + ',rad={}'
+        default_edge_curvature = 0.3
+        #   The minimum distance from a node to an edge on which the edge must bend around the node.
+        node_distance_gap = 0.15
+        for u, v, e in nx_graph.edges(data=True):
+            e['connectionstyle'] = connection_style
+            p_1, p_2 = np.array(pos[u]), np.array(pos[v])
+            p_1_2 = p_2 - p_1
+            p_1_2_length = np.linalg.norm(p_1_2)
+            # Finding the closest node to the edge.
+            min_distance_found = node_distance_gap * 2  # It just must be bigger than the gap.
+            closest_node_id = None
+            for node_id in nx_graph.nodes:
+                if node_id in (u, v):
+                    continue  # The node is adjacent to the edge.
+                p_3 = np.array(pos[node_id])
+                distance_to_node = abs(np.cross(p_1_2, p_3 - p_1)) / p_1_2_length
+                if (distance_to_node > min(node_distance_gap, min_distance_found)  # The node is too far.
+                        or ((p_3 - p_1) @ p_1_2) < 0  # There's no perpendicular from the node to the edge.
+                        or ((p_3 - p_2) @ -p_1_2) < 0):
+                    continue
+                min_distance_found = distance_to_node
+                closest_node_id = node_id
+
+            if closest_node_id is None:
+                continue  # There's no node to bend around.
+            # Finally, define the edge's curvature based on the closest node position.
+            p_3 = np.array(pos[closest_node_id])
+            p_1_3 = p_3 - p_1
+            curvature_strength = default_edge_curvature * edge_curvature_scale
+            # 'alpha' denotes the angle between the abscissa and the edge.
+            cos_alpha = p_1_2[0] / p_1_2_length
+            sin_alpha = np.sqrt(1 - cos_alpha ** 2) * (-1) ** (p_1_2[1] < 0)
+            # The closest node is placed as if the edge matched the abscissa.
+            # Then, its ordinate shows on which side of the edge it is, "on the left" or "on the right".
+            rotation_matrix = np.array([[cos_alpha, sin_alpha], [-sin_alpha, cos_alpha]])
+            p_1_3_rotated = rotation_matrix @ p_1_3
+            curvature_direction = (-1) ** (p_1_3_rotated[1] < 0)  # +1 is a "boat" \/, -1 is a "cat" /\.
+            edge_curvature = curvature_direction * curvature_strength
+            e['connectionstyle'] = connection_style_curved_template.format(edge_curvature)
+        # Draw the graph's edges.
+        arrow_style = ArrowStyle('Simple', head_length=1.5, head_width=0.8)
+        for u, v, e in nx_graph.edges(data=True):
+            nx.draw_networkx_edges(nx_graph, pos, edgelist=[(u, v)], node_size=node_size, ax=ax, arrowsize=10,
+                                   arrowstyle=arrow_style, connectionstyle=e['connectionstyle'])
+        # Rescale the figure for all nodes to fit in.
+        x_1, x_2 = ax.get_xlim()
+        y_1, y_2 = ax.get_ylim()
+        offset = 0.2
+        x_offset = x_2 * offset
+        y_offset = y_2 * offset
+        ax.set_xlim(x_1 - x_offset, x_2 + x_offset)
+        ax.set_ylim(y_1 - y_offset, y_2 + y_offset)
+        ax.axis('off')
+        plt.tight_layout()
 
 
-def colors_by_node_labels(node_labels: dict):
-    from fedot.core.visualisation.opt_viz import get_palette_based_on_default_tags
-    from fedot.core.repository.operation_types_repository import get_opt_node_tag
+def get_hierarchy_pos(graph: nx.DiGraph, max_line_length: int = 6) -> Tuple[Dict[Any, Tuple[float, float]], int]:
+    """By default, returns 'networkx.multipartite_layout' positions based on 'hierarchy_level` from node data - the
+     property must be set beforehand.
+    If line of nodes reaches 'max_line_length', the result is the combination of 'networkx.multipartite_layout' and
+    'networkx.spring_layout'.
+    :param graph: the graph.
+    :param max_line_length: the limit for common nodes horizontal or vertical line.
+    """
+    longest_path = nx.dag_longest_path(graph, weight=None)
+    longest_sequence = len(longest_path)
 
-    palette = get_palette_based_on_default_tags()
-    colors = [palette[get_opt_node_tag(str(label))] for label in node_labels.values()]
-    return colors
+    pos = nx.multipartite_layout(graph, subset_key='hierarchy_level')
+
+    y_level_nodes_count = {}
+    for x, _ in pos.values():
+        y_level_nodes_count[x] = y_level_nodes_count.get(x, 0) + 1
+        nodes_on_level = y_level_nodes_count[x]
+        if nodes_on_level > longest_sequence:
+            longest_sequence = nodes_on_level
+
+    if longest_sequence > max_line_length:
+        pos = {n: np.array(x_y) + (np.random.random(2) - 0.5) * 0.001 for n, x_y in pos.items()}
+        pos = nx.spring_layout(graph, k=2, iterations=5, pos=pos, seed=42)
+
+    return pos, longest_sequence
 
 
-def scaled_node_size(nodes_amount):
-    size = int(7000.0 / ceil(log2(nodes_amount)))
-    return size
-
-
-def hierarchy_pos(graph, root, levels=None, width=1., height=1.):
-    """If there is a cycle that is reachable from root, then this will see infinite recursion.
-       graph: the graph
-       root: the root node
-       levels: a dictionary
-               key: level number (starting from 0)
-               value: number of nodes in this level
-       width: horizontal space allocated for drawing
-       height: vertical space allocated for drawing"""
-    total = "total"
-    cur = "current"
-
-    def make_levels(levels, node=root, current_level=0, parent=None):
-        """Compute the number of nodes for each level
-        """
-        if current_level not in levels:
-            levels[current_level] = {total: 0, cur: 0}
-        levels[current_level][total] += 1
-        neighbors = graph.neighbors(node)
-        for neighbor in neighbors:
-            if not neighbor == parent:
-                levels = make_levels(levels, neighbor, current_level + 1, node)
-        return levels
-
-    def make_pos(pos, node=root, current_level=0, parent=None, vert_loc=0):
-        dx = 1 / levels[current_level][total]
-        left = dx / 2
-        pos[node] = ((left + dx * levels[current_level][cur]) * width, vert_loc)
-        levels[current_level][cur] += 1
-        neighbors = graph.neighbors(node)
-        for neighbor in neighbors:
-            if not neighbor == parent:
-                pos = make_pos(pos, neighbor, current_level + 1, node, vert_loc - vert_gap)
-        return pos
-
-    if levels is None:
-        levels = make_levels({})
-    else:
-        levels = {level: {total: levels[level], cur: 0} for level in levels}
-    vert_gap = height / (max([level for level in levels]) + 1)
-    return make_pos({})
+def remove_old_files_from_dir(dir_: Path, time_interval=datetime.timedelta(minutes=10)):
+    for path in dir_.iterdir():
+        if datetime.datetime.now() - datetime.datetime.fromtimestamp(path.stat().st_ctime) > time_interval:
+            path.unlink()

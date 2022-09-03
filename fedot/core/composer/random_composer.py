@@ -6,10 +6,10 @@ from numpy import random
 
 from fedot.core.composer.composer import Composer
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphOptimizer
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.pipelines.node import SecondaryNode, PrimaryNode
 from fedot.core.pipelines.pipeline import Node, Pipeline
 
@@ -82,7 +82,7 @@ class RandomSearchOptimizer(GraphOptimizer):
         self._iter_num = iter_num
         super().__init__(objective)
 
-    def optimise(self, objective: ObjectiveFunction, show_progress: bool = True) -> Sequence[Pipeline]:
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[Pipeline]:
         best_metric_value = 1000
         best_set = None
         history = []
@@ -95,7 +95,6 @@ class RandomSearchOptimizer(GraphOptimizer):
                 best_set = new_pipeline
 
             history.append((new_pipeline, new_metric_value))
-            if show_progress:
-                self.log.info(f'Iter {i}: best metric {best_metric_value},'
-                              f'try {new_metric_value} with num nodes {new_pipeline.length}')
+            self.log.info(f'Iter {i}: best metric {best_metric_value},'
+                          f'try {new_metric_value} with num nodes {new_pipeline.length}')
         return [best_set]

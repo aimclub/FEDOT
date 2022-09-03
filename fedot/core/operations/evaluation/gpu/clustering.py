@@ -1,7 +1,15 @@
 import warnings
 
-from cuml import KMeans
-import cudf
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    from cuml import KMeans
+    import cudf
+except ModuleNotFoundError:
+    warn_requirement('cudf / cuml')
+    cudf = None
+    KMeans = None
+
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -11,7 +19,7 @@ from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):
     __operations_by_types = {
-        'kmeans': KMeans,
+        'kmeans': KMeans
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -37,20 +45,19 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
         operation_implementation.fit(features)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        Predict method for clustering task
-        :param trained_operation: operation object
+        Predict method for regression task for predict stage
+        :param trained_operation: model object
         :param predict_data: data used for prediction
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        :return :
+        :return:
         """
-        features = cudf.DataFrame(predict_data.features.astype('float32'))
-        prediction = trained_operation.predict(features)
 
-        # Convert prediction to output (if it is required)
+        features = cudf.DataFrame(predict_data.features.astype('float32'))
+
+        prediction = trained_operation.predict(features)
         converted = self._convert_to_output(prediction, predict_data)
+
         return converted
 
     def _convert_to_operation(self, operation_type: str):

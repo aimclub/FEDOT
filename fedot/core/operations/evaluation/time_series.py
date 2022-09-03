@@ -63,20 +63,29 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         model.fit(train_data)
         return model
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        This method used for prediction of the target data.
+        This method used for prediction of the target data during predict stage.
 
         :param trained_operation: trained operation object
         :param predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.predict(predict_data,
-                                               is_fit_pipeline_stage)
-        # Convert prediction to output (if it is required)
+        prediction = trained_operation.predict(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data during fit stage.
+
+        :param trained_operation: trained operation object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+
+        prediction = trained_operation.predict_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -127,20 +136,29 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         transformation_operation.fit(train_data)
         return transformation_operation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool) -> OutputData:
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """
-        This method used for prediction of the target data.
+        This method used for prediction of the target data during predict stage.
 
         :param trained_operation: trained operation object
         :param predict_data: data to predict
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return OutputData: passed data with new predicted target
         """
 
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
-        # Convert prediction to output (if it is required)
+        prediction = trained_operation.transform(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        This method used for prediction of the target data during fit stage.
+
+        :param trained_operation: trained operation object
+        :param predict_data: data to predict
+        :return OutputData: passed data with new predicted target
+        """
+
+        prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 

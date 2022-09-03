@@ -21,7 +21,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.visualisation.opt_viz_extra import visualise_pareto
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
@@ -304,9 +304,9 @@ class Fedot:
         # Each archive is sorted from the best to the worst model,
         # so the best_candidates is sorted too.
         best_candidates = self.history.archive_history[-1]
-        PipelineEvolutionVisualiser().visualise_pareto(front=best_candidates,
-                                                       objectives_names=metric_names,
-                                                       show=True)
+        visualise_pareto(front=best_candidates,
+                         objectives_names=metric_names,
+                         show=True)
 
     def plot_prediction(self, target: Optional[Any] = None):
         """Plots the prediction obtained from graph

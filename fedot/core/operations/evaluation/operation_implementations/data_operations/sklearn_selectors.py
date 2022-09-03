@@ -5,7 +5,7 @@ from sklearn.feature_selection import RFE
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 
-from fedot.core.data.data import OutputData
+from fedot.core.data.data import OutputData, InputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
 
@@ -25,7 +25,7 @@ class FeatureSelectionImplementation(DataOperationImplementation):
         # Bool mask where True - remain column and False - drop it
         self.remain_features_mask = None
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """ Method for fit feature selection
 
         :param input_data: data with features, target and ids to process
@@ -53,11 +53,10 @@ class FeatureSelectionImplementation(DataOperationImplementation):
             self.is_not_fitted = True
         return self.operation
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
-        """ Method for making prediction
+    def transform(self, input_data: InputData) -> OutputData:
+        """ Method for making prediction for prediction stage
 
         :param input_data: data with features, target and ids to process
-        :param is_fit_pipeline_stage: is this fit or predict stage for pipeline
         :return output_data: filtered input data by columns
         """
         if self.is_not_fitted:

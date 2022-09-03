@@ -50,7 +50,7 @@ def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
     if not isinstance(pipeline, Pipeline):
         pipeline = PipelineAdapter().restore(pipeline)
     operation_repo = OperationTypesRepository(operation_type='data_operation')
-    forbidden_parents_combination, _ = operation_repo.suitable_operation()
+    forbidden_parents_combination = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
     for node in pipeline.nodes:
@@ -280,8 +280,6 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
 
     # Check for correct descendants after classification decompose
     for node in pipeline.nodes:
-        if node.nodes_from is None:
-            continue
         parent_operations = [node.operation.operation_type for node in node.nodes_from]
         if 'class_decompose' in parent_operations:
             # Check is this model for regression task

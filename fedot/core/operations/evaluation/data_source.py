@@ -15,8 +15,7 @@ class DataSourceStrategy(EvaluationStrategy):
     def fit(self, train_data: InputData):
         return object()
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         return OutputData(idx=predict_data.idx, features=predict_data.features, task=predict_data.task,
                           data_type=predict_data.data_type, target=predict_data.target, predict=predict_data.features)
 

@@ -42,7 +42,7 @@ def pipeline_contains_any(pipeline: Pipeline, *operation_name: str) -> bool:
 
 
 def get_suitable_operations_for_task(task_type: TaskTypesEnum, data_type: DataTypesEnum, repo='model'):
-    operations, _ = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
+    operations = OperationTypesRepository(repo).suitable_operation(task_type=task_type, data_type=data_type)
     return operations
 
 
@@ -66,13 +66,6 @@ def preprocess(task_type: TaskTypesEnum, data: Union[InputData, MultiModalData])
 def test_preprocessing_builder_no_data():
     assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).to_pipeline(),
                                  'scaling')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).with_gaps().
-                                 to_pipeline(), 'simple_imputation')
-    assert pipeline_contains_all(PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).with_categorical().
-                                 to_pipeline(), 'one_hot_encoding')
-    assert pipeline_contains_all(
-        PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).
-        with_gaps().with_categorical().to_pipeline(), 'simple_imputation', 'one_hot_encoding')
 
     # have default preprocessing pipelines
     assert PreprocessingBuilder(TaskTypesEnum.regression, DataTypesEnum.table).to_pipeline() is not None
@@ -81,8 +74,7 @@ def test_preprocessing_builder_no_data():
 
     # have no default preprocessing pipelines without additional options
     assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).to_pipeline() is None
-    # with additional options ok
-    assert PreprocessingBuilder(TaskTypesEnum.ts_forecasting, DataTypesEnum.ts).with_gaps().to_pipeline() is not None
+
 
 
 def test_preprocessing_builder_with_data():
@@ -93,11 +85,9 @@ def test_preprocessing_builder_with_data():
     data_ts_gaps = get_test_ts_gaps_data()
 
     assert pipeline_contains_all(preprocess(TaskTypesEnum.regression, data_reg), 'scaling')
-    assert pipeline_contains_all(preprocess(TaskTypesEnum.classification, data_cats), 'one_hot_encoding')
 
     assert not pipeline_contains_one(preprocess(TaskTypesEnum.ts_forecasting, data_ts), 'simple_imputation')
     assert not pipeline_contains_one(preprocess(TaskTypesEnum.ts_forecasting, data_ts), 'scaling')
-    assert pipeline_contains_all(preprocess(TaskTypesEnum.ts_forecasting, data_ts_gaps), 'simple_imputation')
 
 
 def test_assumptions_builder_for_multimodal_data():
@@ -106,11 +96,10 @@ def test_assumptions_builder_for_multimodal_data():
     mm_data = DataPreprocessor().obligatory_prepare_for_fit(data=mm_data)
     mm_builder = MultiModalAssumptionsBuilder(mm_data)
     mm_pipeline: Pipeline = mm_builder.build()[0]
-
     assert pipeline_contains_all(mm_pipeline, *mm_data)
     assert len(list(filter(lambda node: isinstance(node, PrimaryNode), mm_pipeline.nodes)))
     assert len(mm_pipeline.root_node.nodes_from) == mm_data.num_classes
-    assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 2  # minus final ensemble & simple imputation nodes
+    assert mm_pipeline.length == mm_pipeline.depth * len(mm_data) - 1  # minus final ensemble
 
 
 def test_assumptions_builder_unsuitable_available_operations():

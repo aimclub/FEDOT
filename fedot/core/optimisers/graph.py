@@ -1,10 +1,9 @@
-import os
-
+from typing import List, Union
 from copy import deepcopy
 from typing import Any, Callable, Iterable, List, Optional, Union
 from uuid import uuid4
 
-from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.dag.node_operator import NodeOperator
@@ -132,7 +131,8 @@ class OptGraph:
         nodes: optimization graph nodes object(s)
     """
 
-    def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
+    def __init__(self, nodes: Union[OptNode, List[OptNode]] = ()):
+        super().__init__(nodes)
         self.log = default_log(self)
 
         self._nodes = []

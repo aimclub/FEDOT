@@ -43,15 +43,12 @@ class OperationsCache(BaseCache):
         """
         self.save_nodes(pipeline.nodes, fold_id)
 
-    def try_load_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None) -> bool:
+    def try_load_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
         """
         :param nodes: nodes which fitted state should be loaded from cache
         :param fold_id: optional part of cache item UID
                             (can be used to specify the number of CV fold)
-
-        :return cache_was_used: bool indicating if at least one item was loaded
         """
-        cache_was_used = False
         try:
             nodes_lst = ensure_wrapped_in_sequence(nodes)
             structural_ids = [_get_structural_id(node, fold_id) for node in nodes_lst]
@@ -59,23 +56,17 @@ class OperationsCache(BaseCache):
             for idx, cached_op in enumerate(cached_ops):
                 if cached_op is not None:
                     nodes_lst[idx].fitted_operation = cached_op
-                    cache_was_used = True
                 else:
                     nodes_lst[idx].fitted_operation = None
         except Exception as ex:
             self.log.warning(f'Cache can not be loaded: {ex}. Continue.')
-        finally:
-            return cache_was_used
 
-    def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None) -> bool:
+    def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
         :param pipeline: pipeline for loading into from cache
-        :param fold_id: optional part of cache item UID
-                            (number of the CV fold)
-
-        :return: bool indicating if at least one item was loaded
+        :param fold_id: optional part of cache item UID (number of the CV fold)
         """
-        return self.try_load_nodes(pipeline.nodes, fold_id)
+        self.try_load_nodes(pipeline.nodes, fold_id)
 
 
 def _get_structural_id(node: Node, fold_id: Optional[int] = None) -> str:
