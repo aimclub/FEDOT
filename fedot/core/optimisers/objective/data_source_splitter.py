@@ -80,7 +80,7 @@ class DataSourceSplitter:
             if self.validation_blocks is None:
                 default_validation_blocks = 2
                 self.validation_blocks = default_validation_blocks
-                self.log.info(f'For timeseries cross validation validation_blocks number was changed ' +
+                self.log.info('For timeseries cross validation validation_blocks number was changed ' +
                               f'from None to {default_validation_blocks} blocks')
             cv_generator = partial(ts_cv_generator, data,
                                    self.cv_folds,
