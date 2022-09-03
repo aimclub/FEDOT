@@ -96,7 +96,7 @@ class Node(GraphNode):
         Args:
             operation_type: node type representation
 
-        Returns: 
+        Returns:
             Operation: operation class object
         """
         if not operation_type:
@@ -159,7 +159,7 @@ class Node(GraphNode):
     def operation(self) -> Operation:
         """Returns node operation object
 
-        Returns: 
+        Returns:
             Operation: operation object
         """
         return self.content['name']
@@ -200,7 +200,7 @@ class Node(GraphNode):
 
     def unfit(self):
         """Sets :obj:`fitted_operation` to ``None``
-        
+
         Todo:
             check how it would be rendered
         """
@@ -213,7 +213,7 @@ class Node(GraphNode):
         Args:
             input_data: data used for operation training
 
-        Returns: 
+        Returns:
             OutputData: values predicted on the provided ``input_data``
         """
 
@@ -257,7 +257,7 @@ class Node(GraphNode):
     def custom_params(self) -> dict:
         """Returns node custom parameters
 
-        Returns: 
+        Returns:
             dict: of custom parameters
         """
 
@@ -285,7 +285,7 @@ class Node(GraphNode):
     def __str__(self) -> str:
         """Returns ``str`` representation of the node
 
-        Returns: 
+        Returns:
             str: stringified node operation type
         """
 
@@ -295,7 +295,7 @@ class Node(GraphNode):
     def tags(self) -> Optional[List[str]]:
         """Returns tags of operation in the node or empty list
 
-        Returns: 
+        Returns:
             Optional[List[str]]: ``empty list`` if node is of atomized type and ``list of tags`` otherwise
         """
 
@@ -338,7 +338,7 @@ class PrimaryNode(Node):
         Args:
             input_data: data used for operation training
 
-        Returns: 
+        Returns:
             OutputData: values predicted on the provided ``input_data``
         """
 
@@ -365,7 +365,7 @@ class PrimaryNode(Node):
             input_data: data used for prediction
             output_mode: desired output for operations (e.g. ``'labels'``, ``'probs'``, ``'full_probs'``)
 
-        Returns: 
+        Returns:
             OutputData: values predicted on the provided ``input_data``
         """
 
@@ -504,8 +504,9 @@ def _combine_parents(parent_nodes: List[Node],
         input_data: input data from pipeline abstraction (source input data)
         parent_operation: name of parent operation (``'fit'`` or ``'predict'``)
 
-    Returns: 
-        Tuple[List[OutputData], np.array]: :obj:`output data list from parent nodes`, :obj:`target for final pipeline prediction`
+    Returns:
+        Tuple[List[OutputData], np.array]: :obj:`output data list from parent nodes`,
+        :obj:`target for final pipeline prediction`
     """
 
     if input_data is not None:
@@ -535,7 +536,7 @@ def get_default_params(model_name: str):
     Args:
         model_name: the model name to choose default parameters for
 
-    Returns:   
+    Returns:
         default repository parameters for the model name
     """
 

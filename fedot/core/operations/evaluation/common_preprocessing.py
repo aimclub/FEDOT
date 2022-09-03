@@ -54,7 +54,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
 
         Args:
             train_data: data used for operation training
-        
+
         Returns:
             trained Sklearn operation
         """

@@ -121,7 +121,7 @@ class Log(metaclass=SingletonMeta):
     def getstate(self):
         """Define the attributes to be pickled via deepcopy or pickle
 
-        Returns: 
+        Returns:
             dict: ``dict`` of state
         """
 
@@ -167,7 +167,7 @@ def default_log(class_object=None, prefix: str = 'default', logging_level: int =
         logging_level: logging levels are the same as in 'logging'
         write_logs: bool indicating whenever to write logs in console or not
 
-    Returns: 
+    Returns:
         :obj:`LoggerAdapter`: :obj:`LoggerAdapter` object
     """
 

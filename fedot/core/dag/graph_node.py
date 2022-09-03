@@ -17,7 +17,7 @@ class GraphNode:
         nodes_from: parent nodes which information comes from
         content: ``dict`` for the content in the node
 
-    Notes:  
+    Notes:
         The possible parameters are:
             - ``name`` - name (str) or object that performs actions in this node
             - ``params`` - dictionary with additional information that is used by
@@ -76,7 +76,7 @@ class GraphNode:
     def descriptive_id(self) -> str:
         """Returns verbal identificator of the node
 
-        Returns: 
+        Returns:
             str: text description of the content in the node and its parameters
         """
         return _descriptive_id_recursive(self)

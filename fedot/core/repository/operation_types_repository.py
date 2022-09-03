@@ -31,7 +31,7 @@ class OperationMetaInfo:
 
         Args:
             task: machine learning task (e.g. regression and classification)
-        
+
         Returns:
             supported strategies for task
         """
@@ -310,7 +310,7 @@ class OperationTypesRepository:
             operation: name of the operation
             tags_to_find: list of suitable tags. The later the tag, the higher its priority in case of intersection
 
-        Returns: 
+        Returns:
             Optional[List[str]]: first suitable tag or ``None``
         """
 
@@ -336,8 +336,8 @@ def get_opt_node_tag(opt_node: Union[OptNode, str], tags_model: Optional[List[st
             The later the tag, the higher its priority in case of intersection
         tags_data: tags for :obj:`OperationTypesRepository('data_operation')` to map the history operations
             The later the tag, the higher its priority in case of intersection
-        repos_tags: dictionary mapping :obj:`OperationTypesRepository` with suitable tags. Can be used only if no ``tags_model``
-            and ``tags_data`` specified.
+        repos_tags: dictionary mapping :obj:`OperationTypesRepository` with suitable tags.
+            Can be used only if no ``tags_model`` and ``tags_data`` specified.
     Returns:
         Optional[str]: first suitable tag or ``None``
     """

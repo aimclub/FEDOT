@@ -60,10 +60,10 @@ class EvaluationStrategy:
     @abstractmethod
     def fit(self, train_data: InputData):
         """Main method to train the operation with the data provided
-        
+
         Args:
             train_data: data used for operation training
-        
+
         Returns:
 
         """
@@ -78,7 +78,7 @@ class EvaluationStrategy:
             trained_operation: trained operation object
             predict_data: data to predict
             is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        
+
         Returns:
             passed data with new predicted target
         """
@@ -208,7 +208,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
 
         Args:
             train_data: data used for operation training
-        
+
         Returns:
             trained Sklearn operation
         """
@@ -245,7 +245,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             trained_operation: operation object
             predict_data: data to predict
             is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        
+
         Returns:
             passed data with new predicted target
         """

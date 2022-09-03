@@ -52,7 +52,7 @@ class MultiOperationsHPAnalyze:
         """Analyze all the hyperparameters af all :obj:`Pipeline` operations using ``SA`` methods.\n
         Default: Sobol method with Saltelli sample algorithm
 
-        Returns: 
+        Returns:
             dict: ``Main`` and total ``Sobol`` indices for every parameter per node
         """
 

@@ -169,8 +169,10 @@ class Data:
         """Input data from Image
 
         Args:
-            images: the path to the directory with image data in ``np.ndarray`` format or array in ``np.ndarray`` format
-            labels: the path to the directory with image labels in ``np.ndarray`` format or array in ``np.ndarray`` format
+            images: the path to the directory with image data in ``np.ndarray`` format
+                or array in ``np.ndarray`` format
+            labels: the path to the directory with image labels in ``np.ndarray`` format
+                or array in ``np.ndarray`` format
             task: the :obj:`Task` that should be solved with data
             target_size: size for the images resizing (if necessary)
 
@@ -263,7 +265,7 @@ class Data:
             export_to_meta: combine extracted field and save to ``CSV``
             is_multilabel: if ``True``, creates multilabel target
             shuffle: if ``True``, shuffles data
-        
+
         Returns:
             combined dataset
         """
@@ -350,7 +352,7 @@ class InputData(Data):
 
         Args:
             selected_idx: ``list`` of indices for extraction
-        
+
         Returns:
             :obj:`InputData`
         """
@@ -369,7 +371,7 @@ class InputData(Data):
                          task=self.task, data_type=self.data_type)
 
     def subset_features(self, features_ids: list):
-        """Return new :obj:`InputData` with subset of features based on ``features_ids`` list 
+        """Return new :obj:`InputData` with subset of features based on ``features_ids`` list
         """
 
         subsample_features = self.features[:, features_ids]
@@ -474,7 +476,7 @@ def process_target_and_features(data_frame: pd.DataFrame,
         data_frame: loaded pandas :obj:`DataFrame`
         target_column: names of columns with target or ``None``
 
-    Returns: 
+    Returns:
         (``np.array`` (table) with features, ``np.array`` (column) with target)
     """
 

@@ -71,10 +71,13 @@ class LaggedImplementation(DataOperationImplementation):
         return output_data
 
     def transform_for_fit(self, input_data: InputData) -> OutputData:
-        """ Method for transformation of time series to lagged form for fit stage
+        """Method for transformation of time series to lagged form for fit stage
 
-        :param input_data: data with features, target and ids to process
-        :return output_data: output data with transformed features table
+        Args:
+            input_data: data with features, target and ids to process
+
+        Returns:
+            output data with transformed features table
         """
         new_input_data = copy(input_data)
         forecast_length = new_input_data.task.task_params.forecast_length
@@ -694,7 +697,7 @@ class CutImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-        
+
         Returns:
             output data with cutted time series
         """
@@ -740,7 +743,7 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
         forecast_length: forecast length
         window_size_minimum: minimum moving window size
         log: logger for saving messages
-    
+
     Returns:
 
     """
@@ -768,17 +771,19 @@ def _check_and_correct_window_size(time_series: np.array, window_size: int, fore
     return window_size, was_changed
 
 
-def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool=False):
-    """ Method convert time series to lagged form.
+def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool = False):
+    """Method convert time series to lagged form.
 
-    :param idx: the indices of the time series to convert
-    :param time_series: source time series
-    :param window_size: size of sliding window, which defines lag
-    :param is_lag: is function used for lagged transformation.
-    False needs to convert one dimensional output to lagged form.
+    Args:
+        idx: the indices of the time series to convert
+        time_series: source time series
+        window_size: size of sliding window, which defines lag
+        is_lag: is function used for lagged transformation.
+            ``False`` needs to convert one dimensional output to lagged form.
 
-    :return updated_idx: clipped indices of time series
-    :return features_columns: lagged time series feature table
+    Returns:
+        ``updated_idx`` -> clipped indices of time series\n
+        ``features_columns`` -> lagged time series feature table
     """
     # Convert data to lagged form
     lagged_dataframe = pd.DataFrame({'t_id': time_series})
@@ -815,8 +820,8 @@ def _sparse_matrix(logger, features_columns: np.array, n_components_perc=0.5, us
 
         Returns:
             reduced dimension matrix
-        
-        Notes: 
+
+        Notes:
             shape of returned matrix depends on the number of components which includes
             the threshold of explained variance gain
         """
@@ -872,7 +877,7 @@ def prepare_target(all_idx, idx, features_columns: np.array, target, forecast_le
         target: source time series
         forecast_length: forecast length
 
-    Returns: 
+    Returns:
         ``updated_idx``, ``updated_features``, ``updated_target``
 
         .. details:: more information:
@@ -922,14 +927,14 @@ def transform_features_and_target_into_lagged(input_data: InputData, forecast_le
         forecast_length: forecast horizon
         window_size: window size for features transformation
 
-    Returns: 
+    Returns:
         ``new_idx``, ``transformed_cols``, ``new_target``
 
         .. details:: more information:
 
-            - ``new_idx`` -> 
-            - ``transformed_cols`` -> 
-            - ``new_target`` -> 
+            - ``new_idx`` ->
+            - ``transformed_cols`` ->
+            - ``new_target`` ->
 
     """
 

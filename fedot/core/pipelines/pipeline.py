@@ -55,7 +55,7 @@ class Pipeline(Graph, Serializable):
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
                              time: int = 3) -> OutputData:
         """Runs training process in all of the pipeline nodes starting with root with time limit.
-        
+
         Todo:
             unresolved sentence
 
@@ -64,7 +64,7 @@ class Pipeline(Graph, Serializable):
             use_fitted_operations: flag defining whether to use saved information about previous executions or not
             time: time constraint for operations fitting process (in seconds)
 
-        Returns: 
+        Returns:
             OutputData: values predicted on the provided ``input_data``
         """
 
@@ -96,7 +96,8 @@ class Pipeline(Graph, Serializable):
             fitted_operations: list used for saving fitted operations of pipeline nodes
 
         Returns:
-            Optional[OutputData]: values predicted on the provided ``input_data`` or nothing in case of the time controlled call
+            Optional[OutputData]: values predicted on the provided ``input_data`` or nothing
+            in case of the time controlled call
         """
 
         with Timer() as t:
@@ -161,7 +162,7 @@ class Pipeline(Graph, Serializable):
 
         Args:
             mode: the name of mode
-            
+
                 .. details:: possible ``mode`` options:
 
                         - ``all`` -> (default) All models will be unfitted
@@ -203,7 +204,7 @@ class Pipeline(Graph, Serializable):
 
         input_data: data for prediction
         output_mode: desired form of output for operations
-                  
+
             .. details:: possible ``output_mode`` options:
 
                 - ``default`` -> (as is, default)
@@ -246,7 +247,7 @@ class Pipeline(Graph, Serializable):
                             cv_folds: Optional[int] = None, validation_blocks: int = 3,
                             n_jobs: int = -1) -> 'Pipeline':
         """Tunes all nodes hyperparameters simultaneously via black-box
-        optimization using PipelineTuner.\n 
+        optimization using PipelineTuner.\n
         For details, see :obj:`PipelineTuner.tune_pipeline`
 
         Args:
@@ -291,7 +292,8 @@ class Pipeline(Graph, Serializable):
             datetime_in_path: is it required to add the datetime timestamp to the path
 
         Returns:
-            Tuple[str, dict]: :obj:`JSON representation of the pipeline structure`, :obj:`dict of paths to fitted models`
+            Tuple[str, dict]: :obj:`JSON representation of the pipeline structure`,
+            :obj:`dict of paths to fitted models`
         """
 
         template = PipelineTemplate(self)

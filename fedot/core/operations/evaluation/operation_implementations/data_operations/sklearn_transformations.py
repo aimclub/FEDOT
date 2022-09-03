@@ -35,7 +35,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids for PCA training
-        
+
         Returns:
             trained PCA model (optional output)
         """
@@ -54,7 +54,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         Args:
             input_data: data with features, target and ids for PCA applying
             is_fit_pipeline_stage: is this fit or predict stage for pipeline
-        
+
         Returns:
             data with transformed features attribute
         """

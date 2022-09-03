@@ -191,7 +191,7 @@ class NodeDeletionAnalyze(NodeAnalyzeApproach):
         """
         Args:
             node: :obj:`Node` object to analyze
-        
+
         Returns:
             the ratio of modified pipeline score to origin score
         """

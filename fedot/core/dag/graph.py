@@ -73,7 +73,7 @@ class Graph(ABC):
     def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
         """Gets all the nodes from the chosen layer up to the surface
 
-        Args:    
+        Args:
             layer_number: max height of diving
 
         Returns:

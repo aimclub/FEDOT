@@ -36,7 +36,7 @@ TargetType = Union[str, np.ndarray, pd.Series, dict]
 
 class Fedot:
     """Main class for FEDOT API.
-    
+
     Facade for ApiDataProcessor, ApiComposer, ApiMetrics, ApiInitialAssumptions.
 
     Args:
