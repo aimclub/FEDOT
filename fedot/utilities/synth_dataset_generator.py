@@ -16,7 +16,7 @@ def classification_dataset(samples_amount: int, features_amount: int, classes_am
         classes_amount: The amount of classes in the dataset.
         features_options: The dictionary containing features options in key-value format
 
-            ..details:: possible ``features_options`` variants:
+            .. details:: possible ``features_options`` variants:
 
                 - ``informative`` -> the amount of informative features
                 - ``redundant`` -> the amount of redundant features
