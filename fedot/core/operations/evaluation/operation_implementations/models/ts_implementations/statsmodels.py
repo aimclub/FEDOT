@@ -2,8 +2,8 @@ from copy import copy
 
 import numpy as np
 import statsmodels.api as sm
-from statsmodels.genmod.families import Gamma, Gaussian, InverseGaussian, Poisson, Tweedie
-from statsmodels.genmod.families.links import Power, identity, inverse_power, inverse_squared, log as lg, sqrt
+from statsmodels.genmod.families import Gamma, Gaussian, InverseGaussian
+from statsmodels.genmod.families.links import identity, inverse_power, inverse_squared, log as lg
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
