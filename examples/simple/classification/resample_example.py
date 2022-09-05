@@ -3,9 +3,9 @@ import pandas as pd
 from sklearn.metrics import roc_auc_score as roc_auc
 from sklearn.model_selection import train_test_split
 
-from examples.simple.classification.classification_with_tuning import get_classification_dataset
-from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing,\
+from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing, \
     classification_pipeline_with_balancing
+from examples.simple.classification.classification_with_tuning import get_classification_dataset
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -54,7 +54,7 @@ def run_resample_example(path_to_data=None, tune=False):
                               task=task,
                               data_type=DataTypesEnum.table)
 
-    print(f'Begin fit Pipeline without balancing')
+    print('Begin fit Pipeline without balancing')
     # Pipeline without balancing
     pipeline = classification_pipeline_without_balancing()
     pipeline.fit_from_scratch(train_input)
@@ -68,7 +68,7 @@ def run_resample_example(path_to_data=None, tune=False):
     # Pipeline with balancing
     pipeline = classification_pipeline_with_balancing()
 
-    print(f'Begin fit Pipeline with balancing')
+    print('Begin fit Pipeline with balancing')
     # pipeline.fit(train_input)
     pipeline.fit_from_scratch(train_input)
 
@@ -79,7 +79,7 @@ def run_resample_example(path_to_data=None, tune=False):
     print(f'ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n')
 
     if tune:
-        print(f'Start tuning process ...')
+        print('Start tuning process ...')
         tuned_pipeline = pipeline.fine_tune_all_nodes(iterations=50,
                                                       timeout=1,
                                                       input_data=train_input,
@@ -89,7 +89,7 @@ def run_resample_example(path_to_data=None, tune=False):
         predicted_values_tuned = tuned_pipeline.predict(predict_input)
         preds_tuned = predicted_values_tuned.predict
 
-        print(f'Obtained metrics after tuning:')
+        print('Obtained metrics after tuning:')
         print(f'ROC-AUC of tuned pipeline with balancing - {roc_auc(y_test, preds_tuned):.4f}\n')
 
 

@@ -583,36 +583,39 @@ def test_poly_features_on_big_datasets():
     n_rows, n_cols = transformed_features.predict.shape
     assert n_cols == 85
 
+
 @pytest.mark.parametrize(
-    'n_samples, target_dim, expected',
+    'balance_ratio, target_dim, expected',
     [(None, 1, (12, 2)), (None, 2, (12, 2)),
      (0.5, 1, (11, 2)), (0.5, 2, (11, 2)),
-     (1.5, 1, (13, 2)), (1.5, 2, (13, 2))]
+     (1.5, 1, (12, 2)), (1.5, 2, (12, 2))]
 )
-def test_correctness_resample_operation_with_expand_minority(n_samples, target_dim, expected):
-    params = {'balance': 'expand_minority', 'replace': False, 'n_samples': n_samples}
+def test_correctness_resample_operation_with_expand_minority(balance_ratio, target_dim, expected):
+    params = {'balance': 'expand_minority', 'replace': False, 'balance_ratio': balance_ratio}
     resample = ResampleImplementation(**params)
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
     assert resample.transform_for_fit(data).predict.shape == expected
 
+
 @pytest.mark.parametrize(
-    'n_samples, target_dim, expected',
+    'balance_ratio, target_dim, expected',
     [(None, 1, (8, 2)), (None, 2, (8, 2)),
      (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
-     (1.5, 1, (7, 2)), (1.5, 2, (7, 2))]
+     (1.5, 1, (8, 2)), (1.5, 2, (8, 2))]
 )
-def test_correctness_resample_operation_with_reduce_majority(n_samples, target_dim, expected):
-    params = {'balance': 'reduce_majority', 'replace': False, 'n_samples': n_samples}
+def test_correctness_resample_operation_with_reduce_majority(balance_ratio, target_dim, expected):
+    params = {'balance': 'reduce_majority', 'replace': False, 'balance_ratio': balance_ratio}
     resample = ResampleImplementation(**params)
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
     assert resample.transform_for_fit(data).predict.shape == expected
 
+
 @pytest.mark.parametrize(
-    'strategy, n_samples, disbalance, expected',
+    'strategy, balance_ratio, disbalance, expected',
     [('expand_minority', 0.5, 0.4, True), ('expand_minority', 0.5, 0.2, True),
      ('expand_minority', 1, 0.4, True), ('expand_minority', 1, 0.2, True),
      ('expand_minority', 1.5, 0.4, True), ('expand_minority', 1.5, 0.2, True),
@@ -620,13 +623,13 @@ def test_correctness_resample_operation_with_reduce_majority(n_samples, target_d
      ('reduce_majority', 1, 0.4, False), ('reduce_majority', 1, 0.2, False),
      ('reduce_majority', 1.5, 0.4, False), ('reduce_majority', 1.5, 0.2, False)]
 )
-def test_correctness_resample_operation_with_dynamic_replace_param(strategy, n_samples, disbalance, expected):
+def test_correctness_resample_operation_with_dynamic_replace_param(strategy, balance_ratio, disbalance, expected):
     """
     Default params for replace is False.
     In case of expanding strategy it causes difficulties and needed to change replace param to True.
     It is required to avoid error in sklearn method, which cannot reuse data if replace is False.
     """
-    params = {'balance': strategy, 'replace': False, 'n_samples': n_samples}
+    params = {'balance': strategy, 'replace': False, 'balance_ratio': balance_ratio}
 
     resample = ResampleImplementation(**params)
 
