@@ -6,16 +6,14 @@ from typing import Optional, Sequence
 
 @dataclass
 class ComposerRequirements:
-    """Defines infrastructural and algorithm options for optimization process.
-
-    :param primary: operation types for :class:`~fedot.core.pipelines.node.PrimaryNode`s
-    :param secondary: operation types for :class:`~fedot.core.pipelines.node.SecondaryNode`s
+    """Defines general algorithm-independent parameters of the composition process
+    (like stop condition, validation, timeout, logging etc.)
 
     Options related to stop condition:
-    :param num_of_generations: maximal number of evolutionary algorithm generations
+    :param num_of_generations: maximum number of optimizer generations
     :param timeout: max time in minutes available for composition process
-    :param early_stopping_generations: optional max number of stagnating populations for early stopping.
-    Do not use early stopping if None.
+    :param early_stopping_generations: optional max number of stagnating
+    populations for early stopping. If None -- do not use early stopping.
 
     Infrastructure options (logging, performance)
     :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
@@ -28,9 +26,6 @@ class ComposerRequirements:
     :param cv_folds: number of cross-validation folds
     :param validation_blocks: number of validation blocks for time series validation
     """
-    # TODO: remove these Pipeline-specific requirements from
-    primary: Sequence[str] = tuple()
-    secondary: Sequence[str] = tuple()
 
     num_of_generations: int = 20
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)

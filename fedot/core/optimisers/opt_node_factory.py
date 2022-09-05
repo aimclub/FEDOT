@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from random import choice
 from typing import Optional
 
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 
 
@@ -43,7 +43,7 @@ class OptNodeFactory(ABC):
 
 
 class DefaultOptNodeFactory(OptNodeFactory):
-    def __init__(self, requirements: Optional[ComposerRequirements] = None):
+    def __init__(self, requirements: Optional[PipelineComposerRequirements] = None):
         self.requirements = requirements
 
     def exchange_node(self, node: OptNode) -> Optional[OptNode]:

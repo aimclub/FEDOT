@@ -1,8 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
-import logging
-
-from typing import Optional
+from numbers import Number
+from typing import Optional, Sequence
 
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -16,8 +15,7 @@ class MutationStrengthEnum(Enum):
 
 @dataclass
 class PipelineComposerRequirements(ComposerRequirements):
-    """Parameters of evolutionary optimizer that define features of the evolutionary algorithm
-    and restrictions on the graph composition process.
+    """Defines restrictions and requirements for composition of final graphs.
 
     Evolutionary optimization options
     :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
@@ -35,9 +33,14 @@ class PipelineComposerRequirements(ComposerRequirements):
     Restrictions on final graphs:
     :param start_depth: start value of adaptive tree depth
     :param max_depth: max depth of the resulting pipeline
-    :param max_arity: max number of parents for node
     :param min_arity: min number of parents for node
+    :param max_arity: max number of parents for node
+
+    :param primary: operation types for :class:`~fedot.core.pipelines.node.PrimaryNode`s
+    :param secondary: operation types for :class:`~fedot.core.pipelines.node.SecondaryNode`s
+
     """
+    # TODO: move to graph optimizer params
     crossover_prob: float = 0.8
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
@@ -50,10 +53,13 @@ class PipelineComposerRequirements(ComposerRequirements):
     adaptive_depth_max_stagnation: int = 3
 
     start_depth: int = 3
-    # TODO it's actually something like 'current_max_depth', not overall max depth. re
+    # TODO it's actually something like 'current_max_depth', not overall max depth.
     max_depth: int = 3
-    max_arity: int = 2
     min_arity: int = 2
+    max_arity: int = 2
+
+    primary: Sequence[str] = tuple()
+    secondary: Sequence[str] = tuple()
 
     def __post_init__(self):
         super().__post_init__()
