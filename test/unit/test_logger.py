@@ -48,7 +48,7 @@ def test_default_logger_setup_correctly():
 
 
 @pytest.mark.parametrize('data_fixture', ['get_config_file'])
-def test_logger_from_config_file_setup_correctly(data_fixture, request):
+def test_logger_from_config_file_setup_correctly(data_fixture, request, cleanup_singletons):
     expected_logger_error_level = logging.ERROR
     test_config_file = request.getfixturevalue(data_fixture)
     log = Log(config_json_file=test_config_file)
@@ -79,7 +79,7 @@ def test_logger_write_logs_correctly():
 
 
 @pytest.mark.parametrize('data_fixture', ['get_bad_config_file'])
-def test_logger_from_config_file_raise_exception(data_fixture, request):
+def test_logger_from_config_file_raise_exception(data_fixture, request, cleanup_singletons):
     test_bad_config_file = request.getfixturevalue(data_fixture)
 
     with pytest.raises(Exception) as exc:
@@ -88,7 +88,7 @@ def test_logger_from_config_file_raise_exception(data_fixture, request):
     assert 'Can not open the log config file because of' in str(exc.value)
 
 
-def test_log_str():
+def test_log_str(cleanup_singletons):
     logger_name = ''
     log = Log()
 

@@ -1,9 +1,6 @@
 import logging
 import random
-
 from copy import deepcopy
-from test.unit.api.test_main_api import get_dataset
-from test.unit.tasks.test_classification import get_binary_classification_data
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
@@ -16,9 +13,11 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.preprocessing.preprocessing import DataPreprocessor
+from test.unit.api.test_main_api import get_dataset
+from test.unit.tasks.test_classification import get_binary_classification_data
 
 
-def test_compose_fedot_model_with_tuning():
+def test_compose_fedot_model_with_tuning(cleanup_singletons):
     api_composer = ApiComposer('classification')
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
@@ -26,34 +25,35 @@ def test_compose_fedot_model_with_tuning():
     task = Task(task_type=TaskTypesEnum.classification)
     operations = get_operations_for_task(task=task, mode='model')
 
-    logger = Log(log_file='test_logger_file')
+    log = Log(log_file='test_logger_file')
+    logger = log.get_adapter('test_log')
     generations = 1
 
-    _, _, history = api_composer.compose_fedot_model(api_params=dict(train_data=train_input,
-                                                                     task=task,
-                                                                     logger=logger.get_adapter('test_log'),
-                                                                     timeout=0.1,
-                                                                     n_jobs=1,
-                                                                     show_progress=False),
-                                                     composer_params=dict(max_depth=1,
-                                                                          max_arity=1,
-                                                                          pop_size=2,
-                                                                          num_of_generations=generations,
-                                                                          keep_n_best=1,
-                                                                          available_operations=operations,
-                                                                          metric=None,
-                                                                          validation_blocks=None,
-                                                                          cv_folds=None,
-                                                                          genetic_scheme=None,
-                                                                          max_pipeline_fit_time=None,
-                                                                          collect_intermediate_metric=False,
-                                                                          preset='fast_train',
-                                                                          initial_assumption=None,
-                                                                          use_pipelines_cache=False,
-                                                                          use_preprocessing_cache=False),
-                                                     tuning_params=dict(with_tuning=True,
-                                                                        tuner_metric=None))
-    with open(logger.log_file, 'r') as f:
+    api_composer.compose_fedot_model(api_params=dict(train_data=train_input,
+                                                     task=task,
+                                                     logger=logger,
+                                                     timeout=0.1,
+                                                     n_jobs=1,
+                                                     show_progress=False),
+                                     composer_params=dict(max_depth=1,
+                                                          max_arity=1,
+                                                          pop_size=2,
+                                                          num_of_generations=generations,
+                                                          keep_n_best=1,
+                                                          available_operations=operations,
+                                                          metric=None,
+                                                          validation_blocks=None,
+                                                          cv_folds=None,
+                                                          genetic_scheme=None,
+                                                          max_pipeline_fit_time=None,
+                                                          collect_intermediate_metric=False,
+                                                          preset='fast_train',
+                                                          initial_assumption=None,
+                                                          use_pipelines_cache=False,
+                                                          use_preprocessing_cache=False),
+                                     tuning_params=dict(with_tuning=True,
+                                                        tuner_metric=None))
+    with open(log.log_file, 'r') as f:
         log_text = f.read()
         assert 'Composed pipeline returned without tuning.' in log_text
 

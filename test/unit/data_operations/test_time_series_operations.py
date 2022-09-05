@@ -18,6 +18,9 @@ forecast_length = 4
 log = default_log(prefix=__name__)
 
 
+# log.logger.handlers = []
+
+
 def synthetic_univariate_ts():
     """ Method returns InputData for classical time series forecasting task """
     task = Task(TaskTypesEnum.ts_forecasting,

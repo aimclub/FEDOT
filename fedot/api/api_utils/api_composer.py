@@ -162,8 +162,8 @@ class ApiComposer:
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
-        log = api_params['logger']
-        task = api_params['task']
+        log: LoggerAdapter = api_params['logger']
+        task: Task = api_params['task']
         train_data = api_params['train_data']
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
