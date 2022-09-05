@@ -8,7 +8,7 @@ from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
 
-from fedot.core.composer.metrics import ROCAUC, RMSE, MSE, Accuracy
+from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -19,6 +19,7 @@ from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_forecasting import get_ts_data
@@ -111,11 +112,11 @@ def get_class_operation_types():
 
 
 def get_regr_losses():
-    return [RMSE.get_value]
+    return [RegressionMetricsEnum.RMSE]
 
 
 def get_class_losses():
-    return [ROCAUC.get_value, Accuracy.get_value]
+    return [ClassificationMetricsEnum.ROCAUC, ClassificationMetricsEnum.accuracy]
 
 
 def get_not_default_search_space():
@@ -382,7 +383,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_pipeline_tuner = time()
     _ = run_pipeline_tuner(train_data=train_data,
                            pipeline=get_class_pipelines()[0],
-                           loss_function=ROCAUC.metric,
+                           loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
     assert time() - start_pipeline_tuner < 1
@@ -390,7 +391,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_sequential_tuner = time()
     _ = run_sequential_tuner(train_data=train_data,
                              pipeline=get_class_pipelines()[0],
-                             loss_function=ROCAUC.metric,
+                             loss_function=ClassificationMetricsEnum.ROCAUC,
                              iterations=1000,
                              early_stopping_rounds=1)
     assert time() - start_sequential_tuner < 1
@@ -398,7 +399,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
                        pipeline=get_class_pipelines()[0],
-                       loss_function=ROCAUC.metric,
+                       loss_function=ClassificationMetricsEnum.ROCAUC,
                        iterations=1000,
                        early_stopping_rounds=1)
     assert time() - start_node_tuner < 1
@@ -461,7 +462,7 @@ def test_complex_search_space_tuning_correct():
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
-    tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(MSE.get_value).build(train_data)
+    tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(RegressionMetricsEnum.MSE).build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params

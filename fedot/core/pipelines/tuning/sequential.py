@@ -22,8 +22,7 @@ class SequentialTuner(HyperoptTuner):
                  search_space: ClassVar = SearchSpace(),
                  algo: Callable = tpe.suggest,
                  n_jobs: int = -1):
-        super().__init__(super().__init__(objective_evaluate, iterations, early_stopping_rounds, timeout, search_space,
-                                          algo, n_jobs)
+        super().__init__(objective_evaluate, iterations, early_stopping_rounds, timeout, search_space, algo, n_jobs)
 
         self.inverse_node_order = inverse_node_order
 
@@ -35,7 +34,7 @@ class SequentialTuner(HyperoptTuner):
         # Check source metrics for data
         self.init_check(pipeline)
 
-        self.pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
+        pipeline.replace_n_jobs_in_nodes(n_jobs=self.n_jobs)
 
         # Calculate amount of iterations we can apply per node
         nodes_amount = pipeline.length

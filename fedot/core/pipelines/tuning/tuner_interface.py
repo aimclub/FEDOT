@@ -65,7 +65,7 @@ class HyperoptTuner(ABC):
         # """
         pipeline_fitness = self.objective_evaluate.evaluate(pipeline)
         metric_value = pipeline_fitness.value
-        if not metric_value:
+        if not pipeline_fitness.valid:
             return self._default_metric_value
         return metric_value
 

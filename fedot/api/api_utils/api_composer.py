@@ -235,7 +235,7 @@ class ApiComposer:
                                      composer_requirements,
                                      best_pipeline,
                                      timeout_for_tuning,
-                                     log, composer_requirements.n_jobs)
+                                     log)
         # enforce memory cleaning
         gc.collect()
 
@@ -248,7 +248,7 @@ class ApiComposer:
                             composer_requirements: PipelineComposerRequirements,
                             pipeline_gp_composed: Pipeline,
                             timeout_for_tuning: int,
-                            log: LoggerAdapter, n_jobs: int) -> Pipeline:
+                            log: LoggerAdapter) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
 
         if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
@@ -261,17 +261,13 @@ class ApiComposer:
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
                 log.info('Hyperparameters tuning started')
-                vb_number = composer_requirements.validation_blocks
-                folds = composer_requirements.cv_folds
                 timeout_for_tuning = abs(timeout_for_tuning) / 60
                 tuner = TunerBuilder(task)\
                     .with_tuner(PipelineTuner)\
                     .with_metric(metric_function)\
-                    .with_cv_folds(folds)\
-                    .with_validation_blocks(vb_number)\
                     .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER)\
                     .with_timeout(datetime.timedelta(minutes=timeout_for_tuning))\
-                    .with_n_jobs(n_jobs)\
+                    .with_requirements(composer_requirements)\
                     .build(train_data)
                 tuned_pipeline = tuner.tune(pipeline_gp_composed)
                 log.info('Hyperparameters tuning finished')

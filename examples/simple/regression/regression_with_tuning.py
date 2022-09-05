@@ -5,11 +5,11 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
-from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import regression_dataset
 
@@ -100,7 +100,8 @@ def run_experiment(pipeline, tuner):
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            pipeline_tuner = TunerBuilder(task).with_tuner(tuner).with_metric(MAE.get_value).with_iterations(50) \
+            pipeline_tuner = TunerBuilder(task).with_tuner(tuner).with_metric(RegressionMetricsEnum.MAE)\
+                .with_iterations(50) \
                 .with_timeout(timedelta(seconds=50)).build(train_input)
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 

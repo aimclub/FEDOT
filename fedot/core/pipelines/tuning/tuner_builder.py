@@ -4,6 +4,7 @@ from typing import ClassVar, Callable, Type
 from hyperopt import tpe
 
 from fedot.core.data.data import InputData
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
@@ -18,6 +19,7 @@ class TunerBuilder:
         self.tuner_class = PipelineTuner
         self.cv_folds = None
         self.validation_blocks = None
+        self.n_jobs = -1
         self.metric: MetricsEnum = MetricByTask(task.task_type).get_default_quality_metrics()[0]
         self.iterations = 100
         self.early_stopping_rounds = None
@@ -29,12 +31,22 @@ class TunerBuilder:
         self.tuner_class = tuner
         return self
 
+    def with_requirements(self, requirements: ComposerRequirements):
+        self.cv_folds = requirements.cv_folds
+        self.validation_blocks = requirements.validation_blocks
+        self.n_jobs = requirements.n_jobs
+        return self
+
     def with_cv_folds(self, cv_folds: int):
         self.cv_folds = cv_folds
         return self
 
     def with_validation_blocks(self, validation_blocks: int):
         self.validation_blocks = validation_blocks
+        return self
+
+    def with_n_jobs(self, n_jobs: int):
+        self.n_jobs = n_jobs
         return self
 
     def with_metric(self, metric: MetricType):
@@ -71,5 +83,6 @@ class TunerBuilder:
                                  early_stopping_rounds=self.early_stopping_rounds,
                                  timeout=self.timeout,
                                  search_space=self.search_space,
-                                 algo=self.algo)
+                                 algo=self.algo,
+                                 n_jobs=self.n_jobs)
         return tuner
