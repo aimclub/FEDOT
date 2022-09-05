@@ -1,7 +1,7 @@
 from copy import deepcopy
 from dataclasses import dataclass
 from random import choice
-from typing import Any, List, Optional, Sequence, Union, Callable
+from typing import Any, Optional, Sequence, Union, Callable
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
@@ -20,7 +20,6 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizerParameters
 from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, EvaluationAttemptsError
-from fedot.core.pipelines.pipeline import Pipeline
 
 
 @dataclass

@@ -79,9 +79,9 @@ def equivalent_subtree(graph_first: Any, graph_second: Any) -> List[Tuple[Any, A
         is_same_type = type(node_first) == type(node_second)
         node_first_childs = node_first.nodes_from
         node_second_childs = node_second.nodes_from
-        if is_same_type and ((not node_first.nodes_from)
-                             or (node_first_childs and node_second_childs and
-                                 len(node_first_childs) == len(node_second_childs))):
+        if is_same_type and (not node_first.nodes_from or
+                             node_first_childs and node_second_childs and
+                             len(node_first_childs) == len(node_second_childs)):
             nodes.append((node_first, node_second))
             if node_first.nodes_from:
                 for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):

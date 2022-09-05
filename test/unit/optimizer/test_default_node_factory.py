@@ -1,12 +1,10 @@
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 def test_default_node_factory():
-    task = Task(TaskTypesEnum.classification)
     primary_operations = ['bernb', 'rf', 'qda', 'pca', 'normalization']
     secondary_operations = ['dt', 'logit', 'rf', 'scaling']
     requirements = PipelineComposerRequirements(primary=primary_operations,
