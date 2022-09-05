@@ -6,8 +6,7 @@ import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
 
-from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
+from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -121,36 +120,6 @@ def test_data_from_json():
                                      label='rating', task=Task(TaskTypesEnum.regression))
     assert len(data.features.shape) == 1  # check there is one feature
     assert len(data.target) == len(data.features) == len(data.idx)
-
-
-def test_multi_modal_data():
-    num_samples = 5
-    target = np.asarray([0, 0, 1, 0, 1])
-    img_data = InputData(idx=range(num_samples),
-                         features=None,  # in test the real data is not passed
-                         target=target,
-                         data_type=DataTypesEnum.text,
-                         task=Task(TaskTypesEnum.classification))
-    tbl_data = InputData(idx=range(num_samples),
-                         features=None,  # in test the real data is not passed
-                         target=target,
-                         data_type=DataTypesEnum.table,
-                         task=Task(TaskTypesEnum.classification))
-
-    multi_modal = MultiModalData({
-        'data_source_img': img_data,
-        'data_source_table': tbl_data,
-    })
-
-    assert multi_modal.task.task_type == TaskTypesEnum.classification
-    assert len(multi_modal.idx) == 5
-    assert multi_modal.num_classes == 2
-    assert np.array_equal(multi_modal.target, target)
-
-    # check setter
-    new_target = np.asarray([1, 1, 1, 1, 1])
-    multi_modal.target = new_target
-    assert np.array_equal(multi_modal.target, new_target)
 
 
 def test_target_data_from_csv_correct():

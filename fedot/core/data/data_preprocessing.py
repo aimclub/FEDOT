@@ -20,6 +20,15 @@ def replace_inf_with_nans(input_data: InputData):
     input_data.features = features_with_replaced_inf
 
 
+def replace_nans_with_empty_strings(input_data: InputData):
+    """
+    Replace NaNs with empty strings in input_data.features
+    """
+    input_data.features = np.where(pd.isna(input_data.features),
+                                   '',
+                                   input_data.features)
+
+
 def convert_into_column(array: np.array):
     """ Perform conversion for data if it is necessary """
     if len(array.shape) == 1:
@@ -137,7 +146,7 @@ def data_has_text_features(data: InputData) -> bool:
     parsing of it from a general table to the distinct text data source.
     Returns bool, whether data has text fields or not
     """
-    if data.data_type is not DataTypesEnum.ts and len(data.features.shape) == 1:
-        el_for_check = next(x for x in data.features if not pd.isna(x))
-        return isinstance(el_for_check, str)
+    # TODO andreygetmanov: make compatible with current text checking
+    if data.data_type is DataTypesEnum.text:
+        return True
     return False

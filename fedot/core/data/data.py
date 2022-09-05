@@ -479,6 +479,10 @@ def data_type_is_text(data: InputData) -> bool:
     return data.data_type is DataTypesEnum.text
 
 
+def data_type_is_image(data: InputData) -> bool:
+    return data.data_type is DataTypesEnum.image
+
+
 def get_indices_from_file(data_frame, file_path):
     if 'datetime' in data_frame.columns:
         df = pd.read_csv(file_path,
@@ -491,12 +495,12 @@ def get_indices_from_file(data_frame, file_path):
 def array_to_input_data(features_array: np.array,
                         target_array: np.array,
                         idx: Optional[np.array] = None,
-                        task: Task = Task(TaskTypesEnum.classification)):
-    data_type = autodetect_data_type(task)
-
+                        task: Task = Task(TaskTypesEnum.classification),
+                        data_type: Optional[DataTypesEnum] = None):
     if idx is None:
         idx = np.arange(len(features_array))
-
+    if data_type is None:
+        data_type = autodetect_data_type(task)
     return InputData(idx=idx, features=features_array, target=target_array, task=task, data_type=data_type)
 
 

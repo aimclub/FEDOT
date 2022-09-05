@@ -10,7 +10,8 @@ from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
     find_categorical_columns,
-    replace_inf_with_nans
+    replace_inf_with_nans,
+    replace_nans_with_empty_strings
 )
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -25,10 +26,10 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
+from fedot.preprocessing.data_type_check import exclude_ts, exclude_multi_ts, exclude_image
+from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
-from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
-
 ALLOWED_NAN_PERCENT = 0.9
 
 
@@ -181,59 +182,72 @@ class DataPreprocessor:
         if current_relevant_ids:
             data.features = data.features[:, current_relevant_ids]
 
+    @exclude_ts
+    @exclude_multi_ts
+    @exclude_image
     def _prepare_obligatory_unimodal_for_fit(self, data: InputData, source_name: str) -> InputData:
         """ Method process InputData for pipeline fit method """
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
 
+        # Wrap indices in numpy array
+        data.idx = np.array(data.idx)
+
         # Fix tables / time series sizes
         data = self._correct_shapes(data)
+        replace_inf_with_nans(data)
 
-        if data_type_is_table(data):
-            replace_inf_with_nans(data)
+        # Find incorrect features which must be removed
+        self._find_features_full_of_nans(data, source_name)
+        self.take_only_correct_features(data, source_name)
+        data = self._drop_rows_with_nan_in_target(data)
 
-            # Find incorrect features which must be removed
-            self._find_features_full_of_nans(data, source_name)
-            self.take_only_correct_features(data, source_name)
+        # Column types processing - launch after correct features selection
+        self.types_correctors[source_name].convert_data_for_fit(data)
+        if self.types_correctors[source_name].target_converting_has_errors:
             data = self._drop_rows_with_nan_in_target(data)
 
-            # Column types processing - launch after correct features selection
-            self.types_correctors[source_name].convert_data_for_fit(data)
-            if self.types_correctors[source_name].target_converting_has_errors:
-                data = self._drop_rows_with_nan_in_target(data)
+        # Train Label Encoder for categorical target if necessary and apply it
+        self._train_target_encoder(data, source_name)
+        data.target = self._apply_target_encoding(data, source_name)
 
-            # Train Label Encoder for categorical target if necessary and apply it
-            self._train_target_encoder(data, source_name)
-            data.target = self._apply_target_encoding(data, source_name)
-
+        # TODO andreygetmanov target encoding must be obligatory for all data types
+        if data_type_is_text(data):
+            # TODO andreygetmanov to new class text preprocessing?
+            replace_nans_with_empty_strings(data)
+        elif data_type_is_table(data):
             data = self._clean_extra_spaces(data)
-            # Wrap indices in numpy array
-            data.idx = np.array(data.idx)
-
             # Process binary categorical features
             self.binary_categorical_processors[source_name].fit(data)
             data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
 
+    @exclude_ts
+    @exclude_multi_ts
+    @exclude_image
     def _prepare_obligatory_unimodal_for_predict(self, data: InputData, source_name: str) -> InputData:
         """ Method process InputData for pipeline predict method """
         if data.supplementary_data.was_preprocessed:
             # Preprocessing was already done - return data
             return data
 
+        # Wrap indices in numpy array
+        data.idx = np.array(data.idx)
+
+        # Fix tables / time series sizes
         data = self._correct_shapes(data)
+        replace_inf_with_nans(data)
+
+        # Perform preprocessing for types - launch after correct features selection
+        self.take_only_correct_features(data, source_name)
+        self.types_correctors[source_name].convert_data_for_predict(data)
+
+        if data_type_is_text(data):
+            replace_nans_with_empty_strings(data)
         if data_type_is_table(data):
-            replace_inf_with_nans(data)
-            self.take_only_correct_features(data, source_name)
-
-            # Perform preprocessing for types - launch after correct features selection
-            self.types_correctors[source_name].convert_data_for_predict(data)
-
             data = self._clean_extra_spaces(data)
-            # Wrap indices in numpy array
-            data.idx = np.array(data.idx)
             data = self.binary_categorical_processors[source_name].transform(data)
 
         return data
@@ -435,16 +449,18 @@ class DataPreprocessor:
     def _correct_shapes(data: InputData) -> InputData:
         """
         Correct shapes of tabular data or time series: tabular must be
-        two-dimensional arrays, time series - one-dim array
+        two-dimensional arrays, text - array of (n, 1), time series - one-dim array
         """
-
         if data_type_is_table(data) or data.data_type is DataTypesEnum.multi_ts:
-            if len(data.features.shape) < 2:
+            if np.ndim(data.features) < 2:
                 data.features = data.features.reshape((-1, 1))
-            if data.target is not None and len(data.target.shape) < 2:
+            if data.target is not None and np.ndim(data.target) < 2:
                 data.target = data.target.reshape((-1, 1))
-
-        elif data_type_is_ts(data) or data_type_is_text(data):
+        elif data_type_is_text(data):
+            data.features = data.features.reshape((-1, 1))
+            if data.target is not None and np.ndim(data.target) < 2:
+                data.target = np.array(data.target).reshape((-1, 1))
+        elif data_type_is_ts(data):
             data.features = np.ravel(data.features)
 
         return data

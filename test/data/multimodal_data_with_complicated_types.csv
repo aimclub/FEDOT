@@ -1,0 +1,19 @@
+﻿,0,1,2,3,4,5,6,7,8,9,10,11,12,13
+0,0,,1,1,1,Lorem Ipsum is simply dummy text of the printing and typesetting,monday,a ,True,,,1,0,no
+1,,5,2,2,0,industry. Lorem Ipsum has been the industry standard dummy text ever since,tuesday,b,,,2.2999999999999998,0,1,yes
+2,2,,3,3,,"the 1500s, when an unknown printer took a galley of type and scrambled it to",3,c,False,,,1,?,yes
+3,3,,4,4,3,"make a type specimen book. It has survived not only five centuries, but also",4,  a  ,True,,,0,2,yes
+4,4,,5,5,0,"the leap into electronic typesetting, remaining essentially unchanged. It was",5,   b ,,,,0,3,no
+5,5,,6,6,0,popularised in the 1960s with the release of Letraset sheets containing Lorem ,6,   c  ,False,,,0,4,no
+6,6,inf,7,7,0,"Ipsum passages, and more recently with desktop publishing software like Aldus ",7,    a  ,True,sample text,sample text,1,5,no
+7,7,inf,8,8,1,PageMaker including versions of Lorem Ipsum.,1, b   ,,,4,0,6,no
+8,inf,inf,9,9,2,"Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots ",2,,True,,,1,7,no
+9,9,inf,10,10,2,"in a piece of classical Latin literature from 45 BC, making it over 2000 years ",3, c  ,False,,,0,8,yes
+10,10,,11,11,0,"old. Richard McClintock, a Latin professor at Hampden-Sydney College in ",4,c ,False,,0.0001,0,9,yes
+11,11,,12,12,2,"Virginia, looked up one of the more obscure Latin words, consectetur, from a ",5,,False,,,1,10,yes
+12,12,,1,1,1,"Lorem Ipsum passage, and going through the cites of the word in classical",6, b  ,False,,,0,11,yes
+13,13,,2,2,1,"literature, discovered the undoubtable source. Lorem Ipsum comes from sections ",7, c  ,True,,,,12,yes
+14,14,,3,3,2,"1.10.32 and 1.10.33 of ""de Finibus Bonorum et Malorum"" (The Extremes of Good ",1,a,False,,,,error,no
+15,15,,4,4,1,"and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of",2,a  ,False,,,,13,no
+16,16,2,5,12,0,"ethics, very popular during the Renaissance. The first line of Lorem Ipsum,",3,   d       ,True,,,1,16,yes
+17,17,3,6,13,0,"""Lorem ipsum dolor sit amet.."", comes from a line in section 1.10.32.",4,  d      ,False,,another sample text,0,17,no
