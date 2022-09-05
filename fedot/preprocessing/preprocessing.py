@@ -26,7 +26,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
-from fedot.preprocessing.decorators import exclude_ts, exclude_multi_ts, exclude_image
+from fedot.preprocessing.data_type_check import exclude_ts, exclude_multi_ts, exclude_image
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
