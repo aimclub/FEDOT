@@ -81,7 +81,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         self._graph_depth = AdaptiveGraphDepth(self.generations,
                                                start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
-                                               stagnation_threshold=requirements.adaptive_depth_max_stagnation,
+                                               max_stagnation_gens=requirements.adaptive_depth_max_stagnation,
                                                adaptive=requirements.adaptive_depth)
 
         # Define initial parameters

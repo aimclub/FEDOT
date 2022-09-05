@@ -16,7 +16,8 @@ class MutationStrengthEnum(Enum):
 
 @dataclass
 class PipelineComposerRequirements(ComposerRequirements):
-    """Defines algorithm-specific parameters of evolutionary optimizer.
+    """Parameters of evolutionary optimizer that define features of the evolutionary algorithm
+    and restrictions on the graph composition process.
 
     Evolutionary optimization options
     :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
