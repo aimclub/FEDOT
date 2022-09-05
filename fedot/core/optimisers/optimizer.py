@@ -23,8 +23,22 @@ def do_nothing_callback(*args, **kwargs):
 
 @dataclass
 class GraphOptimizerParameters:
-    """Base class for definition of optimizer parameters. Can be extended for custom optimizers."""
-    pass
+    """Base class for definition of optimizer parameters. Can be extended for custom optimizers.
+
+    Population and graph parameters, possibly adaptive:
+    :param offspring_rate: offspring rate used on next population
+    :param pop_size: initial population size
+    :param max_pop_size: maximum population size; optional, if unspecified, then population size is unbound
+    :param adaptive_depth: flag to enable adaptive configuration of graph depth
+    :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
+    """
+
+    offspring_rate: float = 0.5
+
+    pop_size: int = 20
+    max_pop_size: Optional[int] = 55
+    adaptive_depth: bool = False
+    adaptive_depth_max_stagnation: int = 3
 
 
 @dataclass

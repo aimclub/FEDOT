@@ -10,9 +10,9 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
     EvoGraphOptimizer,
-    GeneticSchemeTypesEnum,
-    GPGraphOptimizerParameters
+    GeneticSchemeTypesEnum
 )
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum

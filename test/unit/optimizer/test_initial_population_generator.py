@@ -16,12 +16,12 @@ def setup_test(pop_size):
     task = Task(TaskTypesEnum.classification)
     available_model_types = get_operations_for_task(task=task, mode='model')
     requirements = PipelineComposerRequirements(primary=available_model_types,
-                                                secondary=available_model_types,
-                                                pop_size=pop_size)
+                                                secondary=available_model_types)
     graph_generation_params = get_pipeline_generation_params(requirements=requirements,
                                                              rules_for_constraint=rules_by_task(task.task_type),
                                                              task=task)
-    return requirements, graph_generation_params, InitialPopulationGenerator(graph_generation_params, requirements)
+    generator = InitialPopulationGenerator(pop_size, graph_generation_params, requirements)
+    return requirements, graph_generation_params, generator
 
 
 def test_random_initial_population():

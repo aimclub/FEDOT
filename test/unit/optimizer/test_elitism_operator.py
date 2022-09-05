@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
@@ -20,21 +21,18 @@ def set_up():
     pipelines = [pipeline_first(), pipeline_second(), pipeline_third(), pipeline_fourth()]
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
     best_individual = [Individual(adapter.adapt(pipeline_fourth())), Individual(adapter.adapt(pipeline_fifth()))]
-    task = Task(TaskTypesEnum.classification)
-    operations = get_operations_for_task(task, mode='model')
-    requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
 
     dispatcher = SimpleDispatcher(adapter)
     objective = prepared_objective
     evaluator = dispatcher.dispatch(objective)
     evaluated_population = evaluator(population)
     evaluated_best_individuals = evaluator(best_individual)
-    return requirements, evaluated_best_individuals, evaluated_population
+    return evaluated_best_individuals, evaluated_population
 
 
 def test_keep_n_best_elitism(set_up):
-    requirements, best_individuals, population = set_up
-    elitism = Elitism(ElitismTypesEnum.keep_n_best, requirements, is_multi_objective=False)
+    best_individuals, population = set_up
+    elitism = Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.keep_n_best), is_multi_objective=False)
     new_population = elitism(best_individuals, population)
     for best_ind in best_individuals:
         assert best_ind in new_population
@@ -42,8 +40,8 @@ def test_keep_n_best_elitism(set_up):
 
 
 def test_replace_worst(set_up):
-    requirements, best_individuals, population = set_up
-    elitism = Elitism(ElitismTypesEnum.replace_worst, requirements, is_multi_objective=False)
+    best_individuals, population = set_up
+    elitism = Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst), is_multi_objective=False)
     new_population = elitism(best_individuals, population)
     for best_ind in best_individuals:
         assert any(best_ind.fitness > ind.fitness for ind in population) == \
@@ -52,13 +50,15 @@ def test_replace_worst(set_up):
 
 
 def test_elitism_not_applicable(set_up):
-    requirements, best_individuals, population = set_up
-    modified_requirements = deepcopy(requirements)
-    modified_requirements.pop_size = 4
-    elitisms = [Elitism(ElitismTypesEnum.replace_worst, requirements, is_multi_objective=True),
-                Elitism(ElitismTypesEnum.replace_worst, modified_requirements, is_multi_objective=False,
+    best_individuals, population = set_up
+    elitisms = [Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst),
+                        is_multi_objective=True),
+                Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst,
+                                                   pop_size=4),
+                        is_multi_objective=False,
                         min_population_size_with_elitism=5),
-                Elitism(ElitismTypesEnum.none, requirements, is_multi_objective=False)]
+                Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.none),
+                        is_multi_objective=False)]
     for elitism in elitisms:
         new_population = elitism(best_individuals, population)
         for best_ind in best_individuals:

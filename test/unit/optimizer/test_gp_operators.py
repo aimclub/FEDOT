@@ -542,7 +542,7 @@ def test_mutation_with_single_node():
     available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
 
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                                         max_arity=3, max_depth=3, pop_size=5, num_of_generations=4,
+                                                         max_arity=3, max_depth=3, num_of_generations=4,
                                                          crossover_prob=.8, mutation_prob=1)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
@@ -567,7 +567,7 @@ def test_no_opt_or_graph_nodes_after_mutation():
 
     available_model_types = OperationTypesRepository().suitable_operation(task_type=task.task_type)
     composer_requirements = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                                         max_arity=3, max_depth=2, pop_size=5, num_of_generations=4,
+                                                         max_arity=3, max_depth=2, num_of_generations=4,
                                                          crossover_prob=.8, mutation_prob=1)
     graph_params = get_pipeline_generation_params(composer_requirements, DEFAULT_DAG_RULES, task)
     mutation = Mutation(mutation_types=mutation_types, graph_generation_params=graph_params,

@@ -1,10 +1,9 @@
 import math
 from copy import deepcopy
 from random import choice, randint
-from typing import List, Callable, Sequence
+from typing import List, Callable
 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 
@@ -14,8 +13,7 @@ class SelectionTypesEnum(Enum):
 
 
 class Selection(Operator):
-    def __init__(self, selection_types: Sequence[SelectionTypesEnum], requirements: PipelineComposerRequirements):
-        self.selection_types = selection_types
+    def __init__(self, requirements: 'GPGraphOptimizerParameters'):
         self.requirements = requirements
 
     def __call__(self, population: PopulationT) -> PopulationT:
@@ -23,7 +21,7 @@ class Selection(Operator):
         Selection of individuals based on specified type of selection
         :param population: A list of individuals to select from.
         """
-        selection_type = choice(self.selection_types)
+        selection_type = choice(self.requirements.selection_types)
         return self._selection_by_type(selection_type)(population, self.requirements.pop_size)
 
     def _selection_by_type(self, selection_type: SelectionTypesEnum) -> Callable[[PopulationT, int], PopulationT]:
@@ -35,9 +33,6 @@ class Selection(Operator):
             return selections[selection_type]
         else:
             raise ValueError(f'Required selection not found: {selection_type}')
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
 
     def individuals_selection(self, individuals: PopulationT) -> PopulationT:
         pop_size = self.requirements.pop_size

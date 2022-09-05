@@ -14,7 +14,7 @@ from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearch
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements, \
     MutationStrengthEnum

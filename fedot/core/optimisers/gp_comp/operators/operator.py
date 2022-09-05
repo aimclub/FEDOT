@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from typing import Sequence, Callable
 
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 
 PopulationT = Sequence[Individual]  # TODO: provisional
 EvaluationOperator = Callable[[PopulationT], PopulationT]
@@ -18,7 +17,4 @@ class Operator(ABC):
     - Crossover: Population -> Population
     - Elitism: [Population, Population] -> Population
     """
-
-    @abstractmethod
-    def update_requirements(self, new_requirements: ComposerRequirements):
-        pass
+    pass

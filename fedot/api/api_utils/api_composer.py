@@ -15,8 +15,9 @@ from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECON
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
-from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
@@ -120,7 +121,6 @@ class ApiComposer:
             secondary=secondary_operations,
             max_arity=composer_params['max_arity'],
             max_depth=composer_params['max_depth'],
-            pop_size=composer_params['pop_size'],
             max_pipeline_fit_time=composer_params['max_pipeline_fit_time'],
             num_of_generations=composer_params['num_of_generations'],
             cv_folds=composer_params['cv_folds'],
@@ -201,6 +201,11 @@ class ApiComposer:
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+
+        graph_optimizer_params = GPGraphOptimizerParameters(
+            pop_size=composer_params['pop_size'],
+            genetic_scheme_type=genetic_scheme_type,
+        )
 
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \

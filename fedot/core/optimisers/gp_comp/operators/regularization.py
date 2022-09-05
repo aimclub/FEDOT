@@ -2,7 +2,6 @@ from copy import deepcopy
 
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import Node
@@ -15,9 +14,8 @@ class RegularizationTypesEnum(Enum):
 
 
 class Regularization(Operator):
-    def __init__(self, regularization_type: RegularizationTypesEnum,
-                 requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams):
-        self.regularization_type = regularization_type
+    def __init__(self, requirements: 'GPGraphOptimizerParameters', graph_generation_params: GraphGenerationParams):
+        self.regularization_type = requirements.regularization_type
         self.graph_generation_params = graph_generation_params
         self.requirements = requirements
 
@@ -28,9 +26,6 @@ class Regularization(Operator):
             return population
         else:
             raise ValueError(f'Required regularization type not found: {self.regularization_type}')
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
 
     def _decremental_regularization(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
         size = self.requirements.pop_size

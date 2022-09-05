@@ -1,7 +1,6 @@
 from functools import partial
 from typing import (Callable)
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.operators.selection import Selection
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -14,9 +13,8 @@ class GeneticSchemeTypesEnum(Enum):
 
 
 class Inheritance(Operator):
-    def __init__(self, genetic_scheme_type: GeneticSchemeTypesEnum,
-                 selection: Selection, requirements: PipelineComposerRequirements):
-        self.genetic_scheme_type = genetic_scheme_type
+    def __init__(self, requirements: 'GPGraphOptimizerParameters', selection: Selection):
+        self.genetic_scheme_type = requirements.genetic_scheme_type
         self.selection = selection
         self.requirements = requirements
 
@@ -34,9 +32,6 @@ class Inheritance(Operator):
             GeneticSchemeTypesEnum.parameter_free: steady_state_scheme
         }
         return inheritance_type_by_genetic_scheme[genetic_scheme_type]
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
 
 
 def steady_state_inheritance(prev_population: PopulationT, new_population: PopulationT, selection: Selection) \

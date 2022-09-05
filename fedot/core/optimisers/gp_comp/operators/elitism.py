@@ -1,6 +1,5 @@
 from random import shuffle
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
@@ -12,11 +11,10 @@ class ElitismTypesEnum(Enum):
 
 
 class Elitism(Operator):
-    def __init__(self, elitism_type: ElitismTypesEnum,
-                 requirements: PipelineComposerRequirements,
+    def __init__(self, requirements: 'GPGraphOptimizerParameters',
                  is_multi_objective: bool,
-                 min_population_size_with_elitism: int = 5):
-        self.elitism_type = elitism_type
+                 min_population_size_with_elitism: int = 5):  # TODO: move to requirements
+        self.elitism_type = requirements.elitism_type
         self.requirements = requirements
         self.is_multi_objective = is_multi_objective
         self.min_population_size_with_elitism = min_population_size_with_elitism
@@ -30,9 +28,6 @@ class Elitism(Operator):
             return self._replace_worst_elitism(best_individuals, new_population)
         else:
             raise ValueError(f'Required elitism type not found: {self.elitism_type}')
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
 
     def _is_elitism_applicable(self) -> bool:
         if self.is_multi_objective:
