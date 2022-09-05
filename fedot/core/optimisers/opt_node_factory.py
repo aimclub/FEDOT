@@ -58,4 +58,4 @@ class DefaultOptNodeFactory(OptNodeFactory):
         if not self.requirements:
             return None
         candidates = self.requirements.primary if primary else self.requirements.secondary
-        return OptNode(content={'name': choice(candidates))
+        return OptNode(content={'name': choice(candidates)})
