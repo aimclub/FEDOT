@@ -40,9 +40,8 @@ class DataSourceSplitter:
 
     def build(self, data: InputData) -> DataSource:
         # Shuffle data
-        if self.shuffle:
-            if data.task.task_type is not TaskTypesEnum.ts_forecasting:
-                data.shuffle()
+        if self.shuffle and data.task.task_type is not TaskTypesEnum.ts_forecasting:
+            data.shuffle()
 
         # Split data
         if self.cv_folds is not None:
