@@ -47,4 +47,4 @@ class ComposerRequirements:
 
     def __post_init__(self):
         if self.cv_folds is not None and self.cv_folds <= 1:
-            raise ValueError(f'Number of folds for KFold cross validation must be 2 or more.')
+            raise ValueError('Number of folds for KFold cross validation must be 2 or more.')

@@ -1,8 +1,8 @@
 from typing import Callable, Union, Sequence
 
+from fedot.core.composer.metrics import Metric
 from fedot.core.repository.quality_metrics_repository import (ClassificationMetricsEnum, ClusteringMetricsEnum,
                                                               ComplexityMetricsEnum, RegressionMetricsEnum)
-from fedot.core.composer.metrics import smape, Metric
 
 
 class ApiMetrics:

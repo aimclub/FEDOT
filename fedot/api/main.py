@@ -1,6 +1,5 @@
 import logging
 from copy import deepcopy
-from inspect import signature
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np

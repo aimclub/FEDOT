@@ -87,8 +87,6 @@ def load_categorical_unimodal():
 
 
 def load_categorical_multidata():
-    task = Task(TaskTypesEnum.classification)
-
     # Create features table
     features_first = np.array([[0, '  a'], [1, ' a '], [2, '  b'], [3, np.nan], [4, '  a'],
                                [5, '  b'], [6, 'b  '], [7, '  c'], [8, ' c ']], dtype=object)
@@ -192,9 +190,9 @@ def test_api_check_data_correct():
     string_data_input = ApiDataProcessor(task).define_data(features=path_to_train, target='target')
     array_data_input = ApiDataProcessor(task).define_data(features=x_train, target=x_test)
     fedot_data_input = ApiDataProcessor(task).define_data(features=train_data)
-    assert (not type(string_data_input) == InputData
-            or type(array_data_input) == InputData
-            or type(fedot_data_input) == InputData)
+    assert (not type(string_data_input) == InputData or
+            type(array_data_input) == InputData or
+            type(fedot_data_input) == InputData)
 
 
 def test_api_check_multimodal_data_correct():
@@ -283,7 +281,10 @@ def test_categorical_preprocessing_unidata():
     prediction = auto_model.predict(features=test_data)
     prediction_proba = auto_model.predict_proba(features=test_data)
 
-    assert True
+    assert np.issubdtype(prediction.dtype, np.number)
+    assert np.isnan(prediction).sum() == 0
+    assert np.issubdtype(prediction_proba.dtype, np.number)
+    assert np.isnan(prediction_proba).sum() == 0
 
 
 def test_categorical_preprocessing_unidata_predefined():

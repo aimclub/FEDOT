@@ -1,11 +1,9 @@
 from abc import abstractmethod, ABC
 from random import choice
-from typing import Optional, Any
+from typing import Optional
 
-from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class OptNodeFactory(ABC):
