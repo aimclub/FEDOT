@@ -22,9 +22,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param mutation_prob: mutation probability
     :param mutation_strength: strength of mutation in tree (using in certain mutation types)
 
-    Population and graph parameters, possibly adaptive:
-    :param keep_n_best: number of the best individuals of previous generation to keep in next generation
-
     Restrictions on final graphs:
     :param start_depth: start value of adaptive tree depth
     :param max_depth: max depth of the resulting pipeline
@@ -39,8 +36,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     crossover_prob: float = 0.8
     mutation_prob: float = 0.8
     mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
-
-    keep_n_best: int = 1
 
     start_depth: int = 3
     # TODO it's actually something like 'current_max_depth', not overall max depth.

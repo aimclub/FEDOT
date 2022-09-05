@@ -134,6 +134,18 @@ class ApiComposer:
         )
         return composer_requirements
 
+    @staticmethod
+    def _init_optimizer_parameters(composer_params: dict) -> GPGraphOptimizerParameters:
+        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
+        if composer_params['genetic_scheme'] == 'steady_state':
+            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
+
+        optimizer_params = GPGraphOptimizerParameters(
+            pop_size=composer_params['pop_size'],
+            genetic_scheme_type=genetic_scheme_type,
+        )
+        return optimizer_params
+
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -210,9 +222,9 @@ class ApiComposer:
         builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
-            .with_genetic_scheme(genetic_scheme_type) \
             .with_optimizer(composer_params.get('optimizer')) \
-            .with_optimizer_params(external_parameters=composer_params.get('optimizer_external_params')) \
+            .with_optimizer_params(parameters=self._init_optimizer_parameters(composer_params),
+                                   external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_functions) \
             .with_history(composer_params.get('history_folder')) \
             .with_cache(self.pipelines_cache, self.preprocessing_cache)

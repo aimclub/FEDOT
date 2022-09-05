@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Callable, List, Union, Iterable, Tuple, Sequence
+from typing import Callable, List, Union, Iterable, Tuple
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.log import default_log
@@ -19,12 +19,15 @@ class CrossoverTypesEnum(Enum):
 
 
 class Crossover(Operator):
-    def __init__(self, crossover_types: Sequence[Union[CrossoverTypesEnum, Callable]],
-                 requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams,
+    def __init__(self,
+                 optimizer_requirements: 'GPGraphOptimizerParameters',
+                 requirements: PipelineComposerRequirements,
+                 graph_generation_params: GraphGenerationParams,
                  max_number_of_attempts: int = 100):
-        self.crossover_types = crossover_types
-        self.graph_generation_params = graph_generation_params
+        self.crossover_types = optimizer_requirements.crossover_types
+        self.optimizer_requirements = optimizer_requirements
         self.requirements = requirements
+        self.graph_generation_params = graph_generation_params
         self.max_number_of_attempts = max_number_of_attempts
         self.log = default_log(self)
 
@@ -36,9 +39,6 @@ class Crossover(Operator):
             for ind_1, ind_2 in Crossover.crossover_parents_selection(population):
                 new_population += self._crossover(ind_1, ind_2)
         return new_population
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
 
     @staticmethod
     def crossover_parents_selection(population: PopulationT) -> Iterable[Tuple[Individual, Individual]]:

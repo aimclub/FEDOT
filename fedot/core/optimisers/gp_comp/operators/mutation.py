@@ -33,14 +33,16 @@ class MutationTypesEnum(Enum):
 
 
 class Mutation(Operator):
-    def __init__(self, mutation_types: Sequence[Union[MutationTypesEnum, Callable]],
+    def __init__(self,
+                 optimizer_requirements: 'GPGraphGenerationParameters',
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  max_num_of_mutation_attempts: int = 100,
                  static_mutation_probability: float = 0.7):
-        self.mutation_types = mutation_types
-        self.graph_generation_params = graph_generation_params
+        self.mutation_types = optimizer_requirements.mutation_types
+        self.optimizer_requirements = optimizer_requirements
         self.requirements = requirements
+        self.graph_generation_params = graph_generation_params
         self.max_num_of_mutation_attempts = max_num_of_mutation_attempts
         self.static_mutation_probability = static_mutation_probability
         self.log = default_log(prefix='mutation')
@@ -49,9 +51,6 @@ class Mutation(Operator):
         if isinstance(population, Individual):
             return self._mutation(population)
         return list(map(self._mutation, population))
-
-    def update_requirements(self, new_requirements):
-        self.requirements = new_requirements
 
     @staticmethod
     def get_mutation_prob(mut_id: MutationStrengthEnum, node: GraphNode) -> float:

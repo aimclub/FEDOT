@@ -16,6 +16,7 @@ class ComposerRequirements:
     populations for early stopping. If None -- do not use early stopping.
 
     Infrastructure options (logging, performance)
+    :param keep_n_best: number of the best individuals of previous generation to keep in next generation
     :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
     :param n_jobs: num of n_jobs
     :param show_progress: bool indicating whether to show progress using tqdm or not
@@ -31,6 +32,7 @@ class ComposerRequirements:
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
     early_stopping_generations: Optional[int] = 10
 
+    keep_n_best: int = 1
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = 1
     show_progress: bool = True

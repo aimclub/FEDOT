@@ -37,8 +37,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Define genetic operators
         self.regularization = Regularization(parameters, graph_generation_params)
         self.selection = Selection(parameters)
-        self.crossover = Crossover(parameters.crossover_types, requirements, graph_generation_params)
-        self.mutation = Mutation(parameters.mutation_types, requirements, graph_generation_params)
+        self.crossover = Crossover(parameters, requirements, graph_generation_params)
+        self.mutation = Mutation(parameters, requirements, graph_generation_params)
         self.inheritance = Inheritance(parameters, self.selection)
         self.elitism = Elitism(parameters, objective.is_multi_objective)
         self.operators = [self.regularization, self.selection, self.crossover,
