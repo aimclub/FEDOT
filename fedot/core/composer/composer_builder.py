@@ -51,7 +51,6 @@ class ComposerBuilder:
 
         self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
         self.optimizer_parameters: Optional[GraphOptimizerParameters] = None
-        # TODO: remove optimizer_external_parameters or specify why it's needed
         self.optimizer_external_parameters: dict = {}
         self.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         self.regularization_type = RegularizationTypesEnum.none

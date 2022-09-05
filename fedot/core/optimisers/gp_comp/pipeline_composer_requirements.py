@@ -31,6 +31,8 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param keep_n_best: number of the best individuals of previous generation to keep in next generation
     :param adaptive_depth: flag to enable adaptive configuration of graph depth
     :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
+
+    Restrictions on final graphs:
     :param start_depth: start value of adaptive tree depth
     :param max_depth: max depth of the resulting pipeline
     :param max_arity: max number of parents for node
@@ -46,9 +48,10 @@ class PipelineComposerRequirements(ComposerRequirements):
     max_pop_size: Optional[int] = 55
     adaptive_depth: bool = False
     adaptive_depth_max_stagnation: int = 3
-    start_depth: int = 3
-    max_depth: int = 3
 
+    start_depth: int = 3
+    # TODO it's actually something like 'current_max_depth', not overall max depth. re
+    max_depth: int = 3
     max_arity: int = 2
     min_arity: int = 2
 
