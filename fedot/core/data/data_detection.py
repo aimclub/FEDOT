@@ -4,6 +4,8 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES
+
 ALLOWED_NAN_PERCENT = 0.9
 
 
@@ -73,11 +75,10 @@ class TextDataDetector(DataDetector):
         :return: True if column contains text
         """
         if column.dtype == object and not self._is_float_compatible(column):
-            unique_frac = 0.95
             unique_num = len(column.unique())
             nan_num = pd.isna(column).sum()
-            return unique_num / len(column) > unique_frac if nan_num == 0 \
-                else (unique_num - 1) / (len(column) - nan_num) > unique_frac
+            return unique_num / len(column) > FRACTION_OF_UNIQUE_VALUES if nan_num == 0 \
+                else (unique_num - 1) / (len(column) - nan_num) > FRACTION_OF_UNIQUE_VALUES
         return False
 
     @staticmethod

@@ -5,8 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text, \
-    data_type_is_multi_ts, data_type_is_image
+from fedot.core.data.data import InputData, OutputData, data_type_is_table, data_type_is_ts, data_type_is_text
 from fedot.core.data.data_preprocessing import (
     data_has_categorical_features,
     data_has_missing_values,
@@ -27,37 +26,11 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.preprocessing.categorical import BinaryCategoricalPreprocessor
 from fedot.preprocessing.data_types import NAME_CLASS_INT, TableTypesCorrector
+from fedot.preprocessing.decorators import exclude_ts, exclude_multi_ts, exclude_image
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME, PipelineStructureExplorer
 # The allowed percent of empty samples in features.
 # Example: 90% objects in features are 'nan', then drop this feature from data.
 ALLOWED_NAN_PERCENT = 0.9
-
-
-def exclude_ts(preprocessing_function):
-    """ Decorator for time series type checking """
-    def wrapper(self, input_data, source_name, *args, **kwargs):
-        if data_type_is_ts(input_data):
-            return input_data
-        return preprocessing_function(self, input_data, source_name, *args, **kwargs)
-    return wrapper
-
-
-def exclude_multi_ts(preprocessing_function):
-    """ Decorator for multivariate time series type checking """
-    def wrapper(self, input_data, source_name, *args, **kwargs):
-        if data_type_is_multi_ts(input_data):
-            return input_data
-        return preprocessing_function(self, input_data, source_name, *args, **kwargs)
-    return wrapper
-
-
-def exclude_image(preprocessing_function):
-    """ Decorator for image type checking """
-    def wrapper(self, input_data, source_name, *args, **kwargs):
-        if data_type_is_image(input_data):
-            return input_data
-        return preprocessing_function(self, input_data, source_name, *args, **kwargs)
-    return wrapper
 
 
 class DataPreprocessor:
