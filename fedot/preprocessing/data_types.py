@@ -478,7 +478,7 @@ def apply_type_transformation(table: np.array, column_types: list, log: LoggerAd
     """
 
     def type_by_name(current_type_name: str):
-        """ Return type by it's name """
+        """ Return type by its name """
         if 'int' in current_type_name:
             return int
         elif 'str' in current_type_name:
@@ -496,22 +496,10 @@ def apply_type_transformation(table: np.array, column_types: list, log: LoggerAd
         current_type = type_by_name(column_types[column_id])
         try:
             table[:, column_id] = current_column.astype(current_type)
-        except ValueError as ex:
-            log.debug(f'Cannot convert column with id {column_id} into type {current_type} due to {ex}')
-
-            message = str(ex)
-            if 'NaN' not in message:
-                # Try to convert column from string into float
-                unseen_label = message.split("\'")[1]
-                if ',' in unseen_label:
-                    # Most likely case: '20,000' must be converted into '20.000'
-                    err = f'Column {column_id} contains both "." and ",". Standardize it.'
-                    raise ValueError(err)
-                else:
-                    # Most likely case: ['a', '1.5'] -> [np.nan, 1.5]
-                    label_ids = np.ravel(np.argwhere(current_column == unseen_label))
-                    current_column[label_ids] = np.nan
-                    table[:, column_id] = current_column.astype(float)
+        except ValueError:
+            table[:, column_id] = _process_predict_column_values_one_by_one(current_column=current_column,
+                                                                            current_type=current_type,
+                                                                            column_id=column_id, log=log)
 
     return table
 
@@ -569,3 +557,21 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
                 updated_column_types.append(NAME_CLASS_FLOAT)
 
     return updated_column_types
+
+
+def _process_predict_column_values_one_by_one(current_column: np.ndarray, current_type, column_id: int,
+                                              log: LoggerAdapter):
+    """ Process column values one by one and try to convert them into desirable type.
+    If not successful replace with np.nan """
+    new_column = []
+    for value in current_column:
+        try:
+            new_value = current_type(value)
+        except ValueError:
+            if isinstance(value, str) and ',' in value:
+                # Most likely case: '20,000' must be converted into '20.000'
+                warning = f'Column {column_id} contains both "." and ",". Standardize it.'
+                log.warning(warning)
+            new_value = np.nan
+        new_column.append(new_value)
+    return new_column
