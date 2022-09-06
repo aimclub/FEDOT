@@ -149,19 +149,7 @@ class SearchSpace:
                 {
                     'family': 'inverse_gaussian',
                     'link': hp.choice('link_inv_gaussian', ['identity',
-                                                            'inverse_power',
-                                                            'inverse_squared'])
-                },
-                {
-                    'family': 'poisson',
-                    'link': hp.choice('link_poisson', ['identity',
-                                                       'sqrt',
-                                                       'log'])
-                },
-                {
-                    'family': 'tweedie',
-                    'link': hp.choice('link_tweedie', ['power',
-                                                       'log'])
+                                                            'inverse_power'])
                 }
 
             ]])},

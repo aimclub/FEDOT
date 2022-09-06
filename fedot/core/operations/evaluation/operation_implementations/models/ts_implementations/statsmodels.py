@@ -2,8 +2,8 @@ from copy import copy
 
 import numpy as np
 import statsmodels.api as sm
-from statsmodels.genmod.families import Gamma, Gaussian, InverseGaussian, Poisson, Tweedie
-from statsmodels.genmod.families.links import Power, identity, inverse_power, inverse_squared, log as lg, sqrt
+from statsmodels.genmod.families import Gamma, Gaussian, InverseGaussian
+from statsmodels.genmod.families.links import identity, inverse_power, inverse_squared, log as lg
 from statsmodels.genmod.generalized_linear_model import GLM
 from statsmodels.tsa.ar_model import AutoReg
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
@@ -16,6 +16,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 
 class GLMImplementation(ModelImplementation):
     """ Generalized linear models implementation """
+    # some models are dropped due to instability
     family_distribution = {
         "gaussian": {'distribution': Gaussian,
                      'default_link': 'identity',
@@ -39,19 +40,6 @@ class GLMImplementation(ModelImplementation):
                                                  'inverse_power': inverse_power()
                                                  }
                              },
-        "poisson": {'distribution': Poisson,
-                    'default_link': 'log',
-                    'available_links': {'log': lg(),
-                                        'identity': identity(),
-                                        'sqrt': sqrt()
-                                        }
-                    },
-        "tweedie": {'distribution': Tweedie,
-                    'default_link': 'log',
-                    'available_links': {'log': lg(),
-                                        'power': Power(),
-                                        }
-                    },
         "default": Gaussian(identity())
     }
 
@@ -74,7 +62,7 @@ class GLMImplementation(ModelImplementation):
             exog=sm.add_constant(input_data.idx.astype("float64")).reshape(-1, 2),
             endog=input_data.target.astype("float64").reshape(-1, 1),
             family=self.family_link
-        ).fit()
+        ).fit(method="lbfgs")
         return self.model
 
     def predict(self, input_data):
@@ -136,8 +124,7 @@ class GLMImplementation(ModelImplementation):
         self.family_link = self.family_distribution['default']
         self.params_changed = True
         self.family = 'gaussian'
-        self.log.info(
-            f"Invalid family. Changed to default value")
+        self.log.info("Invalid family. Changed to default value")
 
     def correct_params(self):
         """ Correct params if they are not correct """
