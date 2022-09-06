@@ -238,7 +238,7 @@ class TableTypesCorrector:
             try:
                 float(cur_column[i])
                 converted_column.append(np.nan)
-            except ValueError as _:
+            except ValueError:
                 converted_column.append(cur_column[i])
         data.features[:, column_id] = pd.Series(converted_column).values
 

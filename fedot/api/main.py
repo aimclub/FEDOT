@@ -310,7 +310,7 @@ class Fedot:
                 raise NotImplementedError(f"For task {self.params.api_params['task']} plot prediction is not supported")
         else:
             self.params.api_params['logger'].error('No prediction to visualize')
-            raise ValueError(f"Prediction from model is empty")
+            raise ValueError("Prediction from model is empty")
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,
