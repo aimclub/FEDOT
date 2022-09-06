@@ -4,7 +4,6 @@ import logging
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.metrics import MAE
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
@@ -82,9 +81,14 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    tuner = TunerBuilder(time_series.task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_cv_folds(folds) \
-        .with_validation_blocks(validation_blocks).with_iterations(1) \
-        .with_timeout(datetime.timedelta(minutes=1)).build(time_series)
+    tuner = TunerBuilder(time_series.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MAE)\
+        .with_cv_folds(folds) \
+        .with_validation_blocks(validation_blocks).\
+        with_iterations(1) \
+        .with_timeout(datetime.timedelta(minutes=1))\
+        .build(time_series)
     tuned = tuner.tune(simple_pipeline)
     is_tune_succeeded = True
     assert is_tune_succeeded

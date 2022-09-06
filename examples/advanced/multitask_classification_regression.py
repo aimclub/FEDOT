@@ -14,6 +14,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
 from test.unit.api.test_api_cli_params import project_root_path
 
@@ -67,8 +68,12 @@ def launch_multitask_example(with_tuning: bool = False):
     multitask_pipeline = get_multitask_pipeline()
 
     if with_tuning:
-        tuner = TunerBuilder(train_input.task).with_tuner(PipelineTuner).with_metric(MAE.get_value)\
-            .with_iterations(100).with_timeout(timedelta(minutes=2)).build(train_input)
+        tuner = TunerBuilder(train_input.task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(RegressionMetricsEnum.MAE)\
+            .with_iterations(100)\
+            .with_timeout(timedelta(minutes=2))\
+            .build(train_input)
         multitask_pipeline = tuner.tune(multitask_pipeline)
 
     multitask_pipeline.fit(train_input)

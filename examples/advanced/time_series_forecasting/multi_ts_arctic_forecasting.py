@@ -9,7 +9,6 @@ from cases.multi_ts_level_forecasting import prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.composer.metrics import MAE
 from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -79,7 +78,10 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     rmse_composing, mae_composing = calculate_metrics(np.ravel(test_data.target), predict_after)
 
     # tuning composed pipeline
-    tuner = TunerBuilder(task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_iterations(50)\
+    tuner = TunerBuilder(task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MAE)\
+        .with_iterations(50)\
         .build(train_data)
     obtained_pipeline_copy = tuner.tune(obtained_pipeline_copy)
     obtained_pipeline_copy.print_structure()

@@ -4,7 +4,6 @@ import pandas as pd
 from hyperopt import hp
 from sklearn.linear_model import Ridge
 
-from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -13,6 +12,7 @@ from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
 
@@ -114,8 +114,12 @@ def run_pipeline_tuning(time_series, len_forecast, pipeline_type):
     validation_blocks = 3
     search_space = SearchSpace(custom_search_space=custom_search_space,
                                replace_default_search_space=replace_default_search_space)
-    pipeline_tuner = TunerBuilder(train_input.task).with_tuner(PipelineTuner).with_metric(RMSE.get_value)\
-        .with_cv_folds(cv_folds).with_validation_blocks(validation_blocks).with_iterations(10)\
+    pipeline_tuner = TunerBuilder(train_input.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.RMSE)\
+        .with_cv_folds(cv_folds)\
+        .with_validation_blocks(validation_blocks)\
+        .with_iterations(10)\
         .with_search_space(search_space).build(train_input)
     # Tuning pipeline
     pipeline = pipeline_tuner.tune(pipeline)

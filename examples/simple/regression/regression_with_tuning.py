@@ -100,9 +100,12 @@ def run_experiment(pipeline, tuner):
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            pipeline_tuner = TunerBuilder(task).with_tuner(tuner).with_metric(RegressionMetricsEnum.MAE)\
+            pipeline_tuner = TunerBuilder(task)\
+                .with_tuner(tuner)\
+                .with_metric(RegressionMetricsEnum.MAE)\
                 .with_iterations(50) \
-                .with_timeout(timedelta(seconds=50)).build(train_input)
+                .with_timeout(timedelta(seconds=50))\
+                .build(train_input)
             tuned_pipeline = pipeline_tuner.tune(pipeline)
 
             # Predict

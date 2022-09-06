@@ -3,11 +3,11 @@ from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.data.data_utils import get_scoring_case_data_paths
 from examples.simple.classification.classification_pipelines import classification_complex_pipeline
-from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 
 
 def get_case_train_test_data():
@@ -38,7 +38,9 @@ def pipeline_tuning(pipeline: Pipeline, train_data: InputData,
         print(f'current local iteration {iteration}')
 
         # Pipeline tuning
-        tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(ROCAUC)\
+        tuner = TunerBuilder(train_data.task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(ClassificationMetricsEnum.ROCAUC)\
             .with_iterations(tuner_iter_num) \
             .build(train_data)
         tuned_pipeline = tuner.tune(pipeline)

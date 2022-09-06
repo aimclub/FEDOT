@@ -77,7 +77,8 @@ class TunerBuilder:
         objective = Objective(self.metric)
         data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
-                                                       validation_blocks=self.validation_blocks)
+                                                       validation_blocks=self.validation_blocks,
+                                                       do_unfit=False)
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  iterations=self.iterations,
                                  early_stopping_rounds=self.early_stopping_rounds,

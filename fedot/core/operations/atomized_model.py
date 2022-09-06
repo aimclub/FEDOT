@@ -55,8 +55,12 @@ class AtomizedModel(Operation):
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
-        tuner = TunerBuilder(input_data.task).with_tuner(PipelineTuner).with_metric(metric_function)\
-            .with_iterations(iterations).with_timeout(timedelta(minutes=timeout)).build(input_data)
+        tuner = TunerBuilder(input_data.task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(metric_function)\
+            .with_iterations(iterations)\
+            .with_timeout(timedelta(minutes=timeout))\
+            .build(input_data)
         tuned_pipeline = tuner.tune(self.pipeline)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)
         return tuned_atomized_model

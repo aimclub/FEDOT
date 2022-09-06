@@ -8,7 +8,6 @@ from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
 
-from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -168,9 +167,15 @@ def run_pipeline_tuner(train_data,
                        iterations=1,
                        early_stopping_rounds=None):
     # Pipeline tuning
-    pipeline_tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(loss_function)\
-        .with_cv_folds(cv).with_iterations(iterations).with_early_stopping_rounds(early_stopping_rounds)\
-        .with_search_space(search_space).with_algo(algo).build(train_data)
+    pipeline_tuner = TunerBuilder(train_data.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(loss_function)\
+        .with_cv_folds(cv)\
+        .with_iterations(iterations)\
+        .with_early_stopping_rounds(early_stopping_rounds)\
+        .with_search_space(search_space)\
+        .with_algo(algo)\
+        .build(train_data)
     _ = pipeline_tuner.tune(pipeline)
     return pipeline_tuner
 
@@ -184,9 +189,15 @@ def run_sequential_tuner(train_data,
                          iterations=1,
                          early_stopping_rounds=None):
     # Pipeline tuning
-    sequential_tuner = TunerBuilder(train_data.task).with_tuner(SequentialTuner).with_metric(loss_function)\
-        .with_cv_folds(cv).with_iterations(iterations).with_early_stopping_rounds(early_stopping_rounds)\
-        .with_search_space(search_space).with_algo(algo).build(train_data)
+    sequential_tuner = TunerBuilder(train_data.task)\
+        .with_tuner(SequentialTuner)\
+        .with_metric(loss_function)\
+        .with_cv_folds(cv)\
+        .with_iterations(iterations)\
+        .with_early_stopping_rounds(early_stopping_rounds)\
+        .with_search_space(search_space)\
+        .with_algo(algo)\
+        .build(train_data)
     _ = sequential_tuner.tune(pipeline)
     return sequential_tuner
 
@@ -201,9 +212,15 @@ def run_node_tuner(train_data,
                    iterations=1,
                    early_stopping_rounds=None):
     # Pipeline tuning
-    node_tuner = TunerBuilder(train_data.task).with_tuner(SequentialTuner).with_metric(loss_function)\
-        .with_cv_folds(cv).with_iterations(iterations).with_algo(algo).with_search_space(search_space)\
-        .with_early_stopping_rounds(early_stopping_rounds).build(train_data)
+    node_tuner = TunerBuilder(train_data.task)\
+        .with_tuner(SequentialTuner)\
+        .with_metric(loss_function)\
+        .with_cv_folds(cv)\
+        .with_iterations(iterations)\
+        .with_algo(algo)\
+        .with_search_space(search_space)\
+        .with_early_stopping_rounds(early_stopping_rounds)\
+        .build(train_data)
     _ = node_tuner.tune_node(pipeline, node_index)
     return node_tuner
 
@@ -366,7 +383,10 @@ def test_ts_pipeline_with_stats_model(n_steps):
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
         # Tune AR model
-        tuner_ar = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(MSE.get_value).with_iterations(3) \
+        tuner_ar = TunerBuilder(train_data.task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(RegressionMetricsEnum.MSE)\
+            .with_iterations(3) \
             .with_search_space(search_space).with_algo(rand.suggest).build(train_data)
         tuned_ar_pipeline = tuner_ar.tune(ar_pipeline)
 
@@ -462,7 +482,10 @@ def test_complex_search_space_tuning_correct():
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
-    tuner = TunerBuilder(train_data.task).with_tuner(PipelineTuner).with_metric(RegressionMetricsEnum.MSE).build(train_data)
+    tuner = TunerBuilder(train_data.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MSE)\
+        .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params

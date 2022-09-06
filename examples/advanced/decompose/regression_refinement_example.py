@@ -5,13 +5,13 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
@@ -99,7 +99,10 @@ def run_river_experiment(file_path, with_tuning=False):
     non_pipeline.fit(train_input)
 
     if with_tuning:
-        tuner = TunerBuilder(task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_iterations(100)\
+        tuner = TunerBuilder(task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(RegressionMetricsEnum.MAE)\
+            .with_iterations(100)\
             .build(train_input)
         r_pipeline = tuner.tune(r_pipeline)
         non_pipeline = tuner.tune(non_pipeline)

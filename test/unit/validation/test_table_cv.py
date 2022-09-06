@@ -9,7 +9,6 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -86,9 +85,12 @@ def test_tuner_cv_classification_correct():
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
-    tuner = TunerBuilder(dataset.task).with_tuner(PipelineTuner).with_metric(ROCAUC.get_value).with_cv_folds(folds) \
+    tuner = TunerBuilder(dataset.task).with_tuner(PipelineTuner)\
+        .with_metric(ClassificationMetricsEnum.ROCAUC)\
+        .with_cv_folds(folds) \
         .with_iterations(1) \
-        .with_timeout(timedelta(minutes=1)).build(dataset)
+        .with_timeout(timedelta(minutes=1))\
+        .build(dataset)
     tuned = tuner.tune(simple_pipeline)
     assert tuned
 

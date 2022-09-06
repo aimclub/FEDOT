@@ -120,8 +120,11 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         if tuner is not None:
             print(f'Start tuning process ...')
-            pipeline_tuner = TunerBuilder(data.task).with_tuner(tuner).with_metric(metric_function).\
-                with_iterations(100).build(train_input)
+            pipeline_tuner = TunerBuilder(data.task)\
+                .with_tuner(tuner)\
+                .with_metric(metric_function)\
+                .with_iterations(100)\
+                .build(train_input)
             tuned_pipeline = pipeline_tuner.tune(obtained_pipeline)
 
             preds_tuned = fit_predict_for_pipeline(pipeline=tuned_pipeline,

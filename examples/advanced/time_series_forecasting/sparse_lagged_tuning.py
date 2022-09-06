@@ -8,11 +8,11 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_dtreg_pipeline
-from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 from fedot.core.utils import fedot_project_root
 
@@ -75,8 +75,12 @@ def run_tuning_test(pipeline, train_input, predict_input, test_data, task, show_
     validation_blocks = 2
 
     start_time = timeit.default_timer()
-    pipeline_tuner = TunerBuilder(task).with_tuner(PipelineTuner).with_metric(MAE.get_value).with_cv_folds(cv_folds) \
-        .with_validation_blocks(validation_blocks).with_iterations(20) \
+    pipeline_tuner = TunerBuilder(task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MAE)\
+        .with_cv_folds(cv_folds) \
+        .with_validation_blocks(validation_blocks)\
+        .with_iterations(20) \
         .build(train_input)
     pipeline = pipeline_tuner.tune(pipeline)
     print(pipeline.print_structure())
