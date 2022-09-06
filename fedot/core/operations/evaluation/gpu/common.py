@@ -7,7 +7,7 @@ from fedot.utilities.requirements_notificator import warn_requirement
 try:
     import cudf
     import cuml
-    from cuml import KMeans, Ridge, LogisticRegression, Lasso, ElasticNet, \
+    from cuml import Ridge, LogisticRegression, Lasso, ElasticNet, \
         MBSGDClassifier, MBSGDRegressor, CD
     from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
     from cuml.svm import SVC

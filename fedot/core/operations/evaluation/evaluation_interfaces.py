@@ -182,7 +182,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
         non_multi_models = models_repo.suitable_operation(task_type=current_task,
-                                                             tags=['non_multi'])
+                                                          tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
 
         # Multi-output task or not

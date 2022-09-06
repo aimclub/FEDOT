@@ -217,7 +217,7 @@ class PipelineTemplate:
                 self.log.debug(f'The pipeline was imported from the path: {path}.')
         else:
             json_object_pipeline = source
-            self.log.debug(f'The pipeline was imported from dict.')
+            self.log.debug('The pipeline was imported from dict.')
 
         self._extract_operations(json_object_pipeline, path)
         self.convert_to_pipeline(self.link_to_empty_pipeline, path, dict_fitted_operations)
@@ -313,7 +313,7 @@ class PipelineTemplate:
                 fitted_operation = joblib.load(path_to_operation)
         elif dict_fitted_operations is not None:
             if 'h2o' in operation_object.operation_type:
-                message = f'Loading h2o models from dict is not supported'
+                message = 'Loading h2o models from dict is not supported'
                 self.log.error(message)
                 raise TypeError(message)
             else:
@@ -366,6 +366,6 @@ def load_h2o(path_to_operation, log):
     try:
         return H2OSerializationWrapper.load_operation(path_to_operation)
     except EnvironmentError as e:
-        message = f"Obtained type of H2O pipeline doesn't serializable"
+        message = f'Obtained type of H2O pipeline does not serializable: {e}'
         log.error(message)
         raise EnvironmentError(message)
