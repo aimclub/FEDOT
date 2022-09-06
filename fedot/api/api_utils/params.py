@@ -124,12 +124,12 @@ class ApiParams:
                   'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
-                  'stopping_after_n_generation': 10,
+                  'stopping_after_n_generation': 30,
                   'use_pipelines_cache': True,
                   'use_preprocessing_cache': True}
 
         if problem in ['classification', 'regression']:
-            params['cv_folds'] = 3
+            params['cv_folds'] = 5
         elif problem == 'ts_forecasting':
             params['cv_folds'] = 3
             params['validation_blocks'] = 2
