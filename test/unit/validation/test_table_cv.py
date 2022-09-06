@@ -44,7 +44,7 @@ def get_classification_data():
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
 
-    cv_folds = partial(tabular_cv_generator, classification_dataset, folds=3)
+    cv_folds = partial(tabular_cv_generator, classification_dataset, folds=5)
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
