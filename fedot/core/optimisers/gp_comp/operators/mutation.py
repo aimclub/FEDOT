@@ -106,13 +106,10 @@ class Mutation(Operator):
 
             if self._will_mutation_be_applied(mutation_type):
                 # get the mutation function and adapt it
-                mutation_func = mutation_type if is_custom_mutation else self.mutation_by_type(mutation_type)
-                mutation_func = adapt(mutation_func)
-
+                mutation_func = self._get_mutation_func(mutation_type)
                 new_graph = mutation_func(new_graph, requirements=self.requirements,
                                           params=self.graph_generation_params,
                                           opt_params=self.parameters)
-
                 # log mutation
                 mutation_names.append(str(mutation_type))
                 if is_custom_mutation:
@@ -362,6 +359,13 @@ class Mutation(Operator):
     @register_native
     def _no_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         return graph
+
+    def _get_mutation_func(self, mutation_type: Union[MutationTypesEnum, Callable]) -> Callable:
+        if isinstance(mutation_type, Callable):
+            mutation_func = mutation_type
+        else:
+            mutation_func = self.mutation_by_type(mutation_type)
+        return adapt(mutation_func)
 
     def mutation_by_type(self, mutation_type: MutationTypesEnum) -> Callable:
         mutations = {
