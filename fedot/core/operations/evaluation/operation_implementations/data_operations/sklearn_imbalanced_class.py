@@ -22,14 +22,14 @@ class ResampleImplementation(DataOperationImplementation):
 
     Args:
         balance: Data transformation strategy. Balance strategy can be 'expand_minority' or 'reduce_majority'.
-        In case of expand_minority elements of minor class are expanding to n_samples.
-        In otherwise with reduce_majority elements of major class are reducing to n_samples.
+            In case of expand_minority elements of minor class are expanding to n_samples.
+            In otherwise with reduce_majority elements of major class are reducing to n_samples.
         replace: Implements resampling with replacement. If False, this will implement (sliced) random permutations.
         balance_ratio: Transformation ratio can take values in the range [0, 1].
-        With balance_ratio = 0 nothing happens and data will remain the same.
-        In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will become equal.
-        If balance_ratio < 1.0 means that the data of one class is getting closer to the shape of opposite class.
-        If None numbers of samples will be equal to the shape of opposite selected transformed class.
+            With balance_ratio = 0 nothing happens and data will remain the same.
+            In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will become
+            equal. If balance_ratio < 1.0 means that the data of one class is getting closer to the shape of opposite
+            class. If None numbers of samples will be equal to the shape of opposite selected transformed class.
     """
 
     def __init__(self, **params: Optional[dict]):
