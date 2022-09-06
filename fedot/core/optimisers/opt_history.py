@@ -63,14 +63,9 @@ class OptHistory:
 
             # Write history rows
             idx = 0
-            adapter = AdaptRegistry().adapter
             for gen_num, gen_inds in enumerate(self.individuals):
                 for ind_num, ind in enumerate(gen_inds):
-                    ind_pipeline_template = PipelineTemplate(adapter.restore_ind(ind))
-                    row = [
-                        idx, gen_num, ind.fitness.values,
-                        len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
-                    ]
+                    row = [idx, gen_num, ind.fitness.values, ind.graph.length, ind.graph.depth, ind.metadata]
                     writer.writerow(row)
                     idx += 1
 
