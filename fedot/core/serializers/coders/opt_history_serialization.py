@@ -12,15 +12,19 @@ MISSING_INDIVIDUAL_ARGS = {
 
 
 def _flatten_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
-    # Only the 1st individual's entrance contains its parent_operators. We must save this entrance.
+    def extract_intermediate_parents(ind: Individual):
+        if not ind.parent_operator:
+            return
+        parent_individuals = ind.parent_operator.parent_individuals
+        for i in parent_individuals:
+            if i.native_generation is None:
+                parents_map[i.uid] = i
+                extract_intermediate_parents(i)
+
     uid_to_individual_map = {ind.uid: ind for ind in reversed(list(chain(*generations_list)))}
     parents_map = {}
     for individual in uid_to_individual_map.values():
-        for parent_operator in individual.parent_operators:
-            for parent_ind in parent_operator.parent_individuals:
-                if parent_ind.uid in uid_to_individual_map:
-                    continue
-                parents_map[parent_ind.uid] = parent_ind
+        extract_intermediate_parents(individual)
     uid_to_individual_map.update(parents_map)
     individuals_pool = list(uid_to_individual_map.values())
     return individuals_pool
@@ -68,11 +72,19 @@ def _deserialize_generations_list(generations_list: List[List[Union[str, Individ
 def _deserialize_parent_individuals(individuals: List[Individual],
                                     uid_to_individual_map: Dict[str, Individual]):
     """The operation is executed in-place"""
+    def deserialize_intermediate_parents(ind):
+        parent_op = ind.parent_operator
+        if not parent_op:
+            return
+        parent_individuals = _uids_to_individuals(uid_sequence=parent_op.parent_individuals,
+                                                  uid_to_individual_map=uid_to_individual_map)
+        object.__setattr__(parent_op, 'parent_individuals', tuple(parent_individuals))
+        for parent in parent_individuals:
+            if parent.parent_operator and any(isinstance(i, str) for i in parent.parent_operator.parent_individuals):
+                deserialize_intermediate_parents(parent)
+
     for individual in individuals:
-        for parent_op in individual.parent_operators:
-            parent_individuals = _uids_to_individuals(uid_sequence=parent_op.parent_individuals,
-                                                      uid_to_individual_map=uid_to_individual_map)
-            object.__setattr__(parent_op, 'parent_individuals', tuple(parent_individuals))
+        deserialize_intermediate_parents(individual)
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:

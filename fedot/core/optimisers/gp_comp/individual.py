@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Dict, Optional, Tuple
@@ -7,16 +9,16 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
 
-INDIVIDUAL_COPY_RESTRICTION_MESSAGE = '`Individual` instance was copied.\n' \
-                                      'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n' \
-                                      'If this happened during the optimization process, this is a misusage ' \
-                                      'and should be fixed.'
+INDIVIDUAL_COPY_RESTRICTION_MESSAGE = ('`Individual` instance was copied.\n'
+                                       'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n'
+                                       'If this happened during the optimization process, this misusage '
+                                       'should be fixed.')
 
 
 @dataclass(frozen=True)
 class Individual:
     graph: OptGraph
-    parent_operators: Tuple['ParentOperator', ...] = field(default=())
+    parent_operator: Optional[ParentOperator] = field(default=None)
     metadata: Dict[str, Any] = field(default_factory=dict)
     native_generation: Optional[int] = None
     fitness: Fitness = field(default_factory=null_fitness)

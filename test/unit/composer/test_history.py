@@ -77,10 +77,10 @@ def test_ancestor_for_mutation():
 
     mutation_result = mutation(parent_ind)
 
-    assert len(mutation_result.parent_operators) > 0
-    assert mutation_result.parent_operators[-1].operator_type == 'mutation'
-    assert len(mutation_result.parent_operators[-1].parent_individuals) == 1
-    assert mutation_result.parent_operators[-1].parent_individuals[0].uid == parent_ind.uid
+    assert mutation_result.parent_operator
+    assert mutation_result.parent_operator.operator_type == 'mutation'
+    assert len(mutation_result.parent_operator.parent_individuals) == 1
+    assert mutation_result.parent_operator.parent_individuals[0].uid == parent_ind.uid
 
 
 def test_ancestor_for_crossover():
@@ -94,11 +94,11 @@ def test_ancestor_for_crossover():
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 
     for crossover_result in crossover_results:
-        assert len(crossover_result.parent_operators) > 0
-        assert crossover_result.parent_operators[-1].operator_type == 'crossover'
-        assert len(crossover_result.parent_operators[-1].parent_individuals) == 2
-        assert crossover_result.parent_operators[-1].parent_individuals[0].uid == parent_ind_first.uid
-        assert crossover_result.parent_operators[-1].parent_individuals[1].uid == parent_ind_second.uid
+        assert crossover_result.parent_operator
+        assert crossover_result.parent_operator.operator_type == 'crossover'
+        assert len(crossover_result.parent_operator.parent_individuals) == 2
+        assert crossover_result.parent_operator.parent_individuals[0].uid == parent_ind_first.uid
+        assert crossover_result.parent_operator.parent_individuals[1].uid == parent_ind_second.uid
 
 
 def test_newly_generated_history():
@@ -197,9 +197,9 @@ def test_history_backward_compatibility():
     assert np.shape(history.individuals) == np.shape(historical_fitness)
     # Assert that fitness, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
-    assert all(isinstance(parent_individual, Individual)
-               for ind in chain(*history.individuals) for op in ind.parent_operators
-               for parent_individual in op.parent_individuals)
+    assert all(isinstance(parent_individual, Individual)  # TODO: Check parents recursively until prev gen. Add property
+               for ind in chain(*history.individuals)
+               for parent_individual in ind.parent_operator.parent_individuals)
     assert isinstance(history._objective, Objective)
 
 

@@ -101,26 +101,7 @@ class Crossover(Operator):
         operator = ParentOperator(operator_type='crossover',
                                   operator_name=str(crossover_type),
                                   parent_individuals=parent_individuals)
-        new_individuals = []
-        for graph in new_graphs:
-            parent_operators = []
-            for parent_individual in parent_individuals:
-                parent_operators.extend(parent_individual.parent_operators)
-            parent_operators.append(operator)
-            new_ind = Individual(graph, tuple(parent_operators))
-            new_individuals.append(new_ind)
-        return tuple(new_individuals)
-
-    def _get_parent_operators(self, parent_individuals: Tuple[Individual, Individual],
-                              crossover_type: Union[CrossoverTypesEnum, Callable]) -> List[ParentOperator]:
-        operator = ParentOperator(operator_type='crossover',
-                                  operator_name=str(crossover_type),
-                                  parent_individuals=parent_individuals)
-        parent_operators = []
-        for parent_individual in parent_individuals:
-            parent_operators.extend(parent_individual.parent_operators)
-        parent_operators.append(operator)
-        return parent_operators
+        return tuple(Individual(graph, operator) for graph in new_graphs)
 
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
         return not (graph_first is graph_second or
