@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.log import LoggerAdapter, default_log
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -82,15 +83,15 @@ class TableTypesCorrector:
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
-
-        self._into_numeric_features_transformation_for_fit(data)
-        # Launch conversion float and integer features into categorical
-        self._into_categorical_features_transformation_for_fit(data)
         # Save info about features and target types
         self.features_types = copy(data.supplementary_data.column_types['features'])
         self.target_types = copy(data.supplementary_data.column_types['target'])
 
-        self._retain_columns_info_without_types_conflicts(data)
+        if data.data_type is DataTypesEnum.table:
+            # Launch conversion float and integer features into categorical
+            self._into_numeric_features_transformation_for_fit(data)
+            self._into_categorical_features_transformation_for_fit(data)
+            self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def convert_data_for_predict(self, data: InputData):
@@ -103,11 +104,11 @@ class TableTypesCorrector:
         data.supplementary_data.column_types = self.prepare_column_types_info(predictors=data.features,
                                                                               target=data.target,
                                                                               task=data.task)
-
-        # Convert column types
-        self._into_numeric_features_transformation_for_predict(data)
-        self._into_categorical_features_transformation_for_predict(data)
-        self._retain_columns_info_without_types_conflicts(data)
+        if data.data_type is DataTypesEnum.table:
+            # Convert column types
+            self._into_numeric_features_transformation_for_predict(data)
+            self._into_categorical_features_transformation_for_predict(data)
+            self._retain_columns_info_without_types_conflicts(data)
         return data
 
     def remove_incorrect_features(self, table: np.array, converted_columns: dict):
