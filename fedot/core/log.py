@@ -5,7 +5,7 @@ import pathlib
 import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -38,7 +38,7 @@ class Log(metaclass=SingletonMeta):
     def __init__(self,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: Optional[str] = None,
+                 log_file: Optional[Union[str, pathlib.Path]] = None,
                  use_console: bool = True):
         self.log_file = log_file or DEFAULT_LOG_PATH
         self.logger = self._get_logger(config_file=config_json_file,
