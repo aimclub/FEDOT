@@ -15,20 +15,7 @@ class PipelineTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes simultaneously
     """
 
-    def __init__(self, objective_evaluate: ObjectiveEvaluate,
-                 iterations=100, early_stopping_rounds=None,
-                 timeout: timedelta = timedelta(minutes=5),
-                 search_space: ClassVar = SearchSpace(),
-                 algo: Callable = tpe.suggest,
-                 n_jobs: int = -1):
-        super().__init__(objective_evaluate=objective_evaluate,
-                         iterations=iterations, early_stopping_rounds=early_stopping_rounds,
-                         timeout=timeout,
-                         search_space=search_space,
-                         algo=algo,
-                         n_jobs=n_jobs)
-
-    def tune(self, pipeline: Pipeline, show_progress: bool = True) -> Pipeline:
+    def tune(self, pipeline: Pipeline,  show_progress: bool = True) -> Pipeline:
         """ Function for hyperparameters tuning on the entire pipeline
 
         :param pipeline: Pipeline which hyperparameters will be tuned
