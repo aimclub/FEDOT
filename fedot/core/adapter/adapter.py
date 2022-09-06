@@ -3,6 +3,7 @@ from copy import deepcopy
 from typing import TypeVar, Generic, Type, Optional, Dict, Any
 
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 
 DomainStructureType = TypeVar('DomainStructureType')
@@ -23,6 +24,9 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
             return opt_graph
         return self._restore(opt_graph, metadata)
 
+    def restore_ind(self, individual: Individual) -> DomainStructureType:
+        return self.restore(individual.graph, individual.metadata)
+
     @abstractmethod
     def _adapt(self, adaptee: DomainStructureType) -> OptGraph:
         raise NotImplementedError()
@@ -30,9 +34,6 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
     @abstractmethod
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
         raise NotImplementedError()
-
-    def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
-        return self.restore(opt_graph, metadata)
 
 
 class DirectAdapter(BaseOptimizationAdapter[DomainStructureType]):

@@ -7,6 +7,7 @@ import shutil
 from pathlib import Path
 from typing import List, Optional, Sequence, Union
 
+from fedot.core.adapter import AdaptRegistry
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
@@ -16,6 +17,7 @@ from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position
+from fedot.core.pipelines.template import PipelineTemplate
 from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.serializers import Serializer
 from fedot.core.utils import default_fedot_data_dir
@@ -61,10 +63,10 @@ class OptHistory:
 
             # Write history rows
             idx = 0
-            adapter = PipelineAdapter()
+            adapter = AdaptRegistry().adapter
             for gen_num, gen_inds in enumerate(self.individuals):
                 for ind_num, ind in enumerate(gen_inds):
-                    ind_pipeline_template = adapter.restore_as_template(ind.graph, ind.metadata)
+                    ind_pipeline_template = PipelineTemplate(adapter.restore_ind(ind))
                     row = [
                         idx, gen_num, ind.fitness.values,
                         len(ind_pipeline_template.operation_templates), ind_pipeline_template.depth, ind.metadata
@@ -82,14 +84,14 @@ class OptHistory:
             last_gen_id = len(self.individuals) - 1
             last_gen = self.individuals[last_gen_id]
             last_gen_history = self.historical_fitness[last_gen_id]
+            adapter = AdaptRegistry().adapter
             for individual, ind_fitness in zip(last_gen, last_gen_history):
                 ind_path = Path(save_dir, str(last_gen_id), str(individual.uid))
                 additional_info = \
                     {'fitness_name': self._objective.metric_names,
                      'fitness_value': ind_fitness}
-                PipelineAdapter().restore_as_template(
-                    individual.graph, individual.metadata
-                ).export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
+                PipelineTemplate(adapter.restore_ind(individual)).\
+                    export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             self._log.exception(ex)
 
@@ -160,9 +162,9 @@ class OptHistory:
 
     @property
     def historical_pipelines(self):
-        adapter = PipelineAdapter()
+        adapter = AdaptRegistry().adapter
         return [
-            adapter.restore_as_template(ind.graph, ind.metadata)
+            PipelineTemplate(adapter.restore_ind(ind))
             for ind in list(itertools.chain(*self.individuals))
         ]
 

@@ -1,5 +1,6 @@
 from typing import Collection, Optional, Sequence, Tuple, Union
 
+from fedot.core.adapter import AdaptRegistry
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
@@ -64,7 +65,8 @@ class GPComposer(Composer):
         return best_model
 
     def _convert_opt_results_to_pipeline(self, opt_result: Sequence[OptGraph]) -> Tuple[Pipeline, Sequence[Pipeline]]:
-        adapter = self.optimizer.graph_generation_params.adapter
+        # TODO: (@gkirgizov) remove direct usage
+        adapter = AdaptRegistry().adapter
         multi_objective = self.optimizer.objective.is_multi_objective
         best_pipelines = [adapter.restore(graph) for graph in opt_result]
         chosen_best_pipeline = best_pipelines if multi_objective else best_pipelines[0]

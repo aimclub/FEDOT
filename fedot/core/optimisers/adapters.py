@@ -3,6 +3,7 @@ from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph_node import GraphNode
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -70,12 +71,6 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         pipeline = Pipeline(source_graph.nodes)
         pipeline.computation_time = metadata.get('computation_time_in_seconds')
         return pipeline
-
-    def restore_as_template(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None):
-        metadata = metadata or {}
-        pipeline = self.restore(opt_graph, metadata)
-        tmp = PipelineTemplate(pipeline)
-        return tmp
 
 
 def _check_nodes_references_correct(graph):
