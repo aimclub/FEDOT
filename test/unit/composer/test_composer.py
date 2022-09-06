@@ -319,8 +319,8 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
     task = Task(TaskTypesEnum.regression)
 
     operations = get_operations_for_task(task, mode='model')
-    primary_operations = operations[:len(operations)//2]
-    secondary_operations = operations[len(operations)//2:]
+    primary_operations = operations[:len(operations) // 2]
+    secondary_operations = operations[len(operations) // 2:]
     requirements = PipelineComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations,

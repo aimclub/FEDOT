@@ -99,7 +99,7 @@ def run_experiment(pipeline, tuner):
         print(f'Mean absolute error - {mae_value:.4f}\n')
 
         if tuner is not None:
-            print(f'Start tuning process ...')
+            print('Start tuning process ...')
             pipeline_tuner = TunerBuilder(task)\
                 .with_tuner(tuner)\
                 .with_metric(RegressionMetricsEnum.MAE)\
@@ -114,7 +114,7 @@ def run_experiment(pipeline, tuner):
 
             mae_value = mean_absolute_error(y_test, preds_tuned)
 
-            print(f'Obtained metrics after tuning:')
+            print('Obtained metrics after tuning:')
             print(f'MAE - {mae_value:.4f}\n')
 
 

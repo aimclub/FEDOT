@@ -27,6 +27,7 @@ from test.unit.tasks.test_forecasting import get_ts_data
 seed(1)
 np.random.seed(1)
 
+
 @pytest.fixture()
 def data_setup():
     predictors, response = load_iris(return_X_y=True)
@@ -416,7 +417,7 @@ def test_pipeline_unfit(data_fixture, request):
     assert not pipeline.is_fitted
     assert not pipeline.root_node.fitted_operation
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError):
         assert pipeline.predict(data)
 
 

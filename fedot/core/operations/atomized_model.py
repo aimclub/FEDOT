@@ -18,7 +18,7 @@ class AtomizedModel(Operation):
 
     def __init__(self, pipeline: 'Pipeline'):
         if not pipeline.root_node:
-            raise ValueError(f'AtomizedModel could not create instance of empty Pipeline.')
+            raise ValueError('AtomizedModel could not create instance of empty Pipeline.')
 
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline

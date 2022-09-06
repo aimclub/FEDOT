@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union, Sequence
+from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
 

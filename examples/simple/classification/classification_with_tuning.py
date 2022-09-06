@@ -118,7 +118,7 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
         print(f"{roc_auc(y_test, preds):.4f}\n")
 
         if tuner is not None:
-            print(f'Start tuning process ...')
+            print('Start tuning process ...')
             pipeline_tuner = TunerBuilder(task)\
                 .with_tuner(tuner)\
                 .with_metric(ClassificationMetricsEnum.ROCAUC)\
@@ -131,7 +131,7 @@ def run_classification_tuning_experiment(pipeline, tuner=None):
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
             preds_tuned = predicted_values_tuned.predict
 
-            print(f'Obtained metrics after tuning:')
+            print('Obtained metrics after tuning:')
             print(f"{roc_auc(y_test, preds_tuned):.4f}\n")
 
 

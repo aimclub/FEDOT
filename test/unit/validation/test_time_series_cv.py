@@ -89,7 +89,7 @@ def test_tuner_cv_correct():
         with_iterations(1) \
         .with_timeout(datetime.timedelta(minutes=1))\
         .build(time_series)
-    tuned = tuner.tune(simple_pipeline)
+    _ = tuner.tune(simple_pipeline)
     is_tune_succeeded = True
     assert is_tune_succeeded
 

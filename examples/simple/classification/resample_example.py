@@ -83,7 +83,7 @@ def run_resample_example(path_to_data=None, tune=False):
     print(f'ROC-AUC of pipeline with balancing {roc_auc(y_test, preds):.4f}\n')
 
     if tune:
-        print(f'Start tuning process ...')
+        print('Start tuning process ...')
         tuner = TunerBuilder(train_input.task)\
             .with_tuner(PipelineTuner)\
             .with_metric(RegressionMetricsEnum.MAE)\

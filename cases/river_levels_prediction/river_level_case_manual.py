@@ -59,7 +59,7 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
         print(f'MAE - {mae_value:.2f}\n')
 
         if tuner is not None:
-            print(f'Start tuning process ...')
+            print('Start tuning process ...')
             pipeline_tuner = TunerBuilder(data.task)\
                 .with_tuner(tuner)\
                 .with_metric(RegressionMetricsEnum.MAE)\

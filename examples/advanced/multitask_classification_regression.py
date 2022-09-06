@@ -4,11 +4,9 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.supplementary_data import SupplementaryData
-from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate, DataSourceSplitter
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder

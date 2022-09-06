@@ -73,4 +73,3 @@ def test_tuner_builder_with_custom_params(tuner_class):
     assert tuner.iterations == iterations
     assert tuner.algo == algo
     assert tuner.max_seconds == int(timeout.seconds)
-

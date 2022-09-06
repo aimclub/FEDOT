@@ -119,7 +119,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
         print(f'MAE - {mae_value:.2f}\n')
 
         if tuner is not None:
-            print(f'Start tuning process ...')
+            print('Start tuning process ...')
             pipeline_tuner = TunerBuilder(data.task)\
                 .with_tuner(tuner)\
                 .with_metric(metric_function)\

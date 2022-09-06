@@ -3,7 +3,7 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
-from examples.simple.time_series_forecasting.ts_pipelines import *
+from examples.simple.time_series_forecasting.ts_pipelines import ts_locf_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline

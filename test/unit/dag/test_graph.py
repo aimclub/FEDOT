@@ -2,13 +2,13 @@ from copy import copy, deepcopy
 from random import seed
 
 import numpy as np
-
 import pytest
 
+from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
-from test.unit.dag.test_graph_utils import *
+from test.unit.dag.test_graph_utils import find_same_node, nodes_same
 from test.unit.pipelines.tuning.test_pipeline_tuning import classification_dataset
 
 seed(1)

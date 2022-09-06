@@ -388,7 +388,7 @@ def test_ts_pipeline_with_stats_model(n_steps):
             .with_metric(RegressionMetricsEnum.MSE)\
             .with_iterations(3) \
             .with_search_space(search_space).with_algo(rand.suggest).build(train_data)
-        tuned_ar_pipeline = tuner_ar.tune(ar_pipeline)
+        _ = tuner_ar.tune(ar_pipeline)
 
     is_tuning_finished = True
 
