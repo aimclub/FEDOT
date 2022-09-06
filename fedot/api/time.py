@@ -2,7 +2,8 @@ import datetime
 from contextlib import contextmanager
 from typing import Optional
 
-from fedot.core.constants import COMPOSING_TUNING_PROPORTION, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+from fedot.core.constants import COMPOSING_TUNING_PROPORTION, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION, \
+    MINIMAL_SECONDS_FOR_TUNING
 
 
 class ApiTime:
@@ -44,6 +45,10 @@ class ApiTime:
         if timeout_not_set:
             return True
         return self.assumption_fit_spend_time <= self.timedelta_automl / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+
+    def have_time_for_tuning(self):
+        timeout_for_tuning = self.determine_resources_for_tuning()
+        return timeout_for_tuning >= MINIMAL_SECONDS_FOR_TUNING
 
     @contextmanager
     def launch_composing(self):
