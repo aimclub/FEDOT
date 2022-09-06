@@ -12,7 +12,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
-from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
+from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -62,7 +62,7 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-        with RandomStateHandler(MODEL_FITTING_SEED):
+        with RandomStateHandler():
             operation_implementation.fit(train_data)
         return operation_implementation
 
@@ -118,7 +118,7 @@ class FedotRegressionStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-        with RandomStateHandler(MODEL_FITTING_SEED):
+        with RandomStateHandler():
             operation_implementation.fit(train_data)
         return operation_implementation
 

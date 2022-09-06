@@ -1,6 +1,6 @@
 import warnings
 
-from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
+from fedot.core.utilities.random import RandomStateHandler
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -43,7 +43,7 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
             operation_implementation = self.operation_impl(n_clusters=2)
 
         features = cudf.DataFrame(train_data.features.astype('float32'))
-        with RandomStateHandler(MODEL_FITTING_SEED):
+        with RandomStateHandler():
             operation_implementation.fit(features)
         return operation_implementation
 

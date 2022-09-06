@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans as SklearnKmeans
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
-from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
+from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -32,7 +32,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl(n_clusters=2)
-        with RandomStateHandler(MODEL_FITTING_SEED):
+        with RandomStateHandler():
             operation_implementation.fit(train_data.features)
         return operation_implementation
 

@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
-from fedot.core.utilities.random import RandomStateHandler, MODEL_FITTING_SEED
+from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -42,7 +42,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
             operation_implementation = self.operation_impl(**self.params_for_fit)
         else:
             operation_implementation = self.operation_impl()
-        with RandomStateHandler(MODEL_FITTING_SEED):
+        with RandomStateHandler():
             operation_implementation.fit(train_data)
         return operation_implementation
 
