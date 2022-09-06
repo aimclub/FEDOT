@@ -80,7 +80,7 @@ def test_cv_min_kfolds_raise():
 
 
 def test_tuner_cv_classification_correct():
-    folds = 2
+    folds = 5
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
@@ -106,6 +106,8 @@ def test_composer_with_cv_optimization_correct():
                                                          secondary=available_model_types,
                                                          timeout=timedelta(minutes=0.2),
                                                          num_of_generations=2, cv_folds=3,
+                                                         num_of_generations=2, cv_folds=5,
+                                                         logging_level_opt=logging.CRITICAL+1,
                                                          show_progress=False)
 
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)

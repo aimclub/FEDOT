@@ -164,9 +164,9 @@ def test_collect_intermediate_metric(pipeline: Pipeline, input_data: InputData, 
 
 
 @pytest.mark.parametrize("cv_generator, data",
-                         [(partial(tabular_cv_generator, folds=3),
+                         [(partial(tabular_cv_generator, folds=5),
                            get_classification_data()),
-                          (partial(ts_cv_generator, folds=3, validation_blocks=2),
+                          (partial(ts_cv_generator, folds=5, validation_blocks=2),
                            get_ts_data()[0])])
 def test_cv_generator_works_stable(cv_generator, data):
     """ Test if ts cv generator works stable (always return same folds) """

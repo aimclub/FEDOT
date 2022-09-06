@@ -37,7 +37,7 @@ def test_ts_cv_generator_correct():
     """ Checks if the split into training and test for time series cross
     validation is correct
 
-    By default, the number of validation blocks for each fold is three
+    By default, the number of validation blocks for each fold is five
     """
     folds = 2
     forecast_len, validation_blocks, time_series = configure_experiment()

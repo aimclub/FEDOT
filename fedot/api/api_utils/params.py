@@ -131,7 +131,7 @@ class ApiParams:
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 5
         elif problem == 'ts_forecasting':
-            params['cv_folds'] = 3
+            params['cv_folds'] = 5
             params['validation_blocks'] = 2
         return params
 
