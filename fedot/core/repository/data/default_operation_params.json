@@ -121,8 +121,8 @@
   },
   "resample": {
     "balance": "expand_minority",
-    "replace": true,
-    "n_samples": 1
+    "replace": false,
+    "balance_ratio": 1
   },
   "pca": {
     "svd_solver": "full",

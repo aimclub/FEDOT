@@ -272,7 +272,7 @@ class SearchSpace:
             'resample': {
                 'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
                 'replace': (hp.choice, [[True, False]]),
-                'n_samples': (hp.uniform, [0.3, 1])
+                'balance_ratio': (hp.uniform, [0.3, 1])
             },
             'lda': {
                 'solver': (hp.choice, [['svd', 'lsqr', 'eigen']]),
