@@ -37,10 +37,10 @@ def invalid_objective(pipeline: Pipeline) -> Fitness:
 
 @pytest.mark.parametrize(
     'dispatcher',
-    [SimpleDispatcher(PipelineAdapter()),
-     MultiprocessingDispatcher(PipelineAdapter()),
-     MultiprocessingDispatcher(PipelineAdapter(), n_jobs=-1),
-     MultiprocessingDispatcher(PipelineAdapter(), n_jobs=1)]
+    [SimpleDispatcher(),
+     MultiprocessingDispatcher(),
+     MultiprocessingDispatcher(n_jobs=-1),
+     MultiprocessingDispatcher(n_jobs=1)]
 )
 def test_dispatchers_with_and_without_multiprocessing(dispatcher):
     population = set_up_tests()
