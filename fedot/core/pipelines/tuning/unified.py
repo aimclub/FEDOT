@@ -1,12 +1,9 @@
-from datetime import timedelta
 from functools import partial
-from typing import Callable, ClassVar
 
-from hyperopt import fmin, space_eval, tpe
+from hyperopt import fmin, space_eval
 
-from fedot.core.optimisers.objective import ObjectiveEvaluate
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.tuning.search_space import SearchSpace, convert_params
+from fedot.core.pipelines.tuning.search_space import convert_params
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 
 
