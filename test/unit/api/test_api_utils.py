@@ -1,4 +1,5 @@
 import logging
+import pathlib
 import random
 from copy import deepcopy
 
@@ -12,21 +13,23 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
+from fedot.core.utils import default_fedot_data_dir
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.api.test_main_api import get_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data
 
 
-def test_compose_fedot_model_with_tuning(cleanup_singletons):
+def test_compose_fedot_model_with_tuning():
+    test_file_pth = pathlib.Path(default_fedot_data_dir(), 'test_logger_file.log')
+    log = Log(log_file=test_file_pth, output_logging_level=logging.DEBUG)
+    logger = log.get_adapter('test_log')
+
     api_composer = ApiComposer('classification')
     train_input, _, _ = get_dataset(task_type='classification')
     train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
 
     task = Task(task_type=TaskTypesEnum.classification)
     operations = get_operations_for_task(task=task, mode='model')
-
-    log = Log(log_file='test_logger_file')
-    logger = log.get_adapter('test_log')
     generations = 1
 
     api_composer.compose_fedot_model(api_params=dict(train_data=train_input,
