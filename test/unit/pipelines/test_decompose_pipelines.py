@@ -186,7 +186,7 @@ def test_correctness_filter_pipeline_decomposition():
     # Get pipeline
     pipeline = generate_pipeline_with_filtering()
     pipeline.fit(train_input)
-    predicted_output = pipeline.predict(predict_input)
+    pipeline.predict(predict_input)
 
     is_pipeline_worked_correctly = True
     return is_pipeline_worked_correctly
@@ -203,7 +203,7 @@ def test_multiclass_classification_decomposition():
     # Get pipeline
     pipeline = generate_pipeline_with_decomposition('scaling', 'logit')
     pipeline.fit(train_input)
-    predicted_output = pipeline.predict(predict_input)
+    pipeline.predict(predict_input)
 
     is_pipeline_worked_correctly = True
     return is_pipeline_worked_correctly
@@ -220,7 +220,7 @@ def test_cascade_classification_decomposition():
     # Get pipeline
     pipeline = generate_cascade_decompose_pipeline()
     pipeline.fit(train_input)
-    predicted_output = pipeline.predict(predict_input)
+    pipeline.predict(predict_input)
 
     is_pipeline_worked_correctly = True
     return is_pipeline_worked_correctly

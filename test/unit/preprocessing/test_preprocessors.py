@@ -251,5 +251,5 @@ def test_mixed_column_with_str_and_float_values():
     # column with index 2 must be removed due to unclear type of data
     try:
         _ = fit_predict_cycle_for_testing(idx=2)
-    except ValueError as _:
+    except ValueError:
         pass

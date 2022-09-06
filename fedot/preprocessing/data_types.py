@@ -1,3 +1,4 @@
+from __future__ import annotations
 from copy import copy
 
 import numpy as np
@@ -5,6 +6,11 @@ import pandas as pd
 
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fedot.core.data.data import InputData
 
 NAME_CLASS_STR = "<class 'str'>"
 NAME_CLASS_INT = "<class 'int'>"
@@ -55,7 +61,7 @@ class TableTypesCorrector:
         self.target_types = None
         self.log = default_log(self)
 
-    def convert_data_for_fit(self, data: 'InputData'):
+    def convert_data_for_fit(self, data: InputData):
         """ If column contain several data types - perform correction procedure """
         # Convert features to have an ability to insert str into float table or vice versa
         data.features = data.features.astype(object)
@@ -85,7 +91,7 @@ class TableTypesCorrector:
         self._retain_columns_info_without_types_conflicts(data)
         return data
 
-    def convert_data_for_predict(self, data: 'InputData'):
+    def convert_data_for_predict(self, data: InputData):
         """ Prepare data for predict stage. Include only column types transformation """
         # Ordering is important because after removing incorrect features - indices are obsolete
         data.features = data.features.astype(object)
@@ -200,7 +206,7 @@ class TableTypesCorrector:
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
 
-    def _retain_columns_info_without_types_conflicts(self, data: 'InputData'):
+    def _retain_columns_info_without_types_conflicts(self, data: InputData):
         """ Update information in supplementary info - retain info only about remained columns.
         Such columns have no conflicts with types converting.
         """
@@ -296,7 +302,7 @@ class TableTypesCorrector:
             self.target_converting_has_errors = True
             return converted_column.values, str(suggested_type)
 
-    def _into_categorical_features_transformation_for_fit(self, data: 'InputData'):
+    def _into_categorical_features_transformation_for_fit(self, data: InputData):
         """
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
@@ -325,7 +331,7 @@ class TableTypesCorrector:
                     features_types = data.supplementary_data.column_types['features']
                     features_types[column_id] = NAME_CLASS_STR
 
-    def _into_categorical_features_transformation_for_predict(self, data: 'InputData'):
+    def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
         if not self.numerical_into_str:
             # There is no transformation for current table
@@ -343,7 +349,7 @@ class TableTypesCorrector:
                 features_types = data.supplementary_data.column_types['features']
                 features_types[column_id] = NAME_CLASS_STR
 
-    def _into_numeric_features_transformation_for_fit(self, data: 'InputData'):
+    def _into_numeric_features_transformation_for_fit(self, data: InputData):
         """
         Automatically determine categorical features which should be converted into float
         """
@@ -384,7 +390,7 @@ class TableTypesCorrector:
                     # Add columns to remove list
                     self.string_columns_transformation_failed.update({column_id: 'removed'})
 
-    def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
+    def _into_numeric_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into float string column for every signed column """
         if not self.categorical_into_float:
             # There is no transformation for current table
