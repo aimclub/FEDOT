@@ -7,7 +7,7 @@ import pandas as pd
 
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
-from fedot.core.adapter import DirectAdapter, register_native
+from fedot.core.adapter import DirectAdapter, register_native, AdaptRegistry
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
     EvoGraphOptimizer,
     GeneticSchemeTypesEnum
@@ -113,7 +113,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graphs = optimiser.optimise(objective_eval)
-    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
+    optimized_network = AdaptRegistry().adapter.restore(optimized_graphs[0])
 
     optimized_network.show()
 
