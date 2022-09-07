@@ -1,16 +1,13 @@
 from functools import partial
-from typing import Callable, Sequence
+from typing import Callable
 
-from fedot.core.dag.graph import Graph
-from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
 class AdaptRegistry(metaclass=SingletonMeta):
-    """Registry of functions that require adapter.
-    Adaptation Registry enables automatic transformation
-    between internal and domain graph representations.
+    """Registry of callables that require adaptation of argument/return values.
+    AdaptRegistry together with :class:``BaseOptimizationAdapter`` enables
+    automatic transformation between internal and domain graph representations.
 
     Optimiser operates with generic graph representation.
     Because of this any domain function requires adaptation
@@ -27,7 +24,6 @@ class AdaptRegistry(metaclass=SingletonMeta):
     All internal functions are native.
 
     Adaptation registry usage and behavior:
-    - Registry requires initialisation with specific adapter before usage.
     - Domain functions are adapted by default.
     - Native functions don't require adaptation of their arguments.
     - External functions are considered 'domain' functions by default.
@@ -102,25 +98,3 @@ class AdaptRegistry(metaclass=SingletonMeta):
 def register_native(fun: Callable) -> Callable:
     """Out-of-class version of the function intended to be used as decorator."""
     return AdaptRegistry().register_native(fun)
-
-
-def restore(fun: Callable) -> Callable:
-    """Out-of-class version of the function intended to be used as decorator."""
-    return AdaptRegistry().restore(fun)
-
-
-def adapt(fun: Callable) -> Callable:
-    """Out-of-class version of the function intended to be used as decorator."""
-    return AdaptRegistry().adapt(fun)
-
-
-def restore_population(population: PopulationT) -> Sequence[Graph]:
-    _restore = AdaptRegistry().adapter.restore
-    domain_graphs = [_restore(ind.graph) for ind in population]
-    return domain_graphs
-
-
-def adapt_population(population: Sequence[Graph]) -> PopulationT:
-    _adapt = AdaptRegistry().adapter.adapt
-    individuals = [Individual(_adapt(graph)) for graph in population]
-    return individuals

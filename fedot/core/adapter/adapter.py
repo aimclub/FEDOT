@@ -2,11 +2,11 @@ from abc import abstractmethod
 from copy import deepcopy
 from typing import TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence
 
-from fedot.core.adapter import AdaptRegistry
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.adapter.adapt_registry import AdaptRegistry
 
 DomainStructureType = TypeVar('DomainStructureType')
 
