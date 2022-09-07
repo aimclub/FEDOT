@@ -1,14 +1,13 @@
-import logging
 from abc import abstractmethod
-from typing import Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from tqdm import tqdm
 
 from fedot.core.dag.graph import Graph
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
@@ -16,6 +15,9 @@ from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimize
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
 
 
 class PopulationalOptimizer(GraphOptimizer):
@@ -148,6 +150,7 @@ class EmptyProgressBar:
 
 class EvaluationAttemptsError(Exception):
     """ Number of evaluation attempts exceeded """
+
     def __init__(self, *args):
         if args:
             self.message = args[0]

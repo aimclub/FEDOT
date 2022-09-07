@@ -1,5 +1,5 @@
 import datetime
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional, Sequence
 
 from fedot.core.composer.advisor import PipelineChangeAdvisor
@@ -28,14 +28,14 @@ class ComposerRequirements:
     max_arity: int = 2
     min_arity: int = 2
     cv_folds: Optional[int] = None
-    advisor: Optional[PipelineChangeAdvisor] = PipelineChangeAdvisor()  # TODO: use factory to mutable object!
+    advisor: Optional[PipelineChangeAdvisor] = field(default_factory=lambda: PipelineChangeAdvisor())
 
     def __post_init__(self):
         if self.max_depth < 0:
-            raise ValueError(f'invalid max_depth value')
+            raise ValueError('invalid max_depth value')
         if self.max_arity < 0:
-            raise ValueError(f'invalid max_arity value')
+            raise ValueError('invalid max_arity value')
         if self.min_arity < 0:
-            raise ValueError(f'invalid min_arity value')
+            raise ValueError('invalid min_arity value')
         if self.cv_folds is not None and self.cv_folds <= 1:
-            raise ValueError(f'Number of folds for KFold cross validation must be 2 or more.')
+            raise ValueError('Number of folds for KFold cross validation must be 2 or more.')

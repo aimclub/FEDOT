@@ -1,5 +1,3 @@
-import logging
-
 from dataclasses import dataclass
 from typing import Optional
 
@@ -28,7 +26,7 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param start_depth: start value of tree depth
     :param validation_blocks: number of validation blocks for time series validation
     :param n_jobs: num of n_jobs
-    :param show_progress: bool indicating whether to show progress using tqdm or not
+    :param show_progress: bool indicating whether to show progress using tqdm/tuner or not
     :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
     :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     """
@@ -44,6 +42,5 @@ class PipelineComposerRequirements(ComposerRequirements):
     validation_blocks: int = None
     n_jobs: int = 1
     show_progress: bool = True
-    logging_level_opt: int = logging.INFO
     collect_intermediate_metric: bool = False
     keep_n_best: int = 1

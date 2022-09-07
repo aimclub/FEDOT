@@ -3,20 +3,18 @@ import logging
 
 import numpy as np
 import pytest
-from sklearn.metrics import mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.composer.metrics import MAE, MSE
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
-from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
 from fedot.core.validation.split import ts_cv_generator
+from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
 from test.unit.tasks.test_forecasting import get_simple_ts_pipeline, get_ts_data
 
 log = default_log(prefix=__name__)
@@ -85,18 +83,17 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
-                                                input_data=time_series,
-                                                iterations=1, timeout=1,
-                                                cv_folds=folds,
-                                                validation_blocks=validation_blocks)
+    simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
+                                        input_data=time_series,
+                                        iterations=1, timeout=1,
+                                        cv_folds=folds,
+                                        validation_blocks=validation_blocks)
     is_tune_succeeded = True
     assert is_tune_succeeded
 
 
 @pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
 def test_cv_ts_predictions_correct(folds, actual_value):
-
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
@@ -126,7 +123,6 @@ def test_composer_cv_correct():
         timeout=datetime.timedelta(seconds=5),
         cv_folds=folds,
         validation_blocks=validation_blocks,
-        logging_level_opt=logging.CRITICAL+1,
         show_progress=False)
 
     init_pipeline = get_simple_ts_pipeline()
@@ -152,7 +148,6 @@ def test_api_cv_correct():
                        'cv_folds': folds,
                        'num_of_generations': 1,
                        'validation_blocks': validation_blocks,
-                       'logging_level_opt': logging.CRITICAL+1,
                        'show_progress': False}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 

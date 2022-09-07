@@ -1,5 +1,4 @@
 import traceback
-
 from typing import List, Optional, Union
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -62,6 +61,7 @@ class AssumptionsHandler:
 
             if pipelines_cache is not None:
                 pipelines_cache.save_pipeline(pipeline)
+            if preprocessing_cache is not None:
                 preprocessing_cache.add_preprocessor(pipeline)
 
             pipeline.predict(data_test)

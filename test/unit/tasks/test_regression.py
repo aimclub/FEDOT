@@ -1,6 +1,3 @@
-import logging
-import random
-
 import numpy as np
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error as mse
@@ -33,7 +30,6 @@ def get_simple_composer_params() -> dict:
               'num_of_generations': 2,
               'with_tuning': True,
               'preset': 'fast_train',
-              'logging_level_opt': logging.CRITICAL+1,
               'show_progress': False}
     return params
 

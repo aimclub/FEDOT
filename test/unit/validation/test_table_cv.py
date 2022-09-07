@@ -9,18 +9,18 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_objective_advisor import DataObjectiveAdvisor
+from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.validation.split import tabular_cv_generator
 from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.models.test_model import classification_dataset
@@ -106,7 +106,6 @@ def test_composer_with_cv_optimization_correct():
                                                          secondary=available_model_types,
                                                          timeout=timedelta(minutes=0.2),
                                                          num_of_generations=2, cv_folds=3,
-                                                         logging_level_opt=logging.CRITICAL+1,
                                                          show_progress=False)
 
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
@@ -130,7 +129,6 @@ def test_cv_api_correct():
                        'num_of_generations': 1,
                        'preset': 'fast_train',
                        'cv_folds': 2,
-                       'logging_level_opt': logging.CRITICAL+1,
                        'show_progress': False}
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
     model = Fedot(problem='classification', logging_level=logging.INFO, **composer_params)

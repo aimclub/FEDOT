@@ -10,8 +10,7 @@ class SingletonMeta(type):
     class YourClassName(metaclass=SingletonMeta)
     """
     _instances = {}
-
-    _lock: RLock = RLock()
+    _lock: RLock = RLock()  # TODO: seems like it's useless in multiprocessing, but that's even from threading lib?!
 
     def __call__(cls, *args, **kwargs):
         with cls._lock:

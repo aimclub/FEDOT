@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union, Sequence
+from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 import func_timeout
 
@@ -71,7 +71,7 @@ class Pipeline(GraphDelegate, Serializable):
                 args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
-            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
+            raise TimeoutError('Pipeline fitness evaluation time limit is expired')
 
         self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, _ in enumerate(self.nodes):
@@ -92,9 +92,7 @@ class Pipeline(GraphDelegate, Serializable):
         """
 
         with Timer() as t:
-            computation_time_update = (
-                    not self.root_node.fitted_operation or self.computation_time is None
-            )
+            computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
             train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
@@ -220,7 +218,7 @@ class Pipeline(GraphDelegate, Serializable):
                             input_data: Union[InputData, MultiModalData] = None,
                             iterations: int = 50, timeout: Optional[float] = 5.,
                             cv_folds: Optional[int] = None, validation_blocks: int = 3,
-                            n_jobs: int = -1) -> 'Pipeline':
+                            n_jobs: int = -1, show_progress: bool = True) -> 'Pipeline':
         """
         Tunes all nodes hyperparameters simultaneously via black-box
             optimization using PipelineTuner. For details, see
@@ -234,6 +232,7 @@ class Pipeline(GraphDelegate, Serializable):
         :param cv_folds: number of cross-validation folds
         :param validation_blocks: number of validation blocks for time series forecasting
         :param n_jobs: number of parallel threads for tuner
+        :param show_progress: bool indicating whether to show progress using tuner or not
 
         :return: pipeline with tuned hyperparameters
         """
@@ -252,7 +251,8 @@ class Pipeline(GraphDelegate, Serializable):
         tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
                                                       loss_function=loss_function,
                                                       cv_folds=cv_folds,
-                                                      validation_blocks=validation_blocks)
+                                                      validation_blocks=validation_blocks,
+                                                      show_progress=show_progress)
         self.log.info('Tuning was finished')
 
         return tuned_pipeline
@@ -332,9 +332,9 @@ class Pipeline(GraphDelegate, Serializable):
         max_distance = 0
         side_root_node = None
         for node in self.nodes:
-            if (task_type in node.operation.acceptable_task_types
-                    and isinstance(node.operation, Model)
-                    and node.distance_to_primary_level >= max_distance):
+            if (task_type in node.operation.acceptable_task_types and
+                    isinstance(node.operation, Model) and
+                    node.distance_to_primary_level >= max_distance):
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
 
