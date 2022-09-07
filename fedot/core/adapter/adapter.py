@@ -13,6 +13,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
     def __init__(self, base_graph_class: Type[DomainStructureType]):
         self._log = default_log(self)
         self.domain_graph_class = base_graph_class
+        self.opt_graph_class = OptGraph
 
     def adapt(self, adaptee: DomainStructureType) -> OptGraph:
         if isinstance(adaptee, OptGraph):
@@ -23,6 +24,12 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         if isinstance(opt_graph, self.domain_graph_class):
             return opt_graph
         return self._restore(opt_graph, metadata)
+
+    def maybe_adapt(self, item):
+        return self.adapt(item) if isinstance(item, self.domain_graph_class) else item
+
+    def maybe_restore(self, item: OptGraph):
+        return self.restore(item) if isinstance(item, self.opt_graph_class) else item
 
     def restore_ind(self, individual: Individual) -> DomainStructureType:
         return self.restore(individual.graph, individual.metadata)

@@ -36,14 +36,16 @@ class AdaptRegistry(metaclass=SingletonMeta):
     Hence, they're their arguments are adapted, unless users of optimiser
     exclude them from the process of automatic adaptation. It can be done
     by registering them as 'native'.
+
+    AdaptRegistry can be safely used with multiprocessing
+    insofar as all relevant functions are registered as native
+    in the main process before child processes are started.
     """
 
     _native_flag_attr_name_ = '_fedot_is_optimizer_native'
 
     def __init__(self):
         self.adapter = DirectAdapter(Graph)
-        self._domain_struct_cls = Graph
-        self._opt_graph_cls = OptGraph
         self._registered_native_callables = []
 
     def init_adapter(self, adapter: BaseOptimizationAdapter):
@@ -99,7 +101,8 @@ class AdaptRegistry(metaclass=SingletonMeta):
 
         :return: domain function that can be used inside Optimizer
         """
-        return _transform(fun, f_args=self._maybe_adapt, f_ret=self._maybe_restore)
+        adapter = self.adapter
+        return _transform(fun, f_args=adapter.maybe_adapt, f_ret=adapter.maybe_restore)
 
     def adapt(self, fun: Callable) -> Callable:
         """Wraps domain function so that it could accept native optimization graphs
@@ -113,7 +116,8 @@ class AdaptRegistry(metaclass=SingletonMeta):
         """
         if AdaptRegistry.is_native(fun):
             return fun
-        return _transform(fun, f_args=self._maybe_restore, f_ret=self._maybe_adapt)
+        adapter = self.adapter
+        return _transform(fun, f_args=adapter.maybe_restore, f_ret=adapter.maybe_adapt)
 
     @staticmethod
     def _get_underlying_func(obj: Callable) -> Callable:
@@ -129,12 +133,6 @@ class AdaptRegistry(metaclass=SingletonMeta):
                 obj = obj.__func__
             else:
                 return obj  # return unpacked the underlying function or original object
-
-    def _maybe_adapt(self, item):
-        return self.adapter.adapt(item) if isinstance(item, self._domain_struct_cls) else item
-
-    def _maybe_restore(self, item):
-        return self.adapter.restore(item) if isinstance(item, self._opt_graph_cls) else item
 
 
 def register_native(fun: Callable) -> Callable:
