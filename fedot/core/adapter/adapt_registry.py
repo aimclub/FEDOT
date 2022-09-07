@@ -1,11 +1,9 @@
 from functools import partial
-from typing import Optional, Callable, Any, Tuple, Sequence
+from typing import Callable, Sequence
 
-from fedot.core.adapter.adapter import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.graph import OptGraph
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
@@ -45,13 +43,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
     _native_flag_attr_name_ = '_fedot_is_optimizer_native'
 
     def __init__(self):
-        self.adapter = DirectAdapter(Graph)
         self._registered_native_callables = []
-
-    def init_adapter(self, adapter: BaseOptimizationAdapter):
-        """Initialize Adapter Registry with specific Adapter"""
-        self.adapter = adapter
-        self._domain_struct_cls = self.adapter.domain_graph_class
 
     def register_native(self, fun: Callable) -> Callable:
         """Registers callable object as an internal function that doesn't
@@ -90,34 +82,6 @@ class AdaptRegistry(metaclass=SingletonMeta):
     def clear_registered_callables(self):
         for f in self._registered_native_callables:
             self.unregister_native(f)
-
-    def restore(self, fun: Callable) -> Callable:
-        """Wraps native function so that it could accept domain graphs as arguments.
-
-        Behavior: `restore( f(OptGraph) ) => f'(DomainGraph)`
-
-        :param fun: native function that accepts native args (i.e. optimization graph)
-         and requires adaptation of domain graph.
-
-        :return: domain function that can be used inside Optimizer
-        """
-        adapter = self.adapter
-        return _transform(fun, f_args=adapter.maybe_adapt, f_ret=adapter.maybe_restore)
-
-    def adapt(self, fun: Callable) -> Callable:
-        """Wraps domain function so that it could accept native optimization graphs
-        as arguments. If the function was registered as native, it is returned as-is.
-
-        Behavior: `adapt( f(DomainGraph) ) => f'(OptGraph)`
-
-        :param fun: domain function that accepts domain args and required call to restore
-
-        :return: native function that can be used inside Optimizer
-        """
-        if AdaptRegistry.is_native(fun):
-            return fun
-        adapter = self.adapter
-        return _transform(fun, f_args=adapter.maybe_restore, f_ret=adapter.maybe_adapt)
 
     @staticmethod
     def _get_underlying_func(obj: Callable) -> Callable:
@@ -160,34 +124,3 @@ def adapt_population(population: Sequence[Graph]) -> PopulationT:
     _adapt = AdaptRegistry().adapter.adapt
     individuals = [Individual(_adapt(graph)) for graph in population]
     return individuals
-
-
-def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
-    """Transforms function in such a way that ``f_args`` is called on ``fun`` arguments
-    and ``f_ret`` is called on the return value of original function.
-
-    :param fun: function to be transformed
-    :param f_args: arguments transformation function
-    :param f_ret: return value transformation function
-    :return: transformed function
-    """
-
-    if not isinstance(fun, Callable):
-        raise ValueError(f'Expected Callable, got {type(fun)}')
-
-    def adapted_fun(*args, **kwargs):
-        adapted_args = (f_args(arg) for arg in args)
-        adapted_kwargs = dict((kw, f_args(arg)) for kw, arg in kwargs.items())
-
-        result = fun(*adapted_args, **adapted_kwargs)
-
-        if result is None:
-            adapted_result = None
-        elif isinstance(result, Tuple):
-            # In case when function returns not only Graph
-            adapted_result = (f_ret(result_item) for result_item in result)
-        else:
-            adapted_result = f_ret(result)
-        return adapted_result
-
-    return adapted_fun
