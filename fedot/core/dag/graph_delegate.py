@@ -64,6 +64,9 @@ class GraphDelegate(Graph):
     def __repr__(self):
         return self.operator.__repr__()
 
+    def root_nodes(self) -> Sequence[GraphNode]:
+        return self.operator.root_nodes()
+
     @property
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
         return self.operator.root_node

@@ -146,15 +146,20 @@ class Graph(ABC):
         """
         raise NotImplementedError()
 
+    def root_nodes(self) -> Sequence[GraphNode]:
+        raise NotImplementedError()
+
     @property
-    @abstractmethod
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
         """Gets the final layer node(s) of the graph
 
         Returns:
             the final layer node(s)
         """
-        raise NotImplementedError()
+        roots = self.root_nodes()
+        if len(roots) == 1:
+            return roots[0]
+        return roots
 
     @property
     @abstractmethod
