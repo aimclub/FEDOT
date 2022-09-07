@@ -2,7 +2,6 @@ import pytest
 
 from fedot.core.adapter import *
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.pipelines.verification_rules import *
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
@@ -12,11 +11,6 @@ SOME_PIPELINE_RULES = (
     has_no_conflicts_with_data_flow,
     has_correct_data_connections,
 )
-
-
-@pytest.fixture(autouse=True)
-def init_adapter():
-    AdaptRegistry().init_adapter(PipelineAdapter())
 
 
 def get_valid_pipeline():

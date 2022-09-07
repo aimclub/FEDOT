@@ -11,7 +11,7 @@ from test.unit.adapter.mock_adapter import MockAdapter, MockDomainStructure
 from test.unit.dag.test_graph_utils import graphs_same
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(scope='module', autouse=True)
 def init_test_adapter():
     AdaptRegistry().init_adapter(MockAdapter())
 
