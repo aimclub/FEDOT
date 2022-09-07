@@ -5,9 +5,8 @@ from typing import Callable, List, Union, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from fedot.core.adapter import adapt, register_native
+from fedot.core.adapter import register_native
 from fedot.core.composer.advisor import RemoveType
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
@@ -365,7 +364,7 @@ class Mutation(Operator):
             mutation_func = mutation_type
         else:
             mutation_func = self.mutation_by_type(mutation_type)
-        return adapt(mutation_func)
+        return self.graph_generation_params.adapter.adapt_func(mutation_func)
 
     def mutation_by_type(self, mutation_type: MutationTypesEnum) -> Callable:
         mutations = {

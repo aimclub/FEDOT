@@ -113,7 +113,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
 
     objective_eval = ObjectiveEvaluate(objective, data=data)
     optimized_graphs = optimiser.optimise(objective_eval)
-    optimized_network = AdaptRegistry().adapter.restore(optimized_graphs[0])
+    optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
     optimized_network.show()
 

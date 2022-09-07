@@ -42,14 +42,13 @@ class Regularization(Operator):
             parent_operator = ParentOperator(type_='regularization',
                                              operators='decremental_regularization',
                                              parent_individuals=ind)
-            adapter = AdaptRegistry().adapter
             subtree_inds = [Individual(OptGraph(node.ordered_subnodes_hierarchy()), parent_operator)
                             for node in ind.graph.nodes
-                            if Regularization._is_fitted_subtree(adapter.restore(node))
+                            if Regularization._is_fitted_subtree(self.graph_generation_params.adapter.restore(node))
                             and node.descriptive_id not in prev_nodes_ids]
 
             additional_inds.extend(subtree_inds)
-            prev_nodes_ids.update(subtree.graph.descriptive_id for subtree in subtree_inds)
+            prev_nodes_ids.update(subtree.graph.root_node.descriptive_id for subtree in subtree_inds)
 
         additional_inds = [ind for ind in additional_inds if self.graph_generation_params.verifier(ind.graph)]
         evaluator(additional_inds)

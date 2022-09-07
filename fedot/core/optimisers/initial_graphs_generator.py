@@ -1,7 +1,6 @@
 from functools import partial
 from typing import Callable, Optional, Sequence, Union, Iterable
 
-from fedot.core.adapter import adapt
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
@@ -27,7 +26,7 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
                  requirements: PipelineComposerRequirements):
         self.pop_size = population_size
         self.requirements = requirements
-        self.generation_params = generation_params
+        self.graph_generation_params = generation_params
         self.generation_function: Optional[GenerationFunction] = None
         self.initial_graphs: Optional[Sequence[Graph]] = None
         self.log = default_log(self)
@@ -41,14 +40,14 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
             return self.initial_graphs
 
         if not self.generation_function:
-            get_random_graph = adapt(random_graph)
-            self.generation_function = partial(get_random_graph, self.generation_params, self.requirements)
+            get_random_graph = self.graph_generation_params.adapter.adapt_func(random_graph)
+            self.generation_function = partial(get_random_graph, self.graph_generation_params, self.requirements)
 
         population = []
         n_iter = 0
         while len(population) < pop_size:
             new_graph = self.generation_function()
-            if new_graph not in population and self.generation_params.verifier(new_graph):
+            if new_graph not in population and self.graph_generation_params.verifier(new_graph):
                 population.append(new_graph)
             n_iter += 1
             if n_iter >= MAXIMAL_ATTEMPTS_NUMBER:

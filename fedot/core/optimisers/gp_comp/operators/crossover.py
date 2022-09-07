@@ -2,7 +2,7 @@ from copy import deepcopy
 from random import choice, random
 from typing import Callable, Union, Iterable, Tuple, TYPE_CHECKING
 
-from fedot.core.adapter import adapt, register_native
+from fedot.core.adapter import register_native
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
@@ -70,7 +70,7 @@ class Crossover(Operator):
             crossover_func = crossover_type
         else:
             crossover_func = self._crossover_by_type(crossover_type)
-        return adapt(crossover_func)
+        return self.graph_generation_params.adapter.adapt_func(crossover_func)
 
     def _crossover_by_type(self, crossover_type: CrossoverTypesEnum) -> CrossoverCallable:
         crossovers = {

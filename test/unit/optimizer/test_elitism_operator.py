@@ -19,7 +19,7 @@ def set_up():
     population = [Individual(adapter.adapt(pipeline)) for pipeline in pipelines]
     best_individual = [Individual(adapter.adapt(pipeline_fourth())), Individual(adapter.adapt(pipeline_fifth()))]
 
-    dispatcher = SimpleDispatcher()
+    dispatcher = SimpleDispatcher(adapter)
     objective = prepared_objective
     evaluator = dispatcher.dispatch(objective)
     evaluated_population = evaluator(population)

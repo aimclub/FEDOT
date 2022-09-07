@@ -11,7 +11,7 @@ from joblib import Parallel, delayed, cpu_count
 
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.adapter import adapt, restore_population
+from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
@@ -50,9 +50,11 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     """
 
     def __init__(self,
+                 adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  n_jobs: int = 1,
                  graph_cleanup_fn: Optional[GraphFunction] = None):
+        self._adapter = adapter
         self._objective_eval = None
         self._cleanup = graph_cleanup_fn
         self._post_eval_callback = None
@@ -109,7 +111,8 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
 
-        ind_fitness, ind_domain_graph = self._evaluate_graph(graph)
+        adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
+        ind_fitness, ind_domain_graph = adapted_evaluate(graph)
         ind.set_evaluation_result(ind_fitness, ind_domain_graph)
 
         end_time = timeit.default_timer()
@@ -118,7 +121,6 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
-    @adapt
     def _evaluate_graph(self, domain_graph: Graph) -> Tuple[Fitness, Graph]:
         fitness = self._objective_eval(domain_graph)
 
@@ -138,7 +140,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         fitter = RemoteEvaluator()  # singleton
         if fitter.use_remote:
             self.logger.info('Remote fit used')
-            restored_graphs = restore_population(population)
+            restored_graphs = self._adapter.restore_population(population)
             verifier = verifier_for_task(task_type=None)
             computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
@@ -152,7 +154,8 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     :param timer: timer to set timeout for evaluation of population
     """
 
-    def __init__(self, timer: Timer = None):
+    def __init__(self, adapter: BaseOptimizationAdapter, timer: Timer = None):
+        self._adapter = adapter
         self._objective_eval = None
         self.timer = timer or get_forever_timer()
 
@@ -177,7 +180,8 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
         start_time = timeit.default_timer()
 
-        ind_fitness, ind_graph = self._evaluate_graph(ind.graph)
+        adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
+        ind_fitness, ind_graph = adapted_evaluate(ind.graph)
         ind.set_evaluation_result(ind_fitness, ind_graph)
 
         end_time = timeit.default_timer()
@@ -186,7 +190,6 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
-    @adapt
     def _evaluate_graph(self, graph: Graph) -> Tuple[Fitness, Graph]:
         fitness = self._objective_eval(graph)
         return fitness, graph
