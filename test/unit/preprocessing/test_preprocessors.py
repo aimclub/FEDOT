@@ -94,7 +94,7 @@ def data_with_complicated_types():
     features = np.array([[0, np.nan, 1, 1, 1, 'monday', 'a ', 'true', 1, '0', 'a'],
                          [np.nan, 5, 2, 2, 0, 'tuesday', 'b', np.nan, 0, '1', np.inf],
                          [2, np.nan, 3, 3, np.nan, 3, 'c', 'false', 1, '?', 'c'],
-                         [3, np.nan, 4, 4, 3.0, 4, '  a  ', 'true', 0, '2', 'd'],
+                         [3, np.nan, 4, 4, 3.0, 4, '  a  ', 'true', 0, 'error', 'd'],
                          [4, np.nan, 5, 5.0, 0, 5, '   b ', np.nan, 0, '3', 'e'],
                          [5, np.nan, 6, 6, 0, 6, '   c  ', 'false', 0, '4', 'f'],
                          [6, np.inf, 7, 7, 0, 7, '    a  ', 'true', 1, '5', 'g'],
@@ -107,7 +107,7 @@ def data_with_complicated_types():
                          [13, np.nan, 2, 2, 1, 7, ' c  ', 'true', np.nan, '12', 'n'],
                          [14, np.nan, 3, 3, 2.0, 1, 'a', 'false', np.nan, 'error', 'o'],
                          [15, np.nan, 4, 4, 1, 2, 'a  ', 'false', np.nan, '13', 'p'],
-                         [16, 2, 5, 12, 0, 3, '   d       ', 'true', 1, '16', 'r'],
+                         [16, 2, 5, 12, 0, 3, '   d       ', 'true', 1, '?', 'r'],
                          [17, 3, 6, 13, 0, 4, '  d      ', 'false', 0, '17', 's']],
                         dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no'], ['no'],
