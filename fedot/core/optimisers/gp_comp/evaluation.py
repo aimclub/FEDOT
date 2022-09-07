@@ -141,7 +141,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         if fitter.use_remote:
             self.logger.info('Remote fit used')
             restored_graphs = self._adapter.restore_population(population)
-            verifier = verifier_for_task(task_type=None)
+            verifier = verifier_for_task(task_type=None, adapter=self._adapter)
             computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 

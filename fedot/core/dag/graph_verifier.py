@@ -1,15 +1,17 @@
 from typing import Sequence, Optional, Callable
 
+from fedot.core.adapter import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
-from fedot.core.adapter.adapt_registry import adapt
 
 # Validation rule can either return False or raise a ValueError to signal a failed check
 VerifierRuleType = Callable[..., bool]
 
 
 class GraphVerifier:
-    def __init__(self, rules: Sequence[VerifierRuleType] = ()):
+    def __init__(self, rules: Sequence[VerifierRuleType] = (),
+                 adapter: Optional[BaseOptimizationAdapter] = None):
+        self._adapter = adapter or DirectAdapter()
         self._rules = rules
         self._log = default_log(self)
 
@@ -18,6 +20,7 @@ class GraphVerifier:
 
     def verify(self, graph: Graph) -> bool:
         # Check if all rules pass
+        adapt = self._adapter.adapt_func
         for rule in self._rules:
             try:
                 if adapt(rule)(graph) is False:

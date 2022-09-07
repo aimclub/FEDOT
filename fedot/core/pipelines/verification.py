@@ -1,5 +1,6 @@
 from typing import Callable, List, Sequence, Optional, Union
 
+from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.dag.verification_rules import (
@@ -8,6 +9,7 @@ from fedot.core.dag.verification_rules import (
     has_no_self_cycled_nodes,
     has_one_root
 )
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.pipelines.verification_rules import (
     has_correct_data_connections,
@@ -45,8 +47,9 @@ class_rules = [has_no_conflicts_during_multitask,
                has_no_conflicts_after_class_decompose]
 
 
-def verifier_for_task(task_type: Optional[TaskTypesEnum] = None):
-    return GraphVerifier(rules_by_task(task_type))
+def verifier_for_task(task_type: Optional[TaskTypesEnum] = None, adapter: Optional[BaseOptimizationAdapter] = None):
+    adapter = adapter or PipelineAdapter()
+    return GraphVerifier(rules_by_task(task_type), adapter)
 
 
 def rules_by_task(task_type: Optional[TaskTypesEnum],
@@ -68,4 +71,5 @@ def verify_pipeline(graph: Union[Graph, OptGraph],
                     task_type: Optional[TaskTypesEnum] = None):
     """Method for validation of graphs with default rules.
     NB: It is preserved for simplicity, use graph checker instead."""
-    return GraphVerifier(rules_by_task(task_type, rules)).verify(graph)
+    adapter = PipelineAdapter()
+    return GraphVerifier(rules_by_task(task_type, rules), adapter).verify(graph)
