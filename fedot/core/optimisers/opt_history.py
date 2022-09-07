@@ -7,7 +7,6 @@ import shutil
 from pathlib import Path
 from typing import List, Optional, Sequence, Union
 
-from fedot.core.adapter import AdaptRegistry
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
@@ -79,7 +78,7 @@ class OptHistory:
             last_gen_id = len(self.individuals) - 1
             last_gen = self.individuals[last_gen_id]
             last_gen_history = self.historical_fitness[last_gen_id]
-            adapter = AdaptRegistry().adapter
+            adapter = PipelineAdapter()
             for individual, ind_fitness in zip(last_gen, last_gen_history):
                 ind_path = Path(save_dir, str(last_gen_id), str(individual.uid))
                 additional_info = \
@@ -157,7 +156,7 @@ class OptHistory:
 
     @property
     def historical_pipelines(self):
-        adapter = AdaptRegistry().adapter
+        adapter = PipelineAdapter()
         return [
             PipelineTemplate(adapter.restore_ind(ind))
             for ind in list(itertools.chain(*self.individuals))
