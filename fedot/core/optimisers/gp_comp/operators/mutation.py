@@ -34,14 +34,14 @@ class MutationTypesEnum(Enum):
 
 class Mutation(Operator):
     def __init__(self,
-                 optimizer_requirements: 'GPGraphGenerationParameters',
+                 parameters: 'GPGraphGenerationParameters',
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
+                 # TODO: move these 2 to gp_parameters
                  max_num_of_mutation_attempts: int = 100,
                  static_mutation_probability: float = 0.7):
-        self.mutation_types = optimizer_requirements.mutation_types
-        self.optimizer_requirements = optimizer_requirements
-        self.requirements = requirements
+        super().__init__(parameters, requirements)
+        self.mutation_types = parameters.mutation_types
         self.graph_generation_params = graph_generation_params
         self.max_num_of_mutation_attempts = max_num_of_mutation_attempts
         self.static_mutation_probability = static_mutation_probability
@@ -61,7 +61,7 @@ class Mutation(Operator):
         :return mutation_prob: mutation probability
         """
 
-        default_mutation_prob = 0.7
+        default_mutation_prob = 0.7  # TODO: why it duplicates parameters.mutation_prob?
         if mut_id in list(MutationStrengthEnum):
             mutation_strength = mut_id.value
             mutation_prob = mutation_strength / (node.distance_to_primary_level + 1)

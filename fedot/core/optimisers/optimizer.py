@@ -34,7 +34,6 @@ class GraphOptimizerParameters:
     """
 
     offspring_rate: float = 0.5
-
     pop_size: int = 20
     max_pop_size: Optional[int] = 55
     adaptive_depth: bool = False

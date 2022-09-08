@@ -13,18 +13,16 @@ class SelectionTypesEnum(Enum):
 
 
 class Selection(Operator):
-    def __init__(self, requirements: 'GPGraphOptimizerParameters'):
-        self.requirements = requirements
-
     def __call__(self, population: PopulationT) -> PopulationT:
         """
         Selection of individuals based on specified type of selection
         :param population: A list of individuals to select from.
         """
-        selection_type = choice(self.requirements.selection_types)
-        return self._selection_by_type(selection_type)(population, self.requirements.pop_size)
+        selection_type = choice(self.parameters.selection_types)
+        return self._selection_by_type(selection_type)(population, self.parameters.pop_size)
 
-    def _selection_by_type(self, selection_type: SelectionTypesEnum) -> Callable[[PopulationT, int], PopulationT]:
+    @staticmethod
+    def _selection_by_type(selection_type: SelectionTypesEnum) -> Callable[[PopulationT, int], PopulationT]:
         selections = {
             SelectionTypesEnum.tournament: tournament_selection,
             SelectionTypesEnum.spea2: spea2_selection
@@ -35,7 +33,7 @@ class Selection(Operator):
             raise ValueError(f'Required selection not found: {selection_type}')
 
     def individuals_selection(self, individuals: PopulationT) -> PopulationT:
-        pop_size = self.requirements.pop_size
+        pop_size = self.parameters.pop_size
         if pop_size == len(individuals):
             chosen = individuals
         else:
@@ -43,8 +41,10 @@ class Selection(Operator):
             remaining_individuals = individuals
             individuals_pool_size = len(individuals)
             n_iter = 0
-            old_requirements = deepcopy(self.requirements)
-            self.requirements.pop_size = 1
+            # TODO: refactor this unnecessary param copying --
+            #  call selection without without self.__call__ and pass pop_size explicitly
+            old_requirements = deepcopy(self.parameters)
+            self.parameters.pop_size = 1
             while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
                 individual = self.__call__(remaining_individuals)[0]
                 if individual.uid not in (chosen_individual.uid for chosen_individual in chosen):
@@ -52,7 +52,7 @@ class Selection(Operator):
                     if pop_size <= individuals_pool_size:
                         remaining_individuals.remove(individual)
                 n_iter += 1
-            self.requirements = old_requirements
+            self.parameters = old_requirements
         return chosen
 
 

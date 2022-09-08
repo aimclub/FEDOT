@@ -3,14 +3,13 @@ from random import randint
 from typing import Any, List, Optional, Tuple
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
 def random_graph(graph_generation_params: GraphGenerationParams,
-                 requirements: ComposerRequirements,
+                 requirements: PipelineComposerRequirements,
                  max_depth: Optional[int] = None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
     is_correct_graph = False

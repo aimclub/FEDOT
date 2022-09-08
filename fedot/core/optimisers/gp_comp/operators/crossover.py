@@ -20,13 +20,12 @@ class CrossoverTypesEnum(Enum):
 
 class Crossover(Operator):
     def __init__(self,
-                 optimizer_requirements: 'GPGraphOptimizerParameters',
+                 parameters: 'GPGraphOptimizerParameters',
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  max_number_of_attempts: int = 100):
-        self.crossover_types = optimizer_requirements.crossover_types
-        self.optimizer_requirements = optimizer_requirements
-        self.requirements = requirements
+        super().__init__(parameters, requirements)
+        self.crossover_types = parameters.crossover_types
         self.graph_generation_params = graph_generation_params
         self.max_number_of_attempts = max_number_of_attempts
         self.log = default_log(self)

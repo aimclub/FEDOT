@@ -14,21 +14,22 @@ class RegularizationTypesEnum(Enum):
 
 
 class Regularization(Operator):
-    def __init__(self, requirements: 'GPGraphOptimizerParameters', graph_generation_params: GraphGenerationParams):
-        self.regularization_type = requirements.regularization_type
+    def __init__(self, parameters: 'GPGraphOptimizerParameters',
+                 graph_generation_params: GraphGenerationParams):
+        super().__init__(parameters=parameters)
         self.graph_generation_params = graph_generation_params
-        self.requirements = requirements
 
     def __call__(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
-        if self.regularization_type is RegularizationTypesEnum.decremental:
+        regularization_type = self.parameters.regularization_type
+        if regularization_type is RegularizationTypesEnum.decremental:
             return self._decremental_regularization(population, evaluator)
-        elif self.regularization_type is RegularizationTypesEnum.none:
+        elif regularization_type is RegularizationTypesEnum.none:
             return population
         else:
-            raise ValueError(f'Required regularization type not found: {self.regularization_type}')
+            raise ValueError(f'Required regularization type not found: {regularization_type}')
 
     def _decremental_regularization(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
-        size = self.requirements.pop_size
+        size = self.parameters.pop_size
         additional_inds = []
         prev_nodes_ids = set()
         for ind in population:

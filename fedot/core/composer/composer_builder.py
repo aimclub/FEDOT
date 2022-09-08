@@ -208,7 +208,9 @@ class ComposerBuilder:
 
         objective = Objective(self.metrics, multi_objective)
 
-        initial_population = InitialPopulationGenerator(self.graph_generation_params, self.composer_requirements) \
+        initial_population = InitialPopulationGenerator(self.optimizer_parameters.pop_size,
+                                                        self.graph_generation_params,
+                                                        self.composer_requirements) \
             .with_initial_graphs(self.initial_population) \
             .with_custom_generation_function(self.initial_population_generation_function)()
 

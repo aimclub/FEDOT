@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from numbers import Number
-from typing import Optional, Sequence
+from typing import Sequence
 
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.utilities.data_structures import ComparableEnum as Enum

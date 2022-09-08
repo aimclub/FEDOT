@@ -57,7 +57,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
-        self.requirements.pop_size = self._pop_size.initial
+        self.parameters.pop_size = self._pop_size.initial
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
@@ -66,7 +66,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Adding of initial assumptions to history as zero generation
         self._update_population(evaluator(self.initial_individuals))
 
-        if len(self.initial_individuals) < self.requirements.pop_size:
+        if len(self.initial_individuals) < self.parameters.pop_size:
             self.initial_individuals = self._extend_population(self.initial_individuals)
             # Adding of extended population to history
             self._update_population(evaluator(self.initial_individuals))
@@ -76,8 +76,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         initial_graphs = [ind.graph for ind in initial_individuals]
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
-        self.mutation.update_requirements(initial_req)
-        while len(initial_individuals) < self.requirements.pop_size:
+        self.mutation.update_requirements(requirements=initial_req)
+        while len(initial_individuals) < self.parameters.pop_size:
             new_ind = self.mutation(choice(self.initial_individuals))
             new_graph = new_ind.graph
             iter_num += 1
@@ -87,9 +87,9 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
                 self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
                                  f'Current size {len(self.initial_individuals)} '
-                                 f'instead of {self.requirements.pop_size} graphs.')
+                                 f'instead of {self.parameters.pop_size} graphs.')
                 break
-        self.mutation.update_requirements(self.requirements)
+        self.mutation.update_requirements(requirements=self.requirements)
         return initial_individuals
 
     def _evolve_population(self, evaluator: Callable) -> PopulationT:
@@ -109,16 +109,15 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         if not self.generations.is_any_improved:
             self.requirements.mutation_prob, self.requirements.crossover_prob = \
                 self._operators_prob.next(self.population)
-        self.requirements.pop_size = self._pop_size.next(self.population)
+        self.parameters.pop_size = self._pop_size.next(self.population)
         self.requirements.max_depth = self._graph_depth.next()
         self.log.info(
-            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
-        self._update_evolutionary_operators_requirements(self.requirements)
+            f'Next population size: {self.parameters.pop_size}; '
+            f'max graph depth: {self.requirements.max_depth}')
 
-    def _update_evolutionary_operators_requirements(self, new_requirements: PipelineComposerRequirements):
-        operators_list = self.operators
-        for operator in operators_list:
-            operator.update_requirements(new_requirements)
+        # update requirements in operators
+        for operator in self.operators:
+            operator.update_requirements(self.parameters, self.requirements)
 
     def _spawn_evaluated_population(self, selected_individuals: PopulationT, evaluator: Callable) -> PopulationT:
         """ Reproduce and evaluate new population. If at least one of received individuals can not be evaluated then
