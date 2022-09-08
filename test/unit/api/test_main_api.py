@@ -339,15 +339,16 @@ def test_multivariate_ts():
     target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test,
                                                           history_size=500)
 
-    historical_data = {
-        'ws': add_history,  # additional variable
-        'ssh': target_history,  # target variable
-    }
+    # historical_data = {
+    #     'ws': add_history,  # additional variable
+    #     'ssh': target_history,  # target variable
+    # }
+    historical_data = target_history
 
     fedot = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
     fedot.fit(features=historical_data, target=target_history)
-    forecast = fedot.forecast(historical_data, forecast_length=forecast_length)
+    forecast = fedot.forecast(historical_data, horizon=3)
     assert forecast is not None
 
 

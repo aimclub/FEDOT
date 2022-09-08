@@ -1,4 +1,5 @@
 import logging
+import math
 from copy import deepcopy
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
@@ -17,6 +18,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
@@ -251,21 +253,22 @@ class Fedot:
         return self.prediction.predict
 
     def forecast(self,
-                 pre_history: Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict],
-                 forecast_length: int = 1,
+                 pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
+                 horizon: int = None,
                  save_predictions: bool = False) -> np.ndarray:
         """Forecasts the new values of time series
 
         Args:
             pre_history: the array with features for pre-history of the forecast
-            orecast_length: num of steps to forecast
+            horizon: num of steps to forecast
             save_predictions: if ``True`` save predictions as csv-file in working directory
 
         Returns:
             the array with prediction values
         """
-
-        # TODO use forecast length
+        forecast_length = self.train_data.task.task_params.forecast_length
+        pre_history = pre_history if pre_history is not None else self.train_data
+        horizon = horizon or self.train_data.task.task_params.forecast_length
 
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
@@ -273,19 +276,58 @@ class Fedot:
         if self.params.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
+        if isinstance(pre_history, MultiModalData) and forecast_length > horizon:
+            raise ValueError("In case of multi-modal time series "
+                             "forecast horizon can't be bigger than forecast length model was fitted for")
+
         self.test_data = self.data_processor.define_data(target=self.target,
                                                          features=pre_history,
                                                          is_predict=True)
-
+        input_data = self.test_data
         self.current_pipeline = Pipeline(self.current_pipeline.root_node)
+        prediction_iter_num = math.ceil(horizon / forecast_length)
+        predictions = []
+        for i in range(prediction_iter_num):
+            prediction = self.current_pipeline.predict(input_data)
+            input_data = self._update_input(input_data, prediction)
+            predictions.append(prediction)
         # TODO add incremental forecast
         self.prediction = self.current_pipeline.predict(self.test_data)
+        final_prediction = self._union_predictions(predictions)
         if len(self.prediction.predict.shape) > 1:
             self.prediction.predict = np.squeeze(self.prediction.predict)
 
         if save_predictions:
             self.save_predict(self.prediction)
         return self.prediction.predict
+
+    def _update_input(self, previous_input: InputData, predicted_values: OutputData) -> InputData:
+        new_features = np.hstack((previous_input.features, predicted_values.predict))
+        start_idx = previous_input.idx[0]
+        end_idx = start_idx + len(new_features)
+        new_input_data = InputData(idx=np.arange(start_idx, end_idx),
+                                   features=new_features,
+                                   target=None,
+                                   task=previous_input.task,
+                                   data_type=DataTypesEnum.ts)
+        return new_input_data
+
+    def _union_predictions(self, predictions: List[OutputData]) -> OutputData:
+        features = []
+        predict = []
+        for prediction in predictions:
+            features.append(prediction.features)
+            predict.append(prediction.predict)
+        features = np.ravel(np.array(features))
+        predict = np.ravel(np.array(predict))
+        start_idx = predictions[0].idx[0]
+        end_idx = start_idx + len(predict)
+        prediction = OutputData(idx=np.arange(start_idx, end_idx),
+                                features=features,
+                                predict=predict,
+                                task=predictions[0].task,
+                                data_type=predictions[0].data_type)
+        return prediction
 
     def load(self, path):
         """Loads saved graph from disk

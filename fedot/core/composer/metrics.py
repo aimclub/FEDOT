@@ -52,6 +52,11 @@ class QualityMetric:
     output_mode = 'default'
     default_value = 0
 
+    @staticmethod
+    @abstractmethod
+    def metric(reference: InputData, predicted: OutputData) -> float:
+        raise NotImplementedError()
+
     @classmethod
     def get_value(cls, pipeline: 'Pipeline', reference_data: InputData,
                   validation_blocks: int = None) -> float:
@@ -135,12 +140,6 @@ class QualityMetric:
                                    task=data.task, target=actual_values, data_type=DataTypesEnum.ts)
 
         return reference_data, results
-
-    @staticmethod
-    @abstractmethod
-    def metric(reference: InputData, predicted: OutputData) -> float:
-        raise NotImplementedError()
-
 
 class RMSE(QualityMetric):
     default_value = sys.maxsize
