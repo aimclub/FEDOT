@@ -8,7 +8,6 @@ import numpy as np
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
@@ -45,7 +44,6 @@ class Mutation(Operator):
         self.graph_generation_params = graph_generation_params
         self.max_num_of_mutation_attempts = max_num_of_mutation_attempts
         self.static_mutation_probability = static_mutation_probability
-        self.log = default_log(prefix='mutation')
 
     def __call__(self, population: Union[Individual, PopulationT]) -> Union[Individual, PopulationT]:
         if isinstance(population, Individual):

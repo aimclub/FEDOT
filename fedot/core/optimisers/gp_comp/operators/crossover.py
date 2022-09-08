@@ -3,7 +3,6 @@ from random import choice, random
 from typing import Callable, List, Union, Iterable, Tuple
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
@@ -28,7 +27,6 @@ class Crossover(Operator):
         self.crossover_types = parameters.crossover_types
         self.graph_generation_params = graph_generation_params
         self.max_number_of_attempts = max_number_of_attempts
-        self.log = default_log(self)
 
     def __call__(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:

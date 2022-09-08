@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Sequence, Callable, Optional
 
+from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 # from fedot.core.optimisers.optimizer import GraphOptimizerParameters  # TODO: fix import loop
@@ -25,6 +26,7 @@ class Operator(ABC):
                  requirements: Optional[PipelineComposerRequirements] = None):
         self.requirements = requirements
         self.parameters = parameters
+        self.log = default_log(self)
 
     @abstractmethod
     def __call__(self, *args, **kwargs):
