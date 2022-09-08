@@ -4,6 +4,7 @@ from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
+from fedot.utilities.debug import is_test_session
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -34,6 +35,8 @@ class OperationsCache(BaseCache):
             self._db.add_operations(mapped)
         except Exception as ex:
             self.log.warning(f'Nodes can not be saved: {ex}. Continue')
+            if is_test_session():
+                raise ex
 
     def save_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """
@@ -60,6 +63,8 @@ class OperationsCache(BaseCache):
                     nodes_lst[idx].fitted_operation = None
         except Exception as ex:
             self.log.warning(f'Cache can not be loaded: {ex}. Continue.')
+            if is_test_session():
+                raise ex
 
     def try_load_into_pipeline(self, pipeline: 'Pipeline', fold_id: Optional[int] = None):
         """

@@ -1,12 +1,13 @@
 import warnings
 from typing import Optional
 
+from fedot.core.utilities.random import RandomStateHandler
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
     import cudf
     import cuml
-    from cuml import KMeans, Ridge, LogisticRegression, Lasso, ElasticNet, \
+    from cuml import Ridge, LogisticRegression, Lasso, ElasticNet, \
         MBSGDClassifier, MBSGDRegressor, CD
     from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
     from cuml.svm import SVC
@@ -86,7 +87,8 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
             raise NotImplementedError('Not supported for GPU yet')
             # TODO Manually wrap the regressor into multi-output model
         else:
-            operation_implementation.fit(features, target)
+            with RandomStateHandler():
+                operation_implementation.fit(features, target)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
