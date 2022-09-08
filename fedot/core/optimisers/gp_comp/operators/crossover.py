@@ -102,7 +102,7 @@ class Crossover(Operator):
 
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
         return not (graph_first is graph_second or
-                    random() > self.requirements.crossover_prob or
+                    random() > self.parameters.crossover_prob or
                     crossover_type is CrossoverTypesEnum.none)
 
 

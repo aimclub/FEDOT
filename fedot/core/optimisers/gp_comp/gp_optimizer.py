@@ -32,7 +32,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
                  initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional[GPGraphOptimizerParameters] = None):
+                 parameters: GPGraphOptimizerParameters):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         # Define genetic operators
         self.regularization = Regularization(parameters, graph_generation_params)
@@ -45,10 +45,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
                           self.mutation, self.inheritance, self.elitism]
 
         # Define adaptive parameters
-        self._pop_size: PopulationSize = \
-            init_adaptive_pop_size(parameters, self.generations)
-        self._operators_prob = \
-            init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
+        self._pop_size: PopulationSize = init_adaptive_pop_size(parameters, self.generations)
+        self._operators_prob = init_adaptive_operators_prob(parameters)
         self._graph_depth = AdaptiveGraphDepth(self.generations,
                                                start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
@@ -107,7 +105,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def _update_requirements(self):
         if not self.generations.is_any_improved:
-            self.requirements.mutation_prob, self.requirements.crossover_prob = \
+            self.parameters.mutation_prob, self.parameters.crossover_prob = \
                 self._operators_prob.next(self.population)
         self.parameters.pop_size = self._pop_size.next(self.population)
         self.requirements.max_depth = self._graph_depth.next()

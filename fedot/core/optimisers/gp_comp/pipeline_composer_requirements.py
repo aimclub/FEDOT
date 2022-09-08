@@ -4,23 +4,11 @@ from numbers import Number
 from typing import Sequence
 
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
-from fedot.core.utilities.data_structures import ComparableEnum as Enum
-
-
-class MutationStrengthEnum(Enum):
-    weak = 0.2
-    mean = 1.0
-    strong = 5.0
 
 
 @dataclass
 class PipelineComposerRequirements(ComposerRequirements):
     """Defines restrictions and requirements for composition of final graphs.
-
-    Evolutionary optimization options
-    :param crossover_prob: crossover probability (the chance that two chromosomes exchange some of their parts)
-    :param mutation_prob: mutation probability
-    :param mutation_strength: strength of mutation in tree (using in certain mutation types)
 
     Restrictions on final graphs:
     :param start_depth: start value of adaptive tree depth
@@ -32,10 +20,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     :param secondary: operation types for :class:`~fedot.core.pipelines.node.SecondaryNode`s
 
     """
-    # TODO: move to graph optimizer params
-    crossover_prob: float = 0.8
-    mutation_prob: float = 0.8
-    mutation_strength: MutationStrengthEnum = MutationStrengthEnum.mean
 
     start_depth: int = 3
     # TODO it's actually something like 'current_max_depth', not overall max depth.

@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import Callable, List, Union, Tuple, Sequence
+from typing import Callable, List, Union, Tuple
 
 import numpy as np
 
@@ -14,8 +14,13 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operat
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements, \
-    MutationStrengthEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+
+
+class MutationStrengthEnum(Enum):
+    weak = 0.2
+    mean = 1.0
+    strong = 5.0
 
 
 class MutationTypesEnum(Enum):
@@ -119,7 +124,7 @@ class Mutation(Operator):
         """
           Apply mutation for adapted graph
         """
-        if self._will_mutation_be_applied(self.requirements.mutation_prob, mutation_type):
+        if self._will_mutation_be_applied(self.parameters.mutation_prob, mutation_type):
             if is_custom_mutation:
                 mutation_func = mutation_type
             else:
@@ -153,7 +158,7 @@ class Mutation(Operator):
                     for parent in node.nodes_from:
                         replace_node_to_random_recursive(parent)
 
-        node_mutation_probability = self.get_mutation_prob(mut_id=self.requirements.mutation_strength,
+        node_mutation_probability = self.get_mutation_prob(mut_id=self.parameters.mutation_strength,
                                                            node=graph.root_node)
 
         replace_node_to_random_recursive(graph.root_node)
