@@ -24,7 +24,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
+from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum, MetricsRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -198,7 +198,8 @@ class ApiComposer:
 
         # Get parameters for composer and optimizer
         composer_requirements = ApiComposer._init_composer_requirements(api_params, composer_params,
-                                                                 self.timer.timedelta_composing, self.preset_name)
+                                                                        self.timer.timedelta_composing,
+                                                                        self.preset_name)
         metric_functions = self.obtain_metric(task, composer_params['metric'])
 
         log.info(f"AutoML configured."
@@ -278,6 +279,7 @@ class ApiComposer:
             .with_metric(metric_function) \
             .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \
             .with_timeout(datetime.timedelta(minutes=timeout_for_tuning)) \
+            .with_eval_time_constraint(composer_requirements.max_pipeline_fit_time) \
             .with_requirements(composer_requirements) \
             .build(train_data)
 

@@ -1,15 +1,15 @@
 from datetime import timedelta
-from typing import ClassVar, Callable, Type
+from typing import Callable, ClassVar, Type
 
 from hyperopt import tpe
 
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
-from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import DataSourceSplitter, Objective, PipelineObjectiveEvaluate
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.tuner_interface import HyperoptTuner
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.quality_metrics_repository import MetricsEnum, MetricType
+from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -27,6 +27,7 @@ class TunerBuilder:
         self.search_space = SearchSpace()
         self.algo = tpe.suggest
         self.show_progress = True
+        self.eval_time_constraint = None
 
     def with_tuner(self, tuner: Type[HyperoptTuner]):
         self.tuner_class = tuner
@@ -67,6 +68,10 @@ class TunerBuilder:
         self.timeout = timeout
         return self
 
+    def with_eval_time_constraint(self, eval_time_constraint: timedelta):
+        self.eval_time_constraint = eval_time_constraint
+        return self
+
     def with_search_space(self, search_space: ClassVar):
         self.search_space = search_space
         return self
@@ -80,7 +85,7 @@ class TunerBuilder:
         data_producer = DataSourceSplitter(self.cv_folds, self.validation_blocks).build(data)
         objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer,
                                                        validation_blocks=self.validation_blocks,
-                                                       do_unfit=False)
+                                                       do_unfit=False, time_constraint=self.eval_time_constraint)
         tuner = self.tuner_class(objective_evaluate=objective_evaluate,
                                  iterations=self.iterations,
                                  early_stopping_rounds=self.early_stopping_rounds,
