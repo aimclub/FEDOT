@@ -11,6 +11,7 @@ from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
@@ -89,18 +90,24 @@ def run_composing(dataset: str, pipeline: Pipeline, len_forecast=250):
     # Composer parameters
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=8, pop_size=10, num_of_generations=10,
-        crossover_prob=0.8, mutation_prob=0.8,
+        secondary=secondary_operations,
+        max_arity=3, max_depth=8,
+        num_of_generations=10,
         timeout=datetime.timedelta(minutes=10),
         cv_folds=2,
-        validation_blocks=2)
-
-    mutation_types = [parameter_change_mutation, MutationTypesEnum.growth, MutationTypesEnum.reduce,
-                      MutationTypesEnum.simple]
+        validation_blocks=2
+    )
+    optimizer_parameters = GPGraphOptimizerParameters(
+        pop_size=10,
+        crossover_prob=0.8, mutation_prob=0.8,
+        mutation_types=[parameter_change_mutation,
+                        MutationTypesEnum.growth,
+                        MutationTypesEnum.reduce,
+                        MutationTypesEnum.simple]
+    )
     composer = ComposerBuilder(task). \
         with_requirements(composer_requirements). \
-        with_mutations(mutation_types). \
+        with_optimizer_params(optimizer_parameters). \
         with_metrics(RegressionMetricsEnum.RMSE). \
         with_initial_pipelines([pipeline]). \
         build()

@@ -9,7 +9,7 @@ from cases.multi_ts_level_forecasting import prepare_data
 from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -36,16 +36,20 @@ def compose_pipeline(pipeline, train_data, task):
     primary_operations, secondary_operations = get_available_operations()
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=5, pop_size=15, num_of_generations=30,
-        crossover_prob=0.8, mutation_prob=0.8,
+        secondary=secondary_operations,
+        max_arity=3, max_depth=5,
+        num_of_generations=30,
         timeout=datetime.timedelta(minutes=10))
-    mutation_types = [parameter_change_mutation,
-                      MutationTypesEnum.single_change,
-                      MutationTypesEnum.single_drop,
-                      MutationTypesEnum.single_add]
+    optimizer_parameters = GPGraphOptimizerParameters(
+        pop_size=15,
+        mutation_prob=0.8, crossover_prob=0.8,
+        mutation_types=[parameter_change_mutation,
+                        MutationTypesEnum.single_change,
+                        MutationTypesEnum.single_drop,
+                        MutationTypesEnum.single_add]
+    )
     composer = ComposerBuilder(task=task). \
-        with_mutations(mutation_types). \
+        with_optimizer_params(optimizer_parameters). \
         with_requirements(composer_requirements). \
         with_metrics(RegressionMetricsEnum.MAE). \
         with_initial_pipelines([pipeline]). \

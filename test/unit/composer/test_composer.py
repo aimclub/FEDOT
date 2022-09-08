@@ -16,8 +16,9 @@ from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements, \
-    MutationStrengthEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationStrengthEnum
 from fedot.core.optimisers.objective import Objective, DataSourceSplitter, PipelineObjectiveEvaluate
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -73,7 +74,7 @@ def test_random_composer(data_fixture, request):
         task_type=TaskTypesEnum.classification)
 
     objective = Objective(ClassificationMetricsEnum.ROCAUC)
-    req = ComposerRequirements(primary=available_model_types, secondary=available_model_types)
+    req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types)
     optimiser = RandomSearchOptimizer(objective, RandomGraphFactory(req.primary, req.secondary), iter_num=2)
     random_composer = RandomSearchComposer(optimiser, composer_requirements=req)
 
@@ -98,11 +99,12 @@ def test_gp_composer_build_pipeline_correct(data_fixture, request):
 
     metric_function = ClassificationMetricsEnum.ROCAUC
 
-    req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5)
+    req = PipelineComposerRequirements(primary=available_model_types,
+                                       secondary=available_model_types,
+                                       num_of_generations=1)
+    params = GPGraphOptimizerParameters(pop_size=2)
 
-    builder = ComposerBuilder(task).with_requirements(req).with_metrics(metric_function)
+    builder = ComposerBuilder(task).with_requirements(req).with_optimizer_params(params).with_metrics(metric_function)
     gp_composer = builder.build()
     pipeline_gp_composed = gp_composer.compose_pipeline(data=dataset_to_compose)
 
@@ -139,12 +141,14 @@ def test_composition_time(data_fixture, request):
         primary=models_impl,
         secondary=models_impl, max_arity=2,
         max_depth=2,
-        pop_size=2, num_of_generations=5, crossover_prob=0.9,
-        mutation_prob=0.9, timeout=datetime.timedelta(minutes=0.000001))
+        num_of_generations=5,
+        timeout=datetime.timedelta(minutes=0.000001))
+    params = GPGraphOptimizerParameters(pop_size=2)
 
     builder = ComposerBuilder(task) \
         .with_history() \
         .with_requirements(req_terminated_evolution) \
+        .with_optimizer_params(params) \
         .with_metrics(metric_function)
 
     gp_composer_terminated_evolution = builder.build()
@@ -153,14 +157,15 @@ def test_composition_time(data_fixture, request):
 
     req_completed_evolution = PipelineComposerRequirements(
         primary=models_impl,
-        secondary=models_impl, max_arity=2,
-        max_depth=2,
-        pop_size=2, num_of_generations=2, crossover_prob=0.4,
-        mutation_prob=0.5)
+        secondary=models_impl,
+        num_of_generations=2
+    )
+    params = GPGraphOptimizerParameters(pop_size=2)
 
     builder = ComposerBuilder(task) \
         .with_history() \
         .with_requirements(req_completed_evolution) \
+        .with_optimizer_params(params) \
         .with_metrics(metric_function)
     gp_composer_completed_evolution = builder.build()
 
@@ -180,14 +185,14 @@ def test_parameter_free_composer_build_pipeline_correct(data_fixture, request):
         task_type=TaskTypesEnum.classification)
 
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=3,
-                                       crossover_prob=0.4, mutation_prob=0.5)
+                                       max_arity=2, max_depth=2, num_of_generations=3)
+    params = GPGraphOptimizerParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.parameter_free)
 
     gp_composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
+        .with_optimizer_params(params) \
         .with_requirements(req) \
         .with_metrics(ClassificationMetricsEnum.ROCAUC) \
-        .with_genetic_scheme(GeneticSchemeTypesEnum.parameter_free) \
         .build()
     pipeline_gp_composed = gp_composer.compose_pipeline(data=dataset_to_compose)
 
@@ -212,14 +217,14 @@ def test_multi_objective_composer(data_fixture, request):
     task_type = TaskTypesEnum.classification
     available_model_types = OperationTypesRepository().suitable_operation(task_type=task_type)
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=2, pop_size=2, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5)
+                                       max_arity=2, max_depth=2, num_of_generations=1)
+    params = GPGraphOptimizerParameters(pop_size=2, genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
+                                        selection_types=[SelectionTypesEnum.spea2])
 
     composer = ComposerBuilder(task=Task(task_type))\
         .with_requirements(req)\
         .with_metrics((ClassificationMetricsEnum.ROCAUC, ComplexityMetricsEnum.node_num))\
-        .with_genetic_scheme(GeneticSchemeTypesEnum.steady_state)\
-        .with_selection_types(SelectionTypesEnum.spea2)\
+        .with_optimizer_params(params)\
         .build()
     pipelines_evo_composed = composer.compose_pipeline(data=dataset_to_compose)
     pipelines_roc_auc = []
@@ -246,14 +251,14 @@ def test_gp_composer_with_adaptive_depth(data_fixture, request):
     dataset_to_compose = data
     available_model_types = ['rf', 'knn']
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, max_depth=5, pop_size=5, num_of_generations=1,
-                                       crossover_prob=0.4, mutation_prob=0.5, start_depth=2,
-                                       adaptive_depth=True)
+                                       max_arity=2, start_depth=2, max_depth=5, num_of_generations=1)
+    params = GPGraphOptimizerParameters(adaptive_depth=True,
+                                        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state)
     composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
+        .with_optimizer_params(params) \
         .with_metrics(ClassificationMetricsEnum.ROCAUC) \
-        .with_genetic_scheme(GeneticSchemeTypesEnum.steady_state) \
         .build()
 
     composer.compose_pipeline(data=dataset_to_compose)
@@ -301,8 +306,7 @@ def test_gp_composer_builder_default_params_correct():
 
 @pytest.mark.parametrize('max_depth', [1, 3, 5])
 def test_gp_composer_random_graph_generation_looping(max_depth):
-    """ Test checks random_graph valid generation without freezing in loop of creation.
-    """
+    """ Test checks random_graph valid generation without freezing in loop of creation. """
     task = Task(TaskTypesEnum.regression)
 
     operations = get_operations_for_task(task, mode='model')
@@ -316,15 +320,10 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
         max_depth=max_depth,
         max_arity=2,
         cv_folds=None,
-        pop_size=10,
         num_of_generations=5,
-        crossover_prob=0.8,
-        mutation_prob=0.8,
-        mutation_strength=MutationStrengthEnum.mean
     )
 
-    params = get_pipeline_generation_params(requirements=requirements,
-                                            task=task)
+    params = get_pipeline_generation_params(requirements=requirements, task=task)
 
     graphs = [random_graph(params, requirements, max_depth=None) for _ in range(4)]
     for graph in graphs:

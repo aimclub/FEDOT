@@ -84,11 +84,16 @@ def run_custom_example(timeout: datetime.timedelta = None):
 
     requirements = PipelineComposerRequirements(
         primary=nodes_types,
-        secondary=nodes_types, max_arity=10,
-        max_depth=10, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.9, timeout=timeout)
+        secondary=nodes_types,
+        max_arity=10,
+        max_depth=10,
+        num_of_generations=5,
+        timeout=timeout
+    )
 
     optimiser_parameters = GPGraphOptimizerParameters(
+        pop_size=5,
+        crossover_prob=0.8, mutation_prob=0.9,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[custom_mutation],
         crossover_types=[CrossoverTypesEnum.none],
