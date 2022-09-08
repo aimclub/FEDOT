@@ -121,16 +121,20 @@ class ApiComposer:
             secondary=secondary_operations,
             max_arity=composer_params['max_arity'],
             max_depth=composer_params['max_depth'],
-            max_pipeline_fit_time=composer_params['max_pipeline_fit_time'],
+
             num_of_generations=composer_params['num_of_generations'],
-            cv_folds=composer_params['cv_folds'],
-            validation_blocks=composer_params['validation_blocks'],
             timeout=datetime_composing,
             early_stopping_generations=composer_params.get('early_stopping_generations', None),
+
+            max_pipeline_fit_time=composer_params['max_pipeline_fit_time'],
             n_jobs=api_params['n_jobs'],
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
-            keep_n_best=composer_params['keep_n_best']
+            keep_n_best=composer_params['keep_n_best'],
+            logging_level_opt = api_params['logging_level_opt'],
+
+            cv_folds=composer_params['cv_folds'],
+            validation_blocks=composer_params['validation_blocks'],
         )
         return composer_requirements
 
@@ -210,16 +214,7 @@ class ApiComposer:
                          composer_params: dict,
                          log: LoggerAdapter) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
-        genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        if composer_params['genetic_scheme'] == 'steady_state':
-            genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
-
-        graph_optimizer_params = GPGraphOptimizerParameters(
-            pop_size=composer_params['pop_size'],
-            genetic_scheme_type=genetic_scheme_type,
-        )
-
-        builder = ComposerBuilder(task=task) \
+        gp_composer: GPComposer = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
             .with_optimizer(composer_params.get('optimizer')) \
@@ -227,8 +222,8 @@ class ApiComposer:
                                    external_parameters=composer_params.get('optimizer_external_params')) \
             .with_metrics(metric_functions) \
             .with_history(composer_params.get('history_folder')) \
-            .with_cache(self.pipelines_cache, self.preprocessing_cache)
-        gp_composer: GPComposer = builder.build()
+            .with_cache(self.pipelines_cache, self.preprocessing_cache) \
+            .build()
 
         n_jobs = determine_n_jobs(composer_requirements.n_jobs)
         if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):

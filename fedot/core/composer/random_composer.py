@@ -40,12 +40,12 @@ def nodes_to_pipeline(nodes: List[Node]) -> Pipeline:
 
 class RandomGraphFactory:
     def __init__(self,
-                 primary_candidates: List[Any], secondary_candidates: List[Any],
+                 primary_candidates: Sequence[Any], secondary_candidates: Sequence[Any],
                  primary_node_func: Callable = PrimaryNode, secondary_node_func: Callable = SecondaryNode):
         self.__primary_node_func = primary_node_func
         self.__secondary_node_func = secondary_node_func
-        self.__primary_candidates = primary_candidates
-        self.__secondary_candidates = secondary_candidates
+        self.__primary_candidates = list(primary_candidates)
+        self.__secondary_candidates = list(secondary_candidates)
 
     def __call__(self):
         return self.random_nodeset()
