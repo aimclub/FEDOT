@@ -44,7 +44,7 @@ def get_classification_data():
 def test_cv_multiple_metrics_evaluated_correct(classification_dataset):
     pipeline = sample_pipeline()
 
-    cv_folds = partial(tabular_cv_generator, classification_dataset, folds=3)
+    cv_folds = partial(tabular_cv_generator, classification_dataset, folds=5)
     metrics = [ClassificationMetricsEnum.ROCAUC_penalty,
                ClassificationMetricsEnum.accuracy,
                ClassificationMetricsEnum.logloss]
@@ -80,7 +80,7 @@ def test_cv_min_kfolds_raise():
 
 
 def test_tuner_cv_classification_correct():
-    folds = 2
+    folds = 5
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
@@ -105,7 +105,7 @@ def test_composer_with_cv_optimization_correct():
     composer_requirements = PipelineComposerRequirements(primary=available_model_types,
                                                          secondary=available_model_types,
                                                          timeout=timedelta(minutes=0.2),
-                                                         num_of_generations=2, cv_folds=3,
+                                                         num_of_generations=2, cv_folds=5,
                                                          show_progress=False)
 
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
