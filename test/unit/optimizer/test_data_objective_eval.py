@@ -95,7 +95,7 @@ def test_pipeline_objective_evaluate_with_empty_pipeline(classification_dataset)
 def test_pipeline_objective_evaluate_with_cv_fold(classification_dataset):
     pipeline = sample_pipeline()
 
-    cv_fold = partial(tabular_cv_generator, classification_dataset, folds=3)
+    cv_fold = partial(tabular_cv_generator, classification_dataset, folds=5)
     metric = ClassificationMetricsEnum.logloss
 
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), cv_fold)

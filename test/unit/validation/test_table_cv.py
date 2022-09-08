@@ -105,9 +105,7 @@ def test_composer_with_cv_optimization_correct():
     composer_requirements = PipelineComposerRequirements(primary=available_model_types,
                                                          secondary=available_model_types,
                                                          timeout=timedelta(minutes=0.2),
-                                                         num_of_generations=2, cv_folds=3,
                                                          num_of_generations=2, cv_folds=5,
-                                                         logging_level_opt=logging.CRITICAL+1,
                                                          show_progress=False)
 
     builder = ComposerBuilder(task).with_requirements(composer_requirements).with_metrics(metric_function)
