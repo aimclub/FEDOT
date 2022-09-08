@@ -4,11 +4,11 @@ from functools import partial
 
 import numpy as np
 
-
+from fedot.core.composer.metrics import MSE
 from fedot.core.data.data import InputData
 from fedot.core.data.supplementary_data import SupplementaryData
 from fedot.core.optimisers.fitness import SingleObjFitness
-from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate
+from fedot.core.optimisers.objective import Objective, PipelineObjectiveEvaluate, DataSourceSplitter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -16,7 +16,9 @@ from fedot.core.repository.quality_metrics_repository import ClassificationMetri
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.validation.split import tabular_cv_generator, OneFoldInputDataSplit
 from test.unit.models.test_model import classification_dataset
+from test.unit.tasks.test_forecasting import get_simple_ts_pipeline
 from test.unit.validation.test_table_cv import sample_pipeline
+from test.unit.validation.test_time_series_cv import configure_experiment
 
 _ = classification_dataset
 
@@ -146,3 +148,14 @@ def test_pipeline_objective_evaluate_with_invalid_metrics(classification_dataset
     objective_eval = PipelineObjectiveEvaluate(Objective(metrics), data_split)
     fitness = objective_eval(pipeline)
     assert not fitness.valid
+
+
+@pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
+def test_pipeline_objective_evaluate_for_timeseries_cv(folds, actual_value):
+    forecast_len, validation_blocks, time_series = configure_experiment()
+    objective = Objective(MSE.get_value)
+    data_producer = DataSourceSplitter(folds, validation_blocks).build(time_series)
+    simple_pipeline = get_simple_ts_pipeline()
+    objective_evaluate = PipelineObjectiveEvaluate(objective, data_producer, validation_blocks=validation_blocks)
+    metric_value = objective_evaluate.evaluate(simple_pipeline).value
+    assert np.isclose(metric_value, actual_value)

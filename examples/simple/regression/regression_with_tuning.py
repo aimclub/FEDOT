@@ -5,12 +5,11 @@ from sklearn.metrics import mean_absolute_error
 from sklearn.model_selection import train_test_split
 
 from examples.simple.regression.regression_pipelines import regression_ransac_pipeline
-from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.synth_dataset_generator import regression_dataset
 
@@ -100,11 +99,14 @@ def run_experiment(pipeline, tuner):
         print(f'Mean absolute error - {mae_value:.4f}\n')
 
         if tuner is not None:
-            print(f'Start tuning process ...')
-            pipeline_tuner = tuner(pipeline=pipeline, task=task,
-                                   iterations=50, timeout=timedelta(seconds=50))
-            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=MAE.metric)
+            print('Start tuning process ...')
+            pipeline_tuner = TunerBuilder(task)\
+                .with_tuner(tuner)\
+                .with_metric(RegressionMetricsEnum.MAE)\
+                .with_iterations(50) \
+                .with_timeout(timedelta(seconds=50))\
+                .build(train_input)
+            tuned_pipeline = pipeline_tuner.tune(pipeline)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)
@@ -112,7 +114,7 @@ def run_experiment(pipeline, tuner):
 
             mae_value = mean_absolute_error(y_test, preds_tuned)
 
-            print(f'Obtained metrics after tuning:')
+            print('Obtained metrics after tuning:')
             print(f'MAE - {mae_value:.4f}\n')
 
 

@@ -1,13 +1,14 @@
 import random
 
 import numpy as np
-from sklearn.metrics import roc_auc_score as roc_auc
 
 from cases.credit_scoring.credit_scoring_problem import get_scoring_data, calculate_validation_metric
-from fedot.core.composer.metrics import ROCAUC
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 random.seed(1)
@@ -65,11 +66,13 @@ def run_refinement_scoring_example(train_path, test_path, with_tuning=False):
     display_roc_auc(decompose_c, test_dataset, 'With decomposition pipeline')
 
     if with_tuning:
-        no_decompose_c.fine_tune_all_nodes(loss_function=ROCAUC.metric,
-                                           input_data=train_dataset, iterations=30)
-
-        decompose_c.fine_tune_all_nodes(loss_function=ROCAUC.metric,
-                                        input_data=train_dataset, iterations=30)
+        tuner = TunerBuilder(task) \
+            .with_tuner(PipelineTuner)\
+            .with_metric(ClassificationMetricsEnum.ROCAUC)\
+            .with_iterations(30) \
+            .build(train_dataset)
+        no_decompose_c = tuner.tune(no_decompose_c)
+        decompose_c = tuner.tune(decompose_c)
 
         display_roc_auc(no_decompose_c, test_dataset, 'Non decomposition pipeline after tuning')
         display_roc_auc(decompose_c, test_dataset, 'With decomposition pipeline after tuning')

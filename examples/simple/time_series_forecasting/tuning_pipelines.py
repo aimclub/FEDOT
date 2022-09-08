@@ -3,13 +3,15 @@ import pandas as pd
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from examples.advanced.time_series_forecasting.composing_pipelines import visualise, get_border_line_info
-from fedot.core.composer.metrics import MSE
+from examples.simple.time_series_forecasting.ts_pipelines import ts_locf_ridge_pipeline
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from examples.simple.time_series_forecasting.ts_pipelines import *
 from fedot.core.utils import fedot_project_root
 
 datasets = {
@@ -69,9 +71,12 @@ def run_experiment(dataset: str, pipeline: Pipeline, len_forecast=250, tuning=Tr
     plot_info.append(get_border_line_info(prediction.idx[0], predict, time_series, 'Border line'))
 
     if tuning:
-        pipeline = pipeline.fine_tune_all_nodes(input_data=train_data,
-                                                loss_function=MSE.metric,
-                                                iterations=100)
+        tuner = TunerBuilder(task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(RegressionMetricsEnum.MSE)\
+            .with_iterations(100) \
+            .build(train_data)
+        pipeline = tuner.tune(pipeline)
 
         prediction_after = pipeline.predict(test_data)
         predict_after = np.ravel(np.array(prediction_after.predict))

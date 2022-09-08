@@ -1,7 +1,6 @@
 import platform
 from functools import partial
 from multiprocessing import set_start_method
-from os import PathLike
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Type, Union
 
@@ -10,10 +9,9 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.log import LoggerAdapter, default_log
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.opt_history import OptHistory, log_to_history
@@ -23,14 +21,13 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import (
-    ClassificationMetricsEnum,
     ComplexityMetricsEnum,
-    MetricsEnum,
-    RegressionMetricsEnum
+    MetricsEnum
 )
-from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.repository.tasks import Task
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
 from fedot.core.utils import default_fedot_data_dir
+from fedot.utilities.define_metric_by_task import MetricByTask
 
 
 def set_multiprocess_start_method():
@@ -45,7 +42,7 @@ class ComposerBuilder:
         self.log: LoggerAdapter = default_log(self)
 
         self.task: Task = task
-        self.metrics: Sequence[MetricsEnum] = self._get_default_quality_metrics(task)
+        self.metrics: Sequence[MetricsEnum] = MetricByTask(task.task_type).get_default_quality_metrics()
 
         self.optimiser_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
         self.optimiser_parameters: GPGraphOptimizerParameters = GPGraphOptimizerParameters()
@@ -128,14 +125,6 @@ class ComposerBuilder:
             rules_for_constraint=rules_by_task(self.task.task_type),
             task=self.task,
             requirements=self.composer_requirements)
-
-    @staticmethod
-    def _get_default_quality_metrics(task: Task) -> List[MetricsEnum]:
-        # Set metrics
-        metric_function = ClassificationMetricsEnum.ROCAUC_penalty
-        if task.task_type in (TaskTypesEnum.regression, TaskTypesEnum.ts_forecasting):
-            metric_function = RegressionMetricsEnum.RMSE
-        return [metric_function]
 
     @staticmethod
     def _get_default_complexity_metrics() -> List[MetricsEnum]:

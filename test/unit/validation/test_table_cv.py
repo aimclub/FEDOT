@@ -9,7 +9,6 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -18,6 +17,8 @@ from fedot.core.optimisers.objective.data_objective_advisor import DataObjective
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -84,10 +85,13 @@ def test_tuner_cv_classification_correct():
     dataset = get_iris_data()
 
     simple_pipeline = pipeline_simple()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=ROCAUC.metric,
-                                                input_data=dataset,
-                                                iterations=1, timeout=1,
-                                                cv_folds=folds)
+    tuner = TunerBuilder(dataset.task).with_tuner(PipelineTuner)\
+        .with_metric(ClassificationMetricsEnum.ROCAUC)\
+        .with_cv_folds(folds) \
+        .with_iterations(1) \
+        .with_timeout(timedelta(minutes=1))\
+        .build(dataset)
+    tuned = tuner.tune(simple_pipeline)
     assert tuned
 
 

@@ -8,8 +8,7 @@ from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.data.data import InputData
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter
-from fedot.core.pipelines.verification import verify_pipeline, verifier_for_task
+from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.utilities.serializable import Serializable
 from fedot.remote.infrastructure.clients.client import Client
 from fedot.utilities.pattern_wrappers import singleton

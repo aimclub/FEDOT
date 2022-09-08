@@ -1,6 +1,6 @@
 import os
-from time import time
 from random import seed
+from time import time
 
 import numpy as np
 import pytest
@@ -8,7 +8,6 @@ from hyperopt import hp, tpe, rand
 from hyperopt.pyll.stochastic import sample as hp_sample
 from sklearn.metrics import mean_squared_error as mse, accuracy_score as acc
 
-from fedot.core.composer.metrics import ROCAUC, RMSE, Accuracy, MSE
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
@@ -17,42 +16,42 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.search_space import SearchSpace
 from fedot.core.pipelines.tuning.sequential import SequentialTuner
-from fedot.core.pipelines.tuning.tuner_interface import _greater_is_better
-from fedot.core.validation.tune.cv_prediction import calculate_loss_function
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
-from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum, ClassificationMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
 np.random.seed(1)
 
 
-@pytest.fixture()
+@pytest.fixture(scope='package')
 def regression_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'simple_regression_train.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/simple_regression_train.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.regression))
 
 
 @pytest.fixture()
 def classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def tiny_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'tiny_simple_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/tiny_simple_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
 @pytest.fixture()
 def multi_classification_dataset():
     test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join('../../data', 'multiclass_classification.csv')
+    file = os.path.join(str(fedot_project_root()), 'test/data/multiclass_classification.csv')
     return InputData.from_csv(os.path.join(test_file_path, file), task=Task(TaskTypesEnum.classification))
 
 
@@ -112,11 +111,11 @@ def get_class_operation_types():
 
 
 def get_regr_losses():
-    return [RMSE.metric]
+    return [RegressionMetricsEnum.RMSE]
 
 
 def get_class_losses():
-    return [ROCAUC.metric, Accuracy.metric]
+    return [ClassificationMetricsEnum.ROCAUC, ClassificationMetricsEnum.accuracy]
 
 
 def get_not_default_search_space():
@@ -168,15 +167,16 @@ def run_pipeline_tuner(train_data,
                        iterations=1,
                        early_stopping_rounds=None):
     # Pipeline tuning
-    pipeline_tuner = PipelineTuner(pipeline=pipeline,
-                                   task=train_data.task,
-                                   iterations=iterations,
-                                   early_stopping_rounds=early_stopping_rounds,
-                                   search_space=search_space,
-                                   algo=algo)
-    _ = pipeline_tuner.tune_pipeline(input_data=train_data,
-                                     cv_folds=cv,
-                                     loss_function=loss_function)
+    pipeline_tuner = TunerBuilder(train_data.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(loss_function)\
+        .with_cv_folds(cv)\
+        .with_iterations(iterations)\
+        .with_early_stopping_rounds(early_stopping_rounds)\
+        .with_search_space(search_space)\
+        .with_algo(algo)\
+        .build(train_data)
+    _ = pipeline_tuner.tune(pipeline)
     return pipeline_tuner
 
 
@@ -189,16 +189,16 @@ def run_sequential_tuner(train_data,
                          iterations=1,
                          early_stopping_rounds=None):
     # Pipeline tuning
-    sequential_tuner = SequentialTuner(pipeline=pipeline,
-                                       task=train_data.task,
-                                       iterations=iterations,
-                                       early_stopping_rounds=early_stopping_rounds,
-                                       search_space=search_space,
-                                       algo=algo)
-    # Optimization will be performed on RMSE metric, so loss params are defined
-    _ = sequential_tuner.tune_pipeline(input_data=train_data,
-                                       cv_folds=cv,
-                                       loss_function=loss_function)
+    sequential_tuner = TunerBuilder(train_data.task)\
+        .with_tuner(SequentialTuner)\
+        .with_metric(loss_function)\
+        .with_cv_folds(cv)\
+        .with_iterations(iterations)\
+        .with_early_stopping_rounds(early_stopping_rounds)\
+        .with_search_space(search_space)\
+        .with_algo(algo)\
+        .build(train_data)
+    _ = sequential_tuner.tune(pipeline)
     return sequential_tuner
 
 
@@ -212,16 +212,16 @@ def run_node_tuner(train_data,
                    iterations=1,
                    early_stopping_rounds=None):
     # Pipeline tuning
-    node_tuner = SequentialTuner(pipeline=pipeline,
-                                 task=train_data.task,
-                                 iterations=iterations,
-                                 early_stopping_rounds=early_stopping_rounds,
-                                 search_space=search_space,
-                                 algo=algo)
-    _ = node_tuner.tune_node(input_data=train_data,
-                             node_index=node_index,
-                             cv_folds=cv,
-                             loss_function=loss_function)
+    node_tuner = TunerBuilder(train_data.task)\
+        .with_tuner(SequentialTuner)\
+        .with_metric(loss_function)\
+        .with_cv_folds(cv)\
+        .with_iterations(iterations)\
+        .with_algo(algo)\
+        .with_search_space(search_space)\
+        .with_early_stopping_rounds(early_stopping_rounds)\
+        .build(train_data)
+    _ = node_tuner.tune_node(pipeline, node_index)
     return node_tuner
 
 
@@ -246,13 +246,12 @@ def test_custom_params_setter(data_fixture, request):
 def test_pipeline_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test PipelineTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                pipeline_tuner = run_pipeline_tuner(train_data=train_data,
+                pipeline_tuner = run_pipeline_tuner(train_data=data,
                                                     pipeline=pipeline,
                                                     loss_function=loss_function,
                                                     cv=cv)
@@ -292,13 +291,12 @@ def test_pipeline_tuner_with_custom_search_space(data_fixture, pipelines, loss_f
 def test_sequential_tuner_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for pipeline based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                sequential_tuner = run_sequential_tuner(train_data=train_data,
+                sequential_tuner = run_sequential_tuner(train_data=data,
                                                         pipeline=pipeline,
                                                         loss_function=loss_function,
                                                         cv=cv)
@@ -338,13 +336,12 @@ def test_sequential_tuner_with_custom_search_space(data_fixture, pipelines, loss
 def test_certain_node_tuning_correct(data_fixture, pipelines, loss_functions, request):
     """ Test SequentialTuner for particular node based on hyperopt library """
     data = request.getfixturevalue(data_fixture)
-    train_data, test_data = train_test_data_setup(data=data)
     cvs = [None, 2]
 
     for pipeline in pipelines:
         for loss_function in loss_functions:
             for cv in cvs:
-                node_tuner = run_node_tuner(train_data=train_data,
+                node_tuner = run_node_tuner(train_data=data,
                                             pipeline=pipeline,
                                             loss_function=loss_function,
                                             cv=cv)
@@ -386,10 +383,12 @@ def test_ts_pipeline_with_stats_model(n_steps):
 
     for search_space in [SearchSpace(), get_not_default_search_space()]:
         # Tune AR model
-        tuner_ar = PipelineTuner(pipeline=ar_pipeline, task=train_data.task, iterations=3,
-                                 search_space=search_space, algo=rand.suggest)
-        tuned_ar_pipeline = tuner_ar.tune_pipeline(input_data=train_data,
-                                                   loss_function=MSE.metric)
+        tuner_ar = TunerBuilder(train_data.task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(RegressionMetricsEnum.MSE)\
+            .with_iterations(3) \
+            .with_search_space(search_space).with_algo(rand.suggest).build(train_data)
+        _ = tuner_ar.tune(ar_pipeline)
 
     is_tuning_finished = True
 
@@ -404,7 +403,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_pipeline_tuner = time()
     _ = run_pipeline_tuner(train_data=train_data,
                            pipeline=get_class_pipelines()[0],
-                           loss_function=ROCAUC.metric,
+                           loss_function=ClassificationMetricsEnum.ROCAUC,
                            iterations=1000,
                            early_stopping_rounds=1)
     assert time() - start_pipeline_tuner < 1
@@ -412,7 +411,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_sequential_tuner = time()
     _ = run_sequential_tuner(train_data=train_data,
                              pipeline=get_class_pipelines()[0],
-                             loss_function=ROCAUC.metric,
+                             loss_function=ClassificationMetricsEnum.ROCAUC,
                              iterations=1000,
                              early_stopping_rounds=1)
     assert time() - start_sequential_tuner < 1
@@ -420,7 +419,7 @@ def test_early_stop_in_tuning(data_fixture, request):
     start_node_tuner = time()
     _ = run_node_tuner(train_data=train_data,
                        pipeline=get_class_pipelines()[0],
-                       loss_function=ROCAUC.metric,
+                       loss_function=ClassificationMetricsEnum.ROCAUC,
                        iterations=1000,
                        early_stopping_rounds=1)
     assert time() - start_node_tuner < 1
@@ -483,101 +482,10 @@ def test_complex_search_space_tuning_correct():
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
     glm_custom_params = glm_pipeline.nodes[0].custom_params
-    tuned_glm_pipeline = glm_pipeline.fine_tune_all_nodes(input_data=train_data,
-                                                          loss_function=MSE.metric)
+    tuner = TunerBuilder(train_data.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MSE)\
+        .build(train_data)
+    tuned_glm_pipeline = tuner.tune(glm_pipeline)
     new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
     assert glm_custom_params == new_custom_params
-
-
-def test_greater_is_better():
-    """ Tests _greater_is_better function correctness on quality metrics maximization / minimization definition"""
-
-    assert _greater_is_better(custom_maximized_metrics)
-    assert not _greater_is_better(MSE.metric)
-    assert not _greater_is_better(custom_minimized_metrics)
-    # these metrics are given with minus
-    assert not _greater_is_better(Accuracy.metric)
-    assert not _greater_is_better(ROCAUC.metric)
-
-
-def test_calculate_loss_function_for_classification_label():
-    """ Tests _calculate_loss_function correctness on quality metrics"""
-
-    target = InputData(features=np.arange(5),
-                       idx=np.arange(5),
-                       target=np.array([1, 0, 1, 0, 1]),
-                       task=Task(TaskTypesEnum.classification),
-                       data_type=DataTypesEnum.table)
-
-    multi_target = InputData(features=np.arange(5),
-                             idx=np.arange(5),
-                             target=np.array([2, 0, 1, 0, 1]),
-                             task=Task(TaskTypesEnum.classification),
-                             data_type=DataTypesEnum.table)
-
-    pred_clear = OutputData(features=np.arange(5),
-                            idx=np.arange(5),
-                            predict=np.array([1, 0, 1, 0, 0]),
-                            task=Task(TaskTypesEnum.classification),
-                            data_type=DataTypesEnum.table)
-
-    multi_pred_clear = OutputData(features=np.arange(5),
-                                  idx=np.arange(5),
-                                  predict=np.array([2, 0, 1, 0, 2]),
-                                  task=Task(TaskTypesEnum.classification),
-                                  data_type=DataTypesEnum.table)
-
-    assert np.isclose(calculate_loss_function(Accuracy.metric, target, pred_clear), -0.8)
-    assert np.isclose(calculate_loss_function(Accuracy.metric, multi_target, multi_pred_clear), -0.8)
-
-
-def test_calculate_loss_function_for_classification_proba():
-    target = InputData(features=np.arange(5),
-                       idx=np.arange(5),
-                       target=np.array([1, 0, 1, 0, 1]),
-                       task=Task(TaskTypesEnum.classification),
-                       data_type=DataTypesEnum.table)
-
-    multi_target = InputData(features=np.arange(5),
-                             idx=np.arange(5),
-                             target=np.array([2, 0, 1, 0, 1]),
-                             task=Task(TaskTypesEnum.classification),
-                             data_type=DataTypesEnum.table)
-
-    pred_prob = OutputData(features=np.arange(5),
-                           idx=np.arange(5),
-                           predict=np.array([0.8, 0.3, 0.6, 0.49, 0.49]),
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-
-    multi_pred_prob = OutputData(features=np.arange(5),
-                                 idx=np.arange(5),
-                                 predict=np.array([[0.2, 0.3, 0.5],
-                                                   [0.6, 0.3, 0.1],
-                                                   [0.3, 0.4, 0.3],
-                                                   [0.5, 0.4, 0.1],
-                                                   [0.1, 0.4, 0.5]]),
-                                 task=Task(TaskTypesEnum.classification),
-                                 data_type=DataTypesEnum.table)
-
-    assert np.isclose(calculate_loss_function(Accuracy.metric, target, pred_prob), -0.8)
-    assert np.isclose(calculate_loss_function(ROCAUC.metric, target, pred_prob), -0.917)
-
-    assert np.isclose(calculate_loss_function(Accuracy.metric, multi_target, multi_pred_prob), -0.8)
-    assert np.isclose(calculate_loss_function(ROCAUC.metric, multi_target, multi_pred_prob), -0.903)
-
-
-def test_calculate_loss_function_for_regression():
-    regr_target = InputData(features=np.arange(5),
-                            idx=np.arange(5),
-                            target=np.array([0.2, 0.1, 1, 0.3, 1.7]),
-                            task=Task(TaskTypesEnum.classification),
-                            data_type=DataTypesEnum.table)
-
-    regr_pred = OutputData(features=np.arange(5),
-                           idx=np.arange(5),
-                           predict=np.array([0.23, 0.15, 1.2, 0.4, 1.16]),
-                           task=Task(TaskTypesEnum.classification),
-                           data_type=DataTypesEnum.table)
-
-    assert np.isclose(calculate_loss_function(MSE.metric, regr_target, regr_pred), 0.069)
