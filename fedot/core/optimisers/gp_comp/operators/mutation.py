@@ -81,7 +81,7 @@ class Mutation(Operator):
 
             is_correct_graph = self.graph_generation_params.verifier(new_graph)
             if is_correct_graph:
-                parent_operator = ParentOperator(operator_type='mutation', operator_name=', '.join(mutation_names),
+                parent_operator = ParentOperator(type='mutation', operators=tuple(mutation_names),
                                                  parent_individuals=(individual,))
                 return Individual(new_graph, parent_operator)
 
@@ -202,7 +202,7 @@ class Mutation(Operator):
         for iter_num in range(randint(1, 3)):
             new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=True)
             if not new_node:
-                # there is no possible mutations
+                # there is no possible operators
                 break
             if node_to_mutate.nodes_from:
                 node_to_mutate.nodes_from.append(new_node)

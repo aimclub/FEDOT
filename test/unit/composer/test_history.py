@@ -52,12 +52,12 @@ def test_parent_operator():
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline))
     mutation_type = MutationTypesEnum.simple
-    operator_for_history = ParentOperator(operator_type='mutation',
-                                          operator_name=str(mutation_type),
+    operator_for_history = ParentOperator(type='mutation',
+                                          operators=(str(mutation_type),),
                                           parent_individuals=(ind,))
 
     assert operator_for_history.parent_individuals[0] == ind
-    assert operator_for_history.operator_type == 'mutation'
+    assert operator_for_history.type == 'mutation'
 
 
 def test_ancestor_for_mutation():
@@ -78,7 +78,7 @@ def test_ancestor_for_mutation():
     mutation_result = mutation(parent_ind)
 
     assert mutation_result.parent_operator
-    assert mutation_result.parent_operator.operator_type == 'mutation'
+    assert mutation_result.parent_operator.type == 'mutation'
     assert len(mutation_result.parent_operator.parent_individuals) == 1
     assert mutation_result.parent_operator.parent_individuals[0].uid == parent_ind.uid
 
@@ -95,7 +95,7 @@ def test_ancestor_for_crossover():
 
     for crossover_result in crossover_results:
         assert crossover_result.parent_operator
-        assert crossover_result.parent_operator.operator_type == 'crossover'
+        assert crossover_result.parent_operator.type == 'crossover'
         assert len(crossover_result.parent_operator.parent_individuals) == 2
         assert crossover_result.parent_operator.parent_individuals[0].uid == parent_ind_first.uid
         assert crossover_result.parent_operator.parent_individuals[1].uid == parent_ind_second.uid
@@ -198,13 +198,13 @@ def test_history_backward_compatibility():
     # Assert that fitness, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
     assert all(isinstance(parent_individual, Individual)  # TODO: Check parents recursively until prev gen. Add property
-               for ind in chain(*history.individuals)
+               for ind in chain(*history.individuals) if ind.parent_operator is not None
                for parent_individual in ind.parent_operator.parent_individuals)
     assert isinstance(history._objective, Objective)
 
 
 def test_history_correct_serialization():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
 
     history = OptHistory.load(test_history_path)
     dumped_history = history.save()

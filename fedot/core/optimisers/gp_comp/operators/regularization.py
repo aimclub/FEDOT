@@ -38,10 +38,10 @@ class Regularization(Operator):
         prev_nodes_ids = set()
         for ind in population:
             prev_nodes_ids.add(ind.graph.root_node.descriptive_id)
-            parent_operator = ParentOperator(operator_type='regularization',
-                                             operator_name='decremental_regularization',
+            parent_operator = ParentOperator(type='regularization',
+                                             operators=('decremental_regularization',),
                                              parent_individuals=(ind,))
-            subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())), (parent_operator,))
+            subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())), parent_operator)
                             for node in ind.graph.nodes
                             if Regularization._is_fitted_subtree(self.graph_generation_params.adapter.restore(node))
                             and node.descriptive_id not in prev_nodes_ids]

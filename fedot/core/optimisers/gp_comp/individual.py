@@ -57,7 +57,7 @@ class Individual:
 
 @dataclass(frozen=True)
 class ParentOperator:
-    operator_name: str
-    operator_type: str
+    type: str
+    operators: Tuple[str, ...]
     parent_individuals: Tuple[Individual, ...]
     uid: str = field(default_factory=lambda: str(uuid4()), init=False)

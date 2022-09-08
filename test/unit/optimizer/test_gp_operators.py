@@ -271,7 +271,7 @@ def test_parent_add_mutation_for_linear_graph():
     mutation = Mutation(mutation_types=[MutationTypesEnum.single_add], graph_generation_params=graph_params,
                         requirements=composer_requirements)
 
-    for _ in range(200):  # since add mutations has a lot of variations
+    for _ in range(200):  # since add operators has a lot of variations
         graph_after_mutation = mutation(Individual(linear_one_node)).graph
         if not successful_mutation_outer:
             id_before = linear_two_nodes.root_node.descriptive_id

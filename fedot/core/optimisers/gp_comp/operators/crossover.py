@@ -98,8 +98,8 @@ class Crossover(Operator):
 
     def _get_individuals(self, new_graphs: Tuple[OptGraph, OptGraph], parent_individuals: Tuple[Individual, Individual],
                          crossover_type: Union[CrossoverTypesEnum, Callable]) -> Tuple[Individual, Individual]:
-        operator = ParentOperator(operator_type='crossover',
-                                  operator_name=str(crossover_type),
+        operator = ParentOperator(type='crossover',
+                                  operators=(str(crossover_type),),
                                   parent_individuals=parent_individuals)
         return tuple(Individual(graph, operator) for graph in new_graphs)
 
