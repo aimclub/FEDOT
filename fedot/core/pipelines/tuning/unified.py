@@ -12,7 +12,7 @@ class PipelineTuner(HyperoptTuner):
     Class for hyperparameters optimization for all nodes simultaneously
     """
 
-    def tune(self, pipeline: Pipeline,  show_progress: bool = True) -> Pipeline:
+    def tune(self, pipeline: Pipeline, show_progress: bool = True) -> Pipeline:
         """ Function for hyperparameters tuning on the entire pipeline
 
         :param pipeline: Pipeline which hyperparameters will be tuned
