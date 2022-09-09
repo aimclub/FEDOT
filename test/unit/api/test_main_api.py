@@ -278,8 +278,8 @@ def test_categorical_preprocessing_unidata():
 
     auto_model = Fedot(problem='classification', **default_params)
     auto_model.fit(features=train_data)
-    prediction = auto_model.predict(features=test_data)
-    prediction_proba = auto_model.predict_proba(features=test_data)
+    auto_model.predict(features=test_data)
+    auto_model.predict_proba(features=test_data)
 
     assert np.issubdtype(prediction.dtype, np.number)
     assert np.isnan(prediction).sum() == 0
@@ -324,32 +324,6 @@ def test_fill_nan_without_categorical():
 
     assert pd.isna(prediction.features).sum() == 0
     assert pd.isna(prediction_train.features).sum() == 0
-
-
-def test_multivariate_ts():
-    forecast_length = 1
-
-    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
-    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
-
-    # a dataset for a final validation of the composed model
-    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
-    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
-
-    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test,
-                                                          history_size=500)
-
-    # historical_data = {
-    #     'ws': add_history,  # additional variable
-    #     'ssh': target_history,  # target variable
-    # }
-    historical_data = target_history
-
-    fedot = Fedot(problem='ts_forecasting', **default_params,
-                  task_params=TsForecastingParams(forecast_length=forecast_length))
-    fedot.fit(features=historical_data, target=target_history)
-    forecast = fedot.forecast(historical_data, horizon=3)
-    assert forecast is not None
 
 
 def test_dict_multimodal_input_for_api():
@@ -504,3 +478,71 @@ def test_unknown_param_raises_error():
         _divide_parameters(model.params.api_params)
     except KeyError as e:
         assert str(e) == "'Invalid key parameter unknown'"
+
+
+def test_default_forecast():
+    forecast_length = 2
+    train_data, test_data, _ = get_dataset('ts_forecasting')
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    model.fit(train_data)
+    forecast = model.forecast()
+    assert len(forecast) == forecast_length
+    assert np.array_equal(model.test_data.idx, train_data.idx)
+
+
+@pytest.mark.parametrize('horizon', [1, 2, 3, 4])
+def test_forecast_with_different_horizons(horizon):
+    forecast_length = 2
+    train_data, test_data, _ = get_dataset('ts_forecasting')
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    model.fit(train_data)
+    forecast = model.forecast(pre_history=test_data, horizon=horizon)
+    assert len(forecast) == horizon
+    assert np.array_equal(model.test_data.idx, test_data.idx)
+
+
+def test_forecast_with_unfitted_model():
+    forecast_length = 2
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    with pytest.raises(ValueError):
+        model.forecast()
+
+
+def test_forecast_with_not_ts_problem():
+    model = Fedot(problem='classification', **default_params)
+    train_data, test_data, _ = get_dataset('classification')
+    model.fit(train_data)
+    with pytest.raises(ValueError):
+        model.forecast(pre_history=test_data)
+
+
+def test_forecast_with_multimodal_ts():
+    forecast_length = 2
+
+    file_path_train = 'cases/data/metocean/metocean_data_train.csv'
+    full_path_train = os.path.join(str(fedot_project_root()), file_path_train)
+
+    # a dataset for a final validation of the composed model
+    file_path_test = 'cases/data/metocean/metocean_data_test.csv'
+    full_path_test = os.path.join(str(fedot_project_root()), file_path_test)
+
+    target_history, add_history, obs = prepare_input_data(full_path_train, full_path_test,
+                                                          history_size=500)
+
+    historical_data = {
+        'ws': add_history,  # additional variable
+        'ssh': target_history,  # target variable
+    }
+
+    model = Fedot(problem='ts_forecasting', **default_params,
+                  task_params=TsForecastingParams(forecast_length=forecast_length))
+    model.fit(features=historical_data, target=target_history)
+    forecast = model.forecast()
+    assert len(forecast) == forecast_length
+    forecast = model.forecast(horizon=forecast_length - 1)
+    assert len(forecast) == forecast_length - 1
+    with pytest.raises(ValueError):
+        model.forecast(horizon=forecast_length + 1)

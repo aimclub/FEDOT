@@ -256,7 +256,8 @@ class Fedot:
                  pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
                  horizon: int = None,
                  save_predictions: bool = False) -> np.ndarray:
-        """Forecasts the new values of time series
+        """Forecasts the new values of time series. If horizon is bigger than forecast length of fitted model -
+        out-of-sample forecast is applied (not supported for multi-modal data).
 
         Args:
             pre_history: the array with features for pre-history of the forecast
@@ -266,43 +267,50 @@ class Fedot:
         Returns:
             the array with prediction values
         """
-        forecast_length = self.train_data.task.task_params.forecast_length
-        pre_history = pre_history if pre_history is not None else self.train_data
-        horizon = horizon or self.train_data.task.task_params.forecast_length
+        self._check_forecast_applicable()
 
+        forecast_length = self.train_data.task.task_params.forecast_length
+        horizon = horizon or self.train_data.task.task_params.forecast_length
+        pre_history = pre_history if pre_history is not None else self.train_data
+        pre_history = self.data_processor.define_data(target=self.target,
+                                                      features=pre_history,
+                                                      is_predict=True)
+        self.test_data = pre_history
+        input_data = self.test_data
+        self.prediction = self._get_forecast(input_data, horizon, forecast_length)
+        if save_predictions:
+            self.save_predict(self.prediction)
+        return self.prediction.predict
+
+    def _check_forecast_applicable(self):
         if self.current_pipeline is None:
             raise ValueError(NOT_FITTED_ERR_MSG)
 
         if self.params.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
 
-        if isinstance(pre_history, MultiModalData) and forecast_length > horizon:
-            raise ValueError("In case of multi-modal time series "
-                             "forecast horizon can't be bigger than forecast length model was fitted for")
-
-        self.test_data = self.data_processor.define_data(target=self.target,
-                                                         features=pre_history,
-                                                         is_predict=True)
-        input_data = self.test_data
-        self.current_pipeline = Pipeline(self.current_pipeline.root_node)
-        prediction_iter_num = math.ceil(horizon / forecast_length)
+    def _get_forecast(self, input_data: Union[InputData, MultiModalData], horizon: int, forecast_length: int) \
+            -> OutputData:
         predictions = []
-        for i in range(prediction_iter_num):
+        if isinstance(input_data, MultiModalData):
+            if forecast_length < horizon:
+                raise ValueError('In case of multi-modal time series '
+                                 'forecast horizon can not be bigger than forecast length model was fitted for.\n'
+                                 f'forecast_length = {forecast_length}\n'
+                                 f'horizon = {horizon}')
             prediction = self.current_pipeline.predict(input_data)
-            input_data = self._update_input(input_data, prediction)
             predictions.append(prediction)
-        # TODO add incremental forecast
-        self.prediction = self.current_pipeline.predict(self.test_data)
-        final_prediction = self._union_predictions(predictions)
-        if len(self.prediction.predict.shape) > 1:
-            self.prediction.predict = np.squeeze(self.prediction.predict)
+        else:
+            prediction_iter_num = math.ceil(horizon / forecast_length)
+            for i in range(prediction_iter_num):
+                prediction = self.current_pipeline.predict(input_data)
+                predictions.append(prediction)
+                input_data = self._update_input(input_data, prediction)
+        return self._union_predictions(predictions, horizon)
 
-        if save_predictions:
-            self.save_predict(self.prediction)
-        return self.prediction.predict
-
-    def _update_input(self, previous_input: InputData, predicted_values: OutputData) -> InputData:
-        new_features = np.hstack((previous_input.features, predicted_values.predict))
+    @staticmethod
+    def _update_input(previous_input: InputData, predicted_values: OutputData) -> InputData:
+        new_features = np.hstack((previous_input.features, np.squeeze(predicted_values.predict)))
         start_idx = previous_input.idx[0]
         end_idx = start_idx + len(new_features)
         new_input_data = InputData(idx=np.arange(start_idx, end_idx),
@@ -312,7 +320,8 @@ class Fedot:
                                    data_type=DataTypesEnum.ts)
         return new_input_data
 
-    def _union_predictions(self, predictions: List[OutputData]) -> OutputData:
+    @staticmethod
+    def _union_predictions(predictions: List[OutputData], horizon: int) -> OutputData:
         features = []
         predict = []
         for prediction in predictions:
@@ -320,6 +329,9 @@ class Fedot:
             predict.append(prediction.predict)
         features = np.ravel(np.array(features))
         predict = np.ravel(np.array(predict))
+        if len(predict.shape) > 1:
+            predict = np.squeeze(predict)
+        predict = predict[:horizon]
         start_idx = predictions[0].idx[0]
         end_idx = start_idx + len(predict)
         prediction = OutputData(idx=np.arange(start_idx, end_idx),
