@@ -77,6 +77,10 @@ class Individual:
         operators.reverse()
         return operators
 
+    def __repr__(self):
+        return (f'<Individual {self.uid} | fitness: {self.fitness} | native_generation: {self.native_generation} '
+                f'| graph: {self.graph}>')
+
     def __eq__(self, other: 'Individual'):
         return self.uid == other.uid
 
@@ -103,3 +107,7 @@ class ParentOperator:
     operators: Tuple[str, ...]
     parent_individuals: Tuple[Individual, ...]
     uid: str = field(default_factory=lambda: str(uuid4()), init=False)
+
+    def __repr__(self):
+        return (f'<ParentOperator {self.uid} | type: {self.type} | operators: {self.operators} '
+                f'| parent_individuals({len(self.parent_individuals)}): {self.parent_individuals}>')
