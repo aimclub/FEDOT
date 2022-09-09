@@ -15,6 +15,7 @@ class ApiTime:
 
     def __init__(self, **time_params):
         self.time_for_automl = time_params.get('time_for_automl')
+        self.time_for_tuning = None  # will be estimated later
         self.with_tuning = time_params.get('with_tuning')
 
         self.__define_timeouts_for_stages()
@@ -48,6 +49,7 @@ class ApiTime:
 
     def have_time_for_tuning(self):
         timeout_for_tuning = self.determine_resources_for_tuning()
+        self.time_for_tuning = timeout_for_tuning
         return timeout_for_tuning >= MINIMAL_SECONDS_FOR_TUNING
 
     @contextmanager

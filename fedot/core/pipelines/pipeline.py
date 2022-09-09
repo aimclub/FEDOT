@@ -76,7 +76,7 @@ class Pipeline(GraphDelegate, Serializable):
                 args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
-            raise TimeoutError('Pipeline fitness evaluation time limit is expired')
+            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired (more then {time} seconds)')
 
         self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, _ in enumerate(self.nodes):
