@@ -1,7 +1,7 @@
 from fedot.api.api_utils.params import ApiParams
 from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.main import Fedot
-from fedot.core.constants import FAST_TRAIN_PRESET_NAME, BEST_QUALITY_PRESET_NAME
+from fedot.core.constants import FAST_TRAIN_PRESET_NAME
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
@@ -99,20 +99,6 @@ def test_auto_preset_converted_correctly():
     # API must return initial assumption without composing and tuning (due to population size is too large)
     fedot_model.fit(data)
     assert fedot_model.api_composer.preset_name == FAST_TRAIN_PRESET_NAME
-
-
-def test_auto_preset_converted_correctly_in_multiprocessing():
-    """ Checks that the proposed method of automatic preset detection correctly converts a preset """
-    tiny_timeout_value = 0.005
-    large_pop_size = 500
-    data = data_with_binary_features_and_categorical_target()
-
-    simple_init_assumption = Pipeline(PrimaryNode('logit'))
-    fedot_model = Fedot(problem='classification', preset='auto', timeout=tiny_timeout_value,
-                        initial_assumption=simple_init_assumption, pop_size=large_pop_size, n_jobs=4)
-    # API must return initial assumption without composing and tuning (due to population size is too large)
-    fedot_model.fit(data)
-    assert fedot_model.api_composer.preset_name == BEST_QUALITY_PRESET_NAME
 
 
 def test_gpu_preset():
