@@ -581,6 +581,6 @@ def test_no_opt_or_graph_nodes_after_mutation():
 def test_no_opt_or_graph_nodes_after_adapt_so_complex_graph():
     adapter = PipelineAdapter()
     pipeline = generate_so_complex_pipeline()
-    graph = adapter.adapt(pipeline)
+    adapter.adapt(pipeline)
 
     assert not find_first(pipeline, lambda n: type(n) in (GraphNode, OptNode))
