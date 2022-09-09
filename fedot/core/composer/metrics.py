@@ -141,6 +141,7 @@ class QualityMetric:
 
         return reference_data, results
 
+
 class RMSE(QualityMetric):
     default_value = sys.maxsize
 
