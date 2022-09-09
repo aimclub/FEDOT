@@ -13,13 +13,10 @@ MISSING_INDIVIDUAL_ARGS = {
 
 def _flatten_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
     def extract_intermediate_parents(ind: Individual):
-        if not ind.parent_operator:
-            return
-        parent_individuals = ind.parent_operator.parent_individuals
-        for i in parent_individuals:
-            if i.native_generation is None:
-                parents_map[i.uid] = i
-                extract_intermediate_parents(i)
+        for parent in ind.parents:
+            if not parent.is_historical:
+                parents_map[parent.uid] = parent
+                extract_intermediate_parents(parent)
 
     uid_to_individual_map = {ind.uid: ind for ind in reversed(list(chain(*generations_list)))}
     parents_map = {}
@@ -40,13 +37,6 @@ def opt_history_to_json(obj: OptHistory) -> Dict[str, Any]:
     serialized['individuals'] = _generations_list_to_uids(serialized['individuals'])
     serialized['archive_history'] = _generations_list_to_uids(serialized['archive_history'])
     return serialized
-
-
-def _set_native_generations(generations_list: List[List[Individual]]):
-    """The operation is executed in-place"""
-    for gen_num, gen in enumerate(generations_list):
-        for ind in gen:
-            ind.set_native_generation(gen_num)
 
 
 def _uids_to_individuals(uid_sequence: Sequence[Union[str, Individual]],
@@ -80,7 +70,7 @@ def _deserialize_parent_individuals(individuals: List[Individual],
                                                   uid_to_individual_map=uid_to_individual_map)
         object.__setattr__(parent_op, 'parent_individuals', tuple(parent_individuals))
         for parent in parent_individuals:
-            if parent.parent_operator and any(isinstance(i, str) for i in parent.parent_operator.parent_individuals):
+            if any(isinstance(i, str) for i in parent.parents):
                 deserialize_intermediate_parents(parent)
 
     for individual in individuals:
@@ -88,23 +78,16 @@ def _deserialize_parent_individuals(individuals: List[Individual],
 
 
 def opt_history_from_json(cls: Type[OptHistory], json_obj: Dict[str, Any]) -> OptHistory:
-    deserialized = any_from_json(cls, json_obj)
-    # Define all history individuals pool
-    if hasattr(deserialized, 'individuals_pool'):
-        individuals_pool = deserialized.individuals_pool
-    else:
-        # Older histories has no `individuals_pool`, and all individuals are represented in `individuals` attribute.
-        # Let's gather them through all the generations.
-        _set_native_generations(deserialized.individuals)
-        individuals_pool = list(chain(*deserialized.individuals))
-    # Deserialize parents for all pipelines
+    deserialized_history = any_from_json(cls, json_obj)
+    # Read all individuals from history.
+    individuals_pool = deserialized_history.individuals_pool
     uid_to_individual_map = {ind.uid: ind for ind in individuals_pool}
-    _deserialize_parent_individuals(individuals_pool, uid_to_individual_map)
-    # if the history has `individuals_pool`, then other attributes contain uid strings that should be converted
+    # The attributes `individuals` and `archive_history` at the moment contain uid strings that must be converted
     # to `Individual` instances.
-    if hasattr(deserialized, 'individuals_pool'):
-        _deserialize_generations_list(deserialized.individuals, uid_to_individual_map)
-        _deserialize_generations_list(deserialized.archive_history, uid_to_individual_map)
-        del deserialized.individuals_pool
-
-    return deserialized
+    _deserialize_generations_list(deserialized_history.individuals, uid_to_individual_map)
+    _deserialize_generations_list(deserialized_history.archive_history, uid_to_individual_map)
+    # Deserialize parents for all generations.
+    _deserialize_parent_individuals(list(chain(*deserialized_history.individuals)), uid_to_individual_map)
+    # The attribute is used only for serialization.
+    del deserialized_history.individuals_pool
+    return deserialized_history

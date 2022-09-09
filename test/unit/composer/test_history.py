@@ -79,8 +79,8 @@ def test_ancestor_for_mutation():
 
     assert mutation_result.parent_operator
     assert mutation_result.parent_operator.type == 'mutation'
-    assert len(mutation_result.parent_operator.parent_individuals) == 1
-    assert mutation_result.parent_operator.parent_individuals[0].uid == parent_ind.uid
+    assert len(mutation_result.parents) == 1
+    assert mutation_result.parents[0].uid == parent_ind.uid
 
 
 def test_ancestor_for_crossover():
@@ -96,9 +96,9 @@ def test_ancestor_for_crossover():
     for crossover_result in crossover_results:
         assert crossover_result.parent_operator
         assert crossover_result.parent_operator.type == 'crossover'
-        assert len(crossover_result.parent_operator.parent_individuals) == 2
-        assert crossover_result.parent_operator.parent_individuals[0].uid == parent_ind_first.uid
-        assert crossover_result.parent_operator.parent_individuals[1].uid == parent_ind_second.uid
+        assert len(crossover_result.parents) == 2
+        assert crossover_result.parents[0].uid == parent_ind_first.uid
+        assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
 def test_newly_generated_history():
@@ -197,9 +197,10 @@ def test_history_backward_compatibility():
     assert np.shape(history.individuals) == np.shape(historical_fitness)
     # Assert that fitness, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
-    assert all(isinstance(parent_individual, Individual)  # TODO: Check parents recursively until prev gen. Add property
-               for ind in chain(*history.individuals) if ind.parent_operator is not None
-               for parent_individual in ind.parent_operator.parent_individuals)
+    assert all(isinstance(parent_ind, Individual)
+               for ind in chain(*history.individuals)
+               for parent_op in ind.operators_from_prev_generation
+               for parent_ind in parent_op.parent_individuals)
     assert isinstance(history._objective, Objective)
 
 
