@@ -52,12 +52,12 @@ def test_parent_operator():
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline))
     mutation_type = MutationTypesEnum.simple
-    operator_for_history = ParentOperator(type='mutation',
-                                          operators=(str(mutation_type),),
-                                          parent_individuals=(ind,))
+    operator_for_history = ParentOperator(type_='mutation',
+                                          operators=str(mutation_type),
+                                          parent_individuals=ind)
 
     assert operator_for_history.parent_individuals[0] == ind
-    assert operator_for_history.type == 'mutation'
+    assert operator_for_history.type_ == 'mutation'
 
 
 def test_ancestor_for_mutation():
@@ -78,7 +78,7 @@ def test_ancestor_for_mutation():
     mutation_result = mutation(parent_ind)
 
     assert mutation_result.parent_operator
-    assert mutation_result.parent_operator.type == 'mutation'
+    assert mutation_result.parent_operator.type_ == 'mutation'
     assert len(mutation_result.parents) == 1
     assert mutation_result.parents[0].uid == parent_ind.uid
 
@@ -95,7 +95,7 @@ def test_ancestor_for_crossover():
 
     for crossover_result in crossover_results:
         assert crossover_result.parent_operator
-        assert crossover_result.parent_operator.type == 'crossover'
+        assert crossover_result.parent_operator.type_ == 'crossover'
         assert len(crossover_result.parents) == 2
         assert crossover_result.parents[0].uid == parent_ind_first.uid
         assert crossover_result.parents[1].uid == parent_ind_second.uid

@@ -175,7 +175,7 @@
                 "parent_individuals": [
                     "6eea7ba6-0ea3-463f-a719-b6fe70136b5c"
                 ],
-                "type": "mutation",
+                "type_": "mutation",
                 "uid": "33c2c82f-936f-4670-a233-b853afe48fbc",
                 "_class_path": "fedot.core.optimisers.gp_comp.individual/ParentOperator"
             },
@@ -334,7 +334,7 @@
                 "parent_individuals": [
                     "7a6dfc8b-d224-4066-8d98-f7b22895aac8"
                 ],
-                "type": "mutation",
+                "type_": "mutation",
                 "uid": "d6294c95-e186-4fde-b45a-f11e56ac9df7",
                 "_class_path": "fedot.core.optimisers.gp_comp.individual/ParentOperator"
             },
@@ -406,7 +406,7 @@
                     "7a6dfc8b-d224-4066-8d98-f7b22895aac8",
                     "e94d9a89-7b50-4f5d-8d81-a7457bf6dd2e"
                 ],
-                "type": "crossover",
+                "type_": "crossover",
                 "uid": "e79012c1-fc63-4533-9727-ddc03345121e",
                 "_class_path": "fedot.core.optimisers.gp_comp.individual/ParentOperator"
             },

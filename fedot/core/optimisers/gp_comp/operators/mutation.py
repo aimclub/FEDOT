@@ -81,8 +81,8 @@ class Mutation(Operator):
 
             is_correct_graph = self.graph_generation_params.verifier(new_graph)
             if is_correct_graph:
-                parent_operator = ParentOperator(type='mutation', operators=tuple(mutation_names),
-                                                 parent_individuals=(individual,))
+                parent_operator = ParentOperator(type_='mutation', operators=tuple(mutation_names),
+                                                 parent_individuals=individual)
                 return Individual(new_graph, parent_operator)
 
         self.log.debug('Number of mutation attempts exceeded. '
