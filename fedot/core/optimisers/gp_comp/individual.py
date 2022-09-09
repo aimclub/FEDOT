@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 from uuid import uuid4
 
 from fedot.core.log import default_log
@@ -34,6 +34,48 @@ class Individual:
         super().__setattr__('fitness', fitness)
         if updated_graph is not None:
             super().__setattr__('graph', updated_graph)
+
+    @property
+    def is_historical(self) -> bool:
+        return self.native_generation is not None
+
+    @property
+    def parents(self) -> List[Individual]:
+        if not self.parent_operator:
+            return []
+        return list(self.parent_operator.parent_individuals)
+
+    @property
+    def historical_parents(self) -> List[Individual]:
+        historical_parents = []
+        next_parents = self.parents
+        while next_parents and not all(p.is_historical for p in next_parents):
+            parents = next_parents
+            next_parents = []
+            for p in parents:
+                next_parents += p.parents
+                if p.is_historical:
+                    historical_parents.append(p)
+
+        historical_parents += next_parents
+        return historical_parents
+
+    @property
+    def operators_from_prev_generation(self) -> List[ParentOperator]:
+        if not self.parent_operator:
+            return []
+        historical_parents = self.historical_parents
+        operators = [self.parent_operator]
+        next_parents = self.parents
+        while next_parents != historical_parents:
+            parents = next_parents
+            next_parents = []
+            for p in parents:
+                next_parents += p.parents
+                operators.append(p.parent_operator)
+
+        operators.reverse()
+        return operators
 
     def __eq__(self, other: 'Individual'):
         return self.uid == other.uid
