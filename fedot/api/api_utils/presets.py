@@ -90,7 +90,7 @@ class OperationsPreset:
         return available_operations
 
 
-def change_preset_based_on_initial_fit(timer: ApiTime) -> str:
+def change_preset_based_on_initial_fit(timer: ApiTime, n_jobs: int) -> str:
     """
     If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
     """
@@ -99,7 +99,7 @@ def change_preset_based_on_initial_fit(timer: ApiTime) -> str:
 
     # Change preset to appropriate one
 
-    if timer.have_time_for_the_best_quality():
+    if timer.have_time_for_the_best_quality(n_jobs=n_jobs):
         # It is possible to train only few number of pipelines during optimization - use simplified preset
         return BEST_QUALITY_PRESET_NAME
     else:
