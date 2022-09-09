@@ -182,7 +182,7 @@ def test_cv_generator_works_stable(cv_generator, data):
 
 
 def test_history_backward_compatibility():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
     history = OptHistory.load(test_history_path)
     # Pre-computing properties
     all_historical_fitness = history.all_historical_fitness
