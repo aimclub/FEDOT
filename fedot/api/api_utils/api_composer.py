@@ -14,6 +14,7 @@ from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
+from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
@@ -184,7 +185,9 @@ class ApiComposer:
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache)
         log.info(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
-        self.preset_name = assumption_handler.propose_preset(preset, self.timer)
+
+        n_jobs = determine_n_jobs(api_params['n_jobs'])
+        self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
 
         composer_requirements = self._init_composer_requirements(api_params, composer_params,
                                                                  self.timer.timedelta_composing, self.preset_name)
@@ -231,7 +234,8 @@ class ApiComposer:
             .with_cache(self.pipelines_cache, self.preprocessing_cache)
         gp_composer: GPComposer = builder.build()
 
-        if self.timer.have_time_for_composing(composer_params['pop_size']):
+        n_jobs = determine_n_jobs(composer_requirements.n_jobs)
+        if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 log.info('Pipeline composition started.')

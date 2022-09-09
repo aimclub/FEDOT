@@ -36,15 +36,15 @@ class ApiTime:
             else:
                 self.timeout_for_composing = self.time_for_automl
 
-    def have_time_for_composing(self, pop_size: int) -> bool:
+    def have_time_for_composing(self, pop_size: int, n_jobs: int) -> bool:
         timeout_not_set = self.timedelta_composing is None
-        return timeout_not_set or self.assumption_fit_spend_time < self.timedelta_composing / pop_size
+        return timeout_not_set or self.assumption_fit_spend_time < self.timedelta_composing * n_jobs / pop_size
 
-    def have_time_for_the_best_quality(self):
+    def have_time_for_the_best_quality(self, n_jobs: int):
         timeout_not_set = self.timedelta_automl is None
         if timeout_not_set:
             return True
-        return self.assumption_fit_spend_time <= self.timedelta_automl / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+        return self.assumption_fit_spend_time <= self.timedelta_automl * n_jobs / MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
 
     def have_time_for_tuning(self):
         timeout_for_tuning = self.determine_resources_for_tuning()
