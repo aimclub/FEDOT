@@ -14,7 +14,7 @@ MISSING_INDIVIDUAL_ARGS = {
 def _flatten_generations_list(generations_list: List[List[Individual]]) -> List[Individual]:
     def extract_intermediate_parents(ind: Individual):
         for parent in ind.parents:
-            if not parent.is_historical:
+            if not parent.has_native_generation:
                 parents_map[parent.uid] = parent
                 extract_intermediate_parents(parent)
 

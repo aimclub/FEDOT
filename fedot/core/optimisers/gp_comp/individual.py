@@ -36,7 +36,7 @@ class Individual:
             super().__setattr__('graph', updated_graph)
 
     @property
-    def is_historical(self) -> bool:
+    def has_native_generation(self) -> bool:
         return self.native_generation is not None
 
     @property
@@ -46,33 +46,39 @@ class Individual:
         return list(self.parent_operator.parent_individuals)
 
     @property
-    def historical_parents(self) -> List[Individual]:
-        historical_parents = []
+    def parents_from_prev_generation(self) -> List[Individual]:
+        parents_from_prev_generation = []
         next_parents = self.parents
-        while next_parents and not all(p.is_historical for p in next_parents):
+        for _ in range(1_000_000):
+            if not next_parents or all(p.has_native_generation for p in next_parents):
+                break
             parents = next_parents
             next_parents = []
             for p in parents:
                 next_parents += p.parents
-                if p.is_historical:
-                    historical_parents.append(p)
+        else:  # After the last iteration.
+            raise ValueError(f'The individual {self.uid} has invalid inheritance data.')
 
-        historical_parents += next_parents
-        return historical_parents
+        parents_from_prev_generation += next_parents
+        return parents_from_prev_generation
 
     @property
     def operators_from_prev_generation(self) -> List[ParentOperator]:
         if not self.parent_operator:
             return []
-        historical_parents = self.historical_parents
+        parents_from_prev_generation = self.parents_from_prev_generation
         operators = [self.parent_operator]
         next_parents = self.parents
-        while next_parents != historical_parents:
+        for _ in range(1_000_000):
+            if next_parents == parents_from_prev_generation:
+                break
             parents = next_parents
             next_parents = []
             for p in parents:
                 next_parents += p.parents
                 operators.append(p.parent_operator)
+        else:  # After the last iteration.
+            raise ValueError(f'The individual {self.uid} has invalid inheritance data.')
 
         operators.reverse()
         return operators
