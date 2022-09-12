@@ -288,7 +288,7 @@ def _calculate_intervals(last_index_pre_history, amount_of_iterations, scope_len
 
 def exception_if_not_ts_task(task):
     if task.task_type is not TaskTypesEnum.ts_forecasting:
-        raise ValueError(f'Method forecast is available only for time series forecasting task')
+        raise ValueError('Method forecast is available only for time series forecasting task')
 
 
 def generate_ids(source_input, output_data, expand: bool):
