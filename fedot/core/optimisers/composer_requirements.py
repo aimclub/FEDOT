@@ -20,7 +20,6 @@ class ComposerRequirements:
     :param max_pipeline_fit_time: time constraint for operation fitting (minutes)
     :param n_jobs: num of n_jobs
     :param show_progress: bool indicating whether to show progress using tqdm or not
-    :param logging_level_opt: level of logging in optimizer
     :param collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
 
     Model validation options:
@@ -36,7 +35,6 @@ class ComposerRequirements:
     max_pipeline_fit_time: Optional[datetime.timedelta] = None
     n_jobs: int = 1
     show_progress: bool = True
-    logging_level_opt: int = logging.INFO
     collect_intermediate_metric: bool = False
 
     cv_folds: Optional[int] = None

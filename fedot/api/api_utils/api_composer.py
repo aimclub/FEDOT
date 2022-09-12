@@ -132,7 +132,6 @@ class ApiComposer:
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],
             keep_n_best=composer_params['keep_n_best'],
-            logging_level_opt = api_params['logging_level_opt'],
 
             cv_folds=composer_params['cv_folds'],
             validation_blocks=composer_params['validation_blocks'],
