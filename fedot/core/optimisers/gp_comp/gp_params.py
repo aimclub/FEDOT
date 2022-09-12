@@ -1,13 +1,13 @@
 from dataclasses import dataclass
 from typing import Sequence, Union, Any
 
+from fedot.core.optimisers.optimizer import GraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.elitism import ElitismTypesEnum
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
-from fedot.core.optimisers.optimizer import GraphOptimizerParameters
 
 
 @dataclass

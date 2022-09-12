@@ -129,8 +129,9 @@ def spea2_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
             for j in range(i + 1, inds_len):
                 dist = 0.0
                 for idx in range(fitness_len):
-                    val = individuals[i].fitness.values[idx] - \
-                          individuals[j].fitness.values[idx]
+                    val = \
+                        individuals[i].fitness.values[idx] - \
+                        individuals[j].fitness.values[idx]
                     dist += val * val
                 distances[j] = dist
             kth_dist = _randomized_select(distances, 0, inds_len - 1, inds_len_sqrt)
@@ -151,8 +152,9 @@ def spea2_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
             for j in range(i + 1, inds_len):
                 dist = 0.0
                 for idx in range(fitness_len):
-                    val = individuals[chosen_indices[i]].fitness.values[idx] - \
-                          individuals[chosen_indices[j]].fitness.values[idx]
+                    val = \
+                        individuals[chosen_indices[i]].fitness.values[idx] - \
+                        individuals[chosen_indices[j]].fitness.values[idx]
                     dist += val * val
                 distances[i][j] = dist
                 distances[j][i] = dist

@@ -1,9 +1,12 @@
 from functools import partial
-from typing import (Callable)
+from typing import (Callable, TYPE_CHECKING)
 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.operators.selection import Selection
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 
 
 class GeneticSchemeTypesEnum(Enum):

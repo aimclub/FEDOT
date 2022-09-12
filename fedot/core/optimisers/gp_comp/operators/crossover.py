@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Callable, List, Union, Iterable, Tuple
+from typing import Callable, Union, Iterable, Tuple, TYPE_CHECKING
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
@@ -9,6 +9,9 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operat
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 
 
 class CrossoverTypesEnum(Enum):

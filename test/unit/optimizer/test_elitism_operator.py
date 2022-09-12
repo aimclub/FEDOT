@@ -1,13 +1,17 @@
+from typing import TYPE_CHECKING
+
 import pytest
 
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
 from test.unit.optimizer.test_evaluation import prepared_objective
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth, \
     pipeline_fifth
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 
 
 @pytest.fixture()

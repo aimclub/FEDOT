@@ -1,7 +1,7 @@
 from copy import deepcopy
 from functools import partial
 from random import choice, randint, random, sample
-from typing import Callable, List, Union, Tuple
+from typing import Callable, List, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -15,6 +15,10 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 
 
 class MutationStrengthEnum(Enum):
@@ -38,7 +42,7 @@ class MutationTypesEnum(Enum):
 
 class Mutation(Operator):
     def __init__(self,
-                 parameters: 'GPGraphGenerationParameters',
+                 parameters: 'GPGraphOptimizerParameters',
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  # TODO: move these 2 to gp_parameters
