@@ -1,9 +1,9 @@
 from copy import deepcopy
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
-from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -38,10 +38,10 @@ class Regularization(Operator):
         prev_nodes_ids = set()
         for ind in population:
             prev_nodes_ids.add(ind.graph.root_node.descriptive_id)
-            parent_operator = ParentOperator(operator_type='regularization',
-                                             operator_name='decremental_regularization',
-                                             parent_individuals=(ind,))
-            subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())), (parent_operator,))
+            parent_operator = ParentOperator(type_='regularization',
+                                             operators='decremental_regularization',
+                                             parent_individuals=ind)
+            subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())), parent_operator)
                             for node in ind.graph.nodes
                             if Regularization._is_fitted_subtree(self.graph_generation_params.adapter.restore(node))
                             and node.descriptive_id not in prev_nodes_ids]

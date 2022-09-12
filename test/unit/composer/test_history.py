@@ -52,12 +52,12 @@ def test_parent_operator():
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline))
     mutation_type = MutationTypesEnum.simple
-    operator_for_history = ParentOperator(operator_type='mutation',
-                                          operator_name=str(mutation_type),
-                                          parent_individuals=(ind,))
+    operator_for_history = ParentOperator(type_='mutation',
+                                          operators=str(mutation_type),
+                                          parent_individuals=ind)
 
     assert operator_for_history.parent_individuals[0] == ind
-    assert operator_for_history.operator_type == 'mutation'
+    assert operator_for_history.type_ == 'mutation'
 
 
 def test_ancestor_for_mutation():
@@ -77,10 +77,10 @@ def test_ancestor_for_mutation():
 
     mutation_result = mutation(parent_ind)
 
-    assert len(mutation_result.parent_operators) > 0
-    assert mutation_result.parent_operators[-1].operator_type == 'mutation'
-    assert len(mutation_result.parent_operators[-1].parent_individuals) == 1
-    assert mutation_result.parent_operators[-1].parent_individuals[0].uid == parent_ind.uid
+    assert mutation_result.parent_operator
+    assert mutation_result.parent_operator.type_ == 'mutation'
+    assert len(mutation_result.parents) == 1
+    assert mutation_result.parents[0].uid == parent_ind.uid
 
 
 def test_ancestor_for_crossover():
@@ -94,11 +94,11 @@ def test_ancestor_for_crossover():
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 
     for crossover_result in crossover_results:
-        assert len(crossover_result.parent_operators) > 0
-        assert crossover_result.parent_operators[-1].operator_type == 'crossover'
-        assert len(crossover_result.parent_operators[-1].parent_individuals) == 2
-        assert crossover_result.parent_operators[-1].parent_individuals[0].uid == parent_ind_first.uid
-        assert crossover_result.parent_operators[-1].parent_individuals[1].uid == parent_ind_second.uid
+        assert crossover_result.parent_operator
+        assert crossover_result.parent_operator.type_ == 'crossover'
+        assert len(crossover_result.parents) == 2
+        assert crossover_result.parents[0].uid == parent_ind_first.uid
+        assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
 def test_newly_generated_history():
@@ -182,7 +182,7 @@ def test_cv_generator_works_stable(cv_generator, data):
 
 
 def test_history_backward_compatibility():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
     history = OptHistory.load(test_history_path)
     # Pre-computing properties
     all_historical_fitness = history.all_historical_fitness
@@ -197,14 +197,15 @@ def test_history_backward_compatibility():
     assert np.shape(history.individuals) == np.shape(historical_fitness)
     # Assert that fitness, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
-    assert all(isinstance(parent_individual, Individual)
-               for ind in chain(*history.individuals) for op in ind.parent_operators
-               for parent_individual in op.parent_individuals)
+    assert all(isinstance(parent_ind, Individual)
+               for ind in chain(*history.individuals)
+               for parent_op in ind.operators_from_prev_generation
+               for parent_ind in parent_op.parent_individuals)
     assert isinstance(history._objective, Objective)
 
 
 def test_history_correct_serialization():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
 
     history = OptHistory.load(test_history_path)
     dumped_history = history.save()

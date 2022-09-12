@@ -73,8 +73,6 @@ class Mutation(Operator):
     def _mutation(self, individual: Individual) -> Individual:
         """ Function applies mutation operator to graph """
 
-        parent_individuals = [individual]
-
         for _ in range(self.max_num_of_mutation_attempts):
             new_graph = deepcopy(individual.graph)
             num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
@@ -83,13 +81,9 @@ class Mutation(Operator):
 
             is_correct_graph = self.graph_generation_params.verifier(new_graph)
             if is_correct_graph:
-                parent_operators = list(individual.parent_operators)
-                for mutation_name in mutation_names:
-                    parent_operators.append(
-                        ParentOperator(operator_type='mutation',
-                                       operator_name=str(mutation_name),
-                                       parent_individuals=tuple(parent_individuals)))
-                return Individual(new_graph, tuple(parent_operators))
+                parent_operator = ParentOperator(type_='mutation', operators=tuple(mutation_names),
+                                                 parent_individuals=individual)
+                return Individual(new_graph, parent_operator)
 
         self.log.debug('Number of mutation attempts exceeded. '
                        'Please check composer requirements for correctness.')
@@ -208,7 +202,7 @@ class Mutation(Operator):
         for iter_num in range(randint(1, 3)):
             new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=True)
             if not new_node:
-                # there is no possible mutations
+                # there is no possible operators
                 break
             if node_to_mutate.nodes_from:
                 node_to_mutate.nodes_from.append(new_node)
