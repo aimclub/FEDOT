@@ -243,20 +243,25 @@ def test_multi_objective_composer(data_fixture, request):
     assert all([roc_auc > 0.6 for roc_auc in pipelines_roc_auc])
 
 
+def dummy_quality_metric(*args, **kwargs):
+    return 1.0  # stagnating
+
+
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_model_types = ['rf', 'knn']
+    quality_metric = dummy_quality_metric
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, start_depth=2, max_depth=5, num_of_generations=1)
+                                       start_depth=2, max_depth=5, num_of_generations=5)
     params = GPGraphOptimizerParameters(adaptive_depth=True,
                                         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state)
     composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
         .with_optimizer_params(params) \
-        .with_metrics(ClassificationMetricsEnum.ROCAUC) \
+        .with_metrics(quality_metric) \
         .build()
 
     composer.compose_pipeline(data=dataset_to_compose)
