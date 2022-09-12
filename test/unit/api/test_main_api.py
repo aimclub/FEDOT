@@ -485,7 +485,7 @@ def test_default_forecast():
     train_data, test_data, _ = get_dataset('ts_forecasting')
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
-    model.fit(train_data)
+    model.fit(train_data, predefined_model='auto')
     forecast = model.forecast()
     assert len(forecast) == forecast_length
     assert np.array_equal(model.test_data.idx, train_data.idx)
@@ -497,7 +497,7 @@ def test_forecast_with_different_horizons(horizon):
     train_data, test_data, _ = get_dataset('ts_forecasting')
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
-    model.fit(train_data)
+    model.fit(train_data, predefined_model='auto')
     forecast = model.forecast(pre_history=test_data, horizon=horizon)
     assert len(forecast) == horizon
     assert np.array_equal(model.test_data.idx, test_data.idx)
@@ -514,7 +514,7 @@ def test_forecast_with_unfitted_model():
 def test_forecast_with_not_ts_problem():
     model = Fedot(problem='classification', **default_params)
     train_data, test_data, _ = get_dataset('classification')
-    model.fit(train_data)
+    model.fit(train_data, predefined_model='auto')
     with pytest.raises(ValueError):
         model.forecast(pre_history=test_data)
 
@@ -539,7 +539,7 @@ def test_forecast_with_multimodal_ts():
 
     model = Fedot(problem='ts_forecasting', **default_params,
                   task_params=TsForecastingParams(forecast_length=forecast_length))
-    model.fit(features=historical_data, target=target_history)
+    model.fit(features=historical_data, target=target_history, predefined_model='auto')
     forecast = model.forecast()
     assert len(forecast) == forecast_length
     forecast = model.forecast(horizon=forecast_length - 1)

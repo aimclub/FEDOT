@@ -63,6 +63,13 @@ class MultiModalData(dict):
         else:
             return None
 
+    @property
+    def features(self):
+        """ Returns features of main target from InputData blocks"""
+        for input_data in self.values():
+            if input_data.supplementary_data.is_main_target:
+                return input_data.features
+
     def shuffle(self):
         # TODO implement multi-modal shuffle
         pass

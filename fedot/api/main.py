@@ -1,5 +1,4 @@
 import logging
-import math
 from copy import deepcopy
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
@@ -18,6 +17,7 @@ from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.data.visualisation import plot_biplot, plot_forecast, plot_roc_auc
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import out_of_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
@@ -254,7 +254,7 @@ class Fedot:
 
     def forecast(self,
                  pre_history: Optional[Union[str, Tuple[np.ndarray, np.ndarray], InputData, dict]] = None,
-                 horizon: int = None,
+                 horizon: Optional[int] = None,
                  save_predictions: bool = False) -> np.ndarray:
         """Forecasts the new values of time series. If horizon is bigger than forecast length of fitted model -
         out-of-sample forecast is applied (not supported for multi-modal data).
@@ -270,14 +270,13 @@ class Fedot:
         self._check_forecast_applicable()
 
         forecast_length = self.train_data.task.task_params.forecast_length
-        horizon = horizon or self.train_data.task.task_params.forecast_length
+        horizon = horizon if horizon is not None else forecast_length
         pre_history = pre_history if pre_history is not None else self.train_data
-        pre_history = self.data_processor.define_data(target=self.target,
-                                                      features=pre_history,
-                                                      is_predict=True)
-        self.test_data = pre_history
-        input_data = self.test_data
-        self.prediction = self._get_forecast(input_data, horizon, forecast_length)
+        self.test_data = self.data_processor.define_data(target=self.target,
+                                                         features=pre_history,
+                                                         is_predict=True)
+        predict = out_of_sample_ts_forecast(self.current_pipeline, self.test_data, horizon)
+        self.prediction = convert_forecast_to_output(self.test_data, predict)
         if save_predictions:
             self.save_predict(self.prediction)
         return self.prediction.predict
@@ -288,58 +287,6 @@ class Fedot:
 
         if self.params.api_params['task'].task_type != TaskTypesEnum.ts_forecasting:
             raise ValueError('Forecasting can be used only for the time series')
-
-    def _get_forecast(self, input_data: Union[InputData, MultiModalData], horizon: int, forecast_length: int) \
-            -> OutputData:
-        predictions = []
-        if isinstance(input_data, MultiModalData):
-            if forecast_length < horizon:
-                raise ValueError('In case of multi-modal time series '
-                                 'forecast horizon can not be bigger than forecast length model was fitted for.\n'
-                                 f'forecast_length = {forecast_length}\n'
-                                 f'horizon = {horizon}')
-            prediction = self.current_pipeline.predict(input_data)
-            predictions.append(prediction)
-        else:
-            prediction_iter_num = math.ceil(horizon / forecast_length)
-            for i in range(prediction_iter_num):
-                prediction = self.current_pipeline.predict(input_data)
-                predictions.append(prediction)
-                input_data = self._update_input(input_data, prediction)
-        return self._union_predictions(predictions, horizon)
-
-    @staticmethod
-    def _update_input(previous_input: InputData, predicted_values: OutputData) -> InputData:
-        new_features = np.hstack((previous_input.features, np.squeeze(predicted_values.predict)))
-        start_idx = previous_input.idx[0]
-        end_idx = start_idx + len(new_features)
-        new_input_data = InputData(idx=np.arange(start_idx, end_idx),
-                                   features=new_features,
-                                   target=None,
-                                   task=previous_input.task,
-                                   data_type=DataTypesEnum.ts)
-        return new_input_data
-
-    @staticmethod
-    def _union_predictions(predictions: List[OutputData], horizon: int) -> OutputData:
-        features = []
-        predict = []
-        for prediction in predictions:
-            features.append(prediction.features)
-            predict.append(prediction.predict)
-        features = np.ravel(np.array(features))
-        predict = np.ravel(np.array(predict))
-        if len(predict.shape) > 1:
-            predict = np.squeeze(predict)
-        predict = predict[:horizon]
-        start_idx = predictions[0].idx[0]
-        end_idx = start_idx + len(predict)
-        prediction = OutputData(idx=np.arange(start_idx, end_idx),
-                                features=features,
-                                predict=predict,
-                                task=predictions[0].task,
-                                data_type=predictions[0].data_type)
-        return prediction
 
     def load(self, path):
         """Loads saved graph from disk
