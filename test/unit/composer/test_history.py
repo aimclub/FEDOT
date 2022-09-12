@@ -7,7 +7,6 @@ import numpy as np
 import pytest
 
 from fedot.api.main import Fedot
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -18,6 +17,7 @@ from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.objective import Objective
@@ -195,8 +195,9 @@ def test_history_backward_compatibility():
     # Assert that all history pipelines have fitness
     assert len(historical_pipelines) == len(all_historical_fitness)
     assert np.shape(history.individuals) == np.shape(historical_fitness)
-    # Assert that fitness, parent_individuals, and objective are valid
+    # Assert that fitness, graph, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
+    assert all(ind.graph.nodes for ind in chain(*history.individuals))
     assert all(isinstance(parent_ind, Individual)
                for ind in chain(*history.individuals)
                for parent_op in ind.operators_from_prev_generation
