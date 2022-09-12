@@ -5,11 +5,12 @@ import pandas as pd
 
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.log import default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
-from fedot.preprocessing.data_types import TableTypesCorrector
+from fedot.preprocessing.data_types import TableTypesCorrector, apply_type_transformation
 from fedot.preprocessing.structure import DEFAULT_SOURCE_NAME
 from test.unit.api.test_api_cli_params import project_root_path
 from test.unit.preprocessing.test_pipeline_preprocessing import data_with_mixed_types_in_each_column, \
@@ -219,8 +220,7 @@ def test_binary_pseudo_string_column_process_correctly():
     train_predicted = pipeline.fit(train_data)
 
     assert train_predicted.features.shape[1] == 1
-    assert len(list(filter(lambda feature: isinstance(feature[0], float), train_predicted.features))) \
-           == len(train_predicted.features)
+    assert all(isinstance(el[0], float) for el in train_predicted.features)
 
 
 def fit_predict_cycle_for_testing(idx: int):
@@ -239,17 +239,33 @@ def test_mixed_column_with_str_and_float_values():
     # column with index 0 must be converted to string and encoded with OHE
     train_predicted = fit_predict_cycle_for_testing(idx=0)
     assert train_predicted.features.shape[1] == 5
-    assert len(list(filter(lambda feature: isinstance(feature, np.ndarray), train_predicted.features))) \
-           == len(train_predicted.features)
+    assert all(isinstance(el, np.ndarray) for el in train_predicted.features)
 
     # column with index 1 must be converted to float and the gaps must be filled
     train_predicted = fit_predict_cycle_for_testing(idx=1)
     assert train_predicted.features.shape[1] == 1
-    assert len(list(filter(lambda feature: isinstance(feature[0], float), train_predicted.features))) \
-           == len(train_predicted.features)
+    assert all(isinstance(el[0], float) for el in train_predicted.features)
 
     # column with index 2 must be removed due to unclear type of data
     try:
         _ = fit_predict_cycle_for_testing(idx=2)
     except ValueError:
         pass
+
+
+def test_str_numbers_with_dots_and_commas_in_predict():
+    """ Checks that if training part type was defined as int than predict part will be correctly
+    converted to ints even if it contains str with dots/commas"""
+    task = Task(TaskTypesEnum.classification)
+    features = np.array([['8,5'],
+                        ['4.9'],
+                        ['3,2'],
+                        ['6.1']], dtype=object)
+    target = np.array([['no'], ['yes'], ['yes'], ['yes']])
+    input_data = InputData(idx=[0, 1, 2, 3],
+                           features=features, target=target, task=task, data_type=DataTypesEnum.table)
+
+    transformed_predict = apply_type_transformation(table=input_data.features, column_types=['int'],
+                                                    log=default_log('test_str_numbers_with_dots_and_commas_in_predict'))
+
+    assert all(transformed_predict == np.array([[8], [4], [3], [6]]))

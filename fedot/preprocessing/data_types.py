@@ -500,12 +500,8 @@ def apply_type_transformation(table: np.array, column_types: list, log: LoggerAd
     for column_id in range(n_cols):
         current_column = table[:, column_id]
         current_type = type_by_name(column_types[column_id])
-        try:
-            table[:, column_id] = current_column.astype(current_type)
-        except ValueError:
-            table[:, column_id] = _process_predict_column_values_one_by_one(current_column=current_column,
-                                                                            current_type=current_type,
-                                                                            column_id=column_id, log=log)
+        _convert_predict_column_into_desired_type(table=table, current_column=current_column, current_type=current_type,
+                                                  column_id=column_id, log=log)
 
     return table
 
@@ -533,6 +529,22 @@ def _obtain_new_column_type(column_info):
     else:
         # It is available to convert numerical into integer type
         return int
+
+
+def _convert_predict_column_into_desired_type(table: np.array, current_column: np.array,
+                                              column_id: int, current_type, log: LoggerAdapter):
+    try:
+        table[:, column_id] = current_column.astype(current_type)
+        if current_type is str:
+            is_any_comma = any(map(lambda el: ',' in el, current_column))
+            is_any_dot = any(map(lambda el: '.' in el, current_column))
+            # Most likely case: '20,000' must be converted into '20.000'
+            if is_any_comma and is_any_dot:
+                warning = f'Column {column_id} contains both "." and ",". Standardize it.'
+                log.warning(warning)
+    except ValueError:
+        table[:, column_id] = _process_predict_column_values_one_by_one(current_column=current_column,
+                                                                        current_type=current_type)
 
 
 def _generate_list_with_types(columns_types_info: dict, converted_columns: dict) -> list:
@@ -565,19 +577,30 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
     return updated_column_types
 
 
-def _process_predict_column_values_one_by_one(current_column: np.ndarray, current_type, column_id: int,
-                                              log: LoggerAdapter):
+def _process_predict_column_values_one_by_one(current_column: np.ndarray, current_type):
     """ Process column values one by one and try to convert them into desirable type.
     If not successful replace with np.nan """
+
+    def _process_str_numbers_with_dots_and_commas(value: str):
+        """ Try to process str with replacing ',' by '.' in case it was meant to be a number """
+        value = value.replace(',', '.')
+        try:
+            # Since "10.6" can not be converted to 10 straightforward using int()
+            if current_type is int:
+                new_value = int(float(value))
+            else:
+                new_value = current_type(value)
+        except ValueError:
+            return np.nan
+        return new_value
+
     new_column = []
     for value in current_column:
+        new_value = np.nan
         try:
             new_value = current_type(value)
         except ValueError:
-            if isinstance(value, str) and ',' in value:
-                # Most likely case: '20,000' must be converted into '20.000'
-                warning = f'Column {column_id} contains both "." and ",". Standardize it.'
-                log.warning(warning)
-            new_value = np.nan
+            if isinstance(value, str) and ('.' in value or ',' in value):
+                new_value = _process_str_numbers_with_dots_and_commas(value=value)
         new_column.append(new_value)
     return new_column
