@@ -44,3 +44,9 @@ class GPGraphOptimizerParameters(GraphOptimizerParameters):
     elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best
     regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none
     genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational
+
+    def __post_init__(self):
+        if self.multi_objective:
+            self.selection_types = (SelectionTypesEnum.spea2,)
+            # TODO add possibility of using regularization in MO alg
+            self.regularization_type = RegularizationTypesEnum.none

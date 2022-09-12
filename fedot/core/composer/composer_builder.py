@@ -8,14 +8,9 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
-from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation, boosting_mutation
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator, GenerationFunction
 from fedot.core.optimisers.objective.objective import Objective
@@ -53,10 +48,6 @@ class ComposerBuilder:
         self.optimizer_cls: Type[GraphOptimizer] = EvoGraphOptimizer  # default optimizer class
         self.optimizer_parameters: Optional[GraphOptimizerParameters] = None
         self.optimizer_external_parameters: dict = {}
-        self.genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
-        self.regularization_type = RegularizationTypesEnum.none
-        self.mutations = ComposerBuilder._get_default_mutations(task.task_type)
-        self.selection_types = [SelectionTypesEnum.tournament]
 
         self.composer_cls: Type[Composer] = GPComposer  # default composer class
         self.composer_requirements: Optional[PipelineComposerRequirements] = None
@@ -124,59 +115,6 @@ class ComposerBuilder:
         self.preprocessing_cache = preprocessing_cache
         return self
 
-    def with_genetic_scheme(self, genetic_scheme_type: GeneticSchemeTypesEnum):
-        self.genetic_scheme_type = genetic_scheme_type
-        return self
-
-    def with_regularization_type(self, regularization_type: RegularizationTypesEnum):
-        self.regularization_type = regularization_type
-        return self
-
-    def with_mutations(self, mutations: Sequence[MutationTypesEnum]):
-        self.mutations = mutations
-        return self
-
-    def with_selection_types(self, selection_types: Union[SelectionTypesEnum, Sequence[SelectionTypesEnum]]):
-        self.selection_types = ensure_wrapped_in_sequence(selection_types)
-        return self
-
-    def _get_gp_optimizer_params(self, is_multi_objective: bool = False) -> GPGraphOptimizerParameters:
-        if is_multi_objective and self.regularization_type != RegularizationTypesEnum.none:
-            # TODO add possibility of using regularization in MO alg
-            self.regularization_type = RegularizationTypesEnum.none
-            self.log.warning('Not using regularization because it is '
-                             'not implemented for multi-objective optimization.')
-
-        if not self.selection_types:
-            if is_multi_objective:
-                self.selection_types = (SelectionTypesEnum.spea2,)
-            else:
-                self.selection_types = (SelectionTypesEnum.tournament,)
-
-        optimiser_parameters = GPGraphOptimizerParameters(
-            genetic_scheme_type=self.genetic_scheme_type,
-            mutation_types=self.mutations,
-            selection_types=self.selection_types,
-            regularization_type=self.regularization_type,
-        )
-        return optimiser_parameters
-
-    @staticmethod
-    def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
-        mutations = [parameter_change_mutation,
-                     MutationTypesEnum.single_change,
-                     MutationTypesEnum.single_drop,
-                     MutationTypesEnum.single_add]
-
-        # TODO remove workaround after boosting mutation fix
-        if task_type == TaskTypesEnum.ts_forecasting:
-            mutations.append(boosting_mutation)
-        # TODO remove workaround after validation fix
-        if task_type is not TaskTypesEnum.ts_forecasting:
-            mutations.append(MutationTypesEnum.single_edge)
-
-        return mutations
-
     @staticmethod
     def _get_default_composer_params(task: Task) -> PipelineComposerRequirements:
         # Get all available operations for task
@@ -201,7 +139,7 @@ class ComposerBuilder:
         if not self.graph_generation_params:
             self.graph_generation_params = self._get_default_graph_generation_params()
         if not self.optimizer_parameters:
-            self.optimizer_parameters = self._get_gp_optimizer_params(multi_objective)
+            self.optimizer_parameters = GPGraphOptimizerParameters(multi_objective=multi_objective)
         if not multi_objective:
             # Add default complexity metric for supplementary comparison of individuals with equal fitness
             self.metrics = self.metrics + self._get_default_complexity_metrics()
