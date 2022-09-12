@@ -38,6 +38,7 @@ class Log(metaclass=SingletonMeta):
 
     __log_adapters = {}
 
+    @staticmethod
     def setup_in_mp(logging_level: int, logs_dir: pathlib.Path):
         """
         Preserves logger level and its records in a separate file for each process only if it's a child one
@@ -51,18 +52,15 @@ class Log(metaclass=SingletonMeta):
         log_file_name = logs_dir.joinpath(f'log_{cur_proc}.log')
         Log(output_logging_level=logging_level, log_file=log_file_name, use_console=False)
 
-    def __init__(self, logger_name: str,
+    def __init__(self,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
-                 log_file: str = None,
-                 write_logs: bool = True):
-        if not log_file:
-            self.log_file = pathlib.Path(default_fedot_data_dir(), 'log.log')
-        else:
-            self.log_file = log_file
-        self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
+                 log_file: Optional[Union[str, pathlib.Path]] = None,
+                 use_console: bool = True):
+        self.log_file = log_file or DEFAULT_LOG_PATH
+        self.logger = self._get_logger(config_file=config_json_file,
                                        logging_level=output_logging_level,
-                                       write_logs=write_logs)
+                                       use_console=use_console)
 
     def get_parameters(self) -> Tuple[int, pathlib.Path]:
         return self.logger.level, pathlib.Path(self.log_file).parent
@@ -86,8 +84,7 @@ class Log(metaclass=SingletonMeta):
 
         if prefix not in self.__log_adapters.keys():
             self.__log_adapters[prefix] = LoggerAdapter(self.logger,
-                                                        {'prefix': prefix},
-                                                        logging_level=logging_level)
+                                                        {'prefix': prefix})
         return self.__log_adapters[prefix]
 
     def _get_logger(self, name, config_file: str, logging_level: int, write_logs: bool) -> logging.Logger:
@@ -95,26 +92,28 @@ class Log(metaclass=SingletonMeta):
         """
 
         logger = logging.getLogger(name)
+
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
-            logger = self._setup_default_logger(logger=logger, logging_level=logging_level, write_logs=write_logs)
+            logger = self._setup_default_logger(logger=logger, logging_level=logging_level, use_console=use_console)
         return logger
 
-    def _setup_default_logger(self, logger: logging.Logger, logging_level: int, write_logs: bool) -> logging.Logger:
+    def _setup_default_logger(self, logger: logging.Logger, logging_level: int,
+                              use_console: bool = True) -> logging.Logger:
         """Define console and file handlers for logger
         """
 
-        if not write_logs or logging_level > logging.CRITICAL:
-            return logger
-
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_formatter = logging.Formatter('%(asctime)s - %(message)s')
-        console_handler.setFormatter(console_formatter)
-        logger.addHandler(console_handler)
+        if use_console:
+            console_handler = logging.StreamHandler(sys.stdout)
+            console_handler.setLevel(logging_level)
+            console_formatter = logging.Formatter('%(asctime)s - %(message)s')
+            console_handler.setFormatter(console_formatter)
+            logger.addHandler(console_handler)
 
         file_handler = RotatingFileHandler(self.log_file, maxBytes=100000000, backupCount=1)
-        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        file_handler.setLevel(logging_level)
+        file_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
         logger.addHandler(file_handler)
 
         logger.setLevel(logging_level)
@@ -167,10 +166,10 @@ class LoggerAdapter(logging.LoggerAdapter):
     to the output along with logging event information
     """
 
-    def __init__(self, logger: logging.Logger, extra: dict, logging_level: int = None):
+    def __init__(self, logger: logging.Logger, extra: dict):
         super().__init__(logger=logger, extra=extra)
-        self.setLevel(logging_level or logger.level)
-        self.logging_level = logging_level or logger.level
+        self.logging_level = logger.level
+        self.setLevel(self.logging_level)
 
     def process(self, msg, kwargs):
         self.logger.setLevel(self.logging_level)
@@ -195,14 +194,11 @@ def default_log(class_object=None, prefix: str = 'default', logging_level: int =
 
     Returns:
         :obj:`LoggerAdapter`: :obj:`LoggerAdapter` object
+
     """
 
-    log = Log(logger_name='default',
-              config_json_file='default',
-              output_logging_level=logging_level,
-              write_logs=write_logs)
+    # get log prefix
+    if not isinstance(prefix, str):
+        prefix = prefix.__class__.__name__
 
-    if class_object:
-        prefix = class_object.__class__.__name__
-
-    return log.get_adapter(prefix=prefix, logging_level=logging_level)  # TODO: use log.logger.level instead
+    return Log().get_adapter(prefix=prefix)

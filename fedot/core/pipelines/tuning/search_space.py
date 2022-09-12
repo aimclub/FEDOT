@@ -149,19 +149,7 @@ class SearchSpace:
                 {
                     'family': 'inverse_gaussian',
                     'link': hp.choice('link_inv_gaussian', ['identity',
-                                                            'inverse_power',
-                                                            'inverse_squared'])
-                },
-                {
-                    'family': 'poisson',
-                    'link': hp.choice('link_poisson', ['identity',
-                                                       'sqrt',
-                                                       'log'])
-                },
-                {
-                    'family': 'tweedie',
-                    'link': hp.choice('link_tweedie', ['power',
-                                                       'log'])
+                                                            'inverse_power'])
                 }
 
             ]])},
@@ -284,7 +272,7 @@ class SearchSpace:
             'resample': {
                 'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
                 'replace': (hp.choice, [[True, False]]),
-                'n_samples': (hp.uniform, [0.3, 1])
+                'balance_ratio': (hp.uniform, [0.3, 1])
             },
             'lda': {
                 'solver': (hp.choice, [['svd', 'lsqr', 'eigen']]),

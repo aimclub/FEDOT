@@ -1,16 +1,19 @@
 import datetime
 from copy import deepcopy
+
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from cases.multi_ts_level_forecasting import prepare_data
-from examples.simple.time_series_forecasting.ts_pipelines import *
+from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
 from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 
@@ -75,9 +78,12 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     rmse_composing, mae_composing = calculate_metrics(np.ravel(test_data.target), predict_after)
 
     # tuning composed pipeline
-    obtained_pipeline_copy.fine_tune_all_nodes(input_data=train_data,
-                                               loss_function=mean_absolute_error,
-                                               iterations=50)
+    tuner = TunerBuilder(task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MAE)\
+        .with_iterations(50)\
+        .build(train_data)
+    obtained_pipeline_copy = tuner.tune(obtained_pipeline_copy)
     obtained_pipeline_copy.print_structure()
     # tuned pipeline fit and predict
     obtained_pipeline_copy.fit_from_scratch(train_data)

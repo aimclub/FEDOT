@@ -7,8 +7,9 @@ from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log
+from fedot.core.log import default_log, Log
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
+from fedot.core.utilities.random import RandomStateHandler
 
 
 class ApiParams:
@@ -77,7 +78,11 @@ class ApiParams:
 
     def _parse_input_params(self, input_params: Dict[str, Any]):
         """ Parses input params into different class fields """
-        self.log = default_log(prefix='FEDOT logger', logging_level=input_params['logging_level'])
+
+        # reset logging level for Singleton
+        Log().reset_logging_level(input_params['logging_level'])
+        self.log = default_log(prefix='FEDOT logger')
+
         simple_keys = ['problem', 'n_jobs', 'timeout']
         self.api_params = {k: input_params[k] for k in simple_keys}
 
@@ -89,9 +94,12 @@ class ApiParams:
         self.api_params.update(evo_params)
         if 'preset' not in input_params['composer_tuner_params']:
             self.api_params['preset'] = 'auto'
-        if input_params['seed'] is not None:
-            np.random.seed(input_params['seed'])
-            random.seed(input_params['seed'])
+
+        specified_seed = input_params['seed']
+        if specified_seed is not None:
+            np.random.seed(specified_seed)
+            random.seed(specified_seed)
+            RandomStateHandler.MODEL_FITTING_SEED = specified_seed
 
         if self.api_params['problem'] == 'ts_forecasting' and input_params['task_params'] is None:
             self.log.warning(f'The value of the forecast depth was set to {DEFAULT_FORECAST_LENGTH}.')
@@ -116,12 +124,12 @@ class ApiParams:
                   'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
                   'history_folder': None,
-                  'stopping_after_n_generation': 10,
+                  'stopping_after_n_generation': 30,
                   'use_pipelines_cache': True,
                   'use_preprocessing_cache': True}
 
         if problem in ['classification', 'regression']:
-            params['cv_folds'] = 3
+            params['cv_folds'] = 5
         elif problem == 'ts_forecasting':
             params['cv_folds'] = 3
             params['validation_blocks'] = 2

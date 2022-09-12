@@ -7,11 +7,10 @@ from sklearn.metrics import (accuracy_score, f1_score, log_loss, mean_absolute_e
                              silhouette_score, roc_curve, auc)
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast
+from fedot.core.pipelines.pipeline import Pipeline
 
 
 def from_maximised_metric(metric_func):

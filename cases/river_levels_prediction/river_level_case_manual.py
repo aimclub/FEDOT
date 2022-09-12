@@ -5,12 +5,13 @@ from datetime import timedelta
 import numpy as np
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-from fedot.core.composer.metrics import MAE
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
@@ -58,11 +59,14 @@ def run_river_experiment(file_path, pipeline, iterations=20, tuner=None,
         print(f'MAE - {mae_value:.2f}\n')
 
         if tuner is not None:
-            print(f'Start tuning process ...')
-            pipeline_tuner = tuner(pipeline=current_pipeline, task=data.task,
-                                   iterations=tuner_iterations, timeout=timedelta(seconds=30))
-            tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=train_input,
-                                                          loss_function=MAE.metric)
+            print('Start tuning process ...')
+            pipeline_tuner = TunerBuilder(data.task)\
+                .with_tuner(tuner)\
+                .with_metric(RegressionMetricsEnum.MAE)\
+                .with_iterations(tuner_iterations)\
+                .with_timeout(timedelta(seconds=30)) \
+                .build(train_input)
+            tuned_pipeline = pipeline_tuner.tune(current_pipeline)
 
             # Predict
             predicted_values_tuned = tuned_pipeline.predict(predict_input)

@@ -1,3 +1,4 @@
+import traceback
 from datetime import timedelta
 from typing import Callable, Iterable, Optional, Tuple
 
@@ -10,6 +11,8 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.utilities.debug import is_test_session, is_recording_mode
+from fedot.utilities.debug import save_debug_info_for_pipeline
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -38,7 +41,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                  validation_blocks: Optional[int] = None,
                  pipelines_cache: Optional[OperationsCache] = None,
                  preprocessing_cache: Optional[PreprocessingCache] = None,
-                 eval_n_jobs: int = 1):
+                 eval_n_jobs: int = 1,
+                 do_unfit: bool = True):
         super().__init__(objective, eval_n_jobs=eval_n_jobs)
         self._data_producer = data_producer
         self._time_constraint = time_constraint
@@ -46,6 +50,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         self._pipelines_cache = pipelines_cache
         self._preprocessing_cache = preprocessing_cache
         self._log = default_log(self)
+        self._do_unfit = do_unfit
 
     def evaluate(self, graph: Pipeline) -> Fitness:
         # Seems like a workaround for situation when logger is lost
@@ -58,10 +63,14 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
             try:
-                graph.unfit()
                 prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
             except Exception as ex:
                 self._log.warning(f'Continuing after pipeline fit error <{ex}> for graph: {graph_id}')
+                if is_test_session() and not isinstance(ex, TimeoutError):
+                    stack_trace = traceback.format_exc()
+                    save_debug_info_for_pipeline(graph, train_data, test_data, ex, stack_trace)
+                    if not is_recording_mode():
+                        raise ex
                 continue
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
@@ -70,8 +79,12 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                 folds_metrics.append(evaluated_fitness.values)
             else:
                 self._log.warning(f'Continuing after objective evaluation error for graph: {graph_id}')
-                continue
-            graph.unfit()
+                if is_test_session():
+                    raise ValueError(f'Fitness {evaluated_fitness} is not valid')
+                else:
+                    continue
+            if self._do_unfit:
+                graph.unfit()
         if folds_metrics:
             folds_metrics = tuple(np.mean(folds_metrics, axis=0))  # averages for each metric over folds
             self._log.debug(f'Pipeline {graph_id} with evaluated metrics: {folds_metrics}')
@@ -88,6 +101,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: id of the fold in cross-validation, used for cache requests.
         :param n_jobs: number of parallel jobs for preparation
         """
+        graph.unfit()
         # load preprocessing
         graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(
@@ -98,6 +112,7 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         if self._pipelines_cache is not None:
             self._pipelines_cache.save_pipeline(graph, fold_id)
+        if self._preprocessing_cache is not None:
             self._preprocessing_cache.add_preprocessor(graph, fold_id)
 
         return graph

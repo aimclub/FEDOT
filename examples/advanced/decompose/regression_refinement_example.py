@@ -5,11 +5,15 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from sklearn.model_selection import train_test_split
 
-from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.data.data import InputData
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
+from fedot.core.utils import fedot_project_root
 
 warnings.filterwarnings('ignore')
 
@@ -96,12 +100,13 @@ def run_river_experiment(file_path, with_tuning=False):
     non_pipeline.fit(train_input)
 
     if with_tuning:
-        r_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                       input_data=train_input,
-                                       iterations=100)
-        non_pipeline.fine_tune_all_nodes(loss_function=mean_absolute_error,
-                                         input_data=train_input,
-                                         iterations=100)
+        tuner = TunerBuilder(task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(RegressionMetricsEnum.MAE)\
+            .with_iterations(100)\
+            .build(train_input)
+        r_pipeline = tuner.tune(r_pipeline)
+        non_pipeline = tuner.tune(non_pipeline)
 
     # Predict
     predicted_values = r_pipeline.predict(predict_input)
@@ -125,5 +130,5 @@ def run_river_experiment(file_path, with_tuning=False):
 
 
 if __name__ == '__main__':
-    run_river_experiment(file_path='../../../cases/data/river_levels/station_levels.csv',
-                         with_tuning=False)
+    run_river_experiment(file_path=f'{fedot_project_root()}/cases/data/river_levels/station_levels.csv',
+                         with_tuning=True)

@@ -1,5 +1,4 @@
 import traceback
-
 from typing import List, Optional, Union
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -62,6 +61,7 @@ class AssumptionsHandler:
 
             if pipelines_cache is not None:
                 pipelines_cache.save_pipeline(pipeline)
+            if preprocessing_cache is not None:
                 preprocessing_cache.add_preprocessor(pipeline)
 
             pipeline.predict(data_test)
@@ -78,15 +78,16 @@ class AssumptionsHandler:
         print(traceback.format_exc())
         raise ValueError(advice_info)
 
-    def propose_preset(self, preset: Union[str, None], timer: ApiTime) -> str:
+    def propose_preset(self, preset: Union[str, None], timer: ApiTime, n_jobs: int) -> str:
         """
         Proposes the most suitable preset for current data
 
         :param preset: predefined preset
         :param timer: ApiTime object
+        :param n_jobs: n_jobs parameter
 
         """
         if not preset or preset == 'auto':
-            preset = change_preset_based_on_initial_fit(timer)
+            preset = change_preset_based_on_initial_fit(timer, n_jobs)
             self.log.info(f"Preset was changed to {preset}")
         return preset

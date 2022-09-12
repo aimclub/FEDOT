@@ -2,6 +2,7 @@ import datetime
 from operator import eq
 
 from fedot.core.composer.composer_builder import ComposerBuilder
+from fedot.core.composer.metrics import ROCAUC
 from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters, GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -52,7 +53,7 @@ def test_gp_composer_builder():
     builder_with_default_params = ComposerBuilder(task=task)
     composer_with_default_params = builder_with_default_params.build()
 
-    default_metric = ClassificationMetricsEnum.ROCAUC.ROCAUC_penalty
+    default_metric = ROCAUC.get_value_with_penalty
 
     assert composer_with_default_params.optimizer.parameters.genetic_scheme_type == GeneticSchemeTypesEnum.generational
     assert composer_with_default_params.composer_requirements.pop_size == 20

@@ -3,22 +3,24 @@ import numpy as np
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
-    prepare_target, ts_to_table, _sparse_matrix
+from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import (
+    _sparse_matrix,
+    prepare_target,
+    ts_to_table
+)
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
 
-window_size = 4
-forecast_length = 4
-log = default_log(prefix=__name__, write_logs=False)
+_WINDOW_SIZE = 4
+_FORECAST_LENGTH = 4
 
 
 def synthetic_univariate_ts():
     """ Method returns InputData for classical time series forecasting task """
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
+                TsForecastingParams(forecast_length=_FORECAST_LENGTH))
     # Simple time series to process
     ts_train = np.array([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130])
     ts_test = np.array([140, 150, 160, 170])
@@ -31,7 +33,7 @@ def synthetic_univariate_ts():
                             data_type=DataTypesEnum.ts)
 
     start_forecast = len(ts_train)
-    end_forecast = start_forecast + forecast_length
+    end_forecast = start_forecast + _FORECAST_LENGTH
     predict_input = InputData(idx=np.arange(start_forecast, end_forecast),
                               features=ts_train,
                               target=None,
@@ -44,7 +46,7 @@ def synthetic_with_exogenous_ts():
     """ Method returns InputData for time series forecasting task with
     exogenous variable """
     task = Task(TaskTypesEnum.ts_forecasting,
-                TsForecastingParams(forecast_length=forecast_length))
+                TsForecastingParams(forecast_length=_FORECAST_LENGTH))
 
     # Time series with exogenous variable
     ts_train = np.array([0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130])
@@ -55,7 +57,7 @@ def synthetic_with_exogenous_ts():
 
     # Indices for forecast
     start_forecast = len(ts_train)
-    end_forecast = start_forecast + forecast_length
+    end_forecast = start_forecast + _FORECAST_LENGTH
 
     # Input for source time series
     train_source_ts = InputData(idx=np.arange(0, len(ts_train)),
@@ -80,7 +82,7 @@ def test_ts_to_lagged_table():
     train_input, _, _ = synthetic_univariate_ts()
     new_idx, lagged_table = ts_to_table(idx=train_input.idx,
                                         time_series=train_input.features,
-                                        window_size=window_size,
+                                        window_size=_WINDOW_SIZE,
                                         is_lag=True)
 
     correct_lagged_table = ((0., 10., 20., 30.),
@@ -108,7 +110,7 @@ def test_ts_to_lagged_table():
                                                                idx=new_idx,
                                                                features_columns=lagged_table,
                                                                target=train_input.target,
-                                                               forecast_length=forecast_length)
+                                                               forecast_length=_FORECAST_LENGTH)
     correct_final_idx = (4, 5, 6, 7, 8, 9, 10)
     correct_features_columns = ((0., 10., 20., 30.),
                                 (10., 20., 30., 40.),
@@ -141,8 +143,8 @@ def test_sparse_matrix():
     train_input, _, _ = synthetic_univariate_ts()
     _, lagged_table = ts_to_table(idx=train_input.idx,
                                   time_series=train_input.features,
-                                  window_size=window_size)
-    features_columns = _sparse_matrix(log, lagged_table)
+                                  window_size=_WINDOW_SIZE)
+    features_columns = _sparse_matrix(default_log(prefix=__name__), lagged_table)
 
     # assert if sparse matrix features less than half or less than another dimension
     assert features_columns.shape[0] == lagged_table.shape[0]
@@ -154,14 +156,14 @@ def test_forecast_with_sparse_lagged():
 
     node_lagged = PrimaryNode('sparse_lagged')
     # Set window size for lagged transformation
-    node_lagged.custom_params = {'window_size': window_size}
+    node_lagged.custom_params = {'window_size': _WINDOW_SIZE}
 
     node_final = SecondaryNode('linear', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
 
     pipeline.fit(input_data=MultiModalData({'sparse_lagged': train_source_ts}))
 
-    forecast = pipeline.predict(input_data=MultiModalData({'sparse_lagged': predict_source_ts}))
+    pipeline.predict(input_data=MultiModalData({'sparse_lagged': predict_source_ts}))
     is_forecasted = True
 
     assert is_forecasted
@@ -173,7 +175,7 @@ def test_forecast_with_exog():
     # Source data for lagged node
     node_lagged = PrimaryNode('lagged')
     # Set window size for lagged transformation
-    node_lagged.custom_params = {'window_size': window_size}
+    node_lagged.custom_params = {'window_size': _WINDOW_SIZE}
     # Exogenous variable for exog node
     node_exog = PrimaryNode('exog_ts')
 

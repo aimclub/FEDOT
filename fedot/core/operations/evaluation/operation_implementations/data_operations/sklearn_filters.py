@@ -4,18 +4,17 @@ from typing import Optional, Dict, Any
 import numpy as np
 import sklearn
 from pkg_resources import parse_version
-
+from sklearn.ensemble import IsolationForest
 from sklearn.linear_model import LinearRegression, RANSACRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import IsolationForest
 
+from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
-from fedot.core.data.data import InputData, OutputData
 
 
 class FilterImplementation(DataOperationImplementation):

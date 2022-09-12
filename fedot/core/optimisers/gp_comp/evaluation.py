@@ -1,17 +1,16 @@
 import gc
-from abc import ABC, abstractmethod
-from typing import Dict, Optional
-
+import multiprocessing
+import pathlib
 import timeit
+from abc import ABC, abstractmethod
 from datetime import datetime
-from functools import partial
 from random import choice
+from typing import Dict, Optional, Tuple
 
 from joblib import Parallel, delayed
-import multiprocessing
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import default_log
+from fedot.core.log import Log, default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
@@ -83,8 +82,8 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
 
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind) for ind in individuals)
-
+        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_initializer=Log().get_parameters())
+                             for ind in individuals)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
         successful_evals = list(filter(None, eval_inds))
@@ -97,12 +96,15 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
 
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
+    def evaluate_single(self, ind: Individual, with_time_limit: bool = True,
+                        logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> Optional[Individual]:
         if ind.fitness.valid:
             return ind
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
-
+        if logs_initializer is not None:
+            # in case of multiprocessing run
+            Log.setup_in_mp(*logs_initializer)
         start_time = timeit.default_timer()
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)

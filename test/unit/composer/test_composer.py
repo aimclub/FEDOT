@@ -12,7 +12,6 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.random_composer import RandomGraphFactory, RandomSearchComposer, RandomSearchOptimizer
 from fedot.core.data.data import InputData
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
@@ -320,8 +319,8 @@ def test_gp_composer_random_graph_generation_looping(max_depth):
     task = Task(TaskTypesEnum.regression)
 
     operations = get_operations_for_task(task, mode='model')
-    primary_operations = operations[:len(operations)//2]
-    secondary_operations = operations[len(operations)//2:]
+    primary_operations = operations[:len(operations) // 2]
+    secondary_operations = operations[len(operations) // 2:]
     requirements = PipelineComposerRequirements(
         primary=primary_operations,
         secondary=secondary_operations,

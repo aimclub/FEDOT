@@ -1,16 +1,8 @@
-from contextlib import contextmanager, nullcontext
-from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Optional, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.preprocessing_cache_db import PreprocessingCacheDB
-from fedot.core.data.data import InputData, data_type_is_table
-from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.operations.evaluation.operation_implementations.data_operations.categorical_encoders import (
-    OneHotEncodingImplementation
-)
-from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import (
-    ImputationImplementation
-)
+from fedot.utilities.debug import is_test_session
 
 if TYPE_CHECKING:
     from fedot.core.pipelines.pipeline import Pipeline
@@ -39,8 +31,10 @@ class PreprocessingCache(BaseCache):
             processors = self._db.get_preprocessor(structural_id)
             if processors:
                 pipeline.encoder, pipeline.imputer = processors
-        except Exception as exc:
-            self.log.warning(f'Preprocessor search error: {exc}')
+        except Exception as ex:
+            self.log.warning(f'Preprocessor search error: {ex}')
+            if is_test_session():
+                raise ex
 
     def add_preprocessor(self, pipeline: 'Pipeline', fold_id: Optional[Union[int, None]] = None):
         """

@@ -32,6 +32,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -224,7 +225,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
         non_multi_models = models_repo.suitable_operation(task_type=current_task,
-                                                             tags=['non_multi'])
+                                                          tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
 
         # Multi-output task or not
@@ -234,7 +235,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)
         else:
-            operation_implementation.fit(train_data.features, train_data.target)
+            with RandomStateHandler():
+                operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData,

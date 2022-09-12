@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-import logging
-from typing import (Any, Callable, Optional, Sequence)
+from typing import Any, Callable, Optional, Sequence
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
@@ -11,8 +10,8 @@ from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapte
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
-from fedot.core.optimisers.opt_node_factory import OptNodeFactory, DefaultOptNodeFactory
+from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
+from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory, OptNodeFactory
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
 
@@ -87,8 +86,7 @@ class GraphOptimizer:
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None):
-        self.log = default_log(self, logging_level=requirements.logging_level_opt if requirements else
-                               logging.CRITICAL+1)
+        self.log = default_log(self)
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements

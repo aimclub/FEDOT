@@ -182,7 +182,7 @@ def test_fine_tune_atomized_model_correct():
     atm_model = create_atomized_model()
     dummy_atomized_model = create_atomized_model()
 
-    fine_tuned_atomized_model = atm_model.fine_tune(loss_function=RMSE.metric,
+    fine_tuned_atomized_model = atm_model.fine_tune(metric_function=RMSE.metric,
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)

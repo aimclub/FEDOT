@@ -100,6 +100,7 @@ class Fedot:
         tuner_metric:  metric for quality calculation during tuning
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
+        show_progress: bool indicating whether to show progress using tqdm/tuner or not
     """
 
     def __init__(self,
@@ -327,7 +328,7 @@ class Fedot:
                 raise NotImplementedError(f"For task {self.params.api_params['task']} plot prediction is not supported")
         else:
             self.params.api_params['logger'].error('No prediction to visualize')
-            raise ValueError(f'Prediction from model is empty')
+            raise ValueError('Prediction from model is empty')
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,

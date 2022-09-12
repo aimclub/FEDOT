@@ -1,9 +1,12 @@
 from copy import deepcopy
+from datetime import timedelta
 from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import OperationMetaInfo, \
     atomized_model_type
 from fedot.core.utils import make_pipeline_generator
@@ -15,7 +18,7 @@ class AtomizedModel(Operation):
 
     def __init__(self, pipeline: 'Pipeline'):
         if not pipeline.root_node:
-            raise ValueError(f'AtomizedModel could not create instance of empty Pipeline.')
+            raise ValueError('AtomizedModel could not create instance of empty Pipeline.')
 
         super().__init__(operation_type=atomized_model_type())
         self.pipeline = pipeline
@@ -48,14 +51,17 @@ class AtomizedModel(Operation):
                         output_mode: str = 'default'):
         return self.predict(fitted_operation, data, params, output_mode)
 
-    def fine_tune(self, loss_function: Callable,
+    def fine_tune(self, metric_function: Callable,
                   input_data: InputData = None, iterations: int = 50,
                   timeout: int = 5):
         """ Method for tuning hyperparameters """
-        tuned_pipeline = self.pipeline.fine_tune_all_nodes(loss_function=loss_function,
-                                                           input_data=input_data,
-                                                           iterations=iterations,
-                                                           timeout=timeout)
+        tuner = TunerBuilder(input_data.task)\
+            .with_tuner(PipelineTuner)\
+            .with_metric(metric_function)\
+            .with_iterations(iterations)\
+            .with_timeout(timedelta(minutes=timeout))\
+            .build(input_data)
+        tuned_pipeline = tuner.tune(self.pipeline)
         tuned_atomized_model = AtomizedModel(tuned_pipeline)
         return tuned_atomized_model
 

@@ -1,6 +1,6 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union, Sequence
+from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
 
@@ -17,7 +17,6 @@ from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
@@ -77,7 +76,7 @@ class Pipeline(GraphDelegate, Serializable):
                 args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
-            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
+            raise TimeoutError('Pipeline fitness evaluation time limit is expired')
 
         self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, _ in enumerate(self.nodes):
@@ -101,9 +100,7 @@ class Pipeline(GraphDelegate, Serializable):
         """
 
         with Timer() as t:
-            computation_time_update = (
-                    not self.root_node.fitted_operation or self.computation_time is None
-            )
+            computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
             train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
@@ -241,51 +238,9 @@ class Pipeline(GraphDelegate, Serializable):
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
-    def fine_tune_all_nodes(self, loss_function: Callable,
-                            input_data: Union[InputData, MultiModalData] = None,
-                            iterations: int = 50, timeout: Optional[float] = 5.,
-                            cv_folds: Optional[int] = None, validation_blocks: int = 3,
-                            n_jobs: int = -1) -> 'Pipeline':
-        """Tunes all nodes hyperparameters simultaneously via black-box
-        optimization using PipelineTuner.\n
-        For details, see :obj:`PipelineTuner.tune_pipeline`
-
-        Args:
-            loss_function: desired loss function
-            loss_params: ``loss_function`` parameters
-            input_data: data from which to tune the pipeline upon
-            iterations: max number of tuning iterations
-            timeout: max time spent on tuning
-            cv_folds: number of cross-validation folds
-            validation_blocks: number of validation blocks for time series forecasting
-        :param n_jobs: number of parallel threads for tuner
-
-        Returns:
-            Pipeline: pipeline with tuned hyperparameters
+    def save(self, path: str = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
-
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-
-        if timeout is not None:
-            timeout = timedelta(minutes=timeout)
-        pipeline_tuner = PipelineTuner(pipeline=self,
-                                       task=copied_input_data.task,
-                                       iterations=iterations,
-                                       timeout=timeout,
-                                       n_jobs=n_jobs)
-        self.log.info('Start pipeline tuning')
-
-        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
-                                                      loss_function=loss_function,
-                                                      cv_folds=cv_folds,
-                                                      validation_blocks=validation_blocks)
-        self.log.info('Tuning was finished')
-
-        return tuned_pipeline
-
-    def save(self, path: Optional[str] = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
-        """Saves the pipeline to ``JSON`` representation with pickled fitted operations
+        Saves the pipeline to JSON representation with pickled fitted operations
 
         Args:
             path: custom path to save the JSON to
@@ -367,9 +322,9 @@ class Pipeline(GraphDelegate, Serializable):
         max_distance = 0
         side_root_node = None
         for node in self.nodes:
-            if (task_type in node.operation.acceptable_task_types
-                    and isinstance(node.operation, Model)
-                    and node.distance_to_primary_level >= max_distance):
+            if (task_type in node.operation.acceptable_task_types and
+                    isinstance(node.operation, Model) and
+                    node.distance_to_primary_level >= max_distance):
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
 
