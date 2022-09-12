@@ -125,6 +125,15 @@ def test_newly_generated_history():
     loaded_history = OptHistory.load(dumped_history).save()
     assert dumped_history is not None
     assert dumped_history == loaded_history, 'The history is not equal to itself after reloading!'
+    for ind in chain(*history.individuals):
+        # All individuals in `history.individuals` must have a native generation.
+        assert ind.has_native_generation
+        if ind.native_generation == 0:
+            continue
+        # All individuals must have parents, except for the initial assumptions.
+        assert ind.parents
+        # The first of `operators_from_prev_generation` must point to `parents_from_prev_generation`.
+        assert ind.parents_from_prev_generation == list(ind.operators_from_prev_generation[0].parent_individuals)
 
 
 def assert_intermediate_metrics(pipeline: Graph):
