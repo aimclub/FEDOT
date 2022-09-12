@@ -9,13 +9,13 @@ from fedot.core.repository.operation_types_repository import OperationTypesRepos
 from fedot.core.repository.tasks import TaskTypesEnum
 
 
-def parameter_change_mutation(pipeline: Pipeline, requirements, params, **kwargs) -> Any:
+def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_params, **kwargs) -> Any:
     """
     This type of mutation is passed over all nodes and changes
     hyperparameters of the operations with probability - 'node mutation probability'
     which is initialised inside the function
     """
-    node_mutation_probability = Mutation.get_mutation_prob(mut_id=params.mutation_strength,
+    node_mutation_probability = Mutation.get_mutation_prob(mut_id=opt_params.mutation_strength,
                                                            node=pipeline.root_node)
     for node in pipeline.nodes:
         if random() < node_mutation_probability:
