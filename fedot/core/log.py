@@ -87,12 +87,9 @@ class Log(metaclass=SingletonMeta):
                                                         {'prefix': prefix})
         return self.__log_adapters[prefix]
 
-    def _get_logger(self, name, config_file: str, logging_level: int, write_logs: bool) -> logging.Logger:
-        """Get logger object
-        """
-
-        logger = logging.getLogger(name)
-
+    def _get_logger(self, config_file: str, logging_level: int, use_console: bool = True) -> logging.Logger:
+        """ Get logger object """
+        logger = logging.getLogger()
         if config_file != 'default':
             self._setup_logger_from_json_file(config_file)
         else:
