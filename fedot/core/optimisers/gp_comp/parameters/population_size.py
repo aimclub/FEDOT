@@ -5,7 +5,6 @@ from .parameter import AdaptiveParameter
 from fedot.core.utilities.data_structures import BidirectionalIterator
 from fedot.core.utilities.sequence_iterator import fibonacci_sequence, SequenceIterator
 from ..gp_params import GPGraphOptimizerParameters
-from ..pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.archive.generation_keeper import ImprovementWatcher
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT

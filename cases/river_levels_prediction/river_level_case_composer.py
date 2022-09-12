@@ -6,18 +6,16 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.composer.metrics import MAE
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
@@ -84,7 +82,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                       'pca', 'ransac_non_lin_reg',
                                       'rfe_non_lin_reg', 'normalization']
     available_primary_operations = ['one_hot_encoding']
-
+    metric_function = RegressionMetricsEnum.MAE
     # Report arrays
     obtained_pipelines = []
     depths = []
@@ -107,7 +105,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
         composer = ComposerBuilder(task=data.task). \
             with_requirements(composer_requirements). \
             with_optimizer_params(optimizer_parameters). \
-            with_metrics(RegressionMetricsEnum.MAE). \
+            with_metrics(metric_function). \
             with_initial_pipelines([init_pipeline]). \
             build()
 

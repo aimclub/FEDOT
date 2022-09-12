@@ -1,15 +1,10 @@
-from copy import deepcopy
-
 import pytest
 
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
-from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.optimizer.test_evaluation import prepared_objective
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_second, pipeline_third, pipeline_fourth, \
     pipeline_fifth

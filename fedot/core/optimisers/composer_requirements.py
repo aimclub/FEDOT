@@ -1,7 +1,6 @@
 import datetime
-import logging
 from dataclasses import dataclass
-from typing import Optional, Sequence
+from typing import Optional
 
 
 @dataclass

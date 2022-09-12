@@ -17,7 +17,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
+    pass
 
 
 class PopulationalOptimizer(GraphOptimizer):

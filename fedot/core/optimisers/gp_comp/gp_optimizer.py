@@ -1,6 +1,6 @@
 from copy import deepcopy
 from random import choice
-from typing import Optional, Sequence, Callable
+from typing import Sequence, Callable
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph

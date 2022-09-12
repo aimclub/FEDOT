@@ -23,7 +23,7 @@ from fedot.core.repository.operation_types_repository import get_operations_for_
 from fedot.core.repository.quality_metrics_repository import (
     ComplexityMetricsEnum,
     MetricsEnum,
-    RegressionMetricsEnum, MetricType
+    MetricType
 )
 from fedot.core.repository.tasks import Task
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
