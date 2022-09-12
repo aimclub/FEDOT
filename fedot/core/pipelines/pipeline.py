@@ -447,7 +447,8 @@ def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node
     Method to update nodes type after performing some action on the pipeline
         via GraphOperator, if any of them are of GraphNode type
 
-    :param nodes: Node object(s)
+    Args:
+        nodes: :obj:`Node` object(s)
     """
 
     for node in nodes:

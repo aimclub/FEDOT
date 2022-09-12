@@ -2,7 +2,6 @@ from copy import copy
 from typing import Iterable, List, Optional, Union
 from uuid import uuid4
 
-from fedot.core.dag.node_operator import NodeOperator
 from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 

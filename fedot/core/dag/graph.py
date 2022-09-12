@@ -19,6 +19,7 @@ class Graph(ABC):
         Args:
             nodes: pipeline nodes
         """
+        raise NotImplementedError()
 
     @abstractmethod
     def update_node(self, old_node: GraphNode, new_node: GraphNode):

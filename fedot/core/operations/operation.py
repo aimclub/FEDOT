@@ -84,15 +84,14 @@ class Operation:
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, is_fit_pipeline_stage: bool,
-                params: Union[str, dict, None] = None, output_mode: str = 'default'):
+    def predict(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                output_mode: str = 'default'):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
 
         Args:
             fitted_operation: trained operation object
             data: data used for prediction
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
             params: hyperparameters for operation
             output_mode: string with information about output of operation,
             for example, is the operation predict probabilities or class labels
@@ -112,6 +111,11 @@ class Operation:
             output_mode: string with information about output of operation,
                 for example, is the operation predict probabilities or class labels
         """
+        return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True)
+
+    def _predict(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+                 output_mode: str = 'default', is_fit_stage: bool = False):
+
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
         self._init(data.task, output_mode=output_mode, params=params)

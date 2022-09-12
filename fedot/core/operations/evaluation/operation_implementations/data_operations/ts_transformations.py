@@ -427,7 +427,7 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
         pass
 
-    def transform(self, input_data, is_fit_pipeline_stage: bool):
+    def transform(self, input_data: InputData) -> OutputData:
         """ Method for representing time series as column
 
         Args:
@@ -437,6 +437,29 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
         Returns:
             output data with features as columns
         """
+        copied_data = copy(input_data)
+        parameters = copied_data.task.task_params
+        forecast_length = parameters.forecast_length
+
+        features_columns = np.array(copied_data.features)[-forecast_length:]
+        copied_data.idx = copied_data.idx[-forecast_length:]
+        features_columns = features_columns.reshape(1, -1)
+
+        output_data = self._convert_to_output(copied_data,
+                                              features_columns,
+                                              data_type=DataTypesEnum.table)
+
+        return output_data
+
+    def transform_for_fit(self, input_data: InputData) -> OutputData:
+        """Method for representing time series as column for fit stage
+
+        Args:
+            input_data: data with features, target and ids to process
+        Returns:
+            output data with features as columns
+        """
+
         copied_data = copy(input_data)
         parameters = copied_data.task.task_params
         old_idx = copied_data.idx
