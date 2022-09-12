@@ -182,8 +182,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(class_object=None, prefix: str = 'default', logging_level: int = logging.INFO,
-                write_logs: bool = True) -> LoggerAdapter:
+def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
     """Default logger
 
     Args:
