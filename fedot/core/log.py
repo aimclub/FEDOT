@@ -1,9 +1,11 @@
 import json
 import logging
+import multiprocessing
 import pathlib
 import sys
 from logging.config import dictConfig
 from logging.handlers import RotatingFileHandler
+from typing import Optional, Tuple, Union
 
 from fedot.core.utilities.singleton_meta import SingletonMeta
 from fedot.core.utils import default_fedot_data_dir
@@ -36,6 +38,19 @@ class Log(metaclass=SingletonMeta):
 
     __log_adapters = {}
 
+    def setup_in_mp(logging_level: int, logs_dir: pathlib.Path):
+        """
+        Preserves logger level and its records in a separate file for each process only if it's a child one
+
+        Args:
+            logging_level: level of the logger from the main process
+            logs_dir: path to the logs directory
+        """
+
+        cur_proc = multiprocessing.current_process().name
+        log_file_name = logs_dir.joinpath(f'log_{cur_proc}.log')
+        Log(output_logging_level=logging_level, log_file=log_file_name, use_console=False)
+
     def __init__(self, logger_name: str,
                  config_json_file: str = 'default',
                  output_logging_level: int = logging.INFO,
@@ -48,6 +63,17 @@ class Log(metaclass=SingletonMeta):
         self.logger = self._get_logger(name=logger_name, config_file=config_json_file,
                                        logging_level=output_logging_level,
                                        write_logs=write_logs)
+
+    def get_parameters(self) -> Tuple[int, pathlib.Path]:
+        return self.logger.level, pathlib.Path(self.log_file).parent
+
+    def reset_logging_level(self, logging_level: int):
+        """ Resets logging level for logger and its handlers """
+        # Resets logging level is needed because before initialization with API params Singleton
+        # can be initialized somewhere else with default ones
+        self.logger.setLevel(logging_level)
+        for handler in self.handlers:
+            handler.setLevel(logging_level)
 
     def get_adapter(self, prefix: str, logging_level: int = logging.INFO) -> 'LoggerAdapter':
         """Get adapter to pass contextual information to log messages
