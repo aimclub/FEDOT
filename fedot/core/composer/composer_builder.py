@@ -56,7 +56,7 @@ class ComposerBuilder:
         self.initial_population: Union[Pipeline, Sequence[Pipeline]] = ()
         self.initial_population_generation_function: Optional[GenerationFunction] = None
 
-        self._keep_history: bool = False
+        self._keep_history: bool = True
         self._full_history_dir: Optional[Path] = None
 
         self.pipelines_cache: Optional[OperationsCache] = None
