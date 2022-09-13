@@ -27,13 +27,13 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
 
         :return: domain function that can be used inside Optimizer
         """
-        return _transform(fun, f_args=self.maybe_adapt, f_ret=self.maybe_restore)
+        return _transform(fun, f_args=self.adapt, f_ret=self.restore)
 
     def adapt_func(self, fun: Callable) -> Callable:
         """Wraps domain function so that it could accept native optimization graphs
         as arguments. If the function was registered as native, it is returned as-is.
 
-        Behavior: `adapt( f(DomainGraph) ) => f'(OptGraph)`
+        Behavior: `adapt( f(DomainGraph)->DomainGraph ) => f'(OptGraph)->OptGraph`
 
         :param fun: domain function that accepts domain args and required call to restore
 
@@ -41,35 +41,24 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         """
         if AdaptRegistry.is_native(fun):
             return fun
-        return _transform(fun, f_args=self.maybe_restore, f_ret=self.maybe_adapt)
+        return _transform(fun, f_args=self.restore, f_ret=self.adapt)
 
     def restore_population(self, population: PopulationT) -> Sequence[DomainStructureType]:
-        domain_graphs = [self.restore(ind.graph) for ind in population]
+        domain_graphs = [self.restore_ind(ind) for ind in population]
         return domain_graphs
 
     def adapt_population(self, population: Sequence[DomainStructureType]) -> PopulationT:
         individuals = [Individual(self.adapt(graph)) for graph in population]
         return individuals
 
-    # TODO: unify with `maybe_adapt`
-    def adapt(self, adaptee: DomainStructureType) -> OptGraph:
-        if isinstance(adaptee, OptGraph):
-            return adaptee
-        return self._adapt(adaptee)
+    def adapt(self, item: DomainStructureType) -> OptGraph:
+        return self._adapt(item) if isinstance(item, self.domain_graph_class) else item
 
-    def restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
-        if isinstance(opt_graph, self.domain_graph_class):
-            return opt_graph
-        return self._restore(opt_graph, metadata)
-
-    def maybe_adapt(self, item):
-        return self.adapt(item) if isinstance(item, self.domain_graph_class) else item
-
-    def maybe_restore(self, item: OptGraph):
-        return self.restore(item) if isinstance(item, self.opt_graph_class) else item
+    def restore(self, item: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
+        return self._restore(item, metadata) if isinstance(item, self.opt_graph_class) else item
 
     def restore_ind(self, individual: Individual) -> DomainStructureType:
-        return self.restore(individual.graph, individual.metadata)
+        return self._restore(individual.graph, individual.metadata)
 
     @abstractmethod
     def _adapt(self, adaptee: DomainStructureType) -> OptGraph:
