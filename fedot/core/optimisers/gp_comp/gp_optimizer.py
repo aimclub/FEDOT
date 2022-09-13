@@ -40,7 +40,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         self.crossover = Crossover(parameters, requirements, graph_generation_params)
         self.mutation = Mutation(parameters, requirements, graph_generation_params)
         self.inheritance = Inheritance(parameters, self.selection)
-        self.elitism = Elitism(parameters, objective.is_multi_objective)
+        self.elitism = Elitism(parameters)
         self.operators = [self.regularization, self.selection, self.crossover,
                           self.mutation, self.inheritance, self.elitism]
 

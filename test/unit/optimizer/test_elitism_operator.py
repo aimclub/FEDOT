@@ -29,7 +29,7 @@ def set_up():
 
 def test_keep_n_best_elitism(set_up):
     best_individuals, population = set_up
-    elitism = Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.keep_n_best), is_multi_objective=False)
+    elitism = Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.keep_n_best))
     new_population = elitism(best_individuals, population)
     for best_ind in best_individuals:
         assert best_ind in new_population
@@ -38,7 +38,7 @@ def test_keep_n_best_elitism(set_up):
 
 def test_replace_worst(set_up):
     best_individuals, population = set_up
-    elitism = Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst), is_multi_objective=False)
+    elitism = Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst))
     new_population = elitism(best_individuals, population)
     for best_ind in best_individuals:
         assert any(best_ind.fitness > ind.fitness for ind in population) == \
@@ -48,14 +48,13 @@ def test_replace_worst(set_up):
 
 def test_elitism_not_applicable(set_up):
     best_individuals, population = set_up
-    elitisms = [Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst),
-                        is_multi_objective=True),
-                Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst,
-                                                   pop_size=4),
-                        is_multi_objective=False,
-                        min_population_size_with_elitism=5),
-                Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.none),
-                        is_multi_objective=False)]
+    elitisms = [
+        Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst,
+                                           multi_objective=True)),
+        Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.replace_worst,
+                                           pop_size=4, min_pop_size_with_elitism=5)),
+        Elitism(GPGraphOptimizerParameters(elitism_type=ElitismTypesEnum.none)),
+    ]
     for elitism in elitisms:
         new_population = elitism(best_individuals, population)
         for best_ind in best_individuals:

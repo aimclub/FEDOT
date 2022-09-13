@@ -44,15 +44,9 @@ class Mutation(Operator):
     def __init__(self,
                  parameters: 'GPGraphOptimizerParameters',
                  requirements: PipelineComposerRequirements,
-                 graph_generation_params: GraphGenerationParams,
-                 # TODO: move these 2 to gp_parameters
-                 max_num_of_mutation_attempts: int = 100,
-                 static_mutation_probability: float = 0.7):
+                 graph_generation_params: GraphGenerationParams):
         super().__init__(parameters, requirements)
-        self.mutation_types = parameters.mutation_types
         self.graph_generation_params = graph_generation_params
-        self.max_num_of_mutation_attempts = max_num_of_mutation_attempts
-        self.static_mutation_probability = static_mutation_probability
 
     def __call__(self, population: Union[Individual, PopulationT]) -> Union[Individual, PopulationT]:
         if isinstance(population, Individual):
@@ -60,15 +54,15 @@ class Mutation(Operator):
         return list(map(self._mutation, population))
 
     @staticmethod
-    def get_mutation_prob(mut_id: MutationStrengthEnum, node: GraphNode) -> float:
+    def get_mutation_prob(mut_id: MutationStrengthEnum, node: GraphNode,
+                          default_mutation_prob: float = 0.7) -> float:
         """ Function returns mutation probability for certain node in the graph
 
         :param mut_id: MutationStrengthEnum mean weak or strong mutation
         :param node: root node of the graph
+        :param default_mutation_prob: mutation probability used when mutation_id is invalid
         :return mutation_prob: mutation probability
         """
-
-        default_mutation_prob = 0.7  # TODO: why it duplicates parameters.mutation_prob?
         if mut_id in list(MutationStrengthEnum):
             mutation_strength = mut_id.value
             mutation_prob = mutation_strength / (node.distance_to_primary_level + 1)
@@ -79,7 +73,7 @@ class Mutation(Operator):
     def _mutation(self, individual: Individual) -> Individual:
         """ Function applies mutation operator to graph """
 
-        for _ in range(self.max_num_of_mutation_attempts):
+        for _ in range(self.parameters.max_num_of_operator_attempts):
             new_graph = deepcopy(individual.graph)
             num_mut = max(int(round(np.random.lognormal(0, sigma=0.5))), 1)
 
@@ -97,16 +91,15 @@ class Mutation(Operator):
         return individual
 
     def _adapt_and_apply_mutations(self, new_graph: OptGraph, num_mut: int) -> Tuple[OptGraph, List[str]]:
-        """
-        Apply mutation in several iterations with specific adaptation of each graph
-        """
+        """Apply mutation in several iterations with specific adaptation of each graph"""
 
-        is_static_mutation_type = random() < self.static_mutation_probability
-        static_mutation_type = choice(self.mutation_types)
+        mutation_types = self.parameters.mutation_types
+        is_static_mutation_type = random() < self.parameters.static_mutation_prob
+        static_mutation_type = choice(mutation_types)
         mutation_names = []
         for _ in range(num_mut):
             mutation_type = static_mutation_type \
-                if is_static_mutation_type else choice(self.mutation_types)
+                if is_static_mutation_type else choice(mutation_types)
             is_custom_mutation = isinstance(mutation_type, Callable)
 
             if is_custom_mutation:
@@ -178,7 +171,7 @@ class Mutation(Operator):
         """
         old_graph = deepcopy(graph)
 
-        for _ in range(self.max_num_of_mutation_attempts):
+        for _ in range(self.parameters.max_num_of_operator_attempts):
             if len(graph.nodes) < 2 or graph.depth > self.requirements.max_depth:
                 return graph
 

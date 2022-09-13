@@ -24,12 +24,9 @@ class Crossover(Operator):
     def __init__(self,
                  parameters: 'GPGraphOptimizerParameters',
                  requirements: PipelineComposerRequirements,
-                 graph_generation_params: GraphGenerationParams,
-                 max_number_of_attempts: int = 100):
+                 graph_generation_params: GraphGenerationParams):
         super().__init__(parameters, requirements)
-        self.crossover_types = parameters.crossover_types
         self.graph_generation_params = graph_generation_params
-        self.max_number_of_attempts = max_number_of_attempts
 
     def __call__(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
@@ -45,11 +42,11 @@ class Crossover(Operator):
         return zip(population[::2], population[1::2])
 
     def _crossover(self, ind_first: Individual, ind_second: Individual) -> Tuple[Individual, Individual]:
-        crossover_type = choice(self.crossover_types)
+        crossover_type = choice(self.parameters.crossover_types)
 
         if self._will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_type):
             crossover_func = self._obtain_crossover_function(crossover_type)
-            for _ in range(self.max_number_of_attempts):
+            for _ in range(self.parameters.max_num_of_operator_attempts):
                 new_graphs = self._adapt_and_apply_crossover(ind_first, ind_second, crossover_func)
                 are_correct = all(self.graph_generation_params.verifier(new_graph) for new_graph in new_graphs)
                 if are_correct:

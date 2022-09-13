@@ -4,9 +4,6 @@ from typing import TYPE_CHECKING
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
-if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-
 
 class ElitismTypesEnum(Enum):
     keep_n_best = 'keep_n_best'
@@ -15,13 +12,6 @@ class ElitismTypesEnum(Enum):
 
 
 class Elitism(Operator):
-    def __init__(self, parameters: 'GPGraphOptimizerParameters',
-                 is_multi_objective: bool,
-                 min_population_size_with_elitism: int = 5):  # TODO: move to requirements
-        super().__init__(parameters=parameters)
-        self.is_multi_objective = is_multi_objective
-        self.min_population_size_with_elitism = min_population_size_with_elitism
-
     def __call__(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
         elitism_type = self.parameters.elitism_type
         if elitism_type is ElitismTypesEnum.none or not self._is_elitism_applicable():
@@ -34,9 +24,9 @@ class Elitism(Operator):
             raise ValueError(f'Required elitism type not found: {elitism_type}')
 
     def _is_elitism_applicable(self) -> bool:
-        if self.is_multi_objective:
+        if self.parameters.multi_objective:
             return False
-        return self.parameters.pop_size >= self.min_population_size_with_elitism
+        return self.parameters.pop_size >= self.parameters.min_pop_size_with_elitism
 
     def _keep_n_best_elitism(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
         shuffle(new_population)
