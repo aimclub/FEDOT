@@ -10,9 +10,9 @@ from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import DirectAdapter
 from fedot.core.optimisers.gp_comp.gp_optimizer import (
     EvoGraphOptimizer,
-    GeneticSchemeTypesEnum,
-    GPGraphOptimizerParameters
+    GeneticSchemeTypesEnum
 )
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
@@ -84,11 +84,16 @@ def run_custom_example(timeout: datetime.timedelta = None):
 
     requirements = PipelineComposerRequirements(
         primary=nodes_types,
-        secondary=nodes_types, max_arity=10,
-        max_depth=10, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.9, timeout=timeout)
+        secondary=nodes_types,
+        max_arity=10,
+        max_depth=10,
+        num_of_generations=5,
+        timeout=timeout
+    )
 
     optimiser_parameters = GPGraphOptimizerParameters(
+        pop_size=5,
+        crossover_prob=0.8, mutation_prob=0.9,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[custom_mutation],
         crossover_types=[CrossoverTypesEnum.none],

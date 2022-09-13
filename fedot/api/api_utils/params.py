@@ -123,8 +123,7 @@ class ApiParams:
                   'with_tuning': True,
                   'preset': AUTO_PRESET_NAME,
                   'genetic_scheme': None,
-                  'history_folder': None,
-                  'stopping_after_n_generation': 30,
+                  'early_stopping_generations': 30,
                   'use_pipelines_cache': True,
                   'use_preprocessing_cache': True}
 

@@ -1,15 +1,17 @@
 from copy import deepcopy
 from random import choice, random
-from typing import Callable, List, Union, Iterable, Tuple
+from typing import Callable, Union, Iterable, Tuple, TYPE_CHECKING
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 
 
 class CrossoverTypesEnum(Enum):
@@ -19,14 +21,12 @@ class CrossoverTypesEnum(Enum):
 
 
 class Crossover(Operator):
-    def __init__(self, crossover_types: List[Union[CrossoverTypesEnum, Callable]],
-                 requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams,
-                 max_number_of_attempts: int = 100):
-        self.crossover_types = crossover_types
+    def __init__(self,
+                 parameters: 'GPGraphOptimizerParameters',
+                 requirements: PipelineComposerRequirements,
+                 graph_generation_params: GraphGenerationParams):
+        super().__init__(parameters, requirements)
         self.graph_generation_params = graph_generation_params
-        self.requirements = requirements
-        self.max_number_of_attempts = max_number_of_attempts
-        self.log = default_log(self)
 
     def __call__(self, population: PopulationT) -> PopulationT:
         if len(population) == 1:
@@ -37,19 +37,16 @@ class Crossover(Operator):
                 new_population += self._crossover(ind_1, ind_2)
         return new_population
 
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
-
     @staticmethod
     def crossover_parents_selection(population: PopulationT) -> Iterable[Tuple[Individual, Individual]]:
         return zip(population[::2], population[1::2])
 
     def _crossover(self, ind_first: Individual, ind_second: Individual) -> Tuple[Individual, Individual]:
-        crossover_type = choice(self.crossover_types)
+        crossover_type = choice(self.parameters.crossover_types)
 
         if self._will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_type):
             crossover_func = self._obtain_crossover_function(crossover_type)
-            for _ in range(self.max_number_of_attempts):
+            for _ in range(self.parameters.max_num_of_operator_attempts):
                 new_graphs = self._adapt_and_apply_crossover(ind_first, ind_second, crossover_func)
                 are_correct = all(self.graph_generation_params.verifier(new_graph) for new_graph in new_graphs)
                 if are_correct:
@@ -105,7 +102,7 @@ class Crossover(Operator):
 
     def _will_crossover_be_applied(self, graph_first, graph_second, crossover_type) -> bool:
         return not (graph_first is graph_second or
-                    random() > self.requirements.crossover_prob or
+                    random() > self.parameters.crossover_prob or
                     crossover_type is CrossoverTypesEnum.none)
 
 

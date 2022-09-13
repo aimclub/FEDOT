@@ -1,6 +1,5 @@
 import logging
 from copy import deepcopy
-from inspect import signature
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -69,7 +68,7 @@ class Fedot:
     :param num_of_generations: number of generations for composer
     :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     :param available_operations: list of model names to use
-    :param stopping_after_n_generation': composer will stop after n generation without improving
+    :param early_stopping_generations': composer will stop after n generation without improving
     :param with_tuning: allow hyperparameters tuning for the model
     :param cv_folds: number of folds for cross-validation
     :param validation_blocks: number of validation blocks for time series forecasting
@@ -117,8 +116,8 @@ class Fedot:
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(
-            **{k: self.params.api_params[k] for k in signature(self.api_composer.init_cache).parameters})
+        self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
+                                     self.params.api_params['use_preprocessing_cache'])
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])

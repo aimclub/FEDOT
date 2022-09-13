@@ -20,8 +20,10 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
     The last approach is applied when neither initial graphs nor initial graphs generation function were provided."""
 
     def __init__(self,
+                 population_size: int,
                  generation_params: GraphGenerationParams,
                  requirements: PipelineComposerRequirements):
+        self.pop_size = population_size
         self.requirements = requirements
         self.generation_params = generation_params
         self.generation_function: Optional[GenerationFunction] = None
@@ -35,7 +37,7 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
             start_depth = self.requirements.start_depth
             return adapter.restore(random_graph(self.generation_params, self.requirements, max_depth=start_depth))
 
-        pop_size = int(self.requirements.pop_size)
+        pop_size = self.pop_size
 
         if self.initial_graphs:
             if len(self.initial_graphs) > pop_size:

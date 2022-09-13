@@ -1,12 +1,15 @@
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.node import Node
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 
 
 class RegularizationTypesEnum(Enum):
@@ -15,25 +18,22 @@ class RegularizationTypesEnum(Enum):
 
 
 class Regularization(Operator):
-    def __init__(self, regularization_type: RegularizationTypesEnum,
-                 requirements: PipelineComposerRequirements, graph_generation_params: GraphGenerationParams):
-        self.regularization_type = regularization_type
+    def __init__(self, parameters: 'GPGraphOptimizerParameters',
+                 graph_generation_params: GraphGenerationParams):
+        super().__init__(parameters=parameters)
         self.graph_generation_params = graph_generation_params
-        self.requirements = requirements
 
     def __call__(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
-        if self.regularization_type is RegularizationTypesEnum.decremental:
+        regularization_type = self.parameters.regularization_type
+        if regularization_type is RegularizationTypesEnum.decremental:
             return self._decremental_regularization(population, evaluator)
-        elif self.regularization_type is RegularizationTypesEnum.none:
+        elif regularization_type is RegularizationTypesEnum.none:
             return population
         else:
-            raise ValueError(f'Required regularization type not found: {self.regularization_type}')
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
+            raise ValueError(f'Required regularization type not found: {regularization_type}')
 
     def _decremental_regularization(self, population: PopulationT, evaluator: EvaluationOperator) -> PopulationT:
-        size = self.requirements.pop_size
+        size = self.parameters.pop_size
         additional_inds = []
         prev_nodes_ids = set()
         for ind in population:
@@ -43,8 +43,8 @@ class Regularization(Operator):
                                              parent_individuals=ind)
             subtree_inds = [Individual(OptGraph(deepcopy(node.ordered_subnodes_hierarchy())), parent_operator)
                             for node in ind.graph.nodes
-                            if Regularization._is_fitted_subtree(self.graph_generation_params.adapter.restore(node))
-                            and node.descriptive_id not in prev_nodes_ids]
+                            if Regularization._is_fitted_subtree(self.graph_generation_params.adapter.restore(node)) and
+                            node.descriptive_id not in prev_nodes_ids]
 
             additional_inds.extend(subtree_inds)
             prev_nodes_ids.update(subtree.graph.root_node.descriptive_id for subtree in subtree_inds)

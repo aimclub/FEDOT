@@ -1,7 +1,7 @@
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -43,20 +43,18 @@ def get_composed_pipeline(dataset_to_compose, task, metric_function):
     # the choice and initialisation of the GP search
     composer_requirements = PipelineComposerRequirements(
         primary=available_model_types,
-        secondary=available_model_types, max_arity=3,
-        max_depth=3, pop_size=20, num_of_generations=20,
-        crossover_prob=0.8, mutation_prob=0.8)
+        secondary=available_model_types,
+    )
+    params = GPGraphOptimizerParameters(
+        genetic_scheme_type=GeneticSchemeTypesEnum.steady_state
+    )
 
-    # GP optimiser parameters choice
-    scheme_type = GeneticSchemeTypesEnum.steady_state
-    optimiser_parameters = GPGraphOptimizerParameters(genetic_scheme_type=scheme_type)
-
-    # Create builder for composer and set composer params
-    builder = ComposerBuilder(task=task).with_requirements(composer_requirements).with_metrics(
-        metric_function).with_optimiser_params(parameters=optimiser_parameters)
-
-    # Create GP-based composer
-    composer = builder.build()
+    # Create composer and with required composer params
+    composer = ComposerBuilder(task=task). \
+        with_requirements(composer_requirements). \
+        with_optimizer_params(params). \
+        with_metrics(metric_function). \
+        build()
 
     # the optimal pipeline generation by composition - the most time-consuming task
     pipeline_evo_composed = composer.compose_pipeline(data=dataset_to_compose)

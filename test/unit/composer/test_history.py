@@ -7,6 +7,8 @@ import numpy as np
 import pytest
 
 from fedot.api.main import Fedot
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
 from fedot.core.data.data import InputData
@@ -17,7 +19,6 @@ from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.objective import Objective
@@ -67,13 +68,13 @@ def test_ancestor_for_mutation():
 
     available_operations = ['linear']
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations, mutation_prob=1,
+                                                         secondary=available_operations,
                                                          max_depth=2)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
-    mutation = Mutation(mutation_types=[MutationTypesEnum.simple], graph_generation_params=graph_params,
-                        requirements=composer_requirements)
+    parameters = GPGraphOptimizerParameters(mutation_types=[MutationTypesEnum.simple], mutation_prob=1)
+    mutation = Mutation(parameters, composer_requirements, graph_params)
 
     mutation_result = mutation(parent_ind)
 
@@ -89,8 +90,9 @@ def test_ancestor_for_crossover():
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
     graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
-    composer_requirements = PipelineComposerRequirements(max_depth=3, crossover_prob=1)
-    crossover = Crossover([CrossoverTypesEnum.subtree], composer_requirements, graph_params)
+    composer_requirements = PipelineComposerRequirements(max_depth=3)
+    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=1)
+    crossover = Crossover(opt_parameters, composer_requirements, graph_params)
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 
     for crossover_result in crossover_results:

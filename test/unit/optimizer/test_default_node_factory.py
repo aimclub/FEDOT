@@ -1,20 +1,15 @@
-from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory
-from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 def test_default_node_factory():
-    task = Task(TaskTypesEnum.classification)
-    advisor = PipelineChangeAdvisor(task)
     primary_operations = ['bernb', 'rf', 'qda', 'pca', 'normalization']
     secondary_operations = ['dt', 'logit', 'rf', 'scaling']
     requirements = PipelineComposerRequirements(primary=primary_operations,
                                                 secondary=secondary_operations)
-    node_factory = DefaultOptNodeFactory(requirements=requirements,
-                                         advisor=advisor)
+    node_factory = DefaultOptNodeFactory(requirements=requirements)
 
     primary_node = OptNode(content={'name': 'pca',
                                     'params': DEFAULT_PARAMS_STUB})

@@ -6,8 +6,9 @@ from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.verification_rules import has_no_self_cycled_nodes
 from fedot.core.optimisers.adapters import DirectAdapter
-from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer, GPGraphOptimizerParameters, \
-    GeneticSchemeTypesEnum
+from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -48,12 +49,12 @@ def test_custom_graph_opt():
 
     requirements = PipelineComposerRequirements(
         primary=nodes_types,
-        secondary=nodes_types, max_arity=3,
-        max_depth=3, pop_size=5, num_of_generations=5,
-        crossover_prob=0.8, mutation_prob=0.9,
+        secondary=nodes_types,
+        num_of_generations=5,
         show_progress=False)
 
     optimiser_parameters = GPGraphOptimizerParameters(
+        pop_size=5,
         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state,
         mutation_types=[
             MutationTypesEnum.simple,
@@ -68,7 +69,8 @@ def test_custom_graph_opt():
         node_factory=PipelineOptNodeFactory(requirements=requirements))
 
     objective = Objective(custom_metric)
-    init_population = InitialPopulationGenerator(graph_generation_params, requirements)()
+    init_population = InitialPopulationGenerator(optimiser_parameters.pop_size,
+                                                 graph_generation_params, requirements)()
     optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
@@ -76,7 +78,7 @@ def test_custom_graph_opt():
         requirements=requirements,
         initial_graphs=init_population)
 
-    objective_eval = ObjectiveEvaluate(objective, eval_n_jobs=1)
+    objective_eval = ObjectiveEvaluate(objective)
     optimized_graphs = optimiser.optimise(objective_eval)
     optimized_network = optimiser.graph_generation_params.adapter.restore(optimized_graphs[0])
 
