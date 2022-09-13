@@ -52,10 +52,10 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         return individuals
 
     def adapt(self, item: DomainStructureType) -> OptGraph:
-        return self._adapt(item) if isinstance(item, self.domain_graph_class) else item
+        return self._adapt(item) if type(item) is self.domain_graph_class else item
 
     def restore(self, item: OptGraph) -> DomainStructureType:
-        return self._restore(item) if isinstance(item, self.opt_graph_class) else item
+        return self._restore(item) if type(item) is self.opt_graph_class else item
 
     def restore_ind(self, individual: Individual) -> DomainStructureType:
         return self._restore(individual.graph, individual.metadata)
