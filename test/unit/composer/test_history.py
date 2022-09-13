@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from fedot.api.main import Fedot
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
@@ -52,12 +53,12 @@ def test_parent_operator():
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline))
     mutation_type = MutationTypesEnum.simple
-    operator_for_history = ParentOperator(operator_type='mutation',
-                                          operator_name=str(mutation_type),
-                                          parent_individuals=(ind,))
+    operator_for_history = ParentOperator(type_='mutation',
+                                          operators=str(mutation_type),
+                                          parent_individuals=ind)
 
     assert operator_for_history.parent_individuals[0] == ind
-    assert operator_for_history.operator_type == 'mutation'
+    assert operator_for_history.type_ == 'mutation'
 
 
 def test_ancestor_for_mutation():
@@ -67,20 +68,20 @@ def test_ancestor_for_mutation():
 
     available_operations = ['linear']
     composer_requirements = PipelineComposerRequirements(primary=available_operations,
-                                                         secondary=available_operations, mutation_prob=1,
+                                                         secondary=available_operations,
                                                          max_depth=2)
 
     graph_params = get_pipeline_generation_params(requirements=composer_requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES)
-    mutation = Mutation(mutation_types=[MutationTypesEnum.simple], graph_generation_params=graph_params,
-                        requirements=composer_requirements)
+    parameters = GPGraphOptimizerParameters(mutation_types=[MutationTypesEnum.simple], mutation_prob=1)
+    mutation = Mutation(parameters, composer_requirements, graph_params)
 
     mutation_result = mutation(parent_ind)
 
-    assert len(mutation_result.parent_operators) > 0
-    assert mutation_result.parent_operators[-1].operator_type == 'mutation'
-    assert len(mutation_result.parent_operators[-1].parent_individuals) == 1
-    assert mutation_result.parent_operators[-1].parent_individuals[0].uid == parent_ind.uid
+    assert mutation_result.parent_operator
+    assert mutation_result.parent_operator.type_ == 'mutation'
+    assert len(mutation_result.parents) == 1
+    assert mutation_result.parents[0].uid == parent_ind.uid
 
 
 def test_ancestor_for_crossover():
@@ -89,16 +90,17 @@ def test_ancestor_for_crossover():
     parent_ind_second = Individual(adapter.adapt(Pipeline(PrimaryNode('ridge'))))
 
     graph_params = get_pipeline_generation_params(rules_for_constraint=DEFAULT_DAG_RULES)
-    composer_requirements = PipelineComposerRequirements(max_depth=3, crossover_prob=1)
-    crossover = Crossover([CrossoverTypesEnum.subtree], composer_requirements, graph_params)
+    composer_requirements = PipelineComposerRequirements(max_depth=3)
+    opt_parameters = GPGraphOptimizerParameters(crossover_types=[CrossoverTypesEnum.subtree], crossover_prob=1)
+    crossover = Crossover(opt_parameters, composer_requirements, graph_params)
     crossover_results = crossover([parent_ind_first, parent_ind_second])
 
     for crossover_result in crossover_results:
-        assert len(crossover_result.parent_operators) > 0
-        assert crossover_result.parent_operators[-1].operator_type == 'crossover'
-        assert len(crossover_result.parent_operators[-1].parent_individuals) == 2
-        assert crossover_result.parent_operators[-1].parent_individuals[0].uid == parent_ind_first.uid
-        assert crossover_result.parent_operators[-1].parent_individuals[1].uid == parent_ind_second.uid
+        assert crossover_result.parent_operator
+        assert crossover_result.parent_operator.type_ == 'crossover'
+        assert len(crossover_result.parents) == 2
+        assert crossover_result.parents[0].uid == parent_ind_first.uid
+        assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
 def test_newly_generated_history():
@@ -125,6 +127,15 @@ def test_newly_generated_history():
     loaded_history = OptHistory.load(dumped_history).save()
     assert dumped_history is not None
     assert dumped_history == loaded_history, 'The history is not equal to itself after reloading!'
+    for ind in chain(*history.individuals):
+        # All individuals in `history.individuals` must have a native generation.
+        assert ind.has_native_generation
+        if ind.native_generation == 0:
+            continue
+        # All individuals must have parents, except for the initial assumptions.
+        assert ind.parents
+        # The first of `operators_from_prev_generation` must point to `parents_from_prev_generation`.
+        assert ind.parents_from_prev_generation == list(ind.operators_from_prev_generation[0].parent_individuals)
 
 
 def assert_intermediate_metrics(pipeline: Graph):
@@ -182,7 +193,7 @@ def test_cv_generator_works_stable(cv_generator, data):
 
 
 def test_history_backward_compatibility():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
     history = OptHistory.load(test_history_path)
     # Pre-computing properties
     all_historical_fitness = history.all_historical_fitness
@@ -195,16 +206,18 @@ def test_history_backward_compatibility():
     # Assert that all history pipelines have fitness
     assert len(historical_pipelines) == len(all_historical_fitness)
     assert np.shape(history.individuals) == np.shape(historical_fitness)
-    # Assert that fitness, parent_individuals, and objective are valid
+    # Assert that fitness, graph, parent_individuals, and objective are valid
     assert all(isinstance(ind.fitness, SingleObjFitness) for ind in chain(*history.individuals))
-    assert all(isinstance(parent_individual, Individual)
-               for ind in chain(*history.individuals) for op in ind.parent_operators
-               for parent_individual in op.parent_individuals)
+    assert all(ind.graph.nodes for ind in chain(*history.individuals))
+    assert all(isinstance(parent_ind, Individual)
+               for ind in chain(*history.individuals)
+               for parent_op in ind.operators_from_prev_generation
+               for parent_ind in parent_op.parent_individuals)
     assert isinstance(history._objective, Objective)
 
 
 def test_history_correct_serialization():
-    test_history_path = Path(fedot_project_root(), 'test', 'data', 'test_history.json')
+    test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
 
     history = OptHistory.load(test_history_path)
     dumped_history = history.save()

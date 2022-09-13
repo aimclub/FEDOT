@@ -11,13 +11,13 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
+    pass
 
 
 class PopulationalOptimizer(GraphOptimizer):
@@ -41,7 +41,7 @@ class PopulationalOptimizer(GraphOptimizer):
                  initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional['GPGraphOptimizerParameters'] = None):
+                 parameters: Optional[GraphOptimizerParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
@@ -51,8 +51,8 @@ class PopulationalOptimizer(GraphOptimizer):
                                                          n_jobs=requirements.n_jobs,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
-        # stopping_after_n_generation may be None, so use some obvious max number
-        max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
+        # early_stopping_generations may be None, so use some obvious max number
+        max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations
         self.stop_optimization = \
             GroupedCondition().add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),

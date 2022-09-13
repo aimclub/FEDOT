@@ -1,6 +1,6 @@
 from random import shuffle
+from typing import TYPE_CHECKING
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
@@ -12,32 +12,21 @@ class ElitismTypesEnum(Enum):
 
 
 class Elitism(Operator):
-    def __init__(self, elitism_type: ElitismTypesEnum,
-                 requirements: PipelineComposerRequirements,
-                 is_multi_objective: bool,
-                 min_population_size_with_elitism: int = 5):
-        self.elitism_type = elitism_type
-        self.requirements = requirements
-        self.is_multi_objective = is_multi_objective
-        self.min_population_size_with_elitism = min_population_size_with_elitism
-
     def __call__(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
-        if self.elitism_type is ElitismTypesEnum.none or not self._is_elitism_applicable():
+        elitism_type = self.parameters.elitism_type
+        if elitism_type is ElitismTypesEnum.none or not self._is_elitism_applicable():
             return new_population
-        elif self.elitism_type is ElitismTypesEnum.keep_n_best:
+        elif elitism_type is ElitismTypesEnum.keep_n_best:
             return self._keep_n_best_elitism(best_individuals, new_population)
-        elif self.elitism_type is ElitismTypesEnum.replace_worst:
+        elif elitism_type is ElitismTypesEnum.replace_worst:
             return self._replace_worst_elitism(best_individuals, new_population)
         else:
-            raise ValueError(f'Required elitism type not found: {self.elitism_type}')
-
-    def update_requirements(self, new_requirements: PipelineComposerRequirements):
-        self.requirements = new_requirements
+            raise ValueError(f'Required elitism type not found: {elitism_type}')
 
     def _is_elitism_applicable(self) -> bool:
-        if self.is_multi_objective:
+        if self.parameters.multi_objective:
             return False
-        return self.requirements.pop_size >= self.min_population_size_with_elitism
+        return self.parameters.pop_size >= self.parameters.min_pop_size_with_elitism
 
     def _keep_n_best_elitism(self, best_individuals: PopulationT, new_population: PopulationT) -> PopulationT:
         shuffle(new_population)

@@ -1,6 +1,5 @@
 import logging
 from copy import deepcopy
-from inspect import signature
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -95,7 +94,6 @@ class Fedot:
                 - ``gpu`` -> Models that use GPU resources for computation.
                 - ``ts`` -> A special preset with models for time series forecasting task.
                 - ``automl`` -> A special preset with only AutoML libraries such as TPOT and H2O as operations.
-                - ``*tree`` -> A special preset that allows only tree-based algorithms
 
         tuner_metric:  metric for quality calculation during tuning
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
@@ -125,8 +123,8 @@ class Fedot:
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(
-            **{k: self.params.api_params[k] for k in signature(self.api_composer.init_cache).parameters})
+        self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
+                                     self.params.api_params['use_preprocessing_cache'])
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])

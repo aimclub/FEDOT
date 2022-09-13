@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import Sequence, Callable
+from typing import Sequence, Optional, TYPE_CHECKING, Callable
 
+from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 
-PopulationT = Sequence[Individual]  # TODO: provisional
+if TYPE_CHECKING:
+    from fedot.core.optimisers.optimizer import GraphOptimizerParameters
+
+PopulationT = Sequence[Individual]  # TODO: provisional EvaluationOperator = Callable[[PopulationT], PopulationT]
 EvaluationOperator = Callable[[PopulationT], PopulationT]
 
 
@@ -19,6 +23,21 @@ class Operator(ABC):
     - Elitism: [Population, Population] -> Population
     """
 
+    def __init__(self,
+                 parameters: Optional['GraphOptimizerParameters'] = None,
+                 requirements: Optional[PipelineComposerRequirements] = None):
+        self.requirements = requirements
+        self.parameters = parameters
+        self.log = default_log(self)
+
     @abstractmethod
-    def update_requirements(self, new_requirements: ComposerRequirements):
+    def __call__(self, *args, **kwargs):
         pass
+
+    def update_requirements(self,
+                            parameters: Optional['GraphOptimizerParameters'] = None,
+                            requirements: Optional[PipelineComposerRequirements] = None):
+        if requirements:
+            self.requirements = requirements
+        if parameters:
+            self.parameters = parameters

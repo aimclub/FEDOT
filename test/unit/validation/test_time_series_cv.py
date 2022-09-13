@@ -5,6 +5,7 @@ from examples.advanced.time_series_forecasting.composing_pipelines import get_av
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -97,7 +98,6 @@ def test_tuner_cv_correct():
 def test_composer_cv_correct():
     """ Checks if the composer works correctly when using cross validation for
     time series """
-    folds = 2
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     primary_operations, secondary_operations = get_available_operations()
@@ -105,17 +105,22 @@ def test_composer_cv_correct():
     # Composer parameters
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=3, pop_size=2, num_of_generations=2,
-        crossover_prob=0.8, mutation_prob=0.8,
+        secondary=secondary_operations,
+        num_of_generations=2,
         timeout=datetime.timedelta(seconds=5),
-        cv_folds=folds,
+        cv_folds=2,
         validation_blocks=validation_blocks,
         show_progress=False)
+    parameters = GPGraphOptimizerParameters(
+        pop_size=2,
+        crossover_prob=0.8,
+        mutation_prob=0.8,
+    )
 
     init_pipeline = get_simple_ts_pipeline()
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=time_series.task). \
+        with_optimizer_params(parameters). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()

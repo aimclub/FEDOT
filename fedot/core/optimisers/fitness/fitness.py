@@ -145,7 +145,7 @@ class SingleObjFitness(Fitness):
 
     def __str__(self) -> str:
         # For single objective return only the primary value
-        return str(round(self.value, 4))
+        return str(round(self.value, 4)) if self.value is not None else 'null_fitness'
 
 
 def null_fitness() -> SingleObjFitness:

@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.gp_comp.parameters.mutation_prob import AdaptiveMutationProb
@@ -37,11 +37,10 @@ class AdaptiveVariationProb(VariationOperatorProb):
         return self._mutation_prob, self._crossover_prob
 
 
-def init_adaptive_operators_prob(genetic_scheme_type: GeneticSchemeTypesEnum,
-                                 requirements: PipelineComposerRequirements) -> VariationOperatorProb:
+def init_adaptive_operators_prob(parameters: GPGraphOptimizerParameters) -> VariationOperatorProb:
     """Returns static or adaptive parameter for mutation & crossover probabilities depending on genetic type scheme."""
-    if genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
+    if parameters.genetic_scheme_type == GeneticSchemeTypesEnum.parameter_free:
         operators_prob = AdaptiveVariationProb()
     else:
-        operators_prob = ConstParameter((requirements.mutation_prob, requirements.crossover_prob))
+        operators_prob = ConstParameter((parameters.mutation_prob, parameters.crossover_prob))
     return operators_prob

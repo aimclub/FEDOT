@@ -8,13 +8,14 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+    RegressionMetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 warnings.filterwarnings('ignore')
@@ -81,7 +82,7 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
                                       'pca', 'ransac_non_lin_reg',
                                       'rfe_non_lin_reg', 'normalization']
     available_primary_operations = ['one_hot_encoding']
-
+    metric_function = RegressionMetricsEnum.MAE
     # Report arrays
     obtained_pipelines = []
     depths = []
@@ -91,17 +92,22 @@ def run_river_composer_experiment(file_path, init_pipeline, file_to_save,
 
         composer_requirements = PipelineComposerRequirements(
             primary=available_primary_operations,
-            secondary=available_secondary_operations, max_arity=3,
-            max_depth=8, pop_size=10, num_of_generations=5,
-            crossover_prob=0.8, mutation_prob=0.8,
-            timeout=datetime.timedelta(minutes=5))
+            secondary=available_secondary_operations,
+            max_arity=3, max_depth=8,
+            num_of_generations=5,
+            timeout=datetime.timedelta(minutes=5)
+        )
 
-        metric_function = MetricsRepository().metric_by_id(
-            RegressionMetricsEnum.MAE)
-        builder = ComposerBuilder(task=data.task). \
+        optimizer_parameters = GPGraphOptimizerParameters(
+            pop_size=10, mutation_prob=0.8, crossover_prob=0.8,
+        )
+
+        composer = ComposerBuilder(task=data.task). \
             with_requirements(composer_requirements). \
-            with_metrics(metric_function).with_initial_pipelines([init_pipeline])
-        composer = builder.build()
+            with_optimizer_params(optimizer_parameters). \
+            with_metrics(metric_function). \
+            with_initial_pipelines([init_pipeline]). \
+            build()
 
         obtained_pipeline = composer.compose_pipeline(data=train_input)
 

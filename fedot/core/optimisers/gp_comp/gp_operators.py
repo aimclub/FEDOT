@@ -3,13 +3,13 @@ from random import randint
 from typing import Any, List, Optional, Tuple
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams
-from fedot.core.optimisers.composer_requirements import ComposerRequirements
 
 
 def random_graph(graph_generation_params: GraphGenerationParams,
-                 requirements: ComposerRequirements,
+                 requirements: PipelineComposerRequirements,
                  max_depth: Optional[int] = None) -> OptGraph:
     max_depth = max_depth if max_depth else requirements.max_depth
     is_correct_graph = False
@@ -35,8 +35,8 @@ def random_graph(graph_generation_params: GraphGenerationParams,
     return graph
 
 
-def adjust_requirements(requirements):
-    """Function modify requirements if necessary.
+def adjust_requirements(requirements: PipelineComposerRequirements) -> PipelineComposerRequirements:
+    """Function returns modified copy of the requirements if necessary.
     Example: Graph with only one primary node should consist of only one primary node
     without duplication, because this causes errors. Therefore minimum and maximum arity
     become equal to one.
@@ -49,7 +49,7 @@ def adjust_requirements(requirements):
 
 def graph_growth(graph: OptGraph,
                  node_parent: OptNode,
-                 params: 'GraphGenerationParams',
+                 params: GraphGenerationParams,
                  requirements,
                  max_depth: int):
     """Function create a graph and links between nodes"""
@@ -78,9 +78,9 @@ def equivalent_subtree(graph_first: Any, graph_second: Any) -> List[Tuple[Any, A
         is_same_type = type(node_first) == type(node_second)
         node_first_childs = node_first.nodes_from
         node_second_childs = node_second.nodes_from
-        if is_same_type and ((not node_first.nodes_from)
-                             or (node_first_childs and node_second_childs and
-                                 len(node_first_childs) == len(node_second_childs))):
+        if is_same_type and (not node_first.nodes_from or
+                             node_first_childs and node_second_childs and
+                             len(node_first_childs) == len(node_second_childs)):
             nodes.append((node_first, node_second))
             if node_first.nodes_from:
                 for node1_child, node2_child in zip(node_first.nodes_from, node_second.nodes_from):
