@@ -1,6 +1,5 @@
 import logging
 from copy import deepcopy
-from inspect import signature
 from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -21,7 +20,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.quality_metrics_repository import MetricsRepository
 from fedot.core.repository.tasks import TaskParams, TaskTypesEnum
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence
-from fedot.core.visualisation.opt_viz import PipelineEvolutionVisualiser
+from fedot.core.visualisation.opt_viz_extra import visualise_pareto
 from fedot.explainability.explainer_template import Explainer
 from fedot.explainability.explainers import explain_pipeline
 from fedot.preprocessing.preprocessing import merge_preprocessors
@@ -69,7 +68,7 @@ class Fedot:
     :param num_of_generations: number of generations for composer
     :param keep_n_best: Number of the best individuals of previous generation to keep in next generation.
     :param available_operations: list of model names to use
-    :param stopping_after_n_generations: composer will stop after n generation without improving
+    :param early_stopping_generations': composer will stop after n generation without improving
     :param with_tuning: allow hyperparameters tuning for the model
     :param cv_folds: number of folds for cross-validation
     :param validation_blocks: number of validation blocks for time series forecasting
@@ -92,8 +91,7 @@ class Fedot:
             - 'automl': A special preset with only AutoML libraries such as TPOT and H2O as operations.
     :param use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
     :param use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
-    :param logging_level_opt: logging level for optimiser. Logic of logging is the same as in 'logging_level' param
-    :param show_progress: bool indicating whether to show progress using tqdm or not
+    :param show_progress: bool indicating whether to show progress using tqdm/tuner or not
     """
 
     def __init__(self,
@@ -118,8 +116,8 @@ class Fedot:
         self.params.initialize_params(input_params)
 
         # Initialize ApiComposer's cache parameters via ApiParams
-        self.api_composer.init_cache(
-            **{k: self.params.api_params[k] for k in signature(self.api_composer.init_cache).parameters})
+        self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
+                                     self.params.api_params['use_preprocessing_cache'])
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])
@@ -288,9 +286,9 @@ class Fedot:
         # Each archive is sorted from the best to the worst model,
         # so the best_candidates is sorted too.
         best_candidates = self.history.archive_history[-1]
-        PipelineEvolutionVisualiser().visualise_pareto(front=best_candidates,
-                                                       objectives_names=metric_names,
-                                                       show=True)
+        visualise_pareto(front=best_candidates,
+                         objectives_names=metric_names,
+                         show=True)
 
     def plot_prediction(self, target: Optional[Any] = None):
         """Plots the prediction obtained from graph
@@ -310,7 +308,7 @@ class Fedot:
                 raise NotImplementedError(f"For task {self.params.api_params['task']} plot prediction is not supported")
         else:
             self.params.api_params['logger'].error('No prediction to visualize')
-            raise ValueError("Prediction from model is empty")
+            raise ValueError('Prediction from model is empty')
 
     def get_metrics(self,
                     target: Union[np.ndarray, pd.Series] = None,

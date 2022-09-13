@@ -9,6 +9,116 @@ class HyperparametersPreprocessor():
     :param n_samples_data: number of rows in data
     """
 
+    all_preprocessing_rules = {
+        'knnreg': {
+            'n_neighbors': ['integer']
+        },
+        'dtreg': {
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'treg': {
+            'n_estimators': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'rfr': {
+            'n_estimators': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'adareg': {
+            'n_estimators': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'gbr': {
+            'n_estimators': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'xgbreg': {
+            'nthread': ['integer'],
+            'n_estimators': ['integer'],
+            'max_depth': ['integer'],
+            'max_leaves': ['integer'],
+            'max_bin': ['integer']
+        },
+        'lgbmreg': {
+            'num_iterations': ['integer'], 'num_iteration': ['integer'], 'n_iter': ['integer'],
+            'num_tree': ['integer'], 'num_trees': ['integer'],
+            'num_round': ['integer'], 'num_rounds': ['integer'], 'nrounds': ['integer'],
+            'num_boost_round': ['integer'], 'n_estimators': ['integer'], 'max_iter': ['integer'],
+            'num_leaves': ['integer'], 'num_leaf': ['integer'],
+            'max_leaves': ['integer'], 'max_leaf': ['integer'], 'max_leaf_nodes': ['integer'],
+            'max_depth': ['integer'],
+            'min_data_in_leaf': ['absolute', 'integer'], 'min_data_per_leaf': ['absolute', 'integer'],
+            'min_data': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+            'min_samples_leaf': ['absolute', 'integer'],
+            'bagging_freq': ['integer'], 'subsample_freq': ['integer'],
+            'max_bin': ['integer'], 'max_bins': ['integer'],
+        },
+        'catboostreg': {
+            'iterations': ['integer'], 'num_boost_round': ['integer'],
+            'n_estimators': ['integer'], 'num_trees': ['integer'],
+            'depth': ['integer'], 'max_depth': ['integer'],
+            'min_data_in_leaf': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+            'max_leaves': ['integer'], 'num_leaves': ['integer'],
+        },
+
+        'knn': {
+            'n_neighbors': ['integer']
+        },
+        'dt': {
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'rf': {
+            'n_estimators': ['integer'],
+            'max_leaf_nodes': ['le0_to_none', 'integer'],
+            'max_depth': ['le0_to_none', 'integer']
+        },
+        'xgboost': {
+            'nthread': ['integer'],
+            'n_estimators': ['integer'],
+            'max_depth': ['integer'],
+            'max_leaves': ['integer'],
+            'max_bin': ['integer']
+        },
+        'lgbm': {
+            'num_iterations': ['integer'], 'num_iteration': ['integer'], 'n_iter': ['integer'],
+            'num_tree': ['integer'], 'num_trees': ['integer'],
+            'num_round': ['integer'], 'num_rounds': ['integer'], 'nrounds': ['integer'],
+            'num_boost_round': ['integer'], 'n_estimators': ['integer'], 'max_iter': ['integer'],
+            'num_leaves': ['integer'], 'num_leaf': ['integer'],
+            'max_leaves': ['integer'], 'max_leaf': ['integer'], 'max_leaf_nodes': ['integer'],
+            'max_depth': ['integer'],
+            'min_data_in_leaf': ['absolute', 'integer'], 'min_data_per_leaf': ['absolute', 'integer'],
+            'min_data': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+            'min_samples_leaf': ['absolute', 'integer'],
+            'bagging_freq': ['integer'], 'subsample_freq': ['integer'],
+            'max_bin': ['integer'], 'max_bins': ['integer'],
+        },
+        'catboost': {
+            'iterations': ['integer'], 'num_boost_round': ['integer'],
+            'n_estimators': ['integer'], 'num_trees': ['integer'],
+            'depth': ['integer'], 'max_depth': ['integer'],
+            'min_data_in_leaf': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
+            'max_leaves': ['integer'], 'num_leaves': ['integer'],
+        },
+
+        'kmeans': {
+            'n_clusters': ['integer']
+        },
+
+        'kernel_pca': {
+            'n_components': ['le0_to_none', 'integer']
+        },
+        'fast_ica': {
+            'n_components': ['le0_to_none', 'integer']
+        },
+    }
+
     def __init__(self,
                  operation_type: Optional[str],
                  n_samples_data: Optional[int]):
@@ -21,118 +131,9 @@ class HyperparametersPreprocessor():
             'le0_to_none': self._correct_le0_to_none
         }
 
-    def _get_preprocessing_rules(self, operation_type):
-        all_preprocessing_rules = {
-            'knnreg': {
-                'n_neighbors': ['integer']
-            },
-            'dtreg': {
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'treg': {
-                'n_estimators': ['integer'],
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'rfr': {
-                'n_estimators': ['integer'],
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'adareg': {
-                'n_estimators': ['integer'],
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'gbr': {
-                'n_estimators': ['integer'],
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'xgbreg': {
-                'nthread': ['integer'],
-                'n_estimators': ['integer'],
-                'max_depth': ['integer'],
-                'max_leaves': ['integer'],
-                'max_bin': ['integer']
-            },
-            'lgbmreg': {
-                'num_iterations': ['integer'], 'num_iteration': ['integer'], 'n_iter': ['integer'],
-                'num_tree': ['integer'], 'num_trees': ['integer'],
-                'num_round': ['integer'], 'num_rounds': ['integer'], 'nrounds': ['integer'],
-                'num_boost_round': ['integer'], 'n_estimators': ['integer'], 'max_iter': ['integer'],
-                'num_leaves': ['integer'], 'num_leaf': ['integer'],
-                'max_leaves': ['integer'], 'max_leaf': ['integer'], 'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer'],
-                'min_data_in_leaf': ['absolute', 'integer'], 'min_data_per_leaf': ['absolute', 'integer'],
-                'min_data': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
-                'min_samples_leaf': ['absolute', 'integer'],
-                'bagging_freq': ['integer'], 'subsample_freq': ['integer'],
-                'max_bin': ['integer'], 'max_bins': ['integer'],
-            },
-            'catboostreg': {
-                'iterations': ['integer'], 'num_boost_round': ['integer'],
-                'n_estimators': ['integer'], 'num_trees': ['integer'],
-                'depth': ['integer'], 'max_depth': ['integer'],
-                'min_data_in_leaf': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
-                'max_leaves': ['integer'], 'num_leaves': ['integer'],
-            },
-
-            'knn': {
-                'n_neighbors': ['integer']
-            },
-            'dt': {
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'rf': {
-                'n_estimators': ['integer'],
-                'max_leaf_nodes': ['le0_to_none', 'integer'],
-                'max_depth': ['le0_to_none', 'integer']
-            },
-            'xgboost': {
-                'nthread': ['integer'],
-                'n_estimators': ['integer'],
-                'max_depth': ['integer'],
-                'max_leaves': ['integer'],
-                'max_bin': ['integer']
-            },
-            'lgbm': {
-                'num_iterations': ['integer'], 'num_iteration': ['integer'], 'n_iter': ['integer'],
-                'num_tree': ['integer'], 'num_trees': ['integer'],
-                'num_round': ['integer'], 'num_rounds': ['integer'], 'nrounds': ['integer'],
-                'num_boost_round': ['integer'], 'n_estimators': ['integer'], 'max_iter': ['integer'],
-                'num_leaves': ['integer'], 'num_leaf': ['integer'],
-                'max_leaves': ['integer'], 'max_leaf': ['integer'], 'max_leaf_nodes': ['integer'],
-                'max_depth': ['integer'],
-                'min_data_in_leaf': ['absolute', 'integer'], 'min_data_per_leaf': ['absolute', 'integer'],
-                'min_data': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
-                'min_samples_leaf': ['absolute', 'integer'],
-                'bagging_freq': ['integer'], 'subsample_freq': ['integer'],
-                'max_bin': ['integer'], 'max_bins': ['integer'],
-            },
-            'catboost': {
-                'iterations': ['integer'], 'num_boost_round': ['integer'],
-                'n_estimators': ['integer'], 'num_trees': ['integer'],
-                'depth': ['integer'], 'max_depth': ['integer'],
-                'min_data_in_leaf': ['absolute', 'integer'], 'min_child_samples': ['absolute', 'integer'],
-                'max_leaves': ['integer'], 'num_leaves': ['integer'],
-            },
-
-            'kmeans': {
-                'n_clusters': ['integer']
-            },
-
-            'kernel_pca': {
-                'n_components': ['le0_to_none', 'integer']
-            },
-            'fast_ica': {
-                'n_components': ['le0_to_none', 'integer']
-            },
-        }
-
-        return all_preprocessing_rules.get(operation_type, {})
+    @staticmethod
+    def _get_preprocessing_rules(operation_type):
+        return HyperparametersPreprocessor.all_preprocessing_rules.get(operation_type, {})
 
     def correct(self,
                 params: Optional[dict]):

@@ -1,20 +1,23 @@
-import logging
 from abc import abstractmethod
-from typing import Any, Optional, Sequence
+from typing import TYPE_CHECKING, Any, Optional, Sequence
 
 from tqdm import tqdm
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.archive import GenerationKeeper
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer
+from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.utilities.grouped_condition import GroupedCondition
+
+if TYPE_CHECKING:
+    pass
 
 
 class PopulationalOptimizer(GraphOptimizer):
@@ -35,10 +38,10 @@ class PopulationalOptimizer(GraphOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Pipeline],
+                 initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional['GPGraphOptimizerParameters'] = None):
+                 parameters: Optional[GraphOptimizerParameters] = None):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
@@ -48,8 +51,8 @@ class PopulationalOptimizer(GraphOptimizer):
                                                          n_jobs=requirements.n_jobs,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
-        # stopping_after_n_generation may be None, so use some obvious max number
-        max_stagnation_length = parameters.stopping_after_n_generation or requirements.num_of_generations
+        # early_stopping_generations may be None, so use some obvious max number
+        max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations
         self.stop_optimization = \
             GroupedCondition().add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),
@@ -70,15 +73,12 @@ class PopulationalOptimizer(GraphOptimizer):
         # Redirect callback to evaluation dispatcher
         self.eval_dispatcher.set_evaluation_callback(callback)
 
-    def optimise(self, objective: ObjectiveFunction,
-                 show_progress: bool = True) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
 
         # eval_dispatcher defines how to evaluate objective on the whole population
         evaluator = self.eval_dispatcher.dispatch(objective)
 
-        with self.timer, tqdm(total=self.requirements.num_of_generations,
-                              desc='Generations', unit='gen', initial=1,
-                              disable=not show_progress or self.log.logging_level == logging.NOTSET):
+        with self.timer, self._progressbar:
 
             self._initial_population(evaluator=evaluator)
 
@@ -123,16 +123,15 @@ class PopulationalOptimizer(GraphOptimizer):
         for individual in population:
             individual.set_native_generation(self.current_generation_num)
 
-    def _progressbar(self, show_progress: bool = True):
-        disable = not show_progress
-        if disable:
-            # disable call to tqdm.__init__ completely
-            # to avoid access to stdout/stderr inside it
-            # workaround for https://github.com/nccr-itmo/FEDOT/issues/765
-            bar = EmptyProgressBar()
-        else:
+    @property
+    def _progressbar(self):
+        if self.requirements.show_progress:
             bar = tqdm(total=self.requirements.num_of_generations,
-                       desc='Generations', unit='gen', initial=1, disable=disable)
+                       desc='Generations', unit='gen', initial=1)
+        else:
+            # disable call to tqdm.__init__ to avoid stdout/stderr access inside it
+            # part of a workaround for https://github.com/nccr-itmo/FEDOT/issues/765
+            bar = EmptyProgressBar()
         return bar
 
 
@@ -151,6 +150,7 @@ class EmptyProgressBar:
 
 class EvaluationAttemptsError(Exception):
     """ Number of evaluation attempts exceeded """
+
     def __init__(self, *args):
         if args:
             self.message = args[0]

@@ -218,28 +218,19 @@ def get_nan_binary_data(task=None):
     return input_data
 
 
-def get_unbalanced_dataset(target_dim=None):
-    """ Generate table with one numerical and one categorical features.
+def get_unbalanced_dataset(size=10, disbalance=0.4, target_dim=None):
+    """ Generate table with one numerical and one categorical features by selected size and class disbalance
         Target is binary and unbalanced: majority "1" class is more than minority "0" class.
         It can be generated with two options: 1D or 2D representation of target.
     """
-    features = np.array([
-        [0, 'minor'],
-        [1, 'minor'],
-        [2, 'minor'],
-        [3, 'minor'],
-        [4, 'major'],
-        [5, 'major'],
-        [6, 'major'],
-        [7, 'major'],
-        [8, 'major'],
-        [9, 'major'],
-    ])
+    minor_size = round(size * disbalance)
+    major_size = size - minor_size
 
-    target = np.array([0, 0, 0, 0, 1, 1, 1, 1, 1, 1])
+    features = np.array([[np.random.rand(), 'minor']] * minor_size + [[np.random.rand(), 'major']] * major_size)
+    target = np.array([0] * minor_size + [1] * major_size)
 
     if target_dim == 2:
-        target = np.array([[0], [0], [0], [0], [1], [1], [1], [1], [1], [1]])
+        target = target.reshape(-1, 1)
 
     supp_data = SupplementaryData(column_types={
         'features': [NAME_CLASS_INT, NAME_CLASS_STR],
@@ -279,7 +270,7 @@ def data_with_binary_int_features_and_equal_categories():
 def test_regression_data_operations():
     train_input, predict_input, y_test = get_small_regression_dataset()
 
-    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository('data_operation').suitable_operation(
         task_type=TaskTypesEnum.regression)
 
     for data_operation in operation_names:
@@ -298,7 +289,7 @@ def test_regression_data_operations():
 def test_classification_data_operations():
     train_input, predict_input, y_test = get_small_classification_dataset()
 
-    operation_names, _ = OperationTypesRepository('data_operation').suitable_operation(
+    operation_names = OperationTypesRepository('data_operation').suitable_operation(
         task_type=TaskTypesEnum.classification)
 
     for data_operation in operation_names:
@@ -340,7 +331,7 @@ def test_ts_forecasting_cut_data_operation():
 def test_ts_forecasting_smoothing_data_operation():
     train_input, predict_input, y_test = get_time_series()
 
-    model_names, _ = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
+    model_names = OperationTypesRepository().operations_with_tag(tags=['smoothing'])
 
     for smoothing_operation in model_names:
         node_smoothing = PrimaryNode(smoothing_operation)
@@ -376,7 +367,7 @@ def test_inf_and_nan_absence_after_imputation_implementation_fit_and_transform()
 def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
     train_input = get_nan_inf_data()
 
-    model_names, _ = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
+    model_names = OperationTypesRepository().suitable_operation(task_type=TaskTypesEnum.regression)
 
     for model_name in model_names:
         node_data_operation = PrimaryNode(model_name)
@@ -394,7 +385,7 @@ def test_inf_and_nan_absence_after_pipeline_fitting_from_scratch():
 
 def test_feature_selection_of_single_features():
     for task_type in [TaskTypesEnum.classification, TaskTypesEnum.regression]:
-        model_names, _ = OperationTypesRepository(operation_type='data_operation') \
+        model_names = OperationTypesRepository(operation_type='data_operation') \
             .suitable_operation(tags=['feature_selection'], task_type=task_type)
 
         task = Task(task_type)
@@ -592,30 +583,57 @@ def test_poly_features_on_big_datasets():
     n_rows, n_cols = transformed_features.predict.shape
     assert n_cols == 85
 
+
 @pytest.mark.parametrize(
-    'n_samples, target_dim, expected',
+    'balance_ratio, target_dim, expected',
     [(None, 1, (12, 2)), (None, 2, (12, 2)),
-     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
-     (1.5, 1, (15, 2)), (1.5, 2, (15, 2))]
+     (0.5, 1, (11, 2)), (0.5, 2, (11, 2)),
+     (1.5, 1, (12, 2)), (1.5, 2, (12, 2))]
 )
-def test_correctness_resample_operation_with_expand_minority(n_samples, target_dim, expected):
-    params = {'balance': 'expand_minority', 'replace': True, 'n_samples': n_samples}
+def test_correctness_resample_operation_with_expand_minority(balance_ratio, target_dim, expected):
+    params = {'balance': 'expand_minority', 'replace': False, 'balance_ratio': balance_ratio}
     resample = ResampleImplementation(**params)
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
     assert resample.transform_for_fit(data).predict.shape == expected
+
 
 @pytest.mark.parametrize(
-    'n_samples, target_dim, expected',
+    'balance_ratio, target_dim, expected',
     [(None, 1, (8, 2)), (None, 2, (8, 2)),
-     (0.5, 1, (6, 2)), (0.5, 2, (6, 2)),
-     (1.5, 1, (10, 2)), (1.5, 2, (10, 2))]
+     (0.5, 1, (9, 2)), (0.5, 2, (9, 2)),
+     (1.5, 1, (8, 2)), (1.5, 2, (8, 2))]
 )
-def test_correctness_resample_operation_with_reduce_majority(n_samples, target_dim, expected):
-    params = {'balance': 'reduce_majority', 'replace': True, 'n_samples': n_samples}
+def test_correctness_resample_operation_with_reduce_majority(balance_ratio, target_dim, expected):
+    params = {'balance': 'reduce_majority', 'replace': False, 'balance_ratio': balance_ratio}
     resample = ResampleImplementation(**params)
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
     assert resample.transform_for_fit(data).predict.shape == expected
+
+
+@pytest.mark.parametrize(
+    'strategy, balance_ratio, disbalance, expected',
+    [('expand_minority', 0.5, 0.4, True), ('expand_minority', 0.5, 0.2, True),
+     ('expand_minority', 1, 0.4, True), ('expand_minority', 1, 0.2, True),
+     ('expand_minority', 1.5, 0.4, True), ('expand_minority', 1.5, 0.2, True),
+     ('reduce_majority', 0.5, 0.4, False), ('reduce_majority', 0.5, 0.2, False),
+     ('reduce_majority', 1, 0.4, False), ('reduce_majority', 1, 0.2, False),
+     ('reduce_majority', 1.5, 0.4, False), ('reduce_majority', 1.5, 0.2, False)]
+)
+def test_correctness_resample_operation_with_dynamic_replace_param(strategy, balance_ratio, disbalance, expected):
+    """
+    Default params for replace is False.
+    In case of expanding strategy it causes difficulties and needed to change replace param to True.
+    It is required to avoid error in sklearn method, which cannot reuse data if replace is False.
+    """
+    params = {'balance': strategy, 'replace': False, 'balance_ratio': balance_ratio}
+
+    resample = ResampleImplementation(**params)
+
+    data = get_unbalanced_dataset(size=10, disbalance=disbalance)
+    resample.transform_for_fit(data)
+
+    assert resample.replace == expected

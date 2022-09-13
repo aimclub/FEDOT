@@ -21,10 +21,9 @@ def graph_structure_as_nx_graph(structural_graph: 'Graph') -> Tuple[nx.DiGraph, 
 
     def add_edges(nx_graph, structural_graph, new_node_indices):
         for node in structural_graph.nodes:
-            if node.nodes_from is not None:
-                for parent in node.nodes_from:
-                    nx_graph.add_edge(new_node_indices[parent],
-                                      new_node_indices[node])
+            for parent in node.nodes_from:
+                nx_graph.add_edge(new_node_indices[parent],
+                                  new_node_indices[node])
 
     add_edges(nx_graph, structural_graph, new_node_indices)
     return nx_graph, node_labels
@@ -41,9 +40,8 @@ def pipeline_template_as_nx_graph(pipeline: 'PipelineTemplate'):
 
     def add_edges(graph, pipeline):
         for operation in pipeline.operation_templates:
-            if operation.nodes_from is not None:
-                for child in operation.nodes_from:
-                    graph.add_edge(child, operation.operation_id)
+            for child in operation.nodes_from:
+                graph.add_edge(child, operation.operation_id)
 
     add_edges(graph, pipeline)
     return graph, node_labels

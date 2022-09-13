@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 from catboost import CatBoostClassifier, CatBoostRegressor
-from lightgbm import LGBMClassifier, LGBMRegressor
+from lightgbm.sklearn import LGBMClassifier, LGBMRegressor
 from sklearn.cluster import KMeans as SklearnKmeans
 from sklearn.ensemble import (
     AdaBoostRegressor,
@@ -32,6 +32,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -169,6 +170,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         :param InputData train_data: data used for operation training
         :return: trained Sklearn operation
         """
+
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
         if self.params_for_fit:
@@ -179,8 +181,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
-        non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
-                                                             tags=['non_multi'])
+        non_multi_models = models_repo.suitable_operation(task_type=current_task,
+                                                          tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
 
         # Multi-output task or not
@@ -190,7 +192,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
             operation_implementation = convert_to_multivariate_model(operation_implementation,
                                                                      train_data)
         else:
-            operation_implementation.fit(train_data.features, train_data.target)
+            with RandomStateHandler():
+                operation_implementation.fit(train_data.features, train_data.target)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

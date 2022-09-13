@@ -1,7 +1,16 @@
 import warnings
 
-from cuml import KMeans
-import cudf
+from fedot.core.utilities.random import RandomStateHandler
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    from cuml import KMeans
+    import cudf
+except ModuleNotFoundError:
+    warn_requirement('cudf / cuml')
+    cudf = None
+    KMeans = None
+
 from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
@@ -11,7 +20,7 @@ from fedot.core.operations.evaluation.gpu.common import CuMLEvaluationStrategy
 
 class CumlClusteringStrategy(CuMLEvaluationStrategy):
     __operations_by_types = {
-        'kmeans': KMeans,
+        'kmeans': KMeans
     }
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
@@ -34,7 +43,8 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
             operation_implementation = self.operation_impl(n_clusters=2)
 
         features = cudf.DataFrame(train_data.features.astype('float32'))
-        operation_implementation.fit(features)
+        with RandomStateHandler():
+            operation_implementation.fit(features)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

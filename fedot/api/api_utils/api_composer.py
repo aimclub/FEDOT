@@ -1,6 +1,5 @@
 import datetime
 import gc
-import logging
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
@@ -12,16 +11,18 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.composer.metrics import Metric
-from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, MINIMAL_SECONDS_FOR_TUNING
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
-from fedot.core.optimisers.gp_comp.gp_optimizer import GeneticSchemeTypesEnum, GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum
+from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
@@ -37,15 +38,15 @@ class ApiComposer:
         self.preset_name = None
         self.timer = None
 
-    def obtain_metric(self, task: Task, metric: Union[str, Callable]):
+    def obtain_metric(self, task: Task, metric: Union[str, Callable]) -> Sequence[MetricType]:
         """Chooses metric to use for quality assessment of pipeline during composition"""
         if metric is None:
-            metric = MetricByTask(task.task_type).metric_cls.get_value
+            metric = MetricByTask(task.task_type).get_default_quality_metrics()
 
         if isinstance(metric, (str, Callable)):
             metric = [metric]
 
-        metric_function = []
+        metric_functions = []
         for specific_metric in metric:
             if isinstance(specific_metric, Callable):
                 specific_metric_function = specific_metric
@@ -55,8 +56,8 @@ class ApiComposer:
                 if metric_id is None:
                     raise ValueError(f'Incorrect metric {specific_metric}')
                 specific_metric_function = MetricsRepository().metric_by_id(metric_id)
-            metric_function.append(specific_metric_function)
-        return metric_function
+            metric_functions.append(specific_metric_function)
+        return metric_functions
 
     def obtain_model(self, **common_dict):
         # Prepare parameters
@@ -114,53 +115,64 @@ class ApiComposer:
         primary_operations, secondary_operations = \
             ApiComposer.divide_operations(available_operations, task)
 
-        composer_requirements = PipelineComposerRequirements(primary=primary_operations,
-                                                             secondary=secondary_operations,
-                                                             max_arity=composer_params['max_arity'],
-                                                             max_depth=composer_params['max_depth'],
-                                                             pop_size=composer_params['pop_size'],
-                                                             max_pipeline_fit_time=composer_params[
-                                                                 'max_pipeline_fit_time'],
-                                                             num_of_generations=composer_params['num_of_generations'],
-                                                             cv_folds=composer_params['cv_folds'],
-                                                             validation_blocks=composer_params['validation_blocks'],
-                                                             timeout=datetime_composing,
-                                                             n_jobs=api_params['n_jobs'],
-                                                             show_progress=api_params['show_progress'],
-                                                             logging_level_opt=api_params['logging_level_opt'],
-                                                             collect_intermediate_metric=composer_params[
-                                                                 'collect_intermediate_metric'],
-                                                             keep_n_best=composer_params['keep_n_best'])
+        composer_requirements = PipelineComposerRequirements(
+            primary=primary_operations,
+            secondary=secondary_operations,
+            max_arity=composer_params['max_arity'],
+            max_depth=composer_params['max_depth'],
+
+            num_of_generations=composer_params['num_of_generations'],
+            timeout=datetime_composing,
+            early_stopping_generations=composer_params.get('early_stopping_generations', None),
+
+            max_pipeline_fit_time=composer_params['max_pipeline_fit_time'],
+            n_jobs=api_params['n_jobs'],
+            show_progress=api_params['show_progress'],
+            collect_intermediate_metric=composer_params['collect_intermediate_metric'],
+            keep_n_best=composer_params['keep_n_best'],
+
+            cv_folds=composer_params['cv_folds'],
+            validation_blocks=composer_params['validation_blocks'],
+        )
         return composer_requirements
 
     @staticmethod
-    def _init_optimiser_params(task: Task, composer_params: dict) -> GPGraphOptimizerParameters:
-
+    def _init_optimizer_parameters(composer_params: dict,
+                                   multi_objective: bool,
+                                   task_type: TaskTypesEnum) -> GPGraphOptimizerParameters:
         genetic_scheme_type = GeneticSchemeTypesEnum.parameter_free
         if composer_params['genetic_scheme'] == 'steady_state':
             genetic_scheme_type = GeneticSchemeTypesEnum.steady_state
 
-        mutations = [boosting_mutation, parameter_change_mutation,
+        optimizer_params = GPGraphOptimizerParameters(
+            multi_objective=multi_objective,
+            pop_size=composer_params['pop_size'],
+            genetic_scheme_type=genetic_scheme_type,
+            mutation_types=ApiComposer._get_default_mutations(task_type)
+        )
+        return optimizer_params
+
+    @staticmethod
+    def _get_default_mutations(task_type: TaskTypesEnum) -> Sequence[MutationTypesEnum]:
+        mutations = [parameter_change_mutation,
                      MutationTypesEnum.single_change,
                      MutationTypesEnum.single_drop,
                      MutationTypesEnum.single_add]
+
+        # TODO remove workaround after boosting mutation fix
+        if task_type == TaskTypesEnum.ts_forecasting:
+            mutations.append(boosting_mutation)
         # TODO remove workaround after validation fix
-        if task.task_type is not TaskTypesEnum.ts_forecasting:
+        if task_type is not TaskTypesEnum.ts_forecasting:
             mutations.append(MutationTypesEnum.single_edge)
 
-        optimiser_parameters = GPGraphOptimizerParameters(
-            genetic_scheme_type=genetic_scheme_type,
-            mutation_types=mutations,
-            crossover_types=[CrossoverTypesEnum.one_point, CrossoverTypesEnum.subtree],
-            stopping_after_n_generation=composer_params.get('stopping_after_n_generation')
-        )
-        return optimiser_parameters
+        return mutations
 
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
-        log = api_params['logger']
-        task = api_params['task']
+        log: LoggerAdapter = api_params['logger']
+        task: Task = api_params['task']
         train_data = api_params['train_data']
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
@@ -180,34 +192,65 @@ class ApiComposer:
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache)
         log.info(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
-        self.preset_name = assumption_handler.propose_preset(preset, self.timer)
 
-        composer_requirements = self._init_composer_requirements(api_params, composer_params,
+        n_jobs = determine_n_jobs(api_params['n_jobs'])
+        self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
+
+        # Get parameters for composer and optimizer
+        composer_requirements = ApiComposer._init_composer_requirements(api_params, composer_params,
                                                                  self.timer.timedelta_composing, self.preset_name)
-
-        # Get optimiser, its parameters, and composer
-        metric_function = self.obtain_metric(task, composer_params['metric'])
+        metric_functions = self.obtain_metric(task, composer_params['metric'])
 
         log.info(f"AutoML configured."
-                 f" Parameters tuning: {with_tuning}."
-                 f" Time limit: {timeout} min."
-                 f" Set of candidate models: {available_operations}.")
+                 f" Parameters tuning: {with_tuning}"
+                 f" Time limit: {timeout} min"
+                 f" Set of candidate models: {available_operations}")
 
-        builder = ComposerBuilder(task=task) \
+        best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
+                                                                                     fitted_assumption,
+                                                                                     metric_functions,
+                                                                                     composer_requirements,
+                                                                                     composer_params, log)
+        if with_tuning:
+            self.tune_final_pipeline(task, train_data,
+                                     metric_functions[0],
+                                     composer_requirements,
+                                     best_pipeline,
+                                     log)
+        # enforce memory cleaning
+        gc.collect()
+
+        log.info('Model generation finished')
+        return best_pipeline, best_pipeline_candidates, gp_composer.history
+
+    def compose_pipeline(self, task: Task,
+                         train_data: InputData,
+                         fitted_assumption: Pipeline,
+                         metric_functions: Sequence[MetricsEnum],
+                         composer_requirements: PipelineComposerRequirements,
+                         composer_params: dict,
+                         log: LoggerAdapter) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
+
+        multi_objective = len(metric_functions) > 1
+        optimizer_params = ApiComposer._init_optimizer_parameters(composer_params,
+                                                                  multi_objective=multi_objective,
+                                                                  task_type=task.task_type)
+        gp_composer: GPComposer = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
-            .with_initial_pipelines(initial_assumption) \
-            .with_optimiser(composer_params.get('optimizer')) \
-            .with_optimiser_params(parameters=self._init_optimiser_params(task, composer_params),
+            .with_initial_pipelines(fitted_assumption) \
+            .with_optimizer(composer_params.get('optimizer')) \
+            .with_optimizer_params(parameters=optimizer_params,
                                    external_parameters=composer_params.get('optimizer_external_params')) \
-            .with_metrics(metric_function) \
+            .with_metrics(metric_functions) \
             .with_history(composer_params.get('history_folder')) \
-            .with_cache(self.pipelines_cache, self.preprocessing_cache)
-        gp_composer: GPComposer = builder.build()
+            .with_cache(self.pipelines_cache, self.preprocessing_cache) \
+            .build()
 
-        if self.timer.have_time_for_composing(composer_params['pop_size']):
+        n_jobs = determine_n_jobs(composer_requirements.n_jobs)
+        if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
-                log.info(f'Pipeline composition started.')
+                log.info('Pipeline composition started.')
                 best_pipelines = gp_composer.compose_pipeline(data=train_data)
                 best_pipeline_candidates = gp_composer.best_models
         else:
@@ -217,72 +260,41 @@ class ApiComposer:
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
 
-        best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
-
-        # Workaround for logger missing after adapting/restoring
         for pipeline in best_pipeline_candidates:
             pipeline.log = log
-
-        if with_tuning:
-            tuning_metric = composer_params['metric']
-            timeout_for_tuning = self.timer.determine_resources_for_tuning()
-            self.tune_final_pipeline(task, train_data,
-                                     tuning_metric,
-                                     composer_requirements,
-                                     best_pipeline,
-                                     timeout_for_tuning,
-                                     log)
-        # enforce memory cleaning
-        gc.collect()
-
-        log.info('Model generation finished')
-        return best_pipeline, best_pipeline_candidates, gp_composer.history
+        best_pipeline = best_pipelines[0] if isinstance(best_pipelines, Sequence) else best_pipelines
+        return best_pipeline, best_pipeline_candidates, gp_composer
 
     def tune_final_pipeline(self, task: Task,
                             train_data: InputData,
-                            tuner_metric: Optional[MetricType],
+                            metric_function: Optional[MetricType],
                             composer_requirements: PipelineComposerRequirements,
                             pipeline_gp_composed: Pipeline,
-                            timeout_for_tuning: int,
-                            log: LoggerAdapter):
+                            log: LoggerAdapter) -> Pipeline:
         """ Launch tuning procedure for obtained pipeline by composer """
+        timeout_for_tuning = abs(self.timer.determine_resources_for_tuning()) / 60
+        tuner = TunerBuilder(task) \
+            .with_tuner(PipelineTuner) \
+            .with_metric(metric_function) \
+            .with_iterations(DEFAULT_TUNING_ITERATIONS_NUMBER) \
+            .with_timeout(datetime.timedelta(minutes=timeout_for_tuning)) \
+            .with_requirements(composer_requirements) \
+            .build(train_data)
 
-        if timeout_for_tuning < MINIMAL_SECONDS_FOR_TUNING:
+        if self.timer.have_time_for_tuning():
+            # Tune all nodes in the pipeline
+            with self.timer.launch_tuning():
+                log.info('Hyperparameters tuning started')
+                tuned_pipeline = tuner.tune(pipeline_gp_composed)
+                log.info('Hyperparameters tuning finished')
+        else:
             log.info(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
                      f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
                      f'to tune the hyperparameters.')
             log.info('Composed pipeline returned without tuning.')
-        else:
-            tuner_loss = self.obtain_metric_for_tuning(tuner_metric, task, log)
-            # Tune all nodes in the pipeline
-            with self.timer.launch_tuning():
-                log.info('Hyperparameters tuning started')
-                vb_number = composer_requirements.validation_blocks
-                folds = composer_requirements.cv_folds
-                timeout_for_tuning = abs(timeout_for_tuning) / 60
-                pipeline_gp_composed = pipeline_gp_composed. \
-                    fine_tune_all_nodes(loss_function=tuner_loss,
-                                        input_data=train_data,
-                                        iterations=DEFAULT_TUNING_ITERATIONS_NUMBER,
-                                        timeout=timeout_for_tuning,
-                                        cv_folds=folds,
-                                        validation_blocks=vb_number)
-                log.info('Hyperparameters tuning finished')
-        return pipeline_gp_composed
+            tuned_pipeline = pipeline_gp_composed
 
-    def obtain_metric_for_tuning(self, tuner_metric: Union[None, str, Metric], task: Task, log: LoggerAdapter):
-        if tuner_metric is None:
-            # Default metric for tuner
-            tuner_loss = MetricByTask(task.task_type).metric_cls.metric
-            log.info(f'Tuner metric is None, {tuner_loss.__name__} is set as default')
-        elif isinstance(tuner_metric, Metric):
-            tuner_loss = tuner_metric.metric
-        elif isinstance(tuner_metric, str):
-            metric_id = self.metrics.get_metrics_mapping(metric_name=tuner_metric)
-            tuner_loss = MetricsRepository().metric_class_by_id(metric_id).metric
-        else:
-            tuner_loss = tuner_metric
-        return tuner_loss
+        return tuned_pipeline
 
 
 def _divide_parameters(common_dict: dict) -> List[dict]:
@@ -291,14 +303,14 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
     :param common_dict: dictionary with parameters for all AutoML modules
     """
     api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
-                           logging_level_opt=logging.INFO, show_progress=True)
+                           show_progress=True)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,
                                 validation_blocks=None, cv_folds=None, genetic_scheme=None, history_folder=None,
-                                stopping_after_n_generation=None, optimizer=None, optimizer_external_params=None,
+                                early_stopping_generations=None, optimizer=None, optimizer_external_params=None,
                                 collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
-                                preset='auto', use_pipelines_cache=True, use_preprocessing_cache=False)
+                                preset='auto', use_pipelines_cache=True, use_preprocessing_cache=True)
 
     tuner_params_dict = dict(with_tuning=False)
 

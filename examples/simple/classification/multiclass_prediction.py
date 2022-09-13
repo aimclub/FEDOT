@@ -67,7 +67,7 @@ def get_model(train_file_path: str, cur_lead_time: datetime.timedelta = timedelt
     # the search of the models provided by the framework
     # that can be used as nodes in a pipeline for the selected task
     models_repo = OperationTypesRepository()
-    available_model_types, _ = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
+    available_model_types = models_repo.suitable_operation(task_type=task.task_type, tags=['simple'])
 
     metric_function = ClassificationMetricsEnum.ROCAUC_penalty
 

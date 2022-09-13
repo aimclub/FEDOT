@@ -1,16 +1,24 @@
 import warnings
 from typing import Optional
 
-import cudf
-import cuml
-from cuml import KMeans, Ridge, LogisticRegression, Lasso, ElasticNet, \
-    MBSGDClassifier, MBSGDRegressor, CD
-from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
-from cuml.svm import SVC
-from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
-    KNeighborsRegressor as CuMlknnRegressor
-from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
-    MultinomialNB as CuMlMultinomialNB
+from fedot.core.utilities.random import RandomStateHandler
+from fedot.utilities.requirements_notificator import warn_requirement
+
+try:
+    import cudf
+    import cuml
+    from cuml import Ridge, LogisticRegression, Lasso, ElasticNet, \
+        MBSGDClassifier, MBSGDRegressor, CD
+    from cuml.ensemble import RandomForestClassifier, RandomForestRegressor
+    from cuml.svm import SVC
+    from cuml.neighbors import KNeighborsClassifier as CuMlknnClassifier, \
+        KNeighborsRegressor as CuMlknnRegressor
+    from cuml import LinearRegression as CuMlLinReg, SGD as CuMlSGD, \
+        MultinomialNB as CuMlMultinomialNB
+except ModuleNotFoundError:
+    warn_requirement('cudf / cuml')
+    cudf = None
+    cuml = None
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
@@ -26,25 +34,27 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
     data operation repositories
     :param dict params: hyperparameters to fit the operation with
     """
-    __operations_by_types = {
-        'ridge': Ridge,
-        'lasso': Lasso,
-        'logit': LogisticRegression,
-        'linear': CuMlLinReg,
-        'rf': RandomForestClassifier,
-        'rfr': RandomForestRegressor,
-        'svc': SVC,
-        'knn': CuMlknnClassifier,
-        'knnreg': CuMlknnRegressor,
-        'sgd': CuMlSGD,
-        'multinb': CuMlMultinomialNB,
-        'elasticnet': ElasticNet,
-        'mbsgdclass': MBSGDClassifier,
-        'mbsgdcregr': MBSGDRegressor,
-        'cd': CD
-
-
-    }
+    try:
+        __operations_by_types = {
+            'ridge': Ridge,
+            'lasso': Lasso,
+            'logit': LogisticRegression,
+            'linear': CuMlLinReg,
+            'rf': RandomForestClassifier,
+            'rfr': RandomForestRegressor,
+            'svc': SVC,
+            'knn': CuMlknnClassifier,
+            'knnreg': CuMlknnRegressor,
+            'sgd': CuMlSGD,
+            'multinb': CuMlMultinomialNB,
+            'elasticnet': ElasticNet,
+            'mbsgdclass': MBSGDClassifier,
+            'mbsgdcregr': MBSGDRegressor,
+            'cd': CD
+        }
+    except NameError:
+        # if cuML not installed
+        __operations_by_types = {}
 
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
@@ -67,8 +77,8 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type
         models_repo = OperationTypesRepository()
-        non_multi_models, _ = models_repo.suitable_operation(task_type=current_task,
-                                                             tags=['non_multi'])
+        non_multi_models = models_repo.suitable_operation(task_type=current_task,
+                                                          tags=['non_multi'])
         is_model_not_support_multi = self.operation_type in non_multi_models
         features = cudf.DataFrame(train_data.features.astype('float32'))
         target = cudf.Series(train_data.target.flatten().astype('float32'))
@@ -77,7 +87,8 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
             raise NotImplementedError('Not supported for GPU yet')
             # TODO Manually wrap the regressor into multi-output model
         else:
-            operation_implementation.fit(features, target)
+            with RandomStateHandler():
+                operation_implementation.fit(features, target)
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:

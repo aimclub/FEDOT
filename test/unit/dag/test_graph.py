@@ -2,16 +2,21 @@ from copy import copy, deepcopy
 from random import seed
 
 import numpy as np
+import pytest
 
 from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
-from test.unit.dag.test_graph_utils import *
-from test.unit.pipelines.test_pipeline_tuning import classification_dataset
+from fedot.core.dag.graph_operator import GraphOperator
+from test.unit.dag.test_graph_utils import find_same_node, nodes_same
+from test.unit.pipelines.tuning.test_pipeline_tuning import classification_dataset
 
 seed(1)
 np.random.seed(1)
 
 tmp = classification_dataset
+
+GraphImpl = GraphOperator
 
 
 def test_graph_id():
@@ -31,7 +36,7 @@ def test_graph_str():
     third = GraphNode(content='n3')
     final = GraphNode(content='n4',
                       nodes_from=[first, second, third])
-    graph = Graph(final)
+    graph = GraphImpl(final)
 
     expected_graph_description = "{'depth': 2, 'length': 4, 'nodes': [n4, n1, n2, n3]}"
 
@@ -48,7 +53,7 @@ def test_pipeline_repr():
     third = GraphNode(content='n3')
     final = GraphNode(content='n4',
                       nodes_from=[first, second, third])
-    graph = Graph(final)
+    graph = GraphImpl(final)
 
     expected_graph_description = "{'depth': 2, 'length': 4, 'nodes': [n4, n1, n2, n3]}"
 
@@ -61,7 +66,7 @@ def test_delete_primary_node():
     second = GraphNode(content='n2')
     third = GraphNode(content='n3', nodes_from=[first])
     final = GraphNode(content='n4', nodes_from=[second, third])
-    graph = Graph(final)
+    graph = GraphImpl(final)
 
     # when
     graph.delete_node(first)
@@ -77,7 +82,7 @@ def test_delete_node_with_duplicated_edges():
     ok_primary_node = GraphNode('n1')
     bad_primary_node = GraphNode('n2')
     nodes_from_with_duplicate = [bad_primary_node, ok_primary_node, bad_primary_node]
-    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+    graph = GraphImpl([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
 
     to_delete_node = find_same_node(graph.nodes, bad_primary_node)
     graph.delete_node(to_delete_node)
@@ -91,7 +96,7 @@ def test_delete_subtree_with_several_edges_near():
     bad_primary_node = GraphNode('n2a')
     bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
     root_node = GraphNode('n3', nodes_from=[bad_secondary_node, ok_primary_node, bad_primary_node])
-    graph = Graph(root_node)
+    graph = GraphImpl(root_node)
 
     to_delete_node = find_same_node(graph.nodes, bad_secondary_node)
     graph.delete_subtree(to_delete_node)
@@ -109,7 +114,7 @@ def test_delete_subtree_with_several_edges_distant():
     bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
     subtree_child = GraphNode('n3', nodes_from=[bad_secondary_node, ok_primary_node])
     root_node = GraphNode('n4', nodes_from=[subtree_child, bad_primary_node])
-    graph = Graph(root_node)
+    graph = GraphImpl(root_node)
 
     to_delete_node = find_same_node(graph.nodes, bad_secondary_node)
     graph.delete_subtree(to_delete_node)
@@ -128,7 +133,7 @@ def test_delete_subtree_with_duplicated_edges():
     bad_primary_node = GraphNode('n2a')
     bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
     nodes_from_with_duplicate = [bad_secondary_node, ok_primary_node, bad_secondary_node, bad_primary_node]
-    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+    graph = GraphImpl([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
 
     to_delete_node = find_same_node(graph.nodes, bad_secondary_node)
     graph.delete_subtree(to_delete_node)
@@ -147,7 +152,7 @@ def test_update_node_without_predecessors():
     old_secondary_node_1 = GraphNode('l2n1', nodes_from=nodes_from)
 
     final_node = GraphNode('l3n1', nodes_from=[old_secondary_node_1])
-    graph = Graph([final_node])
+    graph = GraphImpl([final_node])
 
     new_secondary_node = GraphNode('l2new')
     graph.update_node(old_secondary_node_1, new_secondary_node)
@@ -163,7 +168,7 @@ def test_update_node_with_duplicated_edges():
     ok_primary_node = GraphNode('n1')
     bad_primary_node = GraphNode('n2')
     nodes_from_with_duplicate = [bad_primary_node, ok_primary_node, bad_primary_node]
-    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+    graph = GraphImpl([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
 
     updated_node = GraphNode('n2b')
     to_update_node = find_same_node(graph.nodes, bad_primary_node)
@@ -180,7 +185,7 @@ def test_update_subtree_with_duplicated_edges():
     bad_primary_node = GraphNode('n2a')
     bad_secondary_node = GraphNode('n2b', nodes_from=[bad_primary_node])
     nodes_from_with_duplicate = [bad_secondary_node, ok_primary_node, bad_secondary_node, bad_primary_node]
-    graph = Graph([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
+    graph = GraphImpl([GraphNode('n3', nodes_from=nodes_from_with_duplicate)])
 
     updated_node = GraphNode('n4b', nodes_from=[GraphNode('n4a')])
     to_update_node = find_same_node(graph.nodes, bad_secondary_node)
@@ -194,14 +199,31 @@ def test_update_subtree_with_duplicated_edges():
     assert find_same_node(graph.root_node.nodes_from, updated_node)
 
 
-def test_graph_copy():
-    graph = Graph(GraphNode(content='n1'))
+@pytest.mark.parametrize('graph', [GraphImpl(GraphNode(content='n1')),
+                                   GraphDelegate(GraphNode(content='n1'), delegate_cls=GraphImpl)])
+def test_graph_copy(graph: Graph):
     graph_copy = copy(graph)
+
     assert id(graph) != id(graph_copy)
+    assert graph.root_node.descriptive_id == graph_copy.root_node.descriptive_id
+
+    _modify_graph_copy(graph_copy)
+
+    assert graph.root_node.descriptive_id == graph_copy.root_node.descriptive_id
 
 
-def test_graph_deepcopy():
-    graph = Graph(GraphNode(content='n1'))
+@pytest.mark.parametrize('graph', [GraphImpl(GraphNode(content='n1')),
+                                   GraphDelegate(GraphNode(content='n1'), delegate_cls=GraphImpl)])
+def test_graph_deepcopy(graph: Graph):
     graph_copy = deepcopy(graph)
-    graph.nodes[0] = GraphNode(content='n11')
-    assert graph != graph_copy
+
+    assert id(graph) != id(graph_copy)
+    assert graph.root_node.descriptive_id == graph_copy.root_node.descriptive_id
+
+    _modify_graph_copy(graph_copy)
+
+    assert graph.root_node.descriptive_id != graph_copy.root_node.descriptive_id
+
+
+def _modify_graph_copy(graph: Graph):
+    graph.root_node.content['name'] = 'n2'

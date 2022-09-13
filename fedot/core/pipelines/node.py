@@ -40,12 +40,13 @@ class Node(GraphNode):
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
             default_params = get_default_params(operation.operation_type)
-            if passed_content['params'] == DEFAULT_PARAMS_STUB and default_params is not None:
+            passed_params = passed_content.get('params', DEFAULT_PARAMS_STUB)
+            if passed_params == DEFAULT_PARAMS_STUB and default_params is not None:
                 # Replace 'default_params' with params from json file
                 default_params = get_default_params(operation.operation_type)
             else:
                 # Store passed
-                default_params = passed_content['params']
+                default_params = passed_params
 
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
@@ -376,8 +377,6 @@ class SecondaryNode(Node):
 
     def __init__(self, operation_type: Optional[Union[str, 'Operation']] = None,
                  nodes_from: Optional[List['Node']] = None, **kwargs):
-        if nodes_from is None:
-            nodes_from = []
         super().__init__(nodes_from=nodes_from, operation_type=operation_type, **kwargs)
 
     def fit(self, input_data: InputData, **kwargs) -> OutputData:
@@ -438,9 +437,7 @@ class SecondaryNode(Node):
 
         :return: sorted :attr:`nodes_from` by :attr:`~fedot.core.dag.graph_node.GraphNode.descriptive_id` or `None`
         """
-        if self.nodes_from is not None:
-            return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
-        return None
+        return sorted(self.nodes_from, key=lambda node: node.descriptive_id)
 
 
 def _combine_parents(parent_nodes: List[Node],

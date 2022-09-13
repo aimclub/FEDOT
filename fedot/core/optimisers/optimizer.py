@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from dataclasses import dataclass
-import logging
-from typing import (Any, Callable, Optional, Sequence)
+from typing import Any, Callable, Optional, Sequence
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.dag.graph import Graph
@@ -9,10 +8,11 @@ from fedot.core.dag.graph_verifier import GraphVerifier, VerifierRuleType
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import BaseOptimizationAdapter, DirectAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
+from fedot.core.optimisers.composer_requirements import ComposerRequirements
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.objective import Objective, ObjectiveFunction, GraphFunction
-from fedot.core.optimisers.opt_node_factory import OptNodeFactory, DefaultOptNodeFactory
+from fedot.core.optimisers.objective import GraphFunction, Objective, ObjectiveFunction
+from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory, OptNodeFactory
 
 OptimisationCallback = Callable[[PopulationT, GenerationKeeper], Any]
 
@@ -21,25 +21,24 @@ def do_nothing_callback(*args, **kwargs):
     pass
 
 
+@dataclass
 class GraphOptimizerParameters:
-    """
-        It is base class for defining the parameters of optimizer
+    """Base class for definition of optimizer parameters. Can be extended for custom optimizers.
 
-        :param with_auto_depth_configuration: flag to enable option of automated tree depth configuration during
-        evolution. Default False.
-        :param depth_increase_step: the step of depth increase in automated depth configuration
-        :param multi_objective: flag used for of algorithm type definition (multi-objective if true or single-objective
-        if false). Value is defined in ComposerBuilder. Default False.
+    :param multi_objective: defines if the optimizer must be multi-criterial
+    :param offspring_rate: offspring rate used on next population
+    :param pop_size: initial population size
+    :param max_pop_size: maximum population size; optional, if unspecified, then population size is unbound
+    :param adaptive_depth: flag to enable adaptive configuration of graph depth
+    :param adaptive_depth_max_stagnation: max number of stagnating populations before adaptive depth increment
     """
 
-    def __init__(self,
-                 with_auto_depth_configuration: bool = False, depth_increase_step: int = 3,
-                 multi_objective: bool = False, history_folder: str = None,
-                 stopping_after_n_generation: int = 10):
-        self.with_auto_depth_configuration = with_auto_depth_configuration
-        self.depth_increase_step = depth_increase_step
-        self.multi_objective = multi_objective
-        self.stopping_after_n_generation = stopping_after_n_generation
+    multi_objective: bool = False
+    offspring_rate: float = 0.5
+    pop_size: int = 20
+    max_pop_size: Optional[int] = 55
+    adaptive_depth: bool = False
+    adaptive_depth_max_stagnation: int = 3
 
 
 @dataclass
@@ -60,7 +59,7 @@ class GraphGenerationParams:
     def __init__(self, adapter: Optional[BaseOptimizationAdapter] = None,
                  rules_for_constraint: Sequence[VerifierRuleType] = (),
                  advisor: Optional[DefaultChangeAdvisor] = None,
-                 node_factory: OptNodeFactory = None):
+                 node_factory: Optional[OptNodeFactory] = None):
         self.adapter = adapter or DirectAdapter()
         self.verifier = GraphVerifier(rules_for_constraint, self.adapter)
         self.advisor = advisor or DefaultChangeAdvisor()
@@ -84,11 +83,10 @@ class GraphOptimizer:
     def __init__(self,
                  objective: Objective,
                  initial_graphs: Optional[Sequence[Graph]] = None,
-                 requirements: Optional[Any] = None,
+                 requirements: Optional[ComposerRequirements] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
                  parameters: Optional[GraphOptimizerParameters] = None):
-        self.log = default_log(self, self, logging_level=requirements.logging_level_opt if requirements else
-                               logging.CRITICAL+1)
+        self.log = default_log(self)
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements
@@ -101,12 +99,10 @@ class GraphOptimizer:
         return self._objective
 
     @abstractmethod
-    def optimise(self, objective: ObjectiveFunction,
-                 show_progress: bool = True) -> Sequence[OptGraph]:
+    def optimise(self, objective: ObjectiveFunction) -> Sequence[OptGraph]:
         """
         Method for running of optimization using specified algorithm.
         :param objective: objective function that specifies optimization target
-        :param show_progress: print output the describes the progress during iterations
         :return: sequence of the best graphs
         """
         pass

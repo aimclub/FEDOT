@@ -1,12 +1,12 @@
 from copy import deepcopy
 from datetime import timedelta
-from typing import Callable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
 
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
-from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.data.data import InputData, OutputData
@@ -17,7 +17,6 @@ from fedot.core.operations.model import Model
 from fedot.core.optimisers.timer import Timer
 from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
 from fedot.core.pipelines.template import PipelineTemplate
-from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.tasks import TaskTypesEnum
 from fedot.core.utilities.serializable import Serializable
 from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_for_time_series
@@ -25,46 +24,21 @@ from fedot.preprocessing.preprocessing import DataPreprocessor, update_indices_f
 ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
-class Pipeline(Graph, Serializable):
+class Pipeline(GraphDelegate, Serializable):
     """
     Base class used for composite model structure definition
 
     :param nodes: Node object(s)
     """
 
-    def __init__(self, nodes: Optional[Union[Node, List[Node]]] = None):
+    def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
+        super().__init__(nodes, _graph_nodes_to_pipeline_nodes)
+
         self.computation_time = None
         self.log = default_log(self)
 
         # Define data preprocessor
         self.preprocessor = DataPreprocessor()
-        super().__init__(nodes)
-        self._operator = GraphOperator(self, self._graph_nodes_to_pipeline_nodes)
-
-    def _graph_nodes_to_pipeline_nodes(self, nodes: List[Node] = None):
-        """
-        Method to update nodes type after performing some action on the pipeline
-            via GraphOperator, if any of them are of GraphNode type
-
-        :param nodes: Node object(s)
-        """
-
-        if not nodes:
-            nodes = self.nodes
-
-        for node in nodes:
-            if not isinstance(node, GraphNode):
-                continue
-            if node.nodes_from and not isinstance(node, SecondaryNode):
-                self.update_node(old_node=node,
-                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
-                                                        content=node.content))
-            elif not node.nodes_from:
-                if not self.node_children(node) and node != self.root_node:
-                    self.nodes.remove(node)
-                elif not isinstance(node, PrimaryNode):
-                    self.update_node(old_node=node,
-                                     new_node=PrimaryNode(content=node.content))
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
         """
@@ -96,7 +70,7 @@ class Pipeline(Graph, Serializable):
                 args=(input_data, process_state_dict, fitted_operations)
             )
         except func_timeout.FunctionTimedOut:
-            raise TimeoutError(f'Pipeline fitness evaluation time limit is expired')
+            raise TimeoutError('Pipeline fitness evaluation time limit is expired')
 
         self.computation_time = process_state_dict['computation_time_in_seconds']
         for node_num, _ in enumerate(self.nodes):
@@ -117,9 +91,7 @@ class Pipeline(Graph, Serializable):
         """
 
         with Timer() as t:
-            computation_time_update = (
-                    not self.root_node.fitted_operation or self.computation_time is None
-            )
+            computation_time_update = not self.root_node.fitted_operation or self.computation_time is None
             train_predicted = self.root_node.fit(input_data=input_data)
             if computation_time_update:
                 self.computation_time = round(t.minutes_from_start, 3)
@@ -143,7 +115,7 @@ class Pipeline(Graph, Serializable):
 
         :return: values predicted on the provided ``input_data``
         """
-        _replace_n_jobs_in_nodes(self, n_jobs)
+        self.replace_n_jobs_in_nodes(n_jobs)
 
         copied_input_data = deepcopy(input_data)
         copied_input_data = self.preprocessor.obligatory_prepare_for_fit(copied_input_data)
@@ -241,45 +213,7 @@ class Pipeline(Graph, Serializable):
             result.predict = self.preprocessor.apply_inverse_target_encoding(result.predict)
         return result
 
-    def fine_tune_all_nodes(self, loss_function: Callable,
-                            input_data: Union[InputData, MultiModalData] = None,
-                            iterations: int = 50, timeout: Optional[float] = 5.,
-                            cv_folds: Optional[int] = None, validation_blocks: int = 3) -> 'Pipeline':
-        """
-        Tunes all nodes hyperparameters simultaneously via black-box
-            optimization using PipelineTuner. For details, see
-                :meth:`~fedot.core.pipelines.tuning.unified.PipelineTuner.tune_pipeline`
-
-        :param loss_function: desired loss function
-        :param loss_params: ``loss_function`` parameters
-        :param input_data: data from which to tune the pipeline upon
-        :param iterations: max number of tuning iterations
-        :param timeout: max time spent on tuning
-        :param cv_folds: number of cross-validation folds
-        :param validation_blocks: number of validation blocks for time series forecasting
-
-        :return: pipeline with tuned hyperparameters
-        """
-        # Make copy of the input data to avoid performing inplace operations
-        copied_input_data = deepcopy(input_data)
-
-        if timeout is not None:
-            timeout = timedelta(minutes=timeout)
-        pipeline_tuner = PipelineTuner(pipeline=self,
-                                       task=copied_input_data.task,
-                                       iterations=iterations,
-                                       timeout=timeout)
-        self.log.info('Start pipeline tuning')
-
-        tuned_pipeline = pipeline_tuner.tune_pipeline(input_data=copied_input_data,
-                                                      loss_function=loss_function,
-                                                      cv_folds=cv_folds,
-                                                      validation_blocks=validation_blocks)
-        self.log.info('Tuning was finished')
-
-        return tuned_pipeline
-
-    def save(self, path: Optional[str] = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
+    def save(self, path: str = None, datetime_in_path: bool = True) -> Tuple[str, dict]:
         """
         Saves the pipeline to JSON representation with pickled fitted operations
 
@@ -300,7 +234,7 @@ class Pipeline(Graph, Serializable):
         :param source: where to load the pipeline from
         :param dict_fitted_operations: dictionary of the fitted operations
         """
-        self._nodes = []
+        self.nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
@@ -354,9 +288,9 @@ class Pipeline(Graph, Serializable):
         max_distance = 0
         side_root_node = None
         for node in self.nodes:
-            if (task_type in node.operation.acceptable_task_types
-                    and isinstance(node.operation, Model)
-                    and node.distance_to_primary_level >= max_distance):
+            if (task_type in node.operation.acceptable_task_types and
+                    isinstance(node.operation, Model) and
+                    node.distance_to_primary_level >= max_distance):
                 side_root_node = node
                 max_distance = node.distance_to_primary_level
 
@@ -393,6 +327,21 @@ class Pipeline(Graph, Serializable):
             sep='\n'
         )
 
+    def replace_n_jobs_in_nodes(self, n_jobs: int):
+        """
+        Changes number of jobs for nodes
+
+        :param n_jobs: required number of the jobs to assign to the nodes
+        """
+        for node in self.nodes:
+            for param in ['n_jobs', 'num_threads']:
+                if param in node.content['params']:
+                    node.content['params'][param] = n_jobs
+                    # workaround for lgbm paramaters
+                    if node.content['name'] == 'lgbm':
+                        node.content['params']['num_threads'] = n_jobs
+                        node.content['params']['n_jobs'] = n_jobs
+
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     """
@@ -410,14 +359,25 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     return list(appropriate_nodes)
 
 
-def _replace_n_jobs_in_nodes(pipeline: Pipeline, n_jobs: int):
+def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node]):
     """
-    Changes number of jobs for nodes
+    Method to update nodes type after performing some action on the pipeline
+        via GraphOperator, if any of them are of GraphNode type
 
-    :param pipeline: pipeline which nodes to update
-    :param n_jobs: required number of the jobs to assign to the nodes
+    :param nodes: Node object(s)
     """
-    for node in pipeline.nodes:
-        for param in ['n_jobs', 'num_threads']:
-            if param in node.content['params']:
-                node.content['params'][param] = n_jobs
+
+    for node in nodes:
+        if not isinstance(node, GraphNode):
+            continue
+        if node.nodes_from and not isinstance(node, SecondaryNode):
+            operator.update_node(old_node=node,
+                                 new_node=SecondaryNode(nodes_from=node.nodes_from,
+                                                        content=node.content))
+        # TODO: avoid internal access use operator.delete_node
+        elif not node.nodes_from and not operator.node_children(node) and node != operator.root_node:
+            operator.nodes.remove(node)
+        elif not node.nodes_from and not isinstance(node, PrimaryNode):
+            operator.update_node(old_node=node,
+                                 new_node=PrimaryNode(nodes_from=node.nodes_from,
+                                                      content=node.content))

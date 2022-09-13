@@ -1,12 +1,12 @@
 from typing import Optional
 
-from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.pipelines.node import PrimaryNode
 from fedot.core.pipelines.pipeline import Pipeline, nodes_with_operation
 from fedot.core.repository.dataset_types import DataTypesEnum
-from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
+from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task, \
+    atomized_model_type
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 ERROR_PREFIX = 'Invalid pipeline configuration:'
@@ -38,8 +38,8 @@ def has_final_operation_as_model(pipeline: 'Pipeline'):
     if not isinstance(pipeline, Pipeline):
         pipeline = PipelineAdapter().restore(pipeline)
     root_node = pipeline.root_node
-
-    if type(root_node.operation) is not Model and type(root_node.operation) is not AtomizedModel:
+    # TODO @YamLyubov refactor check for AtomizedModel (fix circular import)
+    if type(root_node.operation) is not Model and root_node.operation.operation_type != atomized_model_type():
         raise ValueError(f'{ERROR_PREFIX} Root operation is not a model')
 
     return True
@@ -50,7 +50,7 @@ def has_no_conflicts_with_data_flow(pipeline: 'Pipeline'):
     if not isinstance(pipeline, Pipeline):
         pipeline = PipelineAdapter().restore(pipeline)
     operation_repo = OperationTypesRepository(operation_type='data_operation')
-    forbidden_parents_combination, _ = operation_repo.suitable_operation()
+    forbidden_parents_combination = operation_repo.suitable_operation()
     forbidden_parents_combination = set(forbidden_parents_combination)
 
     for node in pipeline.nodes:
@@ -280,8 +280,6 @@ def has_no_conflicts_after_class_decompose(pipeline: Pipeline):
 
     # Check for correct descendants after classification decompose
     for node in pipeline.nodes:
-        if node.nodes_from is None:
-            continue
         parent_operations = [node.operation.operation_type for node in node.nodes_from]
         if 'class_decompose' in parent_operations:
             # Check is this model for regression task

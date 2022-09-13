@@ -1,77 +1,25 @@
 from copy import deepcopy
 from random import choice
-from typing import Any, List, Optional, Sequence, Union, Callable
+from typing import Sequence, Callable
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
+from fedot.core.dag.graph import Graph
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
-from fedot.core.optimisers.gp_comp.operators.elitism import Elitism, ElitismTypesEnum
-from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum, Inheritance
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
+from fedot.core.optimisers.gp_comp.operators.crossover import Crossover
+from fedot.core.optimisers.gp_comp.operators.elitism import Elitism
+from fedot.core.optimisers.gp_comp.operators.inheritance import Inheritance
+from fedot.core.optimisers.gp_comp.operators.mutation import Mutation
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
-from fedot.core.optimisers.gp_comp.operators.regularization import RegularizationTypesEnum, Regularization
-from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection
+from fedot.core.optimisers.gp_comp.operators.regularization import Regularization
+from fedot.core.optimisers.gp_comp.operators.selection import Selection
 from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDepth
 from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
 from fedot.core.optimisers.gp_comp.parameters.population_size import init_adaptive_pop_size, PopulationSize
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.objective.objective import Objective
-from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizerParameters
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, EvaluationAttemptsError
-from fedot.core.pipelines.pipeline import Pipeline
-
-
-class GPGraphOptimizerParameters(GraphOptimizerParameters):
-    """
-    This class is for defining the parameters of optimiser
-
-    :param selection_types: List of selection operators types
-    :param crossover_types: List of crossover operators types
-    :param mutation_types: List of mutation operators types
-    :param regularization_type: type of regularization operator
-    :param genetic_scheme_type: type of genetic evolutionary scheme
-    :param elitism_type: type of elitism operator
-    evolution. Default False.
-    """
-
-    def set_default_params(self):
-        """
-        Choose default configuration of the evolutionary operators
-        """
-        if not self.selection_types:
-            if self.multi_objective:
-                self.selection_types = [SelectionTypesEnum.spea2]
-            else:
-                self.selection_types = [SelectionTypesEnum.tournament]
-
-        if not self.crossover_types:
-            self.crossover_types = [CrossoverTypesEnum.subtree, CrossoverTypesEnum.one_point]
-
-        if not self.mutation_types:
-            # default mutation types
-            self.mutation_types = [MutationTypesEnum.simple,
-                                   MutationTypesEnum.reduce,
-                                   MutationTypesEnum.growth,
-                                   MutationTypesEnum.local_growth]
-
-    def __init__(self, selection_types: List[SelectionTypesEnum] = None,
-                 crossover_types: List[Union[CrossoverTypesEnum, Any]] = None,
-                 mutation_types: List[Union[MutationTypesEnum, Any]] = None,
-                 regularization_type: RegularizationTypesEnum = RegularizationTypesEnum.none,
-                 genetic_scheme_type: GeneticSchemeTypesEnum = GeneticSchemeTypesEnum.generational,
-                 elitism_type: ElitismTypesEnum = ElitismTypesEnum.keep_n_best,
-                 *args, **kwargs):
-
-        super().__init__(*args, **kwargs)
-
-        self.selection_types = selection_types
-        self.crossover_types = crossover_types
-        self.mutation_types = mutation_types
-        self.regularization_type = regularization_type
-        self.genetic_scheme_type = genetic_scheme_type
-        self.elitism_type = elitism_type
-
-        self.set_default_params()  # always initialize in proper state
 
 
 class EvoGraphOptimizer(PopulationalOptimizer):
@@ -81,35 +29,33 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Pipeline],
+                 initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional[GPGraphOptimizerParameters] = None):
+                 parameters: GPGraphOptimizerParameters):
         super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
         # Define genetic operators
-        self.regularization = Regularization(parameters.regularization_type, requirements, graph_generation_params,)
-        self.selection = Selection(parameters.selection_types, requirements)
-        self.crossover = Crossover(parameters.crossover_types, requirements, graph_generation_params)
-        self.mutation = Mutation(parameters.mutation_types, requirements, graph_generation_params)
-        self.inheritance = Inheritance(parameters.genetic_scheme_type, self.selection, requirements)
-        self.elitism = Elitism(parameters.elitism_type, requirements, objective.is_multi_objective)
+        self.regularization = Regularization(parameters, graph_generation_params)
+        self.selection = Selection(parameters)
+        self.crossover = Crossover(parameters, requirements, graph_generation_params)
+        self.mutation = Mutation(parameters, requirements, graph_generation_params)
+        self.inheritance = Inheritance(parameters, self.selection)
+        self.elitism = Elitism(parameters)
         self.operators = [self.regularization, self.selection, self.crossover,
                           self.mutation, self.inheritance, self.elitism]
 
         # Define adaptive parameters
-        self._pop_size: PopulationSize = \
-            init_adaptive_pop_size(parameters.genetic_scheme_type, requirements, self.generations)
-        self._operators_prob = \
-            init_adaptive_operators_prob(parameters.genetic_scheme_type, requirements)
-        start_depth = requirements.start_depth or requirements.max_depth
-        self._graph_depth = AdaptiveGraphDepth(self.generations, start_depth=start_depth,
+        self._pop_size: PopulationSize = init_adaptive_pop_size(parameters, self.generations)
+        self._operators_prob = init_adaptive_operators_prob(parameters)
+        self._graph_depth = AdaptiveGraphDepth(self.generations,
+                                               start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
-                                               max_stagnated_generations=parameters.depth_increase_step,
-                                               adaptive=parameters.with_auto_depth_configuration)
+                                               max_stagnation_gens=parameters.adaptive_depth_max_stagnation,
+                                               adaptive=parameters.adaptive_depth)
 
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
-        self.requirements.pop_size = self._pop_size.initial
+        self.parameters.pop_size = self._pop_size.initial
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
@@ -118,7 +64,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Adding of initial assumptions to history as zero generation
         self._update_population(evaluator(self.initial_individuals))
 
-        if len(self.initial_individuals) < self.requirements.pop_size:
+        if len(self.initial_individuals) < self.parameters.pop_size:
             self.initial_individuals = self._extend_population(self.initial_individuals)
             # Adding of extended population to history
             self._update_population(evaluator(self.initial_individuals))
@@ -128,8 +74,8 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         initial_graphs = [ind.graph for ind in initial_individuals]
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
-        self.mutation.update_requirements(initial_req)
-        while len(initial_individuals) < self.requirements.pop_size:
+        self.mutation.update_requirements(requirements=initial_req)
+        while len(initial_individuals) < self.parameters.pop_size:
             new_ind = self.mutation(choice(self.initial_individuals))
             new_graph = new_ind.graph
             iter_num += 1
@@ -139,9 +85,9 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
                 self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
                                  f'Current size {len(self.initial_individuals)} '
-                                 f'instead of {self.requirements.pop_size} graphs.')
+                                 f'instead of {self.parameters.pop_size} graphs.')
                 break
-        self.mutation.update_requirements(self.requirements)
+        self.mutation.update_requirements(requirements=self.requirements)
         return initial_individuals
 
     def _evolve_population(self, evaluator: Callable) -> PopulationT:
@@ -159,18 +105,17 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def _update_requirements(self):
         if not self.generations.is_any_improved:
-            self.requirements.mutation_prob, self.requirements.crossover_prob = \
+            self.parameters.mutation_prob, self.parameters.crossover_prob = \
                 self._operators_prob.next(self.population)
-        self.requirements.pop_size = self._pop_size.next(self.population)
+        self.parameters.pop_size = self._pop_size.next(self.population)
         self.requirements.max_depth = self._graph_depth.next()
         self.log.info(
-            f'Next population size: {self.requirements.pop_size}; max graph depth: {self.requirements.max_depth}')
-        self._update_evolutionary_operators_requirements(self.requirements)
+            f'Next population size: {self.parameters.pop_size}; '
+            f'max graph depth: {self.requirements.max_depth}')
 
-    def _update_evolutionary_operators_requirements(self, new_requirements: PipelineComposerRequirements):
-        operators_list = self.operators
-        for operator in operators_list:
-            operator.update_requirements(new_requirements)
+        # update requirements in operators
+        for operator in self.operators:
+            operator.update_requirements(self.parameters, self.requirements)
 
     def _spawn_evaluated_population(self, selected_individuals: PopulationT, evaluator: Callable) -> PopulationT:
         """ Reproduce and evaluate new population. If at least one of received individuals can not be evaluated then

@@ -1,6 +1,7 @@
 import collections.abc
 
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from enum import Enum
 from typing import Callable, Container, Generic, Iterable, Iterator, List, Optional, Sequence, Sized, TypeVar, Union
 
@@ -153,6 +154,24 @@ class ComparableEnum(Enum):
         :return: hashcode of string representation of this enum
         """
         return hash(str(self))
+
+
+class Copyable:
+    """Provides default implementations for `copy` & `deepcopy`."""
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
+
+    def __deepcopy__(self, memo=None):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        return result
 
 
 class Comparable(ABC):

@@ -1,4 +1,3 @@
-import datetime
 import os
 import platform
 import random
@@ -11,9 +10,7 @@ import numpy as np
 import pandas as pd
 import pytest
 from sklearn.datasets import load_iris
-from sklearn.metrics import roc_auc_score as roc
 
-from fedot.core.composer.metrics import ROCAUC
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -29,6 +26,7 @@ from test.unit.tasks.test_forecasting import get_ts_data
 
 seed(1)
 np.random.seed(1)
+
 
 @pytest.fixture()
 def data_setup():
@@ -408,26 +406,6 @@ def test_pipeline_fit_time_constraint():
     assert predicted_second is not None
 
 
-def test_pipeline_fine_tune_all_nodes_correct(classification_dataset):
-    data = classification_dataset
-
-    first = PrimaryNode(operation_type='scaling')
-    second = PrimaryNode(operation_type='knn')
-    final = SecondaryNode(operation_type='dt', nodes_from=[first, second])
-
-    pipeline = Pipeline(final)
-
-    iterations_total, time_limit_minutes = 5, 1
-    tuned_pipeline = pipeline.fine_tune_all_nodes(loss_function=ROCAUC.metric, input_data=data,
-                                                  iterations=iterations_total,
-                                                  timeout=time_limit_minutes)
-    tuned_pipeline.predict(input_data=data)
-
-    is_tuning_finished = True
-
-    assert is_tuning_finished
-
-
 @pytest.mark.parametrize('data_fixture', ['data_setup', 'file_data_setup'])
 def test_pipeline_unfit(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
@@ -439,7 +417,7 @@ def test_pipeline_unfit(data_fixture, request):
     assert not pipeline.is_fitted
     assert not pipeline.root_node.fitted_operation
 
-    with pytest.raises(ValueError) as exc:
+    with pytest.raises(ValueError):
         assert pipeline.predict(data)
 
 

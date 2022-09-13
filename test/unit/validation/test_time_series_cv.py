@@ -1,18 +1,15 @@
 import datetime
 import logging
 
-import numpy as np
-import pytest
-from sklearn.metrics import mean_absolute_error
-
 from examples.advanced.time_series_forecasting.composing_pipelines import get_available_operations
 from fedot.api.main import Fedot
 from fedot.core.composer.composer_builder import ComposerBuilder
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-from fedot.core.composer.metrics import MAE, MSE
 from fedot.core.log import default_log
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.validation.tune.cv_prediction import cv_time_series_predictions
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
     MetricsRepository, RegressionMetricsEnum
 from fedot.core.repository.tasks import TsForecastingParams
@@ -39,7 +36,7 @@ def test_ts_cv_generator_correct():
     """ Checks if the split into training and test for time series cross
     validation is correct
 
-    By default, the number of validation blocks for each fold is three
+    By default, the number of validation blocks for each fold is five
     """
     folds = 2
     forecast_len, validation_blocks, time_series = configure_experiment()
@@ -85,34 +82,22 @@ def test_tuner_cv_correct():
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     simple_pipeline = get_simple_ts_pipeline()
-    tuned = simple_pipeline.fine_tune_all_nodes(loss_function=MAE.metric,
-                                                input_data=time_series,
-                                                iterations=1, timeout=1,
-                                                cv_folds=folds,
-                                                validation_blocks=validation_blocks)
+    tuner = TunerBuilder(time_series.task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MAE)\
+        .with_cv_folds(folds) \
+        .with_validation_blocks(validation_blocks).\
+        with_iterations(1) \
+        .with_timeout(datetime.timedelta(minutes=1))\
+        .build(time_series)
+    _ = tuner.tune(simple_pipeline)
     is_tune_succeeded = True
     assert is_tune_succeeded
-
-
-@pytest.mark.parametrize('folds, actual_value', [(2, 9.8965), (3, 38.624)])
-def test_cv_ts_predictions_correct(folds, actual_value):
-
-    forecast_len, validation_blocks, time_series = configure_experiment()
-
-    simple_pipeline = get_simple_ts_pipeline()
-    metric_value = cv_time_series_predictions(reference_data=time_series,
-                                              pipeline=simple_pipeline,
-                                              log=log,
-                                              cv_folds=folds,
-                                              validation_blocks=validation_blocks,
-                                              loss_function=MSE.metric)
-    assert np.isclose(metric_value, actual_value)
 
 
 def test_composer_cv_correct():
     """ Checks if the composer works correctly when using cross validation for
     time series """
-    folds = 2
     forecast_len, validation_blocks, time_series = configure_experiment()
 
     primary_operations, secondary_operations = get_available_operations()
@@ -120,18 +105,22 @@ def test_composer_cv_correct():
     # Composer parameters
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=3, pop_size=2, num_of_generations=2,
-        crossover_prob=0.8, mutation_prob=0.8,
+        secondary=secondary_operations,
+        num_of_generations=2,
         timeout=datetime.timedelta(seconds=5),
-        cv_folds=folds,
+        cv_folds=2,
         validation_blocks=validation_blocks,
-        logging_level_opt=logging.CRITICAL+1,
         show_progress=False)
+    parameters = GPGraphOptimizerParameters(
+        pop_size=2,
+        crossover_prob=0.8,
+        mutation_prob=0.8,
+    )
 
     init_pipeline = get_simple_ts_pipeline()
     metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.RMSE)
     builder = ComposerBuilder(task=time_series.task). \
+        with_optimizer_params(parameters). \
         with_requirements(composer_requirements). \
         with_metrics(metric_function).with_initial_pipelines([init_pipeline])
     composer = builder.build()
@@ -152,7 +141,6 @@ def test_api_cv_correct():
                        'cv_folds': folds,
                        'num_of_generations': 1,
                        'validation_blocks': validation_blocks,
-                       'logging_level_opt': logging.CRITICAL+1,
                        'show_progress': False}
     task_parameters = TsForecastingParams(forecast_length=forecast_len)
 

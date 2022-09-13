@@ -1,10 +1,8 @@
-import datetime
 from copy import copy
-from typing import Union
 
 from fedot.api.time import ApiTime
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME, \
-    FAST_TRAIN_PRESET_NAME, MINIMAL_PIPELINE_NUMBER_FOR_EVALUATION
+    FAST_TRAIN_PRESET_NAME
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operations_for_task
 from fedot.core.repository.tasks import Task
 
@@ -92,7 +90,7 @@ class OperationsPreset:
         return available_operations
 
 
-def change_preset_based_on_initial_fit(timer: ApiTime) -> str:
+def change_preset_based_on_initial_fit(timer: ApiTime, n_jobs: int) -> str:
     """
     If preset was set as 'auto', based on initial pipeline fit time, appropriate one can be chosen
     """
@@ -101,7 +99,7 @@ def change_preset_based_on_initial_fit(timer: ApiTime) -> str:
 
     # Change preset to appropriate one
 
-    if timer.have_time_for_the_best_quality():
+    if timer.have_time_for_the_best_quality(n_jobs=n_jobs):
         # It is possible to train only few number of pipelines during optimization - use simplified preset
         return BEST_QUALITY_PRESET_NAME
     else:

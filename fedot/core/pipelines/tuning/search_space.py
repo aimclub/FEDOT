@@ -149,19 +149,7 @@ class SearchSpace:
                 {
                     'family': 'inverse_gaussian',
                     'link': hp.choice('link_inv_gaussian', ['identity',
-                                                            'inverse_power',
-                                                            'inverse_squared'])
-                },
-                {
-                    'family': 'poisson',
-                    'link': hp.choice('link_poisson', ['identity',
-                                                       'sqrt',
-                                                       'log'])
-                },
-                {
-                    'family': 'tweedie',
-                    'link': hp.choice('link_tweedie', ['power',
-                                                       'log'])
+                                                            'inverse_power'])
                 }
 
             ]])},
@@ -255,16 +243,16 @@ class SearchSpace:
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
-                'lambda_l1': (hp.loguniform, [np.log(1e-8), np.log(10)]),
-                'lambda_l2': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'lgbmreg': {
                 'num_leaves': (hp.uniformint, [2, 256]),
                 'learning_rate': (hp.loguniform, [np.log(0.01), np.log(0.2)]),
                 'colsample_bytree': (hp.uniform, [0.4, 1]),
                 'subsample': (hp.uniform, [0.4, 1]),
-                'lambda_l1': (hp.loguniform, [np.log(1e-8), np.log(10)]),
-                'lambda_l2': (hp.loguniform, [np.log(1e-8), np.log(10)])
+                'reg_alpha': (hp.loguniform, [np.log(1e-8), np.log(10)]),
+                'reg_lambda': (hp.loguniform, [np.log(1e-8), np.log(10)])
             },
             'catboost': {
                 'max_depth': (hp.uniformint, [1, 11]),
@@ -284,7 +272,7 @@ class SearchSpace:
             'resample': {
                 'balance': (hp.choice, [['expand_minority', 'reduce_majority']]),
                 'replace': (hp.choice, [[True, False]]),
-                'n_samples': (hp.uniform, [0.3, 1])
+                'balance_ratio': (hp.uniform, [0.3, 1])
             },
             'lda': {
                 'solver': (hp.choice, [['svd', 'lsqr', 'eigen']]),

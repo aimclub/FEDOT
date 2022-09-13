@@ -171,5 +171,4 @@ class TextDataMerger(DataMerger):
         return predicts[0]
 
     def postprocess_predicts(self, merged_predicts: np.array) -> np.array:
-        # Ensure that 1d-column text remains 1d
-        return flatten_extra_dim(merged_predicts)
+        return merged_predicts

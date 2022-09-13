@@ -1,10 +1,14 @@
+from __future__ import annotations
 from functools import partial
-from typing import List, Optional
+from typing import List, Optional, Union
 
+import os
 import numpy as np
 import pandas as pd
 
-from fedot.core.data.data import array_to_input_data, get_indices_from_file
+from fedot.core.data.data import process_target_and_features, get_indices_from_file, array_to_input_data
+from fedot.core.data.data_detection import TextDataDetector, TimeSeriesDataDetector
+from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -83,16 +87,19 @@ class MultiModalData(dict):
             self[key] = self[key].subset_indices(selected_idx)
         return self
 
-    @staticmethod
-    def from_csv_time_series(task: Task,
+    @classmethod
+    def from_csv_time_series(cls,
+                             task: Union[Task, str] = 'ts_forecasting',
                              file_path=None,
                              delimiter=',',
                              is_predict=False,
                              var_names=None,
-                             target_column: Optional[str] = ''):
+                             target_column: Optional[str] = '') -> MultiModalData:
+        ts_data_detector = TimeSeriesDataDetector()
         df = pd.read_csv(file_path, sep=delimiter)
         idx = get_indices_from_file(df, file_path)
-
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
         if not var_names:
             var_names = list(set(df.columns) - set('datetime'))
 
@@ -100,10 +107,8 @@ class MultiModalData(dict):
             raise NotImplementedError(
                 'Multivariate predict not supported in this function yet.')
         else:
-            train_data, _ = \
-                prepare_multimodal_data(dataframe=df,
-                                        features=var_names,
-                                        forecast_length=0)
+            data = ts_data_detector.prepare_multimodal_data(dataframe=df,
+                                                            columns=var_names)
 
             if target_column is not None:
                 target = np.array(df[target_column])
@@ -111,49 +116,69 @@ class MultiModalData(dict):
                 target = np.array(df[df.columns[-1]])
 
             # create labels for data sources
-            data_part_transformation_func = partial(array_to_input_data, idx=idx,
-                                                    target_array=target, task=task)
+            data_part_transformation_func = partial(array_to_input_data,
+                                                    idx=idx, target_array=target, task=task,
+                                                    data_type=DataTypesEnum.ts)
 
-            sources = dict((_new_key_name(data_part_key),
+            sources = dict((ts_data_detector.new_key_name(data_part_key),
                             data_part_transformation_func(features_array=data_part))
-                           for (data_part_key, data_part) in train_data.items())
-            input_data = MultiModalData(sources)
+                           for (data_part_key, data_part) in data.items())
+            multi_modal_data = MultiModalData(sources)
 
-        return input_data
+        return multi_modal_data
 
+    @classmethod
+    def from_csv(cls,
+                 file_path: Optional[Union[os.PathLike, str]] = None,
+                 delimiter=',',
+                 task: Union[Task, str] = 'classification',
+                 text_columns: Optional[Union[str, List[str]]] = None,
+                 columns_to_drop: Optional[List[str]] = None,
+                 target_columns: Union[str, List[str]] = '',
+                 index_col: Optional[Union[str, int]] = 0) -> MultiModalData:
+        """
+        :param file_path: the path to the CSV with data
+        :param columns_to_drop: the names of columns that should be dropped
+        :param delimiter: the delimiter to separate the columns
+        :param task: the task that should be solved with data
+        :param text_columns: names of columns that contain text data
+        :param target_columns: name of target column (last column if empty and no target if None)
+        :param index_col: column name or index to use as the Data.idx;
+            if None then arrange new unique index
+        :return: MultiModalData object with text and table data sources as InputData
+        """
 
-def prepare_multimodal_data(dataframe: pd.DataFrame, features: list, forecast_length: int):
-    """ Prepare MultiModal data for time series forecasting task in a form of
-    dictionary
+        text_data_detector = TextDataDetector()
+        data_frame = pd.read_csv(file_path, sep=delimiter, index_col=index_col)
+        if columns_to_drop:
+            data_frame = data_frame.drop(columns_to_drop, axis=1)
 
-    :param dataframe: pandas DataFrame to process
-    :param features: columns, which should be used as features in forecasting
-    :param forecast_length: length of forecast
+        idx = data_frame.index.to_numpy()
+        if isinstance(task, str):
+            task = Task(TaskTypesEnum(task))
+        text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
 
-    :return multi_modal_train: dictionary with numpy arrays for train
-    :return multi_modal_test: dictionary with numpy arrays for test
-    """
-    multi_modal_train = {}
-    multi_modal_test = {}
-    for feature in features:
-        if forecast_length > 0:
-            feature_ts = np.array(dataframe[feature])[:-forecast_length]
-            idx = list(dataframe['datetime'])[:-forecast_length]
-        else:
-            feature_ts = np.array(dataframe[feature])
-            idx = list(dataframe['datetime'])
+        if not text_columns:
+            text_columns = text_data_detector.define_text_columns(data_frame)
 
-        # Will be the same
-        multi_modal_train.update({feature: feature_ts})
-        multi_modal_test.update({feature: feature_ts})
+        data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
+        data_frame_table = data_frame.drop(columns=text_columns)
+        table_features, target = process_target_and_features(data_frame_table, target_columns)
 
-    multi_modal_test['idx'] = np.asarray(idx)
-    multi_modal_train['idx'] = np.asarray(idx)
+        data_part_transformation_func = partial(array_to_input_data,
+                                                idx=idx, target_array=target, task=task)
 
-    return multi_modal_train, multi_modal_test
+        # create labels for text data sources and remove source if there are many nans
+        sources = dict((text_data_detector.new_key_name(data_part_key),
+                        data_part_transformation_func(features_array=data_part, data_type=DataTypesEnum.text))
+                       for (data_part_key, data_part) in data_text.items()
+                       if not text_data_detector.is_full_of_nans(data_part))
 
+        # add table features if they exist
+        if table_features.size != 0:
+            sources.update({'data_source_table': data_part_transformation_func
+                            (features_array=table_features, data_type=DataTypesEnum.table)})
 
-def _new_key_name(data_part_key):
-    if data_part_key == 'idx':
-        return 'idx'
-    return f'data_source_ts/{data_part_key}'
+        multi_modal_data = MultiModalData(sources)
+
+        return multi_modal_data

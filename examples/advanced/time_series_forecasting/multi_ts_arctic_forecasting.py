@@ -1,18 +1,21 @@
 import datetime
 from copy import deepcopy
+
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 from cases.multi_ts_level_forecasting import prepare_data
-from examples.simple.time_series_forecasting.ts_pipelines import *
+from examples.simple.time_series_forecasting.ts_pipelines import ts_complex_ridge_smoothing_pipeline
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.specific_operators import parameter_change_mutation
-from fedot.core.optimisers.gp_comp.gp_optimizer import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.repository.quality_metrics_repository import \
-    MetricsRepository, RegressionMetricsEnum
+    RegressionMetricsEnum
 
 
 def calculate_metrics(target, predicted):
@@ -33,21 +36,24 @@ def compose_pipeline(pipeline, train_data, task):
     primary_operations, secondary_operations = get_available_operations()
     composer_requirements = PipelineComposerRequirements(
         primary=primary_operations,
-        secondary=secondary_operations, max_arity=3,
-        max_depth=5, pop_size=15, num_of_generations=30,
-        crossover_prob=0.8, mutation_prob=0.8,
+        secondary=secondary_operations,
+        max_arity=3, max_depth=5,
+        num_of_generations=30,
         timeout=datetime.timedelta(minutes=10))
-    mutation_types = [parameter_change_mutation,
-                      MutationTypesEnum.single_change,
-                      MutationTypesEnum.single_drop,
-                      MutationTypesEnum.single_add]
-    optimiser_parameters = GPGraphOptimizerParameters(mutation_types=mutation_types)
-    metric_function = MetricsRepository().metric_by_id(RegressionMetricsEnum.MAE)
-    builder = ComposerBuilder(task=task). \
-        with_optimiser_params(parameters=optimiser_parameters). \
+    optimizer_parameters = GPGraphOptimizerParameters(
+        pop_size=15,
+        mutation_prob=0.8, crossover_prob=0.8,
+        mutation_types=[parameter_change_mutation,
+                        MutationTypesEnum.single_change,
+                        MutationTypesEnum.single_drop,
+                        MutationTypesEnum.single_add]
+    )
+    composer = ComposerBuilder(task=task). \
+        with_optimizer_params(optimizer_parameters). \
         with_requirements(composer_requirements). \
-        with_metrics(metric_function).with_initial_pipelines([pipeline])
-    composer = builder.build()
+        with_metrics(RegressionMetricsEnum.MAE). \
+        with_initial_pipelines([pipeline]). \
+        build()
     obtained_pipeline = composer.compose_pipeline(data=train_data)
     obtained_pipeline.show()
     return obtained_pipeline
@@ -75,9 +81,12 @@ def run_multiple_ts_forecasting(forecast_length, is_multi_ts):
     rmse_composing, mae_composing = calculate_metrics(np.ravel(test_data.target), predict_after)
 
     # tuning composed pipeline
-    obtained_pipeline_copy.fine_tune_all_nodes(input_data=train_data,
-                                               loss_function=mean_absolute_error,
-                                               iterations=50)
+    tuner = TunerBuilder(task)\
+        .with_tuner(PipelineTuner)\
+        .with_metric(RegressionMetricsEnum.MAE)\
+        .with_iterations(50)\
+        .build(train_data)
+    obtained_pipeline_copy = tuner.tune(obtained_pipeline_copy)
     obtained_pipeline_copy.print_structure()
     # tuned pipeline fit and predict
     obtained_pipeline_copy.fit_from_scratch(train_data)
