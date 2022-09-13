@@ -63,14 +63,13 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict, None], data: InputData, is_fit_pipeline_stage: bool = True):
+    def fit(self, params: Union[str, dict, None], data: InputData):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
         Args:
             params: hyperparameters for operation
             data: data used for operation training
-            is_fit_pipeline_stage: is this :obj:`fit` or :obj:`predict` stage for pipeline
 
         Returns:
             tuple: trained operation and prediction on train data
@@ -106,7 +105,6 @@ class Operation:
         Args:
             fitted_operation: trained operation object
             data: data used for prediction
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
             params: hyperparameters for operation
             output_mode: string with information about output of operation,
                 for example, is the operation predict probabilities or class labels

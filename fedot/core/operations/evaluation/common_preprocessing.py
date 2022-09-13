@@ -69,20 +69,17 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
             operation_implementation.fit(train_data)
         return operation_implementation
 
-    def predict(self, trained_operation, predict_data: InputData,
-                is_fit_pipeline_stage: bool):
+    def predict(self, trained_operation, predict_data: InputData) -> OutputData:
         """Transform method for preprocessing task
 
         Args:
             trained_operation: model object
             predict_data: data used for prediction
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             prediction
         """
-        prediction = trained_operation.transform(predict_data,
-                                                 is_fit_pipeline_stage)
+        prediction = trained_operation.transform(predict_data)
         # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted

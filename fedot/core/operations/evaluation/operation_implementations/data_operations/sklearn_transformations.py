@@ -48,12 +48,11 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         return self.pca
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData) -> OutputData:
         """Method for transformation tabular data using PCA
 
         Args:
             input_data: data with features, target and ids for PCA applying
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             data with transformed features attribute
@@ -195,7 +194,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
         return super().fit(input_data)
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool]):
+    def transform(self, input_data: InputData):
         """Firstly perform filtration of columns
         """
 
@@ -327,12 +326,11 @@ class ImputationImplementation(DataOperationImplementation):
             input_data.features = convert_into_column(input_data.features)
             self.imputer_num.fit(input_data.features)
 
-    def transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
+    def transform(self, input_data: InputData):
         """Method for transformation tabular data using ``SimpleImputer``
 
         Args:
             input_data: data with features
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             data with transformed features attribute
@@ -377,12 +375,11 @@ class ImputationImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(input_data, transformed_features, data_type=input_data.data_type)
         return output_data
 
-    def fit_transform(self, input_data, is_fit_pipeline_stage: Optional[bool] = None):
+    def fit_transform(self, input_data: InputData) -> OutputData:
         """Method for training and transformation tabular data using ``SimpleImputer``
 
         Args:
             input_data: data with features
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             data with transformed features attribute

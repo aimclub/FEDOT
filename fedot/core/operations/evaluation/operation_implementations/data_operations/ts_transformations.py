@@ -46,7 +46,6 @@ class LaggedImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             output data with transformed features table
@@ -376,7 +375,6 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             output data with smoothed time series
@@ -432,7 +430,6 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             output data with features as columns
@@ -515,7 +512,6 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             output data with smoothed time series
@@ -571,7 +567,6 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             output data with smoothed time series
@@ -701,7 +696,6 @@ class CutImplementation(DataOperationImplementation):
 
         Args:
             input_data: data with features, target and ids to process
-            is_fit_pipeline_stage: is this fit or predict stage for pipeline
 
         Returns:
             output data with cutted time series
