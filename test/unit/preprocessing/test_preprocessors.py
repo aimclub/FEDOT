@@ -29,10 +29,10 @@ def get_mixed_data_with_str_and_float_values(idx: int = None):
                          [0, 0, 0]], dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no']])
     if isinstance(idx, int):
-        input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7],
+        input_data = InputData(idx=np.arange(8),
                                features=features[:, idx], target=target, task=task, data_type=DataTypesEnum.table)
     else:
-        input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7],
+        input_data = InputData(idx=np.arange(8),
                                features=features, target=target, task=task, data_type=DataTypesEnum.table)
     return input_data
 
@@ -74,7 +74,7 @@ def data_with_complicated_types():
     Column description by indices:
         0) int column with single np.nan value - nans must be filled in
         1) int column with nans more than 90% - column must be removed
-        column must be removed due to the fact that inf will be replaced with nans
+        due to the fact that inf will be replaced with nans
         2) int-float column with categorical values (number of unique values = 12) -
         categorical indices must be converted into float, then due to number
         of unique values less than 13 - perform converting column into str type
@@ -113,7 +113,7 @@ def data_with_complicated_types():
                         dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no'], ['no'],
                        ['yes'], ['yes'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['yes'], ['no']])
-    input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17],
+    input_data = InputData(idx=np.arange(18),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
     return train_test_data_setup(input_data, split_ratio=0.9)
@@ -210,7 +210,7 @@ def test_binary_pseudo_string_column_process_correctly():
                          ['0.0'],
                          ['1']], dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes'], ['no'], ['no'], ['no'], ['no']])
-    input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7],
+    input_data = InputData(idx=np.arange(8),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
     train_data, test_data = train_test_data_setup(input_data, split_ratio=0.9)
@@ -262,7 +262,7 @@ def test_str_numbers_with_dots_and_commas_in_predict():
                         ['3,2'],
                         ['6.1']], dtype=object)
     target = np.array([['no'], ['yes'], ['yes'], ['yes']])
-    input_data = InputData(idx=[0, 1, 2, 3],
+    input_data = InputData(idx=np.arange(4),
                            features=features, target=target, task=task, data_type=DataTypesEnum.table)
 
     transformed_predict = apply_type_transformation(table=input_data.features, column_types=['int'],
