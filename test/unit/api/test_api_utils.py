@@ -3,12 +3,14 @@ import pathlib
 import random
 from copy import deepcopy
 
+import pytest
+
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log
+from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -19,46 +21,15 @@ from test.unit.api.test_main_api import get_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data
 
 
-def test_compose_fedot_model_with_tuning():
-    test_file_pth = pathlib.Path(default_fedot_data_dir(), 'test_logger_file.log')
-    log = Log(log_file=test_file_pth, output_logging_level=logging.DEBUG)
-    logger = log.get_adapter('test_log')
+def test_compose_fedot_model_without_tuning(caplog):
+    task_type = 'classification'
+    train_input, _, _ = get_dataset(task_type=task_type)
 
-    api_composer = ApiComposer('classification')
-    train_input, _, _ = get_dataset(task_type='classification')
-    train_input = DataPreprocessor().obligatory_prepare_for_fit(train_input)
+    model = Fedot(problem=task_type, timeout=0.1, preset='fast_train',
+                  logging_level=logging.INFO, with_tuning=True)
+    model.fit(train_input)
 
-    task = Task(task_type=TaskTypesEnum.classification)
-    operations = get_operations_for_task(task=task, mode='model')
-    generations = 1
-
-    api_composer.compose_fedot_model(api_params=dict(train_data=train_input,
-                                                     task=task,
-                                                     logger=logger,
-                                                     timeout=0.1,
-                                                     n_jobs=1,
-                                                     show_progress=False),
-                                     composer_params=dict(max_depth=1,
-                                                          max_arity=1,
-                                                          pop_size=2,
-                                                          num_of_generations=generations,
-                                                          keep_n_best=1,
-                                                          available_operations=operations,
-                                                          metric=None,
-                                                          validation_blocks=None,
-                                                          cv_folds=None,
-                                                          genetic_scheme=None,
-                                                          max_pipeline_fit_time=None,
-                                                          collect_intermediate_metric=False,
-                                                          preset='fast_train',
-                                                          initial_assumption=None,
-                                                          use_pipelines_cache=False,
-                                                          use_preprocessing_cache=False,
-                                                          cache_folder=None),
-                                     tuning_params=dict(with_tuning=True))
-    with open(log.log_file, 'r') as f:
-        log_text = f.read()
-        assert 'Composed pipeline returned without tuning.' in log_text
+    assert any('Composed pipeline returned without tuning.' in record.msg for record in caplog.records)
 
 
 def test_output_binary_classification_correct():

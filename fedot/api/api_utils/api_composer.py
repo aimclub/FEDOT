@@ -15,8 +15,7 @@ from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
-from fedot.core.log import LoggerAdapter
-from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
@@ -169,7 +168,7 @@ class ApiComposer:
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
-        log: LoggerAdapter = api_params['logger']
+        log: LoggerAdapter = default_log(self)
         task: Task = api_params['task']
         train_data = api_params['train_data']
         timeout = api_params['timeout']
@@ -312,8 +311,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
 
     :param common_dict: dictionary with parameters for all AutoML modules
     """
-    api_params_dict = dict(train_data=None, task=Task, logger=LoggerAdapter, timeout=5, n_jobs=1,
-                           show_progress=True)
+    api_params_dict = dict(train_data=None, task=Task, timeout=5, n_jobs=1, show_progress=True, logger=None)
 
     composer_params_dict = dict(max_depth=None, max_arity=None, pop_size=None, num_of_generations=None,
                                 keep_n_best=None, available_operations=None, metric=None,
