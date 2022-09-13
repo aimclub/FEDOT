@@ -94,7 +94,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
             elif hasattr(obj, '__func__'):  # if it is a 'method'
                 obj = obj.__func__
             else:
-                return obj  # return unpacked the underlying function or original object
+                return obj  # return the unpacked underlying function or the original object
 
 
 def register_native(fun: Callable) -> Callable:
