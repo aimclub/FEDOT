@@ -243,7 +243,7 @@ class LaggedImplementation(DataOperationImplementation):
             # if multivariable case
             return target
 
-    def _apply_transformation_for_predict(self, input_data: InputData, forecast_length: int):
+    def _apply_transformation_for_predict(self, input_data: InputData):
         """Apply lagged transformation for every column (time series) in the dataset
         """
 
