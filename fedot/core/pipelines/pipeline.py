@@ -264,7 +264,7 @@ class Pipeline(GraphDelegate, Serializable):
             dict_fitted_operations: dictionary of the fitted operations
         """
 
-        self._nodes = []
+        self.nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 

@@ -104,9 +104,9 @@ class Fedot:
     def __init__(self,
                  problem: str,
                  timeout: Optional[float] = DEFAULT_API_TIMEOUT_MINUTES,
-                 task_params: Optional[TaskParams] = None,
-                 seed: Optional[int] = None, logging_level: int = logging.ERROR,
-                 safe_mode: bool = True,
+                 task_params: TaskParams = None,
+                 seed=None, logging_level: int = logging.ERROR,
+                 safe_mode=False,
                  n_jobs: int = 1,
                  **composer_tuner_params
                  ):
