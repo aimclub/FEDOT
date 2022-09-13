@@ -1,3 +1,4 @@
+from copy import copy
 from functools import partial
 from typing import Callable
 
@@ -60,7 +61,7 @@ class AdaptRegistry(metaclass=SingletonMeta):
         original_function = AdaptRegistry._get_underlying_func(fun)
         if hasattr(original_function, AdaptRegistry._native_flag_attr_name_):
             delattr(original_function, AdaptRegistry._native_flag_attr_name_)
-        self._registered_native_callables.remove(original_function)
+            self._registered_native_callables.remove(original_function)
         return fun
 
     @staticmethod
@@ -76,7 +77,8 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return is_native
 
     def clear_registered_callables(self):
-        for f in self._registered_native_callables:
+        # copy is to avoid removing elements from list while iterating
+        for f in copy(self._registered_native_callables):
             self.unregister_native(f)
 
     @staticmethod

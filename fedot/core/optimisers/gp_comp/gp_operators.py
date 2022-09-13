@@ -52,7 +52,7 @@ def adjust_requirements(requirements: PipelineComposerRequirements) -> PipelineC
 def graph_growth(graph: OptGraph,
                  node_parent: OptNode,
                  node_factory: OptNodeFactory,
-                 requirements: ComposerRequirements,
+                 requirements: PipelineComposerRequirements,
                  max_depth: int):
     """Function create a graph and links between nodes"""
     offspring_size = randint(requirements.min_arity, requirements.max_arity)

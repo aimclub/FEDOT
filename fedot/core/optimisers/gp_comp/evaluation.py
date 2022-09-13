@@ -10,7 +10,7 @@ from typing import Dict, Optional, Tuple
 from joblib import Parallel, delayed, cpu_count
 
 from fedot.core.dag.graph import Graph
-from fedot.core.log import default_log
+from fedot.core.log import default_log, Log
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
