@@ -133,7 +133,7 @@ def test_column_types_converting_correctly():
     features_types = data.supplementary_data.column_types['features']
     target_types = data.supplementary_data.column_types['target']
 
-    assert len(features_types) == 3
+    assert len(features_types) == 4
     assert len(target_types) == 2
     assert features_types[0] == "<class 'str'>"
     assert features_types[1] == "<class 'str'>"

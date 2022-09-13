@@ -32,7 +32,7 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
                          [np.nan, 8, 'a', 1, 1],
                          [np.nan, np.nan, np.nan, np.nan, np.nan],
                          [np.nan, '4', 'b', 0, 0],
-                         [np.nan, '5', 'c', -1, -1]], dtype=object)
+                         [np.nan, '5', 1, -1, -1]], dtype=object)
     if multi_output:
         # Multi-label classification problem solved
         target = np.array([['label_1', 2],
@@ -46,7 +46,7 @@ def data_with_mixed_types_in_each_column(multi_output: bool = False):
                            [0, '9']], dtype=object)
     else:
         target = np.array(['label_1', 'label_1', 'label_0', 'label_0', 'label_0', 1, 0, 1, 0], dtype=object)
-    input_data = InputData(idx=[0, 1, 2, 3, 4, 5, 6, 7, 8], features=features,
+    input_data = InputData(idx=np.arange(9), features=features,
                            target=target, task=task, data_type=DataTypesEnum.table,
                            supplementary_data=SupplementaryData(was_preprocessed=False))
     return input_data
