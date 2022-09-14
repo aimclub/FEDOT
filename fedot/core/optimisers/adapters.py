@@ -1,88 +1,56 @@
-from copy import deepcopy
 from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.linked_graph_node import LinkedGraphNode
+from fedot.core.dag.graph_node import map_nodes
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode, Node
 from fedot.core.pipelines.pipeline import Pipeline
 
 
 class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
-    """ Optimization adapter for Pipeline class """
+    """Optimization adapter for Pipeline<->OptGraph translation.
+    It does 2 things:
+    - on restore: build Pipeline Nodes from information stored in OptNodes
+    - on adapt: clear OptGraph from metadata and 'heavy' data (like fitted models)
+    """
 
     def __init__(self):
         super().__init__(base_graph_class=Pipeline)
 
-    def _transform_to_opt_node(self, node, *args, **params):
+    @staticmethod
+    def _transform_to_opt_node(node: Node) -> OptNode:
         # Prepare content for nodes
-        if type(node) == OptNode:
-            self._log.warning('Unexpected: OptNode found in PipelineAdapter instead'
-                              'PrimaryNode or SecondaryNode.')
-        else:
-            if type(node) == LinkedGraphNode:
-                self._log.warning('Unexpected: GraphNode found in PipelineAdapter instead'
-                                  'PrimaryNode or SecondaryNode.')
-            else:
-                content = {'name': str(node.operation),
-                           'params': node.parameters,
-                           'metadata': node.metadata}
+        content = {'name': str(node.operation),
+                   'params': node.parameters,
+                   'metadata': node.metadata}
 
-                node.__class__ = OptNode
-                node._fitted_operation = None
-                node._node_data = None
-                del node.metadata
-                node.content = content
+        PipelineAdapter._clear_pipeline_node(node)
 
-    def _transform_to_pipeline_node(self, node, *args, **params):
-        if node.nodes_from:
-            node.__class__ = params.get('secondary_class')
-        else:
-            node.__class__ = params.get('primary_class')
+        return OptNode(content)
+
+    @staticmethod
+    def _clear_pipeline_node(node: Node):
+        node._fitted_operation = None
+        node._node_data = None
+        del node.metadata
+
+    @staticmethod
+    def _transform_to_pipeline_node(node: OptNode) -> Node:
         if not node.nodes_from:
-            node.__init__(operation_type=node.content['name'], content=node.content)
+            return PrimaryNode(operation_type=node.content['name'], content=node.content)
         else:
-            node.__init__(nodes_from=node.nodes_from,
-                          operation_type=node.content['name'], content=node.content
-                          )
+            return SecondaryNode(operation_type=node.content['name'], content=node.content,
+                                 nodes_from=node.nodes_from)
 
     def _adapt(self, adaptee: Pipeline) -> OptGraph:
-        """ Convert Pipeline class into OptGraph class """
-        source_pipeline = deepcopy(adaptee)
-
-        # Apply recursive transformation since root
-        for node in source_pipeline.nodes:
-            _transform_node(node=node, primary_class=OptNode,
-                            transform_func=self._transform_to_opt_node)
-        graph = OptGraph(source_pipeline.nodes)
-        return graph
+        adapted_nodes = map_nodes(self._transform_to_opt_node, adaptee.nodes)
+        return OptGraph(adapted_nodes)
 
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> Pipeline:
-        """ Convert OptGraph class into Pipeline class """
-        metadata = metadata or {}
-        source_graph = deepcopy(opt_graph)
+        restored_nodes = map_nodes(self._transform_to_pipeline_node, opt_graph.nodes)
+        pipeline = Pipeline(restored_nodes)
 
-        # Inverse transformation since root node
-        for node in source_graph.nodes:
-            _transform_node(node=node, primary_class=PrimaryNode, secondary_class=SecondaryNode,
-                            transform_func=self._transform_to_pipeline_node)
-        pipeline = Pipeline(source_graph.nodes)
+        metadata = metadata or {}
         pipeline.computation_time = metadata.get('computation_time_in_seconds')
         return pipeline
-
-
-def _check_nodes_references_correct(graph):
-    for node in graph.nodes:
-        if node.nodes_from:
-            for parent_node in node.nodes_from:
-                if parent_node not in graph.nodes:
-                    raise ValueError('Parent node not in graph nodes list')
-
-
-def _transform_node(node, primary_class, secondary_class=None, transform_func=None):
-    if transform_func:
-        if not secondary_class:
-            secondary_class = primary_class  # if there are no differences between primary and secondary class
-        transform_func(node=node,
-                       primary_class=primary_class,
-                       secondary_class=secondary_class)
