@@ -1,3 +1,4 @@
+from __future__ import annotations
 from copy import copy
 
 import numpy as np
@@ -6,7 +7,13 @@ import pandas as pd
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+
 NoneType = type(None)
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fedot.core.data.data import InputData
+
 NAME_CLASS_STR = "<class 'str'>"
 NAME_CLASS_INT = "<class 'int'>"
 NAME_CLASS_FLOAT = "<class 'float'>"
@@ -14,7 +21,10 @@ NAME_CLASS_NONE = "<class 'NoneType'>"
 FEDOT_STR_NAN = 'fedot_nan'
 # If unique values in the feature column is less than 13 - convert column into string type
 CATEGORICAL_UNIQUE_TH = 13
-MAX_CATEGORIES_TH = 30
+# column must be removed if failed rate is between these constants below
+# because it means that in the column there are approximately the same number of truly string and ints/floats
+ACCEPTABLE_CONVERSION_FAILED_RATE_BOTTOM = 0.4
+ACCEPTABLE_CONVERSION_FAILED_RATE_TOP = 0.65
 
 
 class TableTypesCorrector:
@@ -23,10 +33,11 @@ class TableTypesCorrector:
     """
 
     def __init__(self):
-        # Maximum allowed unique categories in categorical table (if more - transform it into float)
-        self.categorical_max_classes_th = MAX_CATEGORIES_TH
         # Threshold to convert numerical into categorical column
         self.numerical_min_uniques = CATEGORICAL_UNIQUE_TH
+
+        self.acceptable_failed_rate_bottom = ACCEPTABLE_CONVERSION_FAILED_RATE_BOTTOM
+        self.acceptable_failed_rate_top = ACCEPTABLE_CONVERSION_FAILED_RATE_TOP
 
         self.features_columns_info = {}
         self.target_columns_info = {}
@@ -52,7 +63,7 @@ class TableTypesCorrector:
         self.target_types = None
         self.log = default_log(self)
 
-    def convert_data_for_fit(self, data: 'InputData'):
+    def convert_data_for_fit(self, data: InputData):
         """ If column contain several data types - perform correction procedure """
         # Convert features to have an ability to insert str into float table or vice versa
         data.features = data.features.astype(object)
@@ -72,9 +83,9 @@ class TableTypesCorrector:
                                                                               target=data.target,
                                                                               task=data.task)
 
+        self._into_numeric_features_transformation_for_fit(data)
         # Launch conversion float and integer features into categorical
         self._into_categorical_features_transformation_for_fit(data)
-        self._into_numeric_features_transformation_for_fit(data)
         # Save info about features and target types
         self.features_types = copy(data.supplementary_data.column_types['features'])
         self.target_types = copy(data.supplementary_data.column_types['target'])
@@ -82,7 +93,7 @@ class TableTypesCorrector:
         self._retain_columns_info_without_types_conflicts(data)
         return data
 
-    def convert_data_for_predict(self, data: 'InputData'):
+    def convert_data_for_predict(self, data: InputData):
         """ Prepare data for predict stage. Include only column types transformation """
         # Ordering is important because after removing incorrect features - indices are obsolete
         data.features = data.features.astype(object)
@@ -94,8 +105,8 @@ class TableTypesCorrector:
                                                                               task=data.task)
 
         # Convert column types
-        self._into_categorical_features_transformation_for_predict(data)
         self._into_numeric_features_transformation_for_predict(data)
+        self._into_categorical_features_transformation_for_predict(data)
         self._retain_columns_info_without_types_conflicts(data)
         return data
 
@@ -133,7 +144,7 @@ class TableTypesCorrector:
         for mixed_column_id in features_with_mixed_types:
             column_info = self.features_columns_info[mixed_column_id]
 
-            if column_info.get('str_number') > 0:
+            if column_info.get('str_number') > 0 or column_info.get('float_number') > 0:
                 # There are string elements in the array
                 mixed_column = features[:, mixed_column_id]
                 updated_column, new_type_name = self._convert_feature_into_one_type(mixed_column, column_info,
@@ -197,7 +208,7 @@ class TableTypesCorrector:
             self._check_columns_vs_types_number(target, target_types)
             return {'features': features_types, 'target': target_types}
 
-    def _retain_columns_info_without_types_conflicts(self, data: 'InputData'):
+    def _retain_columns_info_without_types_conflicts(self, data: InputData):
         """ Update information in supplementary info - retain info only about remained columns.
         Such columns have no conflicts with types converting.
         """
@@ -220,6 +231,19 @@ class TableTypesCorrector:
             # There is an incorrect types calculation
             self.log.warning('Columns number and types numbers do not match.')
 
+    @staticmethod
+    def _remove_pseudo_str_values_from_str_column(data: pd.DataFrame, column_id: int):
+        """ Removes from truly str column all pseudo str values """
+        cur_column = data.features[:, column_id]
+        converted_column = []
+        for i in range(len(cur_column)):
+            try:
+                float(cur_column[i])
+                converted_column.append(np.nan)
+            except ValueError:
+                converted_column.append(cur_column[i])
+        data.features[:, column_id] = pd.Series(converted_column).values
+
     def _convert_feature_into_one_type(self, mixed_column: np.array, column_info: dict, mixed_column_id: int):
         """ Determine new type for current feature column based on the string ratio. And then convert column into it.
 
@@ -236,7 +260,7 @@ class TableTypesCorrector:
         all_elements_number = string_objects_number + column_info['int_number'] + column_info['float_number']
         string_ratio = string_objects_number / all_elements_number
 
-        if string_ratio > 0.5:
+        if string_ratio > 0:
             suggested_type = str
         else:
             suggested_type = _obtain_new_column_type(column_info)
@@ -280,7 +304,7 @@ class TableTypesCorrector:
             self.target_converting_has_errors = True
             return converted_column.values, str(suggested_type)
 
-    def _into_categorical_features_transformation_for_fit(self, data: 'InputData'):
+    def _into_categorical_features_transformation_for_fit(self, data: InputData):
         """
         Perform automated categorical features determination. If feature column
         contains int or float values with few unique values (less than 13)
@@ -309,7 +333,7 @@ class TableTypesCorrector:
                     features_types = data.supplementary_data.column_types['features']
                     features_types[column_id] = NAME_CLASS_STR
 
-    def _into_categorical_features_transformation_for_predict(self, data: 'InputData'):
+    def _into_categorical_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into categorical string column for every signed column """
         if not self.numerical_into_str:
             # There is no transformation for current table
@@ -327,7 +351,7 @@ class TableTypesCorrector:
                 features_types = data.supplementary_data.column_types['features']
                 features_types[column_id] = NAME_CLASS_STR
 
-    def _into_numeric_features_transformation_for_fit(self, data: 'InputData'):
+    def _into_numeric_features_transformation_for_fit(self, data: InputData):
         """
         Automatically determine categorical features which should be converted into float
         """
@@ -337,36 +361,38 @@ class TableTypesCorrector:
             column_type = data.supplementary_data.column_types['features'][column_id]
             if 'str' in column_type:
                 string_column = pd.Series(data.features[:, column_id])
-                unique_numbers = len(string_column.dropna().unique())
 
-                if unique_numbers > self.categorical_max_classes_th:
-                    # Number of nans in the column
-                    nans_number = string_column.isna().sum()
+                # Number of nans in the column
+                nans_number = string_column.isna().sum()
 
-                    # Column probably not an "actually categorical" but a column with an incorrectly defined type
-                    converted_column = pd.to_numeric(string_column, errors='coerce')
-                    # Calculate applied nans
-                    result_nans_number = converted_column.isna().sum()
-                    failed_objects_number = result_nans_number - nans_number
-                    non_nan_all_objects_number = n_rows - nans_number
-                    failed_ratio = failed_objects_number / non_nan_all_objects_number
+                # Column probably not an "actually categorical" but a column with an incorrectly defined type
+                converted_column = pd.to_numeric(string_column, errors='coerce')
+                # Calculate applied nans
+                result_nans_number = converted_column.isna().sum()
+                failed_objects_number = result_nans_number - nans_number
+                non_nan_all_objects_number = n_rows - nans_number
+                failed_ratio = failed_objects_number / non_nan_all_objects_number
 
-                    # If all objects are truly strings - all objects transform into nan
-                    is_column_contain_numerical_objects = failed_ratio != 1
-                    if failed_ratio < 0.5:
-                        # The majority of objects can be converted into numerical
-                        data.features[:, column_id] = converted_column.values
+                # If all objects are truly strings - all objects transform into nan
+                is_column_contain_numerical_objects = failed_ratio != 1
+                if failed_ratio < self.acceptable_failed_rate_bottom:
+                    # The majority of objects can be converted into numerical
+                    data.features[:, column_id] = converted_column.values
 
-                        # Update information about column types (in-place)
-                        self.categorical_into_float.append(column_id)
-                        features_types = data.supplementary_data.column_types['features']
-                        features_types[column_id] = NAME_CLASS_FLOAT
-                    elif failed_ratio >= 0.5 and is_column_contain_numerical_objects:
-                        # Probably numerical column contains '?' or 'x' as nans equivalents
-                        # Add columns to remove list
-                        self.string_columns_transformation_failed.update({column_id: 'removed'})
+                    # Update information about column types (in-place)
+                    self.categorical_into_float.append(column_id)
+                    features_types = data.supplementary_data.column_types['features']
+                    features_types[column_id] = NAME_CLASS_FLOAT
+                elif failed_ratio >= self.acceptable_failed_rate_top \
+                        and is_column_contain_numerical_objects:
+                    # The column consists mostly truly str values and has a few ints/floats in it
+                    self._remove_pseudo_str_values_from_str_column(data, column_id)
+                elif self.acceptable_failed_rate_top > failed_ratio >= self.acceptable_failed_rate_bottom:
+                    # Probably numerical column contains a lot of '?' or 'x' as nans equivalents
+                    # Add columns to remove list
+                    self.string_columns_transformation_failed.update({column_id: 'removed'})
 
-    def _into_numeric_features_transformation_for_predict(self, data: 'InputData'):
+    def _into_numeric_features_transformation_for_predict(self, data: InputData):
         """ Apply conversion into float string column for every signed column """
         if not self.categorical_into_float:
             # There is no transformation for current table
@@ -460,7 +486,7 @@ def apply_type_transformation(table: np.array, column_types: list, log: LoggerAd
     """
 
     def type_by_name(current_type_name: str):
-        """ Return type by it's name """
+        """ Return type by its name """
         if 'int' in current_type_name:
             return int
         elif 'str' in current_type_name:
@@ -476,24 +502,8 @@ def apply_type_transformation(table: np.array, column_types: list, log: LoggerAd
     for column_id in range(n_cols):
         current_column = table[:, column_id]
         current_type = type_by_name(column_types[column_id])
-        try:
-            table[:, column_id] = current_column.astype(current_type)
-        except ValueError as ex:
-            log.debug(f'Cannot convert column with id {column_id} into type {current_type} due to {ex}')
-
-            message = str(ex)
-            if 'NaN' not in message:
-                # Try to convert column from string into float
-                unseen_label = message.split("\'")[1]
-                if ',' in unseen_label:
-                    # Most likely case: '20,000' must be converted into '20.000'
-                    err = f'Column {column_id} contains both "." and ",". Standardize it.'
-                    raise ValueError(err)
-                else:
-                    # Most likely case: ['a', '1.5'] -> [np.nan, 1.5]
-                    label_ids = np.ravel(np.argwhere(current_column == unseen_label))
-                    current_column[label_ids] = np.nan
-                    table[:, column_id] = current_column.astype(float)
+        _convert_predict_column_into_desired_type(table=table, current_column=current_column, current_type=current_type,
+                                                  column_id=column_id, log=log)
 
     return table
 
@@ -521,6 +531,22 @@ def _obtain_new_column_type(column_info):
     else:
         # It is available to convert numerical into integer type
         return int
+
+
+def _convert_predict_column_into_desired_type(table: np.array, current_column: np.array,
+                                              column_id: int, current_type, log: LoggerAdapter):
+    try:
+        table[:, column_id] = current_column.astype(current_type)
+        if current_type is str:
+            is_any_comma = any(map(lambda el: ',' in el, current_column))
+            is_any_dot = any(map(lambda el: '.' in el, current_column))
+            # Most likely case: '20,000' must be converted into '20.000'
+            if is_any_comma and is_any_dot:
+                warning = f'Column {column_id} contains both "." and ",". Standardize it.'
+                log.warning(warning)
+    except ValueError:
+        table[:, column_id] = _process_predict_column_values_one_by_one(current_column=current_column,
+                                                                        current_type=current_type)
 
 
 def _generate_list_with_types(columns_types_info: dict, converted_columns: dict) -> list:
@@ -551,3 +577,32 @@ def _generate_list_with_types(columns_types_info: dict, converted_columns: dict)
                 updated_column_types.append(NAME_CLASS_FLOAT)
 
     return updated_column_types
+
+
+def _process_predict_column_values_one_by_one(current_column: np.ndarray, current_type):
+    """ Process column values one by one and try to convert them into desirable type.
+    If not successful replace with np.nan """
+
+    def _process_str_numbers_with_dots_and_commas(value: str):
+        """ Try to process str with replacing ',' by '.' in case it was meant to be a number """
+        value = value.replace(',', '.')
+        try:
+            # Since "10.6" can not be converted to 10 straightforward using int()
+            if current_type is int:
+                new_value = int(float(value))
+            else:
+                new_value = current_type(value)
+        except ValueError:
+            return np.nan
+        return new_value
+
+    new_column = []
+    for value in current_column:
+        new_value = np.nan
+        try:
+            new_value = current_type(value)
+        except ValueError:
+            if isinstance(value, str) and ('.' in value or ',' in value):
+                new_value = _process_str_numbers_with_dots_and_commas(value=value)
+        new_column.append(new_value)
+    return new_column

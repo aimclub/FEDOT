@@ -32,6 +32,9 @@ class PipelineComposerRequirements(ComposerRequirements):
 
     def __post_init__(self):
         super().__post_init__()
+        excluded_fields = ['n_jobs']
         for field_name, field_value in dataclasses.asdict(self).items():
+            if field_name in excluded_fields:
+                continue
             if isinstance(field_value, Number) and field_value < 0:
                 raise ValueError(f'Value of {field_name} must be non-negative')
