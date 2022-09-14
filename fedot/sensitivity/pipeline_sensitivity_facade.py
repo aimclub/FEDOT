@@ -13,17 +13,17 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 class PipelineSensitivityAnalysis:
     """This class works as facade and allows to apply all kind of approaches
-        to whole pipeline and separate nodes together.
+    to whole pipeline and separate nodes together
 
-    :param pipeline: pipeline object to analyze
-    :param train_data: data used for Pipeline training
-    :param test_data: data used for Pipeline validation
-    :param approaches: methods applied to pipeline. Default: None
-    :param nodes_to_analyze: nodes to analyze. Default: all nodes
-    :param requirements: extra requirements to define specific details for different approaches.
-        See :class:`~fedot.sensitivity.sa_requirements.SensitivityAnalysisRequirements` class documentation.
-    :param path_to_save: path to save results to. Default: `~home/Fedot/sensitivity/`
-        Default: False
+    Args:
+        pipeline: pipeline object to analyze
+        train_data: data used for Pipeline training
+        test_data: data used for Pipeline validation
+        approaches: methods applied to pipeline. Default: ``None``
+        nodes_to_analyze: nodes to analyze. Default: all nodes
+        requirements: extra requirements to define specific details for different approaches.
+            See :class:`SensitivityAnalysisRequirements` class documentation
+        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity/``
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -62,9 +62,9 @@ class PipelineSensitivityAnalysis:
                                                   log=log)
 
     def analyze(self):
+        """Applies defined sensitivity analysis approaches
         """
-        Applies defined sensitivity analysis approaches
-        """
+
         if self._nodes_analyze:
             self._nodes_analyze.analyze()
 

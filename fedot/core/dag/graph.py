@@ -9,21 +9,21 @@ NodeType = TypeVar('NodeType', bound=GraphNode, covariant=False, contravariant=F
 
 
 class Graph(ABC):
-    """
-    Defines abstract graph interface that's required by graph optimisation process.
+    """Defines abstract graph interface that's required by graph optimisation process.
     """
 
     @abstractmethod
     def add_node(self, node: GraphNode):
         """Adds new node to the graph together with its parent nodes.
 
-        :param node: new node object to add
+        Args:
+            nodes: pipeline nodes
         """
         raise NotImplementedError()
 
     @abstractmethod
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
-        """Replaces ``old_node`` node with ``new_node``.
+        """Replaces ``old_node`` node with ``new_node``
 
         :param old_node: node to be replaced
         :param new_node: node to be placed instead
@@ -34,8 +34,9 @@ class Graph(ABC):
     def update_subtree(self, old_subtree: GraphNode, new_subtree: GraphNode):
         """Changes ``old_subtree`` subtree to ``new_subtree``
 
-        :param old_subtree: node and its subtree to be removed
-        :param new_subtree: node and its subtree to be placed instead
+        Args:
+            old_subtree: node and its subtree to be removed
+            new_subtree: node and its subtree to be placed instead
         """
         raise NotImplementedError()
 
@@ -44,17 +45,19 @@ class Graph(ABC):
         """Removes ``node`` from the graph.
         If ``node`` has only one child, then connects all of the ``node`` parents to it.
 
-        :param node: node of the graph to be deleted
+        Args:
+            node: node of the graph to be deleted
         """
         raise NotImplementedError()
 
     @abstractmethod
     def delete_subtree(self, subroot: GraphNode):
         """Deletes given node with all its parents.
-        Deletes all edges from removed nodes to remaining graph nodes.
+        Deletes all edges from removed nodes to remaining graph nodes
 
-        :param subtree: node to be deleted with all of its parents
-            and their connections amongst the remaining graph nodes
+        Args:
+            subtree: node to be deleted with all of its parents
+                and their connections amongst the remaining graph nodes
         """
         raise NotImplementedError()
 
@@ -62,7 +65,8 @@ class Graph(ABC):
     def distance_to_root_level(self, node: GraphNode) -> int:
         """Gets distance to the final output node
 
-        :param node: search starting point
+        Args:
+            node: search starting point
         """
         raise NotImplementedError()
 
@@ -70,9 +74,11 @@ class Graph(ABC):
     def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
         """Gets all the nodes from the chosen layer up to the surface
 
-        :param layer_number: max height of diving
+        Args:
+            layer_number: max height of diving
 
-        :return: all nodes from the surface to the ``layer_number`` layer
+        Returns:
+            all nodes from the surface to the ``layer_number`` layer
         """
         raise NotImplementedError()
 
@@ -80,9 +86,10 @@ class Graph(ABC):
     def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
         """Returns all children of the ``node``
 
-        :param node: for getting children from
+        Args:
+            node: for getting children from
 
-        :return: children of the ``node``
+        Returns: children of the ``node``
         """
         raise NotImplementedError()
 
@@ -90,8 +97,9 @@ class Graph(ABC):
     def connect_nodes(self, node_parent: GraphNode, node_child: GraphNode):
         """Adds edge between ``parent`` and ``child``
 
-        :param node_parent: acts like parent in pipeline connection relations
-        :param node_child:  acts like child in pipeline connection relations
+        Args:
+            node_parent: acts like parent in pipeline connection relations
+            node_child:  acts like child in pipeline connection relations
         """
         raise NotImplementedError()
 
@@ -100,18 +108,20 @@ class Graph(ABC):
                          clean_up_leftovers: bool = True):
         """Removes an edge between two nodes
 
-        :param node_parent: where the removing edge comes out
-        :param node_child: where the removing edge enters
-        :param clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
+        Args:
+            node_parent: where the removing edge comes out
+            node_child: where the removing edge enters
+            clean_up_leftovers: whether to remove the remaining invalid vertices with edges or not
         """
         raise NotImplementedError()
 
     @abstractmethod
     def get_nodes_degrees(self) -> Sequence[int]:
         """Nodes degree as the number of edges the node has:
-            degree = #input_edges + #out_edges
+            ``degree = #input_edges + #out_edges``
 
-        :return: nodes degrees ordered according to the nx_graph representation of this graph
+        Returns:
+            nodes degrees ordered according to the nx_graph representation of this graph
         """
         raise NotImplementedError()
 
@@ -119,7 +129,8 @@ class Graph(ABC):
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         """Gets all available edges in this graph
 
-        :return: pairs of parent_node -> child_node
+        Returns:
+            pairs of parent_node -> child_node
         """
         raise NotImplementedError()
 
@@ -127,9 +138,11 @@ class Graph(ABC):
     def __eq__(self, other_graph: 'Graph') -> bool:
         """Compares this graph with the ``other_graph``
 
-        :param other_graph: another graph
+        Args:
+            other_graph: another graph
 
-        :return: is it equal to ``other_graph`` in terms of the graphs
+        Returns:
+            is it equal to ``other_graph`` in terms of the graphs
         """
         raise NotImplementedError()
 
@@ -138,7 +151,8 @@ class Graph(ABC):
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
         """Gets the final layer node(s) of the graph
 
-        :return: the final layer node(s)
+        Returns:
+            the final layer node(s)
         """
         raise NotImplementedError()
 
@@ -147,7 +161,9 @@ class Graph(ABC):
     def nodes(self) -> List[GraphNode]:
         """Return list of all graph nodes
 
-        :return: graph nodes"""
+        Returns:
+            graph nodes
+        """
         raise NotImplementedError()
 
     @nodes.setter
@@ -160,7 +176,8 @@ class Graph(ABC):
     def depth(self) -> int:
         """Gets this graph depth from its sink-node to its source-node
 
-        :return: length of a path from the root node to the farthest primary node
+        Returns:
+            length of a path from the root node to the farthest primary node
         """
         raise NotImplementedError()
 
@@ -168,8 +185,10 @@ class Graph(ABC):
     def length(self) -> int:
         """Return size of the graph (number of nodes)
 
-        :return: graph size
+        Returns:
+            graph size
         """
+
         return len(self.nodes)
 
     def show(self, save_path: Optional[Union[PathLike, str]] = None, engine: str = 'matplotlib',
@@ -177,13 +196,14 @@ class Graph(ABC):
              node_size_scale: float = 1.0, font_size_scale: float = 1.0, edge_curvature_scale: float = 1.0):
         """Visualizes graph or saves its picture to the specified ``path``
 
-        :param save_path: optional, save location of the graph visualization image.
-        :param engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
-        :param node_color: color of nodes to use.
-        :param node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
-        :param font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
-        :param edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
-        :param dpi: DPI of the output image. Not supported for the engine 'pyvis'.
+        Args:
+            save_path: optional, save location of the graph visualization image.
+            engine: engine to visualize the graph. Possible values: 'matplotlib', 'pyvis', 'graphviz'.
+            node_color: color of nodes to use.
+            node_size_scale: use to make node size bigger or lesser. Supported only for the engine 'matplotlib'.
+            font_size_scale: use to make font size bigger or lesser. Supported only for the engine 'matplotlib'.
+            edge_curvature_scale: use to make edges more or less curved. Supported only for the engine 'matplotlib'.
+            dpi: DPI of the output image. Not supported for the engine 'pyvis'.
         """
         GraphVisualiser().visualise(self, save_path, engine, node_color, dpi, node_size_scale, font_size_scale,
                                     edge_curvature_scale)
@@ -192,8 +212,8 @@ class Graph(ABC):
     def graph_description(self) -> Dict:
         """Return summary characteristics of the graph
 
-        :return: dict containing information about the graph
-        :rtype: dict
+        Returns:
+            dict: containing information about the graph
         """
         return {
             'depth': self.depth,
@@ -205,8 +225,8 @@ class Graph(ABC):
     def descriptive_id(self) -> str:
         """Returns human-readable identifier of the graph.
 
-        :return: text description of the content in the node and its parameters
-        :rtype: str
+        Returns:
+            str: text description of the content in the node and its parameters
         """
         return self.root_node.descriptive_id
 

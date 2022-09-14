@@ -65,8 +65,6 @@ The *'save_pipeline'* method:
 
 .. code-block:: json
 
-    "data/Month:Day:Year, Time Period my_pipeline/my_pipeline.json"
-
     {
         "total_pipeline_models": {
             "logit": 1,
@@ -134,6 +132,7 @@ The *'save_pipeline'* method:
             }
         ]
     }
+
 
 **NOTE:** *'params'* are all parameters consisting of:
 

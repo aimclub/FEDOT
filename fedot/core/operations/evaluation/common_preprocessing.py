@@ -14,6 +14,26 @@ warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class FedotPreprocessingStrategy(EvaluationStrategy):
+    """
+    Args:
+        operation_type: ``str`` of the operation defined in operation or data operation repositories
+
+            .. details:: possible operations:
+
+                - ``scaling``-> ScalingImplementation,
+                - ``normalization``-> NormalizationImplementation,
+                - ``simple_imputation``-> ImputationImplementation,
+                - ``pca``-> PCAImplementation,
+                - ``kernel_pca``-> KernelPCAImplementation,
+                - ``poly_features``-> PolyFeaturesImplementation,
+                - ``one_hot_encoding``-> OneHotEncodingImplementation,
+                - ``label_encoding``-> LabelEncodingImplementation,
+                - ``fast_ica``-> FastICAImplementation
+
+        params: hyperparameters to fit the operation with
+
+    """
+
     __operations_by_types = {
         'scaling': ScalingImplementation,
         'normalization': NormalizationImplementation,
@@ -31,10 +51,13 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        """
-        This method is used for operation training with the data provided
-        :param InputData train_data: data used for operation training
-        :return: trained Sklearn operation
+        """This method is used for operation training with the data provided
+
+        Args:
+            train_data: data used for operation training
+
+        Returns:
+            trained Sklearn operation
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -47,14 +70,17 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         return operation_implementation
 
     def predict(self, trained_operation, predict_data: InputData) -> OutputData:
-        """
-        Transform method for preprocessing task for predict stage
+        """Transform method for preprocessing task
 
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return:
+        Args:
+            trained_operation: model object
+            predict_data: data used for prediction
+
+        Returns:
+            prediction
         """
         prediction = trained_operation.transform(predict_data)
+        # Convert prediction to output (if it is required)
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
@@ -62,9 +88,11 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         """
         Transform method for preprocessing task for fit stage
 
-        :param trained_operation: model object
-        :param predict_data: data used for prediction
-        :return:
+        Args:
+            trained_operation: model object
+            predict_data: data used for prediction
+        Returns:
+            OutputData: 
         """
         prediction = trained_operation.transform_for_fit(predict_data)
         converted = self._convert_to_output(prediction, predict_data)

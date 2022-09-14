@@ -8,11 +8,11 @@ from fedot.core.log import Log, default_log
 
 OptNode = GraphNode
 
-
 class OptGraph(GraphDelegate):
     """Base class used for optimized structure
 
-    :param nodes: optimization graph nodes object(s)
+    Args:
+        nodes: optimization graph nodes object(s)
     """
 
     def __init__(self, nodes: Union[OptNode, List[OptNode]] = ()):

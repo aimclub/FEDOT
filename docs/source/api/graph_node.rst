@@ -1,10 +1,6 @@
 GraphNode
 =========
 
-.. automodule:: fedot.core.dag.graph_node
+.. autoclass:: fedot.core.dag.graph_node.GraphNode
    :members:
-   :undoc-members:
-   :show-inheritance:
 
-.. toctree::
-   :glob:

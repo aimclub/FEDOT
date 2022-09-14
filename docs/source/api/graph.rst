@@ -1,10 +1,6 @@
 Graph
 =====
 
-.. automodule:: fedot.core.dag.graph
+.. autoclass:: fedot.core.dag.graph.Graph
    :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. toctree::
-   :glob:
+   :no-undoc-members:

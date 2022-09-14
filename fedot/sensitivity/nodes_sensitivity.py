@@ -16,19 +16,19 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
 class NodesAnalysis:
-    """
-    This class is for nodes sensitivity analysis within a Pipeline .
-    It takes nodes and approaches to be applied to chosen nodes.
-    To define which nodes to analyze pass them to nodes_to_analyze filed
+    """This class is for nodes sensitivity analysis within a :obj:`Pipeline`\n
+    It takes nodes and approaches to be applied to chosen nodes.\n
+    To define which nodes to analyze pass them to ``nodes_to_analyze`` filed
     or all nodes will be analyzed.
 
-    :param pipeline: pipeline object to analyze
-    :param train_data: data used for Pipeline training
-    :param test_data: data used for Pipeline validation
-    :param approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\
-    Default: [NodeDeletionAnalyze, NodeReplaceOperationAnalyze]
-    :param nodes_to_analyze: nodes to analyze. Default: all nodes
-    :param path_to_save: path to save results to. Default: ~home/Fedot/sensitivity
+    Args:
+        pipeline: pipeline object to analyze
+        train_data: data used for Pipeline training
+        test_data: data used for Pipeline validation
+        approaches: methods applied to nodes to modify the pipeline or analyze certain operations.\n
+            Default: [:obj:`NodeDeletionAnalyze`, :obj:`NodeReplaceOperationAnalyze`]
+        nodes_to_analyze: nodes to analyze. Default: all nodes
+        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity``
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -54,10 +54,10 @@ class NodesAnalysis:
             self.nodes_to_analyze = nodes_to_analyze
 
     def analyze(self) -> dict:
-        """
-        Main method to run the analyze process for every node.
+        """Main method to run the analyze process for every node.
 
-        :return nodes_results: dict with analysis result per Node
+        Returns:
+            dict: with analysis result per Node
         """
 
         nodes_results = dict()

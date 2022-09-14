@@ -7,24 +7,30 @@ from sklearn import datasets
 def classification_dataset(samples_amount: int, features_amount: int, classes_amount: int,
                            features_options: Dict, noise_fraction: float = 0.1,
                            full_shuffle: bool = True, weights: list = None):
-    """
-    Generates a random dataset for n-class classification problem
+    """Generates a random dataset for ``n-class`` classification problem
     using scikit-learn API.
 
-    :param samples_amount: Total amount of samples in the resulted dataset.
-    :param features_amount: Total amount of features per sample.
-    :param classes_amount: The amount of classes in the dataset.
-    :param features_options: The dictionary containing features options in key-value \
-        format:
-        - informative: the amount of informative features;
-        - redundant: the amount of redundant features;
-        - repeated: the amount of features that repeat the informative features;
-        - clusters_per_class: the amount of clusters for each class;
-    :param noise_fraction: the fraction of noisy labels in the dataset;
-    :param full_shuffle: if true then all features and samples will be shuffled.
-    :param weights: The proportions of samples assigned to each class. If None, then classes are balanced.
-    :return: features and target as numpy-arrays.
+    Args:
+        samples_amount: Total amount of samples in the resulted dataset.
+        features_amount: Total amount of features per sample.
+        classes_amount: The amount of classes in the dataset.
+        features_options: The dictionary containing features options in key-value format
+
+            .. details:: possible ``features_options`` variants:
+
+                - ``informative`` -> the amount of informative features
+                - ``redundant`` -> the amount of redundant features
+                - ``repeated`` -> the amount of features that repeat the informative features
+                - ``clusters_per_class`` -> the amount of clusters for each class
+
+        noise_fraction: the fraction of noisy labels in the dataset
+        full_shuffle: if true then all features and samples will be shuffled
+        weights: The proportions of samples assigned to each class. If None, then classes are balanced
+
+    Returns:
+        array: features and target as numpy-arrays
     """
+
     features, target = datasets.make_classification(n_samples=samples_amount, n_features=features_amount,
                                                     n_informative=features_options['informative'],
                                                     n_redundant=features_options['redundant'],
@@ -40,19 +46,24 @@ def classification_dataset(samples_amount: int, features_amount: int, classes_am
 
 def regression_dataset(samples_amount: int, features_amount: int, features_options: Dict,
                        n_targets: int, noise: float = 0.0, shuffle: bool = True):
-    """
-    Generates a random dataset for regression problem using scikit-learn API.
+    """Generates a random dataset for regression problem using scikit-learn API.
 
-    :param samples_amount: Total amount of samples in the resulted dataset.
-    :param features_amount: Total amount of features per sample.
-    :param features_options: The dictionary containing features options in key-value \
-    format:
-        - informative: the amount of informative features;
-        - bias: bias term in the underlying linear model;
-    :param n_targets: the amount of target variables;
-    :param noise: the standard deviation of the gaussian noise applied to the output;
-    :param shuffle: if true then all features and samples will be shuffled.
-    :return: features and target as numpy-arrays.
+    Args:
+        samples_amount: total amount of samples in the resulted dataset
+        features_amount: total amount of features per sample
+        features_options: the dictionary containing features options in key-value format
+
+            .. details:: possible ``features_options`` variants:
+
+                - ``informative`` -> the amount of informative features
+                - ``bias`` -> bias term in the underlying linear model
+
+        n_targets: the amount of target variables
+        noise: the standard deviation of the gaussian noise applied to the output
+        shuffle: if ``True`` then all features and samples will be shuffled
+
+    Returns:
+        array: features and target as numpy-arrays
     """
 
     features, target = datasets.make_regression(n_samples=samples_amount, n_features=features_amount,
@@ -67,19 +78,21 @@ def regression_dataset(samples_amount: int, features_amount: int, features_optio
 
 def gauss_quantiles_dataset(samples_amount: int, features_amount: int,
                             classes_amount: int, full_shuffle=True, **kwargs):
-    """
-    Generates a random dataset for n-class classification problem
+    """Generates a random dataset for n-class classification problem
     based on multi-dimensional gaussian distribution quantiles
     using scikit-learn API.
 
-    :param samples_amount: Total amount of samples in the resulted dataset.
-    :param features_amount: Total amount of features per sample.
-    :param classes_amount: The amount of classes in the dataset.
-    :param full_shuffle: if true then all features and samples will be shuffled.
-    :param kwargs: Optional params: \
-        - 'gauss_params': mean and covariance values of the distribution.
-    :return: features and target as numpy-arrays.
+    Args:
+        samples_amount: total amount of samples in the resulted dataset
+        features_amount: total amount of features per sample
+        classes_amount: the amount of classes in the dataset
+        full_shuffle: if ``True`` then all features and samples will be shuffled
+        kwargs: Optional['gauss_params'] mean and covariance values of the distribution
+
+    Returns:
+        array: features and target as numpy-arrays
     """
+
     if 'gauss_params' in kwargs:
         mean, cov = kwargs['gauss_params']
     else:
@@ -94,13 +107,14 @@ def gauss_quantiles_dataset(samples_amount: int, features_amount: int,
 
 
 def generate_synthetic_data(length: int = 2200, periods: int = 5):
-    """
-    The function generates a synthetic one-dimensional array without omissions
+    """The function generates a synthetic one-dimensional array without omissions
 
-    :param length: the length of the array
-    :param periods: the number of periods in the sine wave
+    Args:
+        length: the length of the array
+        periods: the number of periods in the sine wave
 
-    :return synthetic_data: an array without gaps
+    Returns:
+        array: an array without gaps
     """
 
     sinusoidal_data = np.linspace(-periods * np.pi, periods * np.pi, length)

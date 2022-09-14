@@ -5,8 +5,7 @@ Pipeline Complete Analysis
 --------------------------
 .. automodule:: fedot.sensitivity.pipeline_sensitivity_facade
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 
 Pipeline Structure Analysis
@@ -14,37 +13,32 @@ Pipeline Structure Analysis
 
 .. automodule:: fedot.sensitivity.nodes_sensitivity
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Pipeline Non-Structure Analysis
 -------------------------------
 
 .. automodule:: fedot.sensitivity.pipeline_sensitivity
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Node Structure Analysis
 -----------------------
 
 .. automodule:: fedot.sensitivity.node_sa_approaches
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Hyperparameters Analysis
 ------------------------
 
 .. automodule:: fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 .. automodule:: fedot.sensitivity.operations_hp_sensitivity.one_operation_sensitivity
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 
 Sensitivity Analysis Requirements
@@ -52,8 +46,5 @@ Sensitivity Analysis Requirements
 
 .. automodule:: fedot.sensitivity.sa_requirements
    :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. toctree::
-   :glob:
+   :no-undoc-members:
+   

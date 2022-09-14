@@ -15,9 +15,10 @@ from fedot.core.operations.evaluation.operation_implementations. \
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
-    """ Class for applying PCA and kernel PCA models form sklearn
+    """ Class for applying PCA and kernel PCA models from sklearn
 
-    :param params: optional, dictionary with the arguments
+    Args:
+        params: dictionary with the arguments
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -30,12 +31,15 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.parameters_changed = False
 
     def fit(self, input_data: InputData):
-        """
-        The method trains the PCA model
+        """The method trains the PCA model
 
-        :param input_data: data with features, target and ids for PCA training
-        :return pca: trained PCA model (optional output)
+        Args:
+            input_data: data with features, target and ids for PCA training
+
+        Returns:
+            trained PCA model (optional output)
         """
+
         self.number_of_samples, self.number_of_features = np.array(input_data.features).shape
 
         if self.number_of_features > 1:
@@ -45,10 +49,13 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         return self.pca
 
     def transform(self, input_data: InputData) -> OutputData:
-        """
-        Method for transformation tabular data using PCA for predict stage
+        """Method for transformation tabular data using PCA
 
-        :param input_data: data with features, target and ids for PCA applying
+        Args:
+            input_data: data with features, target and ids for PCA applying
+
+        Returns:
+            data with transformed features attribute
         """
 
         if self.number_of_features > 1:
@@ -63,9 +70,10 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         return output_data
 
     def check_and_correct_params(self):
-        """ Method check if number of features in data enough for n_components
+        """Method check if number of features in data enough for ``n_components``
         parameter in PCA or not. And if not enough - fixes it
         """
+
         current_parameters = self.pca.get_params()
 
         if type(current_parameters['n_components']) == int:
@@ -90,16 +98,19 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
     @staticmethod
     def update_column_types(output_data: OutputData) -> OutputData:
-        """ Update column types after applying PCA operations """
+        """Update column types after applying PCA operations
+        """
+
         n_rows, n_cols = output_data.predict.shape
         output_data.supplementary_data.column_types['features'] = [str(float) * n_cols]
         return output_data
 
 
 class PCAImplementation(ComponentAnalysisImplementation):
-    """ Class for applying PCA from sklearn
+    """Class for applying PCA from sklearn
 
-    :param params: optional, dictionary with the hyperparameters
+    Args:
+        params: dictionary with the hyperparameters
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -116,7 +127,8 @@ class PCAImplementation(ComponentAnalysisImplementation):
 class KernelPCAImplementation(ComponentAnalysisImplementation):
     """ Class for applying kernel PCA from sklearn
 
-    :param params: optional, dictionary with the hyperparameters
+    Args:
+        params: dictionary with the hyperparameters
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -132,8 +144,10 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
 class FastICAImplementation(ComponentAnalysisImplementation):
     """ Class for applying FastICA from sklearn
 
-    :param params: optional, dictionary with the hyperparameters
+    Args:
+        params: dictionary with the hyperparameters
     """
+
     def __init__(self, **params: Optional[dict]):
         super().__init__()
         if not params:
@@ -145,11 +159,12 @@ class FastICAImplementation(ComponentAnalysisImplementation):
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
-    """ Class for application of PolynomialFeatures operation on data,
+    """ Class for application of :obj:`PolynomialFeatures` operation on data,
     where only not encoded features (were not converted from categorical using
-    OneHot encoding) are used
+    ``OneHot encoding``) are used
 
-    :param params: optional, dictionary with the arguments
+    Args:
+        params: dictionary with the arguments
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -180,8 +195,9 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         return super().fit(input_data)
 
     def transform(self, input_data: InputData) -> OutputData:
-        """ Firstly perform filtration of columns
+        """Firstly perform filtration of columns
         """
+
         clipped_input_data = input_data
         if self.columns_to_take is not None:
             clipped_input_data = input_data.subset_features(self.columns_to_take)
@@ -199,7 +215,9 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         return self.operation.get_params()
 
     def _update_column_types(self, source_features_shape, output_data: OutputData):
-        """ Update column types after applying operations. If new columns added, new type for them are defined """
+        """Update column types after applying operations. If new columns added, new type for them are defined
+        """
+
         if len(source_features_shape) < 2:
             return output_data
         else:
@@ -212,11 +230,12 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
 
 class ScalingImplementation(EncodedInvariantImplementation):
-    """ Class for application of Scaling operation on data,
+    """Class for application of ``Scaling operation`` on data,
     where only not encoded features (were not converted from categorical using
-    OneHot encoding) are used
+    ``OneHot encoding``) are used
 
-    :param params: optional, dictionary with the arguments
+    Args:
+        params: dictionary with the arguments
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -233,11 +252,12 @@ class ScalingImplementation(EncodedInvariantImplementation):
 
 
 class NormalizationImplementation(EncodedInvariantImplementation):
-    """ Class for application of MinMax normalization operation on data,
+    """Class for application of ``MinMax normalization`` operation on data,
     where only not encoded features (were not converted from categorical using
-    OneHot encoding) are used
+    ``OneHot encoding``) are used
 
-    :param params: optional, dictionary with the arguments
+    Args:
+        params: dictionary with the arguments
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -254,9 +274,10 @@ class NormalizationImplementation(EncodedInvariantImplementation):
 
 
 class ImputationImplementation(DataOperationImplementation):
-    """ Class for applying imputation on tabular data
+    """Class for applying imputation on tabular data
 
-    :param params: optional, dictionary with the arguments
+    Args:
+        params: dictionary with the arguments
     """
 
     def __init__(self, **params: Optional[dict]):
@@ -277,10 +298,10 @@ class ImputationImplementation(DataOperationImplementation):
             self.imputer_num = SimpleImputer(**self.params_num)
 
     def fit(self, input_data: InputData):
-        """
-        The method trains SimpleImputer
+        """The method trains ``SimpleImputer``
 
-        :param input_data: data with features
+        Args:
+            input_data: data with features
         """
 
         replace_inf_with_nans(input_data)
@@ -306,11 +327,15 @@ class ImputationImplementation(DataOperationImplementation):
             self.imputer_num.fit(input_data.features)
 
     def transform(self, input_data: InputData) -> OutputData:
-        """
-        Method for transformation tabular data using SimpleImputer for predict stage
+        """Method for transformation tabular data using ``SimpleImputer``
 
-        :param input_data: data with features
+        Args:
+            input_data: data with features
+
+        Returns:
+            data with transformed features attribute
         """
+
         replace_inf_with_nans(input_data)
 
         if data_type_is_table(input_data) and data_has_categorical_features(input_data):
@@ -351,18 +376,23 @@ class ImputationImplementation(DataOperationImplementation):
         return output_data
 
     def fit_transform(self, input_data: InputData) -> OutputData:
-        """
-        Method for training and transformation tabular data using SimpleImputer
+        """Method for training and transformation tabular data using ``SimpleImputer``
 
-        :param input_data: data with features
-        :return input_data: data with transformed features attribute
+        Args:
+            input_data: data with features
+
+        Returns:
+            data with transformed features attribute
         """
+
         self.fit(input_data)
         output_data = self.transform_for_fit(input_data)
         return output_data
 
     def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array) -> np.array:
-        """ Merge numerical and categorical features in right order (as it was in source table) """
+        """Merge numerical and categorical features in right order (as it was in source table)
+        """
+
         categorical_df = pd.DataFrame(categorical_features, columns=self.categorical_ids)
         numerical_df = pd.DataFrame(numerical_features, columns=self.non_categorical_ids)
         all_features_df = pd.concat([numerical_df, categorical_df], axis=1)
@@ -372,9 +402,12 @@ class ImputationImplementation(DataOperationImplementation):
         return np.array(all_features_df)
 
     def _find_binary_features(self, numerical_features: np.array):
-        """ Find indices of features with only two unique values in column.
-        All features in table are numerical.
+        """Find indices of features with only two unique values in column
+
+        Notes:
+            All features in table are numerical
         """
+
         df = pd.DataFrame(numerical_features)
 
         # Calculate unique values per column (excluding nans)
@@ -388,9 +421,12 @@ class ImputationImplementation(DataOperationImplementation):
 
     def _correct_binary_ids_features(self, filled_numerical_features: np.array) -> np.array:
         """ Correct filled features if previously it was binary. Discretization is performed
-        for the reconstructed values.
-        For example, [1, 1, 0.75, 0] will be transformed into [1, 1, 1, 0]
+        for the reconstructed values
+
+        Tip:
+            [1, 1, 0.75, 0] will be transformed to [1, 1, 1, 0]
         """
+
         list_binary_ids = list(self.ids_binary_integer_features.keys())
         if len(list_binary_ids) == 0:
             # Return source array
