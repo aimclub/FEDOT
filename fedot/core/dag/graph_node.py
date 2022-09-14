@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Iterable, List, Optional, Union
+from typing import List, Optional, Union, Iterable
 from uuid import uuid4
 
 from fedot.core.utilities.data_structures import UniqueList
@@ -62,7 +62,7 @@ class GraphNode:
         return self._nodes_from
 
     @nodes_from.setter
-    def nodes_from(self, nodes: Optional[Iterable['GraphNode']]) -> Union['GraphNode', None]:
+    def nodes_from(self, nodes: Optional[Iterable['GraphNode']]):
         """Changes value of parent nodes of this graph node
 
         Returns:

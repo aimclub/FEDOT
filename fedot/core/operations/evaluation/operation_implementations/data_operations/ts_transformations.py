@@ -361,7 +361,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
         else:
             self.window_size = round(params.get('window_size'))
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """Class doesn't support fit operation
 
         Args:

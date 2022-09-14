@@ -30,7 +30,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
 
         self.parameters_changed = False
 
-    def fit(self, input_data):
+    def fit(self, input_data: InputData):
         """The method trains the PCA model
 
         Args:
@@ -97,7 +97,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             return self.pca.get_params()
 
     @staticmethod
-    def update_column_types(output_data: OutputData):
+    def update_column_types(output_data: OutputData) -> OutputData:
         """Update column types after applying PCA operations
         """
 
@@ -194,7 +194,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
 
         return super().fit(input_data)
 
-    def transform(self, input_data: InputData):
+    def transform(self, input_data: InputData) -> OutputData:
         """Firstly perform filtration of columns
         """
 
@@ -326,7 +326,7 @@ class ImputationImplementation(DataOperationImplementation):
             input_data.features = convert_into_column(input_data.features)
             self.imputer_num.fit(input_data.features)
 
-    def transform(self, input_data: InputData):
+    def transform(self, input_data: InputData) -> OutputData:
         """Method for transformation tabular data using ``SimpleImputer``
 
         Args:
@@ -389,7 +389,7 @@ class ImputationImplementation(DataOperationImplementation):
         output_data = self.transform_for_fit(input_data)
         return output_data
 
-    def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array):
+    def _categorical_numerical_union(self, categorical_features: np.array, numerical_features: np.array) -> np.array:
         """Merge numerical and categorical features in right order (as it was in source table)
         """
 

@@ -287,7 +287,7 @@ class Fedot:
             self.save_predict(self.prediction)
         return self.prediction.predict
 
-    def load(self, path: str):
+    def load(self, path):
         """Loads saved graph from disk
 
         Args:

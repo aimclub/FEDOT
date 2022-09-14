@@ -84,6 +84,20 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         converted = self._convert_to_output(prediction, predict_data)
         return converted
 
+    def predict_for_fit(self, trained_operation, predict_data: InputData) -> OutputData:
+        """
+        Transform method for preprocessing task for fit stage
+
+        Args:
+            trained_operation: model object
+            predict_data: data used for prediction
+        Returns:
+            OutputData: 
+        """
+        prediction = trained_operation.transform_for_fit(predict_data)
+        converted = self._convert_to_output(prediction, predict_data)
+        return converted
+
     def _convert_to_operation(self, operation_type: str):
         if operation_type in self.__operations_by_types.keys():
             return self.__operations_by_types[operation_type]
