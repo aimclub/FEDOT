@@ -24,16 +24,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
         content = {'name': str(node.operation),
                    'params': node.parameters,
                    'metadata': node.metadata}
-
-        PipelineAdapter._clear_pipeline_node(node)
-
         return OptNode(content)
-
-    @staticmethod
-    def _clear_pipeline_node(node: Node):
-        node._fitted_operation = None
-        node._node_data = None
-        del node.metadata
 
     @staticmethod
     def _transform_to_pipeline_node(node: OptNode) -> Node:
