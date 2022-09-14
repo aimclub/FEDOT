@@ -3,7 +3,7 @@ Quickstart
 
 FEDOT Framework quick start guide
 
-.. include:: installation.rst
+.. include:: setup_environments.rst
 
 .. include:: manual_creation.rst
 
