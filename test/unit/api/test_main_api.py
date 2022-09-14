@@ -278,8 +278,8 @@ def test_categorical_preprocessing_unidata():
 
     auto_model = Fedot(problem='classification', **default_params)
     auto_model.fit(features=train_data)
-    auto_model.predict(features=test_data)
-    auto_model.predict_proba(features=test_data)
+    prediction = auto_model.predict(features=test_data)
+    prediction_proba = auto_model.predict_proba(features=test_data)
 
     assert np.issubdtype(prediction.dtype, np.number)
     assert np.isnan(prediction).sum() == 0
