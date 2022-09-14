@@ -1,2 +1,5 @@
-sphinx==2.4.0
-sphinx_rtd_theme
+sphinx==4.2.0
+sphinx_rtd_theme==1.0.0
+readthedocs-sphinx-search==0.1.1
+sphinxcontrib-details-directive
+autodocsumm

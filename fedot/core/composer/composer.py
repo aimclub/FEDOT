@@ -13,8 +13,10 @@ class Composer(ABC):
     """
     Base class used for receiving composite operations via optimization
 
-    :param optimiser: optimiser generated in :class:`~fedot.core.composer.ComposerBuilder`
-    :param composer_requirements: requirements for composition process
+    Args:
+        optimiser: optimiser generated in :class:`~fedot.core.composer.ComposerBuilder`
+        composer_requirements: requirements for composition process
+        initial_pipelines: defines the initial state of the population. If None then initial population is random.
     """
 
     def __init__(self, optimizer: GraphOptimizer, composer_requirements: Optional[ComposerRequirements] = None):
@@ -27,11 +29,14 @@ class Composer(ABC):
         """
         Run composition process for optimal pipeline structure search
 
-        :param data: Data used for problem solving
+        Args:
+            data: Data used for problem solving
 
-        :return: Best composed pipeline or pipelines.
-            For single-objective optimization -- the best pipeline.
-            For multi-objective optimization -- a list of the best pipelines is returned.
+        Returns:
+            For ``single-objective optimization`` -> the best pipeline.\n
+            For ``multi-objective optimization`` -> a list of the best pipelines is returned.
+
+        Notes:
             Returned pipelines are ordered by the descending primary metric (the first is the best).
         """
 

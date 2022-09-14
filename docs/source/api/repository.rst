@@ -3,16 +3,14 @@ Repository
 
 .. automodule:: fedot.core.repository.dataset_types
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Operation Types
 ---------------
 
 .. automodule:: fedot.core.repository.operation_types_repository
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 
 Quality metrics
@@ -20,13 +18,11 @@ Quality metrics
 
 .. automodule:: fedot.core.repository.quality_metrics_repository
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Tasks
 -----
 
 .. automodule:: fedot.core.repository.tasks
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:

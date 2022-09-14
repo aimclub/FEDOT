@@ -11,19 +11,17 @@ from fedot.sensitivity.sa_requirements import SensitivityAnalysisRequirements
 
 
 class PipelineAnalysis:
-    """This class is for analyzing the :class:`~fedot.core.pipelines.pipeline.Pipeline` as the black-box model,
-        using analysis approaches defined for whole pipeline perturbation, i.e.
-        :class:`~fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze`.
+    """This class is for analyzing the :class:`Pipeline` as the black-box model,
+    using analysis approaches defined for whole pipeline perturbation, i.e. :class:`MultiOperationsHPAnalyze`
 
-    :param pipeline: pipeline object to analyze
-    :param train_data: data used for Pipeline training
-    :param test_data: data used for Pipeline validation
-    :param approaches: methods applied to pipeline Default: [
-        :class:`~fedot.sensitivity.operations_hp_sensitivity.multi_operations_sensitivity.MultiOperationsHPAnalyze`]
-    :param requirements: extra requirements to define specific details for different approaches.
-        See :class:`~fedot.sensitivity.sa_requirements.SensitivityAnalysisRequirements` class documentation.
-    :param path_to_save: path to save results to. Default: `~home/Fedot/sensitivity/pipeline_sa`
-        Default: False
+    Args:
+        pipeline: pipeline object to analyze
+        train_data: data used for Pipeline training
+        test_data: data used for Pipeline validation
+        approaches: methods applied to pipeline Default: :class:`MultiOperationsHPAnalyze`
+        requirements: extra requirements to define specific details for different approaches
+            See :class:`SensitivityAnalysisRequirements` class documentation
+        path_to_save: path to save results to. Default: ``~home/Fedot/sensitivity/pipeline_sa``
     """
 
     def __init__(self, pipeline: Pipeline, train_data: InputData, test_data: InputData,
@@ -42,10 +40,9 @@ class PipelineAnalysis:
         self.log = default_log(self)
 
     def analyze(self) -> dict:
+        """Apply defined approaches for the black-box pipeline analysis
         """
-        Apply defined approaches for the black-box pipeline analysis
-        :return:
-        """
+
         all_approaches_results = dict()
         for approach in self.approaches:
             analyze_result = approach(pipeline=self.pipeline,

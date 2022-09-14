@@ -25,10 +25,10 @@ ERROR_PREFIX = 'Invalid pipeline configuration:'
 
 
 class Pipeline(GraphDelegate, Serializable):
-    """
-    Base class used for composite model structure definition
+    """Base class used for composite model structure definition
 
-    :param nodes: Node object(s)
+    Args:
+        nodes: :obj:`Node` object(s)
     """
 
     def __init__(self, nodes: Union[Node, Sequence[Node]] = ()):
@@ -41,26 +41,32 @@ class Pipeline(GraphDelegate, Serializable):
         self.preprocessor = DataPreprocessor()
 
     def fit_from_scratch(self, input_data: Union[InputData, MultiModalData] = None):
-        """
-        [Obsolete] Method used for training the pipeline without using saved information
+        """[Obsolete] Method used for training the pipeline without using saved information
 
-        :param input_data: data used for operation training
+        Args:
+            input_data: data used for operation training
         """
+
         # Clean all saved states and fit all operations
         self.unfit()
         self.fit(input_data)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
                              time: int = 3) -> OutputData:
-        """
-        Runs training process in all of the pipeline nodes starting with root with time limit.
-            Create TODO: unresolved sentence
+        """Runs training process in all of the pipeline nodes starting with root with time limit.
 
-        :param input_data: data used for operations training
-        :param time: time constraint for operations fitting process (in seconds)
+        Todo:
+            unresolved sentence
 
-        :return: values predicted on the provided ``input_data``
+        Args:
+            input_data: data used for operations training
+            use_fitted_operations: flag defining whether to use saved information about previous executions or not
+            time: time constraint for operations fitting process (in seconds)
+
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
         """
+
         time = int(timedelta(minutes=time).total_seconds())
         process_state_dict = {}
         fitted_operations = []
@@ -79,15 +85,18 @@ class Pipeline(GraphDelegate, Serializable):
 
     def _fit(self, input_data: Optional[InputData] = None,
              process_state_dict: dict = None, fitted_operations: list = None) -> Optional[OutputData]:
-        """
-        Runs training process in all the pipeline nodes starting with root
+        """Runs training process in all of the pipeline nodes starting with root
 
-        :param input_data: data used for operation training
-        :param process_state_dict: dictionary used for saving required pipeline parameters
-            (which were changed inside the process) in case of operations fit time control (when process created)
-        :param fitted_operations: list used for saving fitted operations of pipeline nodes
+        Args:
+            input_data: data used for operation training
+            use_fitted_operations: flag defining whether to use saved information about previous executions or not
+            process_state_dict: dictionary used for saving required pipeline parameters
+                (which were changed inside the process) in case of operations fit time control (when process created)
+            fitted_operations: list used for saving fitted operations of pipeline nodes
 
-        :return: values predicted on the provided ``input_data`` or nothing in case of the time controlled call
+        Returns:
+            Optional[OutputData]: values predicted on the provided ``input_data`` or nothing
+            in case of the time controlled call
         """
 
         with Timer() as t:
@@ -109,11 +118,14 @@ class Pipeline(GraphDelegate, Serializable):
         """
         Runs training process in all of the pipeline nodes starting with root
 
-        :param input_data: data used for operations training
-        :param time_constraint: time constraint for operations fitting (in seconds)
-        :param n_jobs: number of threads for nodes fitting
+        Args:
+            input_data: data used for operations training
+            use_fitted: flag defining whether to use saved information about previous fits or not
+            time_constraint: time constraint for operations fitting (in seconds)
+            n_jobs: number of threads for nodes fitting
 
-        :return: values predicted on the provided ``input_data``
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
         """
         self.replace_n_jobs_in_nodes(n_jobs)
 
@@ -134,21 +146,28 @@ class Pipeline(GraphDelegate, Serializable):
 
     @property
     def is_fitted(self) -> bool:
-        """
-        Property showing whether pipeline is fitted
+        """Property showing whether pipeline is fitted
 
-        :return: flag showing if all of the pipeline nodes are fitted already
+        Returns:
+            flag showing if all of the pipeline nodes are fitted already
         """
+
         return all(node.fitted_operation is not None for node in self.nodes)
 
     def unfit(self, mode='all', unfit_preprocessor: bool = True):
-        """
-        Removes fitted operations for chosen type of nodes.
+        """Removes fitted operations for chosen type of nodes.
 
-        :param mode: - 'all' (default) - All models will be unfitted
-                     - 'data_operations' - All data operations will be unfitted
-        :param unfit_preprocessor: should we unfit preprocessor
+        Args:
+            mode: the name of mode
+
+                .. details:: possible ``mode`` options:
+
+                        - ``all`` -> (default) All models will be unfitted
+                        - ``data_operations`` -> All data operations will be unfitted
+
+            unfit_preprocessor: should we unfit preprocessor
         """
+
         for node in self.nodes:
             if mode == 'all' or (mode == 'data_operations' and isinstance(node.content['name'], DataOperation)):
                 node.unfit()
@@ -164,10 +183,13 @@ class Pipeline(GraphDelegate, Serializable):
         """
         Tries to load pipeline nodes if ``cache`` is provided
 
-        :param cache: pipeline nodes cacher
-        :param preprocessing_cache: preprocessing cacher
-        :param fold_id: optional part of the cache item UID
-                            (can be used to specify the number of CV fold)
+        Args:
+            cache: pipeline nodes cacher
+            fold_num: optional part of the cache item UID
+               (can be used to specify the number of CV fold)
+
+        Returns:
+            bool: indicating if at least one node was loaded
         """
         if cache is not None:
             cache.try_load_into_pipeline(self, fold_id)
@@ -175,17 +197,20 @@ class Pipeline(GraphDelegate, Serializable):
             preprocessing_cache.try_load_preprocessor(self, fold_id)
 
     def predict(self, input_data: Union[InputData, MultiModalData], output_mode: str = 'default') -> OutputData:
-        """
-        Runs the predict process in all of the pipeline nodes starting with root
+        """Runs the predict process in all of the pipeline nodes starting with root
 
-        :param input_data: data for prediction
-        :param output_mode: desired form of output for operations. Available options are:
-                - 'default' (as is, default)
-                - 'labels' (numbers of classes - for classification)
-                - 'probs' (probabilities - for classification == 'default')
-                - 'full_probs' (return all probabilities - for binary classification)
+        input_data: data for prediction
+        output_mode: desired form of output for operations
 
-        :return: values predicted on the provided ``input_data``
+            .. details:: possible ``output_mode`` options:
+
+                - ``default`` -> (as is, default)
+                - ``labels`` -> (numbers of classes - for classification)
+                - ``probs`` -> (probabilities - for classification == default)
+                - ``full_probs`` -> (return all probabilities - for binary classification)
+
+        Returns:
+            OutputData: values predicted on the provided ``input_data``
         """
 
         if not self.is_fitted:
@@ -217,43 +242,51 @@ class Pipeline(GraphDelegate, Serializable):
         """
         Saves the pipeline to JSON representation with pickled fitted operations
 
-        :param path: custom path to save the JSON to
-        :param datetime_in_path: is it required to add the datetime timestamp to the path
+        Args:
+            path: custom path to save the JSON to
+            datetime_in_path: is it required to add the datetime timestamp to the path
 
-        :return: <JSON representation of the pipeline structure>, <dict of paths to fitted models>
+        Returns:
+            Tuple[str, dict]: :obj:`JSON representation of the pipeline structure`,
+            :obj:`dict of paths to fitted models`
         """
+
         template = PipelineTemplate(self)
         json_object, dict_fitted_operations = template.export_pipeline(path, root_node=self.root_node,
                                                                        datetime_in_path=datetime_in_path)
         return json_object, dict_fitted_operations
 
     def load(self, source: Union[str, dict], dict_fitted_operations: Optional[dict] = None):
-        """
-        Loads the pipeline JSON representation with pickled fitted operations.
+        """Loads the pipeline ``JSON`` representation with pickled fitted operations.
 
-        :param source: where to load the pipeline from
-        :param dict_fitted_operations: dictionary of the fitted operations
+        Args:
+            source: where to load the pipeline from
+            dict_fitted_operations: dictionary of the fitted operations
         """
+
         self.nodes = []
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
     def __eq__(self, other: 'Pipeline') -> bool:
-        """
-        Compares this pipeline with provided ``other``
+        """Compares this pipeline with provided ``other``
 
-        :param other: another pipeline
+        Args:
+            other: another pipeline
 
-        :return: is it equal to ``other`` in terms of the pipelines
+        Returns:
+            is it equal to ``other`` in terms of the pipelines
         """
+
         return self.root_node.descriptive_id == other.root_node.descriptive_id
 
     def __str__(self) -> str:
-        """
-        Returns compact information about class instance
+        """Returns compact information about class instance
 
-        :return: formatted string representation of the class instance
+        Returns:
+            formatted string representation of the class instance
         """
+
         description = {
             'depth': self.depth,
             'length': self.length,
@@ -263,10 +296,10 @@ class Pipeline(GraphDelegate, Serializable):
 
     @property
     def root_node(self) -> Optional[Node]:
-        """
-        Finds pipelines sink-node
+        """Finds pipelines sink-node
 
-        :return: the final predictor-node
+        Returns:
+            the final predictor-node
         """
         if not self.nodes:
             return None
@@ -277,12 +310,13 @@ class Pipeline(GraphDelegate, Serializable):
         return root[0]
 
     def pipeline_for_side_task(self, task_type: TaskTypesEnum) -> 'Pipeline':
-        """
-        Returns pipeline formed from the last node solving the given problem and all its parents
+        """Returns pipeline formed from the last node solving the given problem and all its parents
 
-        :param task_type: task type of the last node to search for
+        Args:
+            task_type: task type of the last node to search for
 
-        :return: pipeline formed from the last node solving the given problem and all of its parents
+        Returns:
+            pipeline formed from the last node solving the given problem and all of its parents
         """
 
         max_distance = 0
@@ -299,15 +333,16 @@ class Pipeline(GraphDelegate, Serializable):
         return pipeline
 
     def _assign_data_to_nodes(self, input_data: Union[InputData, MultiModalData]) -> Optional[InputData]:
-        """
-        In case of provided ``input_data`` is of type :class:`~fedot.core.data.multi_modal.MultiModalData`
-            assigns :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data` from the ``input_data``
-        Does nothing otherwise
+        """In case of provided ``input_data`` is of type :class:`MultiModalData`
+        assigns :attr:`PrimaryNode.node_data` from the ``input_data``
 
-        :param input_data: data to assign to :attr:`~fedot.core.pipelines.node.PrimaryNode.node_data`
+        Args:
+            input_data: data to assign to :attr:`PrimaryNode.node_data`
 
-        :return: None in case of :class:`~fedot.core.data.multi_modal.MultiModalData` and ``input_data`` otherwise
+        Returns:
+            ``None`` in case of :class:`MultiModalData` and ``input_data`` otherwise
         """
+
         if isinstance(input_data, MultiModalData):
             for node in (n for n in self.nodes if isinstance(n, PrimaryNode)):
                 if node.operation.operation_type in input_data:
@@ -319,7 +354,9 @@ class Pipeline(GraphDelegate, Serializable):
         return input_data
 
     def print_structure(self):
-        """ Prints structural information about the pipeline """
+        """ Prints structural information about the pipeline
+        """
+
         print(
             'Pipeline structure:',
             self,
@@ -344,13 +381,14 @@ class Pipeline(GraphDelegate, Serializable):
 
 
 def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
-    """
-    Returns list of nodes with the required ``operation_name``
+    """Returns list of nodes with the required ``operation_name``
 
-    :param pipeline: pipeline to process
-    :param operation_name: name of the operation to filter by
+    Args:
+        pipeline: pipeline to process
+        operation_name: name of the operation to filter by
 
-    :return: list of relevant nodes (empty if there are no such nodes)
+    Returns:
+        list: relevant nodes (empty if there are no such nodes)
     """
 
     # Check if model has decompose operations
@@ -364,7 +402,8 @@ def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node
     Method to update nodes type after performing some action on the pipeline
         via GraphOperator, if any of them are of GraphNode type
 
-    :param nodes: Node object(s)
+    Args:
+        nodes: :obj:`Node` object(s)
     """
 
     for node in nodes:

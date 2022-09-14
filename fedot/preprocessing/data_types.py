@@ -7,6 +7,8 @@ import pandas as pd
 from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
+
+NoneType = type(None)
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

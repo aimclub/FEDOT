@@ -17,10 +17,11 @@ MAX_METRIC_VALUE = np.inf
 class HyperoptTuner(ABC):
     """
     Base class for hyperparameters optimization based on hyperopt library
-
-    :param iterations: max number of iterations
-    :param search_space: SearchSpace instance
-    :param algo: algorithm for hyperparameters optimization with signature similar to hyperopt.tse.suggest
+    
+    Args:
+      iterations: max number of iterations
+      search_space: SearchSpace instance
+      algo: algorithm for hyperparameters optimization with signature similar to :obj:`hyperopt.tse.suggest`
     """
 
     def __init__(self, objective_evaluate: ObjectiveEvaluate,
@@ -49,20 +50,24 @@ class HyperoptTuner(ABC):
         """
         Function for hyperparameters tuning on the pipeline
 
-        :param pipeline: Pipeline for which hyperparameters tuning is needed
+        Args:
+          pipeline: Pipeline for which hyperparameters tuning is needed
 
-        :return fitted_pipeline: graph with optimized hyperparameters
+        Returns:
+          graph with optimized hyperparameters
         """
         raise NotImplementedError()
 
     def get_metric_value(self, pipeline: Pipeline) -> float:
         """
         Method calculates metric for algorithm validation
+        
+        Args:
+          pipeline: Pipeline to evaluate
 
-        :param pipeline: Pipeline to evaluate
-
-        :return: value of loss function
-        # """
+        Returns:
+          value of loss function
+        """
         pipeline_fitness = self.objective_evaluate.evaluate(pipeline)
         metric_value = pipeline_fitness.value
         if not pipeline_fitness.valid:
@@ -73,7 +78,8 @@ class HyperoptTuner(ABC):
         """
         Method get metric on validation set before start optimization
 
-        :param pipeline: Pipeline to calculate objective
+        Args:
+          pipeline: Pipeline to calculate objective
         """
         self.log.info('Hyperparameters optimization start')
 
@@ -86,7 +92,8 @@ class HyperoptTuner(ABC):
         """
         Method propose final quality check after optimization process
 
-        :param tuned_pipeline: Tuned pipeline to calculate objective
+        Args:
+          tuned_pipeline: Tuned pipeline to calculate objective
         """
 
         self.obtained_metric = self.get_metric_value(pipeline=tuned_pipeline)

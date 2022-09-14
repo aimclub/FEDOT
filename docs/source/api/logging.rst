@@ -3,8 +3,5 @@ Logging
 
 .. automodule:: fedot.core.log
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
-.. toctree::
-   :glob:

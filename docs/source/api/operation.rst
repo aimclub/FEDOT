@@ -2,22 +2,16 @@ Operation
 =========
 .. automodule:: fedot.core.operations.operation
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Model
 -----
 .. automodule:: fedot.core.operations.model
    :members:
-   :undoc-members:
-   :show-inheritance:
+   :no-undoc-members:
 
 Data operation
 --------------
 .. automodule:: fedot.core.operations.data_operation
    :members:
-   :undoc-members:
-   :show-inheritance:
-
-.. toctree::
-   :glob:
+   :no-undoc-members:

@@ -8,10 +8,10 @@ from fedot.core.repository.tasks import TaskTypesEnum
 
 
 class Model(Operation):
-    """
-    Class with fit/predict methods defining the evaluation strategy for the task
+    """Class with ``fit``/``predict`` methods defining the evaluation strategy for the task
 
-    :param operation_type: name of the model
+    Args:
+        operation_type: name of the model
     """
 
     def __init__(self, operation_type: str):
@@ -20,8 +20,7 @@ class Model(Operation):
 
     @staticmethod
     def assign_tabular_column_types(output_data: OutputData, output_mode: str) -> OutputData:
-        """
-        Assign types for tabular data obtained from model predictions.
+        """Assign types for tabular data obtained from model predictions.\n
         By default, all types of model predictions for tabular data can be clearly defined
         """
         if output_data.data_type is not DataTypesEnum.table:
