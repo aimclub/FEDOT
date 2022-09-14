@@ -25,7 +25,10 @@ class BaseCacheDB:
         self.db_path = db_path or Path(default_fedot_data_dir(), f'cache_{str(uuid.uuid4())}')
         self.db_path = Path(self.db_path).with_suffix(self._db_suffix)
 
-        self._del_prev_temps()
+        try:
+            self._del_prev_temps()
+        except:
+            pass
 
         self._eff_table = 'effectiveness'
         self.use_stats = use_stats
@@ -110,10 +113,7 @@ class BaseCacheDB:
 
         :param cur: cursor with already installed DB connection
         """
-        try:
-            cur.execute(f'DELETE FROM {self._main_table};')
-        except:
-            pass
+        cur.execute(f'DELETE FROM {self._main_table};')
 
     def __len__(self):
         with closing(sqlite3.connect(self.db_path)) as conn:
