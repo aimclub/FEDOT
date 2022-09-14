@@ -110,7 +110,10 @@ class BaseCacheDB:
 
         :param cur: cursor with already installed DB connection
         """
-        cur.execute(f'DELETE FROM {self._main_table};')
+        try:
+            cur.execute(f'DELETE FROM {self._main_table};')
+        except:
+            pass
 
     def __len__(self):
         with closing(sqlite3.connect(self.db_path)) as conn:

@@ -236,7 +236,7 @@ class OperationTypesRepository:
         if len(operations_with_id) > 1:
             raise ValueError('Several operations with same id in repository')
         if len(operations_with_id) == 0:
-            self.log.warning(f'Operation {operation_id} not found in the repository')
+            self.log.debug(f'Operation {operation_id} not found in the repository')
             return None
         return operations_with_id[0]
 
