@@ -1,21 +1,15 @@
 import logging
-import pathlib
 import random
 from copy import deepcopy
-
-import pytest
 
 from examples.simple.classification.classification_pipelines import classification_pipeline_without_balancing
 from fedot.api.api_utils.api_composer import ApiComposer
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
 from fedot.api.main import Fedot
 from fedot.core.data.data_split import train_test_data_setup
-from fedot.core.log import Log, default_log
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import default_fedot_data_dir
 from fedot.preprocessing.preprocessing import DataPreprocessor
 from test.unit.api.test_main_api import get_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data

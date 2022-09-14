@@ -195,9 +195,10 @@ class OptHistory:
         # add info about initial assumptions (stored as zero generation)
         for i, individual in enumerate(self.individuals[0]):
             ind = f'I{i}'
+            positional_id = '-'
             print(separator.join([f'{ind:>3}'
                                   f'{str(individual.fitness):>8}',
-                                  f'-',
+                                  f'{positional_id}',
                                   f'{individual.graph.descriptive_id}']), file=output)
         return output.getvalue()
 

@@ -3,11 +3,9 @@ from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.pipelines.node import Node, PrimaryNode, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.pipelines.template import PipelineTemplate
 
 
 class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):

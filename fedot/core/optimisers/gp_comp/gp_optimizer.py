@@ -5,7 +5,6 @@ from typing import Sequence, Callable
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import Crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism
 from fedot.core.optimisers.gp_comp.operators.inheritance import Inheritance

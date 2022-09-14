@@ -1,6 +1,5 @@
 from typing import Collection, Optional, Sequence, Tuple, Union
 
-from fedot.core.adapter import AdaptRegistry
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.composer.composer import Composer

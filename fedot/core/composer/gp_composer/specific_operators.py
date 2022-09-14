@@ -1,5 +1,5 @@
 from random import choice, random
-from typing import Any, List
+from typing import List
 
 from fedot.core.optimisers.gp_comp.operators.mutation import Mutation
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode

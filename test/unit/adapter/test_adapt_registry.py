@@ -1,8 +1,8 @@
 from copy import deepcopy
 from functools import partial
+from typing import Tuple, Callable
 
 import pytest
-from typing import Tuple, Callable
 
 from fedot.core.adapter import AdaptRegistry, register_native
 from fedot.core.optimisers.fitness import Fitness, SingleObjFitness
@@ -192,10 +192,10 @@ def test_adapt_unregistered_fail(mutation):
 
     restored_mutation = adapt(mutation)
 
-    with pytest.raises(TypeError) as e:
-        mutated_dom_graph = restored_mutation(dom_struct)
-    with pytest.raises(TypeError) as e:
-        mutated_graph = restored_mutation(opt_graph)
+    with pytest.raises(TypeError):
+        restored_mutation(dom_struct)
+    with pytest.raises(TypeError):
+        restored_mutation(opt_graph)
 
     if was_registered:
         AdaptRegistry().register_native(mutation)

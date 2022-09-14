@@ -1,7 +1,5 @@
-from copy import deepcopy
 from typing import TYPE_CHECKING
 
-from fedot.core.adapter import AdaptRegistry
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
 from fedot.core.optimisers.graph import OptGraph

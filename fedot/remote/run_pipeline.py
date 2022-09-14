@@ -6,7 +6,6 @@ from typing import Union
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
-from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum

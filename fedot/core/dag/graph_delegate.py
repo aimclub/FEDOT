@@ -1,5 +1,5 @@
 
-from typing import Union, Sequence, List, Callable, Optional, Tuple, Type
+from typing import Union, Sequence, List, Optional, Tuple, Type
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode

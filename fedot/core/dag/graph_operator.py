@@ -202,8 +202,9 @@ class GraphOperator(Graph, Copyable):
 
     @copy_doc(Graph)
     def __eq__(self, other_graph: Graph) -> bool:
-        return set(rn.descriptive_id for rn in self.root_nodes()) == \
-               set(rn.descriptive_id for rn in other_graph.root_nodes())
+        return \
+            set(rn.descriptive_id for rn in self.root_nodes()) == \
+            set(rn.descriptive_id for rn in other_graph.root_nodes())
 
     @copy_doc(Graph)
     @property

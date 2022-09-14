@@ -1,4 +1,4 @@
-from typing import Tuple, List, Optional, Iterable, Callable, Sequence
+from typing import List, Optional, Callable, Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
