@@ -1,43 +1,74 @@
 import pytest
 
+from fedot.core.dag.graph_verifier import GraphVerifier
 from fedot.core.dag.verification_rules import DEFAULT_DAG_RULES
-from fedot.core.pipelines.verification_rules import *
-from test.unit.adapter.test_adapt_verification_rules import get_valid_pipeline
-
-SOME_PIPELINE_RULES = (
-    has_correct_operation_positions,
-    has_primary_nodes,
-    has_final_operation_as_model,
-    has_final_operation_as_model,
-    has_no_conflicts_with_data_flow,
-    has_correct_data_connections,
-)
+from fedot.core.optimisers.adapters import PipelineAdapter
+from fedot.core.optimisers.graph import OptNode
+from fedot.core.pipelines.node import Node, SecondaryNode, PrimaryNode
+from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 
 
-@pytest.mark.parametrize('rule', DEFAULT_DAG_RULES)
-def test_adapt_verification_rules_dag(rule):
-    """Test that dag verification rules behave as expected with new adapter.
-    They accept any graphs, so the new adapter must see them as native
-    and shouldn't change them on the call to adapt."""
+def get_pipelines():
+    one_node_pipeline = PipelineBuilder() \
+        .add_sequence('logit') \
+        .to_pipeline()
+    linear_pipeline = PipelineBuilder() \
+        .add_sequence('logit', 'logit', 'logit') \
+        .to_pipeline()
+    branching_structure = PipelineBuilder() \
+        .add_node('operation_a') \
+        .add_branch('operation_a', 'operation_f') \
+        .join_branches('operation_f') \
+        .to_pipeline()
+    branching_structure2 = PipelineBuilder() \
+        .add_node('operation_a') \
+        .add_branch('operation_b', 'operation_c') \
+        .grow_branches('operation_d', None) \
+        .join_branches('operation_f') \
+        .add_node('operation_a') \
+        .to_pipeline()
+    node_a = PrimaryNode('logit')
+    node_b = SecondaryNode('logit', nodes_from=[node_a])
+    node_c = SecondaryNode('logit', nodes_from=[node_b, node_a])
+    skip_connection_structure = Pipeline(node_c)
 
-    opt_graph, pipeline, adapter = get_valid_pipeline()
-    adapted_rule = adapter.adapt_func(rule)
-
-    assert adapted_rule(opt_graph)
-    assert id(rule) == id(adapted_rule)
+    return [one_node_pipeline, linear_pipeline,
+            branching_structure, branching_structure2,
+            skip_connection_structure]
 
 
-@pytest.mark.parametrize('rule', SOME_PIPELINE_RULES)
-def test_adapt_verification_rules_pipeline(rule):
-    """Test that pipeline verification rules behave as expected with new adapter."""
+@pytest.mark.parametrize('pipeline', get_pipelines())
+def test_pipelines_adapt_properly(pipeline):
+    adapter = PipelineAdapter()
+    verifier = GraphVerifier(DEFAULT_DAG_RULES)
 
-    opt_graph, pipeline, adapter = get_valid_pipeline()
+    assert all(isinstance(node, Node) for node in pipeline.nodes)
+    assert _check_nodes_references_correct(pipeline)
+    assert verifier(pipeline)
 
-    # sanity check
-    assert rule(pipeline)
+    opt_graph = adapter.adapt(pipeline)
 
-    adapted_rule = adapter.adapt_func(rule)
+    assert all(type(node) is OptNode for node in opt_graph.nodes)  # checking strict type equality!
+    assert _check_nodes_references_correct(opt_graph)
+    assert verifier(opt_graph)
 
-    # adapted rules can accept both opt graphs and pipelines
-    assert adapted_rule(opt_graph)
-    assert adapted_rule(pipeline)
+
+@pytest.mark.parametrize('pipeline', get_pipelines())
+def test_adapted_and_restored_are_equal(pipeline):
+    adapter = PipelineAdapter()
+
+    opt_graph = adapter.adapt(pipeline)
+    restored_pipeline = adapter.restore(opt_graph)
+
+    assert pipeline.descriptive_id == restored_pipeline.descriptive_id
+    assert id(pipeline) != id(restored_pipeline)
+
+
+def _check_nodes_references_correct(graph):
+    for node in graph.nodes:
+        if node.nodes_from:
+            for parent_node in node.nodes_from:
+                if parent_node not in graph.nodes:
+                    return False
+    return True
