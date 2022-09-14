@@ -29,9 +29,9 @@ class Data:
     """
 
     idx: np.array
-    features: np.array
     task: Task
     data_type: DataTypesEnum
+    features: np.array
     target: Optional[np.array] = None
 
     # Object with supplementary info
@@ -452,6 +452,7 @@ class OutputData(Data):
     """``Data`` type for data prediction in the node
     """
 
+    features: Optional[np.ndarray] = None
     predict: np.ndarray = None
     target: Optional[np.ndarray] = None
 

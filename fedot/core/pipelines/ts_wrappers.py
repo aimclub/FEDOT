@@ -320,7 +320,7 @@ def convert_forecast_to_output(pre_history_data: Union[InputData, MultiModalData
     """ Converts forecast array to OutputData
     :param pre_history_data: data which was used for prediction
     :param forecast: array with predicted values"""
-    features = pre_history_data.features
+    features = pre_history_data.features if isinstance(pre_history_data, InputData) else None
     if forecast.ndim > 1:
         forecast = np.squeeze(forecast)
     start_idx = pre_history_data.idx[-1] + 1

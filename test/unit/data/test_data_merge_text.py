@@ -30,12 +30,11 @@ def generate_output_texts(length=10, num_columns=1):
     task = Task(TaskTypesEnum.classification)
     data_type = DataTypesEnum.text
     features = all_features[:length]
-    classes = all_classes[:length]
     if num_columns > 1:
         features = np.hstack([np.expand_dims(features, axis=-1)] * num_columns)
     idx = np.arange(0, length)
 
-    return OutputData(idx, features, task, data_type, predict=features, target=None)
+    return OutputData(idx,  task, data_type, features=features, predict=features, target=None)
 
 
 @pytest.fixture(params=[(1,), (1, 1, 1), (2, 1), (2, 3, 1)],
@@ -54,7 +53,7 @@ def test_data_merge_texts(output_texts):
 
     if len(output_texts) > 1:
         with pytest.raises(ValueError, match="not supported"):
-            merged_data = DataMerger.get(output_texts).merge()
+            DataMerger.get(output_texts).merge()
     else:
         merged_data = DataMerger.get(output_texts).merge()
 

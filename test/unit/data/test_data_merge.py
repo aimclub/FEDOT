@@ -39,7 +39,6 @@ def output_table_1d():
 def output_tables(request):
     """ Generates number of tables with specified dimensions of features and predicts. """
     num_features_all = request.param
-    num_tables = len(num_features_all)
     samples = 20
 
     generated_target = np.random.sample((samples, 1))
@@ -115,7 +114,7 @@ def generate_output_tables(input_lengths: List[int],
         target = (features[:, -1] ** 2).reshape(-1, 1)
         metadata = SupplementaryData(is_main_target=main_target)
 
-        output_data = OutputData(idx, features, task, data_type,
+        output_data = OutputData(idx, task, data_type, features=features,
                                  predict=features, target=target,
                                  supplementary_data=metadata)
         outputs.append(output_data)
@@ -201,7 +200,7 @@ def test_data_merge_common_index_empty(unequal_outputs_table):
     assert len(np.intersect1d(output1.idx, output2.idx)) == 0
 
     with pytest.raises(ValueError, match='no common ind'):
-        merged_data = DataMerger.get(unequal_outputs_table).merge()
+        DataMerger.get(unequal_outputs_table).merge()
 
 
 def test_data_merge_tables_with_equal_length_but_different_indices():
@@ -217,7 +216,7 @@ def test_data_merge_tables_with_equal_length_but_different_indices():
 def test_data_merge_tables_with_unequal_nonunique_indices():
     outputs = generate_output_tables(input_lengths=[20, 25, 30], unique=False)
     with pytest.raises(ValueError, match='not equal and not unique'):
-        merged_data = DataMerger.get(outputs).merge()
+        DataMerger.get(outputs).merge()
 
 
 def test_data_merge_datatypes_compatibility():

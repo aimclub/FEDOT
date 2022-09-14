@@ -51,7 +51,7 @@ def get_output_timeseries(len_forecast=5, length=100, num_variables=1, for_predi
         idx = np.arange(0, length)
         predict = features
 
-    predict_output = OutputData(idx, features, task, DataTypesEnum.ts, predict=predict)
+    predict_output = OutputData(idx, task, DataTypesEnum.ts, features=features, predict=predict)
     return predict_output
 
 
