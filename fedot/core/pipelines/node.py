@@ -46,10 +46,10 @@ class Node(GraphNode):
             passed_params = passed_content.get('params', DEFAULT_PARAMS_STUB)
             if passed_params == DEFAULT_PARAMS_STUB and default_params is not None:
                 # Replace 'default_params' with params from json file
-                default_params = get_default_params(operation.operation_type)
+                params = default_params
             else:
                 # Store passed
-                default_params = passed_params
+                params = passed_params
 
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
@@ -57,17 +57,17 @@ class Node(GraphNode):
             operation = self._process_direct_init(operation_type)
 
             # Define operation with default parameters
-            default_params = get_default_params(operation.operation_type)
+            params = get_default_params(operation.operation_type)
             self.metadata = NodeMetadata()
-        if not default_params:
-            default_params = DEFAULT_PARAMS_STUB
+        if not params:
+            params = DEFAULT_PARAMS_STUB
 
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
         # Create Node with default content
         super().__init__(content={'name': operation,
-                                  'params': default_params}, nodes_from=nodes_from)
+                                  'params': params}, nodes_from=nodes_from)
 
         self.log = default_log(self)
         self._fitted_operation = None
