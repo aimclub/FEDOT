@@ -147,14 +147,18 @@ class Mutation(Operator):
         :param graph: graph to mutate
         """
 
+        exchange_node = self.graph_generation_params.node_factory.exchange_node
+        visited_nodes = set()
+
         def replace_node_to_random_recursive(node: OptGraph) -> OptGraph:
-            if random() < node_mutation_probability:
-                new_node = self.graph_generation_params.node_factory.exchange_node(node)
+            if node not in visited_nodes and random() < node_mutation_probability:
+                new_node = exchange_node(node)
                 if new_node:
                     graph.update_node(node, new_node)
-                if node.nodes_from:
-                    for parent in node.nodes_from:
-                        replace_node_to_random_recursive(parent)
+                visited_nodes.add(node)
+                visited_nodes.add(new_node)
+                for parent in node.nodes_from:
+                    replace_node_to_random_recursive(parent)
 
         node_mutation_probability = self.get_mutation_prob(mut_id=self.parameters.mutation_strength,
                                                            node=graph.root_node)
