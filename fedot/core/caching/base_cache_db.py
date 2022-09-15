@@ -1,8 +1,10 @@
+import os
 import sqlite3
-import uuid
 from contextlib import closing
 from pathlib import Path
 from typing import Optional, Sequence, Tuple
+
+import psutil
 
 from fedot.core.utils import default_fedot_data_dir
 
@@ -22,7 +24,7 @@ class BaseCacheDB:
                  stats_keys: Sequence = ('default_hit', 'default_total')):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
-        self.db_path = db_path or Path(default_fedot_data_dir(), f'cache_{str(uuid.uuid4())}')
+        self.db_path = db_path or Path(default_fedot_data_dir(), f'cache_{os.getpid()}')
         self.db_path = Path(self.db_path).with_suffix(self._db_suffix)
 
         self._del_prev_temps()
@@ -80,10 +82,17 @@ class BaseCacheDB:
 
     def _del_prev_temps(self):
         """
-        Deletes previously generated DB files.
+        Deletes previously generated unused DB files.
         """
         for file in self.db_path.parent.glob(f'cache_*{self._db_suffix}'):
-            file.unlink()
+            pid = int(file.stem.split('_')[-1])
+            if pid not in psutil.pids():
+                try:
+                    file.unlink()
+                except FileNotFoundError:
+                    pass  # it means another process have already killed it
+                except PermissionError:
+                    pass  # the same
 
     def _inc_eff(self, cur: sqlite3.Cursor, col: str, inc_val: int = 1):
         """
