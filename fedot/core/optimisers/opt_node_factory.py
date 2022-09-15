@@ -21,20 +21,20 @@ class OptNodeFactory(ABC):
     @abstractmethod
     def get_parent_node(self,
                         node: OptNode,
-                        primary: bool) -> Optional[OptNode]:
+                        is_primary: bool) -> Optional[OptNode]:
         """
         Returns new parent node for the current node
         based on the content of the current node and using advisor.
 
         :param node: current node for which a parent node is generated
-        :param primary: identifies whether to generate new parent node as separate primary node (if True)
+        :param is_primary: identifies whether to generate new parent node as separate primary node (if True)
         or to generate new intermediate secondary node between the current node and it's parent (if False)
         """
         pass
 
     @abstractmethod
     def get_node(self,
-                 primary: bool) -> Optional[OptNode]:
+                 is_primary: bool) -> Optional[OptNode]:
         """
         Returns new child secondary node or new primary node for the current node
         based on the requirements for a node.
@@ -49,11 +49,11 @@ class DefaultOptNodeFactory(OptNodeFactory):
     def exchange_node(self, node: OptNode) -> Optional[OptNode]:
         return node
 
-    def get_parent_node(self, node: OptNode, primary: bool) -> Optional[OptNode]:
-        return self.get_node(primary=primary)
+    def get_parent_node(self, node: OptNode, is_primary: bool) -> Optional[OptNode]:
+        return self.get_node(is_primary=is_primary)
 
-    def get_node(self, primary: bool) -> Optional[OptNode]:
+    def get_node(self, is_primary: bool) -> Optional[OptNode]:
         if not self.requirements:
             return None
-        candidates = self.requirements.primary if primary else self.requirements.secondary
+        candidates = self.requirements.primary if is_primary else self.requirements.secondary
         return OptNode(content={'name': choice(candidates)})

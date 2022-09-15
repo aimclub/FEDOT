@@ -33,7 +33,7 @@ class PopulationalOptimizer(GraphOptimizer):
     :param initial_graphs: graphs which were initialized outside the optimizer
     :param requirements: implementation-independent requirements for graph optimizer
     :param graph_generation_params: parameters for new graph generation
-    :param parameters: parameters for specific implementation of graph optimizer
+    :param graph_optimizer_params: parameters for specific implementation of graph optimizer
     """
 
     def __init__(self,
@@ -41,8 +41,8 @@ class PopulationalOptimizer(GraphOptimizer):
                  initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: Optional[GraphOptimizerParameters] = None):
-        super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
+                 graph_optimizer_params: Optional['GraphOptimizerParameters'] = None):
+        super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_params)
         self.population = None
         self.generations = GenerationKeeper(self.objective, keep_n_best=requirements.keep_n_best)
         self.timer = OptimisationTimer(timeout=self.requirements.timeout)
@@ -51,8 +51,8 @@ class PopulationalOptimizer(GraphOptimizer):
                                                          n_jobs=requirements.n_jobs,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
-        # early_stopping_generations may be None, so use some obvious max number
-        max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations
+        # stopping_after_n_generation may be None, so use some obvious max number
+        max_stagnation_length = requirements.stopping_after_n_generation or requirements.num_of_generations
         self.stop_optimization = \
             GroupedCondition().add_condition(
                 lambda: self.timer.is_time_limit_reached(self.current_generation_num),

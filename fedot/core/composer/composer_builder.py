@@ -156,7 +156,7 @@ class ComposerBuilder:
                                        initial_graphs=initial_population,
                                        requirements=self.composer_requirements,
                                        graph_generation_params=self.graph_generation_params,
-                                       parameters=self.optimizer_parameters,
+                                       graph_optimizer_params=self.optimizer_parameters,
                                        **self.optimizer_external_parameters)
         history = None
         if self._keep_history:

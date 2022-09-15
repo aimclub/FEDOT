@@ -107,7 +107,7 @@ def run_custom_example(timeout: datetime.timedelta = None):
     optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
-        parameters=optimiser_parameters,
+        graph_optimizer_params=optimiser_parameters,
         requirements=requirements, initial_graphs=initial)
 
     objective_eval = ObjectiveEvaluate(objective, data=data)

@@ -261,7 +261,7 @@ class OperationTypesRepository:
                            data_type: DataTypesEnum = None,
                            tags: List[str] = None, is_full_match: bool = False,
                            forbidden_tags: List[str] = None,
-                           preset: str = None):
+                           preset: str = None) -> List[str]:
         """Method returns operations from repository for desired task and / or
         tags. Filtering method.
 

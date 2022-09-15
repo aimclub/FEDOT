@@ -20,10 +20,10 @@ def random_graph(graph_generation_params: GraphGenerationParams,
     while not is_correct_graph:
         graph = OptGraph()
         if requirements.max_depth == 1:
-            graph_root = graph_generation_params.node_factory.get_node(primary=True)
+            graph_root = graph_generation_params.node_factory.get_node(is_primary=True)
             graph.add_node(graph_root)
         else:
-            graph_root = graph_generation_params.node_factory.get_node(primary=False)
+            graph_root = graph_generation_params.node_factory.get_node(is_primary=False)
             graph.add_node(graph_root)
             graph_growth(graph, graph_root, graph_generation_params, requirements, max_depth)
 
@@ -60,11 +60,11 @@ def graph_growth(graph: OptGraph,
         is_max_depth_exceeded = height >= max_depth - 2
         is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
         if is_max_depth_exceeded or is_primary_node_selected:
-            primary_node = params.node_factory.get_node(primary=True)
+            primary_node = params.node_factory.get_node(is_primary=True)
             node_parent.nodes_from.append(primary_node)
             graph.add_node(primary_node)
         else:
-            secondary_node = params.node_factory.get_node(primary=False)
+            secondary_node = params.node_factory.get_node(is_primary=False)
             graph.add_node(secondary_node)
             node_parent.nodes_from.append(secondary_node)
             graph_growth(graph, secondary_node, params, requirements, max_depth)

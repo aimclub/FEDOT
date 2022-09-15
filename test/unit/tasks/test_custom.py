@@ -74,7 +74,7 @@ def test_custom_graph_opt():
     optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
         objective=objective,
-        parameters=optimiser_parameters,
+        graph_optimizer_params=optimiser_parameters,
         requirements=requirements,
         initial_graphs=init_population)
 

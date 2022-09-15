@@ -77,7 +77,7 @@ class GraphOptimizer:
     :param initial_graphs: graphs which were initialized outside the optimizer
     :param requirements: implementation-independent requirements for graph optimizer
     :param graph_generation_params: parameters for new graph generation
-    :param parameters: parameters for specific implementation of graph optimizer
+    :param graph_optimizer_parameters: parameters for specific implementation of graph optimizer
     """
 
     def __init__(self,
@@ -85,13 +85,13 @@ class GraphOptimizer:
                  initial_graphs: Optional[Sequence[Graph]] = None,
                  requirements: Optional[ComposerRequirements] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimizerParameters] = None):
+                 graph_optimizer_parameters: Optional[GraphOptimizerParameters] = None):
         self.log = default_log(self)
         self.initial_graphs = initial_graphs
         self._objective = objective
         self.requirements = requirements
         self.graph_generation_params = graph_generation_params or GraphGenerationParams()
-        self.parameters = parameters or GraphOptimizerParameters()
+        self.graph_optimizer_params = graph_optimizer_parameters or GraphOptimizerParameters()
         self._optimisation_callback: OptimisationCallback = do_nothing_callback
 
     @property

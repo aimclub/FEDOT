@@ -16,26 +16,23 @@ class PipelineOptNodeFactory(OptNodeFactory):
     def exchange_node(self,
                       node: OptNode) -> Optional[OptNode]:
         candidates = self.requirements.secondary if node.nodes_from else self.requirements.primary
-        candidates = self.advisor.propose_change(current_operation_id=str(node.content['name']),
+        candidates = self.advisor.propose_change(node=node,
                                                  possible_operations=candidates)
         return self._return_node(candidates)
 
     def get_parent_node(self,
                         node: OptNode,
-                        primary: bool) -> Optional[OptNode]:
-        parent_operations_ids = None
+                        is_primary: bool) -> Optional[OptNode]:
         possible_operations = self.requirements.primary
-        if not primary:
-            parent_operations_ids = [str(n.content['name']) for n in node.nodes_from]
+        if not is_primary:
             possible_operations = self.requirements.secondary
-        candidates = self.advisor.propose_parent(current_operation_id=str(node.content['name']),
-                                                 parent_operations_ids=parent_operations_ids,
+        candidates = self.advisor.propose_parent(node=node,
                                                  possible_operations=possible_operations)
         return self._return_node(candidates)
 
     def get_node(self,
-                 primary: bool) -> Optional[OptNode]:
-        candidates = self.requirements.primary if primary else self.requirements.secondary
+                 is_primary: bool):
+        candidates = self.requirements.primary if is_primary else self.requirements.secondary
         return self._return_node(candidates)
 
     @staticmethod

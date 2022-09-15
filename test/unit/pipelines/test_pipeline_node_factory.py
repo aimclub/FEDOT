@@ -50,7 +50,7 @@ def test_change_node(nodes, node_factory):
 
 def test_get_intermediate_parent_node(nodes, node_factory):
     _, _, secondary_node = nodes
-    new_intermediate_parent_node = node_factory.get_parent_node(secondary_node, primary=False)
+    new_intermediate_parent_node = node_factory.get_parent_node(secondary_node, is_primary=False)
 
     assert new_intermediate_parent_node is not None
     assert new_intermediate_parent_node.content['name'] in node_factory.requirements.secondary
@@ -61,7 +61,7 @@ def test_get_intermediate_parent_node(nodes, node_factory):
 
 def test_get_separate_parent_node(nodes, node_factory):
     _, _, secondary_node = nodes
-    new_separate_parent_node = node_factory.get_parent_node(secondary_node, primary=True)
+    new_separate_parent_node = node_factory.get_parent_node(secondary_node, is_primary=True)
 
     assert new_separate_parent_node is not None
     assert new_separate_parent_node.content['name'] in node_factory.requirements.primary
@@ -69,14 +69,14 @@ def test_get_separate_parent_node(nodes, node_factory):
 
 
 def test_get_child_node(node_factory):
-    new_child_node = node_factory.get_node(primary=False)
+    new_child_node = node_factory.get_node(is_primary=False)
 
     assert new_child_node is not None
     assert new_child_node.content['name'] in node_factory.requirements.secondary
 
 
 def test_get_primary_node(node_factory):
-    new_primary_node = node_factory.get_node(primary=True)
+    new_primary_node = node_factory.get_node(is_primary=True)
 
     assert new_primary_node is not None
     assert new_primary_node.content['name'] in node_factory.requirements.primary
