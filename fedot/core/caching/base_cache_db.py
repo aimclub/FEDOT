@@ -24,8 +24,8 @@ class BaseCacheDB:
                  stats_keys: Sequence = ('default_hit', 'default_total')):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
-        self.db_path = db_path or Path(default_fedot_data_dir(), f'cache_{os.getpid()}')
-        self.db_path = Path(self.db_path).with_suffix(self._db_suffix)
+        self.db_path = Path(default_fedot_data_dir(), 'cache') if db_path is None else Path(db_path)
+        self.db_path = self.db_path.with_name(f'{self.db_path.name}_{os.getpid()}').with_suffix(self._db_suffix)
 
         self._del_prev_temps()
 
@@ -85,7 +85,10 @@ class BaseCacheDB:
         Deletes previously generated unused DB files.
         """
         for file in self.db_path.parent.glob(f'cache_*{self._db_suffix}'):
-            pid = int(file.stem.split('_')[-1])
+            try:
+                pid = int(file.stem.split('_')[-1])
+            except ValueError:
+                pid = -1  # old format cache name, remove this line somewhere in the future
             if pid not in psutil.pids():
                 try:
                     file.unlink()
