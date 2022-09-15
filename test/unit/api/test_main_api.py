@@ -519,7 +519,7 @@ def test_forecast_with_not_ts_problem():
         model.forecast(pre_history=test_data)
 
 
-def test_forecast_with_multimodal_ts():
+def test_forecast_with_multivariate_ts():
     forecast_length = 2
 
     file_path_train = 'cases/data/metocean/metocean_data_train.csv'
