@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 
 class DiscriminantAnalysisImplementation(ModelImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         self.params = params
         self.model = None
@@ -48,7 +48,7 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        return self.model.get_params()
+        return self.params
 
     @property
     def classes_(self):
@@ -57,15 +57,13 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
 class LDAImplementation(DiscriminantAnalysisImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         if not params:
             self.model = LinearDiscriminantAnalysis()
         else:
             self.model = LinearDiscriminantAnalysis(**params)
         self.params = params
-        self.parameters_changed = False
-        self.changed_parameters = []
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -80,9 +78,6 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
         except ValueError:
             # Problem arise when features and target are "ideally" mapping
             # features [[1.0], [0.0], [0.0]] and target [[1], [0], [0]]
-            self.parameters_changed = True
-            self.changed_parameters.append('solver')
-
             new_solver = 'lsqr'
             self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
 
@@ -102,19 +97,10 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
             self.params['shrinkage'] = None
             self.model.shrinkage = None
 
-            self.parameters_changed = True
-            self.changed_parameters.append('shrinkage')
-
-    def get_params(self):
-        if self.parameters_changed is True:
-            return tuple([self.params, self.changed_parameters])
-        else:
-            return self.params
-
 
 class QDAImplementation(DiscriminantAnalysisImplementation):
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         if not params:
             self.model = QuadraticDiscriminantAnalysis()

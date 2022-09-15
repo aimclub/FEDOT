@@ -15,7 +15,7 @@ class RepeatLastValueImplementation(ModelImplementation):
     LOCF (last observation carried forward)
     """
 
-    def __init__(self, **params):
+    def __init__(self, params):
         super().__init__()
         # Which part of time series will be used for repeating. Vary from 0.01 to 0.5
         # If -1 - repeat only last value
@@ -80,15 +80,16 @@ class RepeatLastValueImplementation(ModelImplementation):
             return transformed_cols
 
     def get_params(self):
-        return {'part_for_repeat': self.part_for_repeat}
+        return self.params
 
 
 class NaiveAverageForecastImplementation(ModelImplementation):
     """ Class for forecasting time series with mean """
 
-    def __init__(self, **params):
+    def __init__(self, params):
         super().__init__()
         self.part_for_averaging = params.get('part_for_averaging')
+        self.params = params
 
     def fit(self, input_data):
         """ Such a simple approach does not support fit method """
@@ -130,7 +131,7 @@ class NaiveAverageForecastImplementation(ModelImplementation):
         return output_data
 
     def get_params(self):
-        return {'part_for_averaging': self.part_for_averaging}
+        return self.params
 
     def average_by_axis(self, parts: np.array):
         """ Perform averaging for each column using last part of it """

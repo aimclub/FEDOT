@@ -28,10 +28,8 @@ class Operation:
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
-        params_for_fit = None
-        if params != DEFAULT_PARAMS_STUB:
-            params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
-                                                         n_samples_data=kwargs.get('n_samples_data')).correct(params)
+        params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
+                                                     n_samples_data=kwargs.get('n_samples_data')).correct(params)
 
         try:
             self._eval_strategy = \
@@ -63,7 +61,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict, None], data: InputData):
+    def fit(self, params: Union[dict, None], data: InputData):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 

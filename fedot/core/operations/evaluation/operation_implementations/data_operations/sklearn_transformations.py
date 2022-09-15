@@ -28,8 +28,6 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         self.number_of_features = None
         self.number_of_samples = None
 
-        self.parameters_changed = False
-
     def fit(self, input_data: InputData):
         """The method trains the PCA model
 
@@ -73,28 +71,18 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         """Method check if number of features in data enough for ``n_components``
         parameter in PCA or not. And if not enough - fixes it
         """
-
-        current_parameters = self.pca.get_params()
-
-        if type(current_parameters['n_components']) == int:
-            if current_parameters['n_components'] > self.number_of_features:
-                current_parameters['n_components'] = self.number_of_features
-                self.parameters_changed = True
-        elif current_parameters['n_components'] == 'mle':
+        if type(self.params['n_components']) == int:
+            if self.params['n_components'] > self.number_of_features:
+                self.params['n_components'] = self.number_of_features
+        elif self.params['n_components'] == 'mle':
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
-                current_parameters['n_components'] = 0.5
-                self.parameters_changed = True
+                self.params['n_components'] = 0.5
 
-        self.pca.set_params(**current_parameters)
-        self.params = current_parameters
+        self.pca.set_params(**self.params)
 
     def get_params(self):
-        if self.parameters_changed is True:
-            params_dict = self.pca.get_params()
-            return tuple([params_dict, ['n_components']])
-        else:
-            return self.pca.get_params()
+        return self.params
 
     @staticmethod
     def update_column_types(output_data: OutputData) -> OutputData:
@@ -113,7 +101,7 @@ class PCAImplementation(ComponentAnalysisImplementation):
         params: dictionary with the hyperparameters
     """
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         if not params:
             # Default parameters
@@ -131,7 +119,7 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
         params: dictionary with the hyperparameters
     """
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         if not params:
             # Default parameters
@@ -148,7 +136,7 @@ class FastICAImplementation(ComponentAnalysisImplementation):
         params: dictionary with the hyperparameters
     """
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         if not params:
             # Default parameters
@@ -167,7 +155,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         params: dictionary with the arguments
     """
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         self.th_columns = 10
         if not params:
@@ -212,7 +200,7 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
         return output_data
 
     def get_params(self) -> dict:
-        return self.operation.get_params()
+        return self.params
 
     def _update_column_types(self, source_features_shape, output_data: OutputData):
         """Update column types after applying operations. If new columns added, new type for them are defined
@@ -248,7 +236,7 @@ class ScalingImplementation(EncodedInvariantImplementation):
         self.params = params
 
     def get_params(self) -> dict:
-        return self.operation.get_params()
+        return self.params
 
 
 class NormalizationImplementation(EncodedInvariantImplementation):
@@ -270,7 +258,7 @@ class NormalizationImplementation(EncodedInvariantImplementation):
         self.params = params
 
     def get_params(self) -> dict:
-        return self.operation.get_params()
+        return self.params
 
 
 class ImputationImplementation(DataOperationImplementation):

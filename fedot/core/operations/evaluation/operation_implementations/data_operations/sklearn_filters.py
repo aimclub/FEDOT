@@ -212,7 +212,7 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         return output_data
 
     def get_params(self) -> Dict[str, Any]:
-        return self.operation.get_params()
+        return self.params
 
 
 class IsolationForestClassImplementation(IsolationForestRegImplementation):

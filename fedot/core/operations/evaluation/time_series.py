@@ -56,7 +56,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-            model = self.operation(**self.params_for_fit)
+            model = self.operation(self.params_for_fit)
         else:
             model = self.operation()
 

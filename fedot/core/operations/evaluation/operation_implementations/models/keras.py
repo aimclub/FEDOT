@@ -155,7 +155,7 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         self.params = {'log': default_log(prefix=__name__),
                        'epochs': 10,

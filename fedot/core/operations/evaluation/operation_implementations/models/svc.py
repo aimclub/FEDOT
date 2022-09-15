@@ -8,7 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.implementation_i
 
 
 class FedotSVCImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         super().__init__()
         if not params:
             self.inner_model = SVC(kernel='linear',
@@ -51,7 +51,7 @@ class FedotSVCImplementation(ModelImplementation):
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        return self.model.get_params()
+        return self.params
 
     @property
     def classes_(self):

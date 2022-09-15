@@ -138,7 +138,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
         return transformed_features
 
     def get_params(self) -> dict:
-        return self.operation.get_params()
+        return self.params
 
     def _update_column_types(self, source_features_shape, output_data: OutputData) -> OutputData:
         """

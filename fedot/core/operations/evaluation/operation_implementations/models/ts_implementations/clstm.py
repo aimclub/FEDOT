@@ -30,7 +30,7 @@ except ModuleNotFoundError:
 
 
 class CLSTMImplementation(ModelImplementation):
-    def __init__(self, **params):
+    def __init__(self, params):
         super().__init__()
         self.params = params
         self.epochs = params.get("num_epochs")

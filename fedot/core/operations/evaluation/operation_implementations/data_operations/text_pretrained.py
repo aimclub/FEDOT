@@ -23,7 +23,7 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
     """ Class for text vectorization by pretrained embeddings
     model_name can be selected from https://github.com/RaRe-Technologies/gensim-data"""
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[dict]):
         if not params:
             self.model_name = 'glove-twitter-25'
         else:

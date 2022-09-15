@@ -43,14 +43,12 @@ class GLMImplementation(ModelImplementation):
         "default": Gaussian(identity())
     }
 
-    def __init__(self, **params):
+    def __init__(self, params):
         super().__init__()
         self.model = None
         self.params = params
 
         self.family_link = None
-
-        self.params_changed = False
 
         self.family = self.params.get('family')
         self.link = self.params.get('link')
@@ -112,31 +110,25 @@ class GLMImplementation(ModelImplementation):
         return output_data
 
     def get_params(self):
-        params_dict = {'family': self.family, 'link': self.link}
-        changed_params = ['family', 'link']
-        if changed_params:
-            return tuple([params_dict, changed_params])
-        else:
-            return params_dict
+        return self.params
 
     def set_default(self):
         """ Set default value of Family(link) """
         self.family_link = self.family_distribution['default']
-        self.params_changed = True
         self.family = 'gaussian'
+        self.params['family'] = self.family
         self.log.info("Invalid family. Changed to default value")
 
     def correct_params(self):
         """ Correct params if they are not correct """
         if self.family in self.family_distribution:
-            self.family = self.family
             if self.link not in self.family_distribution[self.family]['available_links']:
                 # get default link for distribution if current invalid
                 self.log.info(
                     f"Invalid link function {self.link} for {self.family}. Change to default "
                     f"link {self.family_distribution[self.family]['default_link']}")
                 self.link = self.family_distribution[self.family]['default_link']
-                self.params_changed = True
+                self.params['link'] = self.link
             # if correct isn't need
             self.family_link = self.family_distribution[self.family]['distribution'](
                 self.family_distribution[self.family]['available_links'][self.link]
@@ -148,13 +140,11 @@ class GLMImplementation(ModelImplementation):
 
 class AutoRegImplementation(ModelImplementation):
 
-    def __init__(self, **params):
+    def __init__(self, params: dict):
         super().__init__()
         self.params = params
         self.autoreg = None
         self.actual_ts_len = None
-        self.lag1_changed = False
-        self.lag2_changed = False
 
     def fit(self, input_data):
         """ Class fit ar model on data
@@ -166,7 +156,7 @@ class AutoRegImplementation(ModelImplementation):
         self.actual_ts_len = len(source_ts)
 
         # Correct window size parameter
-        self.lag1_changed, self.lag2_changed = self._check_and_correct_lags(source_ts)
+        self._check_and_correct_lags(source_ts)
 
         lag_1 = int(self.params.get('lag_1'))
         lag_2 = int(self.params.get('lag_2'))
@@ -232,9 +222,10 @@ class AutoRegImplementation(ModelImplementation):
             new_lag_2 -= 1
         lag1_was_changed = self._lag_was_changed(previous_lag_1, new_lag_1)
         lag2_was_changed = self._lag_was_changed(previous_lag_2, new_lag_2)
-        self.params['lag_1'] = new_lag_1
-        self.params['lag_2'] = new_lag_2
-        return lag1_was_changed, lag2_was_changed
+        if lag1_was_changed:
+            self.params['lag_1'] = new_lag_1
+        if lag2_was_changed:
+            self.params['lag_2'] = new_lag_2
 
     def _check_and_correct_lag(self, max_lag: int, lag: int):
         if lag > max_lag:
@@ -249,13 +240,6 @@ class AutoRegImplementation(ModelImplementation):
         return was_changed
 
     def get_params(self):
-        changed_params = []
-        if self.lag1_changed is True:
-            changed_params.append('lag_1')
-        if self.lag2_changed is True:
-            changed_params.append('lag_2')
-        if changed_params:
-            return self.params, changed_params
         return self.params
 
     def handle_new_data(self, input_data: InputData):
@@ -272,7 +256,7 @@ class AutoRegImplementation(ModelImplementation):
 class ExpSmoothingImplementation(ModelImplementation):
     """ Exponential smoothing implementation from statsmodels """
 
-    def __init__(self, **params):
+    def __init__(self, params):
         super().__init__()
         self.model = None
         self.params = params
