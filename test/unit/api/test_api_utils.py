@@ -15,15 +15,14 @@ from test.unit.api.test_main_api import get_dataset
 from test.unit.tasks.test_classification import get_binary_classification_data
 
 
-def test_compose_fedot_model_without_tuning(caplog):
+def test_compose_fedot_model_without_tuning():
     task_type = 'classification'
     train_input, _, _ = get_dataset(task_type=task_type)
 
-    model = Fedot(problem=task_type, timeout=0.1, preset='fast_train',
-                  logging_level=logging.INFO, with_tuning=True)
+    model = Fedot(problem=task_type, timeout=0.1, preset='fast_train', with_tuning=True)
     model.fit(train_input)
 
-    assert any('Composed pipeline returned without tuning.' in record.msg for record in caplog.records)
+    assert not model.api_composer.was_tuned
 
 
 def test_output_binary_classification_correct():
