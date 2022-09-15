@@ -18,7 +18,7 @@ from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
-from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
+from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation, MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
@@ -43,14 +43,19 @@ from test.unit.tasks.test_regression import get_synthetic_regression_data
 
 
 def get_mutation_operator(mutation_types: Sequence[MutationTypesEnum],
-                          requirements: PipelineComposerRequirements,
+                          requirements: Optional[PipelineComposerRequirements] = None,
                           task: Optional[Task] = None,
-                          mutation_prob: float = 1.0):
+                          mutation_prob: float = 1.0,
+                          mutation_strength: Optional[MutationStrengthEnum] = MutationStrengthEnum.mean):
+    if not requirements:
+        operations = get_operations_for_task(task)
+        requirements = PipelineComposerRequirements(primary=operations, secondary=operations)
     graph_params = get_pipeline_generation_params(requirements=requirements,
                                                   rules_for_constraint=DEFAULT_DAG_RULES,
                                                   task=task)
     parameters = GPGraphOptimizerParameters(mutation_types=mutation_types,
-                                            mutation_prob=mutation_prob)
+                                            mutation_prob=mutation_prob,
+                                            mutation_strength=mutation_strength)
     mutation = Mutation(parameters, requirements, graph_params)
     return mutation
 
@@ -60,6 +65,14 @@ def file_data():
     input_data = InputData.from_csv(test_file_path)
     input_data.idx = to_numerical(categorical_ids=input_data.idx)
     return input_data
+
+
+def get_skip_connection_pipeline():
+    node_a = PrimaryNode('logit')
+    node_b = SecondaryNode('logit', nodes_from=[node_a])
+    node_c = SecondaryNode('logit', nodes_from=[node_b, node_a])
+    skip_connection_structure = Pipeline(node_c)
+    return skip_connection_structure
 
 
 def graph_example():
@@ -205,7 +218,7 @@ def test_crossover():
     assert new_graphs[1].graph == graph_example_second
 
 
-def test_mutation():
+def test_mutation_none():
     adapter = PipelineAdapter()
     ind = Individual(adapter.adapt(pipeline_first()))
     task = Task(TaskTypesEnum.classification)
@@ -224,6 +237,22 @@ def test_mutation():
     ind = Individual(adapter.adapt(pipeline_fifth()))
     new_ind = mutation(ind)
     assert new_ind.graph == ind.graph
+
+
+@pytest.mark.parametrize('pipeline', [
+    # Tests recursive nature of simple mutation on pipeline that has branches and joins.
+    get_skip_connection_pipeline()
+])
+def test_simple_mutation(pipeline):
+    mutation = get_mutation_operator([MutationTypesEnum.simple],
+                                     mutation_prob=1, mutation_strength=MutationStrengthEnum.strong)
+    ind = Individual(PipelineAdapter().adapt(pipeline))
+
+    mutated_ind = mutation(ind)
+
+    assert mutated_ind.graph.descriptive_id != ind.graph.descriptive_id
+    # assert that for strong mutation all nodes were changed
+    assert len(set(mutated_ind.graph.nodes).intersection(ind.graph.nodes)) == 0
 
 
 def test_intermediate_add_mutation_for_linear_graph():
