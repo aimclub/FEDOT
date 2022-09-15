@@ -1,5 +1,6 @@
 import datetime
 import gc
+import os
 from typing import Callable, List, Optional, Sequence, Tuple, Union
 
 from fedot.api.api_utils.assumptions.assumptions_handler import AssumptionsHandler
@@ -91,13 +92,14 @@ class ApiComposer:
             secondary_operations = available_operations
         return primary_operations, secondary_operations
 
-    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool):
+    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool,
+                   folder: Optional[Union[str, os.PathLike]] = None):
         if use_pipelines_cache:
-            self.pipelines_cache = OperationsCache()
+            self.pipelines_cache = OperationsCache(folder)
             #  in case of previously generated singleton cache
             self.pipelines_cache.reset()
         if use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache()
+            self.preprocessing_cache = PreprocessingCache(folder)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
 

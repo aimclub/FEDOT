@@ -99,6 +99,7 @@ class Fedot:
         tuner_metric:  metric for quality calculation during tuning
         use_pipelines_cache: bool indicating whether to use pipeline structures caching, enabled by default.
         use_preprocessing_cache: bool indicating whether to use optional preprocessors caching, enabled by default.
+        cache_folder: path to the place where cache files should be stored (if any cache is enabled).
         show_progress: bool indicating whether to show progress using tqdm/tuner or not
     """
 
@@ -125,7 +126,8 @@ class Fedot:
 
         # Initialize ApiComposer's cache parameters via ApiParams
         self.api_composer.init_cache(self.params.api_params['use_pipelines_cache'],
-                                     self.params.api_params['use_preprocessing_cache'])
+                                     self.params.api_params['use_preprocessing_cache'],
+                                     self.params.api_params['cache_folder'])
 
         # Initialize data processors for data preprocessing and preliminary data analysis
         self.data_processor = ApiDataProcessor(task=self.params.api_params['task'])

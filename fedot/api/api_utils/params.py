@@ -7,7 +7,7 @@ from fedot.api.api_utils.presets import OperationsPreset
 from fedot.core.constants import AUTO_PRESET_NAME, DEFAULT_FORECAST_LENGTH
 from fedot.core.data.data import InputData
 from fedot.core.data.multi_modal import MultiModalData
-from fedot.core.log import default_log, Log
+from fedot.core.log import Log, default_log
 from fedot.core.repository.tasks import Task, TaskParams, TaskTypesEnum, TsForecastingParams
 from fedot.core.utilities.random import RandomStateHandler
 
@@ -125,7 +125,8 @@ class ApiParams:
                   'genetic_scheme': None,
                   'early_stopping_generations': 30,
                   'use_pipelines_cache': True,
-                  'use_preprocessing_cache': True}
+                  'use_preprocessing_cache': True,
+                  'cache_folder': None}
 
         if problem in ['classification', 'regression']:
             params['cv_folds'] = 5
