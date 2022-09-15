@@ -22,7 +22,6 @@ class PipelineComposerRequirements(ComposerRequirements):
     """
 
     start_depth: int = 3
-    # TODO it's actually something like 'current_max_depth', not overall max depth.
     max_depth: int = 3
     min_arity: int = 2
     max_arity: int = 2
