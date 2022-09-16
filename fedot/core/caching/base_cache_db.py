@@ -24,10 +24,11 @@ class BaseCacheDB:
                  stats_keys: Sequence = ('default_hit', 'default_total')):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
-        self.db_path = Path(default_fedot_data_dir(), 'cache') if db_path is None else Path(db_path)
-        self.db_path = self.db_path.with_name(f'{self.db_path.name}_{os.getpid()}').with_suffix(self._db_suffix)
-
-        self._del_prev_temps()
+        if db_path is None:
+            self.db_path = Path(default_fedot_data_dir(), f'cache_{os.getpid()}').with_suffix(self._db_suffix)
+            self._del_prev_temps()
+        else:
+            self.db_path = Path(db_path)
 
         self._eff_table = 'effectiveness'
         self.use_stats = use_stats
