@@ -313,8 +313,9 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 keep_n_best=None, available_operations=None, metric=None,
                                 validation_blocks=None, cv_folds=None, genetic_scheme=None, history_folder=None,
                                 early_stopping_generations=None, optimizer=None, optimizer_external_params=None,
-                                collect_intermediate_metric=False, max_pipeline_fit_time=None, initial_assumption=None,
-                                preset='auto', use_pipelines_cache=True, use_preprocessing_cache=True)
+                                collect_intermediate_metric=False, max_pipeline_fit_time=None,
+                                initial_assumption=None, preset='auto',
+                                use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None)
 
     tuner_params_dict = dict(with_tuning=False)
 

@@ -53,7 +53,8 @@ def test_compose_fedot_model_with_tuning():
                                                           preset='fast_train',
                                                           initial_assumption=None,
                                                           use_pipelines_cache=False,
-                                                          use_preprocessing_cache=False),
+                                                          use_preprocessing_cache=False,
+                                                          cache_folder=None),
                                      tuning_params=dict(with_tuning=True,
                                                         tuner_metric=None))
     with open(log.log_file, 'r') as f:
