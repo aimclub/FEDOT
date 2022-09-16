@@ -18,12 +18,12 @@ def _flatten_generations_list(generations_list: List[List[Individual]]) -> List[
                 parents_map[parent.uid] = parent
                 extract_intermediate_parents(parent)
 
-    uid_to_individual_map = {ind.uid: ind for ind in reversed(list(chain(*generations_list)))}
+    generations_map = {ind.uid: ind for ind in chain(*generations_list)}
     parents_map = {}
-    for individual in uid_to_individual_map.values():
+    for individual in generations_map.values():
         extract_intermediate_parents(individual)
-    uid_to_individual_map.update(parents_map)
-    individuals_pool = list(uid_to_individual_map.values())
+    parents_map.update(generations_map)
+    individuals_pool = list(parents_map.values())
     return individuals_pool
 
 
