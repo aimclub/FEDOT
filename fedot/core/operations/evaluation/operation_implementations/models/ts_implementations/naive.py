@@ -6,6 +6,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
     transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -15,11 +16,11 @@ class RepeatLastValueImplementation(ModelImplementation):
     LOCF (last observation carried forward)
     """
 
-    def __init__(self, params):
-        super().__init__()
+    def __init__(self, params: OperationParameters):
+        super().__init__(params)
         # Which part of time series will be used for repeating. Vary from 0.01 to 0.5
         # If -1 - repeat only last value
-        self.part_for_repeat = params['part_for_repeat']
+        self.part_for_repeat = params.get('part_for_repeat')
         self.elements_to_repeat = None
 
     def fit(self, input_data):
@@ -79,17 +80,13 @@ class RepeatLastValueImplementation(ModelImplementation):
             # Number of elements to repeat equal to forecast horizon
             return transformed_cols
 
-    def get_params(self):
-        return self.params
-
 
 class NaiveAverageForecastImplementation(ModelImplementation):
     """ Class for forecasting time series with mean """
 
-    def __init__(self, params):
-        super().__init__()
+    def __init__(self, params: OperationParameters):
+        super().__init__(params)
         self.part_for_averaging = params.get('part_for_averaging')
-        self.params = params
 
     def fit(self, input_data):
         """ Such a simple approach does not support fit method """
@@ -129,9 +126,6 @@ class NaiveAverageForecastImplementation(ModelImplementation):
                                               predict=forecast,
                                               data_type=DataTypesEnum.table)
         return output_data
-
-    def get_params(self):
-        return self.params
 
     def average_by_axis(self, parts: np.array):
         """ Perform averaging for each column using last part of it """

@@ -29,6 +29,7 @@ from xgboost import XGBClassifier, XGBRegressor
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_operation_type_from_id
 from fedot.core.repository.tasks import TaskTypesEnum
@@ -46,7 +47,7 @@ class EvaluationStrategy:
         params: hyperparameters to fit the operation with
     """
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.params_for_fit = params
         self.operation_id = operation_type
 
@@ -197,9 +198,8 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         'kmeans': SklearnKmeans,
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
-        self.operation_id = operation_type
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
@@ -215,7 +215,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
         if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
+            operation_implementation = self.operation_impl(**self.params_for_fit.get_parameters())
         else:
             operation_implementation = self.operation_impl()
 

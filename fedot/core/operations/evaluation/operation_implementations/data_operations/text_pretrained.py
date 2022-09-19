@@ -7,6 +7,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -23,14 +24,14 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
     """ Class for text vectorization by pretrained embeddings
     model_name can be selected from https://github.com/RaRe-Technologies/gensim-data"""
 
-    def __init__(self, params: Optional[dict]):
+    def __init__(self, params: Optional[OperationParameters]):
         if not params:
             self.model_name = 'glove-twitter-25'
         else:
             self.model_name = params.get('model_name')
         self.logger = default_log(prefix='FEDOT logger')
         self._download_model_resources()
-        super().__init__()
+        super().__init__(params)
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -81,6 +82,3 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
         if os.path.exists(model_path):
             self.logger.info('Embeddings are already downloaded. Loading model...')
             self.model = KeyedVectors.load_word2vec_format(model_path, binary=False)
-
-    def get_params(self):
-        return self.params

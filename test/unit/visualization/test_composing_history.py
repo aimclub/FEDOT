@@ -7,14 +7,13 @@ from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitnes
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_history import OptHistory
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 from fedot.core.visualisation.opt_viz import PlotTypesEnum
 
 
 def create_individual():
-    first = OptNode(content={'name': 'logit', 'params': DEFAULT_PARAMS_STUB})
-    second = OptNode(content={'name': 'lda', 'params': DEFAULT_PARAMS_STUB})
-    final = OptNode(content={'name': 'knn', 'params': DEFAULT_PARAMS_STUB},
+    first = OptNode(content={'name': 'logit'})
+    second = OptNode(content={'name': 'lda'})
+    final = OptNode(content={'name': 'knn'},
                     nodes_from=[first, second])
 
     individual = Individual(graph=OptGraph(final))

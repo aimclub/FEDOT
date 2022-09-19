@@ -10,8 +10,6 @@ import pandas as pd
 
 from sklearn.model_selection import train_test_split
 
-DEFAULT_PARAMS_STUB = 'default_params'
-
 
 def copy_doc(source_func: Callable) -> Callable:
     """

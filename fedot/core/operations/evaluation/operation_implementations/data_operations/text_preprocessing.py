@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -21,16 +22,17 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 class TextCleanImplementation(DataOperationImplementation):
     """ Class for text cleaning (lemmatization and stemming) operation """
 
-    def __init__(self, **params: Optional[dict]):
+    def __init__(self, params: Optional[OperationParameters]):
         if not params:
             self.lang = 'english'
+            params.update('language', 'english')
         else:
             self.lang = params.get('language')
 
         self.stemmer = nltk.stem.SnowballStemmer(language=self.lang)
         self.lemmatizer = nltk.stem.WordNetLemmatizer()
         self._download_nltk_resources()
-        super().__init__()
+        super().__init__(params)
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -108,6 +110,3 @@ class TextCleanImplementation(DataOperationImplementation):
         text = re.sub(clean_pattern, ' ', raw_text)
 
         return text
-
-    def get_params(self):
-        raise NotImplementedError()

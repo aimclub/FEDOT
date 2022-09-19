@@ -11,12 +11,13 @@ from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class LaggedImplementation(DataOperationImplementation):
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
 
         self.window_size_minimum = None
         self.window_size = None
@@ -24,7 +25,6 @@ class LaggedImplementation(DataOperationImplementation):
         self.sparse_transform = False
         self.use_svd = False
         self.features_columns = None
-        self.parameters_changed = False
 
         # Define logger object
         self.log = default_log(self)
@@ -37,9 +37,6 @@ class LaggedImplementation(DataOperationImplementation):
         """
 
         pass
-
-    def get_params(self):
-        raise NotImplementedError()
 
     def transform(self, input_data: InputData) -> OutputData:
         """ Method for transformation of time series to lagged form for predict stage
@@ -55,11 +52,7 @@ class LaggedImplementation(DataOperationImplementation):
         forecast_length = new_input_data.task.task_params.forecast_length
 
         # Correct window size parameter
-        self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
-                                                                                   self.window_size,
-                                                                                   forecast_length,
-                                                                                   self.window_size_minimum,
-                                                                                   self.log)
+        self._check_and_correct_window_size(new_input_data.features, forecast_length)
 
         self._apply_transformation_for_predict(new_input_data)
 
@@ -82,11 +75,7 @@ class LaggedImplementation(DataOperationImplementation):
         forecast_length = new_input_data.task.task_params.forecast_length
 
         # Correct window size parameter
-        self.window_size, self.parameters_changed = _check_and_correct_window_size(new_input_data.features,
-                                                                                   self.window_size,
-                                                                                   forecast_length,
-                                                                                   self.window_size_minimum,
-                                                                                   self.log)
+        self._check_and_correct_window_size(new_input_data.features, forecast_length)
 
         target = np.array(new_input_data.target)
         features = np.array(new_input_data.features)
@@ -103,6 +92,35 @@ class LaggedImplementation(DataOperationImplementation):
                                               data_type=DataTypesEnum.table)
         self._update_column_types(output_data)
         return output_data
+
+    def _check_and_correct_window_size(self, time_series: np.array, forecast_length: int):
+        """ Method check if the length of the time series is not enough for
+            lagged transformation - clip it
+
+            Args:
+                time_series: time series for transformation
+                forecast_length: forecast length
+
+            Returns:
+
+            """
+        prefix = "Warning: window size of lagged transformation was changed"
+
+        # Maximum threshold
+        removing_len = self.window_size + forecast_length
+        if removing_len > len(time_series):
+            previous_size = self.window_size
+            # At least 10 objects we need for training, so minus 10
+            self.window_size = len(time_series) - forecast_length - 10
+            self.params.update('window_size', self.window_size)
+            self.log.info(f"{prefix} from {previous_size} to {self.window_size}.")
+
+        # Minimum threshold
+        if self.window_size < self.window_size_minimum:
+            previous_size = self.window_size
+            self.window_size = self.window_size_minimum
+            self.params.update('window_size', self.window_size)
+            self.log.info(f"{prefix} from {previous_size} to {self.window_size}")
 
     def _update_column_types(self, output_data: OutputData):
         """Update column types after lagged transformation. All features becomes ``float``
@@ -315,45 +333,29 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
     """Implementation of sparse lagged transformation for time series forecasting
     """
 
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.sparse_transform = True
         self.window_size_minimum = 6
 
         self.window_size = round(params.get('window_size'))
         self.n_components = params.get('n_components')
 
-    def get_params(self):
-        params_dict = {'window_size': self.window_size,
-                       'n_components': self.n_components,
-                       'use_svd': self.use_svd}
-        if self.parameters_changed is True:
-            return tuple([params_dict, ['window_size']])
-        else:
-            return params_dict
-
 
 class LaggedTransformationImplementation(LaggedImplementation):
     """Implementation of lagged transformation for time series forecasting
     """
 
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.window_size_minimum = 2
         self.window_size = round(params.get('window_size'))
-
-    def get_params(self):
-        params_dict = {'window_size': self.window_size}
-        if self.parameters_changed is True:
-            return tuple([params_dict, ['window_size']])
-        else:
-            return params_dict
 
 
 class TsSmoothingImplementation(DataOperationImplementation):
 
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
 
         if not params:
             # Default parameters
@@ -407,14 +409,11 @@ class TsSmoothingImplementation(DataOperationImplementation):
         smoothed_ts[:self.window_size] = ts[:self.window_size]
         return smoothed_ts
 
-    def get_params(self):
-        return {'window_size': self.window_size}
-
 
 class ExogDataTransformationImplementation(DataOperationImplementation):
 
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -484,17 +483,15 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
         return output_data
 
-    def get_params(self):
-        return {}
-
 
 class GaussianFilterImplementation(DataOperationImplementation):
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
 
         if not params:
             # Default parameters
             self.sigma = 1
+            self.params.update('sigma', 1)
         else:
             self.sigma = round(params.get('sigma'))
 
@@ -531,26 +528,19 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
         return output_data
 
-    def get_params(self):
-        return {'sigma': self.sigma}
-
 
 class NumericalDerivativeFilterImplementation(DataOperationImplementation):
-    def __init__(self, **params):
-        super().__init__()
-        self.params = params
-        self.parameters_changed = False
-        self.changed_params = []
-
+    def __init__(self, params: OperationParameters):
+        super().__init__(params)
         self.max_poly_degree = 5
         self.default_poly_degree = 2
         self.default_order = 1
 
         self.log = default_log(self)
 
-        self.poly_degree = int(self.params['poly_degree'])
-        self.order = int(self.params['order'])
-        self.window_size = int(self.params['window_size'])
+        self.poly_degree = int(self.params.get('poly_degree'))
+        self.order = int(self.params.get('order'))
+        self.window_size = int(self.params.get('window_size'))
         self._correct_params()
 
     def fit(self, input_data: InputData):
@@ -596,11 +586,10 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         """
 
         if self.window_size > ts.shape[0]:
-            self.parameters_changed = True
-            self.changed_params.append('window_size')
             self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
             self.window_size = self.poly_degree + 1
+            self.params.update('window_size', self.window_size)
         x = np.arange(ts.shape[0])
 
         ts_len = x.shape[0]
@@ -632,41 +621,30 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
     def _correct_params(self):
         if self.poly_degree > 5:
-            self.parameters_changed = True
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
                           f'changed to {self.max_poly_degree}')
-            self.changed_params.append('poly_degree')
             self.poly_degree = self.max_poly_degree
+            self.params.update('poly_degree', self.poly_degree)
         if self.order < 1:
-            self.parameters_changed = True
             self.log.info(f'NumericalDerivativeFilter: invalid parameter order ({self.order}) '
                           f'changed to {self.default_order}')
-            self.changed_params.append('order')
             self.order = self.default_order
+            self.params.update('degree', self.order)
         if self.order >= self.poly_degree:
-            self.parameters_changed = True
-            self.changed_params.append('order')
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
                           f'changed to {self.order + 1}')
             self.poly_degree = self.order + 1
+            self.params.update('poly_degree', self.poly_degree)
         if self.window_size < self.poly_degree:
-            self.parameters_changed = True
-            self.changed_params.append('window_size')
             self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
             self.window_size = self.poly_degree + 1
-
-    def get_params(self):
-        params_dict = {'poly_degree': self.poly_degree, 'order': self.order, 'window_size': self.window_size}
-        if self.parameters_changed:
-            return tuple([params_dict, self.changed_params])
-        else:
-            return params_dict
+            self.params.update('window_size', self.window_size)
 
 
 class CutImplementation(DataOperationImplementation):
-    def __init__(self, **params):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         cut_part = params.get('cut_part')
 
         # Define logger object
@@ -674,12 +652,12 @@ class CutImplementation(DataOperationImplementation):
 
         if 0 < cut_part <= 0.9:
             self.cut_part = cut_part
-            self.parameters_changed = False
+            self.params.update('cut_part', self.cut_part)
         else:
             # Default parameter
             self.log.info(f"Change invalid parameter cut_part ({cut_part}) on default value (0.5)")
             self.cut_part = 0.5
-            self.parameters_changed = True
+            self.params.update('cut_part', self.cut_part)
 
     def fit(self, input_data: InputData):
         """Class doesn't support fit operation
@@ -740,52 +718,6 @@ class CutImplementation(DataOperationImplementation):
         if reset_idx:
             input_copy.idx = np.arange(cut_len, input_values.shape[0])
         return input_copy
-
-    def get_params(self):
-        params_dict = {"cut_part": self.cut_part}
-        if self.parameters_changed:
-            return tuple([params_dict, ['cut_part']])
-        else:
-            return params_dict
-
-
-def _check_and_correct_window_size(time_series: np.array, window_size: int, forecast_length: int,
-                                   window_size_minimum: int, log: LoggerAdapter):
-    """ Method check if the length of the time series is not enough for
-    lagged transformation - clip it
-
-    Args:
-        time_series: time series for transformation
-        window_size: size of sliding window, which defines lag
-        forecast_length: forecast length
-        window_size_minimum: minimum moving window size
-        log: logger for saving messages
-
-    Returns:
-
-    """
-    prefix = "Warning: window size of lagged transformation was changed"
-    was_changed = False
-
-    # Maximum threshold
-    removing_len = window_size + forecast_length
-    if removing_len > len(time_series):
-        previous_size = window_size
-        # At least 10 objects we need for training, so minus 10
-        window_size = len(time_series) - forecast_length - 10
-
-        log.info(f"{prefix} from {previous_size} to {window_size}.")
-        was_changed = True
-
-    # Minimum threshold
-    if window_size < window_size_minimum:
-        previous_size = window_size
-        window_size = window_size_minimum
-
-        log.info(f"{prefix} from {previous_size} to {window_size}")
-        was_changed = True
-
-    return window_size, was_changed
 
 
 def ts_to_table(idx, time_series: np.array, window_size: int, is_lag: bool = False):

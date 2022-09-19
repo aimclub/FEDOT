@@ -7,6 +7,7 @@ from h2o import h2o, H2OFrame
 from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.automl_wrappers import *
 
 from fedot.core.data.data import InputData, OutputData
@@ -19,9 +20,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         'h2o_regr': H2OAutoML
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.name_operation = operation_type
-        self.params = params
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -46,9 +45,9 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         for name in target_names:
             train_columns.remove(name)
         for name in target_names:
-            model = H2OAutoML(max_models=self.params.get("max_models"),
-                              seed=self.params.get("seed"),
-                              max_runtime_secs=self.params.get("timeout") * 60 // target_len
+            model = H2OAutoML(max_models=self.params_for_fit.get("max_models"),
+                              seed=self.params_for_fit.get("seed"),
+                              max_runtime_secs=self.params_for_fit.get("timeout") * 60 // target_len
                               )
             model.train(x=train_columns, y=name, training_frame=train_frame)
             models.append(model.leader)
@@ -91,9 +90,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         'h2o_class': H2OAutoML
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.name_operation = operation_type
-        self.params = params
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         self.model_class = H2OSerializationWrapper
         super().__init__(operation_type, params)
@@ -112,9 +109,9 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         target_name = train_columns[-1]
         train_columns.remove(target_name)
         train_frame[target_name] = train_frame[target_name].asfactor()
-        model = self.operation_impl(max_models=self.params.get("max_models"),
-                                    seed=self.params.get("seed"),
-                                    max_runtime_secs=self.params.get("timeout")*60
+        model = self.operation_impl(max_models=self.params_for_fit.get("max_models"),
+                                    seed=self.params_for_fit.get("seed"),
+                                    max_runtime_secs=self.params_for_fit.get("timeout")*60
                                     )
 
         model.train(x=train_columns, y=target_name, training_frame=train_frame)
@@ -157,9 +154,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         'tpot_regr': TPOTRegressor
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.name_operation = operation_type
-        self.params = params or {}
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -175,11 +170,11 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
             target = train_data.target
 
         for i in range(target.shape[1]):
-            model = self.operation_impl(generations=self.params.get('generations'),
-                                        population_size=self.params.get('population_size'),
+            model = self.operation_impl(generations=self.params_for_fit.get('generations'),
+                                        population_size=self.params_for_fit.get('population_size'),
                                         verbosity=2,
                                         random_state=42,
-                                        max_time_mins=self.params.get('timeout', 0.) // target_len
+                                        max_time_mins=self.params_for_fit.get('timeout', 0.) // target_len
                                         )
             model.fit(train_data.features.astype(float), target.astype(float)[:, i])
             models.append(model.fitted_pipeline_)
@@ -209,18 +204,16 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
         'tpot_class': TPOTClassifier
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.name_operation = operation_type
-        self.params = params
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):
-        model = self.operation_impl(generations=self.params.get('generations'),
-                                    population_size=self.params.get('population_size'),
+        model = self.operation_impl(generations=self.params_for_fit.get('generations'),
+                                    population_size=self.params_for_fit.get('population_size'),
                                     verbosity=2,
                                     random_state=42,
-                                    max_time_mins=self.params.get('timeout', 0.)
+                                    max_time_mins=self.params_for_fit.get('timeout', 0.)
                                     )
         model.classes_ = np.unique(train_data.target)
 

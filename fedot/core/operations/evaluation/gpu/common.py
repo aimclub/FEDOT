@@ -59,7 +59,6 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
     def __init__(self, operation_type: str, params: Optional[dict] = None):
         super().__init__(operation_type, params)
         self.operation_impl = self._convert_to_operation(operation_type)
-        self.operation_id = operation_type
         cuml.set_global_output_type('numpy')
 
     def fit(self, train_data: InputData):
@@ -70,7 +69,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
+            operation_implementation = self.operation_impl(**self.params_for_fit.parameters)
         else:
             operation_implementation = self.operation_impl()
 

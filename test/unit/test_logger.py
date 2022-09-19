@@ -9,8 +9,8 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import DEFAULT_LOG_PATH, Log, default_log
 from fedot.core.operations.model import Model
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utilities.singleton_meta import SingletonMeta
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @pytest.fixture()
@@ -68,9 +68,9 @@ def test_logger_write_logs_correctly():
 
     try:
         knn = Model(operation_type='knnreg')
-        model, _ = knn.fit(params=DEFAULT_PARAMS_STUB, data=train_data)
-    except Exception:
-        print('Captured error')
+        model, _ = knn.fit(params=OperationParameters(), data=train_data)
+    except Exception as ex:
+        print(f'Captured error: {ex}')
 
     content = ''
     if Path(DEFAULT_LOG_PATH).exists():

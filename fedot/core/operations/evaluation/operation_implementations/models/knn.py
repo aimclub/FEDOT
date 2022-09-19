@@ -4,14 +4,13 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, params: Optional[dict]):
-        super().__init__()
-        self.parameters_changed = False
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.model = None
 
     def fit(self, train_data):
@@ -44,26 +43,20 @@ class KNeighborsImplementation(ModelImplementation):
             new_k_value = round(len(input_data.features) / 2)
             if new_k_value == 0:
                 new_k_value = 1
-            self.params['n_neighbors'] = new_k_value
-            self.model = model_impl(**self.params)
+            self.params.update('n_neighbors', new_k_value)
+            self.model = model_impl(**self.params.get_parameters())
 
             prefix = "n_neighbors of K-nn model was changed"
             self.log.info(f"{prefix} from {n_neighbors} to {new_k_value}")
 
-    def get_params(self):
-        """ Method return parameters, which can be optimized for particular
-        operation
-        """
-        return self.params
-
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, params: Optional[dict]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         if not params:
             self.model = KNeighborsClassifier()
         else:
-            round_n_neighbors(params)
+            params = round_n_neighbors(params.get_parameters())
             self.model = KNeighborsClassifier(**params)
         self.classes = None
 
@@ -94,12 +87,12 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 
 
 class FedotKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, params: Optional[dict]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         if not params:
             self.model = KNeighborsRegressor()
         else:
-            round_n_neighbors(params)
+            params = round_n_neighbors(params.get_parameters())
             self.model = KNeighborsRegressor(**params)
         self.params = params
 
@@ -115,10 +108,11 @@ class FedotKnnRegImplementation(KNeighborsImplementation):
         return self.model
 
 
-def round_n_neighbors(params):
+def round_n_neighbors(params: dict) -> dict:
     """ Convert n_neighbors into integer value. Operation work inplace. """
     if 'n_neighbors' in params:
         n_neighbors = round(params['n_neighbors'])
         if n_neighbors == 0:
             n_neighbors = 1
         params['n_neighbors'] = n_neighbors
+    return params

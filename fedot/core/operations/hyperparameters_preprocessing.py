@@ -2,7 +2,7 @@ import numpy as np
 from typing import Optional
 
 
-class HyperparametersPreprocessor():
+class HyperparametersPreprocessor:
     """
     Class for hyperparameters preprocessing before operation fitting
     :param operation_type: name of the operation
@@ -136,7 +136,7 @@ class HyperparametersPreprocessor():
         return HyperparametersPreprocessor.all_preprocessing_rules.get(operation_type, {})
 
     def correct(self,
-                params: Optional[dict]):
+                params: Optional[dict]) -> Optional[dict]:
         if params is None:
             return params
 

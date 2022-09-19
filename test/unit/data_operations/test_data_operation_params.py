@@ -9,7 +9,7 @@ from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum, TsForecastingParams
-from fedot.core.utils import fedot_project_root, DEFAULT_PARAMS_STUB
+from fedot.core.utils import fedot_project_root
 from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
 
 
@@ -123,6 +123,6 @@ def test_params_filter_with_non_default():
     node_knn.fit(input_data)
     updated_params = node_knn.custom_params
 
-    assert default_params == DEFAULT_PARAMS_STUB
+    assert default_params == {}
     assert 'n_neighbors' in list(updated_params.keys())
     assert len(list(updated_params.keys())) == 1

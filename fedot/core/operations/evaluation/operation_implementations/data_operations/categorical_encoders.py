@@ -8,13 +8,14 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class OneHotEncodingImplementation(DataOperationImplementation):
     """ Class for automatic categorical data detection and one hot encoding """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         default_params = {
             'handle_unknown': 'ignore'
         }
@@ -22,7 +23,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             # Default parameters
             self.encoder = OneHotEncoder(**default_params)
         else:
-            self.encoder = OneHotEncoder(**{**params, **default_params})
+            self.encoder = OneHotEncoder(**{**params.get_parameters(), **default_params})
         self.categorical_ids = None
         self.non_categorical_ids = None
 
@@ -107,15 +108,12 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 
         return transformed_features
 
-    def get_params(self) -> dict:
-        return self.encoder.get_params()
-
 
 class LabelEncodingImplementation(DataOperationImplementation):
     """ Class for categorical features encoding based on LabelEncoding """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         # LabelEncoder has no parameters
         self.encoders = {}
         self.categorical_ids = None
@@ -201,6 +199,6 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
         return transformed_column
 
-    def get_params(self) -> dict:
+    def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """
-        return {}
+        return OperationParameters()

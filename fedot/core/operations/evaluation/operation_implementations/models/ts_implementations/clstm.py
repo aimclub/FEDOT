@@ -9,6 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ts_to_table, transform_features_and_target_into_lagged
 )
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.requirements_notificator import warn_requirement
@@ -30,9 +31,8 @@ except ModuleNotFoundError:
 
 
 class CLSTMImplementation(ModelImplementation):
-    def __init__(self, params):
-        super().__init__()
-        self.params = params
+    def __init__(self, params: OperationParameters):
+        super().__init__(params)
         self.epochs = params.get("num_epochs")
         self.batch_size = params.get("batch_size")
         self.learning_rate = params.get("learning_rate")
@@ -203,9 +203,6 @@ class CLSTMImplementation(ModelImplementation):
     def _transform_scaler_target(self, data: InputData):
         start_shape = data.features.shape
         return self.scaler.transform(data.target.reshape(-1, 1)).reshape(start_shape)
-
-    def get_params(self):
-        return self.params
 
     @staticmethod
     def _get_device():

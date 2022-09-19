@@ -12,6 +12,7 @@ from fedot.core.operations.evaluation.operation_implementations. \
 from fedot.core.operations.evaluation.operation_implementations. \
     data_operations.sklearn_selectors import LinearRegFSImplementation, NonLinearRegFSImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnRegImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -46,7 +47,7 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
         'isolation_forest_reg': IsolationForestRegImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -58,10 +59,7 @@ class FedotRegressionPreprocessingStrategy(EvaluationStrategy):
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
-        else:
-            operation_implementation = self.operation_impl()
+        operation_implementation = self.operation_impl(self.params_for_fit)
         with RandomStateHandler():
             operation_implementation.fit(train_data)
         return operation_implementation
@@ -106,7 +104,7 @@ class FedotRegressionStrategy(EvaluationStrategy):
         'knnreg': FedotKnnRegImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -114,10 +112,7 @@ class FedotRegressionStrategy(EvaluationStrategy):
         """ This method is used for operation training """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
-        else:
-            operation_implementation = self.operation_impl()
+        operation_implementation = self.operation_impl(self.params_for_fit)
         with RandomStateHandler():
             operation_implementation.fit(train_data)
         return operation_implementation

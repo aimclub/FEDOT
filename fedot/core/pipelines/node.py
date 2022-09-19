@@ -9,10 +9,9 @@ from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
-from fedot.core.operations.operation_parameters import get_default_params, OperationParameters
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @dataclass
@@ -100,47 +99,12 @@ class Node(GraphNode):
 
         return operation
 
-    def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
-        """Filters out the desired parameter values from what :obj:`Implementation` returns
-
-        Args:
-            returned_params: dictionary or ``(parameters dictionary, parameters names)`` tuple
-
-        Returns:
-            dict: ``custom_params`` if provided ``returned_params`` is not tuple and
-            dictionary with processed params otherwise
-        """
-
-        if isinstance(returned_params, tuple):
-            params_dict = returned_params[0]
-            changed_param_names = returned_params[1]
-            # Parameters were changed during the Implementation fitting
-            if self.custom_params != DEFAULT_PARAMS_STUB:
-                current_params = self.custom_params
-                # Delete keys from source params
-                for changed_param in changed_param_names:
-                    current_params.pop(changed_param, None)
-
-                # Take only changed parameters from returned ones
-                changed_params = {key: params_dict[key] for key in changed_param_names}
-
-                filtered_params = {**current_params, **changed_params}
-                return filtered_params
-            else:
-                # Default parameters were changed
-                changed_params = {key: params_dict[key] for key in changed_param_names}
-                return changed_params
-        else:
-            # Parameters were not changed
-            return self.custom_params
-
     def update_params(self):
-        """Updates :attr:`custom_params` only if they were changed"""
+        """Updates :attr:`custom_params` with changed parameters"""
         new_params = self.fitted_operation.get_params()
-        # Filter parameters
-        filtered_params = self._filter_params(new_params)
-        if filtered_params != DEFAULT_PARAMS_STUB:
-            self.custom_params = filtered_params
+        changed_parameters = new_params.changed_parameters
+        updated_params = {**self.custom_params, **changed_parameters}
+        self.custom_params = OperationParameters(self.operation.operation_type, updated_params)
 
     # wrappers for 'operation' field from GraphNode class
     @property
@@ -218,8 +182,8 @@ class Node(GraphNode):
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
 
-        # if not_atomized_operation and 'correct_params' in self.operation.metadata.tags:
-        #     self.update_params()
+        if not_atomized_operation and 'correct_params' in self.operation.metadata.tags:
+            self.update_params()
         return operation_predict
 
     def predict(self, input_data: InputData, output_mode: str = 'default') -> OutputData:
@@ -235,7 +199,7 @@ class Node(GraphNode):
 
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       params=self.content['params'],
+                                                       params=self.parameters,
                                                        data=input_data,
                                                        output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
@@ -248,7 +212,7 @@ class Node(GraphNode):
         Returns:
             dict: of custom parameters
         """
-        return self.parameters
+        return self.parameters.get_parameters()
 
     @custom_params.setter
     def custom_params(self, params: dict):

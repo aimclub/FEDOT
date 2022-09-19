@@ -5,18 +5,14 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.repository.tasks import Task, TaskTypesEnum
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @pytest.fixture(scope='module')
 def nodes():
-    primary_node = OptNode(content={'name': 'pca',
-                                    'params': DEFAULT_PARAMS_STUB})
-    intermediate_node = OptNode(content={'name': 'dt',
-                                         'params': DEFAULT_PARAMS_STUB},
+    primary_node = OptNode(content={'name': 'pca'})
+    intermediate_node = OptNode(content={'name': 'dt'},
                                 nodes_from=[primary_node])
-    secondary_node = OptNode(content={'name': 'logit',
-                                      'params': DEFAULT_PARAMS_STUB},
+    secondary_node = OptNode(content={'name': 'logit'},
                              nodes_from=[intermediate_node])
     return primary_node, intermediate_node, secondary_node
 

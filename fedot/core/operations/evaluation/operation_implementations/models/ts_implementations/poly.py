@@ -6,12 +6,13 @@ import numpy as np
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class PolyfitImplementation(ModelImplementation):
-    def __init__(self, params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.min_degree = 1
         self.max_degree = 5
         self.default_degree = 3
@@ -20,12 +21,9 @@ class PolyfitImplementation(ModelImplementation):
         if not degree or not self.min_degree <= degree <= self.max_degree:
             # default value
             self.log.debug(f"Change invalid parameter degree ({degree}) on default value (3)")
-            degree = self.default_degree
-            params['degree'] = degree
-        if not isinstance(degree, int):
-            params['degree'] = degree
-        self.degree = degree
-        self.params = params
+            self.degree = self.default_degree
+            self.params.update('degree', self.degree)
+        self.degree = int(degree)
         self.coefs = None
 
     def fit(self, input_data):
@@ -79,6 +77,3 @@ class PolyfitImplementation(ModelImplementation):
                                               predict=predict,
                                               data_type=DataTypesEnum.table)
         return output_data
-
-    def get_params(self):
-        return self.params

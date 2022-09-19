@@ -10,7 +10,7 @@ from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import DEFAULT_PARAMS_STUB, fedot_project_root
+from fedot.core.utils import fedot_project_root
 from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
@@ -186,10 +186,10 @@ def test_fine_tune_atomized_model_correct():
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
-    dummy_atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
+    dummy_atomized_model.fit(OperationParameters(), train_data)
 
-    fitted_dummy_model, _ = dummy_atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
-    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
+    fitted_dummy_model, _ = dummy_atomized_model.fit({}, train_data)
+    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit({}, train_data)
 
     after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
     after_tuning_predicted = after_tuning_output.predict
