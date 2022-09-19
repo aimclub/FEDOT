@@ -68,6 +68,10 @@ def file_data():
 
 
 def get_skip_connection_pipeline():
+    """Returns pipeline with following structure:
+    logit->logit->logit
+        \__________/
+    """
     node_a = PrimaryNode('logit')
     node_b = SecondaryNode('logit', nodes_from=[node_a])
     node_c = SecondaryNode('logit', nodes_from=[node_b, node_a])
@@ -240,7 +244,8 @@ def test_mutation_none():
 
 
 @pytest.mark.parametrize('pipeline', [
-    # Tests recursive nature of simple mutation on pipeline that has branches and joins.
+    # Tests recursive nature of simple mutation on pipeline that has branches and joins
+    #  the problem here can be with broken graph references for updated nodes.
     get_skip_connection_pipeline()
 ])
 def test_simple_mutation(pipeline):
