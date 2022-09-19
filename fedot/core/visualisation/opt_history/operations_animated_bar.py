@@ -156,7 +156,7 @@ class OperationsAnimatedBar(HistoryVisualization):
             bar_color = smoothen_frames_data(bar_color, animation_frames_per_step, animation_interpolation_power)
             sm = cm.ScalarMappable(norm=Normalize(min_fitness, max_fitness), cmap=fitness_colormap)
             sm.set_array([])
-            fig.colorbar(sm, label=fitness_column_name)
+            fig.colorbar(sm, label=fitness_column_name, ax=ax)
 
         count = bar_data[0]
         color = bar_color[0] if show_fitness else [no_fitness_palette[tag] for tag in operations_found]
