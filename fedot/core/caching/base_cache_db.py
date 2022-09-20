@@ -15,20 +15,21 @@ class BaseCacheDB:
     Includes low-level idea of caching data using relational database.
 
     :param main_table: table to store into or load from
-    :param db_path: str db file path
+    :param cache_folder: path to the place where cache files should be stored.
     :param use_stats: bool indicating if it is needed to use cache performance dict
     :param stats_keys: sequence of keys for supporting cache effectiveness
     """
 
-    def __init__(self, main_table: str = 'default', db_path: Optional[str] = None, use_stats: bool = False,
+    def __init__(self, main_table: str = 'default', cache_folder: Optional[str] = None, use_stats: bool = False,
                  stats_keys: Sequence = ('default_hit', 'default_total')):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
-        if db_path is None:
-            self.db_path = Path(default_fedot_data_dir(), f'cache_{os.getpid()}').with_suffix(self._db_suffix)
+        if cache_folder is None:
+            self.db_path = Path(default_fedot_data_dir())
             self._del_prev_temps()
         else:
-            self.db_path = Path(db_path)
+            self.db_path = Path(cache_folder)
+        self.db_path = self.db_path.joinpath(f'cache_{os.getpid()}').with_suffix(self._db_suffix)
 
         self._eff_table = 'effectiveness'
         self.use_stats = use_stats

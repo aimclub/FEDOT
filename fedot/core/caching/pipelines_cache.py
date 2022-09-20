@@ -14,11 +14,11 @@ class OperationsCache(BaseCache):
     """
     Stores/loads nodes `fitted_operation` field to increase performance of calculations.
 
-    :param db_path: optional str determining a file name for caching pipelines
+    :param cache_folder: path to the place where cache files should be stored.
     """
 
-    def __init__(self, db_path: Optional[str] = None):
-        super().__init__(OperationsCacheDB(db_path))
+    def __init__(self, cache_folder: Optional[str] = None):
+        super().__init__(OperationsCacheDB(cache_folder))
 
     def save_nodes(self, nodes: Union[Node, List[Node]], fold_id: Optional[int] = None):
         """
