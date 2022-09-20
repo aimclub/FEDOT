@@ -155,7 +155,9 @@ class Mutation(Operator):
                 new_node = exchange_node(node)
                 if new_node:
                     graph.update_node(node, new_node)
+                # removed node must not be visited because it's outdated
                 visited_nodes.add(node)
+                # new node must not mutated if encountered further during traverse
                 visited_nodes.add(new_node)
                 for parent in node.nodes_from:
                     replace_node_to_random_recursive(parent)
