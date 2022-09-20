@@ -24,7 +24,7 @@ class PipelineOperationRepository(GraphModelRepository):
             self.operations_by_keys = operations_by_keys
 
     def _set_operations(self, task: Task = None, preset: str = None, available_operations: List[str] = None):
-        """ Set models by keys """
+        """ Set models by task and preset or by initialized requirements """
         operations_by_task_preset = OperationsPreset(task, preset).filter_operations_by_preset()
         all_operations = list(set.intersection(set(operations_by_task_preset), set(available_operations)))
         primary_operations, secondary_operations = \
@@ -32,7 +32,7 @@ class PipelineOperationRepository(GraphModelRepository):
         return {'primary': primary_operations, 'secondary': secondary_operations}
 
     def get_operations(self, is_primary: bool) -> List[str]:
-        """ Get pipeline operations by specified model keys """
+        """ Get pipeline operations by specified model key """
         operation_key = 'primary' if is_primary else 'secondary'
         operations = self.operations_by_keys.get(operation_key, [])
         return operations

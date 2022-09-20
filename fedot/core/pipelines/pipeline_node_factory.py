@@ -31,9 +31,7 @@ class PipelineOptNodeFactory(OptNodeFactory):
                                                  possible_operations=candidates)
         return self._return_node(candidates)
 
-    def get_parent_node(self,
-                        node: OptNode,
-                        is_primary: bool):
+    def get_parent_node(self, node: OptNode, is_primary: bool):
         possible_operations = self.graph_model_repository.get_operations(is_primary=True)
         if not is_primary:
             possible_operations = self.graph_model_repository.get_operations(is_primary=False)

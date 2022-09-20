@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Any
 
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.operation_types_repository import get_operations_for_task
@@ -20,13 +20,13 @@ class DefaultChangeAdvisor:
     def __init__(self, task=None):
         self.task = task
 
-    def propose_change(self, node: OptNode, possible_operations: List[str]) -> List[str]:
+    def propose_change(self, node: OptNode, possible_operations: List[Any]) -> List[Any]:
         return possible_operations
 
     def can_be_removed(self, node: OptNode) -> RemoveType:
         return RemoveType.node_only
 
-    def propose_parent(self, node: OptNode, possible_operations: List[str]) -> List[str]:
+    def propose_parent(self, node: OptNode, possible_operations: List[Any]) -> List[Any]:
         return possible_operations
 
 
