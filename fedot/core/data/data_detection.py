@@ -3,8 +3,10 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+from sklearn.feature_extraction.text import TfidfVectorizer
 
-from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES
+from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES, MIN_VOCABULARY_SIZE
+from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 ALLOWED_NAN_PERCENT = 0.9
 
@@ -75,11 +77,15 @@ class TextDataDetector(DataDetector):
         :param column: pandas series with data
         :return: True if column contains text
         """
-        if column.dtype == object and not self._is_float_compatible(column):
-            unique_num = len(column.unique())
-            nan_num = pd.isna(column).sum()
-            return unique_num / len(column) > FRACTION_OF_UNIQUE_VALUES if nan_num == 0 \
-                else (unique_num - 1) / (len(column) - nan_num) > FRACTION_OF_UNIQUE_VALUES
+        if column.dtype == object and not self._is_float_compatible(column) and self._has_unique_values(column):
+            try:
+                params = DefaultOperationParamsRepository().get_default_params_for_operation('tfidf')
+                tfidf_vectorizer = TfidfVectorizer(**params)
+                tfidf_vectorizer.fit(np.where(pd.isna(column), '', column))
+                if len(tfidf_vectorizer.vocabulary_) > MIN_VOCABULARY_SIZE:
+                    return True
+            except ValueError:
+                print(f'Column {column.name} possibly contains text, but it is not possible to vectorize it')
         return False
 
     @staticmethod
@@ -95,6 +101,17 @@ class TextDataDetector(DataDetector):
         non_nan_all_objects_number = len(column) - nans_number
         failed_ratio = failed_objects_number / non_nan_all_objects_number
         return failed_ratio < 0.5
+
+    @staticmethod
+    def _has_unique_values(column: pd.Series) -> bool:
+        """
+        :param column: pandas series with data
+        :return: True if number of unique column values > threshold
+        """
+        unique_num = len(column.unique())
+        nan_num = pd.isna(column).sum()
+        return unique_num / len(column) > FRACTION_OF_UNIQUE_VALUES if nan_num == 0 \
+            else (unique_num - 1) / (len(column) - nan_num) > FRACTION_OF_UNIQUE_VALUES
 
 
 class TimeSeriesDataDetector(DataDetector):
