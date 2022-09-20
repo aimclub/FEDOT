@@ -28,9 +28,11 @@ class Operation:
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
+        if params is None:
+            params = OperationParameters()
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
                                                      n_samples_data=kwargs.get('n_samples_data'))\
-            .correct(params.get_parameters())
+            .correct(params.parameters)
         params_for_fit = OperationParameters(operation_type=self.operation_type, parameters=params_for_fit)
         try:
             self._eval_strategy = \

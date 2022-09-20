@@ -14,7 +14,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 class OneHotEncodingImplementation(DataOperationImplementation):
     """ Class for automatic categorical data detection and one hot encoding """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         default_params = {
             'handle_unknown': 'ignore'
@@ -112,7 +112,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 class LabelEncodingImplementation(DataOperationImplementation):
     """ Class for categorical features encoding based on LabelEncoding """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         # LabelEncoder has no parameters
         self.encoders = {}

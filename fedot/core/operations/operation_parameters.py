@@ -5,6 +5,8 @@ from fedot.core.repository.default_params_repository import DefaultOperationPara
 
 class OperationParameters:
     def __init__(self, operation_type: Optional[str] = None, parameters: Optional[dict] = None):
+        if isinstance(parameters, OperationParameters):
+            print('+')
         if not parameters and operation_type:
             parameters = get_default_params(operation_type)
         elif not parameters and not operation_type:
@@ -22,7 +24,7 @@ class OperationParameters:
         self.parameters.update({key: value})
 
     def get(self, key, default_value=None):
-        self.parameters.get(key, default_value)
+        return self.parameters.get(key, default_value)
 
     def get_parameters(self) -> dict:
         return self.parameters

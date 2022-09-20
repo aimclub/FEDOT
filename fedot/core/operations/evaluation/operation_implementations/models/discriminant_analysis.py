@@ -10,7 +10,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 class DiscriminantAnalysisImplementation(ModelImplementation):
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = None
 
@@ -51,7 +51,7 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
 class LDAImplementation(DiscriminantAnalysisImplementation):
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not params:
             self.model = LinearDiscriminantAnalysis()
@@ -93,7 +93,7 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
 
 class QDAImplementation(DiscriminantAnalysisImplementation):
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not params:
             self.model = QuadraticDiscriminantAnalysis()

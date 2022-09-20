@@ -104,7 +104,7 @@ class Node(GraphNode):
         new_params = self.fitted_operation.get_params()
         changed_parameters = new_params.changed_parameters
         updated_params = {**self.custom_params, **changed_parameters}
-        self.custom_params = OperationParameters(self.operation.operation_type, updated_params)
+        self.custom_params = updated_params
 
     # wrappers for 'operation' field from GraphNode class
     @property
@@ -221,6 +221,7 @@ class Node(GraphNode):
         Args:
             params: new parameters to be placed instead of existing
         """
+        self.content.update({'params': params})
         self.parameters = OperationParameters(self.operation.operation_type, params)
 
     def __str__(self) -> str:

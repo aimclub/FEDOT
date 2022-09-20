@@ -9,7 +9,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = None
 
@@ -36,7 +36,8 @@ class KNeighborsImplementation(ModelImplementation):
         :param input_data: InputData for fit
         :param model_impl: Model to use
         """
-        n_neighbors = self.params.get('n_neighbors')
+        current_params = self.model.get_params()
+        n_neighbors = current_params.get('n_neighbors')
 
         if n_neighbors > len(input_data.features):
             # Improve the parameter "n_neighbors": n_neighbors <= n_samples
@@ -51,7 +52,7 @@ class KNeighborsImplementation(ModelImplementation):
 
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not params:
             self.model = KNeighborsClassifier()
@@ -87,14 +88,13 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 
 
 class FedotKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not params:
             self.model = KNeighborsRegressor()
         else:
             params = round_n_neighbors(params.get_parameters())
             self.model = KNeighborsRegressor(**params)
-        self.params = params
 
     def fit(self, train_data):
         """ Method fit model on a dataset

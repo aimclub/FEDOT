@@ -15,7 +15,7 @@ class DataOperationImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, params: OperationParameters):
+    def __init__(self, params: Optional[OperationParameters]):
         self.params = params
 
     @abstractmethod
@@ -178,9 +178,11 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, params: OperationParameters):
+    def __init__(self, params: OperationParameters = OperationParameters()):
         self.log = default_log(self)
         self.params = params
+        if params is None:
+            self.params = OperationParameters()
 
     @abstractmethod
     def fit(self, input_data: InputData):

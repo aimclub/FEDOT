@@ -99,11 +99,13 @@ class PCAImplementation(ComponentAnalysisImplementation):
         params: OperationParameters with the hyperparameters
     """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not params:
             # Default parameters
-            self.pca = PCA(svd_solver='full', n_components='mle')
+            default_parameters = {'svd_solver': 'full', 'n_components': 'mle'}
+            self.pca = PCA(**default_parameters)
+            self.params = OperationParameters(parameters=default_parameters)
         else:
             self.pca = PCA(**params.get_parameters())
         self.number_of_features = None
@@ -250,9 +252,11 @@ class ImputationImplementation(DataOperationImplementation):
         params: OperationParameters with the arguments
     """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         default_params_categorical = {'strategy': 'most_frequent'}
+        if params is None:
+            params = OperationParameters()
         self.params_cat = {**params.get_parameters(), **default_params_categorical}
         self.params_num = params.get_parameters()
         self.categorical_ids = None

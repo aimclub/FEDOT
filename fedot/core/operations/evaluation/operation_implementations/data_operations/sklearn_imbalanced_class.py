@@ -35,9 +35,9 @@ class ResampleImplementation(DataOperationImplementation):
 
     def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
-        self.balance = params.get('balance', default_value='expand_minority')
-        self.replace = params.get('replace', default_value=False)
-        self.balance_ratio = params.get('balance_ratio', 1.0)
+        self.balance = params.get('balance') if params.get('balance') is not None else 'expand_minority'
+        self.replace = params.get('replace') if params.get('replace') is not None else False
+        self.balance_ratio = params.get('balance_ratio') if params.get('balance_ratio') is not None else 1.0
         self.n_samples = None
 
         self.log = default_log(self)

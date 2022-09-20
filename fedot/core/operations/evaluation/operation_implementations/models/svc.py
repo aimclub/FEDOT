@@ -9,7 +9,7 @@ from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FedotSVCImplementation(ModelImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not params:
             self.inner_model = SVC(kernel='linear',

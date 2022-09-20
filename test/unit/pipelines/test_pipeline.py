@@ -77,11 +77,11 @@ def test_nodes_sequence_fit_correct(data_fixture, request):
     train_predicted = final.fit(input_data=train)
 
     assert final.descriptive_id == (
-        '((/n_logit_default_params;)/'
-        'n_lda_default_params;;(/'
-        'n_logit_default_params;)/'
-        'n_qda_default_params;)/'
-        'n_knn_default_params')
+        '((/n_logit_{};)/'
+        'n_lda_{};;(/'
+        'n_logit_{};)/'
+        'n_qda_{};)/'
+        'n_knn_{}')
 
     assert train_predicted.predict.shape[0] == train.target.shape[0]
     assert final.fitted_operation is not None
@@ -104,11 +104,11 @@ def test_pipeline_hierarchy_fit_correct(data_setup):
     train_predicted = pipeline.fit(input_data=train)
 
     assert pipeline.root_node.descriptive_id == (
-        '((/n_logit_default_params;)/'
-        'n_logit_default_params;;(/'
-        'n_logit_default_params;)/'
-        'n_logit_default_params;)/'
-        'n_logit_default_params')
+        '((/n_logit_{};)/'
+        'n_logit_{};;(/'
+        'n_logit_{};)/'
+        'n_logit_{};)/'
+        'n_logit_{}')
 
     assert pipeline.length == 4
     assert pipeline.depth == 3
@@ -132,10 +132,10 @@ def test_pipeline_sequential_fit_correct(data_setup):
     train_predicted = pipeline.fit(input_data=train)
 
     assert pipeline.root_node.descriptive_id == (
-        '(((/n_logit_default_params;)/'
-        'n_logit_default_params;)/'
-        'n_logit_default_params;)/'
-        'n_logit_default_params')
+        '(((/n_logit_{};)/'
+        'n_logit_{};)/'
+        'n_logit_{};)/'
+        'n_logit_{}')
 
     assert pipeline.length == 4
     assert pipeline.depth == 4

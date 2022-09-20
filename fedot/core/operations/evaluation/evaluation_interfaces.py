@@ -48,7 +48,7 @@ class EvaluationStrategy:
     """
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
-        self.params_for_fit = params
+        self.params_for_fit = params or OperationParameters(operation_type=operation_type)
         self.operation_id = operation_type
 
         self.output_mode = False

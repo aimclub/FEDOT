@@ -156,7 +156,7 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.params = OperationParameters(parameters={'log': default_log(prefix=__name__),
                                                       'epochs': 10,
@@ -167,7 +167,7 @@ class FedotCNNImplementation(ModelImplementation):
                                                                                'optimizer': "adam",
                                                                                'metrics': ["accuracy"]}})
         if params:
-            self.params = OperationParameters(parameters={**self.params, **params.get_parameters()})
+            self.params = OperationParameters(parameters={**self.params.parameters, **params.parameters})
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -182,12 +182,12 @@ class FedotCNNImplementation(ModelImplementation):
         else:
             self.classes = np.arange(train_data.target.shape[1])
 
-        self.model = cnn_model_dict[self.params['architecture_type']](input_shape=train_data.features.shape[1:4],
-                                                                      num_classes=len(self.classes))
+        self.model = cnn_model_dict[self.params.get('architecture_type')](input_shape=train_data.features.shape[1:4],
+                                                                          num_classes=len(self.classes))
 
-        self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params['epochs'],
-                             batch_size=self.params['batch_size'],
-                             optimizer_params=self.params['optimizer_parameters'], logger=self.params['log'])
+        self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params.get('epochs'),
+                             batch_size=self.params.get('batch_size'),
+                             optimizer_params=self.params.get('optimizer_parameters'), logger=self.params.get('log'))
         return self.model
 
     def predict(self, input_data):
