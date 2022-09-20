@@ -138,7 +138,7 @@
     "model_name": "glove-twitter-25"
   },
   "tfidf": {
-    "min_df": 0.1,
+    "min_df": 0.01,
     "max_df": 0.9
   },
   "fast_ica": {
