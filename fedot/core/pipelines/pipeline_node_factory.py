@@ -5,34 +5,46 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory
+from fedot.core.repository.pipeline_model_repository import PipelineOperationRepository
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class PipelineOptNodeFactory(OptNodeFactory):
     def __init__(self, requirements: PipelineComposerRequirements,
-                 advisor: Optional[PipelineChangeAdvisor] = None):
+                 advisor: Optional[PipelineChangeAdvisor] = None,
+                 graph_model_repository: Optional[PipelineOperationRepository] = None):
         self.requirements = requirements
         self.advisor = advisor or PipelineChangeAdvisor()
+        self.graph_model_repository = graph_model_repository or self._init_default_graph_model_repo()
+
+    def _init_default_graph_model_repo(self):
+        """ Initialize default graph model repository with operations from composer requirements """
+        repo = PipelineOperationRepository(operations_by_keys={'primary': self.requirements.primary,
+                                                               'secondary': self.requirements.secondary})
+        return repo
 
     def exchange_node(self,
-                      node: OptNode) -> Optional[OptNode]:
-        candidates = self.requirements.secondary if node.nodes_from else self.requirements.primary
+                      node: OptNode):
+        candidates = self.graph_model_repository.get_operations(is_primary=False) \
+            if node.nodes_from else self.graph_model_repository.get_operations(is_primary=True)
         candidates = self.advisor.propose_change(node=node,
                                                  possible_operations=candidates)
         return self._return_node(candidates)
 
     def get_parent_node(self,
                         node: OptNode,
-                        is_primary: bool) -> Optional[OptNode]:
-        possible_operations = self.requirements.primary
+                        is_primary: bool):
+        possible_operations = self.graph_model_repository.get_operations(is_primary=True)
         if not is_primary:
-            possible_operations = self.requirements.secondary
+            possible_operations = self.graph_model_repository.get_operations(is_primary=False)
         candidates = self.advisor.propose_parent(node=node,
                                                  possible_operations=possible_operations)
         return self._return_node(candidates)
 
     def get_node(self,
                  is_primary: bool):
-        candidates = self.requirements.primary if is_primary else self.requirements.secondary
+        candidates = self.graph_model_repository.get_operations(is_primary=True) \
+            if is_primary else self.graph_model_repository.get_operations(is_primary=False)
         return self._return_node(candidates)
 
     @staticmethod

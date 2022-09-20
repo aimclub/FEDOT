@@ -9,23 +9,29 @@ from fedot.api.api_utils.presets import OperationsPreset
 from fedot.api.time import ApiTime
 from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
+from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.evaluation import determine_n_jobs
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.inheritance import GeneticSchemeTypesEnum
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.pipeline_node_factory import PipelineOptNodeFactory
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
+from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.quality_metrics_repository import MetricType, MetricsEnum, MetricsRepository
+from fedot.core.repository.pipeline_model_repository import PipelineOperationRepository
+from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
 
@@ -170,6 +176,21 @@ class ApiComposer:
 
         return mutations
 
+    @staticmethod
+    def _init_graph_generation_params(task: Task, preset: str, available_operations: List[str],
+                                      requirements: PipelineComposerRequirements):
+        advisor = PipelineChangeAdvisor(task)
+        graph_model_repo = PipelineOperationRepository(task=task, preset=preset,
+                                                       available_operations=available_operations)
+        node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
+                                              graph_model_repository=graph_model_repo) \
+            if requirements else None
+        graph_generation_params = GraphGenerationParams(adapter=PipelineAdapter(),
+                                                        rules_for_constraint=rules_by_task(task.task_type),
+                                                        advisor=advisor,
+                                                        node_factory=node_factory)
+        return graph_generation_params
+
     def compose_fedot_model(self, api_params: dict, composer_params: dict, tuning_params: dict) \
             -> Tuple[Pipeline, Sequence[Pipeline], OptHistory]:
         """ Function for composing FEDOT pipeline model """
@@ -198,12 +219,16 @@ class ApiComposer:
         n_jobs = determine_n_jobs(api_params['n_jobs'])
         self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
 
-        # Get parameters for composer and optimizer
         composer_requirements = ApiComposer._init_composer_requirements(api_params, composer_params,
                                                                         self.timer.timedelta_composing,
                                                                         self.preset_name)
-        metric_functions = self.obtain_metric(task, composer_params['metric'])
 
+        metric_function = self.obtain_metric(task, composer_params['metric'])
+        graph_generation_params = \
+            self._init_graph_generation_params(task=task,
+                                               preset=preset,
+                                               available_operations=composer_params.get('available_operations'),
+                                               requirements=composer_requirements)
         log.info(f"AutoML configured."
                  f" Parameters tuning: {with_tuning}"
                  f" Time limit: {timeout} min"
@@ -213,7 +238,9 @@ class ApiComposer:
                                                                                      fitted_assumption,
                                                                                      metric_functions,
                                                                                      composer_requirements,
-                                                                                     composer_params, log)
+                                                                                     composer_params,
+                                                                                     graph_generation_params,
+                                                                                     log)
         if with_tuning:
             self.tune_final_pipeline(task, train_data,
                                      metric_functions[0],
@@ -232,6 +259,7 @@ class ApiComposer:
                          metric_functions: Sequence[MetricsEnum],
                          composer_requirements: PipelineComposerRequirements,
                          composer_params: dict,
+                         graph_generation_params: GraphGenerationParams,
                          log: LoggerAdapter) -> Tuple[Pipeline, List[Pipeline], GPComposer]:
 
         multi_objective = len(metric_functions) > 1
@@ -239,6 +267,8 @@ class ApiComposer:
                                                                   multi_objective=multi_objective,
                                                                   task_type=task.task_type)
         gp_composer: GPComposer = ComposerBuilder(task=task) \
+
+        builder = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
             .with_optimizer(composer_params.get('optimizer')) \
@@ -247,7 +277,9 @@ class ApiComposer:
             .with_metrics(metric_functions) \
             .with_history(composer_params.get('history_folder')) \
             .with_cache(self.pipelines_cache, self.preprocessing_cache) \
+            .with_graph_generation_param(graph_generation_params=graph_generation_params) \
             .build()
+        gp_composer: GPComposer = builder.build()
 
         n_jobs = determine_n_jobs(composer_requirements.n_jobs)
         if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):

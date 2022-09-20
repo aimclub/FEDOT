@@ -1,9 +1,11 @@
 from abc import abstractmethod, ABC
 from random import choice
-from typing import Optional
+from typing import Optional, Any
 
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
+from fedot.core.repository.graph_model_reposiroty import GraphModelRepository
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class OptNodeFactory(ABC):
@@ -43,8 +45,16 @@ class OptNodeFactory(ABC):
 
 
 class DefaultOptNodeFactory(OptNodeFactory):
-    def __init__(self, requirements: Optional[PipelineComposerRequirements] = None):
+    def __init__(self, requirements: Optional[Any] = None,
+                 advisor: Optional[DefaultChangeAdvisor] = None,
+                 graph_model_repository: Optional[GraphModelRepository] = None):
         self.requirements = requirements
+        self.advisor = advisor or DefaultChangeAdvisor()
+        self.graph_model_repository = graph_model_repository or self._init_default_graph_model_repo()
+
+    def _init_default_graph_model_repo(self, **kwargs):
+        """ Initialize default graph model repository with operations from composer requirements """
+        pass
 
     def exchange_node(self, node: OptNode) -> Optional[OptNode]:
         return node
