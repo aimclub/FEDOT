@@ -4,3 +4,6 @@ h2o == 3.28.1.2
 
 # Data
 openpyxl==3.0.7
+
+# Additional math
+pyemd
