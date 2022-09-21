@@ -41,13 +41,13 @@ def gaussian(x, y, sigma=1.0):
     return np.exp(-dist ** 2 / (2 * sigma ** 2))
 
 
-def discrepancy(samples1, samples2, kernel, *args, **kwargs):
+def discrepancy(samples1, samples2, kernel, *args, **kwargs) -> float:
     d = sum(kernel(s1, s2, *args, **kwargs) for s1, s2 in itertools.product(samples1, samples2))
     d /= len(samples1) * len(samples2)
     return d
 
 
-def compute_mmd(samples1, samples2, kernel=gaussian_emd, normalize=True, *args, **kwargs):
+def compute_mmd(samples1, samples2, kernel=gaussian_emd, normalize=True, *args, **kwargs) -> float:
     ''' MMD between two samples
     '''
     # normalize histograms into pmf
@@ -59,7 +59,7 @@ def compute_mmd(samples1, samples2, kernel=gaussian_emd, normalize=True, *args, 
            2 * discrepancy(samples1, samples2, kernel, *args, **kwargs)
 
 
-def compute_emd(samples1, samples2, kernel, normalize=True, *args, **kwargs):
+def compute_emd(samples1, samples2, kernel, normalize=True, *args, **kwargs) -> float:
     ''' EMD between average of two samples
     '''
     if normalize:
