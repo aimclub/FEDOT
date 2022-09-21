@@ -43,7 +43,7 @@ def test_multi_modal_data():
     multi_modal.target = new_target
     assert np.array_equal(multi_modal.target, new_target)
 
-
+# TODO make test of text columns autodetection
 def test_multimodal_data_from_csv():
     """
     Checking correctness of MultiModalData import from csv file.
@@ -54,7 +54,7 @@ def test_multimodal_data_from_csv():
     text_data = np.array(df['description'])
     table_data = np.array(df.drop(columns=['id', 'description', 'variety']))
     target = np.array(df['variety']).reshape(-1, 1)
-    actual_data = MultiModalData.from_csv(path)
+    actual_data = MultiModalData.from_csv(path, text_columns=['description'])
     actual_text_features = actual_data['data_source_text/description'].features
     actual_table_features = actual_data['data_source_table'].features
     actual_target = actual_data.target
