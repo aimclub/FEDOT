@@ -48,6 +48,29 @@ def lagged_ridge_rfr_pipeline():
     return Pipeline(node_third)
 
 
+def _test_individuals_in_history(history: OptHistory):
+    uids = set()
+    ids = set()
+    for ind in chain(*history.individuals):
+        # All individuals in `history.individuals` must have a native generation.
+        assert ind.has_native_generation
+        assert ind.fitness
+        if ind.native_generation == 0:
+            continue
+        # All individuals must have parents, except for the initial assumptions.
+        assert ind.parents
+        # The first of `operators_from_prev_generation` must point to `parents_from_prev_generation`.
+        assert ind.parents_from_prev_generation == list(ind.operators_from_prev_generation[0].parent_individuals)
+
+        uids.add(ind.uid)
+        ids.add(id(ind))
+        for parent_operator in ind.operators_from_prev_generation:
+            uids.update({i.uid for i in parent_operator.parent_individuals})
+            ids.update({id(i) for i in parent_operator.parent_individuals})
+
+    assert len(uids) == len(ids)
+
+
 def test_parent_operator():
     pipeline = Pipeline(PrimaryNode('linear'))
     adapter = PipelineAdapter()
@@ -103,7 +126,7 @@ def test_ancestor_for_crossover():
         assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
-def test_newly_generated_history():
+def test_newly_generated_history(n_jobs=1):
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
@@ -111,7 +134,8 @@ def test_newly_generated_history():
     auto_model = Fedot(problem='classification', seed=42,
                        timeout=None,
                        num_of_generations=num_of_gens, pop_size=3,
-                       preset='fast_train')
+                       preset='fast_train',
+                       n_jobs=n_jobs)
     auto_model.fit(features=file_path_train, target='Y')
 
     history = auto_model.history
@@ -119,23 +143,13 @@ def test_newly_generated_history():
     assert auto_model.history is not None
     assert len(history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
     assert len(history.archive_history) == num_of_gens + 1  # num_of_gens + initial assumption
-    # Test individuals with the same uid are not copied
-    individuals = history.individuals
-    assert len({id(i): i for i in chain(*individuals)}) == len({i.uid: i for i in chain(*individuals)})
     # Test history dumps
-    dumped_history = history.save()
-    loaded_history = OptHistory.load(dumped_history).save()
-    assert dumped_history is not None
-    assert dumped_history == loaded_history, 'The history is not equal to itself after reloading!'
-    for ind in chain(*history.individuals):
-        # All individuals in `history.individuals` must have a native generation.
-        assert ind.has_native_generation
-        if ind.native_generation == 0:
-            continue
-        # All individuals must have parents, except for the initial assumptions.
-        assert ind.parents
-        # The first of `operators_from_prev_generation` must point to `parents_from_prev_generation`.
-        assert ind.parents_from_prev_generation == list(ind.operators_from_prev_generation[0].parent_individuals)
+    dumped_history_json = history.save()
+    loaded_history = OptHistory.load(dumped_history_json)
+    assert dumped_history_json is not None
+    assert dumped_history_json == loaded_history.save(), 'The history is not equal to itself after reloading!'
+    _test_individuals_in_history(history)
+    _test_individuals_in_history(loaded_history)
 
 
 def assert_intermediate_metrics(pipeline: Graph):
@@ -214,14 +228,16 @@ def test_history_backward_compatibility():
                for parent_op in ind.operators_from_prev_generation
                for parent_ind in parent_op.parent_individuals)
     assert isinstance(history._objective, Objective)
+    _test_individuals_in_history(history)
 
 
 def test_history_correct_serialization():
     test_history_path = Path(fedot_project_root(), 'test', 'data', 'fast_train_classification_history.json')
 
     history = OptHistory.load(test_history_path)
-    dumped_history = history.save()
-    reloaded_history = OptHistory.load(dumped_history)
+    dumped_history_json = history.save()
+    reloaded_history = OptHistory.load(dumped_history_json)
 
     assert history.individuals == reloaded_history.individuals
-    assert dumped_history == reloaded_history.save(), 'The history is not equal to itself after reloading!'
+    assert dumped_history_json == reloaded_history.save(), 'The history is not equal to itself after reloading!'
+    _test_individuals_in_history(reloaded_history)
