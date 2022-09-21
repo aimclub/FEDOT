@@ -6,12 +6,12 @@ import numpy as np
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class PolyfitImplementation(ModelImplementation):
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
         self.min_degree = 1
         self.max_degree = 5

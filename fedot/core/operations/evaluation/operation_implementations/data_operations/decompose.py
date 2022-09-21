@@ -6,7 +6,7 @@ from sklearn.preprocessing import OneHotEncoder
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
@@ -16,7 +16,7 @@ class DecomposerImplementation(DataOperationImplementation):
     replace the original target.
     """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
 
     def fit(self, input_data: InputData):
@@ -79,14 +79,14 @@ class DecomposerImplementation(DataOperationImplementation):
 
         return prev_prediction, prev_features
 
-    def get_params(self) -> OperationParameters:
-        return OperationParameters()
+    def get_params(self) -> ParametersChangeKeeper:
+        return ParametersChangeKeeper()
 
 
 class DecomposerRegImplementation(DecomposerImplementation):
     """ Class for decomposing target for regression task """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
 
     def transform(self, input_data: InputData) -> OutputData:
@@ -132,7 +132,7 @@ class DecomposerClassImplementation(DecomposerImplementation):
     classification task
     """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
 
     def transform(self, input_data: InputData) -> OutputData:

@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -156,9 +156,9 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, params: Optional[OperationParameters] = None):
+    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        self.params = OperationParameters(parameters={'log': default_log(prefix=__name__),
+        self.params = ParametersChangeKeeper(parameters={'log': default_log(prefix=__name__),
                                                       'epochs': 10,
                                                       'batch_size': 32,
                                                       'output_mode': 'labels',
@@ -167,7 +167,7 @@ class FedotCNNImplementation(ModelImplementation):
                                                                                'optimizer': "adam",
                                                                                'metrics': ["accuracy"]}})
         if params:
-            self.params = OperationParameters(parameters={**self.params.parameters, **params.parameters})
+            self.params = ParametersChangeKeeper(parameters={**self.params.parameters, **params.get_parameters()})
 
     def fit(self, train_data):
         """ Method fit model on a dataset

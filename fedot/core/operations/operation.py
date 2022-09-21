@@ -4,7 +4,7 @@ from typing import Optional
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
 
@@ -29,11 +29,11 @@ class Operation:
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
         if params is None:
-            params = OperationParameters()
+            params = ParametersChangeKeeper()
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
                                                      n_samples_data=kwargs.get('n_samples_data'))\
-            .correct(params.parameters)
-        params_for_fit = OperationParameters(operation_type=self.operation_type, parameters=params_for_fit)
+            .correct(params.get_parameters())
+        params_for_fit = ParametersChangeKeeper(operation_type=self.operation_type, parameters=params_for_fit)
         try:
             self._eval_strategy = \
                 _eval_strategy_for_task(self.operation_type,
@@ -64,7 +64,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Optional[OperationParameters], data: InputData):
+    def fit(self, params: Optional[ParametersChangeKeeper], data: InputData):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -84,7 +84,7 @@ class Operation:
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
+    def predict(self, fitted_operation, data: InputData, params: Optional[ParametersChangeKeeper] = None,
                 output_mode: str = 'default'):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
@@ -98,7 +98,7 @@ class Operation:
         """
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False)
 
-    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
+    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[ParametersChangeKeeper] = None,
                         output_mode: str = 'default'):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided during fit stage
@@ -112,7 +112,7 @@ class Operation:
         """
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True)
 
-    def _predict(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
+    def _predict(self, fitted_operation, data: InputData, params: Optional[ParametersChangeKeeper] = None,
                  output_mode: str = 'default', is_fit_stage: bool = False):
 
         is_main_target = data.supplementary_data.is_main_target

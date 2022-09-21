@@ -9,7 +9,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 
 GLOBAL_PREFIX = 'sklearn_imbalanced_class:'
 
@@ -22,18 +22,19 @@ class ResampleImplementation(DataOperationImplementation):
     classification task by using method from sklearn.utils.resample
 
     Args:
-        balance: Data transformation strategy. Balance strategy can be 'expand_minority' or 'reduce_majority'.
-            In case of expand_minority elements of minor class are expanding to n_samples.
-            In otherwise with reduce_majority elements of major class are reducing to n_samples.
-        replace: Implements resampling with replacement. If False, this will implement (sliced) random permutations.
-        balance_ratio: Transformation ratio can take values in the range [0, 1].
-            With balance_ratio = 0 nothing happens and data will remain the same.
-            In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will become
-            equal. If balance_ratio < 1.0 means that the data of one class is getting closer to the shape of opposite
-            class. If None numbers of samples will be equal to the shape of opposite selected transformed class.
+        params: ParametersChangeKeeper with the hyperparameters:
+            balance: Data transformation strategy. Balance strategy can be 'expand_minority' or 'reduce_majority'.
+                In case of expand_minority elements of minor class are expanding to n_samples.
+                In otherwise with reduce_majority elements of major class are reducing to n_samples.
+            replace: Implements resampling with replacement. If False, this will implement (sliced) random permutations.
+            balance_ratio: Transformation ratio can take values in the range [0, 1].
+                With balance_ratio = 0 nothing happens and data will remain the same.
+                In case of balance_ratio = 1 means that both classes will be balanced and the shape of both will become
+                equal. If balance_ratio < 1.0 means that the data of one class is getting closer to the shape of opposite
+                class. If None numbers of samples will be equal to the shape of opposite selected transformed class.
     """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
         self.balance = params.get('balance') if params.get('balance') is not None else 'expand_minority'
         self.replace = params.get('replace') if params.get('replace') is not None else False

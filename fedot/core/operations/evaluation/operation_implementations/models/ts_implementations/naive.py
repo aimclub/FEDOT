@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table, \
     transform_features_and_target_into_lagged
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -17,7 +17,7 @@ class RepeatLastValueImplementation(ModelImplementation):
     LOCF (last observation carried forward)
     """
 
-    def __init__(self, params: OperationParameters):
+    def __init__(self, params: ParametersChangeKeeper):
         super().__init__(params)
         # Which part of time series will be used for repeating. Vary from 0.01 to 0.5
         # If -1 - repeat only last value
@@ -85,7 +85,7 @@ class RepeatLastValueImplementation(ModelImplementation):
 class NaiveAverageForecastImplementation(ModelImplementation):
     """ Class for forecasting time series with mean """
 
-    def __init__(self, params: OperationParameters):
+    def __init__(self, params: ParametersChangeKeeper):
         super().__init__(params)
         self.part_for_averaging = params.get('part_for_averaging')
 

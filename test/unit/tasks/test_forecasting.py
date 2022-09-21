@@ -13,7 +13,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     AutoRegImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, out_of_sample_ts_forecast
@@ -184,7 +184,7 @@ def test_simple_pipeline_forecast_correct():
 
 def test_ar_do_correct_lags():
     train_data, test_data = get_ts_data(n_steps=80)
-    ar = AutoRegImplementation(OperationParameters(parameters={'lag_1': 70, 'lag_2': 80}))
+    ar = AutoRegImplementation(ParametersChangeKeeper(parameters={'lag_1': 70, 'lag_2': 80}))
     params = ar.get_params()
     old_params = deepcopy(params)
     ar.fit(train_data)

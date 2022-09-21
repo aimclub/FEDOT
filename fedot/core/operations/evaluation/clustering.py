@@ -28,7 +28,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit.parameters)
+            operation_implementation = self.operation_impl(**self.params_for_fit.get_parameters())
         else:
             operation_implementation = self.operation_impl(n_clusters=2)
         with RandomStateHandler():

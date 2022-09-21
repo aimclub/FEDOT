@@ -9,7 +9,7 @@ from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.log import DEFAULT_LOG_PATH, Log, default_log
 from fedot.core.operations.model import Model
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.utilities.singleton_meta import SingletonMeta
 
 
@@ -68,7 +68,7 @@ def test_logger_write_logs_correctly():
 
     try:
         knn = Model(operation_type='knnreg')
-        model, _ = knn.fit(params=OperationParameters(), data=train_data)
+        model, _ = knn.fit(params=ParametersChangeKeeper(), data=train_data)
     except Exception as ex:
         print(f'Captured error: {ex}')
 

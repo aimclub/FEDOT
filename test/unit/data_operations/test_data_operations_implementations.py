@@ -15,7 +15,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     sklearn_transformations import ImputationImplementation
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import \
     CutImplementation, LaggedTransformationImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
@@ -323,7 +323,7 @@ def test_ts_forecasting_lagged_data_operation():
 def test_ts_forecasting_cut_data_operation():
     train_input, predict_input, y_test = get_time_series()
     horizon = train_input.task.task_params.forecast_length
-    params = OperationParameters(parameters={'cut_part': 0.5})
+    params = ParametersChangeKeeper(parameters={'cut_part': 0.5})
     operation_cut = CutImplementation(params=params)
 
     transformed_input = operation_cut.transform_for_fit(train_input)
@@ -511,7 +511,7 @@ def test_lagged_with_multivariate_time_series():
     correct_predict_output = np.array([[8, 9, 18, 19]])
 
     input_data = get_multivariate_time_series()
-    lagged = LaggedTransformationImplementation(OperationParameters(parameters={'window_size': 2}))
+    lagged = LaggedTransformationImplementation(ParametersChangeKeeper(parameters={'window_size': 2}))
 
     transformed_for_fit = lagged.transform_for_fit(input_data)
     transformed_for_predict = lagged.transform(input_data)
@@ -547,7 +547,7 @@ def test_lagged_with_multi_ts_type():
                                    [16., 17.]])
     correct_predict_output = np.array([[8, 9]])
     input_data = get_multivariate_time_series(mutli_ts=True)
-    lagged = LaggedTransformationImplementation(OperationParameters(parameters={'window_size': 2}))
+    lagged = LaggedTransformationImplementation(ParametersChangeKeeper(parameters={'window_size': 2}))
     transformed_for_fit = lagged.transform_for_fit(input_data)
     transformed_for_predict = lagged.transform(input_data)
 
@@ -594,7 +594,7 @@ def test_poly_features_on_big_datasets():
 )
 def test_correctness_resample_operation_with_expand_minority(balance_ratio, target_dim, expected):
     params = {'balance': 'expand_minority', 'replace': False, 'balance_ratio': balance_ratio}
-    resample = ResampleImplementation(OperationParameters(parameters=params))
+    resample = ResampleImplementation(ParametersChangeKeeper(parameters=params))
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
@@ -609,7 +609,7 @@ def test_correctness_resample_operation_with_expand_minority(balance_ratio, targ
 )
 def test_correctness_resample_operation_with_reduce_majority(balance_ratio, target_dim, expected):
     params = {'balance': 'reduce_majority', 'replace': False, 'balance_ratio': balance_ratio}
-    resample = ResampleImplementation(OperationParameters(parameters=params))
+    resample = ResampleImplementation(ParametersChangeKeeper(parameters=params))
 
     data = get_unbalanced_dataset(target_dim=target_dim)
 
@@ -633,7 +633,7 @@ def test_correctness_resample_operation_with_dynamic_replace_param(strategy, bal
     """
     params = {'balance': strategy, 'replace': False, 'balance_ratio': balance_ratio}
 
-    resample = ResampleImplementation(OperationParameters(parameters=params))
+    resample = ResampleImplementation(ParametersChangeKeeper(parameters=params))
 
     data = get_unbalanced_dataset(size=10, disbalance=disbalance)
     resample.transform_for_fit(data)

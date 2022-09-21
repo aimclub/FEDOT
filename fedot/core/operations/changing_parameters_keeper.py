@@ -3,7 +3,19 @@ from typing import Optional, Iterable
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 
-class OperationParameters:
+class ParametersChangeKeeper:
+    """Stores parameters for models and data operations implementations and records what parameters were changed.
+    Uses operation_type to set default parameters from default_parameters_repository if a parameter was not passed
+    with parameters.
+    If neither parameters nor operation_type were passed, parameters are equal to empty dict.
+
+    Args:
+        operation_type: type of the operation defined in operation repository
+            the custom prefix can be added after ``/`` (to highlight the specific node)\n
+            **The prefix will be ignored at Implementation stage**
+        parameters: dict with parameters
+
+    """
     def __init__(self, operation_type: Optional[str] = None, parameters: Optional[dict] = None):
         # The check for "default_params" is needed for backward compatibility.
         if parameters == "default_params":

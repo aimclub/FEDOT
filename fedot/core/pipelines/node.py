@@ -9,7 +9,7 @@ from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
@@ -54,9 +54,9 @@ class Node(GraphNode):
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
-        self.parameters = OperationParameters(operation.operation_type, params)
+        self.parameters = ParametersChangeKeeper(operation.operation_type, params)
         super().__init__(content={'name': operation,
-                                  'params': self.parameters.parameters}, nodes_from=nodes_from)
+                                  'params': self.parameters.get_parameters()}, nodes_from=nodes_from)
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
@@ -223,7 +223,7 @@ class Node(GraphNode):
         if params:
             if 'nested_space' in params:
                 params = params['nested_space']
-            self.parameters = OperationParameters(self.operation.operation_type, params)
+            self.parameters = ParametersChangeKeeper(self.operation.operation_type, params)
             self.content.update({'params': self.parameters.get_parameters()})
 
     def __str__(self) -> str:

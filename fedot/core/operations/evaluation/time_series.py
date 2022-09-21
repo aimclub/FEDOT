@@ -17,7 +17,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     CLSTMImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -44,7 +44,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'ts_naive_average': NaiveAverageForecastImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(operation_type, params)
         self.operation = self._convert_to_operation(operation_type)
 
@@ -116,7 +116,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         'diff_filter': NumericalDerivativeFilterImplementation,
         'cut': CutImplementation}
 
-    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
+    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(operation_type, params)
         self.operation = self._convert_to_operation(self.operation_type)
 

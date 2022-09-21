@@ -4,12 +4,12 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, params: Optional[OperationParameters] = None):
+    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
         self.model = None
 
@@ -52,7 +52,7 @@ class KNeighborsImplementation(ModelImplementation):
 
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, params: Optional[OperationParameters] = None):
+    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
         if not params:
             self.model = KNeighborsClassifier()
@@ -88,7 +88,7 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 
 
 class FedotKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, params: Optional[OperationParameters] = None):
+    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
         if not params:
             self.model = KNeighborsRegressor()

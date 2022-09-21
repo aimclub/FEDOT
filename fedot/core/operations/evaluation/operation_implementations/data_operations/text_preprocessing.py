@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.operation_parameters import OperationParameters
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -22,7 +22,7 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 class TextCleanImplementation(DataOperationImplementation):
     """ Class for text cleaning (lemmatization and stemming) operation """
 
-    def __init__(self, params: Optional[OperationParameters]):
+    def __init__(self, params: Optional[ParametersChangeKeeper]):
         if not params:
             self.lang = 'english'
             params.update('language', 'english')
