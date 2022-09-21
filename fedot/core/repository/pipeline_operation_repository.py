@@ -3,12 +3,12 @@ from typing import List, Optional, Dict
 import numpy as np
 
 from fedot.api.api_utils.presets import OperationsPreset
-from fedot.core.repository.graph_model_reposiroty import GraphModelRepository
+from fedot.core.repository.graph_operation_reposiroty import GraphOperationRepository
 from fedot.core.repository.operation_types_repository import get_operations_for_task
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-class PipelineOperationRepository(GraphModelRepository):
+class PipelineOperationRepository(GraphOperationRepository):
     """ Repository in order to extract suitable operations for pipelines
     from specific files/configs etc.
     :param models_keys: possible keys """

@@ -4,7 +4,7 @@ from typing import Optional, Any
 
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
-from fedot.core.repository.graph_model_reposiroty import GraphModelRepository
+from fedot.core.repository.graph_operation_reposiroty import GraphOperationRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 

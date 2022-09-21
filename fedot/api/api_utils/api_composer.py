@@ -30,7 +30,7 @@ from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
 from fedot.core.pipelines.verification import rules_by_task
 from fedot.core.repository.operation_types_repository import get_operations_for_task
-from fedot.core.repository.pipeline_model_repository import PipelineOperationRepository
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.repository.quality_metrics_repository import MetricsRepository, MetricType, MetricsEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.utilities.define_metric_by_task import MetricByTask
@@ -72,34 +72,7 @@ class ApiComposer:
         # Start composing - pipeline structure search
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict)
 
-    @staticmethod
-    def divide_operations(available_operations, task):
-        """ Function divide operations for primary and secondary """
-
-        if task.task_type is TaskTypesEnum.ts_forecasting:
-            # Get time series operations for primary nodes
-            ts_data_operations = get_operations_for_task(task=task,
-                                                         mode='data_operation',
-                                                         tags=["non_lagged"])
-            # Remove exog data operation from the list
-            ts_data_operations.remove('exog_ts')
-
-            ts_primary_models = get_operations_for_task(task=task,
-                                                        mode='model',
-                                                        tags=["non_lagged"])
-            # Union of the models and data operations
-            ts_primary_operations = ts_data_operations + ts_primary_models
-
-            # Filter - remain only operations, which were in available ones
-            primary_operations = list(set(ts_primary_operations).intersection(available_operations))
-            secondary_operations = available_operations
-        else:
-            primary_operations = available_operations
-            secondary_operations = available_operations
-        return primary_operations, secondary_operations
-
-    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool,
-                   cache_folder: Optional[Union[str, os.PathLike]] = None):
+    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool):
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
@@ -121,7 +94,7 @@ class ApiComposer:
         available_operations = composer_params.get('available_operations',
                                                    OperationsPreset(task, preset).filter_operations_by_preset())
         primary_operations, secondary_operations = \
-            ApiComposer.divide_operations(available_operations, task)
+            PipelineOperationRepository.divide_operations(available_operations, task)
 
         composer_requirements = PipelineComposerRequirements(
             primary=primary_operations,

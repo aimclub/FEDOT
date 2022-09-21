@@ -5,7 +5,7 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory
-from fedot.core.repository.pipeline_model_repository import PipelineOperationRepository
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 

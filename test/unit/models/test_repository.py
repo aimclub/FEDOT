@@ -8,7 +8,8 @@ from fedot.core.repository.json_evaluation import eval_field_str, \
     eval_strategy_str, read_field
 from fedot.core.repository.operation_types_repository import (OperationTypesRepository,
                                                               get_operation_type_from_id)
-from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
+from fedot.core.repository.tasks import TaskTypesEnum, Task
 
 
 def mocked_path():
@@ -105,3 +106,16 @@ def test_repositories_tags_consistency():
                 errors_found.append(f'{operation.id} in {repository} has no proper default tags!')
 
     assert not errors_found, '\n'.join(errors_found)
+
+
+def test_pipeline_operation_repo_divide_operations():
+    """ Checks whether the composer correctly divides operations into primary and secondary """
+
+    available_operations = ['logit', 'rf', 'dt', 'xgboost']
+
+    primary, secondary = \
+        PipelineOperationRepository.divide_operations(task=Task(TaskTypesEnum.classification),
+                                                      available_operations=available_operations)
+
+    assert primary == available_operations
+    assert secondary == available_operations

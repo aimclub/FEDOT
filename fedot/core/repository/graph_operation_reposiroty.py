@@ -2,7 +2,7 @@ from abc import ABC
 from typing import List
 
 
-class GraphModelRepository(ABC):
+class GraphOperationRepository(ABC):
     """ Base repository in order to extract suitable models for each of graph structure
     from specific files/configs etc
     :param models_keys: possible keys """
