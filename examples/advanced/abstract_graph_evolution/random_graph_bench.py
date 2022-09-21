@@ -20,7 +20,7 @@ def degree_stats(graph_prediction: Sequence[Graph], graph_target: Sequence[Graph
 
 def degree_stats_impl(graph_prediction: Sequence[nx.Graph],
                       graph_target: Sequence[nx.Graph]):
-    mmd_dist = mmd_stats_impl(nx.degree_histogram, graph_prediction, graph_target)
+    mmd_dist = mmd_stats_impl(nx.degree_histogram, graph_prediction, graph_target, normalize=True)
     return mmd_dist
 
 
