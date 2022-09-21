@@ -93,13 +93,13 @@ class ApiComposer:
         return primary_operations, secondary_operations
 
     def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool,
-                   folder: Optional[Union[str, os.PathLike]] = None):
+                   cache_folder: Optional[Union[str, os.PathLike]] = None):
         if use_pipelines_cache:
-            self.pipelines_cache = OperationsCache(folder)
+            self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
             self.pipelines_cache.reset()
         if use_preprocessing_cache:
-            self.preprocessing_cache = PreprocessingCache(folder)
+            self.preprocessing_cache = PreprocessingCache(cache_folder)
             #  in case of previously generated singleton cache
             self.preprocessing_cache.reset()
 
