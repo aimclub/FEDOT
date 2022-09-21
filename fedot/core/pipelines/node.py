@@ -221,8 +221,11 @@ class Node(GraphNode):
         Args:
             params: new parameters to be placed instead of existing
         """
-        self.content.update({'params': params})
-        self.parameters = OperationParameters(self.operation.operation_type, params)
+        if params:
+            if 'nested_space' in params:
+                params = params['nested_space']
+            self.content.update({'params': params})
+            self.parameters = OperationParameters(self.operation.operation_type, params)
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node
