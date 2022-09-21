@@ -5,6 +5,7 @@ from typing import Sequence, Callable
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER, EVALUATION_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import Crossover
 from fedot.core.optimisers.gp_comp.operators.elitism import Elitism
 from fedot.core.optimisers.gp_comp.operators.inheritance import Inheritance
@@ -16,6 +17,7 @@ from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDe
 from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
 from fedot.core.optimisers.gp_comp.parameters.population_size import init_adaptive_pop_size, PopulationSize
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, EvaluationAttemptsError
@@ -28,7 +30,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Graph],
+                 initial_graphs: Sequence[OptGraph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  graph_optimizer_params: GPGraphOptimizerParameters):
@@ -55,7 +57,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
         self.graph_optimizer_params.pop_size = self._pop_size.initial
-        self.initial_individuals = self.graph_generation_params.adapter.adapt(initial_graphs)
+        self.initial_individuals = [Individual(graph) for graph in initial_graphs]
 
     def _initial_population(self, evaluator: Callable):
         """ Initializes the initial population """

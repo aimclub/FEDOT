@@ -44,11 +44,11 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         return _transform(fun, f_args=self.restore, f_ret=self.adapt)
 
     def adapt(self, item: Union[DomainStructureType, Sequence[DomainStructureType]]) \
-            -> Union[OptGraph, PopulationT]:
+            -> Union[OptGraph, Sequence[OptGraph]]:
         if type(item) is self.domain_graph_class:
             return self._adapt(item)
         elif isinstance(item, Sequence) and type(item[0]) is self.domain_graph_class:
-            return [Individual(self._adapt(graph)) for graph in item]
+            return [self._adapt(graph) for graph in item]
         else:
             return item
 

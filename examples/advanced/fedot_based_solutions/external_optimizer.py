@@ -6,6 +6,7 @@ from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
@@ -38,7 +39,9 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
         evaluator = dispatcher.dispatch(objective)
 
         num_iter = 0
-        best = choice(self.graph_generation_params.adapter.adapt(self.initial_graphs))
+
+        initial_individuals = [Individual(graph) for graph in self.initial_graphs]
+        best = choice(initial_individuals)
         evaluator([best])
 
         with timer as t:

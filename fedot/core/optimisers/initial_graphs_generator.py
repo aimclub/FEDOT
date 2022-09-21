@@ -6,10 +6,11 @@ from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 GenerationFunction = Callable[[], Graph]
-InitialGraphsGenerator = Callable[[], Sequence[Graph]]
+InitialGraphsGenerator = Callable[[], Sequence[OptGraph]]
 
 
 class InitialPopulationGenerator(InitialGraphsGenerator):
@@ -31,17 +32,17 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
         self.initial_graphs: Optional[Sequence[Graph]] = None
         self.log = default_log(self)
 
-    def __call__(self) -> Sequence[Graph]:
+    def __call__(self) -> Sequence[OptGraph]:
         pop_size = self.pop_size
+        adapter = self.graph_generation_params.adapter
 
         if self.initial_graphs:
             if len(self.initial_graphs) > pop_size:
                 self.initial_graphs = self.initial_graphs[:pop_size]
-            return self.initial_graphs
+            return adapter.adapt(self.initial_graphs)
 
         if not self.generation_function:
-            get_random_graph = self.graph_generation_params.adapter.adapt_func(random_graph)
-            self.generation_function = partial(get_random_graph, self.graph_generation_params, self.requirements)
+            self.generation_function = partial(random_graph, self.graph_generation_params, self.requirements)
 
         population = []
         n_iter = 0
