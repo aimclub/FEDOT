@@ -170,14 +170,16 @@ class MultiModalData(dict):
         if not text_columns:
             text_columns = text_data_detector.define_text_columns(data_frame)
 
+        link_columns = text_data_detector.define_link_columns(data_frame)
+        columns_to_drop = text_columns + link_columns
         data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
-        data_frame_table = data_frame.drop(columns=text_columns)
+        data_frame_table = data_frame.drop(columns=columns_to_drop)
         table_features, target = process_target_and_features(data_frame_table, target_columns)
 
         data_part_transformation_func = partial(array_to_input_data,
                                                 idx=idx, target_array=target, task=task)
 
-        # create labels for text data sources and remove source if there are many nans
+        # create labels for text data sources and remove source if there are many nans or text is link
         sources = dict((text_data_detector.new_key_name(data_part_key),
                         data_part_transformation_func(features_array=data_part, data_type=DataTypesEnum.text))
                        for (data_part_key, data_part) in data_text.items()
