@@ -44,6 +44,8 @@ class ApiComposer:
         self.preprocessing_cache: Optional[PreprocessingCache] = None
         self.preset_name = None
         self.timer = None
+        # status flag indicating that composer step was applied
+        self.was_optimised = False
         # status flag indicating that tuner step was applied
         self.was_tuned = False
 
@@ -261,6 +263,7 @@ class ApiComposer:
                 self.log.message('Pipeline composition started.')
                 best_pipelines = gp_composer.compose_pipeline(data=train_data)
                 best_pipeline_candidates = gp_composer.best_models
+                self.was_optimised = True
         else:
             # Use initial pipeline as final solution
             self.log.message(f'Timeout is too small for composing and is skipped '
