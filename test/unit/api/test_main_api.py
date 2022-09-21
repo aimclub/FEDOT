@@ -327,7 +327,6 @@ def test_fill_nan_without_categorical():
 
 
 def test_dict_multimodal_input_for_api():
-
     data, target = load_categorical_multidata()
 
     model = Fedot(problem='classification', **default_params)
@@ -455,7 +454,7 @@ def test_api_params():
                                'early_stopping_generations': default_int_value,
                                'validation_blocks': default_int_value,
                                'optimizer_external_params': {'path': default_int_value},
-                               'use_pipelines_cache': True, 'use_preprocessing_cache': True}
+                               'use_pipelines_cache': True, 'use_preprocessing_cache': True, 'cache_folder': None}
     correct_tuner_params = {'with_tuning': True}
 
     model = Fedot(**api_params)

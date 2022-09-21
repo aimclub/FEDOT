@@ -15,11 +15,11 @@ class OperationsCacheDB(BaseCacheDB):
     Database for `OperationsCache` class.
     Includes low-level idea of caching pipeline nodes using relational database.
 
-    :param db_path: str db file path
+    :param cache_folder: path to the place where cache files should be stored.
     """
 
-    def __init__(self, db_path: Optional[str] = None):
-        super().__init__('operations', db_path, False, ['pipelines_hit', 'pipelines_total', 'nodes_hit', 'nodes_total'])
+    def __init__(self, cache_folder: Optional[str] = None):
+        super().__init__('operations', cache_folder, False, ['pipelines_hit', 'pipelines_total', 'nodes_hit', 'nodes_total'])
         self._init_db()
 
     @staticmethod

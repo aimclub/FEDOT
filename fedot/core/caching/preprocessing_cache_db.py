@@ -18,11 +18,11 @@ class PreprocessingCacheDB(BaseCacheDB):
     Database for `PreprocessingCache` class.
     Includes low-level idea of caching pipeline preprocessor items using relational database.
 
-    :param db_path: str db file path
+    :param cache_folder: path to the place where cache files should be stored.
     """
 
-    def __init__(self, db_path: Optional[str] = None):
-        super().__init__('preprocessors', db_path, False, ['preprocessors_hit', 'preprocessors_total'])
+    def __init__(self, cache_folder: Optional[str] = None):
+        super().__init__('preprocessors', cache_folder, False, ['preprocessors_hit', 'preprocessors_total'])
         self._init_db()
 
     def get_preprocessor(self, uid: str) -> Optional[Tuple[

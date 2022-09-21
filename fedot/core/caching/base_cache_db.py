@@ -1,8 +1,10 @@
+import os
 import sqlite3
-import uuid
 from contextlib import closing
 from pathlib import Path
 from typing import Optional, Sequence, Tuple
+
+import psutil
 
 from fedot.core.utils import default_fedot_data_dir
 
@@ -13,19 +15,21 @@ class BaseCacheDB:
     Includes low-level idea of caching data using relational database.
 
     :param main_table: table to store into or load from
-    :param db_path: str db file path
+    :param cache_folder: path to the place where cache files should be stored.
     :param use_stats: bool indicating if it is needed to use cache performance dict
     :param stats_keys: sequence of keys for supporting cache effectiveness
     """
 
-    def __init__(self, main_table: str = 'default', db_path: Optional[str] = None, use_stats: bool = False,
+    def __init__(self, main_table: str = 'default', cache_folder: Optional[str] = None, use_stats: bool = False,
                  stats_keys: Sequence = ('default_hit', 'default_total')):
         self._main_table = main_table
         self._db_suffix = f'.{main_table}_db'
-        self.db_path = db_path or Path(default_fedot_data_dir(), f'cache_{str(uuid.uuid4())}')
-        self.db_path = Path(self.db_path).with_suffix(self._db_suffix)
-
-        self._del_prev_temps()
+        if cache_folder is None:
+            self.db_path = Path(default_fedot_data_dir())
+            self._del_prev_temps()
+        else:
+            self.db_path = Path(cache_folder)
+        self.db_path = self.db_path.joinpath(f'cache_{os.getpid()}').with_suffix(self._db_suffix)
 
         self._eff_table = 'effectiveness'
         self.use_stats = use_stats
@@ -80,10 +84,20 @@ class BaseCacheDB:
 
     def _del_prev_temps(self):
         """
-        Deletes previously generated DB files.
+        Deletes previously generated unused DB files.
         """
         for file in self.db_path.parent.glob(f'cache_*{self._db_suffix}'):
-            file.unlink()
+            try:
+                pid = int(file.stem.split('_')[-1])
+            except ValueError:
+                pid = -1  # old format cache name, remove this line somewhere in the future
+            if pid not in psutil.pids():
+                try:
+                    file.unlink()
+                except FileNotFoundError:
+                    pass  # it means another process have already killed it
+                except PermissionError:
+                    pass  # the same
 
     def _inc_eff(self, cur: sqlite3.Cursor, col: str, inc_val: int = 1):
         """
