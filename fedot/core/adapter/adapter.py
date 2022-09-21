@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from copy import deepcopy
-from typing import TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence
+from typing import TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence, Union
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.individual import Individual
@@ -44,7 +44,7 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
         return _transform(fun, f_args=self.restore, f_ret=self.adapt)
 
     def restore_population(self, population: PopulationT) -> Sequence[DomainStructureType]:
-        domain_graphs = [self.restore_ind(ind) for ind in population]
+        domain_graphs = [self._restore(ind.graph, ind.metadata) for ind in population]
         return domain_graphs
 
     def adapt_population(self, population: Sequence[DomainStructureType]) -> PopulationT:
@@ -54,11 +54,10 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
     def adapt(self, item: DomainStructureType) -> OptGraph:
         return self._adapt(item) if type(item) is self.domain_graph_class else item
 
-    def restore(self, item: OptGraph) -> DomainStructureType:
+    def restore(self, item: Union[OptGraph, Individual]) -> DomainStructureType:
+        if isinstance(item, Individual):
+            return self._restore(item.graph, item.metadata)
         return self._restore(item) if type(item) is self.opt_graph_class else item
-
-    def restore_ind(self, individual: Individual) -> DomainStructureType:
-        return self._restore(individual.graph, individual.metadata)
 
     @abstractmethod
     def _adapt(self, adaptee: DomainStructureType) -> OptGraph:

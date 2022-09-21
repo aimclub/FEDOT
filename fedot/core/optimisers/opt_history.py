@@ -84,7 +84,7 @@ class OptHistory:
                 additional_info = \
                     {'fitness_name': self._objective.metric_names,
                      'fitness_value': ind_fitness}
-                PipelineTemplate(adapter.restore_ind(individual)).\
+                PipelineTemplate(adapter.restore(individual)).\
                     export_pipeline(path=ind_path, additional_info=additional_info, datetime_in_path=False)
         except Exception as ex:
             self._log.exception(ex)
@@ -158,7 +158,7 @@ class OptHistory:
     def historical_pipelines(self):
         adapter = PipelineAdapter()
         return [
-            PipelineTemplate(adapter.restore_ind(ind))
+            PipelineTemplate(adapter.restore(ind))
             for ind in list(itertools.chain(*self.individuals))
         ]
 
