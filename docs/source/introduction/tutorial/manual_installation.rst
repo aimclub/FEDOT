@@ -1,5 +1,5 @@
-How to install
---------------
+How to setup the environment manually
+-------------------------------------
 
 The easiest way to install FEDOT is using ``pip``:
 
