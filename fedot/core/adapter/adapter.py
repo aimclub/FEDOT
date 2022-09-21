@@ -43,21 +43,25 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
             return fun
         return _transform(fun, f_args=self.restore, f_ret=self.adapt)
 
-    def restore_population(self, population: PopulationT) -> Sequence[DomainStructureType]:
-        domain_graphs = [self._restore(ind.graph, ind.metadata) for ind in population]
-        return domain_graphs
+    def adapt(self, item: Union[DomainStructureType, Sequence[DomainStructureType]]) \
+            -> Union[OptGraph, PopulationT]:
+        if type(item) is self.domain_graph_class:
+            return self._adapt(item)
+        elif isinstance(item, Sequence) and type(item[0]) is self.domain_graph_class:
+            return [Individual(self._adapt(graph)) for graph in item]
+        else:
+            return item
 
-    def adapt_population(self, population: Sequence[DomainStructureType]) -> PopulationT:
-        individuals = [Individual(self.adapt(graph)) for graph in population]
-        return individuals
-
-    def adapt(self, item: DomainStructureType) -> OptGraph:
-        return self._adapt(item) if type(item) is self.domain_graph_class else item
-
-    def restore(self, item: Union[OptGraph, Individual]) -> DomainStructureType:
-        if isinstance(item, Individual):
+    def restore(self, item: Union[OptGraph, Individual, PopulationT]) \
+            -> Union[DomainStructureType, Sequence[DomainStructureType]]:
+        if type(item) is self.opt_graph_class:
+            return self._restore(item)
+        elif isinstance(item, Individual):
             return self._restore(item.graph, item.metadata)
-        return self._restore(item) if type(item) is self.opt_graph_class else item
+        elif isinstance(item, Sequence) and type(item[0]) is Individual:
+            return [self._restore(ind.graph, ind.metadata) for ind in item]
+        else:
+            return item
 
     @abstractmethod
     def _adapt(self, adaptee: DomainStructureType) -> OptGraph:

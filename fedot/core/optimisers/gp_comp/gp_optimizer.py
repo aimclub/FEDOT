@@ -55,7 +55,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
         self.graph_optimizer_params.pop_size = self._pop_size.initial
-        self.initial_individuals = self.graph_generation_params.adapter.adapt_population(initial_graphs)
+        self.initial_individuals = self.graph_generation_params.adapter.adapt(initial_graphs)
 
     def _initial_population(self, evaluator: Callable):
         """ Initializes the initial population """

@@ -38,7 +38,7 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
         evaluator = dispatcher.dispatch(objective)
 
         num_iter = 0
-        best = choice(self.graph_generation_params.adapter.adapt_population(self.initial_graphs))
+        best = choice(self.graph_generation_params.adapter.adapt(self.initial_graphs))
         evaluator([best])
 
         with timer as t:
@@ -50,7 +50,7 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
                     best = new
                 num_iter += 1
 
-        return self.graph_generation_params.adapter.restore_population(best)
+        return self.graph_generation_params.adapter.restore(best)
 
 
 def run_with_random_search_composer():
