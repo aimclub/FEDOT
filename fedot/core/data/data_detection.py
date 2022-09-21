@@ -40,9 +40,26 @@ class TextDataDetector(DataDetector):
                 text_columns.append(column_name)
         return text_columns
 
+    def define_link_columns(self, data_frame: pd.DataFrame) -> List[str]:
+        """
+        :param data_frame: pandas dataframe with data
+        :return: list of link columns' names
+        """
+        link_columns = []
+        for column_name in data_frame.columns:
+            if self.is_link(data_frame[column_name]):
+                link_columns.append(column_name)
+        return link_columns
+
     @staticmethod
     def is_full_of_nans(text_data: np.array) -> bool:
         if np.sum(pd.isna(text_data)) / len(text_data) > ALLOWED_NAN_PERCENT:
+            return True
+        return False
+
+    @staticmethod
+    def is_link(text_data: np.array) -> bool:
+        if str(next(el for el in text_data if el is not None)).startswith('http'):
             return True
         return False
 
@@ -72,12 +89,18 @@ class TextDataDetector(DataDetector):
         Column contains text if:
         1. it's not float or float compatible
         (e.g. ['1.2', '2.3', '3.4', ...] is float too)
-        2. fraction of unique values (except nans) is more than 0.95
+        2. fraction of unique values (except nans) is more than 0.6
+        3. size of tfidf vocabulary is more than 20
+
+        If size of tfidf vocabulary is less than 20, then it is probably
+        text column too, but it cannot be vectorized and used in model
 
         :param column: pandas series with data
-        :return: True if column contains text
+        :return: True if column contains text, False otherwise or if column contains links
         """
-        if column.dtype == object and not self._is_float_compatible(column) and self._has_unique_values(column):
+        if self.is_link(column):
+            return False
+        elif column.dtype == object and not self._is_float_compatible(column) and self._has_unique_values(column):
             try:
                 params = DefaultOperationParamsRepository().get_default_params_for_operation('tfidf')
                 tfidf_vectorizer = TfidfVectorizer(**params)
