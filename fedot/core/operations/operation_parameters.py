@@ -5,14 +5,14 @@ from fedot.core.repository.default_params_repository import DefaultOperationPara
 
 class OperationParameters:
     def __init__(self, operation_type: Optional[str] = None, parameters: Optional[dict] = None):
-        if isinstance(parameters, OperationParameters):
-            print('+')
-        if not parameters and operation_type:
-            parameters = get_default_params(operation_type)
-        elif not parameters and not operation_type:
+        # The check for "default_params" is needed for backward compatibility.
+        if parameters == "default_params":
             parameters = {}
+        self.parameters = parameters if parameters is not None else {}
+        if operation_type:
+            default_parameters = get_default_params(operation_type)
+            self.parameters = {**default_parameters, **parameters}
         self.changed_keys: list = []
-        self.parameters = parameters
 
     def __bool__(self):
         return bool(self.parameters)

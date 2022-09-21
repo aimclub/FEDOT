@@ -54,10 +54,9 @@ class Node(GraphNode):
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
-        # Create Node with default content
-        super().__init__(content={'name': operation,
-                                  'params': params}, nodes_from=nodes_from)
         self.parameters = OperationParameters(operation.operation_type, params)
+        super().__init__(content={'name': operation,
+                                  'params': self.parameters.parameters}, nodes_from=nodes_from)
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
@@ -212,7 +211,7 @@ class Node(GraphNode):
         Returns:
             dict: of custom parameters
         """
-        return self.parameters.get_parameters()
+        return self.content.get('params')
 
     @custom_params.setter
     def custom_params(self, params: dict):
@@ -224,8 +223,8 @@ class Node(GraphNode):
         if params:
             if 'nested_space' in params:
                 params = params['nested_space']
-            self.content.update({'params': params})
             self.parameters = OperationParameters(self.operation.operation_type, params)
+            self.content.update({'params': self.parameters.get_parameters()})
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node
