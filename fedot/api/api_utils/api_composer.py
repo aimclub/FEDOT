@@ -189,7 +189,8 @@ class ApiComposer:
                 assumption_handler.fit_assumption_and_check_correctness(initial_assumption[0],
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache)
-        log.info(f'Initial pipeline was fitted for {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+        log.message(
+            f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds())} sec.')
 
         n_jobs = determine_n_jobs(api_params['n_jobs'])
         self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
@@ -204,10 +205,10 @@ class ApiComposer:
                                                preset=preset,
                                                available_operations=composer_params.get('available_operations'),
                                                requirements=composer_requirements)
-        log.info(f"AutoML configured."
-                 f" Parameters tuning: {with_tuning}"
-                 f" Time limit: {timeout} min"
-                 f" Set of candidate models: {available_operations}")
+        log.message(f"AutoML configured."
+                    f" Parameters tuning: {with_tuning}"
+                    f" Time limit: {timeout} min"
+                    f" Set of candidate models: {available_operations}")
 
         best_pipeline, best_pipeline_candidates, gp_composer = self.compose_pipeline(task, train_data,
                                                                                      fitted_assumption,
@@ -225,7 +226,7 @@ class ApiComposer:
         # enforce memory cleaning
         gc.collect()
 
-        log.info('Model generation finished')
+        log.message('Model generation finished')
         return best_pipeline, best_pipeline_candidates, gp_composer.history
 
     def compose_pipeline(self, task: Task,
@@ -258,13 +259,13 @@ class ApiComposer:
         if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):
             # Launch pipeline structure composition
             with self.timer.launch_composing():
-                log.info('Pipeline composition started.')
+                log.message('Pipeline composition started.')
                 best_pipelines = gp_composer.compose_pipeline(data=train_data)
                 best_pipeline_candidates = gp_composer.best_models
         else:
             # Use initial pipeline as final solution
-            log.info(f'Timeout is too small for composing and is skipped '
-                     f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
+            log.message(f'Timeout is too small for composing and is skipped '
+                        f'because fit_time is {self.timer.assumption_fit_spend_time.total_seconds()} sec.')
             best_pipelines = fitted_assumption
             best_pipeline_candidates = [fitted_assumption]
 
@@ -293,14 +294,14 @@ class ApiComposer:
         if self.timer.have_time_for_tuning():
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
-                log.info(f'Hyperparameters tuning started with {timeout_for_tuning} sec. timeout')
+                log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} sec. timeout')
                 tuned_pipeline = tuner.tune(pipeline_gp_composed)
-                log.info('Hyperparameters tuning finished')
+                log.message('Hyperparameters tuning finished')
         else:
-            log.info(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
-                     f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
-                     f'to tune the hyperparameters.')
-            log.info('Composed pipeline returned without tuning.')
+            log.message(f'Time for pipeline composing was {str(self.timer.composing_spend_time)}.\n'
+                        f'The remaining {max(0, timeout_for_tuning)} seconds are not enough '
+                        f'to tune the hyperparameters.')
+            log.message('Composed pipeline returned without tuning.')
             tuned_pipeline = pipeline_gp_composed
 
         return tuned_pipeline
