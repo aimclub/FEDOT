@@ -41,7 +41,7 @@ class OptNodeFactory(ABC):
 class DefaultOptNodeFactory(OptNodeFactory):
     def __init__(self, requirements: Optional[Any] = None,
                  advisor: Optional[DefaultChangeAdvisor] = None,
-                 graph_model_repository: Optional[GraphModelRepository] = None):
+                 graph_model_repository: Optional[GraphOperationRepository] = None):
         self.requirements = requirements
         self.advisor = advisor or DefaultChangeAdvisor()
         self.graph_model_repository = graph_model_repository or self._init_default_graph_model_repo()

@@ -72,7 +72,8 @@ class ApiComposer:
         # Start composing - pipeline structure search
         return self.compose_fedot_model(api_params_dict, composer_params_dict, tuner_params_dict)
 
-    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool):
+    def init_cache(self, use_pipelines_cache: bool, use_preprocessing_cache: bool,
+                   cache_folder: Optional[Union[str, os.PathLike]] = None):
         if use_pipelines_cache:
             self.pipelines_cache = OperationsCache(cache_folder)
             #  in case of previously generated singleton cache
@@ -197,7 +198,7 @@ class ApiComposer:
                                                                         self.timer.timedelta_composing,
                                                                         self.preset_name)
 
-        metric_function = self.obtain_metric(task, composer_params['metric'])
+        metric_functions = self.obtain_metric(task, composer_params['metric'])
         graph_generation_params = \
             self._init_graph_generation_params(task=task,
                                                preset=preset,
@@ -240,9 +241,8 @@ class ApiComposer:
         optimizer_params = ApiComposer._init_optimizer_parameters(composer_params,
                                                                   multi_objective=multi_objective,
                                                                   task_type=task.task_type)
-        gp_composer: GPComposer = ComposerBuilder(task=task) \
 
-        builder = ComposerBuilder(task=task) \
+        gp_composer: GPComposer = ComposerBuilder(task=task) \
             .with_requirements(composer_requirements) \
             .with_initial_pipelines(fitted_assumption) \
             .with_optimizer(composer_params.get('optimizer')) \
@@ -253,7 +253,6 @@ class ApiComposer:
             .with_cache(self.pipelines_cache, self.preprocessing_cache) \
             .with_graph_generation_param(graph_generation_params=graph_generation_params) \
             .build()
-        gp_composer: GPComposer = builder.build()
 
         n_jobs = determine_n_jobs(composer_requirements.n_jobs)
         if self.timer.have_time_for_composing(composer_params['pop_size'], n_jobs):
