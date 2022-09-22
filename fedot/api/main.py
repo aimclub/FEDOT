@@ -183,15 +183,15 @@ class Fedot:
             # Final fit for obtained pipeline on full dataset
             if self.history and not self.history.is_empty() or not self.current_pipeline.is_fitted:
                 self._train_pipeline_on_full_dataset(recommendations, full_train_not_preprocessed)
-                self.params.api_params['logger'].info('Final pipeline was fitted')
+                self.params.api_params['logger'].message('Final pipeline was fitted')
             else:
-                self.params.api_params['logger'].info('Already fitted initial pipeline is used')
+                self.params.api_params['logger'].message('Already fitted initial pipeline is used')
 
         # Store data encoder in the pipeline if it is required
         self.current_pipeline.preprocessor = merge_preprocessors(self.data_processor.preprocessor,
                                                                  self.current_pipeline.preprocessor)
 
-        self.params.api_params['logger'].info(f'Final pipeline: {str(self.current_pipeline)}')
+        self.params.api_params['logger'].message(f'Final pipeline: {str(self.current_pipeline)}')
 
         return self.current_pipeline
 
@@ -394,7 +394,7 @@ class Fedot:
             prediction = predicted_data.predict
         pd.DataFrame({'Index': predicted_data.idx,
                       'Prediction': prediction}).to_csv(r'./predictions.csv', index=False)
-        self.params.api_params['logger'].info('Predictions was saved in current directory.')
+        self.params.api_params['logger'].message('Predictions was saved in current directory.')
 
     def export_as_project(self, project_path='fedot_project.zip'):
         export_project_to_zip(zip_name=project_path, opt_history=self.history,
