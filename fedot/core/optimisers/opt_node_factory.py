@@ -5,6 +5,7 @@ from typing import Optional, Any
 from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.graph_operation_reposiroty import GraphOperationRepository
+from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
@@ -48,6 +49,13 @@ class DefaultOptNodeFactory(OptNodeFactory):
     def _init_default_graph_model_repo(self, **kwargs):
         """ Initialize default graph model repository with operations from composer requirements """
         pass
+
+    def _init_default_graph_model_repo(self):
+        """ Initialize default graph model repository with operations from composer requirements """
+        if self.requirements:
+            repo = PipelineOperationRepository(operations_by_keys={'primary': self.requirements.primary,
+                                                                   'secondary': self.requirements.secondary})
+            return repo
 
     def exchange_node(self, node: OptNode) -> Optional[OptNode]:
         """
