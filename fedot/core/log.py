@@ -177,7 +177,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         to display main info about optimization process """
         message_logging_level = 45
         if message_logging_level >= self.logging_level:
-            self.warning(msg=message)
+            self.critical(msg=message)
 
     def __str__(self):
         return f'LoggerAdapter object for {self.extra["prefix"]} module'
