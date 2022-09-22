@@ -153,8 +153,9 @@ class ApiComposer:
     def _init_graph_generation_params(task: Task, preset: str, available_operations: List[str],
                                       requirements: PipelineComposerRequirements):
         advisor = PipelineChangeAdvisor(task)
-        graph_model_repo = PipelineOperationRepository(task=task, preset=preset,
-                                                       available_operations=available_operations)
+        graph_model_repo = PipelineOperationRepository()\
+            .from_available_operations(task=task, preset=preset,
+                                       available_operations=available_operations)
         node_factory = PipelineOptNodeFactory(requirements=requirements, advisor=advisor,
                                               graph_model_repository=graph_model_repo) \
             if requirements else None

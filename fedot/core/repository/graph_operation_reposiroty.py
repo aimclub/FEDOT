@@ -4,10 +4,9 @@ from typing import List
 
 class GraphOperationRepository(ABC):
     """ Base repository in order to extract suitable models for each of graph structure
-    from specific files/configs etc
-    :param models_keys: possible keys """
-    def __init__(self, models_keys: List[str] = None, **kwargs):
-        self.models_keys = models_keys
+    from specific files/configs etc """
+    def __init__(self, **kwargs):
+        pass
 
     def get_operations(self, **kwargs):
         """ Get models by specified model keys """

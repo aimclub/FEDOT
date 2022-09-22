@@ -1,3 +1,4 @@
+import itertools
 from typing import List, Optional, Dict
 
 import numpy as np
@@ -11,25 +12,21 @@ from fedot.core.repository.tasks import Task, TaskTypesEnum
 class PipelineOperationRepository(GraphOperationRepository):
     """ Repository in order to extract suitable operations for pipelines
     from specific files/configs etc.
-    :param models_keys: possible keys """
-    def __init__(self, task: Optional[Task] = None, preset: Optional[str] = None,
-                 available_operations: Optional[List[str]] = None,
-                 operations_by_keys: Dict[str, List[str]] = None,
-                 models_keys: List[str] = None):
-        super().__init__(models_keys=models_keys)
-        if task and preset and not operations_by_keys:
-            self.operations_by_keys = self._set_operations(task=task, preset=preset,
-                                                           available_operations=available_operations)
-        else:
-            self.operations_by_keys = operations_by_keys
 
-    def _set_operations(self, task: Task = None, preset: str = None, available_operations: List[str] = None):
-        """ Set models by task and preset or by initialized requirements """
+    :param operations_by_keys: available operations already splitted by keys """
+    def __init__(self, operations_by_keys: Optional[Dict[str, List[str]]] = None,
+                 **kwargs):
+        super().__init__(**kwargs)
+        self.operations_by_keys = operations_by_keys
+
+    def from_available_operations(self, task: Task, preset: str,
+                                  available_operations: List[str]):
+        """ Initialize repository from available operations, task and preset """
         operations_by_task_preset = OperationsPreset(task, preset).filter_operations_by_preset()
         all_operations = list(set.intersection(set(operations_by_task_preset), set(available_operations)))
         primary_operations, secondary_operations = \
             self.divide_operations(all_operations, task)
-        return {'primary': primary_operations, 'secondary': secondary_operations}
+        self.operations_by_keys = {'primary': primary_operations, 'secondary': secondary_operations}
 
     def get_operations(self, is_primary: bool) -> List[str]:
         """ Get pipeline operations by specified model key """
@@ -39,7 +36,7 @@ class PipelineOperationRepository(GraphOperationRepository):
 
     def get_all_operations(self) -> List[str]:
         """ Get all pipeline operations with all keys """
-        return list(np.array(list((self.operations_by_keys.values()))).flatten())
+        return list(itertools.chain(*self.operations_by_keys.values()))
 
     @staticmethod
     def divide_operations(available_operations, task):
