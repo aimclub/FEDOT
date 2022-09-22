@@ -175,7 +175,7 @@ class LoggerAdapter(logging.LoggerAdapter):
         """ Record the message to user.
         Message is an intermediate logging level between info and warning
         to display main info about optimization process """
-        message_logging_level = 25
+        message_logging_level = 45
         if message_logging_level >= self.logging_level:
             self.warning(msg=message)
 

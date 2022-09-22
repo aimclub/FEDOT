@@ -1,5 +1,4 @@
 import traceback
-
 from typing import Union
 
 from fedot.api.api_utils.assumptions.assumptions_builder import AssumptionsBuilder
@@ -36,7 +35,7 @@ class PredefinedModel:
         except Exception as ex:
             fit_failed_info = f'Predefined model fit was failed due to: {ex}.'
             advice_info = f'{fit_failed_info} Check pipeline structure and the correctness of the data'
-            self.log.info(fit_failed_info)
+            self.log.message(fit_failed_info)
             print(traceback.format_exc())
             raise ValueError(advice_info)
         return self.pipeline
