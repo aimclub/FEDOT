@@ -1,17 +1,14 @@
 from collections.abc import Sequence
-
-import numpy as np
 from typing import Callable, Tuple
 
+import networkx as nx
+import numpy as np
+
 from examples.advanced.abstract_graph_evolution import mmd
+from examples.advanced.abstract_graph_evolution.graph_utils import optgraph_to_nx
 from examples.advanced.abstract_graph_evolution.mmd import compute_mmd
 from examples.advanced.abstract_graph_evolution.orbits_count_metric import motif_stats_graph
 from fedot.core.dag.graph import Graph
-from fedot.core.optimisers.objective import ObjectiveFunction
-
-import networkx as nx
-
-from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
 def compute_all_stats(graph_prediction: Sequence[Graph],
@@ -48,8 +45,8 @@ def mmd_stats(stat_function: Callable[[nx.Graph], np.ndarray],
               graph_target: Sequence[Graph],
               **kwargs):
 
-    def eval_stats(graph: Graph) -> nx.Graph:
-        nx_graph = graph_structure_as_nx_graph(graph)[0]
+    def eval_stats(graph):
+        nx_graph = optgraph_to_nx(graph)
         stats = stat_function(nx_graph)
         return stats
 
