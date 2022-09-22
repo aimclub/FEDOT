@@ -24,8 +24,8 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
                  initial_graphs: Union[Graph, Sequence[Graph]] = (),
                  requirements: Optional[Any] = None,
                  graph_generation_params: Optional[GraphGenerationParams] = None,
-                 parameters: Optional[GraphOptimizerParameters] = None):
-        super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
+                 graph_optimizer_parameters: Optional[GraphOptimizerParameters] = None):
+        super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_parameters)
         self.mutation_types = [boosting_mutation, parameter_change_mutation,
                                MutationTypesEnum.single_edge,
                                MutationTypesEnum.single_change,

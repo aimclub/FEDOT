@@ -138,20 +138,6 @@ def test_init_assumption_with_inappropriate_available_operations():
     assert initial_assumptions[0].root_node.descriptive_id == res_init_assumption.root_node.descriptive_id
 
 
-def test_api_composer_divide_operations():
-    """ Checks whether the composer correctly divides operations into primary and secondary """
-
-    available_operations = ['logit', 'rf', 'dt', 'xgboost']
-
-    api_composer = ApiComposer(problem='classification')
-    primary, secondary = \
-        api_composer.divide_operations(task=Task(TaskTypesEnum.classification),
-                                       available_operations=available_operations)
-
-    assert primary == available_operations
-    assert secondary == available_operations
-
-
 def test_api_composer_available_operations():
     """ Checks if available_operations goes through all fitting process"""
     task = Task(TaskTypesEnum.ts_forecasting,

@@ -195,7 +195,7 @@ class Mutation(Operator):
 
     def _add_intermediate_node(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add between node and parent
-        new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=False)
+        new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, is_primary=False)
         if not new_node:
             return graph
         new_node.nodes_from = node_to_mutate.nodes_from
@@ -206,7 +206,7 @@ class Mutation(Operator):
     def _add_separate_parent_node(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as separate parent
         for iter_num in range(randint(1, 3)):
-            new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, primary=True)
+            new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, is_primary=True)
             if not new_node:
                 # there is no possible operators
                 break
@@ -219,7 +219,7 @@ class Mutation(Operator):
 
     def _add_as_child(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as child
-        new_node = self.graph_generation_params.node_factory.get_node(primary=False)
+        new_node = self.graph_generation_params.node_factory.get_node(is_primary=False)
         if not new_node:
             return graph
         parents_node_to_mutate = node_to_mutate.nodes_from or []
@@ -272,7 +272,7 @@ class Mutation(Operator):
         """
         node_to_del = choice(graph.nodes)
         node_name = node_to_del.content['name']
-        removal_type = self.graph_generation_params.advisor.can_be_removed(str(node_name))
+        removal_type = self.graph_generation_params.advisor.can_be_removed(node_to_del)
         if removal_type == RemoveType.with_direct_children:
             # TODO refactor workaround with data_source
             nodes_to_delete = \
@@ -314,7 +314,7 @@ class Mutation(Operator):
             is_primary_node_selected = \
                 graph.distance_to_root_level(node_from_graph) >= self.requirements.max_depth and randint(0, 1)
         if is_primary_node_selected:
-            new_subtree = self.graph_generation_params.node_factory.get_node(primary=True)
+            new_subtree = self.graph_generation_params.node_factory.get_node(is_primary=True)
             if not new_subtree:
                 return graph
         else:
@@ -357,7 +357,7 @@ class Mutation(Operator):
         if is_possible_to_delete:
             graph.delete_subtree(node_to_del)
         else:
-            primary_node = self.graph_generation_params.node_factory.get_node(primary=True)
+            primary_node = self.graph_generation_params.node_factory.get_node(is_primary=True)
             if not primary_node:
                 return graph
             graph.update_subtree(node_to_del, primary_node)

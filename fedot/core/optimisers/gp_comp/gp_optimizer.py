@@ -32,30 +32,30 @@ class EvoGraphOptimizer(PopulationalOptimizer):
                  initial_graphs: Sequence[Graph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
-                 parameters: GPGraphOptimizerParameters):
-        super().__init__(objective, initial_graphs, requirements, graph_generation_params, parameters)
+                 graph_optimizer_params: GPGraphOptimizerParameters):
+        super().__init__(objective, initial_graphs, requirements, graph_generation_params, graph_optimizer_params)
         # Define genetic operators
-        self.regularization = Regularization(parameters, graph_generation_params)
-        self.selection = Selection(parameters)
-        self.crossover = Crossover(parameters, requirements, graph_generation_params)
-        self.mutation = Mutation(parameters, requirements, graph_generation_params)
-        self.inheritance = Inheritance(parameters, self.selection)
-        self.elitism = Elitism(parameters)
+        self.regularization = Regularization(graph_optimizer_params, graph_generation_params)
+        self.selection = Selection(graph_optimizer_params)
+        self.crossover = Crossover(graph_optimizer_params, requirements, graph_generation_params)
+        self.mutation = Mutation(graph_optimizer_params, requirements, graph_generation_params)
+        self.inheritance = Inheritance(graph_optimizer_params, self.selection)
+        self.elitism = Elitism(graph_optimizer_params)
         self.operators = [self.regularization, self.selection, self.crossover,
                           self.mutation, self.inheritance, self.elitism]
 
         # Define adaptive parameters
-        self._pop_size: PopulationSize = init_adaptive_pop_size(parameters, self.generations)
-        self._operators_prob = init_adaptive_operators_prob(parameters)
+        self._pop_size: PopulationSize = init_adaptive_pop_size(graph_optimizer_params, self.generations)
+        self._operators_prob = init_adaptive_operators_prob(graph_optimizer_params)
         self._graph_depth = AdaptiveGraphDepth(self.generations,
                                                start_depth=requirements.start_depth,
                                                max_depth=requirements.max_depth,
-                                               max_stagnation_gens=parameters.adaptive_depth_max_stagnation,
-                                               adaptive=parameters.adaptive_depth)
+                                               max_stagnation_gens=graph_optimizer_params.adaptive_depth_max_stagnation,
+                                               adaptive=graph_optimizer_params.adaptive_depth)
 
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
-        self.parameters.pop_size = self._pop_size.initial
+        self.graph_optimizer_params.pop_size = self._pop_size.initial
         self.initial_individuals = \
             [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
 
@@ -64,7 +64,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Adding of initial assumptions to history as zero generation
         self._update_population(evaluator(self.initial_individuals))
 
-        if len(self.initial_individuals) < self.parameters.pop_size:
+        if len(self.initial_individuals) < self.graph_optimizer_params.pop_size:
             self.initial_individuals = self._extend_population(self.initial_individuals)
             # Adding of extended population to history
             self._update_population(evaluator(self.initial_individuals))
@@ -75,7 +75,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
         self.mutation.update_requirements(requirements=initial_req)
-        while len(initial_individuals) < self.parameters.pop_size:
+        while len(initial_individuals) < self.graph_optimizer_params.pop_size:
             new_ind = self.mutation(choice(self.initial_individuals))
             new_graph = new_ind.graph
             iter_num += 1
@@ -85,7 +85,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             if iter_num > MAXIMAL_ATTEMPTS_NUMBER:
                 self.log.warning(f'Exceeded max number of attempts for extending initial graphs, stopping.'
                                  f'Current size {len(self.initial_individuals)} '
-                                 f'instead of {self.parameters.pop_size} graphs.')
+                                 f'instead of {self.graph_optimizer_params.pop_size} graphs.')
                 break
         self.mutation.update_requirements(requirements=self.requirements)
         return initial_individuals
@@ -105,17 +105,17 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def _update_requirements(self):
         if not self.generations.is_any_improved:
-            self.parameters.mutation_prob, self.parameters.crossover_prob = \
+            self.graph_optimizer_params.mutation_prob, self.graph_optimizer_params.crossover_prob = \
                 self._operators_prob.next(self.population)
-        self.parameters.pop_size = self._pop_size.next(self.population)
+        self.graph_optimizer_params.pop_size = self._pop_size.next(self.population)
         self.requirements.max_depth = self._graph_depth.next()
         self.log.info(
-            f'Next population size: {self.parameters.pop_size}; '
+            f'Next population size: {self.graph_optimizer_params.pop_size}; '
             f'max graph depth: {self.requirements.max_depth}')
 
         # update requirements in operators
         for operator in self.operators:
-            operator.update_requirements(self.parameters, self.requirements)
+            operator.update_requirements(self.graph_optimizer_params, self.requirements)
 
     def _spawn_evaluated_population(self, selected_individuals: PopulationT, evaluator: Callable) -> PopulationT:
         """ Reproduce and evaluate new population. If at least one of received individuals can not be evaluated then
