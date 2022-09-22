@@ -38,6 +38,16 @@ class Log(metaclass=SingletonMeta):
 
     __log_adapters = {}
 
+    def __init__(self,
+                 config_json_file: str = 'default',
+                 output_logging_level: int = logging.INFO,
+                 log_file: Optional[Union[str, pathlib.Path]] = None,
+                 use_console: bool = True):
+        self.log_file = log_file or DEFAULT_LOG_PATH
+        self.logger = self._get_logger(config_file=config_json_file,
+                                       logging_level=output_logging_level,
+                                       use_console=use_console)
+
     @staticmethod
     def setup_in_mp(logging_level: int, logs_dir: pathlib.Path):
         """
@@ -52,16 +62,6 @@ class Log(metaclass=SingletonMeta):
         log_file_name = logs_dir.joinpath(f'log_{cur_proc}.log')
         Log(output_logging_level=logging_level, log_file=log_file_name, use_console=False)
 
-    def __init__(self,
-                 config_json_file: str = 'default',
-                 output_logging_level: int = logging.INFO,
-                 log_file: Optional[Union[str, pathlib.Path]] = None,
-                 use_console: bool = True):
-        self.log_file = log_file or DEFAULT_LOG_PATH
-        self.logger = self._get_logger(config_file=config_json_file,
-                                       logging_level=output_logging_level,
-                                       use_console=use_console)
-
     def get_parameters(self) -> Tuple[int, pathlib.Path]:
         return self.logger.level, pathlib.Path(self.log_file).parent
 
@@ -74,12 +74,11 @@ class Log(metaclass=SingletonMeta):
             handler.setLevel(logging_level)
 
     def get_adapter(self, prefix: str) -> 'LoggerAdapter':
-        """Get adapter to pass contextual information to log messages
+        """ Get adapter to pass contextual information to log messages
 
         Args:
             prefix: prefix to log messages with this adapter. Usually, the prefix is the name of the class
                 where the log came from
-            logging_level: level of logging
         """
 
         if prefix not in self.__log_adapters.keys():
@@ -98,7 +97,7 @@ class Log(metaclass=SingletonMeta):
 
     def _setup_default_logger(self, logger: logging.Logger, logging_level: int,
                               use_console: bool = True) -> logging.Logger:
-        """Define console and file handlers for logger
+        """ Define console and file handlers for logger
         """
 
         if use_console:
@@ -119,7 +118,7 @@ class Log(metaclass=SingletonMeta):
 
     @staticmethod
     def _setup_logger_from_json_file(config_file):
-        """Setup logging configuration from file
+        """ Setup logging configuration from file
         """
 
         try:
@@ -134,14 +133,14 @@ class Log(metaclass=SingletonMeta):
         return self.logger.handlers
 
     def release_handlers(self):
-        """This function closes handlers of logger
+        """ This function closes handlers of logger
         """
 
         for handler in self.handlers:
             handler.close()
 
     def getstate(self):
-        """Define the attributes to be pickled via deepcopy or pickle
+        """ Define the attributes to be pickled via deepcopy or pickle
 
         Returns:
             dict: ``dict`` of state
@@ -159,7 +158,7 @@ class Log(metaclass=SingletonMeta):
 
 
 class LoggerAdapter(logging.LoggerAdapter):
-    """This class looks like logger but used to pass contextual information
+    """ This class looks like logger but used to pass contextual information
     to the output along with logging event information
     """
 
@@ -172,6 +171,14 @@ class LoggerAdapter(logging.LoggerAdapter):
         self.logger.setLevel(self.logging_level)
         return '%s - %s' % (self.extra['prefix'], msg), kwargs
 
+    def message(self, message: str):
+        """ Record the message to user.
+        Message is an intermediate logging level between info and warning
+        to display main info about optimization process """
+        message_logging_level = 25
+        if message_logging_level >= self.logging_level:
+            self.warning(msg=message)
+
     def __str__(self):
         return f'LoggerAdapter object for {self.extra["prefix"]} module'
 
@@ -179,8 +186,8 @@ class LoggerAdapter(logging.LoggerAdapter):
         return self.__str__()
 
 
-def default_log(prefix: Optional[object] = 'default') -> logging.LoggerAdapter:
-    """Default logger
+def default_log(prefix: Optional[object] = 'default') -> 'LoggerAdapter':
+    """ Default logger
 
     Args:
         class_object: instance of class
