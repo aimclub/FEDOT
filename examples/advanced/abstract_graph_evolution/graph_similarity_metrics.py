@@ -14,40 +14,49 @@ import networkx as nx
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
 
-def compute_all_mmd_stats(graph_prediction: Sequence[Graph],
-                          graph_target: Sequence[Graph]) -> Tuple[float, float, float]:
+def compute_all_stats(graph_prediction: Sequence[Graph],
+                      graph_target: Sequence[Graph]) -> Tuple[float, float, float]:
 
-    def transform(graph: Graph) -> nx.Graph:
-        return graph_structure_as_nx_graph(graph)[0]
-
-    nx_graph_prediction = list(map(transform, graph_prediction))
-    nx_graph_target = list(map(transform, graph_target))
-
-    mmd_degree = degree_stats_impl(nx_graph_prediction, nx_graph_target)
-    mmd_clustering = clustering_stats_impl(nx_graph_prediction, nx_graph_target)
-    mmd_motifs = motif_stats(nx_graph_prediction, nx_graph_target)
+    mmd_degree = degree_stats(graph_prediction, graph_target)
+    mmd_clustering = clustering_stats(graph_prediction, graph_target)
+    mmd_motifs = motif_stats(graph_prediction, graph_target)
 
     return mmd_degree, mmd_clustering, mmd_motifs
 
 
-def degree_stats_impl(graph_prediction: Sequence[nx.Graph],
-                      graph_target: Sequence[nx.Graph]) -> float:
-    return mmd_stats_impl(nx.degree_histogram, graph_prediction, graph_target, normalize=True)
+def degree_stats(graph_prediction: Sequence[Graph],
+                      graph_target: Sequence[Graph]) -> float:
+    return mmd_stats(nx.degree_histogram, graph_prediction, graph_target, normalize=True)
 
 
-def clustering_stats_impl(graph_prediction: Sequence[nx.Graph],
-                          graph_target: Sequence[nx.Graph]) -> float:
+def clustering_stats(graph_prediction: Sequence[Graph],
+                          graph_target: Sequence[Graph]) -> float:
     bins = 100
-    return mmd_stats_impl(clustering_stats_graph, graph_prediction, graph_target,
-                          sigma=0.1, distance_scaling=bins, normalize=False)
+    return mmd_stats(clustering_stats_graph, graph_prediction, graph_target,
+                     sigma=0.1, distance_scaling=bins, normalize=False)
 
 
-def motif_stats(graph_prediction: Sequence[nx.Graph],
-                graph_target: Sequence[nx.Graph]) -> float:
-    graph_prediction = [G for G in graph_prediction if G.number_of_nodes() > 0]
+def motif_stats(graph_prediction: Sequence[Graph],
+                graph_target: Sequence[Graph]) -> float:
+    graph_prediction = [g for g in graph_prediction if len(g) > 0]
+    return mmd_stats(motif_stats_graph, graph_prediction, graph_target,
+                     kernel=mmd.gaussian, normalize=False)
 
-    return mmd_stats_impl(motif_stats_graph, graph_prediction, graph_target,
-                          kernel=mmd.gaussian, normalize=False)
+
+def mmd_stats(stat_function: Callable[[nx.Graph], np.ndarray],
+              graph_prediction: Sequence[Graph],
+              graph_target: Sequence[Graph],
+              **kwargs):
+
+    def eval_stats(graph: Graph) -> nx.Graph:
+        nx_graph = graph_structure_as_nx_graph(graph)[0]
+        stats = stat_function(nx_graph)
+        return stats
+
+    sample_predict = list(map(eval_stats, graph_prediction))
+    sample_target = list(map(eval_stats, graph_target))
+
+    return compute_mmd(sample_target, sample_predict, **kwargs)
 
 
 def mmd_stats_impl(stat_function: Callable[[nx.Graph], np.ndarray],
