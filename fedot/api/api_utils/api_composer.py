@@ -194,7 +194,7 @@ class ApiComposer:
                                                                         pipelines_cache=self.pipelines_cache,
                                                                         preprocessing_cache=self.preprocessing_cache)
         log.message(
-            f'Initial pipeline was fitted for {round(self.timer.assumption_fit_spend_time.total_seconds())} sec.')
+            f'Initial pipeline was fitted in {round(self.timer.assumption_fit_spend_time.total_seconds())} sec.')
 
         n_jobs = determine_n_jobs(api_params['n_jobs'])
         self.preset_name = assumption_handler.propose_preset(preset, self.timer, n_jobs=n_jobs)
@@ -289,7 +289,7 @@ class ApiComposer:
         if self.timer.have_time_for_tuning():
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
-                log.message(f'Hyperparameters tuning started with {timeout_for_tuning} sec. timeout')
+                log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} sec. timeout')
                 tuned_pipeline = tuner.tune(pipeline_gp_composed)
                 log.message('Hyperparameters tuning finished')
         else:
