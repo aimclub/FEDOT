@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy, deepcopy
 from random import choice
 from typing import Sequence, Callable
 
@@ -69,8 +69,9 @@ class EvoGraphOptimizer(PopulationalOptimizer):
             # Adding of extended population to history
             self._update_population(evaluator(self.initial_individuals))
 
-    def _extend_population(self, initial_individuals) -> PopulationT:
+    def _extend_population(self, initial_individuals: PopulationT) -> PopulationT:
         iter_num = 0
+        initial_individuals = copy(initial_individuals)
         initial_graphs = [ind.graph for ind in initial_individuals]
         initial_req = deepcopy(self.requirements)
         initial_req.mutation_prob = 1
