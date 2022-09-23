@@ -59,8 +59,11 @@ def _test_individuals_in_history(history: OptHistory):
             continue
         # All individuals must have parents, except for the initial assumptions.
         assert ind.parents
+        assert ind.parents_from_prev_generation
         # The first of `operators_from_prev_generation` must point to `parents_from_prev_generation`.
         assert ind.parents_from_prev_generation == list(ind.operators_from_prev_generation[0].parent_individuals)
+        # All parents are from previous generations
+        assert all(p.native_generation < ind.native_generation for p in ind.parents_from_prev_generation)
 
         uids.add(ind.uid)
         ids.add(id(ind))
@@ -126,7 +129,7 @@ def test_ancestor_for_crossover():
         assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
-def test_newly_generated_history(n_jobs=1):
+def test_newly_generated_history(n_jobs: int = 1):
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
