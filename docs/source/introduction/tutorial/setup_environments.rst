@@ -1,5 +1,5 @@
 How to setup the environment using PyCharm
--------------------------------------------------------
+------------------------------------------
 
 -  **Step 1**. *Download FEDOT Framework*.
 

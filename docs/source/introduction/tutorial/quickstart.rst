@@ -1,7 +1,7 @@
 Quickstart
 ==========
 
-FEDOT Framework quick start guide
+FEDOT Framework quick start guide.
 
 .. include:: setup_environments.rst
 

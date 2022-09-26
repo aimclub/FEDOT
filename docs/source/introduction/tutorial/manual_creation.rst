@@ -1,5 +1,5 @@
-How to create your own composite model in manual way
-----------------------------------------------------
+How to create your own composite model in a manual way
+------------------------------------------------------
 
 -  **Step 1**. Specify problem type and choose dataset.
 
@@ -18,14 +18,14 @@ How to create your own composite model in manual way
 
    node_first = PrimaryNode('logit')
    node_second= PrimaryNode('xgboost')
-   node_final = SecondaryNode('knn', nodes_from = [node_first, node_second])
+   node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
 -  **Step 3**. Fit the pipeline using *fit* method.
 
 .. code:: python
 
-   model.fit(features=dataset_to_train, target='target', predefined_model=pipeline)
+   model.fit(features=dataset_to_train, predefined_model=pipeline)
 
 -  **Step 4**. Obtain the prediction using *predict* method.
 

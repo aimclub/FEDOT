@@ -16,13 +16,13 @@ Alternatively, in order to work with the source code:
    $ pip install .
    $ pytest -s test
 
-Installation with optional dependencies for image and text processing, and for tests:
+Installation with optional dependencies for image and text processing, and for DNNs:
 
 .. code-block::
 
   $ pip install fedot[extra]
 
-Or the source code:
+Or by dealing with the source code:
 
 .. code-block::
 
