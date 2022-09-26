@@ -68,10 +68,7 @@ class CuMLEvaluationStrategy(SkLearnEvaluationStrategy):
         :return: trained cuML operation
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
-        else:
-            operation_implementation = self.operation_impl()
+        operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
 
         # If model doesn't support multi-output and current task is ts_forecasting
         current_task = train_data.task.task_type

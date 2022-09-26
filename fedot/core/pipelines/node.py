@@ -221,6 +221,7 @@ class Node(GraphNode):
             params: new parameters to be placed instead of existing
         """
         if params:
+            # take nested composer params if they appeared
             if 'nested_space' in params:
                 params = params['nested_space']
             self._parameters = ParametersChangeKeeper(self.operation.operation_type, params)

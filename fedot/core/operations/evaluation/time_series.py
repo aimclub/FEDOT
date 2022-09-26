@@ -55,10 +55,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         :return: trained model
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            model = self.operation(self.params_for_fit)
-        else:
-            model = self.operation()
+        model = self.operation(self.params_for_fit)
 
         model.fit(train_data)
         return model
