@@ -11,8 +11,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.model import Model
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.utilities.debug import is_test_session, is_recording_mode
-from fedot.utilities.debug import save_debug_info_for_pipeline
+from fedot.utilities.debug import is_recording_mode, is_test_session, save_debug_info_for_pipeline
 from .objective import Objective, to_fitness
 from .objective_eval import ObjectiveEvaluate
 
@@ -98,7 +97,8 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: id of the fold in cross-validation, used for cache requests.
         :param n_jobs: number of parallel jobs for preparation
         """
-        graph.unfit()
+        if not fold_id == 0:  # important for remote non-CV mode
+            graph.unfit()
         # load preprocessing
         graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
         graph.fit(

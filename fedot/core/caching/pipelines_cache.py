@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import List, Optional, TYPE_CHECKING, Union
 
 from fedot.core.caching.base_cache import BaseCache
 from fedot.core.caching.pipelines_cache_db import OperationsCacheDB
@@ -59,8 +59,6 @@ class OperationsCache(BaseCache):
             for idx, cached_op in enumerate(cached_ops):
                 if cached_op is not None:
                     nodes_lst[idx].fitted_operation = cached_op
-                else:
-                    nodes_lst[idx].fitted_operation = None
         except Exception as ex:
             self.log.warning(f'Cache can not be loaded: {ex}. Continue.')
             if is_test_session():
