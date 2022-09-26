@@ -1006,6 +1006,7 @@ def run_example():
 
     if 'cont' in types and ('disc' in types or 'disc_num' in types):
         bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+        # ИСПРАВИТЬ. Вернуть правило _has_disc_parents
         # rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates, _has_disc_parents]
         rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
     elif 'disc' in types or 'disc_num' in types:
@@ -1043,12 +1044,45 @@ def run_example():
     print('bamt score', Score_BAMT)
     print('true score', Score_true)
 
-
     from fedot.core.optimisers.adapters import PipelineAdapter
     from fedot.core.optimisers.opt_history import OptHistory
     from fedot.core.utils import fedot_project_root
 
+    def child_dict(net: list):
+        res_dict = dict()
+        for e0, e1 in net:
+            if e1 in res_dict:
+                res_dict[e1].append(e0)
+            else:
+                res_dict[e1] = [e0]
+        return res_dict
 
+    def precision_recall(pred_net: list, true_net: list, decimal = 2):
+        pred_dict = child_dict(pred_net)
+        true_dict = child_dict(true_net)
+        corr_undir = 0
+        corr_dir = 0
+        for e0, e1 in pred_net:
+            flag = True
+            if e1 in true_dict:
+                if e0 in true_dict[e1]:
+                    corr_undir += 1
+                    corr_dir += 1
+                    flag = False
+            if (e0 in true_dict) and flag:
+                if e1 in true_dict[e0]:
+                    corr_undir += 1
+        pred_len = len(pred_net)
+        true_len = len(true_net)
+        shd = pred_len + true_len - corr_undir - corr_dir
+        return {
+        'AP': round(corr_undir/pred_len, decimal), 
+        'AR': round(corr_undir/true_len, decimal), 
+        'AHP': round(corr_dir/pred_len, decimal), 
+        'AHR': round(corr_dir/true_len, decimal), 
+        'SHD': shd}
+    print(structure_BAMT)
+    print(precision_recall(structure_BAMT, true_net)['SHD'])
     # def run_pipeline_and_history_visualization(with_pipeline_visualization=True):
     #     """ Function run visualization of composing history and pipeline """
     #     # Generate pipeline and history
@@ -1515,28 +1549,28 @@ def run_example():
 ##############################    
 
 if __name__ == '__main__':
-    #files = ['asia', 'sachs', 'magic-niab', 'ecoli70', 'child']
+    #files = ['asia', 'healthcare', 'sachs', 'magic-niab', 'ecoli70', 'child']
     # ['earthquake','healthcare','sangiovese','cancer']
     # [asia_bnln, sachs_bnln, sprinkler_bnln, alarm_bnln, andes_bnln]
     
-    files = ['earthquake']
+    files = ['healthcare']
 
 
-    sequential = True
-    sequential_count = 5    
+    sequential = False
+    sequential_count = 100    
     nich = False
     max_numb_nich = 100
     pop_size = 40
     n_generation = 100
     crossover_probability = 0.8
     mutation_probability = 0.9
-    stopping_after = 10
+    stopping_after = 20
     mutation_fun = [custom_mutation_add, custom_mutation_delete, custom_mutation_reverse]
-    crossover_funs = [[
-        custom_crossover_exchange_edges, 
+    crossover_funs = [
     custom_crossover_exchange_parents_one, 
-    custom_crossover_exchange_parents_both
-    ]]
+    custom_crossover_exchange_parents_both,
+    custom_crossover_exchange_edges
+    ]
 
 
     for file in files:
@@ -1561,7 +1595,6 @@ if __name__ == '__main__':
             e1 = l.split()[1].split('\n')[0]
             true_net.append((e0, e1))
 
-        
         try:
             for selected_crossover in crossover_funs:
                 if type(selected_crossover) == list:
