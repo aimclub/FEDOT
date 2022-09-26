@@ -19,10 +19,13 @@ class RepeatLastValueImplementation(ModelImplementation):
 
     def __init__(self, params: ParametersChangeKeeper):
         super().__init__(params)
-        # Which part of time series will be used for repeating. Vary from 0.01 to 0.5
-        # If -1 - repeat only last value
-        self.part_for_repeat = params.get('part_for_repeat')
         self.elements_to_repeat = None
+
+    @property
+    def part_for_repeat(self):
+        """Which part of time series will be used for repeating. Vary from 0.01 to 0.5
+        If -1 - repeat only last value"""
+        return self.params.get('part_for_repeat')
 
     def fit(self, input_data):
         """ Determine how many elements to repeat during forecasting """
@@ -87,7 +90,10 @@ class NaiveAverageForecastImplementation(ModelImplementation):
 
     def __init__(self, params: ParametersChangeKeeper):
         super().__init__(params)
-        self.part_for_averaging = params.get('part_for_averaging')
+
+    @property
+    def part_for_averaging(self):
+        return self.params.get('part_for_averaging')
 
     def fit(self, input_data):
         """ Such a simple approach does not support fit method """

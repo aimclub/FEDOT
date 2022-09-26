@@ -11,12 +11,11 @@ from fedot.core.operations.changing_parameters_keeper import ParametersChangeKee
 class FedotSVCImplementation(ModelImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        if not params:
-            self.inner_model = SVC(kernel='linear',
-                                   probability=True,
-                                   class_weight='balanced')
-        else:
-            self.inner_model = SVC(**params.to_dict())
+        if not self.params:
+            self.params.update('kernel', 'linear')
+            self.params.update('probability', True)
+            self.params.update('class_weight', 'balanced')
+        self.inner_model = SVC(**self.params.to_dict())
         self.model = OneVsRestClassifier(self.inner_model)
         self.classes = None
 

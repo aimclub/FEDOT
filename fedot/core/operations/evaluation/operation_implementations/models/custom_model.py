@@ -16,25 +16,29 @@ class CustomModelImplementation(ModelImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        self.model_fit = None
-        self.model_predict = None
         self.fitted_model = None
         if not self.params:
             raise ValueError('There is no specified parameters for custom model!')
-        else:
-            # init model
-            if 'model_predict' in self.params.keys():
-                self.model_predict = self.params.get('model_predict')
-                if not isinstance(self.model_predict, Callable):
-                    self.log.warning('Input model_predict is not Callable')
-            else:
-                raise ValueError('There is no key word "model_predict" for model definition in input dictionary.')
 
-            # custom model can be without fitting
-            if 'model_fit' in self.params.keys():
-                self.model_fit = self.params.get('model_fit')
-                if not isinstance(self.model_fit, Callable):
-                    raise ValueError('Input model is not Callable')
+    @property
+    def model_predict(self) -> Callable:
+        if 'model_predict' in self.params.keys():
+            model_predict = self.params.get('model_predict')
+            if not isinstance(model_predict, Callable):
+                self.log.warning('Input model_predict is not Callable')
+            return model_predict
+        else:
+            raise ValueError('There is no key word "model_predict" for model definition in input dictionary.')
+
+    @property
+    def model_fit(self) -> Optional[Callable]:
+        # custom model can be without fitting
+        model_fit = None
+        if 'model_fit' in self.params.keys():
+            model_fit = self.params.get('model_fit')
+            if not isinstance(model_fit, Callable):
+                raise ValueError('Input model is not Callable')
+        return model_fit
 
     def fit(self, input_data):
         """ Fit method for custom model implementation """

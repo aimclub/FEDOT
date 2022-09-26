@@ -16,15 +16,20 @@ class PolyfitImplementation(ModelImplementation):
         self.min_degree = 1
         self.max_degree = 5
         self.default_degree = 3
+        self._correct_degree()
+        self.coefs = None
 
-        degree = params.get('degree')
+    def _correct_degree(self):
+        degree = self.params.get('degree')
         if not degree or not self.min_degree <= degree <= self.max_degree:
             # default value
             self.log.debug(f"Change invalid parameter degree ({degree}) on default value (3)")
-            self.degree = self.default_degree
-            self.params.update('degree', self.degree)
-        self.degree = int(degree)
-        self.coefs = None
+            degree = self.default_degree
+            self.params.update('degree', degree)
+
+    @property
+    def degree(self):
+        return int(self.params.get('degree'))
 
     def fit(self, input_data):
         f_x = input_data.idx

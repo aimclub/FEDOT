@@ -54,11 +54,8 @@ class KNeighborsImplementation(ModelImplementation):
 class FedotKnnClassImplementation(KNeighborsImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        if not params:
-            self.model = KNeighborsClassifier()
-        else:
-            params = round_n_neighbors(params.to_dict())
-            self.model = KNeighborsClassifier(**params)
+        params = round_n_neighbors(self.params.to_dict())
+        self.model = KNeighborsClassifier(**params)
         self.classes = None
 
     def fit(self, train_data):
@@ -90,11 +87,8 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 class FedotKnnRegImplementation(KNeighborsImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        if not params:
-            self.model = KNeighborsRegressor()
-        else:
-            params = round_n_neighbors(params.to_dict())
-            self.model = KNeighborsRegressor(**params)
+        params = round_n_neighbors(self.params.to_dict())
+        self.model = KNeighborsRegressor(**params)
 
     def fit(self, train_data):
         """ Method fit model on a dataset

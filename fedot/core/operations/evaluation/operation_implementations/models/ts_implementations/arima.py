@@ -187,14 +187,10 @@ class STLForecastARIMAImplementation(ModelImplementation):
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
 
-        if not self.params:
-            # Default data
-            self.params = ParametersChangeKeeper(parameters={'p': 2, 'd': 0, 'q': 2, 'period': 365})
-
-        p = int(self.params.get('p'))
-        d = int(self.params.get('d'))
-        q = int(self.params.get('q'))
-        period = int(self.params.get('period'))
+        p = int(self.params.get_or_set('p', 2))
+        d = int(self.params.get_or_set('d', 0))
+        q = int(self.params.get_or_set('q', 2))
+        period = int(self.params.get_or_set('period', 365))
         params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
         self.model = STLForecast(source_ts, ARIMA, **params).fit()
 

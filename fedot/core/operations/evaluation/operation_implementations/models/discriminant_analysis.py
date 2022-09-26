@@ -53,10 +53,7 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        if not params:
-            self.model = LinearDiscriminantAnalysis()
-        else:
-            self.model = LinearDiscriminantAnalysis(**params.to_dict())
+        self.model = LinearDiscriminantAnalysis(**self.params.to_dict())
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -95,10 +92,7 @@ class QDAImplementation(DiscriminantAnalysisImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        if not params:
-            self.model = QuadraticDiscriminantAnalysis()
-        else:
-            self.model = QuadraticDiscriminantAnalysis(**params.to_dict())
+        self.model = QuadraticDiscriminantAnalysis(**self.params.to_dict())
 
 
 def nan_to_num(prediction):

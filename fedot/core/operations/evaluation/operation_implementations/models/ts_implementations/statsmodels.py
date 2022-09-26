@@ -47,13 +47,17 @@ class GLMImplementation(ModelImplementation):
     def __init__(self, params: ParametersChangeKeeper):
         super().__init__(params)
         self.model = None
-
         self.family_link = None
 
-        self.family = self.params.get('family')
-        self.link = self.params.get('link')
-
         self.correct_params()
+
+    @property
+    def family(self):
+        return self.params.get('family')
+
+    @property
+    def link(self):
+        return self.params.get('link')
 
     def fit(self, input_data):
         self.model = GLM(
@@ -112,8 +116,7 @@ class GLMImplementation(ModelImplementation):
     def set_default(self):
         """ Set default value of Family(link) """
         self.family_link = self.family_distribution['default']
-        self.family = 'gaussian'
-        self.params.update('family', self.family)
+        self.params.update('family', 'gaussian')
         self.log.info("Invalid family. Changed to default value")
 
     def correct_params(self):
@@ -121,11 +124,11 @@ class GLMImplementation(ModelImplementation):
         if self.family in self.family_distribution:
             if self.link not in self.family_distribution[self.family]['available_links']:
                 # get default link for distribution if current invalid
+                default_link = self.family_distribution[self.family]['default_link']
                 self.log.info(
                     f"Invalid link function {self.link} for {self.family}. Change to default "
-                    f"link {self.family_distribution[self.family]['default_link']}")
-                self.link = self.family_distribution[self.family]['default_link']
-                self.params.update('link', self.link)
+                    f"link {default_link}")
+                self.params.update('link', default_link)
             # if correct isn't need
             self.family_link = self.family_distribution[self.family]['distribution'](
                 self.family_distribution[self.family]['available_links'][self.link]
@@ -216,7 +219,7 @@ class AutoRegImplementation(ModelImplementation):
         new_lag_2 = self._check_and_correct_lag(max_lag, previous_lag_2)
         if new_lag_1 == new_lag_2:
             new_lag_2 -= 1
-        if self._lag_was_changed(previous_lag_1, new_lag_1):
+        if previous_lag_1 != new_lag_1:
             self.params.update('lag_1', new_lag_1)
         if self._lag_was_changed(previous_lag_2, new_lag_2):
             self.params.update('lag_2', new_lag_2)
