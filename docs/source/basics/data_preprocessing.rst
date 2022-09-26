@@ -19,4 +19,4 @@ Also for more flexible approach to preprocessing there are 2 variables to contro
 
 
 
-.. |Block diagram| image:: img_utilities/preprocessing_tabular.png
+.. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
