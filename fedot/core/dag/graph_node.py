@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from copy import copy
 from typing import List, Optional, Union, Iterable
 from uuid import uuid4
@@ -6,7 +7,64 @@ from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
-class GraphNode:
+class BaseGraphNode(ABC):
+    @property
+    @abstractmethod
+    def nodes_from(self) -> List['BaseGraphNode']:
+        """Gets all parent nodes of this graph node
+
+        Returns:
+            List['GraphNode']: all the parent nodes
+        """
+        pass
+
+    @nodes_from.setter
+    @abstractmethod
+    def nodes_from(self, nodes: Optional[Iterable['BaseGraphNode']]):
+        """Changes value of parent nodes of this graph node
+
+        Returns:
+            Union['GraphNode', None]: new sequence of parent nodes
+        """
+        pass
+
+    @abstractmethod
+    def __str__(self) -> str:
+        """Returns short node type description
+
+        Returns:
+            str: text graph node representation
+        """
+        pass
+
+    def __repr__(self) -> str:
+        """Returns full node description
+
+        Returns:
+            str: text graph node representation
+        """
+        return self.__str__()
+
+    @property
+    def descriptive_id(self) -> str:
+        """Returns structural identifier of the subgraph starting at this node
+
+        Returns:
+            str: text description of the content in the node and its parameters
+        """
+        return _descriptive_id_recursive(self)
+
+    @property
+    def distance_to_primary_level(self) -> int:
+        """Returns max depth from bounded node to graphs primary level
+
+        Returns:
+            int: max depth to the primary level
+        """
+        return node_depth(self) - 1
+
+
+class GraphNode(BaseGraphNode):
     """Class for node definition in the DAG-based structure
 
     Args:
