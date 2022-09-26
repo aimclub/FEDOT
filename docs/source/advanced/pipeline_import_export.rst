@@ -44,12 +44,12 @@ this way your pipeline and trained models will be saved in a folder in the follo
     node_logit = PrimaryNode('logit')
 
     node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'n_components': 1}
+    node_lda.parameters = {'n_components': 1}
 
     node_xgboost = PrimaryNode('xgboost')
 
     node_knn_second = SecondaryNode('knn')
-    node_knn_second.custom_params = {'n_neighbors': 5}
+    node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_logit, node_lda, node_xgboost]
 
     pipeline.add_node(node_knn_second)

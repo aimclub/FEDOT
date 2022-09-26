@@ -235,7 +235,7 @@ def test_pipeline_with_custom_params_for_model(data_setup):
     pipeline = Pipeline(final)
     pipeline_default_params = deepcopy(pipeline)
 
-    pipeline.root_node.custom_params = custom_params
+    pipeline.root_node.parameters = custom_params
 
     pipeline_default_params.fit(data)
     pipeline.fit(data)

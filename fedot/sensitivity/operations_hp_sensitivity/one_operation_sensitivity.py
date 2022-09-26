@@ -86,7 +86,7 @@ class OneOperationHPAnalyze(NodeAnalyzeApproach):
         for sample in params:
             copied_pipeline = deepcopy(self._pipeline)
             node_id = self._pipeline.nodes.index(node)
-            copied_pipeline.nodes[node_id].custom_params = sample
+            copied_pipeline.nodes[node_id].parameters = sample
             sampled_pipelines.append(copied_pipeline)
 
         return sampled_pipelines

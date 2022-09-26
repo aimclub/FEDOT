@@ -347,7 +347,7 @@ class Pipeline(GraphDelegate, Serializable):
         print(
             'Pipeline structure:',
             self,
-            *(f'{node.operation.operation_type} - {node.custom_params}' for node in self.nodes),
+            *(f'{node.operation.operation_type} - {node.parameters}' for node in self.nodes),
             sep='\n'
         )
 

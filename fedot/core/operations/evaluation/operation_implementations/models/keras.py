@@ -159,13 +159,13 @@ class FedotCNNImplementation(ModelImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
         self.params = ParametersChangeKeeper(parameters={'log': default_log(prefix=__name__),
-                                                      'epochs': 10,
-                                                      'batch_size': 32,
-                                                      'output_mode': 'labels',
-                                                      'architecture_type': 'simplified',
-                                                      'optimizer_parameters': {'loss': "categorical_crossentropy",
-                                                                               'optimizer': "adam",
-                                                                               'metrics': ["accuracy"]}})
+                                                         'epochs': 10,
+                                                         'batch_size': 32,
+                                                         'output_mode': 'labels',
+                                                         'architecture_type': 'simplified',
+                                                         'optimizer_parameters': {'loss': "categorical_crossentropy",
+                                                                                  'optimizer': "adam",
+                                                                                  'metrics': ["accuracy"]}})
         if params:
             self.params = ParametersChangeKeeper(parameters={**self.params.to_dict(), **params.to_dict()})
 

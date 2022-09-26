@@ -30,7 +30,7 @@ def run_one_model_with_specific_evaluation_mode(train_data, test_data, mode: str
     svc_node_with_custom_params = PrimaryNode('svc')
     # the custom params are needed to make probability evaluation available
     # otherwise an error is occurred
-    svc_node_with_custom_params.custom_params = \
+    svc_node_with_custom_params.parameters = \
         dict(kernel='rbf', C=10, gamma=1, cache_size=2000, probability=True)
     preset_pipeline = Pipeline(svc_node_with_custom_params)
 

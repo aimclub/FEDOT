@@ -126,7 +126,7 @@ def pipeline_with_custom_parameters(alpha_value):
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
     node_lasso = SecondaryNode('lasso', nodes_from=[node_norm])
     node_final = SecondaryNode('ridge', nodes_from=[node_dtreg, node_lasso])
-    node_final.custom_params = {'alpha': alpha_value}
+    node_final.parameters = {'alpha': alpha_value}
     pipeline = Pipeline(node_final)
 
     return pipeline
@@ -511,7 +511,7 @@ def test_pipeline_adapters_params_correct():
     # Get Pipeline object back
     restored_pipeline = adapter.restore(opt_graph)
     # Get hyperparameter value after pipeline restoration
-    restored_alpha = restored_pipeline.root_node.custom_params['alpha']
+    restored_alpha = restored_pipeline.root_node.parameters['alpha']
     assert np.isclose(init_alpha, restored_alpha)
 
 

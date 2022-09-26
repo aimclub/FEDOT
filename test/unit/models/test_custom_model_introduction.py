@@ -43,7 +43,7 @@ def get_centered_pipeline(with_params=True) -> Pipeline:
     lagged_node = PrimaryNode('lagged')
     custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
     if with_params:
-        custom_node.custom_params = {"a": -50,
+        custom_node.parameters = {"a": -50,
                                      "b": 500,
                                      'model_predict': custom_model_imitation}
 
@@ -59,7 +59,7 @@ def get_starting_pipeline(with_params=True):
 
     custom_node = PrimaryNode('custom')
     if with_params:
-        custom_node.custom_params = {"a": -50,
+        custom_node.parameters = {"a": -50,
                                      "b": 500,
                                      'model_predict': custom_model_imitation}
     lagged_node = SecondaryNode('lagged', nodes_from=[custom_node])
@@ -144,13 +144,13 @@ def get_simple_pipeline(multi_data):
             exog_list.append(PrimaryNode(data_id))
         if 'hist_' in data_id:
             lagged_node = SecondaryNode('lagged', nodes_from=[PrimaryNode(data_id)])
-            lagged_node.custom_params = {'window_size': 1}
+            lagged_node.parameters = {'window_size': 1}
 
             hist_list.append(lagged_node)
 
     # For custom model params as initial approximation and model as function is necessary
     custom_node = SecondaryNode('custom/empty', nodes_from=exog_list)
-    custom_node.custom_params = {'model_predict': model_predict,
+    custom_node.parameters = {'model_predict': model_predict,
                                  'model_fit': model_fit}
 
     exog_pred_node = SecondaryNode('exog_ts', nodes_from=[custom_node])

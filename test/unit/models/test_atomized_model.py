@@ -32,7 +32,7 @@ def create_pipeline() -> Pipeline:
     node_logit = PrimaryNode('logit')
 
     node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'solver': 'lsqr'}
+    node_lda.parameters = {'solver': 'lsqr'}
 
     node_rf = SecondaryNode('rf')
     node_rf.nodes_from = [node_logit, node_lda]
@@ -79,11 +79,11 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     node_atomized_model_secondary.nodes_from = [node_atomized_model]
 
     node_knn = SecondaryNode('knn')
-    node_knn.custom_params = {'n_neighbors': 9}
+    node_knn.parameters = {'n_neighbors': 9}
     node_knn.nodes_from = [node_atomized_model]
 
     node_knn_second = SecondaryNode('knn')
-    node_knn_second.custom_params = {'n_neighbors': 5}
+    node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
 
     node_atomized_model_secondary_second = \

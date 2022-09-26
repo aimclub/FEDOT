@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union, Iterable
 
 import numpy as np
 
@@ -7,9 +7,9 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
+from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
 from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 
@@ -54,9 +54,9 @@ class Node(GraphNode):
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
-        self.parameters = ParametersChangeKeeper(operation.operation_type, params)
+        self._parameters = ParametersChangeKeeper(operation.operation_type, params)
         super().__init__(content={'name': operation,
-                                  'params': self.parameters.to_dict()}, nodes_from=nodes_from)
+                                  'params': self._parameters.to_dict()}, nodes_from=nodes_from)
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
@@ -102,8 +102,8 @@ class Node(GraphNode):
         """Updates :attr:`custom_params` with changed parameters"""
         new_params = self.fitted_operation.get_params()
         changed_parameters = new_params.changed_parameters
-        updated_params = {**self.custom_params, **changed_parameters}
-        self.custom_params = updated_params
+        updated_parameters = {**self.parameters, **changed_parameters}
+        self.parameters = updated_parameters
 
     # wrappers for 'operation' field from GraphNode class
     @property
@@ -170,13 +170,13 @@ class Node(GraphNode):
 
         if self.fitted_operation is None:
             with Timer() as t:
-                self.fitted_operation, operation_predict = self.operation.fit(params=self.parameters,
+                self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
                                                                               data=input_data)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
             operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
                                                                data=input_data,
-                                                               params=self.parameters)
+                                                               params=self._parameters)
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
@@ -198,14 +198,14 @@ class Node(GraphNode):
 
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       params=self.parameters,
+                                                       params=self._parameters,
                                                        data=input_data,
                                                        output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 
     @property
-    def custom_params(self) -> dict:
+    def parameters(self) -> dict:
         """Returns node custom parameters
 
         Returns:
@@ -213,8 +213,8 @@ class Node(GraphNode):
         """
         return self.content.get('params')
 
-    @custom_params.setter
-    def custom_params(self, params: dict):
+    @parameters.setter
+    def parameters(self, params: dict):
         """Sets custom parameters of the node
 
         Args:
@@ -223,8 +223,8 @@ class Node(GraphNode):
         if params:
             if 'nested_space' in params:
                 params = params['nested_space']
-            self.parameters = ParametersChangeKeeper(self.operation.operation_type, params)
-            self.content.update({'params': self.parameters.to_dict()})
+            self._parameters = ParametersChangeKeeper(self.operation.operation_type, params)
+            self.content.update({'params': self._parameters.to_dict()})
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node

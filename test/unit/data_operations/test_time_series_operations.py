@@ -156,7 +156,7 @@ def test_forecast_with_sparse_lagged():
 
     node_lagged = PrimaryNode('sparse_lagged')
     # Set window size for lagged transformation
-    node_lagged.custom_params = {'window_size': _WINDOW_SIZE}
+    node_lagged.parameters = {'window_size': _WINDOW_SIZE}
 
     node_final = SecondaryNode('linear', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
@@ -175,7 +175,7 @@ def test_forecast_with_exog():
     # Source data for lagged node
     node_lagged = PrimaryNode('lagged')
     # Set window size for lagged transformation
-    node_lagged.custom_params = {'window_size': _WINDOW_SIZE}
+    node_lagged.parameters = {'window_size': _WINDOW_SIZE}
     # Exogenous variable for exog node
     node_exog = PrimaryNode('exog_ts')
 

@@ -432,7 +432,7 @@ def test_knn_with_float_neighbors():
     is float value
     """
     node_knn = PrimaryNode('knnreg')
-    node_knn.custom_params = {'n_neighbors': 2.5}
+    node_knn.parameters = {'n_neighbors': 2.5}
     pipeline = Pipeline(node_knn)
 
     input_data = get_single_feature_data(task=Task(TaskTypesEnum.regression))

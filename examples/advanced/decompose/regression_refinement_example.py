@@ -25,7 +25,7 @@ def get_refinement_pipeline():
     node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
     node_decompose = SecondaryNode('decompose', nodes_from=[node_scaling, node_lasso])
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_decompose])
-    node_dtreg.custom_params = {'max_depth': 3}
+    node_dtreg.parameters = {'max_depth': 3}
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 
     pipeline = Pipeline(final_node)
@@ -38,7 +38,7 @@ def get_non_refinement_pipeline():
 
     node_lasso = SecondaryNode('lasso', nodes_from=[node_scaling])
     node_dtreg = SecondaryNode('dtreg', nodes_from=[node_scaling])
-    node_dtreg.custom_params = {'max_depth': 3}
+    node_dtreg.parameters = {'max_depth': 3}
 
     final_node = SecondaryNode('ridge', nodes_from=[node_lasso, node_dtreg])
 

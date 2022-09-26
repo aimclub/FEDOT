@@ -1,4 +1,5 @@
 import os
+from copy import copy
 
 import numpy as np
 import pandas as pd
@@ -16,7 +17,7 @@ from test.unit.pipelines.test_pipeline_parameters import small_ts_dataset
 def get_ts_pipeline(window_size):
     """ Function return pipeline with lagged transformation in it """
     node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': window_size}
+    node_lagged.parameters = {'window_size': window_size}
 
     node_final = SecondaryNode('ridge', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
@@ -25,7 +26,7 @@ def get_ts_pipeline(window_size):
 
 def get_rasnac_pipeline():
     node_ransac = PrimaryNode('ransac_lin_reg')
-    node_ransac.custom_params['residual_threshold'] = 0.0002
+    node_ransac.parameters = {'residual_threshold': 0.0002}
     node_final = SecondaryNode('linear', nodes_from=[node_ransac])
     pipeline = Pipeline(node_final)
     return pipeline
@@ -59,7 +60,7 @@ def test_lagged_with_invalid_params_fit_correctly():
 
     # Get lagged node
     lagged_node = pipeline.nodes[1]
-    fixed_params = lagged_node.custom_params
+    fixed_params = lagged_node.parameters
 
     assert pipeline.is_fitted
     assert fixed_params['window_size'] == 439
@@ -99,7 +100,7 @@ def test_params_filter_correct_with_default():
 
     # Correct parameters during fit
     node_lagged.fit(input_ts)
-    updated_params = node_lagged.custom_params
+    updated_params = node_lagged.parameters
     assert 'window_size' in list(updated_params.keys())
     assert len(list(updated_params.keys())) == 1
 
@@ -118,10 +119,10 @@ def test_params_filter_with_non_default():
                            data_type=DataTypesEnum.table)
     # Params are default for now - 'default_params'
     node_knn = PrimaryNode('knn')
-    default_params = node_knn.custom_params
+    default_params = copy(node_knn.parameters)
 
     node_knn.fit(input_data)
-    updated_params = node_knn.custom_params
+    updated_params = node_knn.parameters
 
     assert default_params == {}
     assert 'n_neighbors' in list(updated_params.keys())

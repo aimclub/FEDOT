@@ -9,15 +9,14 @@ from fedot.core.data.multi_modal import MultiModalData
 
 
 def generate_multi_modal_pipeline(data: MultiModalData):
-
     # image
     images_size = data['data_source_img'].features.shape[1:4]
     ds_image = PrimaryNode('data_source_img')
     image_node = SecondaryNode('cnn', nodes_from=[ds_image])
-    image_node.custom_params = {'image_shape': images_size,
-                                'architecture': 'simplified',
-                                'epochs': 15,
-                                'batch_size': 128}
+    image_node.parameters = {'image_shape': images_size,
+                             'architecture': 'simplified',
+                             'epochs': 15,
+                             'batch_size': 128}
 
     # table
     ds_table = PrimaryNode('data_source_table')
@@ -53,7 +52,6 @@ def generate_multi_task_pipeline():
 
 
 def test_multi_modal_pipeline():
-
     files_path = os.path.join('test', 'data', 'multi_modal')
     path = os.path.join(str(fedot_project_root()), files_path)
     task = Task(TaskTypesEnum.classification)

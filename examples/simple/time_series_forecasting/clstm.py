@@ -47,15 +47,15 @@ def clstm_forecasting():
     (train_data, test_data), _ = get_ts_data_long(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
-    node_root.custom_params = {'window_size': window_size,
-                               'hidden_size': 135,
-                               'learning_rate': 0.0004,
-                               'cnn1_kernel_size': 5,
-                               'cnn1_output_size': 32,
-                               'cnn2_kernel_size': 4,
-                               'cnn2_output_size': 32,
-                               'batch_size': 64,
-                               'num_epochs': 50}
+    node_root.parameters = {'window_size': window_size,
+                            'hidden_size': 135,
+                            'learning_rate': 0.0004,
+                            'cnn1_kernel_size': 5,
+                            'cnn1_output_size': 32,
+                            'cnn2_kernel_size': 4,
+                            'cnn2_output_size': 32,
+                            'batch_size': 64,
+                            'num_epochs': 50}
 
     pipeline = Pipeline(node_root)
     pipeline.fit(train_data)

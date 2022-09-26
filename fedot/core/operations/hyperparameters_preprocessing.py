@@ -121,7 +121,7 @@ class HyperparametersPreprocessor:
 
     def __init__(self,
                  operation_type: Optional[str],
-                 n_samples_data: Optional[int]):
+                 n_samples_data: int):
         self.preprocessing_rules = self._get_preprocessing_rules(operation_type)
         self.n_samples_data = n_samples_data
 

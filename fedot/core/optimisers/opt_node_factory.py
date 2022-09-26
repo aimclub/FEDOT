@@ -6,7 +6,6 @@ from fedot.core.composer.advisor import DefaultChangeAdvisor
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.repository.graph_operation_reposiroty import GraphOperationRepository
 from fedot.core.repository.pipeline_operation_repository import PipelineOperationRepository
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class OptNodeFactory(ABC):

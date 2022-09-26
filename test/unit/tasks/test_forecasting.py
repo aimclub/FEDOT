@@ -83,14 +83,14 @@ def get_ts_data_with_dt_idx(n_steps=80, forecast_length=5):
 def get_multiscale_pipeline():
     # First branch
     node_lagged_1 = PrimaryNode('lagged')
-    node_lagged_1.custom_params = {'window_size': 20}
+    node_lagged_1.parameters = {'window_size': 20}
     node_ridge_1 = SecondaryNode('ridge', nodes_from=[node_lagged_1])
 
     # Second branch, which will try to make prediction based on smoothed ts
     node_filtering = PrimaryNode('gaussian_filter')
-    node_filtering.custom_params = {'sigma': 3}
+    node_filtering.parameters = {'sigma': 3}
     node_lagged_2 = SecondaryNode('lagged', nodes_from=[node_filtering])
-    node_lagged_2.custom_params = {'window_size': 100}
+    node_lagged_2.parameters = {'window_size': 100}
     node_ridge_2 = SecondaryNode('ridge', nodes_from=[node_lagged_2])
 
     node_final = SecondaryNode('linear', nodes_from=[node_ridge_1, node_ridge_2])
@@ -102,7 +102,7 @@ def get_multiscale_pipeline():
 
 def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
     node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': window_size}
+    node_lagged.parameters = {'window_size': window_size}
     node_root = SecondaryNode(model_root, nodes_from=[node_lagged])
 
     pipeline = Pipeline(node_root)
@@ -112,16 +112,16 @@ def get_simple_ts_pipeline(model_root: str = 'ridge', window_size: int = 20):
 
 def get_statsmodels_pipeline():
     node_ar = PrimaryNode('ar')
-    node_ar.custom_params = {'lag_1': 20, 'lag_2': 100}
+    node_ar.parameters = {'lag_1': 20, 'lag_2': 100}
     pipeline = Pipeline(node_ar)
     return pipeline
 
 
 def get_multiple_ts_pipeline():
     node_filter_first = PrimaryNode('smoothing')
-    node_filter_first.custom_params = {'window_size': 2}
+    node_filter_first.parameters = {'window_size': 2}
     node_filter_second = PrimaryNode('gaussian_filter')
-    node_filter_second.custom_params = {'sigma': 2}
+    node_filter_second.parameters = {'sigma': 2}
 
     node_lagged = SecondaryNode('lagged', nodes_from=[node_filter_first, node_filter_second])
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
@@ -299,7 +299,7 @@ def test_clstm_forecasting():
     train_data, test_data = get_ts_data(n_steps=n_steps + horizon, forecast_length=horizon)
 
     node_root = PrimaryNode("clstm")
-    node_root.custom_params = {
+    node_root.parameters = {
         'input_size': 1,
         'window_size': window_size,
         'hidden_size': 100,

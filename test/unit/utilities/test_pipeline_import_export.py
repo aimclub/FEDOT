@@ -88,29 +88,29 @@ def create_pipeline() -> Pipeline:
     node_logit = PrimaryNode('logit')
 
     node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'n_components': 1}
+    node_lda.parameters = {'n_components': 1}
 
     node_rf = PrimaryNode('rf')
 
     node_knn = PrimaryNode('knn')
-    node_knn.custom_params = {'n_neighbors': 9}
+    node_knn.parameters = {'n_neighbors': 9}
 
     node_knn_second = SecondaryNode('knn')
-    node_knn_second.custom_params = {'n_neighbors': 5}
+    node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_lda, node_knn]
 
     node_logit_second = SecondaryNode('logit')
     node_logit_second.nodes_from = [node_rf, node_lda]
 
     node_lda_second = SecondaryNode('lda')
-    node_lda_second.custom_params = {'n_components': 1}
+    node_lda_second.parameters = {'n_components': 1}
     node_lda_second.nodes_from = [node_logit_second, node_knn_second, node_logit]
 
     node_rf_second = SecondaryNode('rf')
     node_rf_second.nodes_from = [node_logit, node_logit_second, node_knn]
 
     node_knn_third = SecondaryNode('knn')
-    node_knn_third.custom_params = {'n_neighbors': 8}
+    node_knn_third.parameters = {'n_neighbors': 8}
     node_knn_third.nodes_from = [node_lda_second, node_rf_second]
 
     pipeline = Pipeline(node_knn_third)
@@ -405,7 +405,7 @@ def test_one_hot_encoder_serialization():
 
 def test_save_pipeline_with_np_int_type():
     pipeline = get_simple_ts_pipeline()
-    pipeline.nodes[1].custom_params["test"] = np.int32(42)
+    pipeline.nodes[1].parameters["test"] = np.int32(42)
     pipeline.save(path='test_save_pipeline_with_np_int_type')
 
 

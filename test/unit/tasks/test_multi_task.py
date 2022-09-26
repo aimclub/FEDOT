@@ -14,7 +14,7 @@ def test_multitask_pipeline_predict_correctly():
     logit_node = PrimaryNode('logit')
     data_source_node = PrimaryNode('data_source_table/regression')
     final_node = SecondaryNode('rfr', nodes_from=[logit_node, data_source_node])
-    final_node.custom_params = {'n_estimators': 5}
+    final_node.parameters = {'n_estimators': 5}
     multitask_pipeline = Pipeline(final_node)
 
     multitask_pipeline.fit(train_multimodal)

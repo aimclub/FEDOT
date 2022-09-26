@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Optional
 
 import numpy as np
@@ -47,7 +48,7 @@ class DataOperationImplementation(ABC):
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        return self.params
+        return deepcopy(self.params)
 
     @staticmethod
     def _convert_to_output(input_data: InputData, predict: np.ndarray,
@@ -178,7 +179,7 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, params: ParametersChangeKeeper = ParametersChangeKeeper()):
+    def __init__(self, params: ParametersChangeKeeper = None):
         self.log = default_log(self)
         self.params = params
         if params is None:
@@ -213,7 +214,7 @@ class ModelImplementation(ABC):
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        return self.params
+        return deepcopy(self.params)
 
     @staticmethod
     def _convert_to_output(input_data: InputData, predict: np.array,
