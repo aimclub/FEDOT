@@ -83,10 +83,7 @@ class GraphNode:
         Returns:
             int: max depth to the primary level
         """
-        if not self.nodes_from:
-            return 0
-        else:
-            return 1 + max([next_node.distance_to_primary_level for next_node in self.nodes_from])
+        return node_depth(self) - 1
 
 
 def _descriptive_id_recursive(current_node: GraphNode, visited_nodes: Optional[List[GraphNode]] = None) -> str:
@@ -148,3 +145,17 @@ def ordered_subnodes_hierarchy(node: 'GraphNode') -> List['GraphNode']:
 
     return subtree_impl(node)
 
+
+def node_depth(node: GraphNode) -> int:
+    """Gets this graph depth from the provided ``node`` to the graph source node
+
+    Args:
+        node: where to start diving from
+
+    Returns:
+        int: length of a path from the provided ``node`` to the farthest primary node
+    """
+    if not node.nodes_from:
+        return 1
+    else:
+        return 1 + max(node_depth(next_node) for next_node in node.nodes_from)

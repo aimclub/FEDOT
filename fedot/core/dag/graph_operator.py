@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 from networkx import graph_edit_distance, set_node_attributes
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy
+from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy, node_depth
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items, Copyable
 from fedot.core.utils import copy_doc
@@ -214,25 +214,7 @@ class GraphOperator(Graph, Copyable):
     @copy_doc(Graph)
     @property
     def depth(self) -> int:
-        if not self._nodes:
-            return 0
-
-        def _depth_recursive(node: GraphNode) -> int:
-            """Gets this graph depth from the provided ``node`` to the graph source node
-
-            :param node: where to start diving from
-
-            :return: length of a path from the provided ``node`` to the farthest primary node
-            """
-            if node is None:  # is it real situation to have None in `node.nodes_from`?
-                return 0
-            if not node.nodes_from:
-                return 1
-            else:
-                return 1 + max(_depth_recursive(next_node) for next_node in node.nodes_from)
-
-        root = ensure_wrapped_in_sequence(self.root_node)
-        return max(_depth_recursive(n) for n in root)
+        return 0 if not self._nodes else max(map(node_depth, self.root_nodes()))
 
     @copy_doc(Graph)
     def get_nodes_degrees(self) -> Sequence[int]:
