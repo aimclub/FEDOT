@@ -5,9 +5,6 @@ from uuid import uuid4
 from fedot.core.utilities.data_structures import UniqueList
 
 
-MAX_DEPTH = 1000
-
-
 class GraphNode:
     """Class for node definition in the DAG-based structure
 
@@ -79,28 +76,6 @@ class GraphNode:
         """
         return _descriptive_id_recursive(self)
 
-    def ordered_subnodes_hierarchy(self, visited: Optional[List['GraphNode']] = None) -> List['GraphNode']:
-        """Gets hierarchical subnodes representation of the graph starting from the bounded node
-
-        Args:
-            visited: already visited nodes not to be included to the resulting hierarchical list
-
-        Returns:
-            List['GraphNode']: hierarchical subnodes list starting from the bounded node
-        """
-        if visited is None:
-            visited = []
-
-        if len(visited) > MAX_DEPTH:
-            raise ValueError('Graph has cycle')
-        nodes = [self]
-        for parent in self.nodes_from:
-            if parent not in visited:
-                visited.append(parent)
-                nodes.extend(parent.ordered_subnodes_hierarchy(visited))
-
-        return nodes
-
     @property
     def distance_to_primary_level(self) -> int:
         """Returns max depth from bounded node to graphs primary level
@@ -148,3 +123,28 @@ def _descriptive_id_recursive(current_node: GraphNode, visited_nodes: Optional[L
     full_path_items.append(f'/{node_label}')
     full_path = ''.join(full_path_items)
     return full_path
+
+
+def ordered_subnodes_hierarchy(node: 'GraphNode') -> List['GraphNode']:
+    """Gets hierarchical subnodes representation of the graph starting from the bounded node
+
+    Returns:
+        List['GraphNode']: hierarchical subnodes list starting from the bounded node
+    """
+    started = {node}
+    visited = set()
+
+    def subtree_impl(node):
+        nodes = [node]
+        for parent in node.nodes_from:
+            if parent in visited:
+                continue
+            elif parent in started:
+                raise ValueError('Can not build ordered node hierarchy: graph has cycle')
+            started.add(parent)
+            nodes.extend(subtree_impl(parent))
+            visited.add(parent)
+        return nodes
+
+    return subtree_impl(node)
+

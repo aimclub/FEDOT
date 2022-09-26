@@ -4,6 +4,7 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
+from fedot.core.dag.graph_node import ordered_subnodes_hierarchy, GraphNode
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.model import Model
@@ -91,9 +92,21 @@ def test_ordered_subnodes_hierarchy():
     third_node = SecondaryNode('lda', nodes_from=[first_node, second_node])
     root = SecondaryNode('logit', nodes_from=[third_node])
 
-    ordered_nodes = root.ordered_subnodes_hierarchy()
+    ordered_nodes = ordered_subnodes_hierarchy(root)
 
     assert len(ordered_nodes) == 4
+    assert ordered_nodes == [root, third_node, first_node, second_node]
+
+
+def test_ordered_subnodes_cycle():
+    cycle_node = GraphNode('knn')
+    second_node = GraphNode('knn')
+    third_node = GraphNode('lda', nodes_from=[cycle_node, second_node])
+    root = GraphNode('logit', nodes_from=[third_node])
+    cycle_node.nodes_from = [root]
+
+    with pytest.raises(ValueError, match='cycle'):
+        ordered_subnodes_hierarchy(root)
 
 
 def test_distance_to_primary_level():

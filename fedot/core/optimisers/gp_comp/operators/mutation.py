@@ -7,7 +7,8 @@ import numpy as np
 
 from fedot.core.adapter import register_native
 from fedot.core.composer.advisor import RemoveType
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph import Graph
+from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -167,7 +168,7 @@ class Mutation(Operator):
             source_node, target_node = sample(graph.nodes, 2)
 
             nodes_not_cycling = (target_node.descriptive_id not in
-                                 [n.descriptive_id for n in source_node.ordered_subnodes_hierarchy()])
+                                 [n.descriptive_id for n in ordered_subnodes_hierarchy(source_node)])
             if nodes_not_cycling and (source_node not in target_node.nodes_from):
                 graph.connect_nodes(source_node, target_node)
                 break

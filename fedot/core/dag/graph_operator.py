@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 from networkx import graph_edit_distance, set_node_attributes
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items, Copyable
 from fedot.core.utils import copy_doc
@@ -46,7 +46,7 @@ class GraphOperator(Graph, Copyable):
 
     @copy_doc(Graph)
     def delete_subtree(self, subtree: GraphNode):
-        subtree_nodes = subtree.ordered_subnodes_hierarchy()
+        subtree_nodes = ordered_subnodes_hierarchy(subtree)
         self._nodes = remove_items(self._nodes, subtree_nodes)
         # prune all edges coming from the removed subtree
         for subtree in self._nodes:
@@ -137,7 +137,7 @@ class GraphOperator(Graph, Copyable):
     def sort_nodes(self):
         """ Layer by layer sorting """
         if not isinstance(self.root_node, Sequence):
-            self._nodes = self.root_node.ordered_subnodes_hierarchy()
+            self._nodes = ordered_subnodes_hierarchy(self.root_node)
 
     @copy_doc(Graph)
     def node_children(self, node: GraphNode) -> List[Optional[GraphNode]]:
