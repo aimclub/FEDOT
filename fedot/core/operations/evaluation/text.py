@@ -27,7 +27,7 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
         super().__init__(operation_type, params)
         self.vectorizer = self._convert_to_operation(operation_type)
         if self.params_for_fit:
-            self.vectorizer = self.vectorizer(**self.params_for_fit.get_parameters())
+            self.vectorizer = self.vectorizer(**self.params_for_fit.to_dict())
         else:
             self.vectorizer = self.vectorizer()
 

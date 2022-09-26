@@ -32,7 +32,7 @@ class Operation:
             params = ParametersChangeKeeper()
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
                                                      n_samples_data=kwargs.get('n_samples_data'))\
-            .correct(params.get_parameters())
+            .correct(params.to_dict())
         params_for_fit = ParametersChangeKeeper(operation_type=self.operation_type, parameters=params_for_fit)
         try:
             self._eval_strategy = \
@@ -117,7 +117,7 @@ class Operation:
 
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
-        self._init(data.task, output_mode=output_mode, params=params)
+        self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
 
         if is_fit_stage:
             prediction = self._eval_strategy.predict_for_fit(

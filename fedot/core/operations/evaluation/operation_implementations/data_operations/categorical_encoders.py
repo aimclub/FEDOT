@@ -23,7 +23,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
             # Default parameters
             self.encoder = OneHotEncoder(**default_params)
         else:
-            self.encoder = OneHotEncoder(**{**params.get_parameters(), **default_params})
+            self.encoder = OneHotEncoder(**{**params.to_dict(), **default_params})
         self.categorical_ids = None
         self.non_categorical_ids = None
 

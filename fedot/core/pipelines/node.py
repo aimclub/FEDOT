@@ -56,7 +56,7 @@ class Node(GraphNode):
 
         self.parameters = ParametersChangeKeeper(operation.operation_type, params)
         super().__init__(content={'name': operation,
-                                  'params': self.parameters.get_parameters()}, nodes_from=nodes_from)
+                                  'params': self.parameters.to_dict()}, nodes_from=nodes_from)
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
@@ -224,7 +224,7 @@ class Node(GraphNode):
             if 'nested_space' in params:
                 params = params['nested_space']
             self.parameters = ParametersChangeKeeper(self.operation.operation_type, params)
-            self.content.update({'params': self.parameters.get_parameters()})
+            self.content.update({'params': self.parameters.to_dict()})
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node

@@ -8,7 +8,7 @@ def test_params_keeper_update():
     keeper.update('b', 3)
     keeper.update('d', 4)
     expected_params = {'a': 1, 'b': 3, 'c': 3, 'd': 4}
-    actual_params = keeper.get_parameters()
+    actual_params = keeper.to_dict()
     changed_params = keeper.changed_parameters.keys()
     assert actual_params == expected_params
     assert 'a' not in changed_params

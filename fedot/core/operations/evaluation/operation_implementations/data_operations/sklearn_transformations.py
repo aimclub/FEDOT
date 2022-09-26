@@ -80,7 +80,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
             if self.number_of_samples < self.number_of_features:
                 self.params.update('n_components', 0.5)
 
-        self.pca.set_params(**self.params.get_parameters())
+        self.pca.set_params(**self.params.to_dict())
 
     @staticmethod
     def update_column_types(output_data: OutputData) -> OutputData:
@@ -107,7 +107,7 @@ class PCAImplementation(ComponentAnalysisImplementation):
             self.pca = PCA(**default_parameters)
             self.params = ParametersChangeKeeper(parameters=default_parameters)
         else:
-            self.pca = PCA(**params.get_parameters())
+            self.pca = PCA(**params.to_dict())
         self.number_of_features = None
 
 
@@ -124,7 +124,7 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
             # Default parameters
             self.pca = KernelPCA()
         else:
-            self.pca = KernelPCA(**params.get_parameters())
+            self.pca = KernelPCA(**params.to_dict())
 
 
 class FastICAImplementation(ComponentAnalysisImplementation):
@@ -139,7 +139,7 @@ class FastICAImplementation(ComponentAnalysisImplementation):
             # Default parameters
             self.pca = FastICA()
         else:
-            self.pca = FastICA(**params.get_parameters())
+            self.pca = FastICA(**params.to_dict())
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
@@ -224,7 +224,7 @@ class ScalingImplementation(EncodedInvariantImplementation):
             # Default parameters
             self.operation = StandardScaler()
         else:
-            self.operation = StandardScaler(**params.get_parameters())
+            self.operation = StandardScaler(**params.to_dict())
 
 
 class NormalizationImplementation(EncodedInvariantImplementation):
@@ -242,7 +242,7 @@ class NormalizationImplementation(EncodedInvariantImplementation):
             # Default parameters
             self.operation = MinMaxScaler()
         else:
-            self.operation = MinMaxScaler(**params.get_parameters())
+            self.operation = MinMaxScaler(**params.to_dict())
 
 
 class ImputationImplementation(DataOperationImplementation):
@@ -257,8 +257,8 @@ class ImputationImplementation(DataOperationImplementation):
         default_params_categorical = {'strategy': 'most_frequent'}
         if params is None:
             params = ParametersChangeKeeper()
-        self.params_cat = {**params.get_parameters(), **default_params_categorical}
-        self.params_num = params.get_parameters()
+        self.params_cat = {**params.to_dict(), **default_params_categorical}
+        self.params_num = params.to_dict()
         self.categorical_ids = None
         self.non_categorical_ids = None
         self.ids_binary_integer_features = {}

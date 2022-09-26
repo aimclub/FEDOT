@@ -16,7 +16,7 @@ class FedotSVCImplementation(ModelImplementation):
                                    probability=True,
                                    class_weight='balanced')
         else:
-            self.inner_model = SVC(**params.get_parameters())
+            self.inner_model = SVC(**params.to_dict())
         self.model = OneVsRestClassifier(self.inner_model)
         self.classes = None
 

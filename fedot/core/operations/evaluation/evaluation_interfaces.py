@@ -215,7 +215,7 @@ class SkLearnEvaluationStrategy(EvaluationStrategy):
         warnings.filterwarnings("ignore", category=RuntimeWarning)
 
         if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit.get_parameters())
+            operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
         else:
             operation_implementation = self.operation_impl()
 

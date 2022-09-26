@@ -26,7 +26,6 @@ class SkLearnRegressionStrategy(SkLearnEvaluationStrategy):
         :param predict_data: data used for prediction
         :return:
         """
-
         prediction = trained_operation.predict(predict_data.features)
         converted = self._convert_to_output(prediction, predict_data)
 

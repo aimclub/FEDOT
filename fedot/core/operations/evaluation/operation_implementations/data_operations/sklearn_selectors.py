@@ -124,7 +124,7 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get_parameters()[k] for k in
+            rfe_params = {k: params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
 
@@ -145,7 +145,7 @@ class NonLinearRegFSImplementation(FeatureSelectionImplementation):
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get_parameters()[k] for k in
+            rfe_params = {k: params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
 
@@ -166,7 +166,7 @@ class LinearClassFSImplementation(FeatureSelectionImplementation):
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get_parameters()[k] for k in
+            rfe_params = {k: params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
 
@@ -187,6 +187,6 @@ class NonLinearClassFSImplementation(FeatureSelectionImplementation):
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get_parameters()[k] for k in
+            rfe_params = {k: params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)

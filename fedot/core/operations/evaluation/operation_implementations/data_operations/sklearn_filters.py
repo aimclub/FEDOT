@@ -107,9 +107,9 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
                 self.operation = RANSACRegressor(estimator=self.inner_model)
         else:
             if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params.get_parameters())
+                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params.to_dict())
             else:
-                self.operation = RANSACRegressor(estimator=self.inner_model, **params.get_parameters())
+                self.operation = RANSACRegressor(estimator=self.inner_model, **params.to_dict())
 
 
 class NonLinearRegRANSACImplementation(RegRANSACImplementation):
@@ -130,9 +130,9 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
                 self.operation = RANSACRegressor(estimator=self.inner_model)
         else:
             if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params.get_parameters())
+                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params.to_dict())
             else:
-                self.operation = RANSACRegressor(estimator=self.inner_model, **params.get_parameters())
+                self.operation = RANSACRegressor(estimator=self.inner_model, **params.to_dict())
 
 
 class IsolationForestRegImplementation(DataOperationImplementation):
@@ -149,7 +149,7 @@ class IsolationForestRegImplementation(DataOperationImplementation):
             # Default parameters
             self.operation = IsolationForest()
         else:
-            self.operation = IsolationForest(**params.get_parameters())
+            self.operation = IsolationForest(**params.to_dict())
 
     def fit(self, input_data: InputData) -> 'IsolationForest':
         """ Method for fit filter
@@ -196,9 +196,6 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
         return output_data
-
-    def get_params(self) -> Dict[str, Any]:
-        return self.params
 
 
 class IsolationForestClassImplementation(IsolationForestRegImplementation):

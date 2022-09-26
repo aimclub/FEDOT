@@ -167,7 +167,7 @@ class FedotCNNImplementation(ModelImplementation):
                                                                                'optimizer': "adam",
                                                                                'metrics': ["accuracy"]}})
         if params:
-            self.params = ParametersChangeKeeper(parameters={**self.params.parameters, **params.get_parameters()})
+            self.params = ParametersChangeKeeper(parameters={**self.params.to_dict(), **params.to_dict()})
 
     def fit(self, train_data):
         """ Method fit model on a dataset

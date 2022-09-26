@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Optional, Iterable
 
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
@@ -20,33 +21,33 @@ class ParametersChangeKeeper:
         # The check for "default_params" is needed for backward compatibility.
         if parameters == "default_params":
             parameters = {}
-        self.parameters = parameters if parameters is not None else {}
+        self._parameters = copy(parameters) if parameters is not None else {}
         if operation_type:
             default_parameters = get_default_params(operation_type)
-            self.parameters = {**default_parameters, **parameters}
-        self.changed_keys: list = []
+            self._parameters = {**default_parameters, **parameters}
+        self._changed_keys: list = []
 
     def __bool__(self):
-        return bool(self.parameters)
+        return bool(self._parameters)
 
     def update(self, key, value):
-        if key not in self.changed_keys:
-            if self.parameters.get(key) != value:
-                self.changed_keys.append(key)
-        self.parameters.update({key: value})
+        if key not in self._changed_keys:
+            if self._parameters.get(key) != value:
+                self._changed_keys.append(key)
+        self._parameters.update({key: value})
 
     def get(self, key, default_value=None):
-        return self.parameters.get(key, default_value)
+        return self._parameters.get(key, default_value)
 
-    def get_parameters(self) -> dict:
-        return self.parameters
+    def to_dict(self) -> dict:
+        return copy(self._parameters)
 
     def keys(self) -> Iterable:
-        return self.parameters.keys()
+        return self._parameters.keys()
 
     @property
     def changed_parameters(self) -> dict:
-        changed_parameters = {key: self.parameters[key] for key in self.changed_keys}
+        changed_parameters = {key: self._parameters[key] for key in self._changed_keys}
         return changed_parameters
 
 
