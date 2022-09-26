@@ -17,6 +17,14 @@ Also for more flexible approach to preprocessing there are 2 variables to contro
 - numerical_min_uniques -- if number of unique values in the column lower, than threshold - convert column into categorical. Default: 13
 - categorical_max_classes_th -- if categorical column contains too much unique values convert it into numerical. Default: None
 
+For example, for column converting to numerical if the number of unique values in the column is greater than 5:
 
+.. code:: python
+
+    # pipeline for which to set params
+    pipeline = Pipeline(PrimaryNode('dt'))
+    pipeline = correct_preprocessing_params(pipeline, numerical_min_uniques=5)
+
+After this preprocessing with this pipeline will be performed according to the specified conditions.
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
