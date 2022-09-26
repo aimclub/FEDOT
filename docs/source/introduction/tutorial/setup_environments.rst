@@ -4,8 +4,8 @@ How to setup the environment using PyCharm
 -  **Step 1**. *Download FEDOT Framework*.
 
    -  First of all, you need to clone the FEDOT Framework to your personal computer.
-      You can do it directly using the button 'clone or download' (red square) or
-      using PyCharm, you should be able to use 'clone in Pycharm'
+      You can do it directly using the button `Clone or download` (red square) or
+      using PyCharm, you should be able to use `'clone in PyCharm'`
       button (blue square), which will open the files you need directly
       in the Pycharm project.
 
@@ -13,9 +13,9 @@ How to setup the environment using PyCharm
 
         |Step 1|
 
--  **Step 2**. *Creating VirtualEnv in Pycharm project*.
+-  **Step 2**. *Creating VirtualEnv in PyCharm project*.
 
-   -  Next, you need to create the virtual environment in your Pycharm
+   -  Next, you need to create a virtual environment in your PyCharm
       project for excluding libraries incompatibility and confusion. To do this, go through the following sections:
       'File - Settings - Project: FEDOT - Python Interpreter - <gears icon> - Add...'.
    -  For more details, take a look at the pictures below.
@@ -24,7 +24,7 @@ How to setup the environment using PyCharm
 
         |Step 2.1|
 
-   -  After you have created a virtual environment, you should install
+   -  After you have created the virtual environment, you should install
       the libraries necessary for the FEDOT framework to work.
       If you open any file associated with project,
       IDE will notify you to install or ignore project root requirements:

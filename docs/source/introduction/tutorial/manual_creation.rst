@@ -7,10 +7,13 @@ How to create your own composite model in a manual way
 
    import pandas as pd
 
+   train_file_path = ...
+   validation_file_path = ...
+
    model = Fedot(problem='classification')
 
    dataset_to_train = pd.read_csv(train_file_path)
-   dataset_to_validate = pd.read_csv(train_file_path)
+   dataset_to_validate = pd.read_csv(validation_file_path)
 
 -  **Step 2**. Create *Pipeline* instance, create nodes with desired models
 
