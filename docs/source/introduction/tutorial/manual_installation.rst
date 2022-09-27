@@ -1,32 +1,18 @@
-How to setup the environment manually
--------------------------------------
+How to setup the environment in the easiest way
+-----------------------------------------------
 
-The easiest way to install FEDOT is using ``pip``:
+The simplest way to install FEDOT is using ``pip``:
 
 .. code-block::
 
   $ pip install fedot
-
-Alternatively, in order to work with the source code:
-
-.. code-block::
-
-   $ git clone https://github.com/nccr-itmo/FEDOT.git
-   $ cd FEDOT
-   $ pip install .
-   $ pytest -s test
+  $ python -m venv <your_venv_path>
 
 Installation with optional dependencies for image and text processing, and for DNNs:
 
 .. code-block::
 
   $ pip install fedot[extra]
+  $ python -m venv <your_venv_path>
 
-Or by dealing with the source code:
-
-.. code-block::
-
-   $ git clone https://github.com/nccr-itmo/FEDOT.git
-   $ cd FEDOT
-   $ pip install .[extra]
-   $ pytest -s test
+And that's it.
