@@ -7,13 +7,24 @@ How to create your own composite model in a manual way
 
    import pandas as pd
 
+   # specify automl training parameters
+   timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
+
+   model = Fedot(
+      problem='classification', timeout=timeout, metric_names=metric_names,
+      with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=loggging_level
+   )
+
+   # add all data paths
    train_file_path = ...
    validation_file_path = ...
 
-   model = Fedot(problem='classification')
-
    dataset_to_train = pd.read_csv(train_file_path)
    dataset_to_validate = pd.read_csv(validation_file_path)
+
+   # concretise target column and validation answers data
+   target_col = ...
+   validation_target = dataset_to_validate[target_col]
 
 -  **Step 2**. Create *Pipeline* instance, create nodes with desired models
 
@@ -35,3 +46,6 @@ How to create your own composite model in a manual way
 .. code:: python
 
    prediction = model.predict(features=dataset_to_validate)
+   metrics = model.get_metrics(validation_target)
+   print(f'metrics: {metrics}')
+   model.plot_prediction()
