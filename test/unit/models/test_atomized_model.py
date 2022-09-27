@@ -187,10 +187,10 @@ def test_fine_tune_atomized_model_correct():
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
-    dummy_atomized_model.fit(ParametersChangeKeeper(), train_data)
+    dummy_atomized_model.fit(None, train_data)
 
-    fitted_dummy_model, _ = dummy_atomized_model.fit(ParametersChangeKeeper(), train_data)
-    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit({}, train_data)
+    fitted_dummy_model, _ = dummy_atomized_model.fit(None, train_data)
+    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(None, train_data)
 
     after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
     after_tuning_predicted = after_tuning_output.predict

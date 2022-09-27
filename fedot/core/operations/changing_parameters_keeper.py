@@ -19,12 +19,10 @@ class ParametersChangeKeeper:
     """
     def __init__(self, operation_type: Optional[str] = None, parameters: Optional[dict] = None):
         # The check for "default_params" is needed for backward compatibility.
-        if parameters == "default_params":
-            parameters = {}
-        self._parameters = copy(parameters) if parameters is not None else {}
+        self._parameters = copy(parameters) if parameters is not None and parameters != "default_params" else {}
         if operation_type:
             default_parameters = get_default_params(operation_type)
-            self._parameters = {**default_parameters, **parameters}
+            self._parameters = {**default_parameters, **self._parameters}
         self._changed_keys: list = []
 
     def __bool__(self):

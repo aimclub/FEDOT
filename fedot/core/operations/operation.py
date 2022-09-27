@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, Union
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
@@ -28,8 +28,8 @@ class Operation:
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
-        if params is None:
-            params = ParametersChangeKeeper()
+        if isinstance(params, dict) or params is None:
+            params = ParametersChangeKeeper(operation_type=self.operation_type, parameters=params)
         params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
                                                      n_samples_data=kwargs.get('n_samples_data'))\
             .correct(params.to_dict())
@@ -64,7 +64,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Optional[ParametersChangeKeeper], data: InputData):
+    def fit(self, params: Optional[Union[ParametersChangeKeeper, dict]], data: InputData):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -75,7 +75,6 @@ class Operation:
         Returns:
             tuple: trained operation and prediction on train data
         """
-
         self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
@@ -84,7 +83,7 @@ class Operation:
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, params: Optional[ParametersChangeKeeper] = None,
+    def predict(self, fitted_operation, data: InputData, params: Optional[Union[ParametersChangeKeeper, dict]] = None,
                 output_mode: str = 'default'):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided

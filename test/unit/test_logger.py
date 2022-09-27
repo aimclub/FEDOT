@@ -68,7 +68,7 @@ def test_logger_write_logs_correctly():
 
     try:
         knn = Model(operation_type='knnreg')
-        model, _ = knn.fit(params=ParametersChangeKeeper(), data=train_data)
+        model, _ = knn.fit({}, data=train_data)
     except Exception as ex:
         print(f'Captured error: {ex}')
 

@@ -26,7 +26,7 @@ class AtomizedModel(Operation):
         self.unique_id = self.pipeline.root_node.descriptive_id
         self.atomized_preprocessor = DataPreprocessor()
 
-    def fit(self, params: Optional[ParametersChangeKeeper], data: InputData,
+    def fit(self, params: Optional[Union[ParametersChangeKeeper, dict]], data: InputData,
             use_cache: bool = True):
 
         copied_input_data = deepcopy(data)
@@ -38,7 +38,7 @@ class AtomizedModel(Operation):
         return fitted_atomized_operation, predicted_train
 
     def predict(self, fitted_operation, data: InputData,
-                params: Optional[ParametersChangeKeeper] = None, output_mode: str = 'default'):
+                params: Optional[Union[ParametersChangeKeeper, dict]] = None, output_mode: str = 'default'):
 
         # Preprocessing applied
         copied_input_data = deepcopy(data)
