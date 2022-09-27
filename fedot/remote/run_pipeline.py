@@ -10,6 +10,7 @@ from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum
+from fedot.core.utilities.random import RandomStateHandler
 from fedot.remote.pipeline_run_config import PipelineRunConfig
 
 
@@ -64,6 +65,7 @@ def fit_pipeline(config_file: Union[str, bytes]) -> bool:
         return False
 
     try:
+        RandomStateHandler.MODEL_FITTING_SEED = 0
         pipeline.fit_from_scratch(train_data)
     except Exception as ex:
         logger.error(ex)
