@@ -36,12 +36,20 @@ class ResampleImplementation(DataOperationImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
-        self.balance = params.get('balance') or 'expand_minority'
-        self.replace = params.get('replace') or False
-        self.balance_ratio = params.get('balance_ratio') or 1.0
         self.n_samples = None
-
         self.log = default_log(self)
+
+    @property
+    def balance(self) -> str:
+        return self.params.get_or_set('balance', 'expand_minority')
+
+    @property
+    def replace(self) -> bool:
+        return self.params.get_or_set('replace', False)
+
+    @property
+    def balance_ratio(self) -> float:
+        return self.params.get_or_set('balance_ratio', 1.0)
 
     def fit(self, input_data: Optional[InputData]):
         """Class doesn't support fit operation
@@ -144,19 +152,18 @@ class ResampleImplementation(DataOperationImplementation):
         """
         if self.replace is False:
             if self.balance == 'expand_minority' and self.n_samples >= min_data.shape[0]:
-                self.replace = True
-                self.params.update('replace', self.replace)
+                self.params.update('replace', True)
             elif self.balance == 'reduce_majority' and self.n_samples >= maj_data.shape[0]:
-                self.replace = True
-                self.params.update('replace', self.replace)
+                self.params.update('replace', True)
             self.log.debug(f'{GLOBAL_PREFIX} resample operation allow repeats in data')
 
     def _check_and_correct_balance_ratio_param(self):
         """Method checks if selected balance_ratio parameter is correct
         """
+        if not self.balance_ratio:
+            self.params.update('balance_ratio', 1)
         if self.balance_ratio < 0 or self.balance_ratio > 1:
-            self.balance_ratio = 1
-            self.params.update('balance_ratio', self.balance_ratio)
+            self.params.update('balance_ratio', 1)
             self.log.debug(f'{GLOBAL_PREFIX} balance ratio set to full balance')
 
     def _convert_to_absolute(self, min_data: np.array, maj_data: np.array) -> float:

@@ -25,13 +25,13 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
     model_name can be selected from https://github.com/RaRe-Technologies/gensim-data"""
 
     def __init__(self, params: Optional[ParametersChangeKeeper]):
-        if not params:
-            self.model_name = 'glove-twitter-25'
-        else:
-            self.model_name = params.get('model_name')
+        super().__init__(params)
         self.logger = default_log(prefix='FEDOT logger')
         self._download_model_resources()
-        super().__init__(params)
+
+    @property
+    def model_name(self) -> str:
+        return self.params.get_or_set('model_name', 'glove-twitter-25')
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation

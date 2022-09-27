@@ -98,18 +98,11 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
         super().__init__(params)
         self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
 
-        if not params:
-            # Default parameters
-            # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model)
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model)
+        # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+        if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params.to_dict())
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model, **params.to_dict())
+            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
 
 
 class NonLinearRegRANSACImplementation(RegRANSACImplementation):
@@ -121,18 +114,12 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
-        if not params:
-            # Default parameters
-            # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model)
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model)
+
+        # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+        if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params.to_dict())
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model, **params.to_dict())
+            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
 
 
 class IsolationForestRegImplementation(DataOperationImplementation):
@@ -144,12 +131,7 @@ class IsolationForestRegImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
         self.log = default_log(self)
-
-        if not params:
-            # Default parameters
-            self.operation = IsolationForest()
-        else:
-            self.operation = IsolationForest(**params.to_dict())
+        self.operation = IsolationForest(**self.params.to_dict())
 
     def fit(self, input_data: InputData) -> 'IsolationForest':
         """ Method for fit filter

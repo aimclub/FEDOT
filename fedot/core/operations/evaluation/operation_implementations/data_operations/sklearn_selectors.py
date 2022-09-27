@@ -119,12 +119,12 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
         super().__init__(params)
         self.inner_model = LinearRegression(normalize=True)
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get(k) for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
 
@@ -140,12 +140,12 @@ class NonLinearRegFSImplementation(FeatureSelectionImplementation):
         super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get(k) for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
 
@@ -161,12 +161,12 @@ class LinearClassFSImplementation(FeatureSelectionImplementation):
         super().__init__(params)
         self.inner_model = LogisticRegression()
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get(k) for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
 
@@ -182,11 +182,11 @@ class NonLinearClassFSImplementation(FeatureSelectionImplementation):
         super().__init__(params)
         self.inner_model = DecisionTreeClassifier()
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params.get(k) for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)

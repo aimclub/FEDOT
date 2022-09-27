@@ -101,13 +101,11 @@ class PCAImplementation(ComponentAnalysisImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
-        if not params:
+        if not self.params:
             # Default parameters
-            default_parameters = {'svd_solver': 'full', 'n_components': 'mle'}
-            self.pca = PCA(**default_parameters)
-            self.params = ParametersChangeKeeper(parameters=default_parameters)
-        else:
-            self.pca = PCA(**params.to_dict())
+            self.params.update('svd_solver', 'full')
+            self.params.update('n_components', 'mle')
+        self.pca = PCA(**self.params.to_dict())
         self.number_of_features = None
 
 
@@ -120,11 +118,7 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
-        if not params:
-            # Default parameters
-            self.pca = KernelPCA()
-        else:
-            self.pca = KernelPCA(**params.to_dict())
+        self.pca = KernelPCA(**self.params.to_dict())
 
 
 class FastICAImplementation(ComponentAnalysisImplementation):
@@ -135,11 +129,7 @@ class FastICAImplementation(ComponentAnalysisImplementation):
     """
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
-        if not params:
-            # Default parameters
-            self.pca = FastICA()
-        else:
-            self.pca = FastICA(**params.to_dict())
+        self.pca = FastICA(**self.params.to_dict())
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
@@ -154,12 +144,12 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
         self.th_columns = 10
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = PolynomialFeatures(include_bias=False)
         else:
             # Checking the appropriate params are using or not
-            poly_params = {k: params.get(k) for k in
+            poly_params = {k: self.params.get(k) for k in
                            ['degree', 'interaction_only']}
             self.operation = PolynomialFeatures(include_bias=False,
                                                 **poly_params)
@@ -220,11 +210,7 @@ class ScalingImplementation(EncodedInvariantImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
-        if not params:
-            # Default parameters
-            self.operation = StandardScaler()
-        else:
-            self.operation = StandardScaler(**params.to_dict())
+        self.operation = StandardScaler(**self.params.to_dict())
 
 
 class NormalizationImplementation(EncodedInvariantImplementation):
@@ -238,11 +224,7 @@ class NormalizationImplementation(EncodedInvariantImplementation):
 
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
-        if not params:
-            # Default parameters
-            self.operation = MinMaxScaler()
-        else:
-            self.operation = MinMaxScaler(**params.to_dict())
+        self.operation = MinMaxScaler(**self.params.to_dict())
 
 
 class ImputationImplementation(DataOperationImplementation):
@@ -255,21 +237,14 @@ class ImputationImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper] = None):
         super().__init__(params)
         default_params_categorical = {'strategy': 'most_frequent'}
-        if params is None:
-            params = ParametersChangeKeeper()
-        self.params_cat = {**params.to_dict(), **default_params_categorical}
-        self.params_num = params.to_dict()
+        self.params_cat = {**self.params.to_dict(), **default_params_categorical}
+        self.params_num = self.params.to_dict()
         self.categorical_ids = None
         self.non_categorical_ids = None
         self.ids_binary_integer_features = {}
 
-        if not params:
-            # Default parameters
-            self.imputer_cat = SimpleImputer(**default_params_categorical)
-            self.imputer_num = SimpleImputer()
-        else:
-            self.imputer_cat = SimpleImputer(**self.params_cat)
-            self.imputer_num = SimpleImputer(**self.params_num)
+        self.imputer_cat = SimpleImputer(**self.params_cat)
+        self.imputer_num = SimpleImputer(**self.params_num)
 
     def fit(self, input_data: InputData):
         """The method trains ``SimpleImputer``

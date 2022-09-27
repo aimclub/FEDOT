@@ -16,8 +16,8 @@ class DataOperationImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
-        self.params = params
+    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+        self.params = params or ParametersChangeKeeper()
 
     @abstractmethod
     def fit(self, input_data: InputData):

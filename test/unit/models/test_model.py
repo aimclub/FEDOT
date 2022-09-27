@@ -197,7 +197,8 @@ def test_ts_models_fit_predict_correct():
         if not default_params:
             default_params = None
 
-        fitted_operation, train_predicted = model.fit(params=ParametersChangeKeeper(parameters=default_params), data=deepcopy(train_data))
+        fitted_operation, train_predicted = model.fit(params=ParametersChangeKeeper(parameters=default_params),
+                                                      data=deepcopy(train_data))
         test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 

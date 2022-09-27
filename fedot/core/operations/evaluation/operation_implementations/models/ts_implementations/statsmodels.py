@@ -52,11 +52,11 @@ class GLMImplementation(ModelImplementation):
         self.correct_params()
 
     @property
-    def family(self):
+    def family(self) -> str:
         return self.params.get('family')
 
     @property
-    def link(self):
+    def link(self) -> str:
         return self.params.get('link')
 
     def fit(self, input_data):

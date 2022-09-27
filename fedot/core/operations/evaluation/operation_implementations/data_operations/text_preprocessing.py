@@ -23,16 +23,14 @@ class TextCleanImplementation(DataOperationImplementation):
     """ Class for text cleaning (lemmatization and stemming) operation """
 
     def __init__(self, params: Optional[ParametersChangeKeeper]):
-        if not params:
-            self.lang = 'english'
-            params.update('language', 'english')
-        else:
-            self.lang = params.get('language')
-
-        self.stemmer = nltk.stem.SnowballStemmer(language=self.lang)
+        super().__init__(params)
+        self.stemmer = nltk.stem.SnowballStemmer(language=self.language)
         self.lemmatizer = nltk.stem.WordNetLemmatizer()
         self._download_nltk_resources()
-        super().__init__(params)
+
+    @property
+    def language(self) -> str:
+        return self.params.get_or_set('language', 'english')
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -88,7 +86,7 @@ class TextCleanImplementation(DataOperationImplementation):
         return words
 
     def _remove_stop_words(self, words: set):
-        stop_words = set(nltk.corpus.stopwords.words(self.lang))
+        stop_words = set(nltk.corpus.stopwords.words(self.language))
         cleared_words = [word for word in words if word not in stop_words]
 
         return cleared_words

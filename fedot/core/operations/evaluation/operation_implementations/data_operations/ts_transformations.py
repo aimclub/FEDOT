@@ -20,14 +20,23 @@ class LaggedImplementation(DataOperationImplementation):
         super().__init__(params)
 
         self.window_size_minimum = None
-        self.window_size = None
-        self.n_components = None
         self.sparse_transform = False
         self.use_svd = False
         self.features_columns = None
 
         # Define logger object
         self.log = default_log(self)
+
+    @property
+    def window_size(self) -> Optional[int]:
+        window_size = self.params.get('window_size')
+        if window_size:
+            window_size = round(window_size)
+        return window_size
+
+    @property
+    def n_components(self) -> Optional[int]:
+        return self.params.get('n_components')
 
     def fit(self, input_data):
         """ Class doesn't support fit operation
@@ -111,15 +120,14 @@ class LaggedImplementation(DataOperationImplementation):
         if removing_len > len(time_series):
             previous_size = self.window_size
             # At least 10 objects we need for training, so minus 10
-            self.window_size = len(time_series) - forecast_length - 10
-            self.params.update('window_size', self.window_size)
+            window_size = len(time_series) - forecast_length - 10
+            self.params.update('window_size', window_size)
             self.log.info(f"{prefix} from {previous_size} to {self.window_size}.")
 
         # Minimum threshold
         if self.window_size < self.window_size_minimum:
             previous_size = self.window_size
-            self.window_size = self.window_size_minimum
-            self.params.update('window_size', self.window_size)
+            self.params.update('window_size', self.window_size_minimum)
             self.log.info(f"{prefix} from {previous_size} to {self.window_size}")
 
     def _update_column_types(self, output_data: OutputData):
@@ -338,9 +346,6 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
         self.sparse_transform = True
         self.window_size_minimum = 6
 
-        self.window_size = round(params.get('window_size'))
-        self.n_components = params.get('n_components')
-
 
 class LaggedTransformationImplementation(LaggedImplementation):
     """Implementation of lagged transformation for time series forecasting
@@ -349,7 +354,6 @@ class LaggedTransformationImplementation(LaggedImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
         self.window_size_minimum = 2
-        self.window_size = round(params.get('window_size'))
 
 
 class TsSmoothingImplementation(DataOperationImplementation):
@@ -357,11 +361,9 @@ class TsSmoothingImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
 
-        if not params:
-            # Default parameters
-            self.window_size = 10
-        else:
-            self.window_size = round(params.get('window_size'))
+    @property
+    def window_size(self) -> int:
+        return round(self.params.get_or_set('window_size', 10))
 
     def fit(self, input_data: InputData):
         """Class doesn't support fit operation
@@ -488,12 +490,9 @@ class GaussianFilterImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
 
-        if not params:
-            # Default parameters
-            self.sigma = 1
-            self.params.update('sigma', 1)
-        else:
-            self.sigma = round(params.get('sigma'))
+    @property
+    def sigma(self) -> int:
+        return round(self.params.get_or_set('sigma', 1))
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -538,10 +537,19 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
         self.log = default_log(self)
 
-        self.poly_degree = int(self.params.get('poly_degree'))
-        self.order = int(self.params.get('order'))
-        self.window_size = int(self.params.get('window_size'))
         self._correct_params()
+
+    @property
+    def poly_degree(self) -> int:
+        return int(self.params.get('poly_degree'))
+
+    @property
+    def order(self) -> int:
+        return int(self.params.get('order'))
+
+    @property
+    def window_size(self) -> int:
+        return int(self.params.get('window_size'))
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -588,8 +596,7 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         if self.window_size > ts.shape[0]:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
-            self.window_size = self.poly_degree + 1
-            self.params.update('window_size', self.window_size)
+            self.params.update('window_size', self.poly_degree + 1)
         x = np.arange(ts.shape[0])
 
         ts_len = x.shape[0]
@@ -623,41 +630,37 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         if self.poly_degree > 5:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
                           f'changed to {self.max_poly_degree}')
-            self.poly_degree = self.max_poly_degree
-            self.params.update('poly_degree', self.poly_degree)
+            self.params.update('poly_degree', self.max_poly_degree)
         if self.order < 1:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter order ({self.order}) '
                           f'changed to {self.default_order}')
-            self.order = self.default_order
-            self.params.update('degree', self.order)
+            self.params.update('degree', self.default_order)
         if self.order >= self.poly_degree:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
                           f'changed to {self.order + 1}')
-            self.poly_degree = self.order + 1
-            self.params.update('poly_degree', self.poly_degree)
+            self.params.update('poly_degree', self.order + 1)
         if self.window_size < self.poly_degree:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
-            self.window_size = self.poly_degree + 1
-            self.params.update('window_size', self.window_size)
+            self.params.update('window_size', self.poly_degree + 1)
 
 
 class CutImplementation(DataOperationImplementation):
     def __init__(self, params: Optional[ParametersChangeKeeper]):
         super().__init__(params)
-        cut_part = params.get('cut_part')
 
         # Define logger object
         self.log = default_log(self)
 
-        if 0 < cut_part <= 0.9:
-            self.cut_part = cut_part
-            self.params.update('cut_part', self.cut_part)
-        else:
+    @property
+    def cut_part(self):
+        return self.params.get('cut_part')
+
+    def _correct_cut_part(self):
+        if not 0 < self.cut_part <= 0.9:
             # Default parameter
-            self.log.info(f"Change invalid parameter cut_part ({cut_part}) on default value (0.5)")
-            self.cut_part = 0.5
-            self.params.update('cut_part', self.cut_part)
+            self.log.info(f"Change invalid parameter cut_part ({self.cut_part}) on default value (0.5)")
+            self.params.update('cut_part', 0.5)
 
     def fit(self, input_data: InputData):
         """Class doesn't support fit operation
