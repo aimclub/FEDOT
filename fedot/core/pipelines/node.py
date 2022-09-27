@@ -7,7 +7,7 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.timer import Timer
@@ -42,6 +42,9 @@ class Node(GraphNode):
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
             params = passed_content.get('params', {})
+            # The check for "default_params" is needed for backward compatibility.
+            if params == 'default_params':
+                params = {}
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
             # There is no content for node
@@ -54,7 +57,7 @@ class Node(GraphNode):
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
-        self._parameters = ParametersChangeKeeper(operation.operation_type, params)
+        self._parameters = OperationParameters.from_operation_type(operation.operation_type, **params)
         super().__init__(content={'name': operation,
                                   'params': self._parameters.to_dict()}, nodes_from=nodes_from)
         self.log = default_log(self)
@@ -221,10 +224,13 @@ class Node(GraphNode):
             params: new parameters to be placed instead of existing
         """
         if params:
+            # The check for "default_params" is needed for backward compatibility.
+            if params == 'default_params':
+                params = {}
             # take nested composer params if they appeared
             if 'nested_space' in params:
                 params = params['nested_space']
-            self._parameters = ParametersChangeKeeper(self.operation.operation_type, params)
+            self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
             self.content.update({'params': self._parameters.to_dict()})
 
     def __str__(self) -> str:

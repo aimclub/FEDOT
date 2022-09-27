@@ -7,7 +7,7 @@ from h2o import h2o, H2OFrame
 from h2o.automl import H2OAutoML
 from tpot import TPOTClassifier, TPOTRegressor
 
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.automl_wrappers import *
 
 from fedot.core.data.data import InputData, OutputData
@@ -20,7 +20,7 @@ class H2OAutoMLRegressionStrategy(EvaluationStrategy):
         'h2o_regr': H2OAutoML
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -90,7 +90,7 @@ class H2OAutoMLClassificationStrategy(EvaluationStrategy):
         'h2o_class': H2OAutoML
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         self.model_class = H2OSerializationWrapper
         super().__init__(operation_type, params)
@@ -154,7 +154,7 @@ class TPOTAutoMLRegressionStrategy(EvaluationStrategy):
         'tpot_regr': TPOTRegressor
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -204,7 +204,7 @@ class TPOTAutoMLClassificationStrategy(EvaluationStrategy):
         'tpot_class': TPOTClassifier
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 

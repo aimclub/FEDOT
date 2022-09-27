@@ -8,13 +8,13 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FeatureSelectionImplementation(DataOperationImplementation):
     """ Class for applying feature selection operations on tabular data """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = None
         self.operation = None
@@ -115,7 +115,7 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
     Task type - regression
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = LinearRegression(normalize=True)
 
@@ -136,7 +136,7 @@ class NonLinearRegFSImplementation(FeatureSelectionImplementation):
     Task type - regression
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
 
@@ -157,7 +157,7 @@ class LinearClassFSImplementation(FeatureSelectionImplementation):
     Task type - classification
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = LogisticRegression()
 
@@ -178,7 +178,7 @@ class NonLinearClassFSImplementation(FeatureSelectionImplementation):
     Task type - classification
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = DecisionTreeClassifier()
 

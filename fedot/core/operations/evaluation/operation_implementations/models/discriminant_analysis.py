@@ -5,12 +5,12 @@ import pandas as pd
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis, QuadraticDiscriminantAnalysis
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class DiscriminantAnalysisImplementation(ModelImplementation):
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = None
 
@@ -51,7 +51,7 @@ class DiscriminantAnalysisImplementation(ModelImplementation):
 
 class LDAImplementation(DiscriminantAnalysisImplementation):
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = LinearDiscriminantAnalysis(**self.params.to_dict())
 
@@ -90,7 +90,7 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
 
 class QDAImplementation(DiscriminantAnalysisImplementation):
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = QuadraticDiscriminantAnalysis(**self.params.to_dict())
 

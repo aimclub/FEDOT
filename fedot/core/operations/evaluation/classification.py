@@ -17,7 +17,7 @@ from fedot.core.operations.evaluation.operation_implementations.models. \
     keras import FedotCNNImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.knn import FedotKnnClassImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.svc import FedotSVCImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -50,7 +50,7 @@ class FedotClassificationStrategy(EvaluationStrategy):
         'knn': FedotKnnClassImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -113,7 +113,7 @@ class FedotClassificationPreprocessingStrategy(EvaluationStrategy):
         'isolation_forest_class': IsolationForestClassImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
         self.operation_impl = self._convert_to_operation(operation_type)
 

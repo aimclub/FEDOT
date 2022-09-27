@@ -11,7 +11,7 @@ from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -44,7 +44,7 @@ class GLMImplementation(ModelImplementation):
         "default": Gaussian(identity())
     }
 
-    def __init__(self, params: ParametersChangeKeeper):
+    def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.model = None
         self.family_link = None
@@ -140,7 +140,7 @@ class GLMImplementation(ModelImplementation):
 
 class AutoRegImplementation(ModelImplementation):
 
-    def __init__(self, params: ParametersChangeKeeper):
+    def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.autoreg = None
         self.actual_ts_len = None
@@ -219,22 +219,18 @@ class AutoRegImplementation(ModelImplementation):
         new_lag_2 = self._check_and_correct_lag(max_lag, previous_lag_2)
         if new_lag_1 == new_lag_2:
             new_lag_2 -= 1
+        prefix = "Warning: lag of AutoRegImplementation was changed"
         if previous_lag_1 != new_lag_1:
+            self.log.info(f"{prefix} from {previous_lag_1} to {new_lag_1}.")
             self.params.update('lag_1', new_lag_1)
-        if self._lag_was_changed(previous_lag_2, new_lag_2):
+        if previous_lag_2 != new_lag_2:
+            self.log.info(f"{prefix} from {previous_lag_2} to {new_lag_2}.")
             self.params.update('lag_2', new_lag_2)
 
     def _check_and_correct_lag(self, max_lag: int, lag: int):
         if lag > max_lag:
             lag = max_lag
         return lag
-
-    def _lag_was_changed(self, previous_lag, new_lag):
-        was_changed = (previous_lag != new_lag)
-        prefix = "Warning: lag of AutoRegImplementation was changed"
-        if was_changed:
-            self.log.info(f"{prefix} from {previous_lag} to {new_lag}.")
-        return was_changed
 
     def handle_new_data(self, input_data: InputData):
         """
@@ -250,7 +246,7 @@ class AutoRegImplementation(ModelImplementation):
 class ExpSmoothingImplementation(ModelImplementation):
     """ Exponential smoothing implementation from statsmodels """
 
-    def __init__(self, params: ParametersChangeKeeper):
+    def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.model = None
         if self.params.get("seasonal"):

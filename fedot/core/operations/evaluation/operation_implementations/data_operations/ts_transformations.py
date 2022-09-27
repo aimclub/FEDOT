@@ -11,12 +11,12 @@ from fedot.core.log import LoggerAdapter, default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
 class LaggedImplementation(DataOperationImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
 
         self.window_size_minimum = None
@@ -341,7 +341,7 @@ class SparseLaggedTransformationImplementation(LaggedImplementation):
     """Implementation of sparse lagged transformation for time series forecasting
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.sparse_transform = True
         self.window_size_minimum = 6
@@ -351,14 +351,14 @@ class LaggedTransformationImplementation(LaggedImplementation):
     """Implementation of lagged transformation for time series forecasting
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.window_size_minimum = 2
 
 
 class TsSmoothingImplementation(DataOperationImplementation):
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
 
     @property
@@ -414,7 +414,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
 class ExogDataTransformationImplementation(DataOperationImplementation):
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
 
     def fit(self, input_data: InputData):
@@ -487,12 +487,8 @@ class ExogDataTransformationImplementation(DataOperationImplementation):
 
 
 class GaussianFilterImplementation(DataOperationImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
-
-    @property
-    def sigma(self) -> int:
-        return round(self.params.get_or_set('sigma', 1))
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -516,7 +512,8 @@ class GaussianFilterImplementation(DataOperationImplementation):
         source_ts = np.array(input_data.features)
 
         # Apply smoothing operation
-        smoothed_ts = gaussian_filter(source_ts, sigma=self.sigma)
+        sigma = round(self.params.get_or_set('sigma', 1))
+        smoothed_ts = gaussian_filter(source_ts, sigma=sigma)
         smoothed_ts = np.array(smoothed_ts)
 
         if input_data.data_type != DataTypesEnum.multi_ts:
@@ -529,7 +526,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
 
 
 class NumericalDerivativeFilterImplementation(DataOperationImplementation):
-    def __init__(self, params: ParametersChangeKeeper):
+    def __init__(self, params: OperationParameters):
         super().__init__(params)
         self.max_poly_degree = 5
         self.default_poly_degree = 2
@@ -646,9 +643,9 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
 
 
 class CutImplementation(DataOperationImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
-
+        self._correct_cut_part()
         # Define logger object
         self.log = default_log(self)
 

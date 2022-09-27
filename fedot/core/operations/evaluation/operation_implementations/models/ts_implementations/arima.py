@@ -10,14 +10,14 @@ from statsmodels.tsa.arima.model import ARIMA
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 
 class ARIMAImplementation(ModelImplementation):
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.arima = None
         self.lambda_value = None
@@ -170,7 +170,7 @@ class ARIMAImplementation(ModelImplementation):
 
 
 class STLForecastARIMAImplementation(ModelImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.model = None
         self.lambda_param = None

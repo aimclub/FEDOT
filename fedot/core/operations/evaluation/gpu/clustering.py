@@ -1,6 +1,6 @@
 import warnings
 
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utilities.random import RandomStateHandler
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -24,7 +24,7 @@ class CumlClusteringStrategy(CuMLEvaluationStrategy):
         'kmeans': KMeans
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
         self.operation_impl = self._convert_to_operation(operation_type)
 

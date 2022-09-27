@@ -2,7 +2,7 @@ from typing import Callable, Optional
 
 from fedot.core.operations.evaluation. \
     operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -14,7 +14,7 @@ class CustomModelImplementation(ModelImplementation):
     into parameters dictionary {'model_predict': function, 'model_fit': function}
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         self.fitted_model = None
         if not self.params:

@@ -20,7 +20,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     GLMImplementation
 from fedot.core.operations.model import Model
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
-from fedot.core.operations.changing_parameters_keeper import get_default_params, ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import get_default_params, OperationParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -292,7 +292,7 @@ def test_glm_indexes_correct():
     and indexes look like [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
     input_data = generate_simple_series()
-    glm_impl = GLMImplementation(ParametersChangeKeeper(parameters={"family": "gaussian", "link": "identity"}))
+    glm_impl = GLMImplementation(OperationParameters(**{"family": "gaussian", "link": "identity"}))
     glm_impl.fit(input_data)
     predicted = glm_impl.predict_for_fit(input_data)
     pred_values = predicted.predict
@@ -332,7 +332,7 @@ def test_ts_naive_average_forecast_correctly():
     """ Check if forecasted time series has correct indices """
     train_input, predict_input, _ = synthetic_univariate_ts()
 
-    model = NaiveAverageForecastImplementation(ParametersChangeKeeper(parameters={'part_for_averaging': 1.0}))
+    model = NaiveAverageForecastImplementation(OperationParameters(part_for_averaging=1.0))
     fit_forecast = model.predict_for_fit(train_input)
     predict_forecast = model.predict(predict_input)
 
@@ -348,7 +348,7 @@ def test_ts_naive_average_forecast_correctly():
 def test_locf_forecast_correctly():
     """ Testing naive LOCF model """
     train_input, predict_input, _ = synthetic_univariate_ts()
-    model = RepeatLastValueImplementation(ParametersChangeKeeper(parameters={'part_for_repeat': 0.2}))
+    model = RepeatLastValueImplementation(OperationParameters(part_for_repeat=0.2))
 
     model.fit(train_input)
     fit_forecast = model.predict_for_fit(train_input)

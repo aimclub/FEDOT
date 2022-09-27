@@ -4,7 +4,7 @@ from typing import Optional
 from sklearn.cluster import KMeans as SklearnKmeans
 
 from fedot.core.data.data import InputData, OutputData
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
 from fedot.core.utilities.random import RandomStateHandler
 
@@ -16,9 +16,9 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         'kmeans': SklearnKmeans
     }
 
-    def __init__(self, operation_type: str, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         if not params:
-            params = ParametersChangeKeeper(parameters={'n_clusters': 2})
+            params = OperationParameters(n_clusters=2)
         super().__init__(operation_type, params)
         self.operation_impl = self._convert_to_operation(operation_type)
 

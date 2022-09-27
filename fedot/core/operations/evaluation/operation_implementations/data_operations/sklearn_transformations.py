@@ -12,7 +12,7 @@ from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_in
     divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
@@ -22,7 +22,7 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         params: OpearationParameters with the arguments
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.pca = None
         self.number_of_features = None
@@ -96,10 +96,10 @@ class PCAImplementation(ComponentAnalysisImplementation):
     """Class for applying PCA from sklearn
 
     Args:
-        params: ParametersChangeKeeper with the hyperparameters
+        params: OperationParameters with the hyperparameters
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not self.params:
             # Default parameters
@@ -113,10 +113,10 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
     """ Class for applying kernel PCA from sklearn
 
     Args:
-        params: ParametersChangeKeeper with the hyperparameters
+        params: OperationParameters with the hyperparameters
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.pca = KernelPCA(**self.params.to_dict())
 
@@ -125,9 +125,9 @@ class FastICAImplementation(ComponentAnalysisImplementation):
     """ Class for applying FastICA from sklearn
 
     Args:
-        params: ParametersChangeKeeper with the hyperparameters
+        params: OperationParameters with the hyperparameters
     """
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.pca = FastICA(**self.params.to_dict())
 
@@ -138,10 +138,10 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
     ``OneHot encoding``) are used
 
     Args:
-        params: ParametersChangeKeeper with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.th_columns = 10
         if not self.params:
@@ -205,10 +205,10 @@ class ScalingImplementation(EncodedInvariantImplementation):
     ``OneHot encoding``) are used
 
     Args:
-        params: ParametersChangeKeeper with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.operation = StandardScaler(**self.params.to_dict())
 
@@ -219,10 +219,10 @@ class NormalizationImplementation(EncodedInvariantImplementation):
     ``OneHot encoding``) are used
 
     Args:
-        params: ParametersChangeKeeper with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.operation = MinMaxScaler(**self.params.to_dict())
 
@@ -231,10 +231,10 @@ class ImputationImplementation(DataOperationImplementation):
     """Class for applying imputation on tabular data
 
     Args:
-        params: ParametersChangeKeeper with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         default_params_categorical = {'strategy': 'most_frequent'}
         self.params_cat = {**self.params.to_dict(), **default_params_categorical}
@@ -393,7 +393,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         return filled_numerical_features
 
-    def get_params(self) -> ParametersChangeKeeper:
+    def get_params(self) -> OperationParameters:
         features_imputers = {'imputer_categorical': self.params_cat,
                              'imputer_numerical': self.params_num}
-        return ParametersChangeKeeper(parameters=features_imputers)
+        return OperationParameters(**features_imputers)

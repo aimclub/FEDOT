@@ -8,13 +8,13 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.data_preprocessing import find_categorical_columns
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class OneHotEncodingImplementation(DataOperationImplementation):
     """ Class for automatic categorical data detection and one hot encoding """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         default_params = {
             'handle_unknown': 'ignore'
@@ -108,7 +108,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
 class LabelEncodingImplementation(DataOperationImplementation):
     """ Class for categorical features encoding based on LabelEncoding """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         # LabelEncoder has no parameters
         self.encoders = {}
@@ -195,6 +195,6 @@ class LabelEncodingImplementation(DataOperationImplementation):
 
         return transformed_column
 
-    def get_params(self) -> ParametersChangeKeeper:
+    def get_params(self) -> OperationParameters:
         """ Due to LabelEncoder has no parameters - return empty set """
-        return ParametersChangeKeeper()
+        return OperationParameters()

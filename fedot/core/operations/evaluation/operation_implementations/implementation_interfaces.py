@@ -6,7 +6,7 @@ import numpy as np
 
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.log import default_log
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -16,8 +16,8 @@ class DataOperationImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
-        self.params = params or ParametersChangeKeeper()
+    def __init__(self, params: Optional[OperationParameters] = None):
+        self.params = params or OperationParameters()
 
     @abstractmethod
     def fit(self, input_data: InputData):
@@ -44,7 +44,7 @@ class DataOperationImplementation(ABC):
         """
         return self.transform(input_data)
 
-    def get_params(self) -> ParametersChangeKeeper:
+    def get_params(self) -> OperationParameters:
         """ Method return parameters, which can be optimized for particular
         operation
         """
@@ -66,7 +66,7 @@ class EncodedInvariantImplementation(DataOperationImplementation):
     vectors
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.operation = None
         self.ids_to_process = None
@@ -179,11 +179,11 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self, params: ParametersChangeKeeper = None):
+    def __init__(self, params: OperationParameters = None):
         self.log = default_log(self)
         self.params = params
         if params is None:
-            self.params = ParametersChangeKeeper()
+            self.params = OperationParameters()
 
     @abstractmethod
     def fit(self, input_data: InputData):
@@ -210,7 +210,7 @@ class ModelImplementation(ABC):
         """
         return self.predict(input_data)
 
-    def get_params(self) -> ParametersChangeKeeper:
+    def get_params(self) -> OperationParameters:
         """ Method return parameters, which can be optimized for particular
         operation
         """

@@ -9,7 +9,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
     ts_to_table, transform_features_and_target_into_lagged
 )
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.ts_wrappers import _update_input, exception_if_not_ts_task
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.requirements_notificator import warn_requirement
@@ -31,13 +31,8 @@ except ModuleNotFoundError:
 
 
 class CLSTMImplementation(ModelImplementation):
-    def __init__(self, params: ParametersChangeKeeper):
+    def __init__(self, params: OperationParameters):
         super().__init__(params)
-        self.epochs = params.get("num_epochs")
-        self.batch_size = params.get("batch_size")
-        self.learning_rate = params.get("learning_rate")
-        self.window_size = int(params.get("window_size"))
-        self.teacher_forcing = int(params.get("teacher_forcing"))
         self.device = self._get_device()
         self.model = LSTMNetwork(
             hidden_size=int(params.get("hidden_size")),
@@ -61,6 +56,14 @@ class CLSTMImplementation(ModelImplementation):
         self.optimizer = self.optim_dict[params.get("optimizer")]
         self.criterion = self.loss_dict[params.get("loss")]()
 
+    @property
+    def learning_rate(self) -> float:
+        return self.params.get("learning_rate")
+
+    @property
+    def window_size(self) -> int:
+        return self.params.get("window_size")
+
     def fit(self, train_data: InputData):
         """ Class fit ar model on data.
 
@@ -76,7 +79,7 @@ class CLSTMImplementation(ModelImplementation):
         data_loader, forecast_length = self._create_dataloader(train_data)
 
         self.model.train()
-        for epoch in range(self.epochs):
+        for epoch in range(self.params.get("num_epochs")):
             for x, y in data_loader:
                 self.optimizer.zero_grad()
                 x = x.to(self.device)
@@ -92,7 +95,7 @@ class CLSTMImplementation(ModelImplementation):
         for i in range(forecast_length):
             self.model.init_hidden(x.shape[0], self.device)
             output = self.model(x.unsqueeze(1)).squeeze(0)
-            if np.random.random_sample() > self.teacher_forcing:
+            if np.random.random_sample() > int(self.params.get("teacher_forcing")):
                 x = torch.hstack((x[:, 1:], output))
             else:
                 x = torch.hstack((x, y[:, i].unsqueeze(1)))
@@ -229,7 +232,7 @@ class CLSTMImplementation(ModelImplementation):
                                                                                               self.window_size)
         x = torch.from_numpy(features_columns.copy()).float()
         y = torch.from_numpy(final_target.copy()).float()
-        return DataLoader(TensorDataset(x, y), batch_size=self.batch_size), forecast_length
+        return DataLoader(TensorDataset(x, y), batch_size=self.params.get("batch_size")), forecast_length
 
 
 class LSTMNetwork(nn.Module):

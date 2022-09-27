@@ -9,7 +9,7 @@ from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 GLOBAL_PREFIX = 'sklearn_imbalanced_class:'
 
@@ -22,7 +22,7 @@ class ResampleImplementation(DataOperationImplementation):
     classification task by using method from sklearn.utils.resample
 
     Args:
-        params: ParametersChangeKeeper with the hyperparameters:
+        params: OperationParameters with the hyperparameters:
             balance: Data transformation strategy. Balance strategy can be 'expand_minority' or 'reduce_majority'.
                 In case of expand_minority elements of minor class are expanding to n_samples.
                 In otherwise with reduce_majority elements of major class are reducing to n_samples.
@@ -34,7 +34,7 @@ class ResampleImplementation(DataOperationImplementation):
                 class. If None numbers of samples will be equal to the shape of opposite selected transformed class.
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.n_samples = None
         self.log = default_log(self)

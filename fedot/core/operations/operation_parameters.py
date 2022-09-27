@@ -4,7 +4,7 @@ from typing import Optional, Iterable
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 
-class ParametersChangeKeeper:
+class OperationParameters:
     """Stores parameters for models and data operations implementations and records what parameters were changed.
     Uses operation_type to set default parameters from default_parameters_repository if a parameter was not passed
     with parameters.
@@ -17,16 +17,18 @@ class ParametersChangeKeeper:
         parameters: dict with parameters
 
     """
-    def __init__(self, operation_type: Optional[str] = None, parameters: Optional[dict] = None):
-        # The check for "default_params" is needed for backward compatibility.
-        self._parameters = copy(parameters) if parameters is not None and parameters != "default_params" else {}
-        if operation_type:
-            default_parameters = get_default_params(operation_type)
-            self._parameters = {**default_parameters, **self._parameters}
+    def __init__(self, **parameters):
+        self._parameters = copy(parameters)
         self._changed_keys: list = []
 
     def __bool__(self):
         return bool(self._parameters)
+
+    @staticmethod
+    def from_operation_type(operation_type: Optional[str], **parameters):
+        default_parameters = get_default_params(operation_type)
+        parameters = {**default_parameters, **parameters}
+        return OperationParameters(**parameters)
 
     def update(self, key, value):
         if key not in self._changed_keys:

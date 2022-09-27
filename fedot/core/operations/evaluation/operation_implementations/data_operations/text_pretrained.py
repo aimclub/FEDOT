@@ -7,7 +7,7 @@ from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.requirements_notificator import warn_requirement
 
@@ -24,14 +24,10 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
     """ Class for text vectorization by pretrained embeddings
     model_name can be selected from https://github.com/RaRe-Technologies/gensim-data"""
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.logger = default_log(prefix='FEDOT logger')
         self._download_model_resources()
-
-    @property
-    def model_name(self) -> str:
-        return self.params.get_or_set('model_name', 'glove-twitter-25')
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation
@@ -77,7 +73,8 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
     def _download_model_resources(self):
         """ Method for downloading text embeddings. Embeddings are loaded into external folder"""
         self.logger.info('Trying to download embeddings...')
-        model_path = api.load(f"{self.model_name}", return_path=True)
+        model_name = self.params.get_or_set('model_name', 'glove-twitter-25')
+        model_path = api.load(f"{model_name}", return_path=True)
 
         if os.path.exists(model_path):
             self.logger.info('Embeddings are already downloaded. Loading model...')

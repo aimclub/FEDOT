@@ -1,9 +1,9 @@
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 def test_params_keeper_update():
     params = {'a': 1, 'b': 2, 'c': 3}
-    keeper = ParametersChangeKeeper(parameters=params)
+    keeper = OperationParameters(**params)
     keeper.update('a', 1)
     keeper.update('b', 3)
     keeper.update('d', 4)
@@ -18,7 +18,7 @@ def test_params_keeper_update():
 
 def test_params_keeper_get():
     params = {'a': 1, 'b': 2, 'c': 3}
-    keeper = ParametersChangeKeeper(parameters=params)
+    keeper = OperationParameters(**params)
     a = keeper.get('a')
     b = keeper.get('b', -1)
     d = keeper.get('d', 5)

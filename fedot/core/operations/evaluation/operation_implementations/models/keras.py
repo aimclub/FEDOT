@@ -4,7 +4,7 @@ from typing import Optional
 
 import numpy as np
 
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -156,18 +156,18 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.params = ParametersChangeKeeper(parameters={'log': default_log(prefix=__name__),
-                                                         'epochs': 10,
-                                                         'batch_size': 32,
-                                                         'output_mode': 'labels',
-                                                         'architecture_type': 'simplified',
-                                                         'optimizer_parameters': {'loss': "categorical_crossentropy",
-                                                                                  'optimizer': "adam",
-                                                                                  'metrics': ["accuracy"]}})
+        self.params = OperationParameters(**{'log': default_log(prefix=__name__),
+                                             'epochs': 10,
+                                             'batch_size': 32,
+                                             'output_mode': 'labels',
+                                             'architecture_type': 'simplified',
+                                             'optimizer_parameters': {'loss': "categorical_crossentropy",
+                                                                      'optimizer': "adam",
+                                                                      'metrics': ["accuracy"]}})
         if params:
-            self.params = ParametersChangeKeeper(parameters={**self.params.to_dict(), **params.to_dict()})
+            self.params = OperationParameters(**{**self.params.to_dict(), **params.to_dict()})
 
     def fit(self, train_data):
         """ Method fit model on a dataset

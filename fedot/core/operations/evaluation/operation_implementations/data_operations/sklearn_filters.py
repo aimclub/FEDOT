@@ -15,13 +15,13 @@ from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FilterImplementation(DataOperationImplementation):
     """ Base class for applying filtering operations on tabular data """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = None
         self.operation = None
@@ -67,7 +67,7 @@ class FilterImplementation(DataOperationImplementation):
 
 
 class RegRANSACImplementation(FilterImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.max_iter = 10
 
@@ -94,7 +94,7 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
     Task type - regression
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
 
@@ -111,7 +111,7 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
     Task type - regression
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
 
@@ -128,7 +128,7 @@ class IsolationForestRegImplementation(DataOperationImplementation):
     Task type - regression
     """
 
-    def __init__(self, params: Optional[ParametersChangeKeeper]):
+    def __init__(self, params: Optional[OperationParameters]):
         super().__init__(params)
         self.log = default_log(self)
         self.operation = IsolationForest(**self.params.to_dict())

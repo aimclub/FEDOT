@@ -5,11 +5,11 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
-from fedot.core.operations.changing_parameters_keeper import ParametersChangeKeeper
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FedotSVCImplementation(ModelImplementation):
-    def __init__(self, params: Optional[ParametersChangeKeeper] = None):
+    def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not self.params:
             self.params.update('kernel', 'linear')
