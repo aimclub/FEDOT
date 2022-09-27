@@ -129,7 +129,8 @@ def test_ancestor_for_crossover():
         assert crossover_result.parents[1].uid == parent_ind_second.uid
 
 
-def test_newly_generated_history(n_jobs: int = 1):
+@pytest.mark.parametrize('n_jobs', [1, 2])
+def test_newly_generated_history(n_jobs):
     project_root_path = str(fedot_project_root())
     file_path_train = os.path.join(project_root_path, 'test/data/simple_classification.csv')
 
