@@ -28,6 +28,20 @@ How to setup the environment using GitHub
 
          $ python -m venv <your_venv_path>
 
+      Then, activate venv by using following command on Unix like OS
+
+      .. code-block::
+
+         $ source venv/bin/activate
+         # remember to call `deactivate` once you're done using the application
+
+      and the following command using Windows OS
+
+      .. code-block::
+
+         $ venv\Scripts\activate
+         # remember to call `venv\Scripts\deactivate` once you're done using the application
+
    -  After you have created the virtual environment, you should install
       the libraries necessary for the FEDOT framework to work.
       Here you need to type in the following:

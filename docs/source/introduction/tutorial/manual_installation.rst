@@ -15,4 +15,18 @@ Installation with optional dependencies for image and text processing, and for D
   $ pip install fedot[extra]
   $ python -m venv <your_venv_path>
 
+Then, activate venv by using following command on Unix like OS
+
+.. code-block::
+
+  $ source venv/bin/activate
+  # remember to call `deactivate` once you're done using the application
+
+and the following command using Windows OS
+
+.. code-block::
+
+  $ venv\Scripts\activate
+  # remember to call `venv\Scripts\deactivate` once you're done using the application
+
 And that's it.
