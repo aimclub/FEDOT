@@ -26,27 +26,13 @@ from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from pgmpy.models import BayesianNetwork
 from pgmpy.estimators import K2Score
 from math import ceil
+from examples.composite_model import CompositeModel
+from examples.composite_node import CompositeNode
 
-
-
-class CustomGraphModel(Graph):
-
-    def __init__(self, nodes: Optional[Union[OptNode, List[OptNode]]] = None):
-    #     self.unique_pipeline_id = 1
-    
-    # def __init__(self, nodes: Optional[Union['GraphNode', List['GraphNode']]] = None):
-        # self.nodes = []
-        self.operator = GraphOperator(self, nodes)
-
-
-
-class CustomGraphNode(OptNode):
-    def __str__(self):
-        return self.content["name"]
 
 
 # задаем метрику
-def custom_metric(graph: CustomGraphModel, data: pd.DataFrame):
+def custom_metric(graph: CompositeModel, data: pd.DataFrame):
     score = 0
     graph_nx, labels = graph_structure_as_nx_graph(graph)
     struct = []
@@ -74,8 +60,8 @@ def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGrap
             new_graph_first=deepcopy(graph_first)
             new_graph_second=deepcopy(graph_second)
 
-            edges_1 = new_graph_first.operator.get_all_edges()
-            edges_2 = new_graph_second.operator.get_all_edges()
+            edges_1 = new_graph_first.operator.get_edges()
+            edges_2 = new_graph_second.operator.get_edges()
             count = ceil(min(len(edges_1), len(edges_2))/2)
             choice_edges_1 = random.sample(edges_1, count)
             choice_edges_2 = random.sample(edges_2, count)
@@ -85,8 +71,8 @@ def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGrap
             for pair in choice_edges_2:
                 new_graph_second.operator.disconnect_nodes(pair[0], pair[1], False)  
             
-            old_edges1 = new_graph_first.operator.get_all_edges()
-            old_edges2 = new_graph_second.operator.get_all_edges()
+            old_edges1 = new_graph_first.operator.get_edges()
+            old_edges2 = new_graph_second.operator.get_edges()
 
             new_edges_2 = [[find_node(new_graph_second, i[0]), find_node(new_graph_second, i[1])] for i in choice_edges_1]
             new_edges_1 = [[find_node(new_graph_first, i[0]), find_node(new_graph_first, i[1])] for i in choice_edges_2] 
@@ -97,12 +83,12 @@ def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGrap
                 if pair not in old_edges2:
                     new_graph_second.operator.connect_nodes(pair[0], pair[1])                                             
             
-            if old_edges1 != new_graph_first.operator.get_all_edges() or old_edges2 != new_graph_second.operator.get_all_edges():
+            if old_edges1 != new_graph_first.operator.get_edges() or old_edges2 != new_graph_second.operator.get_edges():
                 break
 
-        if old_edges1 == new_graph_first.operator.get_all_edges() and new_edges_1!=[] and new_edges_1!=None:
+        if old_edges1 == new_graph_first.operator.get_edges() and new_edges_1!=[] and new_edges_1!=None:
             new_graph_first = deepcopy(graph_first)
-        if old_edges2 == new_graph_second.operator.get_all_edges() and new_edges_2!=[] and new_edges_2!=None:
+        if old_edges2 == new_graph_second.operator.get_edges() and new_edges_2!=[] and new_edges_2!=None:
             new_graph_second = deepcopy(graph_second)
     except Exception as ex:
         print(ex)
@@ -195,7 +181,7 @@ def run_example():
     objective = Objective(custom_metric) 
     objective_eval = ObjectiveEvaluate(objective, data = discretized_data)    
     # инициализация начальной сети (пустая)
-    initial = [CustomGraphModel(nodes=[CustomGraphNode(nodes_from=None,
+    initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
                                                        content={'name': vertex}) for vertex in vertices])]
 
 
@@ -204,13 +190,13 @@ def run_example():
         secondary=vertices, 
         max_arity=100,
         max_depth=100, 
-        pop_size=pop_size, 
-        num_of_generations=n_generation,
-        crossover_prob=crossover_probability, 
-        mutation_prob=mutation_probability
+        num_of_generations=n_generation
         )
 
     optimiser_parameters = GPGraphOptimizerParameters(
+        pop_size=pop_size,
+        crossover_prob=crossover_probability, 
+        mutation_prob=mutation_probability,
         genetic_scheme_type = GeneticSchemeTypesEnum.steady_state,
         selection_types = [SelectionTypesEnum.tournament],
         mutation_types = [custom_mutation_add, custom_mutation_delete, custom_mutation_reverse],
@@ -218,17 +204,35 @@ def run_example():
     )
 
     graph_generation_params = GraphGenerationParams(
-        adapter=DirectAdapter(base_graph_class=CustomGraphModel, base_node_class=CustomGraphNode),
+        adapter=DirectAdapter(base_graph_class=CompositeModel, base_node_class=CompositeNode),
         rules_for_constraint=rules)
 
     optimiser = EvoGraphOptimizer(
         graph_generation_params=graph_generation_params,
-        parameters=optimiser_parameters,
+        graph_optimizer_params=optimiser_parameters,
         requirements=requirements,
-        initial_graph=initial,
+        initial_graphs=initial,
         objective=objective)
 
     
+
+
+    def reverse_edge(self, node_parent, node_child):
+        self.disconnect_nodes(node_parent, node_child, False)
+        self.connect_nodes(node_child, node_parent)
+
+    def connect_nodes(self, parent, child):
+        if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
+            try:
+                if child.nodes_from==None:
+                    child.nodes_from=[]
+                child.nodes_from.append(parent)
+            except Exception as ex:
+                print(ex)
+    
+    GraphOperator.reverse_edge = reverse_edge
+    GraphOperator.connect_nodes = connect_nodes
+
     # запуск оптимизатора
     optimized_graph = optimiser.optimise(objective_eval)[0]
     # вывод полученного графа
