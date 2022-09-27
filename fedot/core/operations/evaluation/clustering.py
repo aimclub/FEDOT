@@ -17,9 +17,9 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
     }
 
     def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
-        if not params:
-            params = OperationParameters(n_clusters=2)
         super().__init__(operation_type, params)
+        if not params:
+            self.params_for_fit.update('n_clusters', 2)
         self.operation_impl = self._convert_to_operation(operation_type)
 
     def fit(self, train_data: InputData):

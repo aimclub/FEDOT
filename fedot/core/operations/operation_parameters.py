@@ -18,7 +18,7 @@ class OperationParameters:
 
     """
     def __init__(self, **parameters):
-        self._parameters = copy(parameters)
+        self._parameters = parameters
         self._changed_keys: list = []
 
     def __bool__(self):
