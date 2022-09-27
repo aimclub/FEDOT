@@ -10,9 +10,7 @@ from typing import List, Optional, Sequence, Union
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.archive import GenerationKeeper
-# ParentOperator is needed for backward compatibility with older optimization histories.
-# This is a temporary solution until the issue #699 (https://github.com/nccr-itmo/FEDOT/issues/699) is closed.
-from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator  # noqa
+from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position
