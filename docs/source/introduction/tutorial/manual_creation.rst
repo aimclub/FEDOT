@@ -7,15 +7,16 @@ How to create your own composite model in a manual way
 
    import pandas as pd
 
-   # specify automl training parameters
+   # specify additional automl training parameters
    timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
 
+   # build model for adjusting your own composite solution
    model = Fedot(
       problem='classification', timeout=timeout, metric_names=metric_names,
       with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=loggging_level
    )
 
-   # add all data paths
+   # add all datasets paths and load datasets
    train_file_path = ...
    validation_file_path = ...
 
@@ -35,13 +36,13 @@ How to create your own composite model in a manual way
    node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
--  **Step 3**. Fit the pipeline using *fit* method.
+-  **Step 3**. Fit the chosen pipeline using *fit* method.
 
 .. code:: python
 
    model.fit(features=dataset_to_train, predefined_model=pipeline)
 
--  **Step 4**. Obtain the prediction using *predict* method.
+-  **Step 4**. Obtain the prediction using *predict* method and show fitting metrics.
 
 .. code:: python
 
