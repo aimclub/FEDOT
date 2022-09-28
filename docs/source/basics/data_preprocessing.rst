@@ -24,6 +24,9 @@ There are two steps of preprocessing in FEDOT: on API and fit levels.
 
     On *optional level* gaps are filled in and categorical encoding applied if needed.
 
+*NB: when it comes to predictions, the data type is no longer determined anew based on the passed ones.
+The data will be converted according to the type to which the training data was cast.*
+
 
 General scheme of preprocessing
 --------
@@ -32,20 +35,34 @@ Preprocessing for tabular data in FEDOT can be represented as the following bloc
 
 |Block diagram|
 
+Such approach to preprocessing allows to get the real data type
+and minimize the number of dropped columns due to unrecognized data.
+
+
+Architecture
+--------
+
+The architecture of preprocessing in Fedot should also be considered separately at API and fit levels.
+
+- API level
+    At this level, *ApiDataProcessor* is responsible for issuing recommendations,
+    and *DataAnalyser* is responsible for applying these recommendations to data.
+
+- fit level
+    At fit level, *DataPreprocessor* is responsible for applying obligatory and optional preprocessing to data.
+
+
 Examples of preprocessing
 --------------
 
-Such approach to preprocessing allows to get the real data type
-and minimize the number of dropped columns due to unrecognized data
-
-The processing of the following samples of data well demonstrates the result of preprocessing in FEDOT.
+The processing of the following samples of data well demonstrates main important features of preprocessing in FEDOT.
 
 - gap filling:
     The gaps are filled with the mean value.
 
 |gap filling|
 
--column remove if too many nans:
+- column remove if too many nans:
     If percent of nans is more than 90 than column will be removed.
 
 |nans|
@@ -58,7 +75,10 @@ The processing of the following samples of data well demonstrates the result of 
 |failed ratio|
 
 - cast to a single type:
-    Cast to one type is done according to the block diagram.
+    Cast to one type is done according to the block diagram:
+        - true string removed and replaced with np.nan
+        - column converted to float
+        - gaps filled in
 
 |one type|
 
