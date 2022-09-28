@@ -14,7 +14,7 @@ and minimize the number of dropped columns due to unrecognized data
 The processing of the following samples of data well demonstrates the result of preprocessing in FEDOT.
 
 - gap filling:
- .. centered::|gap filling|
+|gap filling|
 
 - column revome if the data is too ambiguous:
 
@@ -42,5 +42,6 @@ After this preprocessing with this pipeline will be performed according to the s
 
 
 .. |gap filling| image:: img_utilities/gap-filling.png
+    :align: center
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
