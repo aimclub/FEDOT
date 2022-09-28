@@ -60,8 +60,9 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
 
         folds_metrics = []
         for fold_id, (train_data, test_data) in enumerate(self._data_producer()):
-            remote = RemoteEvaluator()
-            if not remote.use_remote:
+            if RemoteEvaluator().use_remote:
+                prepared_pipeline = graph
+            else:
                 try:
                     prepared_pipeline = self.prepare_graph(graph, train_data, fold_id, self._eval_n_jobs)
                 except Exception as ex:
@@ -72,8 +73,6 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
                         if not is_recording_mode():
                             raise ex
                     continue
-            else:
-                prepared_pipeline = graph
 
             evaluated_fitness = self._objective(prepared_pipeline,
                                                 reference_data=test_data,
@@ -103,15 +102,16 @@ class PipelineObjectiveEvaluate(ObjectiveEvaluate[Pipeline]):
         :param fold_id: id of the fold in cross-validation, used for cache requests.
         :param n_jobs: number of parallel jobs for preparation
         """
-        if fold_id != -1:  # important for remote non-CV mode
-            graph.unfit()
-            # load preprocessing
-            graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
-            graph.fit(
-                train_data,
-                n_jobs=n_jobs,
-                time_constraint=self._time_constraint
-            )
+
+        graph.unfit()
+
+        # load preprocessing
+        graph.try_load_from_cache(self._pipelines_cache, self._preprocessing_cache, fold_id)
+        graph.fit(
+            train_data,
+            n_jobs=n_jobs,
+            time_constraint=self._time_constraint
+        )
 
         if self._pipelines_cache is not None:
             self._pipelines_cache.save_pipeline(graph, fold_id)
