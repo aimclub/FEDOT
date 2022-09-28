@@ -57,18 +57,23 @@ After this preprocessing with this pipeline will be performed according to the s
 
 .. |gap filling| image:: img_utilities/gap_filling.jpg
    :width: 25%
+   :align: center
 
 .. |nans| image:: img_utilities/nans.jpg
    :width: 25%
+   :align: center
 
 .. |failed ratio| image:: img_utilities/failed_ratio.jpg
    :width: 25%
+   :align: center
 
 .. |one type| image:: img_utilities/cast_to_one_type.jpg
    :width: 25%
 
 .. |binary| image:: img_utilities/binary.jpg
    :width: 25%
+   :align: center
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
    :width: 70%
+   :align: center
