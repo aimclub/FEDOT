@@ -14,13 +14,25 @@ and minimize the number of dropped columns due to unrecognized data
 The processing of the following samples of data well demonstrates the result of preprocessing in FEDOT.
 
 - gap filling:
+
 |gap filling|
+
+-column remove if too many nans:
+
+|nans|
 
 - column revome if the data is too ambiguous:
 
+|failed ratio|
+
 - cast to a single type:
 
+|one type|
+
 - reduction to a binary classification problem:
+
+|binary|
+
 
 And the same data after FEDOT preprocessing:
 
@@ -42,5 +54,18 @@ After this preprocessing with this pipeline will be performed according to the s
 
 
 .. |gap filling| image:: img_utilities/gap_filling.jpg
+    :scale: 25 %
+
+.. |nans| image:: img_utilities/nans.jpg
+    :scale: 25 %
+
+.. |failed ratio| image:: img_utilities/failed_ratio.jpg
+    :scale: 25 %
+
+.. |one type| image:: img_utilities/cast_to_one_type.jpg
+    :scale: 25 %
+
+.. |binary| image:: img_utilities/binary.jpg
+    :scale: 25 %
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
