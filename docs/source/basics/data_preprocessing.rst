@@ -5,7 +5,7 @@ Data Preprocessing
 Main ideas about preprocessing
 --------
 
-There are two steps of preprocessing in FEDOT: on API and fit levels:
+There are two steps of preprocessing in FEDOT: on API and fit levels.
 
 - Preprocessing on API level
     On this level FEDOT determines what type of data was passed to the input and selects a strategy for
@@ -17,6 +17,7 @@ There are two steps of preprocessing in FEDOT: on API and fit levels:
 
 - Preprocessing on fit level
     On this level there are two more levels of preprocessing: obligatory and optional.
+
     On *obligatory level* incorrect values are removed, extra spaces are cleaned, the types of values in the data are determined and,
     if there are several of them, then the data is converted to a single type.
     Also at this level, data columns are deleted if they could not be cast to the same type.
@@ -40,22 +41,30 @@ and minimize the number of dropped columns due to unrecognized data
 The processing of the following samples of data well demonstrates the result of preprocessing in FEDOT.
 
 - gap filling:
+    The gaps are filled with the mean value.
 
 |gap filling|
 
 -column remove if too many nans:
+    If percent of nans is more than 90 than column will be removed.
 
 |nans|
 
 - column revome if the data is too ambiguous:
+    In order to assess the possibility of converting data into one type,
+    failed_ration calculated as unsuccessful_conversions/total attempts.
+    If 0.65 > failed_ratio >= 0.4 than column will be deleted.
 
 |failed ratio|
 
 - cast to a single type:
+    Cast to one type is done according to the block diagram.
 
 |one type|
 
 - reduction to a binary classification problem:
+    Due to the fact that the data is first converted to a numeric type,
+    the string values are transformed and only two unique values obtained in the column.
 
 |binary|
 
