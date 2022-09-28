@@ -42,6 +42,5 @@ After this preprocessing with this pipeline will be performed according to the s
 
 
 .. |gap filling| image:: img_utilities/gap-filling.png
-    :align: center
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
