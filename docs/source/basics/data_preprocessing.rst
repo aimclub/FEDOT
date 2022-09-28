@@ -2,13 +2,37 @@ Data Preprocessing
 ========
 
 
+Main ideas about preprocessing
+--------
 
-Preprocessing for tabular data
+There are two steps of preprocessing in FEDOT: on API and fit levels:
+
+- Preprocessing on API level
+    On this level FEDOT determines what type of data was passed to the input and selects a strategy for
+    reading data in according to the type.
+
+    Then recommendations are applied to the data. Recommendations applies only in safe_mode
+    so if safe_mode is True than FEDOT will cut large datasets to prevent memory overflow
+    and use label encoder instead of OneHotEncoder if amount of unique values of categorical features is high.
+
+- Preprocessing on fit level
+    On this level there are two more levels of preprocessing: obligatory and optional.
+    On *obligatory level* incorrect values are removed, extra spaces are cleaned, the types of values in the data are determined and,
+    if there are several of them, then the data is converted to a single type.
+    Also at this level, data columns are deleted if they could not be cast to the same type.
+
+    On *optional level* gaps are filled in and categorical encoding applied if needed.
+
+
+General scheme of preprocessing
 --------
 
 Preprocessing for tabular data in FEDOT can be represented as the following block diagram:
 
 |Block diagram|
+
+Examples of preprocessing
+--------------
 
 Such approach to preprocessing allows to get the real data type
 and minimize the number of dropped columns due to unrecognized data
@@ -36,8 +60,8 @@ The processing of the following samples of data well demonstrates the result of 
 |binary|
 
 
-And the same data after FEDOT preprocessing:
-
+Additional features
+---------
 
 Also for more flexible approach to preprocessing there are 2 variables to control data conversion:
 
@@ -57,23 +81,18 @@ After this preprocessing with this pipeline will be performed according to the s
 
 .. |gap filling| image:: img_utilities/gap_filling.jpg
    :width: 25%
-   :align: center
 
 .. |nans| image:: img_utilities/nans.jpg
    :width: 25%
-   :align: center
 
 .. |failed ratio| image:: img_utilities/failed_ratio.jpg
    :width: 25%
-   :align: center
 
 .. |one type| image:: img_utilities/cast_to_one_type.jpg
    :width: 25%
 
 .. |binary| image:: img_utilities/binary.jpg
    :width: 25%
-   :align: center
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
    :width: 70%
-   :align: center
