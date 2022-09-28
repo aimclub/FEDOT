@@ -41,6 +41,6 @@ For example, for column converting to numerical if the number of unique values i
 After this preprocessing with this pipeline will be performed according to the specified conditions.
 
 
-.. |gap filling| image:: img_utilities/gap-filling.png
+.. |gap filling| image:: img_utilities/gap_filling.jpg
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
