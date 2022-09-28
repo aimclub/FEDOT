@@ -28,17 +28,6 @@ There are two steps of preprocessing in FEDOT: on API and fit levels.
 The data will be converted according to the type to which the training data was cast.*
 
 
-General scheme of preprocessing
---------
-
-Preprocessing for tabular data in FEDOT can be represented as the following block diagram:
-
-|Block diagram|
-
-Such approach to preprocessing allows to get the real data type
-and minimize the number of dropped columns due to unrecognized data.
-
-
 Architecture
 --------
 
@@ -50,6 +39,17 @@ The architecture of preprocessing in Fedot should also be considered separately 
 
 - fit level
     At fit level, *DataPreprocessor* is responsible for applying obligatory and optional preprocessing to data.
+
+
+General scheme of preprocessing
+--------
+
+Preprocessing for tabular data in FEDOT can be represented as the following block diagram:
+
+|Block diagram|
+
+Such approach to preprocessing allows to get the real data type
+and minimize the number of dropped columns due to unrecognized data.
 
 
 Examples of preprocessing
