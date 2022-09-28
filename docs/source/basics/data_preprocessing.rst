@@ -55,6 +55,8 @@ After this preprocessing with this pipeline will be performed according to the s
 
 .. |gap filling| image:: img_utilities/gap_filling.jpg
     :scale: 25 %
+    :width: 100
+    :height: 100
 
 .. |nans| image:: img_utilities/nans.jpg
     :scale: 25 %
