@@ -71,3 +71,4 @@ After this preprocessing with this pipeline will be performed according to the s
     :scale: 25 %
 
 .. |Block diagram| image:: img_utilities/fedot_preprocessing_tabular.png
+    :scale: 25 %
