@@ -16,6 +16,7 @@ class ApiTime:
     def __init__(self, **time_params):
         self.time_for_automl = time_params.get('time_for_automl')
         self.with_tuning = time_params.get('with_tuning')
+        self.tuning_proportion = time_params.get('tuning_proportion')
 
         self.__define_timeouts_for_stages()
 
@@ -32,7 +33,10 @@ class ApiTime:
         else:
             # Time for composing based on tuning parameters
             if self.with_tuning:
-                self.timeout_for_composing = self.time_for_automl * COMPOSING_TUNING_PROPORTION
+                if self.tuning_proportion is None:
+                    self.timeout_for_composing = self.time_for_automl * COMPOSING_TUNING_PROPORTION
+                else:
+                    self.timeout_for_composing = self.time_for_automl * (1 - self.tuning_proportion)
             else:
                 self.timeout_for_composing = self.time_for_automl
 

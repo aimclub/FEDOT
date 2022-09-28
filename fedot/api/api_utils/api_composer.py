@@ -174,10 +174,11 @@ class ApiComposer:
         train_data = api_params['train_data']
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
+        tuning_proportion = api_params['tuning_proportion']
         available_operations = composer_params['available_operations']
         preset = composer_params['preset']
 
-        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning)
+        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning, tuning_proportion=tuning_proportion)
 
         # Work with initial assumptions
         assumption_handler = AssumptionsHandler(train_data)
