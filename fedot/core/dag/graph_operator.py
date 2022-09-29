@@ -1,5 +1,4 @@
 from copy import deepcopy
-from itertools import product
 from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 
 from networkx import graph_edit_distance, set_node_attributes
@@ -31,25 +30,27 @@ class GraphOperator(Graph, Copyable):
         pass
 
     @copy_doc(Graph)
-    def delete_node(self, node: GraphNode, reconnect=True):
-        # remove all occurrences
-        while node in self._nodes:
-            self._nodes.remove(node)
-        # prune all edges with the removed node
-        for node_parent in self._nodes:
-            self.disconnect_nodes(node_parent, node)
+    def delete_node(self, node: GraphNode):
+        node_children_cached = self.node_children(node)
+        self_root_node_cached = self.root_node
 
-        if reconnect:
-            node_children = self.node_children(node)
-            if len(node_children) == 1:
-                node_child = node_children[0]
-                for node_from in node.nodes_from:
-                    node_child.nodes_from.append(node_from)
+        for node_child in self.node_children(node):
+            node_child.nodes_from.remove(node)
+
+        if node.nodes_from and len(node_children_cached) == 1:
+            for node_from in node.nodes_from:
+                node_children_cached[0].nodes_from.append(node_from)
+        self._nodes.clear()
+        self.add_node(self_root_node_cached)
+        self._postprocess_nodes(self, self._nodes)
 
     @copy_doc(Graph)
     def delete_subtree(self, subtree: GraphNode):
-        for subtree_node in ordered_subnodes_hierarchy(subtree):
-            self.delete_node(subtree_node, reconnect=False)
+        subtree_nodes = ordered_subnodes_hierarchy(subtree)
+        self._nodes = remove_items(self._nodes, subtree_nodes)
+        # prune all edges coming from the removed subtree
+        for subtree in self._nodes:
+            subtree.nodes_from = remove_items(subtree.nodes_from, subtree_nodes)
 
     @copy_doc(Graph)
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
@@ -138,6 +139,8 @@ class GraphOperator(Graph, Copyable):
 
     @copy_doc(Graph)
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
+        if child in self.node_children(parent):
+            return
         child.nodes_from.append(parent)
 
     def _clean_up_leftovers(self, node: GraphNode):
