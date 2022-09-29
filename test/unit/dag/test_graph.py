@@ -21,7 +21,7 @@ GraphNode = DAGNode
 
 
 def test_graph_id():
-    right_id = '((/n1;)/n2;;(/n1;)/n3;)/n4'
+    right_id = '((/n_n1;)/n_n2;;(/n_n1;)/n_n3;)/n_n4'
     first = GraphNode(content='n1')
     second = GraphNode(content='n2', nodes_from=[first])
     third = GraphNode(content='n3', nodes_from=[first])
