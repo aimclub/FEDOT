@@ -1,6 +1,6 @@
 Tuning of Hyperparameters
 =========================
-FEDOT provide you with two ways for tuning of pipeline hyperparameters:
+FEDOT provides you with two ways for tuning of pipeline hyperparameters:
 
 1. Tuning of all models hyperparameters simultaneously. Implemented via ``PipelineTuner`` class.
 
