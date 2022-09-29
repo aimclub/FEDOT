@@ -33,8 +33,5 @@ Once FEDOT finds the best solution you have an opportunity to save it[link] and 
 
 Framework mostly works with sklearn, statsmodels and keras libraries.
 
-To see more information about FEDOT features go to the ``FedotFeatures`` page.
-To see a quickstart guide go to the ``Quickstart`` page.
-
-.. _Quickstart: https://fedot.readthedocs.io/en/latest/introduction/tutorial/quickstart.html
-.. _FedotFeatures: https://fedot.readthedocs.io/en/latest/introduction/fedot_features.html
+To see more information about FEDOT features go to the `features <https://fedot.readthedocs.io/en/latest/introduction/fedot_features.html>`_ page.
+To see a quickstart guide go to the `quickstart <https://fedot.readthedocs.io/en/latest/introduction/tutorial/quickstart.html>`_ page.
