@@ -5,24 +5,24 @@ Data Preprocessing
 Main ideas about preprocessing
 --------
 
-There are two steps of preprocessing in FEDOT: on API and fit levels.
+There are two preprocessing stages in FEDOT: on API and fit levels.
 
 - Preprocessing on API level
     On this level FEDOT determines what type of data was passed to the input and selects a strategy for
     reading data in according to the type.
 
     Then recommendations are applied to the data. Recommendations applies only in safe_mode
-    so if safe_mode is True than FEDOT will cut large datasets to prevent memory overflow
+    so if ``safe_mode`` is True than FEDOT will cut large datasets to prevent memory overflow
     and use label encoder instead of OneHotEncoder if amount of unique values of categorical features is high.
 
 - Preprocessing on fit level
-    On this level there are two more levels of preprocessing: obligatory and optional.
+    Fit level can be divided into two stages: obligatory and optional.
 
-    On *obligatory level* incorrect values are removed, extra spaces are cleaned, the types of values in the data are determined and,
+    On *obligatory stage* incorrect values are removed, extra spaces are cleaned, the types of values in the data are determined and,
     if there are several of them, then the data is converted to a single type.
     Also at this level, data columns are deleted if they could not be cast to the same type.
 
-    On *optional level* gaps are filled in and categorical encoding applied if needed.
+    On *optional stage* gaps are filled in and categorical encoding applied if required.
 
 *NB: when it comes to predictions, the data type is no longer determined anew based on the passed ones.
 The data will be converted according to the type to which the training data was cast.*
@@ -31,14 +31,14 @@ The data will be converted according to the type to which the training data was 
 Architecture
 --------
 
-The architecture of preprocessing in Fedot should also be considered separately at API and fit levels.
+The preprocessing architecture in FEDOT should also be considered separately at API and fit levels.
 
 - API level
-    At this level, *ApiDataProcessor* is responsible for issuing recommendations,
-    and *DataAnalyser* is responsible for applying these recommendations to data.
+    At this level, ``ApiDataProcessor`` is responsible for issuing recommendations,
+    and ``DataAnalyser`` is responsible for applying these recommendations to data.
 
 - fit level
-    At fit level, *DataPreprocessor* is responsible for applying obligatory and optional preprocessing to data.
+    At fit level, ``DataPreprocessor`` is responsible for applying obligatory and optional preprocessing to data.
 
 
 General scheme of preprocessing
@@ -48,7 +48,7 @@ Preprocessing for tabular data in FEDOT can be represented as the following bloc
 
 |Block diagram|
 
-Such approach to preprocessing allows to get the real data type
+This preprocessing approach allows to get the real data type
 and minimize the number of dropped columns due to unrecognized data.
 
 
@@ -70,14 +70,14 @@ The processing of the following samples of data well demonstrates main important
 - column revome if the data is too ambiguous:
     In order to assess the possibility of converting data into one type,
     failed_ration calculated as unsuccessful_conversions/total attempts.
-    If 0.65 > failed_ratio >= 0.4 than column will be deleted.
+    If ``0.65 > failed_ratio >= 0.4`` than column will be deleted.
 
 |failed ratio|
 
 - cast to a single type:
     Cast to one type is done according to the block diagram:
-        - true string removed and replaced with np.nan
-        - column converted to float
+        - true string removed and replaced with ``np.nan``
+        - column converted to ``float``
         - gaps filled in
 
 |one type|
@@ -94,10 +94,10 @@ Additional features
 
 Also for more flexible approach to preprocessing there are 2 variables to control data conversion:
 
-- numerical_min_uniques -- if number of unique values in the column lower, than threshold - convert column into categorical. Default: 13
-- categorical_max_classes_th -- if categorical column contains too much unique values convert it into numerical. Default: None
+- ``numerical_min_uniques`` -- if number of unique values in the column lower, than ``numerical_min_uniques`` - convert column into categorical. Default: 13
+- ``categorical_max_classes_th`` -- if categorical column contains too much unique values (more than ``categorical_max_classes_th``)convert it into numerical. Default: None
 
-For example, for column converting to numerical if the number of unique values in the column is greater than 5:
+For example, converting column to numerical if the number of unique values is greater than 5:
 
 .. code:: python
 
