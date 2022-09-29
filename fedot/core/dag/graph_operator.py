@@ -175,18 +175,11 @@ class GraphOperator(Graph, Copyable):
     @copy_doc(Graph)
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,
                          clean_up_leftovers: bool = True):
-        if not node_child.nodes_from or node_parent not in node_child.nodes_from:
+        if node_parent not in node_child.nodes_from:
             return
-        elif node_parent not in self._nodes or node_child not in self._nodes:
-            return
-        elif len(node_child.nodes_from) == 1:
-            node_child.nodes_from = None
-        else:
-            node_child.nodes_from.remove(node_parent)
-
+        node_child.nodes_from.remove(node_parent)
         if clean_up_leftovers:
             self._clean_up_leftovers(node_parent)
-
         self._postprocess_nodes(self, self._nodes)
 
     def root_nodes(self) -> Sequence[GraphNode]:
