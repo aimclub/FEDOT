@@ -1,9 +1,9 @@
 Data Preprocessing
-========
+==================
 
 
 Main ideas about preprocessing
---------
+------------------------------
 
 There are two preprocessing stages in FEDOT: on API and fit levels.
 
@@ -29,7 +29,7 @@ The data will be converted according to the type to which the training data was 
 
 
 Architecture
---------
+------------
 
 The preprocessing architecture in FEDOT should also be considered separately at API and fit levels.
 
@@ -42,7 +42,7 @@ The preprocessing architecture in FEDOT should also be considered separately at 
 
 
 General scheme of preprocessing
---------
+-------------------------------
 
 Preprocessing for tabular data in FEDOT can be represented as the following block diagram:
 
@@ -53,7 +53,7 @@ and minimize the number of dropped columns due to unrecognized data.
 
 
 Examples of preprocessing
---------------
+-------------------------
 
 The processing of the following samples of data well demonstrates main important features of preprocessing in FEDOT.
 
@@ -90,7 +90,7 @@ The processing of the following samples of data well demonstrates main important
 
 
 Additional features
----------
+-------------------
 
 Also for more flexible approach to preprocessing there are 2 variables to control data conversion:
 
