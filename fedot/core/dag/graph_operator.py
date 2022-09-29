@@ -73,7 +73,8 @@ class GraphOperator(Graph, Copyable):
     def add_node(self, node: GraphNode):
         if node not in self._nodes:
             self._nodes.append(node)
-            list(map(self.add_node, node.nodes_from))
+            for n in node.nodes_from:
+                self.add_node(n)
 
     @copy_doc(Graph)
     def distance_to_root_level(self, node: GraphNode) -> int:

@@ -5,7 +5,7 @@ import pytest
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_node import DAGNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node
@@ -18,7 +18,7 @@ def graph(request):
     nodes_kwargs = [{'content': {'name': f'n{i+1}'}} for i in range(4)]
     nodes_kwargs[-1]['nodes_from'] = range(len(nodes_kwargs) - 1)
     if graph_type in [GraphOperator, GraphDelegate]:
-        node_type = GraphNode
+        node_type = DAGNode
     elif graph_type is Pipeline:
         node_type = Node
     else:
