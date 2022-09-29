@@ -7,10 +7,10 @@ from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
-class BaseGraphNode(ABC):
+class GraphNode(ABC):
     @property
     @abstractmethod
-    def nodes_from(self) -> List['BaseGraphNode']:
+    def nodes_from(self) -> List['GraphNode']:
         """Gets all parent nodes of this graph node
 
         Returns:
@@ -20,7 +20,7 @@ class BaseGraphNode(ABC):
 
     @nodes_from.setter
     @abstractmethod
-    def nodes_from(self, nodes: Optional[Iterable['BaseGraphNode']]):
+    def nodes_from(self, nodes: Optional[Iterable['GraphNode']]):
         """Changes value of parent nodes of this graph node
 
         Returns:
@@ -74,7 +74,7 @@ class BaseGraphNode(ABC):
         return node_depth(self) - 1
 
 
-class GraphNode(BaseGraphNode):
+class DAGNode(GraphNode):
     """Class for node definition in the DAG-based structure
 
     Args:
@@ -89,7 +89,7 @@ class GraphNode(BaseGraphNode):
     """
 
     def __init__(self, content: Union[dict, str],
-                 nodes_from: Optional[List['GraphNode']] = None):
+                 nodes_from: Optional[Iterable['DAGNode']] = None):
         # Wrap string into dict if it is necessary
         if isinstance(content, str):
             content = {'name': content}
@@ -99,7 +99,7 @@ class GraphNode(BaseGraphNode):
         self.uid = str(uuid4())
 
     @property
-    def nodes_from(self) -> List['GraphNode']:
+    def nodes_from(self) -> List['DAGNode']:
         """Gets all parent nodes of this graph node
 
         Returns:
@@ -109,7 +109,7 @@ class GraphNode(BaseGraphNode):
         return self._nodes_from
 
     @nodes_from.setter
-    def nodes_from(self, nodes: Optional[Iterable['GraphNode']]):
+    def nodes_from(self, nodes: Optional[Iterable['DAGNode']]):
         """Changes value of parent nodes of this graph node
 
         Returns:

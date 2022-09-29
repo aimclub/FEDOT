@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Tuple, Union, Iterable
 
 import numpy as np
 
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_node import GraphNode, DAGNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
@@ -26,7 +26,7 @@ class NodeMetadata:
     metric: Optional[float] = None
 
 
-class Node(GraphNode):
+class Node(DAGNode):
     """Base class for node definition in :class:`Pipeline` structure
 
     Args:
@@ -109,7 +109,6 @@ class Node(GraphNode):
         updated_parameters = {**self.parameters, **changed_parameters}
         self.parameters = updated_parameters
 
-    # wrappers for 'operation' field from GraphNode class
     @property
     def operation(self) -> Operation:
         """Returns node operation object
