@@ -58,7 +58,7 @@ Examples of preprocessing
 The processing of the following samples of data well demonstrates main important features of preprocessing in FEDOT.
 
 - gap filling:
-    The gaps are filled with the mean value.
+    The gaps are filled with the mean value. For categorical data -- with the most frequent value along each column.
 
 |gap filling|
 
