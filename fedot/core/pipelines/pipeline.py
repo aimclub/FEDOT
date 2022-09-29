@@ -267,19 +267,17 @@ class Pipeline(GraphDelegate, Serializable):
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
-    def __str__(self) -> str:
-        """Returns compact information about class instance
+    def __eq__(self, other: 'Pipeline') -> bool:
+        """Compares this pipeline with provided ``other``
+
+        Args:
+            other: another pipeline
 
         Returns:
-            formatted string representation of the class instance
+            is it equal to ``other`` in terms of the pipelines
         """
 
-        description = {
-            'depth': self.depth,
-            'length': self.length,
-            'nodes': self.nodes,
-        }
-        return f'{description}'
+        return self.root_node.descriptive_id == other.root_node.descriptive_id
 
     @property
     def root_node(self) -> Optional[Node]:

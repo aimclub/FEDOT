@@ -51,7 +51,10 @@ class Operation:
 
     def description(self, operation_params: dict) -> str:
         operation_type = self.operation_type
-        return f'n_{operation_type}_{operation_params}'
+        if operation_params and operation_params != DEFAULT_PARAMS_STUB:
+            return f'n_{operation_type}_{operation_params}'
+        else:
+            return f'n_{operation_type}'
 
     @property
     def acceptable_task_types(self):

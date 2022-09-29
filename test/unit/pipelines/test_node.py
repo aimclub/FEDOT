@@ -86,6 +86,20 @@ def test_node_repr():
     assert actual_node_description == expected_node_description
 
 
+def test_node_repr_with_params():
+    # given
+    operation_type = 'logit'
+    params = {'some_param': 10}
+    test_model_node = GraphNode(dict(name=operation_type, params=params))
+    expected_node_description = f'n_{operation_type}_{params}'
+
+    # when
+    actual_node_description = repr(test_model_node)
+
+    # then
+    assert actual_node_description == expected_node_description
+
+
 def test_ordered_subnodes_hierarchy():
     first_node = PrimaryNode('knn')
     second_node = PrimaryNode('knn')

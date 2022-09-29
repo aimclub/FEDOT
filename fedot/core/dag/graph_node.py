@@ -45,6 +45,16 @@ class BaseGraphNode(ABC):
         """
         return self.__str__()
 
+    def description(self) -> str:
+        """Returns full node description
+        for use in recursive id.
+
+        Returns:
+            str: text graph node representation
+        """
+
+        return self.__str__()
+
     @property
     def descriptive_id(self) -> str:
         """Returns structural identifier of the subgraph starting at this node
@@ -136,6 +146,9 @@ class GraphNode(BaseGraphNode):
         return str(self.content['name'])
 
     def __repr__(self) -> str:
+        return self.__str__()
+
+    def description(self) -> str:
         """Returns full node description
 
         Returns:
@@ -144,11 +157,13 @@ class GraphNode(BaseGraphNode):
 
         node_operation = self.content['name']
         params = self.content.get('params')
+        # TODO: possibly unify with __repr__ & don't duplicate Operation.description
         if isinstance(node_operation, str):
             # If there is a string: name of operation (as in json repository)
-            node_label = str(node_operation)
             if params and params != DEFAULT_PARAMS_STUB:
-                node_label = f'n_{node_label}_{params}'
+                node_label = f'n_{node_operation}_{params}'
+            else:
+                node_label = f'n_{node_operation}'
         else:
             # If instance of Operation is placed in 'name'
             node_label = node_operation.description(params)
@@ -159,7 +174,7 @@ def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
     if visited_nodes is None:
         visited_nodes = []
 
-    node_label = repr(current_node)
+    node_label = current_node.description()
 
     full_path_items = []
     if current_node in visited_nodes:
