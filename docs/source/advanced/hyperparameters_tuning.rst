@@ -11,7 +11,7 @@ More information about these approaches can be found
 
 Simple example
 ~~~~~~~~~~~~~~
-To initialize a tuner you can use ``TunerBuilder``:
+To initialize a tuner you can use ``TunerBuilder``.
 
 .. code-block:: python
 
@@ -27,10 +27,27 @@ To initialize a tuner you can use ``TunerBuilder``:
     pipeline_tuner = TunerBuilder(task).build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
-Detailed explanation
-~~~~~~~~~~~~~~~~~~~~
+``TunerBuilder`` methods
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is default value.
+* with_tuner_
+* with_requirements_
+* with_cv_folds_
+* with_validation_blocks_
+* with_n_jobs_
+* with_metric_
+* with_iterations_
+* with_early_stopping_rounds_
+* with_timeout_
+* with_eval_time_constraint_
+* with_search_space_
+* with_algo_
+
+Tuner class
+-----------
+.. _with_tuner:
+
+Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is used by default.
 
 .. code-block:: python
 
@@ -42,7 +59,11 @@ Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is defaul
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
 
-Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (only for timeseries forecasting) and n_jobs.
+Evaluation
+----------
+.. _with_requirements:
+
+Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (applied only for timeseries forecasting) and n_jobs.
 
 .. code-block:: python
 
@@ -52,7 +73,14 @@ Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (only 
         .with_requirements(requirements) \
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
-Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jobs()`` to set corresponding values.
+
+.. _with_cv_folds:
+
+.. _with_validation_blocks:
+
+.. _with_n_jobs:
+
+Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jobs()`` to set corresponding values separately.
 
 .. code-block:: python
 
@@ -63,9 +91,14 @@ Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jo
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
+
+Metric
+------
+.. _with_metric:
+
 Specify metric to optimize using ``.with_metric()``.
 
-1. Metric can be chosen from ClusteringMetricsEnum, ClassificationMetricsEnum, RegressionMetricsEnum.
+1. Metric can be chosen from ``ClusteringMetricsEnum``, ``ClassificationMetricsEnum``, ``RegressionMetricsEnum``.
 
 .. code-block:: python
 
@@ -75,14 +108,15 @@ Specify metric to optimize using ``.with_metric()``.
         .with_metric(metric) \
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
-2. You can pass custom metric. For that implement abstract class QualityMetric and pass CustomMetric.get_value. Note that tuner will minimize the metric.
+
+2. You can pass custom metric. For that, implement abstract class ``QualityMetric`` and pass ``CustomMetric.get_value`` as metric. Note that tuner will minimize the metric.
 
 .. code-block:: python
 
     import sys
     from copy import deepcopy
 
-    from sklearn.metrics import mean_squared_error
+    from sklearn.metrics import mean_squared_error as mse
 
     from fedot.core.composer.metrics import QualityMetric
     from fedot.core.data.data import InputData, OutputData
@@ -95,67 +129,48 @@ Specify metric to optimize using ``.with_metric()``.
 
         @staticmethod
         def metric(reference: InputData, predicted: OutputData) -> float:
-            return mean_squared_error(y_true=reference.target,
-                                      y_pred=predicted.predict, squared=True)
+            mse_value = mse(reference.target, predicted.predict, squared=False)
+            return (mse_value + 2) * 0.5
 
 
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.regression)) \
         .with_metric(CustomMetric.get_value) \
         .build(train_data)
-    tuned_pipeline = pipeline_tuner.tune(deepcopy(pipeline))
-Extended example
-~~~~~~~~~~~~~~~~
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+3. Another way to pass custom metric is to implement a function with the following signature: ``Callable[[G], Real]``. Note that tuner will minimize the metric.
 
 .. code-block:: python
 
-    import os
-    import datetime
-    from copy import deepcopy
+    from sklearn.metrics import mean_squared_error as mse
 
-    import hyperopt
-    from hyperopt import hp
-
-    from examples.simple.classification.classification_pipelines import classification_complex_pipeline
+    from fedot.core.dag.graph import Graph
     from fedot.core.data.data import InputData
-    from fedot.core.optimisers.composer_requirements import ComposerRequirements
-    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
-    from fedot.core.pipelines.tuning.search_space import SearchSpace
-    from fedot.core.pipelines.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
-    from fedot.core.pipelines.tuning.unified import PipelineTuner
-    from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
-    from fedot.core.repository.tasks import TaskTypesEnum, Task
-    from fedot.core.utils import fedot_project_root
+    from fedot.core.repository.tasks import Task, TaskTypesEnum
 
-    # use task to initialize TunerBuilder
-    task = Task(TaskTypesEnum.classification)
 
-    # specify tuner class to use. Default tuner - PipelineTuner
-    tuner = PipelineTuner
+    def custom_metric(graph: Graph, reference_data: InputData, validation_blocks: int, **kwargs):
+        result = graph.predict(reference_data)
+        mse_value = mse(reference_data.target, result.predict, squared=False)
+        return (mse_value + 2) * 0.5
 
-    # use requirements to set number of cv_folds, validation blocks for ts forecasting and n_jobs
-    requirements = ComposerRequirements(cv_folds=2, n_jobs=2, show_progress=True)
-    # or use special methods: with_cv_folds(), with_validation_blocks(), with_n_jobs()
 
-    # pass metric.
-    # 1. Metric can be chosen from ClusteringMetricsEnum, ClassificationMetricsEnum, RegressionMetricsEnum
-    # 2. You can pass your custom metric. For that implement abstract class QualityMetric and pass CustomMetric.get_value.
-    # Note that tuner will minimize custom metric.
-    metric = ClassificationMetricsEnum.ROCAUC
+    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.regression)) \
+        .with_metric(custom_metric) \
+        .build(train_data)
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
 
-    # set number of tuning iterations
-    iterations = 500
 
-    # early_stopping_rounds specify after what number of iterations without metric improvement search will be stopped
-    early_stopping_rounds = 50
+Search Space
+------------
 
-    # timeout for tuning
-    timeout = datetime.timedelta(minutes=1)
+.. _with_search_space:
 
-    # eval_time_constraint - time constraint for pipeline fit while it's evaluation
-    eval_time_constraint = 5
+To set search space use ``.with_search_space()``. By default tuner uses search space specified in ``fedot/core/pipelines/tuning/search_space.py``
+To customize search space use ``SearchSpace`` class.
 
-    # set search_space. Use SeqrchSpace class to customize it.
+.. code-block:: python
+
     custom_search_space = {
         'logit': {
             'C': (hp.uniform, [0.01, 5.0])
@@ -170,18 +185,114 @@ Extended example
     }
     search_space = SearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
 
-    # set algorithm for hyperparameters optimization with signature similar to :obj:`hyperopt.tse.suggest`
-    # By default, `hyperopt.tse.suggest` is used
+    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
+            .with_search_space(search_space) \
+            .build(train_data)
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+Algo
+----
+.. _with_algo:
+
+You can set algorithm for hyperparameters optimization with signature similar to ``hyperopt.tse.suggest``.
+By default, ``hyperopt.tse.suggest`` is used.
+
+.. code-block:: python
+
     algo = hyperopt.rand.suggest
 
-    test_file_path = str(os.path.dirname(__file__))
-    file = os.path.join(str(fedot_project_root()), 'test/data/advanced_classification.csv')
-    input_data = InputData.from_csv(os.path.join(test_file_path, file), task=task)
-    # pipeline = classification_complex_pipeline()
-    pipeline = PipelineBuilder().add_node('knn', branch_idx=0).add_branch('logit', branch_idx=1)\
-        .grow_branches('logit', 'rf').join_branches('knn').to_pipeline()
-    # pipeline1.show()
+    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
+        .with_algo(algo) \
+        .build(train_data)
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+Constraints
+-----------
+.. _with_timeout:
 
+* Use ``.with_timeout()`` to set timeout for tuning.
+
+.. _with_iterations:
+
+* Use ``.with_iterations()`` to set maximal number of tuning iterations.
+
+.. _with_early_stopping_rounds:
+
+* Use ``.with_early_stopping_rounds()`` to specify after what number of iterations without metric improvement tuning will be stopped.
+
+.. _with_eval_time_constraint:
+
+* Use ``.with_eval_time_constraint()`` to set  time constraint for pipeline fitting while it's evaluation.
+
+.. code-block:: python
+
+    timeout = datetime.timedelta(minutes=1)
+
+    iterations = 500
+
+    early_stopping_rounds = 50
+
+    eval_time_constraint = datetime.timedelta(seconds=30)
+
+    pipeline_tuner = TunerBuilder(task) \
+        .with_timeout(timeout) \
+        .with_iterations(iterations) \
+        .with_early_stopping_rounds(early_stopping_rounds) \
+        .with_eval_time_constraint(eval_time_constraint) \
+        .build(input_data)
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+Examples
+~~~~~~~~
+Tuning all hyperparameters simultaniously
+-----------------------------------------
+
+.. code-block:: python
+
+    import datetime
+
+    import hyperopt
+    from hyperopt import hp
+
+    from fedot.core.data.data import InputData
+    from fedot.core.optimisers.composer_requirements import ComposerRequirements
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.pipelines.tuning.search_space import SearchSpace
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    from fedot.core.pipelines.tuning.unified import PipelineTuner
+    from fedot.core.repository.quality_metrics_repository import ClassificationMetricsEnum
+    from fedot.core.repository.tasks import TaskTypesEnum, Task
+
+    task = Task(TaskTypesEnum.classification)
+
+    tuner = PipelineTuner
+
+    requirements = ComposerRequirements(cv_folds=2, n_jobs=2)
+
+    metric = ClassificationMetricsEnum.ROCAUC
+
+    iterations = 500
+
+    early_stopping_rounds = 50
+
+    timeout = datetime.timedelta(minutes=1)
+
+    eval_time_constraint = datetime.timedelta(seconds=30)
+
+    custom_search_space = {
+        'logit': {
+            'C': (hp.uniform, [0.01, 5.0])
+        },
+        'knn': {
+            'n_neighbors': (hp.uniformint, [1, 6]),
+            'weights': (hp.choice, [["uniform", "distance"]]),
+            'p': (hp.choice, [[1, 2]])}
+    }
+    search_space = SearchSpace(custom_search_space=custom_search_space, replace_default_search_space=True)
+
+    algo = hyperopt.rand.suggest
+
+    train_data = InputData.from_csv('train_file.csv')
+
+    pipeline = PipelineBuilder().add_node('knn', branch_idx=0).add_branch('logit', branch_idx=1) \
+        .grow_branches('logit', 'rf').join_branches('knn').to_pipeline()
 
     pipeline_tuner = TunerBuilder(task) \
         .with_tuner(tuner) \
@@ -193,26 +304,119 @@ Extended example
         .with_search_space(search_space) \
         .with_algo(algo) \
         .with_eval_time_constraint(eval_time_constraint) \
-        .build(input_data)
-    print('_________pipeline', pipeline_tuner.get_metric_value(pipeline))
-    tuned_pipeline = pipeline_tuner.tune(deepcopy(pipeline))
+        .build(train_data)
+
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+Sequential tuning
+-----------------
+
+.. code-block:: python
+
+    import datetime
+
+    from fedot.core.data.data import InputData
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.pipelines.tuning.sequential import SequentialTuner
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+    from fedot.core.repository.tasks import TaskTypesEnum, Task
+
+    task = Task(TaskTypesEnum.ts_forecasting)
 
     tuner = SequentialTuner
-    seq_pipeline_tuner = TunerBuilder(task) \
+
+    cv_folds = 3
+
+    validation_blocks = 4
+
+    metric = RegressionMetricsEnum.RMSE
+
+    iterations = 1000
+
+    early_stopping_rounds = 50
+
+    timeout = datetime.timedelta(minutes=1)
+
+    train_data = InputData.from_csv('train_file.csv')
+
+    pipeline = PipelineBuilder().add_node('arima').to_pipeline()
+
+    pipeline_tuner = TunerBuilder(task) \
         .with_tuner(tuner) \
-        .with_requirements(requirements) \
+        .with_cv_folds(cv_folds) \
+        .with_validation_blocks(validation_blocks) \
         .with_metric(metric) \
         .with_iterations(iterations) \
         .with_early_stopping_rounds(early_stopping_rounds) \
         .with_timeout(timeout) \
-        .with_search_space(search_space) \
-        .with_algo(algo) \
-        .with_eval_time_constraint(eval_time_constraint) \
-        .build(input_data)
-    seq_tuned_pipeline = seq_pipeline_tuner.tune(deepcopy(pipeline))
-    pipeline_with_tuned_node = seq_pipeline_tuner.tune_node(deepcopy(pipeline), node_index=0)
+        .build(train_data)
 
-    print('pipeline', pipeline_tuner.get_metric_value(pipeline))
-    print('tuned_pipeline', pipeline_tuner.get_metric_value(tuned_pipeline))
-    print('seq_tuned_pipeline', seq_pipeline_tuner.get_metric_value(seq_tuned_pipeline))
-    print('pipeline_with_tuned_node', seq_pipeline_tuner.get_metric_value(pipeline_with_tuned_node))
+    tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+Tuning of a node
+----------------
+
+.. code-block:: python
+
+    import datetime
+
+    from fedot.core.optimisers.composer_requirements import ComposerRequirements
+    from fedot.core.pipelines.pipeline_builder import PipelineBuilder
+    from fedot.core.pipelines.tuning.sequential import SequentialTuner
+    from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
+    from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
+    from fedot.core.repository.tasks import TaskTypesEnum, Task
+    from test.integration.quality.test_synthetic_tasks import get_regression_data
+
+    task = Task(TaskTypesEnum.regression)
+
+    tuner = SequentialTuner
+
+    requirements = ComposerRequirements(cv_folds=2, n_jobs=-1)
+
+    metric = RegressionMetricsEnum.SMAPE
+
+    timeout = datetime.timedelta(minutes=5)
+
+    train_data = get_regression_data()
+    pipeline = PipelineBuilder().add_node('dtreg').add_node('lasso').to_pipeline()
+
+
+    pipeline_tuner = TunerBuilder(task) \
+        .with_tuner(tuner) \
+        .with_requirements(requirements) \
+        .with_metric(metric) \
+        .with_timeout(timeout) \
+        .build(train_data)
+    pipeline_with_tuned_node = pipeline_tuner.tune_node(pipeline, node_index=1)
+
+
+Another examples can be found here:
+
+**Regression**
+
+* ``examples/simple/regression/regression_with_tuning.py``
+* ``examples/advanced/decompose/regression_refinement_example.py``
+* ``examples/advanced/multitask_classification_regression.py``
+
+**Classification**
+
+* ``examples/simple/classification/classification_with_tuning.py``
+* ``examples/simple/classification/resample_example.py``
+* ``examples/simple/pipeline_tune.py``
+* ``examples/advanced/decompose/classification_refinement_example.py``
+
+**Forecasting**
+
+* ``examples/simple/time_series_forecasting/tuning_pipelines.py``
+* ``examples/advanced/time_series_forecasting/sparse_lagged_tuning.py``
+* ``examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py``
+* ``examples/advanced/time_series_forecasting/custom_model_tuning.py``
+* ``cases/river_levels_prediction/river_level_case_composer.py``
+* ``cases/river_levels_prediction/river_level_case_manual.py``
+
+**Multitask**
+
+* ``examples/advanced/multitask_classification_regression.py``
+

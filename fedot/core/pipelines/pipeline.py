@@ -141,7 +141,7 @@ class Pipeline(GraphDelegate, Serializable):
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
+            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint.seconds)
         return train_predicted
 
     @property
