@@ -286,7 +286,7 @@ class SearchSpace:
             },
             'tfidf': {
                 'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3)]]),
-                'min_df': (hp.uniform, [0.0001, 0.1]),
+                'min_df': (hp.uniform, [0.0001, 0.01]),
                 'max_df': (hp.uniform, [0.9, 0.99])
             },
         }
