@@ -5,10 +5,12 @@ import io
 import itertools
 import os
 import shutil
+from copy import copy
 from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
+from fedot.core.optimisers.opt_history_objects.generation import Generation
 from fedot.core.serializers.serializer import default_load, default_save
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
@@ -31,7 +33,7 @@ class OptHistory:
                  is_multi_objective: bool = False,
                  default_save_dir: Optional[os.PathLike] = None):
         self._is_multi_objective = is_multi_objective
-        self.individuals: List[List[Individual]] = []
+        self.individuals: List[Generation] = []
         self.archive_history: List[List[Individual]] = []
         self._log = default_log(self)
 
@@ -48,8 +50,8 @@ class OptHistory:
     def is_empty(self) -> bool:
         return not self.individuals
 
-    def add_to_history(self, individuals: Sequence[Individual]):
-        self.individuals.append(list(individuals))
+    def add_to_history(self, individuals: Generation):
+        self.individuals.append(copy(individuals))
 
     def add_to_archive_history(self, individuals: Sequence[Individual]):
         self.archive_history.append(list(individuals))
