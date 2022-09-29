@@ -1,6 +1,5 @@
 FEDOT Features
 ==============
-.. _Fedot features:
 
 The main features of the framework are follows:
 

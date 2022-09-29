@@ -1,6 +1,5 @@
 Quickstart
 ==========
-.. _Quickstart:
 
 FEDOT Framework quick start guide.
 
