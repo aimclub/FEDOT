@@ -178,7 +178,3 @@ Acknowledgements
 This document guide is based at well-written `TPOT Framework
 contribution
 guide <https://github.com/EpistasisLab/tpot/blob/master/docs_sources/contributing.md>`__.
-
-
-/home/docs/checkouts/readthedocs.org/user_builds/fedot/checkouts/915/docs/source/../../fedot/api/main.py:docstring of fedot.api.main.Fedot:25: WARNING: Block quote ends without a blank line; unexpected unindent.
-looking for now-outdated files... none found
