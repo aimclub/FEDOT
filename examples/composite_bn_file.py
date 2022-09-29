@@ -180,10 +180,17 @@ def run_example():
     # задаем для оптимизатора fitness-функцию
     objective = Objective(custom_metric) 
     objective_eval = ObjectiveEvaluate(objective, data = discretized_data)    
+    # parent_model
+    parent_model = ['Linear_Regression', 'Logistic_Regression', 'Ridge_Regression', 'Lasso_Regression', 'Polynomial_Regression']
     # инициализация начальной сети (пустая)
-    initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
-                                                       content={'name': vertex}) for vertex in vertices])]
+    # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
+    #                                                 content={'name': vertex}, 
+    #                                                 type = dir_of_nodes[vertex]) for vertex in vertices])]
 
+    initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
+                                                    content={'name': vertex,
+                                                    'type': dir_of_nodes[vertex],
+                                                    'parent_model': random.choice(parent_model)}) for vertex in vertices])]    
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
