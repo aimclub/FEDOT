@@ -1,5 +1,5 @@
 import math
-from copy import deepcopy
+from copy import copy, deepcopy
 from random import choice, randint
 from typing import List, Callable
 
@@ -38,20 +38,21 @@ class Selection(Operator):
             chosen = individuals
         else:
             chosen = []
-            remaining_individuals = individuals
-            individuals_pool_size = len(individuals)
-            n_iter = 0
+            remaining_individuals = copy(individuals)
+            remove_remaining_individuals = pop_size <= len(individuals)
             # TODO: refactor this unnecessary param copying --
             #  call selection without without self.__call__ and pass pop_size explicitly
             old_requirements = deepcopy(self.parameters)
             self.parameters.pop_size = 1
-            while len(chosen) < pop_size and n_iter < pop_size * 10 and remaining_individuals:
+            iterations_limit = pop_size * 10
+            for _ in range(iterations_limit):
+                if len(chosen) >= pop_size or not remaining_individuals:
+                    break
                 individual = self.__call__(remaining_individuals)[0]
                 if individual.uid not in (chosen_individual.uid for chosen_individual in chosen):
                     chosen.append(individual)
-                    if pop_size <= individuals_pool_size:
+                    if remove_remaining_individuals:
                         remaining_individuals.remove(individual)
-                n_iter += 1
             self.parameters = old_requirements
         return chosen
 
@@ -61,26 +62,27 @@ def tournament_selection(individuals: PopulationT, pop_size: int, fraction: floa
     min_group_size = 2 if len(individuals) > 1 else 1
     group_size = max(group_size, min_group_size)
     chosen = []
-    n_iter = 0
-
-    while len(chosen) < pop_size and n_iter < pop_size * 10:
+    iterations_limit = pop_size * 10
+    for _ in range(iterations_limit):
+        if len(chosen) >= pop_size:
+            break
         group = random_selection(individuals, group_size)
         best = max(group, key=lambda ind: ind.fitness)
         if best.uid not in (c.uid for c in chosen):
             chosen.append(best)
-        n_iter += 1
-
     return chosen
 
 
 def random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
+    if not individuals:
+        return []
+    if len(individuals) <= 1:
+        return [individuals[0]] * pop_size
     chosen = []
-    n_iter = 0
-    while len(chosen) < pop_size and n_iter < pop_size * 10:
-        if not individuals:
-            return []
-        if len(individuals) <= 1:
-            return [individuals[0]] * pop_size
+    iterations_limit = pop_size * 10
+    for _ in range(iterations_limit):
+        if len(chosen) >= pop_size:
+            break
         individual = choice(individuals)
         if individual.uid not in (c.uid for c in chosen):
             chosen.append(individual)
