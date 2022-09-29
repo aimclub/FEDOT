@@ -108,10 +108,10 @@ def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
-    svc -> logit \
-                  \
-                    rf -> final prediction
-        knn -> knn /
+         svc -> logit \
+                       \
+                       rf -> final prediction
+            knn -> knn /
                   /
     svc -> logit /
 
