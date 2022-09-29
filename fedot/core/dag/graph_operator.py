@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 from networkx import graph_edit_distance, set_node_attributes
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy, node_depth
+from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy, node_depth, DAGNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, remove_items, Copyable
 from fedot.core.utils import copy_doc
@@ -55,13 +55,7 @@ class GraphOperator(Graph, Copyable):
     @copy_doc(Graph)
     def update_node(self, old_node: GraphNode, new_node: GraphNode):
         self.actualise_old_node_children(old_node, new_node)
-        if old_node.nodes_from:
-            if new_node.nodes_from:
-                # extend sources of new_node with sources of old node
-                new_node.nodes_from.extend(old_node.nodes_from)
-            else:
-                # just assign old sources as sources for the new node
-                new_node.nodes_from = old_node.nodes_from
+        new_node.nodes_from.extend(old_node.nodes_from)
         self._nodes.remove(old_node)
         self._nodes.append(new_node)
         self.sort_nodes()
@@ -79,9 +73,7 @@ class GraphOperator(Graph, Copyable):
     def add_node(self, node: GraphNode):
         if node not in self._nodes:
             self._nodes.append(node)
-            if node.nodes_from:
-                for new_parent_node in node.nodes_from:
-                    self.add_node(new_parent_node)
+            list(map(self.add_node, node.nodes_from))
 
     @copy_doc(Graph)
     def distance_to_root_level(self, node: GraphNode) -> int:
@@ -149,14 +141,7 @@ class GraphOperator(Graph, Copyable):
     def connect_nodes(self, parent: GraphNode, child: GraphNode):
         if child in self.node_children(parent):
             return
-        # if not already connected
-        if child.nodes_from:
-            child.nodes_from.append(parent)
-        else:
-            # add parent to initial node
-            new_child = GraphNode(nodes_from=[], content=child.content)
-            new_child.nodes_from.append(parent)
-            self.update_node(child, new_child)
+        child.nodes_from.append(parent)
 
     def _clean_up_leftovers(self, node: GraphNode):
         """Removes nodes and edges that do not affect the result of the pipeline.
@@ -168,9 +153,8 @@ class GraphOperator(Graph, Copyable):
 
         if not self.node_children(node):
             self._nodes.remove(node)
-            if node.nodes_from:
-                for node in node.nodes_from:
-                    self._clean_up_leftovers(node)
+            for node in node.nodes_from:
+                self._clean_up_leftovers(node)
 
     @copy_doc(Graph)
     def disconnect_nodes(self, node_parent: GraphNode, node_child: GraphNode,

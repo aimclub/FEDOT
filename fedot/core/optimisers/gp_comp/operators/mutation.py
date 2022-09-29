@@ -183,9 +183,13 @@ class Mutation(Operator):
         new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, is_primary=False)
         if not new_node:
             return graph
+
+        # rewire old children to new parent
         new_node.nodes_from = node_to_mutate.nodes_from
         node_to_mutate.nodes_from = [new_node]
-        graph.nodes.append(new_node)
+
+        # add new node to graph
+        graph.add_node(new_node)
         return graph
 
     @register_native
