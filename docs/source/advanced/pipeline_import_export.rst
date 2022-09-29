@@ -80,7 +80,7 @@ The *'save_pipeline'* method:
                 "model_name": "LogisticRegression",
                 "custom_params": "default_params",
                 "params": {
-                    ...
+                    
                 },
                 "nodes_from": [],
                 "fitted_model_path": "fitted_models/model_1.pkl",
@@ -94,7 +94,7 @@ The *'save_pipeline'* method:
                     "n_components": 1
                 },
                 "params": {
-                    ...
+                    
                 },
                 "nodes_from": [],
                 "fitted_model_path": "fitted_models/model_2.pkl",
@@ -106,7 +106,7 @@ The *'save_pipeline'* method:
                 "model_name": "XGBClassifier",
                 "custom_params": "default_params",
                 "params": {
-                    ...
+                    
                 },
                 "nodes_from": [],
                 "fitted_model_path": "fitted_models/model_3.pkl",
@@ -120,7 +120,7 @@ The *'save_pipeline'* method:
                     "n_neighbors": 5
                 },
                 "params": {
-                    ...
+                    
                 },
                 "nodes_from": [
                     1,
