@@ -4,10 +4,10 @@ Intro to FEDOT
 .. |FEDOT logo| image:: img_intro/fedot_logo.png
    :width: 80%
 
-.. |Pipeline schema| image:: img_intro/small_pipeline.png
+.. |Pipeline schema| image:: img_intro/pipeline_small.png
    :width: 80%
 
-.. |Pipeline features| image:: img_intro/gg.png
+.. |Example of solution| image:: img_intro/pipeline.png
    :width: 80%
 
 FEDOT - an open-source framework for automated modeling and machine learning (AutoML). It produces a lightweight end-to-end solution in an automated way using an evolutionary approach.
@@ -29,6 +29,8 @@ FEDOT supports a full cycle of machine learning task life that includes preproce
 
 Once FEDOT finds the best solution you have an opportunity to save it[link] and look closer to the solution and optimization process if needed.
 
+|Example of solution|
 
+Framework mostly works with sklearn, statsmodels and keras libraries.
 
-Framework mostly works with sklearn, statsmodels and keras libraries
+To see more information about FEDOT features go to the fedot_features
