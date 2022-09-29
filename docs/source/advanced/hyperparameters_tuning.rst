@@ -56,6 +56,7 @@ Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is used b
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
         .with_tuner(tuner) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
 
@@ -72,6 +73,7 @@ Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (appli
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))) \
         .with_requirements(requirements) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
 .. _with_cv_folds:
@@ -89,6 +91,7 @@ Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jo
         .with_validation_blocks(2) \
         .with_n_jobs(-1) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
 
@@ -107,6 +110,7 @@ Specify metric to optimize using ``.with_metric()``.
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
         .with_metric(metric) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
 2. You can pass custom metric. For that, implement abstract class ``QualityMetric`` and pass ``CustomMetric.get_value`` as metric. **Note** that tuner will minimize the metric.
@@ -136,6 +140,7 @@ Specify metric to optimize using ``.with_metric()``.
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.regression)) \
         .with_metric(CustomMetric.get_value) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 3. Another way to pass custom metric is to implement a function with the following signature: ``Callable[[G], Real]``. **Note** that tuner will minimize the metric.
 
@@ -158,6 +163,7 @@ Specify metric to optimize using ``.with_metric()``.
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.regression)) \
         .with_metric(custom_metric) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
 
@@ -188,6 +194,7 @@ To customize search space use ``SearchSpace`` class.
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
             .with_search_space(search_space) \
             .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 Algorithm
 ---------
@@ -203,6 +210,7 @@ By default, ``hyperopt.tse.suggest`` is used.
     pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.classification)) \
         .with_algo(algo) \
         .build(train_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 Constraints
 -----------
@@ -238,6 +246,7 @@ Constraints
         .with_early_stopping_rounds(early_stopping_rounds) \
         .with_eval_time_constraint(eval_time_constraint) \
         .build(input_data)
+
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 Examples
 ~~~~~~~~
@@ -395,6 +404,7 @@ Tuning of a node
         .with_metric(metric) \
         .with_timeout(timeout) \
         .build(train_data)
+
     pipeline_with_tuned_node = pipeline_tuner.tune_node(pipeline, node_index=1)
 
 
