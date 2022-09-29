@@ -7,7 +7,7 @@ from fedot.core.log import default_log
 from fedot.core.visualisation.opt_history.arg_constraint_wrapper import ArgConstraintWrapper
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.opt_history import OptHistory
+    from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 
 class HistoryVisualization(metaclass=ArgConstraintWrapper):

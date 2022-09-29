@@ -1,9 +1,9 @@
 from itertools import chain
 from typing import Any, Dict, List, Sequence, Type, Union
 
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph
-from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.opt_history_objects.individual import Individual
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from . import any_from_json, any_to_json
 
 MISSING_INDIVIDUAL_ARGS = {
@@ -62,6 +62,7 @@ def _deserialize_generations_list(generations_list: List[List[Union[str, Individ
 def _deserialize_parent_individuals(individuals: List[Individual],
                                     uid_to_individual_map: Dict[str, Individual]):
     """The operation is executed in-place"""
+
     def deserialize_intermediate_parents(ind):
         parent_op = ind.parent_operator
         if not parent_op:

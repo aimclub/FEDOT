@@ -3,8 +3,8 @@ from bisect import bisect_right
 from operator import eq
 from typing import Callable, Optional
 
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 
 class HallOfFame:

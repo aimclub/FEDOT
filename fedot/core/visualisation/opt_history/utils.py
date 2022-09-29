@@ -14,7 +14,7 @@ from fedot.core.log import default_log
 from fedot.core.repository.operation_types_repository import OperationTypesRepository, get_opt_node_tag
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.opt_history import OptHistory
+    from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 MatplotlibColorType = Union[str, Sequence[float]]
 LabelsColorMapType = Dict[str, MatplotlibColorType]

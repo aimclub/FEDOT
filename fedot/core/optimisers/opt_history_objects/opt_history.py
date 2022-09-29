@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import io
 import itertools
@@ -5,13 +7,10 @@ import json
 import os
 import shutil
 from pathlib import Path
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
-from fedot.core.optimisers.archive import GenerationKeeper
-from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective import Objective
 from fedot.core.optimisers.utils.population_utils import get_metric_position
 from fedot.core.pipelines.template import PipelineTemplate
@@ -19,6 +18,11 @@ from fedot.core.repository.quality_metrics_repository import QualityMetricsEnum
 from fedot.core.serializers import Serializer
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_viz import OptHistoryVisualizer
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.archive import GenerationKeeper
+    from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
+    from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 
 class OptHistory:

@@ -12,7 +12,7 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.convert import pipeline_template_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.graph_viz import GraphVisualiser

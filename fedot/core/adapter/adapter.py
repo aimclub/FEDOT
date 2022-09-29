@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 from abc import abstractmethod
 from copy import deepcopy
-from typing import TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence, Union
+from typing import TYPE_CHECKING, TypeVar, Generic, Type, Optional, Dict, Any, Callable, Tuple, Sequence, Union
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.individual import Individual
-from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.adapter.adapt_registry import AdaptRegistry
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 
 DomainStructureType = TypeVar('DomainStructureType')
 

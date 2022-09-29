@@ -8,7 +8,7 @@ import pandas as pd
 from matplotlib import cm, colors, pyplot as plt
 
 from fedot.api.main import Fedot
-from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.utils import fedot_project_root
 
 
