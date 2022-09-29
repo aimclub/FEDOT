@@ -61,7 +61,6 @@ class Fedot:
                     - ``20`` -> info
                     - ``10`` -> debug
                     - ``0`` -> nonset
-                *Logs with a level HIGHER than set will be displayed*
 
         safe_mode: if set ``True`` it will cut large datasets to prevent memory overflow and use label encoder
             instead of oneHot encoder if summary cardinality of categorical features is high.
