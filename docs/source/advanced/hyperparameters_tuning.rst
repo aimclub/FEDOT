@@ -7,7 +7,7 @@ FEDOT provide you with two ways for tuning of pipeline hyperparameters:
 2. Tuning of models hyperparameters sequentially node by node optimizing metric value for the whole pipeline. Implemented via ``SequentialTuner`` class.
 
 More information about these approaches can be found
-'here <https://habr.com/ru/post/672486/>'_.
+`here <https://habr.com/ru/post/672486/>`_.
 
 Simple example
 ~~~~~~~~~~~~~~
@@ -69,7 +69,7 @@ Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (appli
 
     requirements = ComposerRequirements(cv_folds=2, validation_blocks=3, n_jobs=2)
 
-    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting)) \
+    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))) \
         .with_requirements(requirements) \
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
@@ -84,7 +84,7 @@ Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jo
 
 .. code-block:: python
 
-    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting)) \
+    pipeline_tuner = TunerBuilder(Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))) \
         .with_cv_folds(3) \
         .with_validation_blocks(2) \
         .with_n_jobs(-1) \
@@ -109,7 +109,7 @@ Specify metric to optimize using ``.with_metric()``.
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
-2. You can pass custom metric. For that, implement abstract class ``QualityMetric`` and pass ``CustomMetric.get_value`` as metric. Note that tuner will minimize the metric.
+2. You can pass custom metric. For that, implement abstract class ``QualityMetric`` and pass ``CustomMetric.get_value`` as metric. **Note** that tuner will minimize the metric.
 
 .. code-block:: python
 
@@ -137,7 +137,7 @@ Specify metric to optimize using ``.with_metric()``.
         .with_metric(CustomMetric.get_value) \
         .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
-3. Another way to pass custom metric is to implement a function with the following signature: ``Callable[[G], Real]``. Note that tuner will minimize the metric.
+3. Another way to pass custom metric is to implement a function with the following signature: ``Callable[[G], Real]``. **Note** that tuner will minimize the metric.
 
 .. code-block:: python
 
@@ -166,7 +166,7 @@ Search Space
 
 .. _with_search_space:
 
-To set search space use ``.with_search_space()``. By default tuner uses search space specified in ``fedot/core/pipelines/tuning/search_space.py``
+To set search space use ``.with_search_space()``. By default, tuner uses search space specified in ``fedot/core/pipelines/tuning/search_space.py``
 To customize search space use ``SearchSpace`` class.
 
 .. code-block:: python
@@ -189,8 +189,8 @@ To customize search space use ``SearchSpace`` class.
             .with_search_space(search_space) \
             .build(train_data)
     tuned_pipeline = pipeline_tuner.tune(pipeline)
-Algo
-----
+Algorithm
+---------
 .. _with_algo:
 
 You can set algorithm for hyperparameters optimization with signature similar to ``hyperopt.tse.suggest``.
@@ -320,9 +320,9 @@ Sequential tuning
     from fedot.core.pipelines.tuning.sequential import SequentialTuner
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
     from fedot.core.repository.quality_metrics_repository import RegressionMetricsEnum
-    from fedot.core.repository.tasks import TaskTypesEnum, Task
+    from fedot.core.repository.tasks import TaskTypesEnum, Task, TsForecastingParams
 
-    task = Task(TaskTypesEnum.ts_forecasting)
+    task = Task(TaskTypesEnum.ts_forecasting, TsForecastingParams(forecast_length=10))
 
     tuner = SequentialTuner
 
@@ -338,9 +338,15 @@ Sequential tuning
 
     timeout = datetime.timedelta(minutes=1)
 
-    train_data = InputData.from_csv('train_file.csv')
+    train_data = InputData.from_csv_time_series(file_path='train_file.csv',
+                                                task=task,
+                                                target='target_name')
 
-    pipeline = PipelineBuilder().add_node('arima').to_pipeline()
+    pipeline = PipelineBuilder() \
+        .add_sequence('locf', branch_idx=0) \
+        .add_sequence('lagged', branch_idx=1) \
+        .join_branches('ridge') \
+        .to_pipeline()
 
     pipeline_tuner = TunerBuilder(task) \
         .with_tuner(tuner) \
