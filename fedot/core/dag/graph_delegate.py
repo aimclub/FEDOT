@@ -49,9 +49,6 @@ class GraphDelegate(Graph):
                          clean_up_leftovers: bool = True):
         self.operator.disconnect_nodes(node_parent, node_child, clean_up_leftovers)
 
-    def get_nodes_degrees(self):
-        return self.operator.get_nodes_degrees()
-
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         return self.operator.get_edges()
 

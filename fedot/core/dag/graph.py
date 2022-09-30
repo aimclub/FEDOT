@@ -116,16 +116,6 @@ class Graph(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_nodes_degrees(self) -> Sequence[int]:
-        """Nodes degree as the number of edges the node has:
-            ``degree = #input_edges + #out_edges``
-
-        Returns:
-            nodes degrees ordered according to the nx_graph representation of this graph
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         """Gets all available edges in this graph
 

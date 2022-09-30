@@ -197,13 +197,6 @@ class GraphOperator(Graph, Copyable):
         return 0 if not self._nodes else max(map(node_depth, self.root_nodes()))
 
     @copy_doc(Graph)
-    def get_nodes_degrees(self) -> Sequence[int]:
-        graph, _ = graph_structure_as_nx_graph(self)
-        index_degree_pairs = graph.degree
-        node_degrees = [node_degree[1] for node_degree in index_degree_pairs]
-        return node_degrees
-
-    @copy_doc(Graph)
     def get_edges(self) -> Sequence[Tuple[GraphNode, GraphNode]]:
         edges = []
         for node in self._nodes:
