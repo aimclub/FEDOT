@@ -97,7 +97,7 @@ def test_node_repr_with_params():
     expected_node_description = f'n_{operation_type}_{params}'
 
     # when
-    actual_node_description = repr(test_model_node)
+    actual_node_description = test_model_node.description()
 
     # then
     assert actual_node_description == expected_node_description
