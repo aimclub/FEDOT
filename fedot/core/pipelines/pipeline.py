@@ -67,7 +67,7 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
-        time = int(timedelta(minutes=time).total_seconds())
+        time = int(time)
         process_state_dict = {}
         fitted_operations = []
         try:
@@ -121,7 +121,7 @@ class Pipeline(GraphDelegate, Serializable):
         Args:
             input_data: data used for operations training
             use_fitted: flag defining whether to use saved information about previous fits or not
-            time_constraint: time constraint for operations fitting (in seconds)
+            time_constraint: time constraint for operations fitting
             n_jobs: number of threads for nodes fitting
 
         Returns:

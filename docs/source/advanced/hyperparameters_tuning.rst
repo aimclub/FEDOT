@@ -7,10 +7,13 @@ FEDOT provides you with two ways for tuning of pipeline hyperparameters:
 2. Tuning of models hyperparameters sequentially node by node optimizing metric value for the whole pipeline. Implemented via ``SequentialTuner`` class.
 
 More information about these approaches can be found
-`here <https://habr.com/ru/post/672486/>`_.
+`here <https://towardsdatascience.com/hyperparameters-tuning-for-machine-learning-model-ensembles-8051782b538b>`_.
+
+If ``with_tuning`` flag is set to ``True`` when using `FEDOT API`_, simultaneous hyperparameters tuning is applied for composed pipeline and ``metric`` value is used as a metric for tuning.
 
 Simple example
 ~~~~~~~~~~~~~~
+
 To initialize a tuner you can use ``TunerBuilder``.
 
 .. code-block:: python
@@ -27,6 +30,7 @@ To initialize a tuner you can use ``TunerBuilder``.
     pipeline_tuner = TunerBuilder(task).build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
+
 ``TunerBuilder`` methods
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -45,6 +49,7 @@ To initialize a tuner you can use ``TunerBuilder``.
 
 Tuner class
 -----------
+
 .. _with_tuner:
 
 Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is used by default.
@@ -59,9 +64,9 @@ Use ``.with_tuner()`` to specify tuner class to use. ``PipelineTuner`` is used b
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
-
 Evaluation
 ----------
+
 .. _with_requirements:
 
 Use ``.with_requirements()`` to set number of cv_folds, validation_blocks (applied only for timeseries forecasting) and n_jobs.
@@ -94,14 +99,14 @@ Or use methods ``.with_cv_folds()``, ``.with_validation_blocks()``, ``.with_n_jo
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
-
 Metric
 ------
+
 .. _with_metric:
 
 Specify metric to optimize using ``.with_metric()``.
 
-1. Metric can be chosen from ``ClusteringMetricsEnum``, ``ClassificationMetricsEnum``, ``RegressionMetricsEnum``.
+1. Metric can be chosen from ``ClassificationMetricsEnum``, ``RegressionMetricsEnum``.
 
 .. code-block:: python
 
@@ -142,6 +147,7 @@ Specify metric to optimize using ``.with_metric()``.
         .build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
+
 3. Another way to pass custom metric is to implement a function with the following signature: ``Callable[[G], Real]``. **Note** that tuner will minimize the metric.
 
 .. code-block:: python
@@ -165,7 +171,6 @@ Specify metric to optimize using ``.with_metric()``.
         .build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
-
 
 Search Space
 ------------
@@ -196,8 +201,10 @@ To customize search space use ``SearchSpace`` class.
             .build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
+
 Algorithm
 ---------
+
 .. _with_algo:
 
 You can set algorithm for hyperparameters optimization with signature similar to ``hyperopt.tse.suggest``.
@@ -212,8 +219,10 @@ By default, ``hyperopt.tse.suggest`` is used.
         .build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
+
 Constraints
 -----------
+
 .. _with_timeout:
 
 * Use ``.with_timeout()`` to set timeout for tuning.
@@ -248,8 +257,10 @@ Constraints
         .build(input_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
+
 Examples
 ~~~~~~~~
+
 Tuning all hyperparameters simultaniously
 -----------------------------------------
 
@@ -317,6 +328,20 @@ Tuning all hyperparameters simultaniously
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
 
+    tuned_pipeline.print_structure()
+
+Tuned pipeline structure:
+
+.. code-block:: python
+
+    Pipeline structure:
+    {'depth': 3, 'length': 5, 'nodes': [knn, logit, knn, rf, logit]}
+    knn - {'n_neighbors': 3, 'p': 2, 'weights': 'uniform'}
+    logit - {'C': 4.564184562288343}
+    knn - {'n_neighbors': 6, 'p': 2, 'weights': 'uniform'}
+    rf - {'n_jobs': 1, 'bootstrap': True, 'criterion': 'entropy', 'max_features': 0.46348491415788157, 'min_samples_leaf': 11, 'min_samples_split': 2, 'n_estimators': 100}
+    logit - {'C': 3.056080157518786}
+
 Sequential tuning
 -----------------
 
@@ -349,7 +374,7 @@ Sequential tuning
 
     train_data = InputData.from_csv_time_series(file_path='train_file.csv',
                                                 task=task,
-                                                target='target_name')
+                                                target_column='target_name')
 
     pipeline = PipelineBuilder() \
         .add_sequence('locf', branch_idx=0) \
@@ -368,6 +393,18 @@ Sequential tuning
         .build(train_data)
 
     tuned_pipeline = pipeline_tuner.tune(pipeline)
+
+    tuned_pipeline.print_structure()
+
+Tuned pipeline structure:
+
+.. code-block:: python
+
+    Pipeline structure:
+    {'depth': 2, 'length': 3, 'nodes': [ridge, locf, lagged]}
+    ridge - {'alpha': 9.335457825369645}
+    locf - {'part_for_repeat': 0.34751615772622124}
+    lagged - {'window_size': 127}
 
 Tuning of a node
 ----------------
@@ -395,7 +432,8 @@ Tuning of a node
     timeout = datetime.timedelta(minutes=5)
 
     train_data = get_regression_data()
-    pipeline = PipelineBuilder().add_node('dtreg').add_node('lasso').to_pipeline()
+
+    pipeline = PipelineBuilder().add_node('dtreg').grow_branches('lasso').to_pipeline()
 
 
     pipeline_tuner = TunerBuilder(task) \
@@ -407,32 +445,41 @@ Tuning of a node
 
     pipeline_with_tuned_node = pipeline_tuner.tune_node(pipeline, node_index=1)
 
+    print('Node name: ', pipeline_with_tuned_node.nodes[1].content['name'])
+    print('Node parameters: ', pipeline_with_tuned_node.nodes[1].custom_params)
+
+Output:
+
+.. code-block:: python
+
+    Node name:  dtreg
+    Node parameters:  {'max_depth': 2, 'min_samples_leaf': 6, 'min_samples_split': 21}
 
 Another examples can be found here:
 
 **Regression**
 
-* ``examples/simple/regression/regression_with_tuning.py``
-* ``examples/advanced/decompose/regression_refinement_example.py``
-* ``examples/advanced/multitask_classification_regression.py``
+* `examples/simple/regression/regression_with_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
+* `examples/advanced/decompose/regression_refinement_example.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/regression_refinement_example.py>`_
 
 **Classification**
 
-* ``examples/simple/classification/classification_with_tuning.py``
-* ``examples/simple/classification/resample_example.py``
-* ``examples/simple/pipeline_tune.py``
-* ``examples/advanced/decompose/classification_refinement_example.py``
+* `examples/simple/classification/classification_with_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
+* `examples/simple/classification/resample_example.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/resample_example.py>`_
+* `examples/simple/pipeline_tune.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/pipeline_tune.py>`_
+* `examples/advanced/decompose/classification_refinement_example.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/classification_refinement_example.py>`_
 
 **Forecasting**
 
-* ``examples/simple/time_series_forecasting/tuning_pipelines.py``
-* ``examples/advanced/time_series_forecasting/sparse_lagged_tuning.py``
-* ``examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py``
-* ``examples/advanced/time_series_forecasting/custom_model_tuning.py``
-* ``cases/river_levels_prediction/river_level_case_composer.py``
-* ``cases/river_levels_prediction/river_level_case_manual.py``
+* `examples/simple/time_series_forecasting/tuning_pipelines.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
+* `examples/advanced/time_series_forecasting/sparse_lagged_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
+* `examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
+* `examples/advanced/time_series_forecasting/custom_model_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/custom_model_tuning.py>`_
+* `cases/river_levels_prediction/river_level_case_composer.py <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
+* `cases/river_levels_prediction/river_level_case_manual.py <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
 
 **Multitask**
 
-* ``examples/advanced/multitask_classification_regression.py``
+* `examples/advanced/multitask_classification_regression.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
 
+.. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot

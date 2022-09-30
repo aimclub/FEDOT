@@ -1,3 +1,5 @@
+import datetime
+
 import pytest
 from copy import deepcopy
 from functools import partial
@@ -123,12 +125,12 @@ def test_pipeline_objective_evaluate_with_time_constraint(classification_dataset
     data_split = partial(OneFoldInputDataSplit().input_split, input_data=classification_dataset)
     metric = ClassificationMetricsEnum.ROCAUC_penalty
 
-    time_constraint = 0.0001
+    time_constraint = datetime.timedelta(seconds=0.0001)
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, time_constraint=time_constraint)
     fitness = objective_eval(pipeline)
     assert not fitness.valid
 
-    time_constraint = 300
+    time_constraint = datetime.timedelta(seconds=300)
     objective_eval = PipelineObjectiveEvaluate(Objective(metric), data_split, time_constraint=time_constraint)
     fitness = objective_eval(pipeline)
     assert fitness.valid
