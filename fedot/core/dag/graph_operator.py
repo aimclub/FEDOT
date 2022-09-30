@@ -4,7 +4,8 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable, Sequence
 from networkx import graph_edit_distance, set_node_attributes
 
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy, node_depth
+from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy, node_depth
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utilities.data_structures import ensure_wrapped_in_sequence, Copyable, remove_items
 from fedot.core.utils import copy_doc

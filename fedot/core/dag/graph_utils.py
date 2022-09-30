@@ -73,3 +73,42 @@ def nodes_from_layer(graph: Graph, layer_number: int) -> Sequence[GraphNode]:
 
     nodes = get_nodes(graph.root_node, current_height=0)
     return nodes
+
+
+def ordered_subnodes_hierarchy(node: 'GraphNode') -> List['GraphNode']:
+    """Gets hierarchical subnodes representation of the graph starting from the bounded node
+
+    Returns:
+        List['GraphNode']: hierarchical subnodes list starting from the bounded node
+    """
+    started = {node}
+    visited = set()
+
+    def subtree_impl(node):
+        nodes = [node]
+        for parent in node.nodes_from:
+            if parent in visited:
+                continue
+            elif parent in started:
+                raise ValueError('Can not build ordered node hierarchy: graph has cycle')
+            started.add(parent)
+            nodes.extend(subtree_impl(parent))
+            visited.add(parent)
+        return nodes
+
+    return subtree_impl(node)
+
+
+def node_depth(node: GraphNode) -> int:
+    """Gets this graph depth from the provided ``node`` to the graph source node
+
+    Args:
+        node: where to start diving from
+
+    Returns:
+        int: length of a path from the provided ``node`` to the farthest primary node
+    """
+    if not node.nodes_from:
+        return 1
+    else:
+        return 1 + max(node_depth(next_node) for next_node in node.nodes_from)

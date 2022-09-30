@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from fedot.core.dag.graph_node import ordered_subnodes_hierarchy
+from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, EvaluationOperator, Operator
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.opt_history_objects.individual import Individual

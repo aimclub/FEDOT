@@ -8,8 +8,8 @@ import numpy as np
 from fedot.core.adapter import register_native
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.dag.graph import Graph
-from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy
-from fedot.core.dag.graph_utils import distance_to_root_level
+from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_utils import distance_to_root_level, ordered_subnodes_hierarchy
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements

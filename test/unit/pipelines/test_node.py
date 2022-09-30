@@ -4,7 +4,8 @@ from sklearn.datasets import load_iris
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, classification_report
 
-from fedot.core.dag.graph_node import ordered_subnodes_hierarchy, DAGNode
+from fedot.core.dag.graph_node import DAGNode
+from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
 from fedot.core.operations.model import Model

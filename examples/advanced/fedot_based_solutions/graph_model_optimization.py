@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from fedot.core.adapter import DirectAdapter, register_native
-from fedot.core.dag.graph_node import ordered_subnodes_hierarchy
+from fedot.core.dag.graph_utils import ordered_subnodes_hierarchy
 from fedot.core.dag.verification_rules import has_no_cycle, has_no_self_cycled_nodes
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_optimizer import EvoGraphOptimizer

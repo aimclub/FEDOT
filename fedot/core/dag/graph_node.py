@@ -3,6 +3,7 @@ from copy import copy
 from typing import List, Optional, Union, Iterable
 from uuid import uuid4
 
+from fedot.core.dag.graph_utils import node_depth
 from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
@@ -191,42 +192,3 @@ def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
     full_path_items.append(f'/{node_label}')
     full_path = ''.join(full_path_items)
     return full_path
-
-
-def ordered_subnodes_hierarchy(node: 'GraphNode') -> List['GraphNode']:
-    """Gets hierarchical subnodes representation of the graph starting from the bounded node
-
-    Returns:
-        List['GraphNode']: hierarchical subnodes list starting from the bounded node
-    """
-    started = {node}
-    visited = set()
-
-    def subtree_impl(node):
-        nodes = [node]
-        for parent in node.nodes_from:
-            if parent in visited:
-                continue
-            elif parent in started:
-                raise ValueError('Can not build ordered node hierarchy: graph has cycle')
-            started.add(parent)
-            nodes.extend(subtree_impl(parent))
-            visited.add(parent)
-        return nodes
-
-    return subtree_impl(node)
-
-
-def node_depth(node: GraphNode) -> int:
-    """Gets this graph depth from the provided ``node`` to the graph source node
-
-    Args:
-        node: where to start diving from
-
-    Returns:
-        int: length of a path from the provided ``node`` to the farthest primary node
-    """
-    if not node.nodes_from:
-        return 1
-    else:
-        return 1 + max(node_depth(next_node) for next_node in node.nodes_from)
