@@ -3,6 +3,7 @@ from random import randint
 from typing import Any, List, Optional, Tuple
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
+from fedot.core.dag.graph_utils import distance_to_root_level
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory
@@ -58,7 +59,7 @@ def graph_growth(graph: OptGraph,
     offspring_size = randint(requirements.min_arity, requirements.max_arity)
 
     for offspring_node in range(offspring_size):
-        height = graph.distance_to_root_level(node_parent)
+        height = distance_to_root_level(graph, node_parent)
         is_max_depth_exceeded = height >= max_depth - 2
         is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
         if is_max_depth_exceeded or is_primary_node_selected:

@@ -9,6 +9,7 @@ from fedot.core.adapter import register_native
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode, ordered_subnodes_hierarchy
+from fedot.core.dag.graph_utils import distance_to_root_level
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -305,9 +306,9 @@ class Mutation(Operator):
             is_primary_node_selected = (not node_from_graph.nodes_from) or (node_from_graph != graph.root_node and
                                                                             randint(0, 1))
         else:
-            max_depth = self.requirements.max_depth - graph.distance_to_root_level(node_from_graph)
+            max_depth = self.requirements.max_depth - distance_to_root_level(graph, node_from_graph)
             is_primary_node_selected = \
-                graph.distance_to_root_level(node_from_graph) >= self.requirements.max_depth and randint(0, 1)
+                distance_to_root_level(graph, node_from_graph) >= self.requirements.max_depth and randint(0, 1)
         if is_primary_node_selected:
             new_subtree = self.graph_generation_params.node_factory.get_node(is_primary=True)
             if not new_subtree:

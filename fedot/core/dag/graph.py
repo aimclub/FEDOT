@@ -62,15 +62,6 @@ class Graph(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def distance_to_root_level(self, node: GraphNode) -> int:
-        """Gets distance to the final output node
-
-        Args:
-            node: search starting point
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
         """Gets all the nodes from the chosen layer up to the surface
 

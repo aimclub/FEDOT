@@ -76,24 +76,6 @@ class GraphOperator(Graph, Copyable):
             for n in node.nodes_from:
                 self.add_node(n)
 
-    @copy_doc(Graph)
-    def distance_to_root_level(self, node: GraphNode) -> int:
-
-        def recursive_child_height(parent_node: GraphNode) -> int:
-            """Recursively dives into ``parent_node`` children to get the bottom height
-
-            :param node: search starting point
-            """
-            node_child = self.node_children(parent_node)
-            if node_child:
-                height = recursive_child_height(node_child[0]) + 1
-                return height
-            return 0
-
-        height = recursive_child_height(node)
-        return height
-
-    @copy_doc(Graph)
     def nodes_from_layer(self, layer_number: int) -> List[Any]:
 
         def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
