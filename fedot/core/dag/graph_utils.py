@@ -23,6 +23,7 @@ def distance_to_root_level(graph: Graph, node: GraphNode) -> int:
     """Gets distance to the final output node
 
     Args:
+        graph: graph for finding the distance
         node: search starting point
 
     Return:
@@ -30,10 +31,6 @@ def distance_to_root_level(graph: Graph, node: GraphNode) -> int:
     """
 
     def recursive_child_height(parent_node: GraphNode) -> int:
-        """Recursively dives into ``parent_node`` children to get the bottom height
-
-        :param node: search starting point
-        """
         node_child = graph.node_children(parent_node)
         if node_child:
             height = recursive_child_height(node_child[0]) + 1
@@ -48,6 +45,7 @@ def nodes_from_layer(graph: Graph, layer_number: int) -> Sequence[GraphNode]:
     """Gets all the nodes from the chosen layer up to the surface
 
     Args:
+        graph: graph with nodes
         layer_number: max height of diving
 
     Returns:
