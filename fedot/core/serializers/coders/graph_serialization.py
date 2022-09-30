@@ -2,7 +2,7 @@ from typing import Any, Dict, Type, Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.graph_node import DAGNode
 
 
 def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
@@ -20,7 +20,7 @@ def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:
     return obj
 
 
-def _reassign_edges_by_node_ids(nodes: Sequence[GraphNode]):
+def _reassign_edges_by_node_ids(nodes: Sequence[DAGNode]):
     """
     Assigns each <inner_node> from "nodes_from" to equal <outer_node> from "nodes"
         (cause each node from "nodes_from" in fact should point to the same node from "nodes")

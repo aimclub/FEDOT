@@ -11,13 +11,17 @@ from fedot.core.pipelines.node import NodeMetadata
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 CLASS_PATH_KEY = '_class_path'
+
+# Mapping between class paths for backward compatibility for renamed/moved classes
 LEGACY_CLASS_PATHS = {
     'fedot.core.optimisers.gp_comp.individual/Individual':
-        f'fedot.core.optimisers.opt_history_objects.individual/Individual',
+        'fedot.core.optimisers.opt_history_objects.individual/Individual',
     'fedot.core.optimisers.gp_comp.individual/ParentOperator':
-        f'fedot.core.optimisers.opt_history_objects.parent_operator/ParentOperator',
+        'fedot.core.optimisers.opt_history_objects.parent_operator/ParentOperator',
     'fedot.core.optimisers.opt_history/OptHistory':
-        f'fedot.core.optimisers.opt_history_objects.opt_history/OptHistory',
+        'fedot.core.optimisers.opt_history_objects.opt_history/OptHistory',
+    'fedot.core.dag.graph_node/GraphNode':
+        'fedot.core.dag.graph_node/DAGNode'
 }
 
 
@@ -147,7 +151,7 @@ class Serializer(JSONEncoder, JSONDecoder):
 
         :return: class, function or method type
         """
-        class_path = LEGACY_CLASS_PATHS.get(class_path) or class_path
+        class_path = LEGACY_CLASS_PATHS.get(class_path, class_path)
         module_name, class_name = class_path.split(MODULE_X_NAME_DELIMITER)
         obj_cls = import_module(module_name)
         for sub in class_name.split('.'):
