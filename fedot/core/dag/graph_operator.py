@@ -76,28 +76,6 @@ class GraphOperator(Graph, Copyable):
             for n in node.nodes_from:
                 self.add_node(n)
 
-    def nodes_from_layer(self, layer_number: int) -> List[Any]:
-
-        def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
-            """Gets all the parent nodes of ``node``
-
-            :param node: node to get all subnodes from
-            :param current_height: current diving step depth
-
-            :return: all parent nodes of ``node``
-            """
-            nodes = []
-            if current_height == layer_number:
-                nodes.append(node)
-            else:
-                if node.nodes_from:
-                    for child in node.nodes_from:
-                        nodes.extend(get_nodes(child, current_height + 1))
-            return nodes
-
-        nodes = get_nodes(self.root_node, current_height=0)
-        return nodes
-
     def actualise_old_node_children(self, old_node: GraphNode, new_node: GraphNode):
         """Changes parent of ``old_node`` children to ``new_node``
 

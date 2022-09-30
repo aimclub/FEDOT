@@ -3,6 +3,7 @@ from random import choice, random
 from typing import Callable, Union, Iterable, Tuple, TYPE_CHECKING
 
 from fedot.core.adapter import register_native
+from fedot.core.dag.graph_utils import nodes_from_layer
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -104,8 +105,8 @@ def subtree_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: 
     min_second_layer = 1 if random_layer_in_graph_first == 0 and graph_second.depth > 1 else 0
     random_layer_in_graph_second = choice(range(min_second_layer, graph_second.depth))
 
-    node_from_graph_first = choice(graph_first.nodes_from_layer(random_layer_in_graph_first))
-    node_from_graph_second = choice(graph_second.nodes_from_layer(random_layer_in_graph_second))
+    node_from_graph_first = choice(nodes_from_layer(graph_first, random_layer_in_graph_first))
+    node_from_graph_second = choice(nodes_from_layer(graph_second, random_layer_in_graph_second))
 
     replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
                      random_layer_in_graph_first, random_layer_in_graph_second, max_depth)

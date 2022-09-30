@@ -33,9 +33,6 @@ class GraphDelegate(Graph):
     def delete_subtree(self, subroot: GraphNode):
         self.operator.delete_subtree(subroot)
 
-    def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
-        return self.operator.nodes_from_layer(layer_number=layer_number)
-
     def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
         return self.operator.node_children(node=node)
 

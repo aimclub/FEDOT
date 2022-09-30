@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 from fedot.core.dag.graph_operator import GraphOperator, get_distance_between
-from fedot.core.dag.graph_utils import distance_to_root_level
+from fedot.core.dag.graph_utils import distance_to_root_level, nodes_from_layer
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
@@ -46,7 +46,7 @@ def test_nodes_from_layer():
     desired_layer = 2
 
     # when
-    nodes_from_desired_layer = pipeline.nodes_from_layer(desired_layer)
+    nodes_from_desired_layer = nodes_from_layer(pipeline, desired_layer)
 
     # then
     assert len(nodes_from_desired_layer) == 2

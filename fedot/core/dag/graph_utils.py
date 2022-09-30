@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from typing import Union, List
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -41,3 +42,34 @@ def distance_to_root_level(graph: Graph, node: GraphNode) -> int:
 
     height = recursive_child_height(node)
     return height
+
+
+def nodes_from_layer(graph: Graph, layer_number: int) -> Sequence[GraphNode]:
+    """Gets all the nodes from the chosen layer up to the surface
+
+    Args:
+        layer_number: max height of diving
+
+    Returns:
+        all nodes from the surface to the ``layer_number`` layer
+    """
+
+    def get_nodes(node: Union[GraphNode, List[GraphNode]], current_height: int):
+        """Gets all the parent nodes of ``node``
+
+        :param node: node to get all subnodes from
+        :param current_height: current diving step depth
+
+        :return: all parent nodes of ``node``
+        """
+        nodes = []
+        if current_height == layer_number:
+            nodes.append(node)
+        else:
+            if node.nodes_from:
+                for child in node.nodes_from:
+                    nodes.extend(get_nodes(child, current_height + 1))
+        return nodes
+
+    nodes = get_nodes(graph.root_node, current_height=0)
+    return nodes

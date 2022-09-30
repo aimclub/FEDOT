@@ -62,18 +62,6 @@ class Graph(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def nodes_from_layer(self, layer_number: int) -> Sequence[GraphNode]:
-        """Gets all the nodes from the chosen layer up to the surface
-
-        Args:
-            layer_number: max height of diving
-
-        Returns:
-            all nodes from the surface to the ``layer_number`` layer
-        """
-        raise NotImplementedError()
-
-    @abstractmethod
     def node_children(self, node: GraphNode) -> Sequence[Optional[GraphNode]]:
         """Returns all children of the ``node``
 
