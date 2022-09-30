@@ -8,3 +8,4 @@ Basics
    tabular_data
    ts_forecasting
    multi_modal_tasks
+   data_preprocessing
