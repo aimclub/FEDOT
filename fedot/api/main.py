@@ -376,7 +376,7 @@ class Fedot:
                 self.data_processor.correct_predictions(real=real,
                                                         prediction=prediction)
 
-                real.target = np.ravel(real.target)
+                # real.target = np.ravel(real.target)
 
                 metric_value = abs(metric_cls.metric(reference=real,
                                                      predicted=prediction))
