@@ -1,7 +1,7 @@
 import math
 from copy import copy, deepcopy
 from random import choice, randint, sample
-from typing import List, Callable, Optional
+from typing import List, Callable
 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum

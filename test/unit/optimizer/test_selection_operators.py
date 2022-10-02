@@ -35,8 +35,8 @@ def obj_function() -> float:
 
 
 def test_tournament_selection():
-    num_of_inds = 2
-    population = rand_population_gener_and_eval(pop_size=4)
+    num_of_inds = 40
+    population = rand_population_gener_and_eval(pop_size=50)
     requirements = GPGraphOptimizerParameters(selection_types=[SelectionTypesEnum.tournament], pop_size=num_of_inds)
     selection = Selection(requirements)
     selected_individuals = selection(population)
