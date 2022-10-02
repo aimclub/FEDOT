@@ -110,7 +110,6 @@ class Fedot:
                  seed=None, logging_level: int = logging.ERROR,
                  safe_mode=False,
                  n_jobs: int = 1,
-                 tuning_proportion=None,
                  **composer_tuner_params
                  ):
 
@@ -123,7 +122,6 @@ class Fedot:
         input_params = {'problem': self.metrics.main_problem, 'timeout': timeout,
                         'composer_tuner_params': composer_tuner_params, 'task_params': task_params,
                         'seed': seed, 'logging_level': logging_level, 'n_jobs': n_jobs,
-                        'tuning_proportion': tuning_proportion
         }
         self.params.initialize_params(input_params)
 

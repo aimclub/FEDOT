@@ -13,7 +13,7 @@ from fedot.core.composer.advisor import PipelineChangeAdvisor
 from fedot.core.composer.composer_builder import ComposerBuilder
 from fedot.core.composer.gp_composer.gp_composer import GPComposer
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
-from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER
+from fedot.core.constants import DEFAULT_TUNING_ITERATIONS_NUMBER, COMPOSING_TUNING_PROPORTION
 from fedot.core.data.data import InputData
 from fedot.core.log import LoggerAdapter
 from fedot.core.optimisers.adapters import PipelineAdapter
@@ -174,11 +174,12 @@ class ApiComposer:
         train_data = api_params['train_data']
         timeout = api_params['timeout']
         with_tuning = tuning_params['with_tuning']
-        tuning_proportion = api_params['tuning_proportion']
+        composing_tuning_proportion = tuning_params['composing_tuning_proportion']
         available_operations = composer_params['available_operations']
         preset = composer_params['preset']
 
-        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning, tuning_proportion=tuning_proportion)
+        self.timer = ApiTime(time_for_automl=timeout, with_tuning=with_tuning,
+                             composing_tuning_proportion=composing_tuning_proportion)
 
         # Work with initial assumptions
         assumption_handler = AssumptionsHandler(train_data)
@@ -324,7 +325,7 @@ def _divide_parameters(common_dict: dict) -> List[dict]:
                                 initial_assumption=None, preset='auto',
                                 use_pipelines_cache=True, use_preprocessing_cache=True, cache_folder=None)
 
-    tuner_params_dict = dict(with_tuning=False)
+    tuner_params_dict = dict(with_tuning=False, composing_tuning_proportion=COMPOSING_TUNING_PROPORTION)
 
     dict_list = [api_params_dict, composer_params_dict, tuner_params_dict]
     for k, v in common_dict.items():
