@@ -1,6 +1,6 @@
 import math
 from copy import copy, deepcopy
-from random import choice, randint
+from random import choice, randint, sample
 from typing import List, Callable
 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
@@ -76,17 +76,11 @@ def tournament_selection(individuals: PopulationT, pop_size: int, fraction: floa
 def random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
     if not individuals:
         return []
-    if len(individuals) <= 1:
+    if len(individuals) == 1:
         return [individuals[0]] * pop_size
-    chosen = []
-    iterations_limit = pop_size * 10
-    for _ in range(iterations_limit):
-        if len(chosen) >= pop_size:
-            break
-        individual = choice(individuals)
-        if individual.uid not in (c.uid for c in chosen):
-            chosen.append(individual)
-    return chosen
+    unique = list({ind.uid: ind for ind in individuals}.values())
+    sample_size = min(pop_size, len(unique))
+    return sample(unique, sample_size)
 
 
 # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
