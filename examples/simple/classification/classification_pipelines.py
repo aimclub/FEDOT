@@ -6,9 +6,9 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
     """
     Returns pipeline with the following structure:
 
-    cnn \
-          -> rf -> [rf] -> final prediction
-    cnn /
+    |cnn_composite_pipeline|
+
+    .. |cnn_composite_pipeline| image:: docs/source/examples/img_classification_pipelines/cnn_composite_pipeline.png
 
     Where cnn - convolutional neural network, rf - random forest
 
@@ -35,7 +35,9 @@ def classification_pipeline_with_balancing(custom_params=None):
     """
     Returns pipeline with the following structure:
 
-    resample -> logit -> final prediction
+    |class_with_balancing|
+
+    .. |class_with_balancing| image:: docs/source/examples/img_classification_pipelines/class_with_balancing.png
 
     Where resample - algorithm for balancing dataset, logit - logistic_regression
 
@@ -53,11 +55,13 @@ def classification_pipeline_with_balancing(custom_params=None):
 
 def classification_pipeline_without_balancing():
     """
-    Returns pipeline with the following structure:
+    Returns: pipeline with the following structure:
 
-    logit -> final prediction
+    |class_without_balancing|
 
-    Where resample - algorithm for balancing dataset, logit - logistic_regression
+    .. |class_without_balancing| image:: docs/source/examples/img_classification_pipelines/class_without_balancing.png
+
+    Where logit - logistic_regression
     """
     node = PrimaryNode(operation_type='logit')
 
@@ -68,9 +72,10 @@ def classification_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
-    rf  \
-         -> logit -> final prediction
-    knn /
+    |complex_pipeline|
+
+    .. |complex_pipeline| image:: docs/source/examples/img_classification_pipelines/complex_pipeline.png
+
     """
     first = PrimaryNode(operation_type='rf')
     second = PrimaryNode(operation_type='knn')
@@ -86,7 +91,10 @@ def classification_random_forest_pipeline():
     """
     Returns pipeline with the following structure:
 
-    scaling -> rf -> final prediction
+    |random_forest|
+
+    .. |random_forest| image:: docs/source/examples/img_classification_pipelines/random_forest.png
+
     """
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('rf', nodes_from=[node_scaling])
@@ -96,7 +104,11 @@ def classification_random_forest_pipeline():
 def classification_isolation_forest_pipeline():
     """
     Returns pipeline with the following structure:
-    scaling -> isolation_forest -> rf -> final prediction
+
+    |isolation_forest|
+
+    .. |isolation_forest| image:: docs/source/examples/img_classification_pipelines/isolation_forest.png
+
     """
     node_first = PrimaryNode('scaling')
     node_second = SecondaryNode('isolation_forest_class', nodes_from=[node_first])
@@ -107,12 +119,11 @@ def classification_isolation_forest_pipeline():
 def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:
-         svc -> logit \
-                       \
-                       rf -> final prediction
-            knn -> knn /
-                  /
-    svc -> logit /
+
+    |svc_complex_pipeline|
+
+    .. |svc_complex_pipeline| image:: docs/source/examples/img_classification_pipelines/svc_complex_pipeline.png
+
     Where svc - support vector classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     rf - random forest classifier
 
@@ -142,10 +153,9 @@ def classification_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
-    logit \
-           knn \
-      rf /     knn -> final prediction
-    rf -> qda /
+    |manual_three_depth|
+
+    .. |manual_three_depth| image:: docs/source/examples/img_classification_pipelines/manual_three_depth_pipeline.png
 
     Where rf - xg boost classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     qda - discriminant analysis
@@ -168,14 +178,9 @@ def classification_rf_complex_pipeline():
     """
     Returns pipeline with the following structure:
 
-        logit \
-              rf \
-         lda /         \
-                       rf -> final prediction
-        logit -> knn /
-                   /
-              lda /
+    |complex_rf_pipeline|
 
+    .. |complex_rf_pipeline| image:: docs/source/examples/img_classification_pipelines/complex_rf_pipeline.png
 
     Where lda - discriminant analysis, logit - logistic regression, rf - random forest classifier,
     knn - K nearest neighbors classifier
