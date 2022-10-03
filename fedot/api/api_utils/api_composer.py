@@ -261,6 +261,7 @@ class ApiComposer:
             # Launch pipeline structure composition
             with self.timer.launch_composing():
                 self.log.message('Pipeline composition started.')
+                self.was_optimised = False
                 best_pipelines = gp_composer.compose_pipeline(data=train_data)
                 best_pipeline_candidates = gp_composer.best_models
                 self.was_optimised = True
@@ -297,6 +298,7 @@ class ApiComposer:
             # Tune all nodes in the pipeline
             with self.timer.launch_tuning():
                 self.log.message(f'Hyperparameters tuning started with {round(timeout_for_tuning)} sec. timeout')
+                self.was_tuned = False
                 tuned_pipeline = tuner.tune(pipeline_gp_composed)
                 self.was_tuned = True
                 self.log.message('Hyperparameters tuning finished')
