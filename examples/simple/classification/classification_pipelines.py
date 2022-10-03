@@ -107,16 +107,15 @@ def classification_isolation_forest_pipeline():
 def classification_svc_complex_pipeline():
     """
     Returns pipeline with the following structure:
-
          svc -> logit \
                        \
                        rf -> final prediction
             knn -> knn /
                   /
     svc -> logit /
-
     Where svc - support vector classifier, logit - logistic regression, knn - K nearest neighbors classifier,
-     rf - random forest classifier
+    rf - random forest classifier
+
     """
 
     svc_primary_node = PrimaryNode('svc')
