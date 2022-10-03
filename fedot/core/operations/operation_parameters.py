@@ -1,4 +1,4 @@
-from copy import copy
+Ьштщк from copy import deepcopy
 from typing import Optional, Iterable
 
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
@@ -25,7 +25,7 @@ class OperationParameters:
         return bool(self._parameters)
 
     @staticmethod
-    def from_operation_type(operation_type: Optional[str], **parameters):
+    def from_operation_type(operation_type: str, **parameters):
         default_parameters = get_default_params(operation_type)
         parameters = {**default_parameters, **parameters}
         return OperationParameters(**parameters)
@@ -45,7 +45,7 @@ class OperationParameters:
         return self.get(key)
 
     def to_dict(self) -> dict:
-        return copy(self._parameters)
+        return deepcopy(self._parameters)
 
     def keys(self) -> Iterable:
         return self._parameters.keys()

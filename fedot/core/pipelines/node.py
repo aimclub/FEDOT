@@ -231,7 +231,7 @@ class Node(GraphNode):
             if 'nested_space' in params:
                 params = params['nested_space']
             self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
-            self.content.update({'params': self._parameters.to_dict()})
+            self.content['params'] = self._parameters.to_dict()
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node

@@ -19,7 +19,7 @@ class OneHotEncodingImplementation(DataOperationImplementation):
         default_params = {
             'handle_unknown': 'ignore'
         }
-        self.encoder = OneHotEncoder(**{**self.params.to_dict(), **default_params})
+        self.encoder = OneHotEncoder(**{**default_params, **self.params.to_dict()})
         self.categorical_ids = None
         self.non_categorical_ids = None
 
