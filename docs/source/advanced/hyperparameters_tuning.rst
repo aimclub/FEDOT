@@ -124,9 +124,7 @@ Specify metric to optimize using ``.with_metric()``.
 
     import sys
     from copy import deepcopy
-
     from sklearn.metrics import mean_squared_error as mse
-
     from fedot.core.composer.metrics import QualityMetric
     from fedot.core.data.data import InputData, OutputData
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -153,7 +151,6 @@ Specify metric to optimize using ``.with_metric()``.
 .. code-block:: python
 
     from sklearn.metrics import mean_squared_error as mse
-
     from fedot.core.dag.graph import Graph
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
@@ -267,10 +264,8 @@ Tuning all hyperparameters simultaniously
 .. code-block:: python
 
     import datetime
-
     import hyperopt
     from hyperopt import hp
-
     from fedot.core.data.data import InputData
     from fedot.core.optimisers.composer_requirements import ComposerRequirements
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
@@ -348,7 +343,6 @@ Sequential tuning
 .. code-block:: python
 
     import datetime
-
     from fedot.core.data.data import InputData
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.sequential import SequentialTuner
@@ -412,7 +406,6 @@ Tuning of a node
 .. code-block:: python
 
     import datetime
-
     from fedot.core.optimisers.composer_requirements import ComposerRequirements
     from fedot.core.pipelines.pipeline_builder import PipelineBuilder
     from fedot.core.pipelines.tuning.sequential import SequentialTuner
@@ -459,27 +452,27 @@ Another examples can be found here:
 
 **Regression**
 
-* `examples/simple/regression/regression_with_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
-* `examples/advanced/decompose/regression_refinement_example.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/regression_refinement_example.py>`_
+* `regression with tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/regression/regression_with_tuning.py>`_
+* `regression refinement example <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/regression_refinement_example.py>`_
 
 **Classification**
 
-* `examples/simple/classification/classification_with_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
-* `examples/simple/classification/resample_example.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/resample_example.py>`_
-* `examples/simple/pipeline_tune.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/pipeline_tune.py>`_
-* `examples/advanced/decompose/classification_refinement_example.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/classification_refinement_example.py>`_
+* `classification with tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/classification_with_tuning.py>`_
+* `classification refinement example <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/decompose/classification_refinement_example.py>`_
+* `resample example <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/resample_example.py>`_
+* `pipeline tuning for classification task <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/pipeline_tune.py>`_
 
 **Forecasting**
 
-* `examples/simple/time_series_forecasting/tuning_pipelines.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
-* `examples/advanced/time_series_forecasting/sparse_lagged_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
-* `examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
-* `examples/advanced/time_series_forecasting/custom_model_tuning.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/custom_model_tuning.py>`_
-* `cases/river_levels_prediction/river_level_case_composer.py <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
-* `cases/river_levels_prediction/river_level_case_manual.py <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
+* `pipeline tuning for time series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/time_series_forecasting/tuning_pipelines.py>`_
+* `sparse_lagged tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/sparse_lagged_tuning.py>`_
+* `topaz multi time series forecasting <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/multi_ts_arctic_forecasting.py>`_
+* `custom model tuning <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/time_series_forecasting/custom_model_tuning.py>`_
+* `case: river level forecasting with composer <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_composer.py>`_
+* `case: river level forecasting (manual) <https://github.com/nccr-itmo/FEDOT/blob/master/cases/river_levels_prediction/river_level_case_manual.py>`_
 
 **Multitask**
 
-* `examples/advanced/multitask_classification_regression.py <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
+* `multitask pipeline: classification and regression <https://github.com/nccr-itmo/FEDOT/blob/master/examples/advanced/multitask_classification_regression.py>`_
 
 .. _FEDOT API: https://fedot.readthedocs.io/en/latest/api/api.html#fedot.api.main.Fedot
