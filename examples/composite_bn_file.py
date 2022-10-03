@@ -1,11 +1,15 @@
 
 import sys
 from typing import Optional, Union, List
+import os
+
+
+parentdir = os.getcwd()
 
 
 
 
-parentdir = 'C:\\Users\\anaxa\\Documents\\Projects\\\CompositeBayesianNetworks\\FEDOT'
+# parentdir = 'C:\\Users\\anaxa\\Documents\\Projects\\\CompositeBayesianNetworks\\FEDOT'
 sys.path.insert(0, parentdir)
 from fedot.core.dag.graph import Graph
 from copy import deepcopy
@@ -27,6 +31,9 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
+from fedot.core.data.data import InputData, OutputData, process_target_and_features
+from fedot.core.repository.dataset_types import DataTypesEnum
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 from pgmpy.models import BayesianNetwork
 from pgmpy.estimators import K2Score
 from math import ceil
@@ -37,21 +44,55 @@ from scipy.stats import norm
 from scipy.stats import variation
 from numpy import std, mean
 
+def predict(self, predict_data: InputData) -> OutputData:
+    """
+    This method used for prediction of the target data during predict stage.
+    :param trained_operation: trained operation object
+    :param predict_data: data to predict
+    :return OutputData: passed data with new predicted target
+    """
+    operation_implementation = self.operation_impl()
+    print(operation_implementation.predict(predict_data))
+
+    # prediction = trained_operation.predict(predict_data.features)
+    # converted = self._convert_to_output(prediction, predict_data)
+    # return converted
+
+SkLearnEvaluationStrategy.predict = predict
+
 def composite_metric(graph: CompositeModel, data: pd.DataFrame):
     score = 0
     len_data = len(data)
     for node in graph.nodes:
         if node.nodes_from == None or node.nodes_from == []:
             if node.content['type'] == 'disc':
-                # должна другая быть формула
                 count = data[node.content['name']].value_counts().values
                 frequency  =  count / len_data
                 score += np.dot(count, frequency)
             if node.content['type'] == 'cont':
                 mu = mean(data[node.content['name']])
                 sigma = variation(data[node.content['name']])
-                a = norm.logpdf(data[node.content['name']], loc=mu, scale=sigma).sum()
-                print(a)
+                score += norm.logpdf(data[node.content['name']], loc=mu, scale=sigma).sum()
+        else:
+            model = node.content['parent_model']
+            columns = [n.content['name'] for n in node.nodes_from]
+            # x = data[columns]
+            # y = data[node.content['name']]
+            idx = data.index.to_numpy()
+            features = data[columns].to_numpy()
+            target = data[node.content['name']].to_numpy()
+            # features, target = process_target_and_features(x, node.content['name']) 
+            if node.content['type'] == 'disc':
+                task = Task(TaskTypesEnum.classification)
+            elif node.content['type'] == 'cont':
+                task = Task(TaskTypesEnum.regression)
+            data_type = DataTypesEnum.table
+            train = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
+            
+               
+            print(train.target)
+            fitted_model = model.fit(train)
+            print(fitted_model.predict(train.features))
 
 
 # задаем метрику
@@ -188,10 +229,11 @@ def run_example():
     vertices = list(data.columns)
 
     encoder = preprocessing.LabelEncoder()
-    # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
-    # p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
-    p = pp.Preprocessor([('encoder', encoder)])
+    discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+    p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
+    p2 = pp.Preprocessor([('encoder', encoder)])
     discretized_data, _ = p.apply(data)
+    discretized_data2, _ = p2.apply(data)
 
     # словарь: {имя_узла: уникальный_номер_узла}
     global dir_of_nodes
@@ -246,7 +288,8 @@ def run_example():
             if str(n2) in parents:
                 node.nodes_from.append(n2)
     
-    composite_metric(init, discretized_data)
+
+    composite_metric(init, discretized_data2)
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
@@ -277,7 +320,6 @@ def run_example():
         initial_graphs=initial,
         objective=objective)
 
-    
 
 
     def reverse_edge(self, node_parent, node_child):
