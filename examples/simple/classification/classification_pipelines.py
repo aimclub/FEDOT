@@ -8,7 +8,7 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
 
     |cnn_composite_pipeline|
 
-    .. |cnn_composite_pipeline| image:: docs/source/examples/img_classification_pipelines/cnn_composite_pipeline.png
+    .. |cnn_composite_pipeline| image:: img_classification_pipelines/cnn_composite_pipeline.png
 
     Where cnn - convolutional neural network, rf - random forest
 
@@ -37,7 +37,7 @@ def classification_pipeline_with_balancing(custom_params=None):
 
     |class_with_balancing|
 
-    .. |class_with_balancing| image:: docs/source/examples/img_classification_pipelines/class_with_balancing.png
+    .. |class_with_balancing| image:: img_classification_pipelines/class_with_balancing.png
 
     Where resample - algorithm for balancing dataset, logit - logistic_regression
 
@@ -59,7 +59,7 @@ def classification_pipeline_without_balancing():
 
     |class_without_balancing|
 
-    .. |class_without_balancing| image:: docs/source/examples/img_classification_pipelines/class_without_balancing.png
+    .. |class_without_balancing| image:: img_classification_pipelines/class_without_balancing.png
 
     Where logit - logistic_regression
     """
@@ -74,7 +74,7 @@ def classification_complex_pipeline():
 
     |complex_pipeline|
 
-    .. |complex_pipeline| image:: docs/source/examples/img_classification_pipelines/complex_pipeline.png
+    .. |complex_pipeline| image:: img_classification_pipelines/complex_pipeline.png
 
     """
     first = PrimaryNode(operation_type='rf')
@@ -93,7 +93,7 @@ def classification_random_forest_pipeline():
 
     |random_forest|
 
-    .. |random_forest| image:: docs/source/examples/img_classification_pipelines/random_forest.png
+    .. |random_forest| image:: img_classification_pipelines/random_forest.png
 
     """
     node_scaling = PrimaryNode('scaling')
@@ -107,7 +107,7 @@ def classification_isolation_forest_pipeline():
 
     |isolation_forest|
 
-    .. |isolation_forest| image:: docs/source/examples/img_classification_pipelines/isolation_forest.png
+    .. |isolation_forest| image:: img_classification_pipelines/isolation_forest.png
 
     """
     node_first = PrimaryNode('scaling')
@@ -122,7 +122,7 @@ def classification_svc_complex_pipeline():
 
     |svc_complex_pipeline|
 
-    .. |svc_complex_pipeline| image:: docs/source/examples/img_classification_pipelines/svc_complex_pipeline.png
+    .. |svc_complex_pipeline| image:: img_classification_pipelines/svc_complex_pipeline.png
 
     Where svc - support vector classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     rf - random forest classifier
@@ -155,7 +155,7 @@ def classification_three_depth_manual_pipeline():
 
     |manual_three_depth|
 
-    .. |manual_three_depth| image:: docs/source/examples/img_classification_pipelines/manual_three_depth_pipeline.png
+    .. |manual_three_depth| image:: img_classification_pipelines/manual_three_depth_pipeline.png
 
     Where rf - xg boost classifier, logit - logistic regression, knn - K nearest neighbors classifier,
     qda - discriminant analysis
@@ -180,7 +180,7 @@ def classification_rf_complex_pipeline():
 
     |complex_rf_pipeline|
 
-    .. |complex_rf_pipeline| image:: docs/source/examples/img_classification_pipelines/complex_rf_pipeline.png
+    .. |complex_rf_pipeline| image:: img_classification_pipelines/complex_rf_pipeline.png
 
     Where lda - discriminant analysis, logit - logistic regression, rf - random forest classifier,
     knn - K nearest neighbors classifier
