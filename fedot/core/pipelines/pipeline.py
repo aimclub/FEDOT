@@ -9,6 +9,7 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.graph_utils import node_depth
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -304,14 +305,15 @@ class Pipeline(GraphDelegate, Serializable):
             pipeline formed from the last node solving the given problem and all of its parents
         """
 
-        max_distance = 0
+        max_depth = 0
         side_root_node = None
         for node in self.nodes:
+            depth = node_depth(node)
             if (task_type in node.operation.acceptable_task_types and
                     isinstance(node.operation, Model) and
-                    node.distance_to_primary_level >= max_distance):
+                    depth >= max_depth):
                 side_root_node = node
-                max_distance = node.distance_to_primary_level
+                max_depth = depth
 
         pipeline = Pipeline(side_root_node)
         pipeline.preprocessor = self.preprocessor

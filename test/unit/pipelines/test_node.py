@@ -127,17 +127,6 @@ def test_ordered_subnodes_cycle():
         ordered_subnodes_hierarchy(root)
 
 
-def test_distance_to_primary_level():
-    first_node = PrimaryNode('knn')
-    second_node = PrimaryNode('knn')
-    third_node = SecondaryNode('lda', nodes_from=[first_node, second_node])
-    root = SecondaryNode('logit', nodes_from=[third_node])
-
-    distance = root.distance_to_primary_level
-
-    assert distance == 2
-
-
 def test_node_return_correct_operation_info():
     node = PrimaryNode('simple_imputation')
     operation_tags = node.tags
