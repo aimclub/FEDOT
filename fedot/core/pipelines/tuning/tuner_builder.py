@@ -26,7 +26,6 @@ class TunerBuilder:
         self.timeout = timedelta(minutes=5)
         self.search_space = SearchSpace()
         self.algo = tpe.suggest
-        self.show_progress = True
         self.eval_time_constraint = None
 
     def with_tuner(self, tuner: Type[HyperoptTuner]):
@@ -37,7 +36,6 @@ class TunerBuilder:
         self.cv_folds = requirements.cv_folds
         self.validation_blocks = requirements.validation_blocks
         self.n_jobs = requirements.n_jobs
-        self.show_progress = requirements.show_progress
         return self
 
     def with_cv_folds(self, cv_folds: int):
@@ -72,7 +70,7 @@ class TunerBuilder:
         self.eval_time_constraint = eval_time_constraint
         return self
 
-    def with_search_space(self, search_space: ClassVar):
+    def with_search_space(self, search_space: SearchSpace):
         self.search_space = search_space
         return self
 

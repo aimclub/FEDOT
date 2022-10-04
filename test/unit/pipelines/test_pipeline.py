@@ -1,3 +1,4 @@
+import datetime
 import os
 import platform
 import random
@@ -375,7 +376,8 @@ def test_pipeline_fit_time_constraint():
     data = classification_dataset_with_redundant_features()
     train_data, test_data = train_test_data_setup(data=data)
     test_pipeline_first = pipeline_first()
-    time_constraint = 0
+
+    time_constraint = datetime.timedelta(seconds=0)
     predicted_first = None
     computation_time_first = None
     process_start_time = time.time()
@@ -386,18 +388,19 @@ def test_pipeline_fit_time_constraint():
         computation_time_first = test_pipeline_first.computation_time
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_first_constraint = (time.time() - process_start_time)
-    time_constraint = 0.05
-    process_start_time = time.time()
 
+    time_constraint = datetime.timedelta(seconds=3)
+    process_start_time = time.time()
     try:
         test_pipeline_first.fit(input_data=train_data, time_constraint=time_constraint)
     except Exception as ex:
         received_ex = ex
         assert type(received_ex) is TimeoutError
     comp_time_proc_with_second_constraint = (time.time() - process_start_time)
+
     test_pipeline_second = pipeline_first()
     predicted_second = test_pipeline_second.fit(input_data=train_data,
-                                                time_constraint=1.6)
+                                                time_constraint=datetime.timedelta(seconds=1.6))
     computation_time_second = test_pipeline_second.computation_time
     assert comp_time_proc_with_first_constraint < comp_time_proc_with_second_constraint
     assert computation_time_first is None

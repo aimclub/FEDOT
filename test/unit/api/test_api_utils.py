@@ -55,8 +55,7 @@ def test_compose_fedot_model_with_tuning():
                                                           use_pipelines_cache=False,
                                                           use_preprocessing_cache=False,
                                                           cache_folder=None),
-                                     tuning_params=dict(with_tuning=True,
-                                                        tuner_metric=None))
+                                     tuning_params=dict(with_tuning=True))
     with open(log.log_file, 'r') as f:
         log_text = f.read()
         assert 'Composed pipeline returned without tuning.' in log_text

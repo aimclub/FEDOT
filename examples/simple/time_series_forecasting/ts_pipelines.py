@@ -4,7 +4,10 @@ from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 def ts_ets_pipeline():
     """
     Return pipeline with the following structure:
-    cut -> ets -> final forecast
+
+    .. image:: img_ts_pipelines/ts_ets_pipeline.png
+      :width: 55%
+
     Where cut - cut part of dataset and ets - exponential smoothing
     """
     pip_builder = PipelineBuilder().add_node('cut').add_node('ets',
@@ -20,9 +23,10 @@ def ts_ets_pipeline():
 def ts_ets_ridge_pipeline():
     """
     Return pipeline with the following structure:
-       cut -  ets \
-                   -> ridge -> final forecast
-    lagged - ridge /
+
+    .. image:: img_ts_pipelines/ts_ets_ridge_pipeline.png
+      :width: 55%
+
     Where cut - cut part of dataset, ets - exponential smoothing
    """
     pip_builder = PipelineBuilder()\
@@ -39,7 +43,9 @@ def ts_ets_ridge_pipeline():
 def ts_glm_pipeline():
     """
     Return pipeline with the following structure:
-    glm -> final forecast
+
+    .. image:: img_ts_pipelines/ts_glm_pipeline.png
+      :width: 55%
 
     Where glm - Generalized linear model
     """
@@ -50,9 +56,9 @@ def ts_glm_pipeline():
 def ts_glm_ridge_pipeline():
     """
     Return pipeline with the following structure:
-               glm \
-                   -> ridge -> final forecast
-    lagged - ridge /
+
+    .. image:: img_ts_pipelines/ts_glm_ridge_pipeline.png
+      :width: 55%
 
     Where glm - Generalized linear model
     """
@@ -67,7 +73,9 @@ def ts_glm_ridge_pipeline():
 def ts_polyfit_pipeline(degree):
     """
     Return pipeline with the following structure:
-    polyfit -> final forecast
+
+    .. image:: img_ts_pipelines/ts_polyfit_pipeline.png
+      :width: 55%
 
     Where polyfit - Polynomial interpolation
     """
@@ -78,9 +86,9 @@ def ts_polyfit_pipeline(degree):
 def ts_polyfit_ridge_pipeline(degree):
     """
     Return pipeline with the following structure:
-           polyfit \
-                   -> ridge -> final forecast
-    lagged - ridge /
+
+    .. image:: img_ts_pipelines/ts_polyfit_ridge_pipeline.png
+      :width: 55%
 
     Where polyfit - Polynomial interpolation
     """
@@ -95,9 +103,10 @@ def ts_polyfit_ridge_pipeline(degree):
 def ts_complex_ridge_pipeline():
     """
     Return pipeline with the following structure:
-    lagged - ridge \
-                    -> ridge -> final forecast
-    lagged - ridge /
+
+    .. image:: img_ts_pipelines/ts_complex_ridge_pipeline.png
+      :width: 55%
+
     """
     pip_builder = PipelineBuilder() \
         .add_sequence('lagged', 'rigde', branch_idx=0) \
@@ -110,11 +119,9 @@ def ts_complex_ridge_pipeline():
 def ts_complex_ridge_smoothing_pipeline():
     """
     Pipeline looking like this
-    smoothing - lagged - ridge \
-                                \
-                                 ridge -> final forecast
-                                /
-                lagged - ridge /
+
+    .. image:: img_ts_pipelines/ts_complex_ridge_smoothing_pipeline.png
+      :width: 55%
 
     Where smoothing - rolling mean
     """
@@ -128,13 +135,12 @@ def ts_complex_ridge_smoothing_pipeline():
 
 def ts_complex_dtreg_pipeline(first_node='lagged'):
     """
-        Return pipeline with the following structure:
+    Return pipeline with the following structure:
 
-        lagged/sparse_lagged - dtreg \
-                                        rfr -> final forecast
-        lagged/sparse_lagged - dtreg /
+    .. image:: img_ts_pipelines/ts_complex_dtreg_pipeline.png
+      :width: 55%
 
-        Where dtreg = tree regressor, rfr - random forest regressor
+    Where dtreg = tree regressor, rfr - random forest regressor
     """
     pip_builder = PipelineBuilder() \
         .add_sequence(first_node, 'dtreg', branch_idx=0) \
@@ -147,11 +153,9 @@ def ts_complex_dtreg_pipeline(first_node='lagged'):
 def ts_multiple_ets_pipeline():
     """
     Return pipeline with the following structure:
-      ets
-         \
-    ets -> lasso -> final forecast
-        /
-     ets
+
+    .. image:: img_ts_pipelines/ts_multiple_ets_pipeline.png
+      :width: 55%
 
     Where ets - exponential_smoothing
     """
@@ -168,7 +172,9 @@ def ts_multiple_ets_pipeline():
 def ts_ar_pipeline():
     """
     Return pipeline with the following structure:
-    ar -> final forecast
+
+    .. image:: img_ts_pipelines/ts_ar_pipeline.png
+      :width: 55%
 
     Where ar - auto regression
     """
@@ -179,7 +185,9 @@ def ts_ar_pipeline():
 def ts_arima_pipeline():
     """
     Return pipeline with the following structure:
-    arima -> final forecast
+
+    .. image:: img_ts_pipelines/ts_arima_pipeline.png
+      :width: 55%
 
     """
     pipeline = PipelineBuilder().add_node("arima").to_pipeline()
@@ -189,7 +197,9 @@ def ts_arima_pipeline():
 def ts_stl_arima_pipeline():
     """
     Return pipeline with the following structure:
-    stl_arima -> final forecast
+
+    .. image:: img_ts_pipelines/ts_stl_arima_pipeline.png
+      :width: 55%
 
     """
     pipeline = PipelineBuilder().add_node("stl_arima").to_pipeline()
@@ -200,9 +210,10 @@ def ts_locf_ridge_pipeline():
     """
     Pipeline with naive LOCF (last observation carried forward) model
     and lagged features
-     locf  \
-            ridge -> final forecast
-    lagged /
+
+    .. image:: img_ts_pipelines/ts_locf_ridge_pipeline.png
+      :width: 55%
+
     """
     pip_builder = PipelineBuilder() \
         .add_sequence('locf', branch_idx=0) \
@@ -217,9 +228,10 @@ def ts_naive_average_ridge_pipeline():
     """
     Pipeline with simple forecasting model (the forecast is mean value for known
     part)
-    ts_naive_average \
-                      ridge -> final forecast
-         lagged      /
+
+    .. image:: img_ts_pipelines/ts_naive_average_ridge_pipeline.png
+      :width: 55%
+
     """
     pip_builder = PipelineBuilder() \
         .add_sequence('ts_naive_average', branch_idx=0) \
@@ -233,9 +245,9 @@ def ts_naive_average_ridge_pipeline():
 def clstm_pipeline():
     """
     Return pipeline with the following structure:
-    lagged - ridge \
-                    -> ridge -> final forecast
-             clstm /
+
+    .. image:: img_ts_pipelines/clstm_pipeline.png
+      :width: 55%
 
     Where clstm - convolutional long short-term memory model
     """
