@@ -1,5 +1,4 @@
-from collections.abc import Sequence
-from typing import Union, List, TYPE_CHECKING
+from typing import Union, Sequence, List, TYPE_CHECKING
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
