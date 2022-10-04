@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional, Iterable
 
-from fedot.core.dag.graph_utils import node_depth
-
 
 class GraphNode(ABC):
     """Definition of the node in directed graph structure.
@@ -66,15 +64,6 @@ class GraphNode(ABC):
             str: text description of the content in the node and its parameters
         """
         return descriptive_id_recursive(self)
-
-    @property
-    def distance_to_primary_level(self) -> int:
-        """Returns max depth from bounded node to graphs primary level
-
-        Returns:
-            int: max depth to the primary level
-        """
-        return node_depth(self) - 1
 
 
 def descriptive_id_recursive(current_node: GraphNode, visited_nodes=None) -> str:

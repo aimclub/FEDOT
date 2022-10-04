@@ -3,7 +3,7 @@ from random import choice, random
 from typing import Callable, Union, Iterable, Tuple, TYPE_CHECKING
 
 from fedot.core.adapter import register_native
-from fedot.core.dag.graph_utils import nodes_from_layer
+from fedot.core.dag.graph_utils import nodes_from_layer, node_depth
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -122,10 +122,8 @@ def one_point_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth
     if pairs_of_nodes:
         node_from_graph_first, node_from_graph_second = choice(pairs_of_nodes)
 
-        layer_in_graph_first = \
-            graph_first.root_node.distance_to_primary_level - node_from_graph_first.distance_to_primary_level
-        layer_in_graph_second = \
-            graph_second.root_node.distance_to_primary_level - node_from_graph_second.distance_to_primary_level
+        layer_in_graph_first = graph_first.depth - node_depth(node_from_graph_first)
+        layer_in_graph_second = graph_second.depth - node_depth(node_from_graph_second)
 
         replace_subtrees(graph_first, graph_second, node_from_graph_first, node_from_graph_second,
                          layer_in_graph_first, layer_in_graph_second, max_depth)

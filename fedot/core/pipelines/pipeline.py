@@ -9,6 +9,8 @@ from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.dag.graph_operator import LinkedGraph
+
+from fedot.core.dag.graph_utils import distance_to_primary_level
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -309,9 +311,9 @@ class Pipeline(GraphDelegate, Serializable):
         for node in self.nodes:
             if (task_type in node.operation.acceptable_task_types and
                     isinstance(node.operation, Model) and
-                    node.distance_to_primary_level >= max_distance):
+                    distance_to_primary_level(node) >= max_distance):
                 side_root_node = node
-                max_distance = node.distance_to_primary_level
+                max_distance = distance_to_primary_level(node)
 
         pipeline = Pipeline(side_root_node)
         pipeline.preprocessor = self.preprocessor
