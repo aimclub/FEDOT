@@ -6,9 +6,8 @@ def regression_three_depth_manual_pipeline():
     """
     Returns pipeline with the following structure:
 
-          rfr -> dtreg  \
-                         knnreg - > final prediction
-          knnreg -> rfr /
+    .. image:: img_regression_pipelines/three_depth_manual.png
+      :width: 55%
 
     Where rf - random forest, dtreg - tree regression, knn - K nearest neighbors regression,
    """
@@ -29,7 +28,8 @@ def regression_ransac_pipeline():
     """
     Returns pipeline with the following structure:
 
-          scaling -> ransac_lin_reg -> lasso -> final prediction
+    .. image:: img_regression_pipelines/ransac.png
+      :width: 55%
 
     Where ransac_lin_reg - ransac algorithm
    """
