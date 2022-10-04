@@ -9,6 +9,12 @@ from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class GraphNode(ABC):
+    """Definition of the node in directed graph structure.
+
+    Provides interface for getting and modifying the parent nodes
+    and recursive description based on all preceding nodes.
+    """
+
     @property
     @abstractmethod
     def nodes_from(self) -> List['GraphNode']:
@@ -24,7 +30,7 @@ class GraphNode(ABC):
     def nodes_from(self, nodes: Optional[Iterable['GraphNode']]):
         """Changes value of parent nodes of this graph node
 
-        Returns:
+        Args:
             Union['GraphNode', None]: new sequence of parent nodes
         """
         pass
@@ -101,61 +107,27 @@ class DAGNode(GraphNode):
 
     @property
     def nodes_from(self) -> List['DAGNode']:
-        """Gets all parent nodes of this graph node
-
-        Returns:
-            List['GraphNode']: all the parent nodes
-        """
-
         return self._nodes_from
 
     @nodes_from.setter
     def nodes_from(self, nodes: Optional[Iterable['DAGNode']]):
-        """Changes value of parent nodes of this graph node
-
-        Returns:
-            Union['GraphNode', None]: new sequence of parent nodes
-        """
-
         self._nodes_from = UniqueList(nodes)
 
     @property
     def descriptive_id(self) -> str:
-        """Returns verbal identificator of the node
-
-        Returns:
-            str: text description of the content in the node and its parameters
-        """
         return _descriptive_id_recursive(self)
 
     @property
     def distance_to_primary_level(self) -> int:
-        """Returns max depth from bounded node to graphs primary level
-
-        Returns:
-            int: max depth to the primary level
-        """
         return node_depth(self) - 1
 
     def __str__(self) -> str:
-        """Returns short node type description
-
-        Returns:
-            str: text graph node representation
-        """
-
         return str(self.content['name'])
 
     def __repr__(self) -> str:
         return self.__str__()
 
     def description(self) -> str:
-        """Returns full node description
-
-        Returns:
-            str: text graph node representation
-        """
-
         node_operation = self.content['name']
         params = self.content.get('params')
         # TODO: possibly unify with __repr__ & don't duplicate Operation.description
@@ -171,7 +143,7 @@ class DAGNode(GraphNode):
         return node_label
 
 
-def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
+def _descriptive_id_recursive(current_node: GraphNode, visited_nodes=None) -> str:
     if visited_nodes is None:
         visited_nodes = []
 
