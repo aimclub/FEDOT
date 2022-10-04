@@ -4,7 +4,7 @@ from typing import List, Optional, Iterable, Hashable
 from fedot.core.dag.graph_utils import node_depth, descriptive_id_recursive
 
 
-class GraphNode(ABC, Hashable):
+class GraphNode(ABC):
     """Definition of the node in directed graph structure.
 
     Provides interface for getting and modifying the parent nodes
@@ -28,15 +28,6 @@ class GraphNode(ABC, Hashable):
 
         Args:
             Union['GraphNode', None]: new sequence of parent nodes
-        """
-        pass
-
-    @abstractmethod
-    def __hash__(self) -> int:
-        """Returns graph node hash
-
-        Returns:
-            int: graph node hash
         """
         pass
 
