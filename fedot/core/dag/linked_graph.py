@@ -126,7 +126,7 @@ class LinkedGraph(Graph, Copyable):
                          clean_up_leftovers: bool = True):
         if node_parent not in node_child.nodes_from:
             return
-        if node_parent not in self._nodes or node_child in self._nodes:
+        if node_parent not in self._nodes or node_child not in self._nodes:
             return
         node_child.nodes_from.remove(node_parent)
         if clean_up_leftovers:
