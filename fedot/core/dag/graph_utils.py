@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from copy import copy
 from typing import Union, List
 
 from fedot.core.dag.graph import Graph
@@ -40,6 +39,10 @@ def distance_to_root_level(graph: Graph, node: GraphNode) -> int:
 
     height = recursive_child_height(node)
     return height
+
+
+def distance_to_primary_level(node: GraphNode) -> int:
+    return node_depth(node) - 1
 
 
 def nodes_from_layer(graph: Graph, layer_number: int) -> Sequence[GraphNode]:
@@ -111,26 +114,3 @@ def node_depth(node: GraphNode) -> int:
         return 1
     else:
         return 1 + max(node_depth(next_node) for next_node in node.nodes_from)
-
-
-def descriptive_id_recursive(current_node: GraphNode, visited_nodes=None) -> str:
-    if visited_nodes is None:
-        visited_nodes = []
-
-    node_label = current_node.description()
-
-    full_path_items = []
-    if current_node in visited_nodes:
-        return 'ID_CYCLED'
-    visited_nodes.append(current_node)
-    if current_node.nodes_from:
-        previous_items = []
-        for parent_node in current_node.nodes_from:
-            previous_items.append(f'{descriptive_id_recursive(parent_node, copy(visited_nodes))};')
-        previous_items.sort()
-        previous_items_str = ';'.join(previous_items)
-
-        full_path_items.append(f'({previous_items_str})')
-    full_path_items.append(f'/{node_label}')
-    full_path = ''.join(full_path_items)
-    return full_path
