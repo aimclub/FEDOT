@@ -3,7 +3,8 @@ from typing import Any, List, Optional, Tuple, Union, Iterable
 
 import numpy as np
 
-from fedot.core.dag.graph_node import GraphNode, LinkedGraphNode
+from fedot.core.dag.graph_node import GraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log

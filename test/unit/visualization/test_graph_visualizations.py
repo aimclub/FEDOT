@@ -5,7 +5,7 @@ import pytest
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import LinkedGraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node

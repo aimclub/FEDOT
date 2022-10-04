@@ -1,6 +1,6 @@
 from typing import Any, Dict
 
-from fedot.core.dag.graph_node import LinkedGraphNode
+from ...dag.linked_graph_node import LinkedGraphNode
 from . import any_to_json
 
 

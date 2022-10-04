@@ -2,7 +2,7 @@ from typing import Any, Dict, Type, Sequence
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
-from fedot.core.dag.graph_node import LinkedGraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 
 
 def graph_from_json(cls: Type[Graph], json_obj: Dict[str, Any]) -> Graph:

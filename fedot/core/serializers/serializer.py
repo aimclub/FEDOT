@@ -3,7 +3,7 @@ from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
 from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
-from fedot.core.dag.graph_node import LinkedGraphNode
+from fedot.core.dag.linked_graph_node import LinkedGraphNode
 from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.pipelines.node import NodeMetadata
