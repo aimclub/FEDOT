@@ -12,6 +12,7 @@ from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.timer import Timer
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
+from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @dataclass
@@ -43,7 +44,7 @@ class Node(GraphNode):
             operation = self._process_content_init(passed_content)
             params = passed_content.get('params', {})
             # The check for "default_params" is needed for backward compatibility.
-            if params == 'default_params':
+            if params == DEFAULT_PARAMS_STUB:
                 params = {}
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
@@ -225,7 +226,7 @@ class Node(GraphNode):
         """
         if params:
             # The check for "default_params" is needed for backward compatibility.
-            if params == 'default_params':
+            if params == DEFAULT_PARAMS_STUB:
                 params = {}
             # take nested composer params if they appeared
             if 'nested_space' in params:
