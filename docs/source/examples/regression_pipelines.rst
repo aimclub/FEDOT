@@ -1,6 +1,6 @@
 Regression pipelines
 ====================
 
-.. automodule:: examples.simple.classification.classification_pipelines
+.. automodule:: examples.simple.regression.regression_pipelines
    :members:
    :no-undoc-members:
