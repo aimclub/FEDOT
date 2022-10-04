@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import List, Optional, Iterable
 
 
