@@ -3,7 +3,7 @@ from copy import copy
 from typing import List, Optional, Union, Iterable
 from uuid import uuid4
 
-from fedot.core.dag.graph_utils import node_depth
+from fedot.core.dag.graph_utils import node_depth, descriptive_id_recursive
 from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
@@ -69,7 +69,7 @@ class GraphNode(ABC):
         Returns:
             str: text description of the content in the node and its parameters
         """
-        return _descriptive_id_recursive(self)
+        return descriptive_id_recursive(self)
 
     @property
     def distance_to_primary_level(self) -> int:
@@ -113,14 +113,6 @@ class DAGNode(GraphNode):
     def nodes_from(self, nodes: Optional[Iterable['DAGNode']]):
         self._nodes_from = UniqueList(nodes)
 
-    @property
-    def descriptive_id(self) -> str:
-        return _descriptive_id_recursive(self)
-
-    @property
-    def distance_to_primary_level(self) -> int:
-        return node_depth(self) - 1
-
     def __str__(self) -> str:
         return str(self.content['name'])
 
@@ -141,26 +133,3 @@ class DAGNode(GraphNode):
             # If instance of Operation is placed in 'name'
             node_label = node_operation.description(params)
         return node_label
-
-
-def _descriptive_id_recursive(current_node: GraphNode, visited_nodes=None) -> str:
-    if visited_nodes is None:
-        visited_nodes = []
-
-    node_label = current_node.description()
-
-    full_path_items = []
-    if current_node in visited_nodes:
-        return 'ID_CYCLED'
-    visited_nodes.append(current_node)
-    if current_node.nodes_from:
-        previous_items = []
-        for parent_node in current_node.nodes_from:
-            previous_items.append(f'{_descriptive_id_recursive(parent_node, copy(visited_nodes))};')
-        previous_items.sort()
-        previous_items_str = ';'.join(previous_items)
-
-        full_path_items.append(f'({previous_items_str})')
-    full_path_items.append(f'/{node_label}')
-    full_path = ''.join(full_path_items)
-    return full_path
