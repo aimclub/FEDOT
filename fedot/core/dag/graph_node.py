@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
-from copy import copy
-from typing import List, Optional, Union, Iterable
+from typing import List, Optional, Union, Iterable, Hashable
 from uuid import uuid4
 
 from fedot.core.dag.graph_utils import node_depth, descriptive_id_recursive
@@ -8,7 +7,7 @@ from fedot.core.utilities.data_structures import UniqueList
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
-class GraphNode(ABC):
+class GraphNode(ABC, Hashable):
     """Definition of the node in directed graph structure.
 
     Provides interface for getting and modifying the parent nodes
@@ -32,6 +31,15 @@ class GraphNode(ABC):
 
         Args:
             Union['GraphNode', None]: new sequence of parent nodes
+        """
+        pass
+
+    @abstractmethod
+    def __hash__(self) -> int:
+        """Returns graph node hash
+
+        Returns:
+            int: graph node hash
         """
         pass
 
@@ -112,6 +120,9 @@ class DAGNode(GraphNode):
     @nodes_from.setter
     def nodes_from(self, nodes: Optional[Iterable['DAGNode']]):
         self._nodes_from = UniqueList(nodes)
+
+    def __hash__(self) -> int:
+        return hash(self.uid)
 
     def __str__(self) -> str:
         return str(self.content['name'])
