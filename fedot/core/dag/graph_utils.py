@@ -1,12 +1,14 @@
 from collections.abc import Sequence
-from typing import Union, List
+from typing import Union, List, TYPE_CHECKING
 
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 
+if TYPE_CHECKING:
+    from fedot.core.dag.graph import Graph
 
-def get_nodes_degrees(graph: Graph) -> Sequence[int]:
+
+def get_nodes_degrees(graph: 'Graph') -> Sequence[int]:
     """Nodes degree as the number of edges the node has:
         ``degree = #input_edges + #out_edges``
 
@@ -19,7 +21,7 @@ def get_nodes_degrees(graph: Graph) -> Sequence[int]:
     return node_degrees
 
 
-def distance_to_root_level(graph: Graph, node: GraphNode) -> int:
+def distance_to_root_level(graph: 'Graph', node: GraphNode) -> int:
     """Gets distance to the final output node
 
     Args:
@@ -45,7 +47,7 @@ def distance_to_primary_level(node: GraphNode) -> int:
     return node_depth(node) - 1
 
 
-def nodes_from_layer(graph: Graph, layer_number: int) -> Sequence[GraphNode]:
+def nodes_from_layer(graph: 'Graph', layer_number: int) -> Sequence[GraphNode]:
     """Gets all the nodes from the chosen layer up to the surface
 
     Args:

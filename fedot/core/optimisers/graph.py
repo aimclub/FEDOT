@@ -6,6 +6,7 @@ from fedot.core.log import default_log
 
 OptNode = LinkedGraphNode
 
+
 class OptGraph(GraphDelegate):
     """Base class used for optimized structure
 

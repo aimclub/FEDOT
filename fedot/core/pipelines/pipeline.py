@@ -8,7 +8,7 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import LinkedGraph
+from fedot.core.dag.linked_graph import LinkedGraph
 
 from fedot.core.dag.graph_utils import distance_to_primary_level
 from fedot.core.data.data import InputData, OutputData
