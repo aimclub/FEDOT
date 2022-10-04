@@ -3,7 +3,7 @@ from random import randint
 from typing import Any, List, Optional, Tuple
 
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
-from fedot.core.dag.graph_utils import distance_to_root_level, node_depth
+from fedot.core.dag.graph_utils import distance_to_root_level
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.opt_node_factory import OptNodeFactory
@@ -100,11 +100,11 @@ def replace_subtrees(graph_first: Any, graph_second: Any, node_from_first: Any, 
                      layer_in_first: int, layer_in_second: int, max_depth: int):
     node_from_graph_first_copy = deepcopy(node_from_first)
 
-    summary_depth = layer_in_first + node_depth(node_from_second) - 1
+    summary_depth = layer_in_first + node_from_second.distance_to_primary_level
     if summary_depth <= max_depth and summary_depth != 0:
         graph_first.update_subtree(node_from_first, node_from_second)
 
-    summary_depth = layer_in_second + node_depth(node_from_first) - 1
+    summary_depth = layer_in_second + node_from_first.distance_to_primary_level
     if summary_depth <= max_depth and summary_depth != 0:
         graph_second.update_subtree(node_from_second, node_from_graph_first_copy)
 

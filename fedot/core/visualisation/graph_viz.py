@@ -15,7 +15,6 @@ from matplotlib.patches import ArrowStyle
 from pyvis.network import Network
 from seaborn import color_palette
 
-from fedot.core.dag.graph_utils import node_depth
 from fedot.core.log import default_log
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph
 from fedot.core.utils import default_fedot_data_dir
@@ -130,7 +129,7 @@ class GraphVisualiser:
             if isinstance(params, dict):
                 params = str(params)[1:-1]
             data['title'] = params
-            data['level'] = node_depth(operation) - 1
+            data['level'] = operation.distance_to_primary_level
             data['color'] = to_hex(colors.get(label, colors.get(None)))
             data['font'] = '20px'
             data['labelHighlightBold'] = True
@@ -202,7 +201,7 @@ class GraphVisualiser:
             node_color = [node_color.get(str(node), node_color.get(None)) for node in nodes.values()]
         # Define hierarchy_level
         for node_id, node_data in nx_graph.nodes(data=True):
-            node_data['hierarchy_level'] = node_depth(nodes[node_id]) - 1
+            node_data['hierarchy_level'] = nodes[node_id].distance_to_primary_level
         # Get nodes positions
         pos, longest_sequence = get_hierarchy_pos(nx_graph)
         node_size = get_scaled_node_size(longest_sequence) * node_size_scale

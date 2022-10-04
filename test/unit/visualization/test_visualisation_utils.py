@@ -1,4 +1,3 @@
-from fedot.core.dag.graph_utils import node_depth
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
 from fedot.core.optimisers.opt_history_objects.individual import Individual
@@ -78,7 +77,7 @@ def test_hierarchy_pos():
 
     graph, node_labels = graph_structure_as_nx_graph(pipeline)
     for n, data in graph.nodes(data=True):
-        data['hierarchy_level'] = node_depth(node_labels[n]) - 1
+        data['hierarchy_level'] = node_labels[n].distance_to_primary_level
         node_labels[n] = str(node_labels[n])
 
     pos, _ = get_hierarchy_pos(graph)

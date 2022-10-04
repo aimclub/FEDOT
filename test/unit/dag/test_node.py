@@ -1,4 +1,3 @@
-from fedot.core.dag.graph_utils import node_depth
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 
 
@@ -11,10 +10,10 @@ def get_nodes():
     return [root, third_node, first_node, second_node]
 
 
-def test_node_depth():
+def test_node_operator_distance_to_primary_level():
     # given
     root = get_nodes()[0]
 
-    distance = node_depth(root)
+    distance = root.distance_to_primary_level
 
-    assert distance == 3
+    assert distance == 2

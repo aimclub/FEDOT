@@ -9,7 +9,7 @@ from fedot.core.adapter import register_native
 from fedot.core.composer.advisor import RemoveType
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_utils import distance_to_root_level, ordered_subnodes_hierarchy, node_depth
+from fedot.core.dag.graph_utils import distance_to_root_level, ordered_subnodes_hierarchy
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -67,7 +67,7 @@ class Mutation(Operator):
         """
         if mut_id in list(MutationStrengthEnum):
             mutation_strength = mut_id.value
-            mutation_prob = mutation_strength / node_depth(node)
+            mutation_prob = mutation_strength / (node.distance_to_primary_level + 1)
         else:
             mutation_prob = default_mutation_prob
         return mutation_prob
@@ -302,7 +302,7 @@ class Mutation(Operator):
         """
         node_from_graph = choice(graph.nodes)
         if local_growth:
-            max_depth = node_depth(node_from_graph) - 1
+            max_depth = node_from_graph.distance_to_primary_level
             is_primary_node_selected = (not node_from_graph.nodes_from) or (node_from_graph != graph.root_node and
                                                                             randint(0, 1))
         else:
