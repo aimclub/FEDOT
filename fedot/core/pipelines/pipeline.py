@@ -8,7 +8,7 @@ from fedot.core.caching.pipelines_cache import OperationsCache
 from fedot.core.caching.preprocessing_cache import PreprocessingCache
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.graph_operator import LinkedGraph
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.log import default_log
@@ -382,7 +382,7 @@ def nodes_with_operation(pipeline: Pipeline, operation_name: str) -> List[Node]:
     return list(appropriate_nodes)
 
 
-def _graph_nodes_to_pipeline_nodes(operator: GraphOperator, nodes: Sequence[Node]):
+def _graph_nodes_to_pipeline_nodes(operator: LinkedGraph, nodes: Sequence[Node]):
     """
     Method to update nodes type after performing some action on the pipeline
         via GraphOperator, if any of them are of GraphNode type

@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-from fedot.core.dag.graph_operator import GraphOperator, get_distance_between
+from fedot.core.dag.graph_operator import LinkedGraph, get_distance_between
 from fedot.core.dag.graph_utils import distance_to_root_level, nodes_from_layer
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.graph import OptNode
@@ -25,7 +25,7 @@ def get_pipeline() -> Pipeline:
 
 def test_pipeline_operator_init():
     pipeline = get_pipeline()
-    assert type(pipeline.operator) is GraphOperator
+    assert type(pipeline.operator) is LinkedGraph
 
 
 def test_distance_to_root_level():

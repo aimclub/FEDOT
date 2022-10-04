@@ -13,11 +13,13 @@ from fedot.core.utils import copy_doc
 NodePostprocessCallable = Callable[[Graph, Sequence[GraphNode]], Any]
 
 
-class GraphOperator(Graph, Copyable):
-    """_summary_
+class LinkedGraph(Graph, Copyable):
+    """Graph implementation based on linked graph node
+    that directly stores its parent nodes.
 
-    :param nodes: nodes of the Graph
-    :param postprocess_nodes: nodes postprocessor after their modification
+    Args:
+        nodes: nodes of the Graph
+        postprocess_nodes: nodes postprocessing function used after their modification
     """
 
     def __init__(self, nodes: Union[GraphNode, Sequence[GraphNode]] = (),
@@ -27,7 +29,8 @@ class GraphOperator(Graph, Copyable):
             self.add_node(node)
         self._postprocess_nodes = postprocess_nodes or self._empty_postprocess
 
-    def _empty_postprocess(self, *args):
+    @staticmethod
+    def _empty_postprocess(*args):
         pass
 
     @copy_doc(Graph)

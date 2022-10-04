@@ -7,7 +7,7 @@ import pytest
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.graph_operator import LinkedGraph
 from test.unit.dag.test_graph_utils import find_same_node, nodes_same
 from test.unit.pipelines.tuning.test_pipeline_tuning import classification_dataset
 
@@ -16,7 +16,7 @@ np.random.seed(1)
 
 tmp = classification_dataset
 
-GraphImpl = GraphOperator
+GraphImpl = LinkedGraph
 GraphNode = LinkedGraphNode
 
 

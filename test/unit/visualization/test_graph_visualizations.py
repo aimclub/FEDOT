@@ -6,18 +6,18 @@ import pytest
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.linked_graph_node import LinkedGraphNode
-from fedot.core.dag.graph_operator import GraphOperator
+from fedot.core.dag.graph_operator import LinkedGraph
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
 
 
-@pytest.fixture(scope='module', params=[GraphDelegate, GraphOperator, Pipeline, OptGraph])
+@pytest.fixture(scope='module', params=[GraphDelegate, LinkedGraph, Pipeline, OptGraph])
 def graph(request):
     graph_type: Union[Type[Graph], Type[Pipeline], Type[OptGraph]] = request.param
     nodes_kwargs = [{'content': {'name': f'n{i+1}'}} for i in range(4)]
     nodes_kwargs[-1]['nodes_from'] = range(len(nodes_kwargs) - 1)
-    if graph_type in [GraphOperator, GraphDelegate]:
+    if graph_type in [LinkedGraph, GraphDelegate]:
         node_type = LinkedGraphNode
     elif graph_type is Pipeline:
         node_type = Node
