@@ -2,7 +2,7 @@ from copy import deepcopy
 from typing import Any, Optional, Dict
 
 from fedot.core.adapter import BaseOptimizationAdapter
-from fedot.core.dag.graph_node import DAGNode
+from fedot.core.dag.graph_node import LinkedGraphNode
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
@@ -20,7 +20,7 @@ class PipelineAdapter(BaseOptimizationAdapter[Pipeline]):
             self._log.warning('Unexpected: OptNode found in PipelineAdapter instead'
                               'PrimaryNode or SecondaryNode.')
         else:
-            if type(node) == DAGNode:
+            if type(node) == LinkedGraphNode:
                 self._log.warning('Unexpected: GraphNode found in PipelineAdapter instead'
                                   'PrimaryNode or SecondaryNode.')
             else:

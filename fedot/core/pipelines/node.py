@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Tuple, Union, Iterable
 
 import numpy as np
 
-from fedot.core.dag.graph_node import GraphNode, DAGNode
+from fedot.core.dag.graph_node import GraphNode, LinkedGraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
@@ -26,7 +26,7 @@ class NodeMetadata:
     metric: Optional[float] = None
 
 
-class Node(DAGNode):
+class Node(LinkedGraphNode):
     """Base class for node definition in :class:`Pipeline` structure
 
     Args:

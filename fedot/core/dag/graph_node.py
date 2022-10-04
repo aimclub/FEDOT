@@ -89,8 +89,9 @@ class GraphNode(ABC, Hashable):
         return node_depth(self) - 1
 
 
-class DAGNode(GraphNode):
-    """Class for node definition in the DAG-based structure
+class LinkedGraphNode(GraphNode):
+    """Class for node definition in the directed graph structure
+    that directly stores its parent nodes.
 
     Args:
         nodes_from: parent nodes which information comes from
@@ -104,7 +105,7 @@ class DAGNode(GraphNode):
     """
 
     def __init__(self, content: Union[dict, str],
-                 nodes_from: Optional[Iterable['DAGNode']] = None):
+                 nodes_from: Optional[Iterable['LinkedGraphNode']] = None):
         # Wrap string into dict if it is necessary
         if isinstance(content, str):
             content = {'name': content}
@@ -114,11 +115,11 @@ class DAGNode(GraphNode):
         self.uid = str(uuid4())
 
     @property
-    def nodes_from(self) -> List['DAGNode']:
+    def nodes_from(self) -> List['LinkedGraphNode']:
         return self._nodes_from
 
     @nodes_from.setter
-    def nodes_from(self, nodes: Optional[Iterable['DAGNode']]):
+    def nodes_from(self, nodes: Optional[Iterable['LinkedGraphNode']]):
         self._nodes_from = UniqueList(nodes)
 
     def __hash__(self) -> int:
