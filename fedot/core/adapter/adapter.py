@@ -20,24 +20,39 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
     def restore_func(self, fun: Callable) -> Callable:
         """Wraps native function so that it could accept domain graphs as arguments.
 
-        Behavior: `restore( f(OptGraph) ) => f'(DomainGraph)`
+        Behavior: `restore( f(OptGraph)->OptGraph ) => f'(DomainGraph)->DomainGraph`
 
-        :param fun: native function that accepts native args (i.e. optimization graph)
-         and requires adaptation of domain graph.
+        Implementation details.
+        The method wraps callable into a function that transforms its args & return value.
+        Arguments are transformed by ``adapt`` (that maps domain graphs to internal graphs).
+        Return value is transformed by ``restore`` (that maps internal graphs to domain graphs).
 
-        :return: domain function that can be used inside Optimizer
+        Args:
+            fun: native function that accepts native args (i.e. optimization graph)
+
+        Returns:
+            Callable: domain function that can accept domain graphs
         """
         return _transform(fun, f_args=self.adapt, f_ret=self.restore)
 
     def adapt_func(self, fun: Callable) -> Callable:
         """Wraps domain function so that it could accept native optimization graphs
         as arguments. If the function was registered as native, it is returned as-is.
+        ``AdaptRegistry`` is responsible for function registration.
 
         Behavior: `adapt( f(DomainGraph)->DomainGraph ) => f'(OptGraph)->OptGraph`
 
-        :param fun: domain function that accepts domain args and required call to restore
+        Implementation details.
+        The method wraps callable into a function that transforms its args & return value.
+        Arguments are transformed by ``restore`` (that maps internal graphs to domain graphs).
+        Return value is transformed by ``adapt`` (that maps domain graphs to internal graphs).
 
-        :return: native function that can be used inside Optimizer
+        Args:
+            fun: domain function that accepts domain graphs
+
+        Returns:
+            Callable: native function that can accept opt graphs
+            and be used inside Optimizer
         """
         if AdaptRegistry.is_native(fun):
             return fun
@@ -45,6 +60,15 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
 
     def adapt(self, item: Union[DomainStructureType, Sequence[DomainStructureType]]) \
             -> Union[OptGraph, Sequence[OptGraph]]:
+        """Maps domain graphs to internal graph representation used by optimizer.
+        Performs mapping only if argument has a type of domain graph.
+
+        Args:
+            item: a domain graph or sequence of them
+
+        Returns:
+            OptGraph | Sequence: mapped internal graph or sequence of them
+        """
         if type(item) is self.domain_graph_class:
             return self._adapt(item)
         elif isinstance(item, Sequence) and type(item[0]) is self.domain_graph_class:
@@ -54,6 +78,15 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
 
     def restore(self, item: Union[OptGraph, Individual, PopulationT]) \
             -> Union[DomainStructureType, Sequence[DomainStructureType]]:
+        """Maps graphs from internal representation to domain graphs.
+        Performs mapping only if argument has a type of internal representation.
+
+        Args:
+            item: an internal graph representation or sequence of them
+
+        Returns:
+            OptGraph | Sequence: mapped domain graph or sequence of them
+        """
         if type(item) is self.opt_graph_class:
             return self._restore(item)
         elif isinstance(item, Individual):
@@ -65,10 +98,12 @@ class BaseOptimizationAdapter(Generic[DomainStructureType]):
 
     @abstractmethod
     def _adapt(self, adaptee: DomainStructureType) -> OptGraph:
+        """Implementation of ``adapt`` for single graph."""
         raise NotImplementedError()
 
     @abstractmethod
     def _restore(self, opt_graph: OptGraph, metadata: Optional[Dict[str, Any]] = None) -> DomainStructureType:
+        """Implementation of ``restore`` for single graph."""
         raise NotImplementedError()
 
 
@@ -98,13 +133,17 @@ class DirectAdapter(BaseOptimizationAdapter[DomainStructureType]):
 
 
 def _transform(fun: Callable, f_args: Callable, f_ret: Callable) -> Callable:
-    """Transforms function in such a way that ``f_args`` is called on ``fun`` arguments
-    and ``f_ret`` is called on the return value of original function.
+    """Transforms input function in the following way:
+     ``f_args`` is called on each of the function arguments,
+     ``f_ret`` is called on the return value of original function.
 
-    :param fun: function to be transformed
-    :param f_args: arguments transformation function
-    :param f_ret: return value transformation function
-    :return: transformed function
+    Args:
+        fun: function to be transformed
+        f_args: argument transformation function
+        f_ret: return value transformation function
+
+    Returns:
+        Callable: wrapped transformed function
     """
 
     if not isinstance(fun, Callable):

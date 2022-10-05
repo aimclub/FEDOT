@@ -10,6 +10,17 @@ class AdaptRegistry(metaclass=SingletonMeta):
     AdaptRegistry together with :class:``BaseOptimizationAdapter`` enables
     automatic transformation between internal and domain graph representations.
 
+    **Short description of the use-case.**
+
+    Operators & verification rules that operate on internal representation
+    of graphs must be marked as native with ``register_native`` decorator.
+
+    Usually this is the case when users of the framework provide custom
+    operators for internal optimization graphs. When custom operators
+    operate on domain graphs, nothing is required.
+
+    **Extended description.**
+
     Optimiser operates with generic graph representation.
     Because of this any domain function requires adaptation
     of its graph arguments. Adapter can automatically adapt
@@ -43,13 +54,19 @@ class AdaptRegistry(metaclass=SingletonMeta):
         self._registered_native_callables = []
 
     def register_native(self, fun: Callable) -> Callable:
-        """Registers callable object as an internal function that doesn't
-        require adapt/restore mechanics when called inside the optimiser.
-        Allows callable to receive non-adapted OptGraph used by the optimiser.
+        """Registers callable object as an internal function
+        that can work with internal graph representation.
+        Hence, it doesn't require adaptation when called by the optimiser.
 
-        :param fun: function or callable to be registered as native
+        Implementation details.
+        Works by setting a special attribute on the object.
+        This attribute then is checked by ``is_native`` used by adapters.
 
-        :return: same function with special private attribute set
+        Args:
+            fun: function or callable to be registered as native
+
+        Returns:
+            Callable: same function with special private attribute set
         """
         original_function = AdaptRegistry._get_underlying_func(fun)
         setattr(original_function, AdaptRegistry._native_flag_attr_name_, True)
@@ -57,7 +74,14 @@ class AdaptRegistry(metaclass=SingletonMeta):
         return fun
 
     def unregister_native(self, fun: Callable) -> Callable:
-        """Unregisters callable object. See ``register_native``."""
+        """Unregisters callable object. See ``register_native``.
+
+        Args:
+            fun: function or callable to be unregistered as native
+
+        Returns:
+            Callable: same function with special private attribute unset
+        """
         original_function = AdaptRegistry._get_underlying_func(fun)
         if hasattr(original_function, AdaptRegistry._native_flag_attr_name_):
             delattr(original_function, AdaptRegistry._native_flag_attr_name_)
@@ -69,9 +93,12 @@ class AdaptRegistry(metaclass=SingletonMeta):
         """Tests callable object for a presence of specific attribute
         that tells that this function must not be restored with Adapter.
 
-        :param fun: tested Callable (function, method, functools.partial, or any callable object)
-        :return: True if the callable was registered as native, False otherwise."""
+        Args:
+            fun: tested Callable (function, method, functools.partial, or any callable object)
 
+        Returns:
+            bool: True if the callable was registered as native, False otherwise.
+        """
         original_function = AdaptRegistry._get_underlying_func(fun)
         is_native = getattr(original_function, AdaptRegistry._native_flag_attr_name_, False)
         return is_native
@@ -85,8 +112,11 @@ class AdaptRegistry(metaclass=SingletonMeta):
     def _get_underlying_func(obj: Callable) -> Callable:
         """Recursively unpacks 'partial' and 'method' objects to get underlying function.
 
-        :param obj: callable to try unpacking
-        :return: unpacked function that underlies the callable, or the unchanged object itself
+        Args:
+            obj: callable to try unpacking
+
+        Returns:
+            Callable: unpacked function that underlies the callable, or the unchanged object itself
         """
         while True:
             if isinstance(obj, partial):  # if it is a 'partial'
@@ -98,5 +128,13 @@ class AdaptRegistry(metaclass=SingletonMeta):
 
 
 def register_native(fun: Callable) -> Callable:
-    """Out-of-class version of the function intended to be used as decorator."""
+    """Out-of-class version of the ``register_native``
+    function that's intended to be used as a decorator.
+
+    Args:
+        fun: function or callable to be registered as native
+
+    Returns:
+        Callable: same function with special private attribute set
+    """
     return AdaptRegistry().register_native(fun)
