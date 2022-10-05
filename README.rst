@@ -95,12 +95,10 @@ NumPy arrays, Pandas DataFrames, and the file's path can be used as sources of i
 
 .. code-block:: python
 
- model = Fedot(problem='classification')
-
- model.fit(features=x_train, target=y_train)
- prediction = model.predict(features=x_test)
-
- metrics = model.get_metrics()
+    model = Fedot(problem='classification', timeout=5, preset='best_quality', n_jobs=-1)
+    model.fit(features=x_train, target=y_train)
+    prediction = model.predict(features=x_test)
+    metrics = model.get_metrics(target=y_test)
 
 More information about the API is available in `documentation <https://fedot.readthedocs.io/en/latest/api/api.html>`__ and advanced approaches are in `Examples & Tutorials <https://github.com/nccr-itmo/FEDOT#examples--tutorials>`__ section.
 
