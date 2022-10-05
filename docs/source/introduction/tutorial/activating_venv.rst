@@ -1,4 +1,4 @@
-Then, activate venv by using the following command on Unix like OS
+Then, activate venv by using the following command on Unix-like OS
 
 .. code-block::
 
