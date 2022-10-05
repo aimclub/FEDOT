@@ -1,6 +1,6 @@
-from os import PathLike
 from abc import ABC, abstractmethod
-from typing import Any, Tuple, Dict, List, Sequence, Union, TypeVar, Generic, Optional
+from os import PathLike
+from typing import Tuple, Dict, List, Sequence, Union, TypeVar, Optional
 
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.visualisation.graph_viz import GraphVisualiser, NodeColorType
@@ -146,15 +146,20 @@ class Graph(ABC):
         """
         raise NotImplementedError()
 
+    def root_nodes(self) -> Sequence[GraphNode]:
+        raise NotImplementedError()
+
     @property
-    @abstractmethod
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
         """Gets the final layer node(s) of the graph
 
         Returns:
             the final layer node(s)
         """
-        raise NotImplementedError()
+        roots = self.root_nodes()
+        if len(roots) == 1:
+            return roots[0]
+        return roots
 
     @property
     @abstractmethod

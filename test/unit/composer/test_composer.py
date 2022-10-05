@@ -243,25 +243,37 @@ def test_multi_objective_composer(data_fixture, request):
     assert all([roc_auc > 0.6 for roc_auc in pipelines_roc_auc])
 
 
+def dummy_quality_metric(*args, **kwargs):
+    return 1.0  # stagnating
+
+
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])
 def test_gp_composer_with_adaptive_depth(data_fixture, request):
     data = request.getfixturevalue(data_fixture)
     dataset_to_compose = data
     available_model_types = ['rf', 'knn']
+
+    quality_metric = dummy_quality_metric
+    max_depth = 5
+    num_gen = 3
     req = PipelineComposerRequirements(primary=available_model_types, secondary=available_model_types,
-                                       max_arity=2, start_depth=2, max_depth=5, num_of_generations=1)
+                                       start_depth=2, max_depth=max_depth, num_of_generations=num_gen)
     params = GPGraphOptimizerParameters(adaptive_depth=True,
+                                        adaptive_depth_max_stagnation=num_gen - 1,
                                         genetic_scheme_type=GeneticSchemeTypesEnum.steady_state)
     composer = ComposerBuilder(task=Task(TaskTypesEnum.classification)) \
         .with_history() \
         .with_requirements(req) \
         .with_optimizer_params(params) \
-        .with_metrics(ClassificationMetricsEnum.ROCAUC) \
-        .build()
+        .with_metrics(quality_metric) \
+        .build() \
 
     composer.compose_pipeline(data=dataset_to_compose)
-    assert all([ind.graph.depth <= 3 for ind in composer.history.individuals[0]])
-    assert composer.optimizer.requirements.max_depth == 2
+
+    generations = composer.history.individuals
+    current_depth = composer.optimizer.requirements.max_depth
+    assert req.start_depth <= current_depth < max_depth, f"max depth couldn't have been reached in {num_gen}"
+    assert all(ind.graph.depth < max_depth for ind in generations[-1]), "last generation is too deep"
 
 
 @pytest.mark.parametrize('data_fixture', ['file_data_setup'])

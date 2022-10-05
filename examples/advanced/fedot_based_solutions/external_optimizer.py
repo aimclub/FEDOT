@@ -35,12 +35,13 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
     def optimise(self, objective: ObjectiveFunction):
 
         timer = OptimisationTimer(timeout=self.requirements.timeout)
-        dispatcher = SimpleDispatcher(self.graph_generation_params.adapter, timer)
+        dispatcher = SimpleDispatcher(timer)
         evaluator = dispatcher.dispatch(objective)
 
         num_iter = 0
-        initial_graph = self.graph_generation_params.adapter.adapt(choice(self.initial_graphs))
-        best = Individual(initial_graph)
+
+        initial_individuals = [Individual(graph) for graph in self.initial_graphs]
+        best = choice(initial_individuals)
         evaluator([best])
 
         with timer as t:
@@ -52,7 +53,7 @@ class RandomMutationSearchOptimizer(GraphOptimizer):
                     best = new
                 num_iter += 1
 
-        return [self.graph_generation_params.adapter.restore(best.graph)]
+        return self.graph_generation_params.adapter.restore(best)
 
 
 def run_with_random_search_composer():

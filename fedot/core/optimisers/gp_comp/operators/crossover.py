@@ -2,6 +2,7 @@ from copy import deepcopy
 from random import choice, random
 from typing import Callable, Union, Iterable, Tuple, TYPE_CHECKING
 
+from fedot.core.adapter import register_native
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.gp_comp.gp_operators import equivalent_subtree, replace_subtrees
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
@@ -18,6 +19,9 @@ class CrossoverTypesEnum(Enum):
     subtree = 'subtree'
     one_point = "one_point"
     none = 'none'
+
+
+CrossoverCallable = Callable[[OptGraph, OptGraph, int], Tuple[OptGraph, OptGraph]]
 
 
 class Crossover(Operator):
@@ -45,9 +49,11 @@ class Crossover(Operator):
         crossover_type = choice(self.parameters.crossover_types)
 
         if self._will_crossover_be_applied(ind_first.graph, ind_second.graph, crossover_type):
-            crossover_func = self._obtain_crossover_function(crossover_type)
+            crossover_func = self._get_crossover_function(crossover_type)
             for _ in range(self.parameters.max_num_of_operator_attempts):
-                new_graphs = self._adapt_and_apply_crossover(ind_first, ind_second, crossover_func)
+                first_object = deepcopy(ind_first.graph)
+                second_object = deepcopy(ind_second.graph)
+                new_graphs = crossover_func(first_object, second_object, max_depth=self.requirements.max_depth)
                 are_correct = all(self.graph_generation_params.verifier(new_graph) for new_graph in new_graphs)
                 if are_correct:
                     parent_individuals = (ind_first, ind_second)
@@ -59,14 +65,14 @@ class Crossover(Operator):
 
         return ind_first, ind_second
 
-    def _obtain_crossover_function(self, crossover_type: Union[CrossoverTypesEnum, Callable]) -> Callable:
+    def _get_crossover_function(self, crossover_type: Union[CrossoverTypesEnum, Callable]) -> Callable:
         if isinstance(crossover_type, Callable):
-            return crossover_type
+            crossover_func = crossover_type
         else:
-            return self._crossover_by_type(crossover_type)
+            crossover_func = self._crossover_by_type(crossover_type)
+        return self.graph_generation_params.adapter.adapt_func(crossover_func)
 
-    def _crossover_by_type(self, crossover_type: CrossoverTypesEnum) \
-            -> Callable[[OptGraph, OptGraph, int], Tuple[OptGraph, OptGraph]]:
+    def _crossover_by_type(self, crossover_type: CrossoverTypesEnum) -> CrossoverCallable:
         crossovers = {
             CrossoverTypesEnum.subtree: subtree_crossover,
             CrossoverTypesEnum.one_point: one_point_crossover,
@@ -75,23 +81,6 @@ class Crossover(Operator):
             return crossovers[crossover_type]
         else:
             raise ValueError(f'Required crossover type is not found: {crossover_type}')
-
-    def _adapt_and_apply_crossover(self, first_individual: Individual, second_individual: Individual,
-                                   crossover_function: Callable) -> Tuple[OptGraph, OptGraph]:
-        is_custom_operator = isinstance(first_individual, OptGraph)
-        first_object = deepcopy(first_individual.graph)
-        second_object = deepcopy(second_individual.graph)
-
-        if is_custom_operator:
-            first_object = self.graph_generation_params.adapter.restore(first_object)
-            second_object = self.graph_generation_params.adapter.restore(second_object)
-
-        new_graphs = crossover_function(first_object, second_object, self.requirements.max_depth)
-
-        if is_custom_operator:
-            for graph_id, graph in enumerate(new_graphs):
-                new_graphs[graph_id] = self.graph_generation_params.adapter.adapt(graph)
-        return new_graphs
 
     def _get_individuals(self, new_graphs: Tuple[OptGraph, OptGraph], parent_individuals: Tuple[Individual, Individual],
                          crossover_type: Union[CrossoverTypesEnum, Callable]) -> Tuple[Individual, Individual]:
@@ -106,6 +95,7 @@ class Crossover(Operator):
                     crossover_type is CrossoverTypesEnum.none)
 
 
+@register_native
 def subtree_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: int) -> Tuple[OptGraph, OptGraph]:
     """Performed by the replacement of random subtree
     in first selected parent to random subtree from the second parent"""
@@ -122,6 +112,7 @@ def subtree_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: 
     return graph_first, graph_second
 
 
+@register_native
 def one_point_crossover(graph_first: OptGraph, graph_second: OptGraph, max_depth: int) -> Tuple[OptGraph, OptGraph]:
     """Finds common structural parts between two trees, and after that randomly
     chooses the location of nodes, subtrees of which will be swapped"""

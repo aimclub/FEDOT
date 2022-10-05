@@ -2,8 +2,7 @@ from typing import List, Union
 
 from fedot.core.dag.graph_delegate import GraphDelegate
 from fedot.core.dag.graph_node import GraphNode
-from fedot.core.dag.graph_operator import GraphOperator
-from fedot.core.log import Log, default_log
+from fedot.core.log import default_log
 
 
 OptNode = GraphNode

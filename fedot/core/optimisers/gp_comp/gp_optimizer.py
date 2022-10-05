@@ -17,6 +17,7 @@ from fedot.core.optimisers.gp_comp.parameters.graph_depth import AdaptiveGraphDe
 from fedot.core.optimisers.gp_comp.parameters.operators_prob import init_adaptive_operators_prob
 from fedot.core.optimisers.gp_comp.parameters.population_size import init_adaptive_pop_size, PopulationSize
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.populational_optimizer import PopulationalOptimizer, EvaluationAttemptsError
@@ -29,7 +30,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
 
     def __init__(self,
                  objective: Objective,
-                 initial_graphs: Sequence[Graph],
+                 initial_graphs: Sequence[OptGraph],
                  requirements: PipelineComposerRequirements,
                  graph_generation_params: GraphGenerationParams,
                  graph_optimizer_params: GPGraphOptimizerParameters):
@@ -56,8 +57,7 @@ class EvoGraphOptimizer(PopulationalOptimizer):
         # Define initial parameters
         self.requirements.max_depth = self._graph_depth.initial
         self.graph_optimizer_params.pop_size = self._pop_size.initial
-        self.initial_individuals = \
-            [Individual(self.graph_generation_params.adapter.adapt(graph)) for graph in initial_graphs]
+        self.initial_individuals = [Individual(graph) for graph in initial_graphs]
 
     def _initial_population(self, evaluator: Callable):
         """ Initializes the initial population """

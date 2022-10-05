@@ -5,6 +5,7 @@ from typing import Any, List, Optional, Tuple
 from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.opt_node_factory import OptNodeFactory
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 
@@ -16,16 +17,17 @@ def random_graph(graph_generation_params: GraphGenerationParams,
     graph = None
     n_iter = 0
     requirements = adjust_requirements(requirements)
+    node_factory = graph_generation_params.node_factory
 
     while not is_correct_graph:
         graph = OptGraph()
         if requirements.max_depth == 1:
-            graph_root = graph_generation_params.node_factory.get_node(is_primary=True)
+            graph_root = node_factory.get_node(is_primary=True)
             graph.add_node(graph_root)
         else:
-            graph_root = graph_generation_params.node_factory.get_node(is_primary=False)
+            graph_root = node_factory.get_node(is_primary=False)
             graph.add_node(graph_root)
-            graph_growth(graph, graph_root, graph_generation_params, requirements, max_depth)
+            graph_growth(graph, graph_root, node_factory, requirements, max_depth)
 
         is_correct_graph = graph_generation_params.verifier(graph)
         n_iter += 1
@@ -49,8 +51,8 @@ def adjust_requirements(requirements: PipelineComposerRequirements) -> PipelineC
 
 def graph_growth(graph: OptGraph,
                  node_parent: OptNode,
-                 params: GraphGenerationParams,
-                 requirements,
+                 node_factory: OptNodeFactory,
+                 requirements: PipelineComposerRequirements,
                  max_depth: int):
     """Function create a graph and links between nodes"""
     offspring_size = randint(requirements.min_arity, requirements.max_arity)
@@ -60,14 +62,14 @@ def graph_growth(graph: OptGraph,
         is_max_depth_exceeded = height >= max_depth - 2
         is_primary_node_selected = height < max_depth - 1 and randint(0, 1)
         if is_max_depth_exceeded or is_primary_node_selected:
-            primary_node = params.node_factory.get_node(is_primary=True)
+            primary_node = node_factory.get_node(is_primary=True)
             node_parent.nodes_from.append(primary_node)
             graph.add_node(primary_node)
         else:
-            secondary_node = params.node_factory.get_node(is_primary=False)
+            secondary_node = node_factory.get_node(is_primary=False)
             graph.add_node(secondary_node)
             node_parent.nodes_from.append(secondary_node)
-            graph_growth(graph, secondary_node, params, requirements, max_depth)
+            graph_growth(graph, secondary_node, node_factory, requirements, max_depth)
 
 
 def equivalent_subtree(graph_first: Any, graph_second: Any) -> List[Tuple[Any, Any]]:

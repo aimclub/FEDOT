@@ -1,5 +1,5 @@
 
-from typing import Union, Sequence, List, Callable, Optional, Tuple, Type
+from typing import Union, Sequence, List, Optional, Tuple, Type
 
 from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
@@ -63,6 +63,9 @@ class GraphDelegate(Graph):
 
     def __repr__(self):
         return self.operator.__repr__()
+
+    def root_nodes(self) -> Sequence[GraphNode]:
+        return self.operator.root_nodes()
 
     @property
     def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:

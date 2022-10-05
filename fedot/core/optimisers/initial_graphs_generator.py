@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Callable, Optional, Sequence, Union, Iterable
 
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -5,10 +6,11 @@ from fedot.core.constants import MAXIMAL_ATTEMPTS_NUMBER
 from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 
 GenerationFunction = Callable[[], Graph]
-InitialGraphsGenerator = Callable[[], Sequence[Graph]]
+InitialGraphsGenerator = Callable[[], Sequence[OptGraph]]
 
 
 class InitialPopulationGenerator(InitialGraphsGenerator):
@@ -25,33 +27,28 @@ class InitialPopulationGenerator(InitialGraphsGenerator):
                  requirements: PipelineComposerRequirements):
         self.pop_size = population_size
         self.requirements = requirements
-        self.generation_params = generation_params
+        self.graph_generation_params = generation_params
         self.generation_function: Optional[GenerationFunction] = None
         self.initial_graphs: Optional[Sequence[Graph]] = None
         self.log = default_log(self)
 
-    def __call__(self) -> Sequence[Graph]:
-
-        def get_random_graph():
-            adapter = self.generation_params.adapter
-            start_depth = self.requirements.start_depth
-            return adapter.restore(random_graph(self.generation_params, self.requirements, max_depth=start_depth))
-
+    def __call__(self) -> Sequence[OptGraph]:
         pop_size = self.pop_size
+        adapter = self.graph_generation_params.adapter
 
         if self.initial_graphs:
             if len(self.initial_graphs) > pop_size:
                 self.initial_graphs = self.initial_graphs[:pop_size]
-            return self.initial_graphs
+            return adapter.adapt(self.initial_graphs)
 
         if not self.generation_function:
-            self.generation_function = get_random_graph
+            self.generation_function = partial(random_graph, self.graph_generation_params, self.requirements)
 
         population = []
         n_iter = 0
         while len(population) < pop_size:
             new_graph = self.generation_function()
-            if new_graph not in population and self.generation_params.verifier(new_graph):
+            if new_graph not in population and self.graph_generation_params.verifier(new_graph):
                 population.append(new_graph)
             n_iter += 1
             if n_iter >= MAXIMAL_ATTEMPTS_NUMBER:

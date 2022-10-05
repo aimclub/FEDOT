@@ -1,5 +1,4 @@
 import gc
-import multiprocessing
 import pathlib
 import timeit
 from abc import ABC, abstractmethod
@@ -7,11 +6,12 @@ from datetime import datetime
 from random import choice
 from typing import Dict, Optional, Tuple
 
-from joblib import Parallel, delayed
+from joblib import Parallel, delayed, cpu_count
 
+from fedot.core.adapter import BaseOptimizationAdapter
 from fedot.core.dag.graph import Graph
-from fedot.core.log import Log, default_log
-from fedot.core.optimisers.adapters import BaseOptimizationAdapter
+from fedot.core.log import default_log, Log
+from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
@@ -41,19 +41,20 @@ class ObjectiveEvaluationDispatcher(ABC):
 class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population using multiprocessing pool
     and optionally model evaluation cache with RemoteEvaluator.
+
     Usage: call `dispatch(objective_function)` to get evaluation function.
-    :param graph_adapter: adapter for mapping between OptGraph and Graph.
+
     :param n_jobs: number of jobs for multiprocessing or 1 for no multiprocessing.
     :param graph_cleanup_fn: function to call after graph evaluation, primarily for memory cleanup.
     """
 
     def __init__(self,
-                 graph_adapter: BaseOptimizationAdapter,
+                 adapter: BaseOptimizationAdapter,
                  timer: Timer = None,
                  n_jobs: int = 1,
                  graph_cleanup_fn: Optional[GraphFunction] = None):
+        self._adapter = adapter
         self._objective_eval = None
-        self._graph_adapter = graph_adapter
         self._cleanup = graph_cleanup_fn
         self._post_eval_callback = None
 
@@ -108,23 +109,27 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         start_time = timeit.default_timer()
 
         graph = self.evaluation_cache.get(ind.uid, ind.graph)
-        adapted_graph = self._graph_adapter.restore(graph)
 
-        ind_fitness = self._objective_eval(adapted_graph)
-        if self._post_eval_callback:
-            self._post_eval_callback(adapted_graph)
-        if self._cleanup:
-            self._cleanup(adapted_graph)
-        gc.collect()
-
-        ind_graph = self._graph_adapter.adapt(adapted_graph)
-
-        ind.set_evaluation_result(ind_fitness, ind_graph)
+        adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
+        ind_fitness, ind_domain_graph = adapted_evaluate(graph)
+        ind.set_evaluation_result(ind_fitness, ind_domain_graph)
 
         end_time = timeit.default_timer()
+
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
+
+    def _evaluate_graph(self, domain_graph: Graph) -> Tuple[Fitness, Graph]:
+        fitness = self._objective_eval(domain_graph)
+
+        if self._post_eval_callback:
+            self._post_eval_callback(domain_graph)
+        if self._cleanup:
+            self._cleanup(domain_graph)
+        gc.collect()
+
+        return fitness, domain_graph
 
     def _reset_eval_cache(self):
         self.evaluation_cache: Dict[str, Graph] = {}
@@ -134,24 +139,23 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         fitter = RemoteEvaluator()  # singleton
         if fitter.use_remote:
             self.logger.info('Remote fit used')
-            restored_graphs = [self._graph_adapter.restore(ind.graph) for ind in population]
-            verifier = verifier_for_task(task_type=None, adapter=self._graph_adapter)
+            restored_graphs = self._adapter.restore(population)
+            verifier = verifier_for_task(task_type=None, adapter=self._adapter)
             computed_pipelines = fitter.compute_graphs(restored_graphs, verifier)
             self.evaluation_cache = {ind.uid: graph for ind, graph in zip(population, computed_pipelines)}
 
 
 class SimpleDispatcher(ObjectiveEvaluationDispatcher):
     """Evaluates objective function on population.
+
     Usage: call `dispatch(objective_function)` to get evaluation function.
-    :param graph_adapter: adapter for mapping between OptGraph and Graph.
+
     :param timer: timer to set timeout for evaluation of population
     """
 
-    def __init__(self,
-                 graph_adapter: BaseOptimizationAdapter,
-                 timer: Timer = None):
+    def __init__(self, adapter: BaseOptimizationAdapter, timer: Timer = None):
+        self._adapter = adapter
         self._objective_eval = None
-        self._graph_adapter = graph_adapter
         self.timer = timer or get_forever_timer()
 
     def dispatch(self, objective: ObjectiveFunction) -> EvaluationOperator:
@@ -175,20 +179,24 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
         start_time = timeit.default_timer()
 
-        graph = ind.graph
-        adapted_graph = self._graph_adapter.restore(graph)
-        ind_fitness = self._objective_eval(adapted_graph)
-        ind_graph = self._graph_adapter.adapt(adapted_graph)
+        adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
+        ind_fitness, ind_graph = adapted_evaluate(ind.graph)
         ind.set_evaluation_result(ind_fitness, ind_graph)
+
         end_time = timeit.default_timer()
+
         ind.metadata['computation_time_in_seconds'] = end_time - start_time
         ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
         return ind if ind.fitness.valid else None
 
+    def _evaluate_graph(self, graph: Graph) -> Tuple[Fitness, Graph]:
+        fitness = self._objective_eval(graph)
+        return fitness, graph
+
 
 def determine_n_jobs(n_jobs=-1, logger=None):
-    if n_jobs > multiprocessing.cpu_count() or n_jobs == -1:
-        n_jobs = multiprocessing.cpu_count()
+    if n_jobs > cpu_count() or n_jobs == -1:
+        n_jobs = cpu_count()
     if logger:
         logger.info(f"Number of used CPU's: {n_jobs}")
     return n_jobs

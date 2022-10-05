@@ -3,6 +3,7 @@ from random import choice
 
 import pytest
 
+from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.initial_graphs_generator import InitialPopulationGenerator
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
@@ -36,7 +37,8 @@ def test_random_initial_population():
 
 
 def test_initial_graphs_as_initial_population():
-    initial_graphs = [pipeline_first(), pipeline_second(), pipeline_third()]
+    adapter = PipelineAdapter()
+    initial_graphs = adapter.adapt([pipeline_first(), pipeline_second(), pipeline_third()])
 
     requirements, graph_generation_params, initial_population_generator = setup_test(pop_size=3)
     initial_population_generator.with_initial_graphs(initial_graphs)

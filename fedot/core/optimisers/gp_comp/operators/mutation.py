@@ -5,17 +5,16 @@ from typing import Callable, List, Union, Tuple, TYPE_CHECKING
 
 import numpy as np
 
+from fedot.core.adapter import register_native
 from fedot.core.composer.advisor import RemoveType
-from fedot.core.dag.graph import Graph
 from fedot.core.dag.graph_node import GraphNode
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
 from fedot.core.optimisers.gp_comp.individual import Individual, ParentOperator
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
-from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.utilities.data_structures import ComparableEnum as Enum
-from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
-
+from fedot.core.optimisers.graph import OptGraph, OptNode
+from fedot.core.optimisers.optimizer import GraphGenerationParams
+from fedot.core.utilities.data_structures import ComparableEnum as Enum
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
@@ -95,49 +94,31 @@ class Mutation(Operator):
 
         mutation_types = self.parameters.mutation_types
         is_static_mutation_type = random() < self.parameters.static_mutation_prob
-        static_mutation_type = choice(mutation_types)
+        mutation_type = choice(mutation_types)
         mutation_names = []
         for _ in range(num_mut):
-            mutation_type = static_mutation_type \
-                if is_static_mutation_type else choice(mutation_types)
+            # determine mutation type
+            if not is_static_mutation_type:
+                mutation_type = choice(mutation_types)
             is_custom_mutation = isinstance(mutation_type, Callable)
 
-            if is_custom_mutation:
-                new_graph = self.graph_generation_params.adapter.restore(new_graph)
-            else:
-                if not isinstance(new_graph, OptGraph):
-                    new_graph = self.graph_generation_params.adapter.adapt(new_graph)
-            new_graph = self._apply_mutation(new_graph, mutation_type, is_custom_mutation)
-            mutation_names.append(str(mutation_type))
-            if not isinstance(new_graph, OptGraph):
-                new_graph = self.graph_generation_params.adapter.adapt(new_graph)
-            if is_custom_mutation:
-                # custom mutation occurs once
-                break
+            if self._will_mutation_be_applied(mutation_type):
+                # get the mutation function and adapt it
+                mutation_func = self._get_mutation_func(mutation_type)
+                new_graph = mutation_func(new_graph, requirements=self.requirements,
+                                          params=self.graph_generation_params,
+                                          opt_params=self.parameters)
+                # log mutation
+                mutation_names.append(str(mutation_type))
+                if is_custom_mutation:
+                    # custom mutation occurs once
+                    break
         return new_graph, mutation_names
 
-    def _apply_mutation(self, new_graph: Union[Graph, OptGraph], mutation_type: Union[MutationTypesEnum, Callable],
-                        is_custom_mutation: bool) -> Union[Graph, OptGraph]:
-        """
-          Apply mutation for adapted graph
-        """
-        if self._will_mutation_be_applied(self.parameters.mutation_prob, mutation_type):
-            if is_custom_mutation:
-                mutation_func = mutation_type
-            else:
-                mutation_func = self.mutation_by_type(mutation_type)
-            graph_copy = deepcopy(new_graph)
-            new_graph = mutation_func(new_graph, requirements=self.requirements,
-                                      params=self.graph_generation_params,
-                                      opt_params=self.parameters)
-            if not new_graph.nodes:
-                return graph_copy
-        return new_graph
+    def _will_mutation_be_applied(self, mutation_type: Union[MutationTypesEnum, Callable]) -> bool:
+        return random() <= self.parameters.mutation_prob and mutation_type is not MutationTypesEnum.none
 
-    @staticmethod
-    def _will_mutation_be_applied(mutation_prob: float, mutation_type: Union[MutationTypesEnum, Callable]) -> bool:
-        return not (random() > mutation_prob or mutation_type is MutationTypesEnum.none)
-
+    @register_native
     def _simple_mutation(self, graph: OptGraph, **kwargs) -> OptGraph:
         """
         This type of mutation is passed over all nodes of the tree started from the root node and changes
@@ -150,7 +131,7 @@ class Mutation(Operator):
         exchange_node = self.graph_generation_params.node_factory.exchange_node
         visited_nodes = set()
 
-        def replace_node_to_random_recursive(node: OptGraph) -> OptGraph:
+        def replace_node_to_random_recursive(node: OptNode) -> OptGraph:
             if node not in visited_nodes and random() < node_mutation_probability:
                 new_node = exchange_node(node)
                 if new_node:
@@ -169,6 +150,7 @@ class Mutation(Operator):
 
         return graph
 
+    @register_native
     def _single_edge_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         This mutation adds new edge between two random nodes in graph.
@@ -193,6 +175,7 @@ class Mutation(Operator):
             return old_graph
         return graph
 
+    @register_native
     def _add_intermediate_node(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add between node and parent
         new_node = self.graph_generation_params.node_factory.get_parent_node(node_to_mutate, is_primary=False)
@@ -203,6 +186,7 @@ class Mutation(Operator):
         graph.nodes.append(new_node)
         return graph
 
+    @register_native
     def _add_separate_parent_node(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as separate parent
         for iter_num in range(randint(1, 3)):
@@ -217,6 +201,7 @@ class Mutation(Operator):
             graph.nodes.append(new_node)
         return graph
 
+    @register_native
     def _add_as_child(self, graph: OptGraph, node_to_mutate: OptNode) -> OptGraph:
         # add as child
         new_node = self.graph_generation_params.node_factory.get_node(is_primary=False)
@@ -230,6 +215,7 @@ class Mutation(Operator):
             graph.disconnect_nodes(node_parent=node_parent, node_child=new_node)
         return graph
 
+    @register_native
     def _single_add_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Add new node between two sequential existing modes
@@ -251,6 +237,7 @@ class Mutation(Operator):
         result = strategy(graph, node_to_mutate)
         return result
 
+    @register_native
     def _single_change_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Change node between two sequential existing modes.
@@ -264,6 +251,7 @@ class Mutation(Operator):
         graph.update_node(node, new_node)
         return graph
 
+    @register_native
     def _single_drop_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Drop single node from graph.
@@ -294,6 +282,7 @@ class Mutation(Operator):
                         child.nodes_from = node_to_del.nodes_from
         return graph
 
+    @register_native
     def _tree_growth(self, graph: OptGraph, local_growth: bool = True) -> OptGraph:
         """
         This mutation selects a random node in a tree, generates new subtree,
@@ -322,6 +311,7 @@ class Mutation(Operator):
         graph.update_subtree(node_from_graph, new_subtree)
         return graph
 
+    @register_native
     def _growth_mutation(self, graph: OptGraph, local_growth: bool = True, **kwargs) -> OptGraph:
         """
         This mutation adds new nodes to the graph (just single node between existing nodes or new subtree).
@@ -339,6 +329,7 @@ class Mutation(Operator):
             # advanced growth (several nodes can be added)
             return self._tree_growth(graph, local_growth)
 
+    @register_native
     def _reduce_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         """
         Selects a random node in a tree, then removes its subtree. If the current arity of the node's
@@ -363,10 +354,18 @@ class Mutation(Operator):
             graph.update_subtree(node_to_del, primary_node)
         return graph
 
+    @register_native
     def _no_mutation(self, graph: OptGraph, *args, **kwargs) -> OptGraph:
         return graph
 
-    def mutation_by_type(self, mutation_type: MutationTypesEnum):
+    def _get_mutation_func(self, mutation_type: Union[MutationTypesEnum, Callable]) -> Callable:
+        if isinstance(mutation_type, Callable):
+            mutation_func = mutation_type
+        else:
+            mutation_func = self.mutation_by_type(mutation_type)
+        return self.graph_generation_params.adapter.adapt_func(mutation_func)
+
+    def mutation_by_type(self, mutation_type: MutationTypesEnum) -> Callable:
         mutations = {
             MutationTypesEnum.none: self._no_mutation,
             MutationTypesEnum.simple: self._simple_mutation,

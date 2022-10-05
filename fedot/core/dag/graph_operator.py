@@ -192,14 +192,6 @@ class GraphOperator(Graph, Copyable):
     def root_nodes(self) -> Sequence[GraphNode]:
         return [node for node in self._nodes if not any(self.node_children(node))]
 
-    @copy_doc(Graph)
-    @property
-    def root_node(self) -> Union[GraphNode, Sequence[GraphNode]]:
-        roots = self.root_nodes()
-        if len(roots) == 1:
-            return roots[0]
-        return roots
-
     @property
     def nodes(self) -> List[GraphNode]:
         return self._nodes
@@ -210,13 +202,9 @@ class GraphOperator(Graph, Copyable):
 
     @copy_doc(Graph)
     def __eq__(self, other_graph: Graph) -> bool:
-        if all(isinstance(rn, list) for rn in [self.root_node, other_graph.root_node]):
-            return set(rn.descriptive_id for rn in self.root_node) == \
-                   set(rn.descriptive_id for rn in other_graph.root_node)
-        elif all(not isinstance(rn, list) for rn in [self.root_node, other_graph.root_node]):
-            return self.root_node.descriptive_id == other_graph.root_node.descriptive_id
-        else:
-            return False
+        return \
+            set(rn.descriptive_id for rn in self.root_nodes()) == \
+            set(rn.descriptive_id for rn in other_graph.root_nodes())
 
     @copy_doc(Graph)
     @property
