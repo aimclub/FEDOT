@@ -1,5 +1,5 @@
-How to create your own composite model in a manual way
-------------------------------------------------------
+Manual way
+----------
 
 -  **Step 1**. Specify problem type and choose dataset.
 

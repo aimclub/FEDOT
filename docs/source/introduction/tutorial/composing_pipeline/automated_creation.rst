@@ -1,5 +1,5 @@
-How to compose the pipeline in an automated way
------------------------------------------------
+Automated way
+-------------
 
 .. code:: python
 

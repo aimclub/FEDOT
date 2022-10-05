@@ -1,5 +1,5 @@
-How to setup the environment using GitHub
------------------------------------------
+The GitHub way
+--------------
 
 -  **Step 1**. *Download FEDOT Framework*.
 
@@ -47,7 +47,5 @@ How to setup the environment using GitHub
       .. code-block::
       
          $ pip install .[extra]
-   
-From now on, you are ready to start to work with FEDOT.
 
 .. |Step 1| image:: img_tutorial/1_step.png
