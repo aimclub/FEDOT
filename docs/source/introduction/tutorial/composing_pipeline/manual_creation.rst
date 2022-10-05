@@ -13,7 +13,7 @@ Manual way
    # build model for adjusting your own composite solution
    model = Fedot(
       problem='classification', timeout=timeout, metric_names=metric_names,
-      with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=loggging_level
+      with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level
    )
 
    # add all datasets paths and load datasets
@@ -32,7 +32,7 @@ Manual way
 .. code:: python
 
    node_first = PrimaryNode('logit')
-   node_second= PrimaryNode('xgboost')
+   node_second = PrimaryNode('xgboost')
    node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
@@ -42,11 +42,12 @@ Manual way
 
    model.fit(features=dataset_to_train, predefined_model=pipeline)
 
--  **Step 4**. Obtain the prediction using *predict* method and show fitting metrics.
+-  **Step 4**. Obtain the prediction using *predict* method and calculate the chosen metrics.
 
 .. code:: python
 
    prediction = model.predict(features=dataset_to_validate)
    metrics = model.get_metrics(validation_target)
    print(f'metrics: {metrics}')
+   >>> metrics: {'roc_auc': 0.617, 'f1': 0.9205}
    model.plot_prediction()
