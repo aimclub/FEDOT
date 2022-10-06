@@ -36,13 +36,13 @@ Manual way
    node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
--  **Step 3**. Fit the chosen pipeline using *fit* method.
+-  **Step 3**. Fit the chosen pipeline using ``fit`` method.
 
 .. code:: python
 
    model.fit(features=dataset_to_train, predefined_model=pipeline)
 
--  **Step 4**. Obtain the prediction using *predict* method and calculate the chosen metrics.
+-  **Step 4**. Obtain the prediction using ``predict`` method and calculate the chosen metrics.
 
 .. code:: python
 
