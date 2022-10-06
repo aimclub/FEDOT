@@ -334,7 +334,7 @@ class InputData(Data):
         return len(unique_values) if unique_values is not None else None
 
     @property
-    def class_labels(self) -> Optional[int]:
+    def class_labels(self) -> Optional[List[Union[int, str, float]]]:
         """Returns unique class labels that are present in the target"""
         if self.task.task_type == TaskTypesEnum.classification and self.target is not None:
             return np.unique(self.target)
