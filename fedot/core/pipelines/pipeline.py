@@ -52,7 +52,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.fit(input_data)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
-                             time: int = 3) -> OutputData:
+                             time: Union[timedelta, int] = 3) -> OutputData:
         """Runs training process in all of the pipeline nodes starting with root with time limit.
 
         Todo:
@@ -61,13 +61,16 @@ class Pipeline(GraphDelegate, Serializable):
         Args:
             input_data: data used for operations training
             use_fitted_operations: flag defining whether to use saved information about previous executions or not
-            time: time constraint for operations fitting process (in seconds)
+            time: time constraint for operations fitting process (in minutes)
 
         Returns:
             OutputData: values predicted on the provided ``input_data``
         """
 
-        time = int(time)
+        if isinstance(time, int):
+            time = int(timedelta(minutes=time).total_seconds())
+        else:
+            time = int(time.total_seconds())
         process_state_dict = {}
         fitted_operations = []
         try:
@@ -114,9 +117,9 @@ class Pipeline(GraphDelegate, Serializable):
                 fitted_operations.append(node.fitted_operation)
 
     def fit(self, input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
+            time_constraint: Optional[Union[timedelta, int]] = None, n_jobs: int = 1) -> OutputData:
         """
-        Runs training process in all of the pipeline nodes starting with root
+        Runs training process in all the pipeline nodes starting with root
 
         Args:
             input_data: data used for operations training
@@ -141,7 +144,7 @@ class Pipeline(GraphDelegate, Serializable):
         if time_constraint is None:
             train_predicted = self._fit(input_data=copied_input_data)
         else:
-            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint.seconds)
+            train_predicted = self._fit_with_time_limit(input_data=copied_input_data, time=time_constraint)
         return train_predicted
 
     @property
