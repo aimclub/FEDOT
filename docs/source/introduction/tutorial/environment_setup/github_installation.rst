@@ -9,7 +9,7 @@ The GitHub way
 
          |Step 1|
    
-   -  Then open cmd(Windows) or terminal(Unix like OS), type in:
+   -  Then open cmd (Windows) or terminal (Unix-like OS), type in:
 
       .. code-block::
       
@@ -19,7 +19,7 @@ The GitHub way
 -  **Step 2**. *Creating VirtualEnv*.
 
    -  Next, you need to create a virtual environment in your project
-      for excluding libraries incompatibility and confusion.
+      to avoid libraries incompatibility.
       To do this, type in
       
       .. code-block::
@@ -28,19 +28,18 @@ The GitHub way
 
       .. include:: ./activating_venv.rst
 
-   -  After you have created the virtual environment, you should install
-      the libraries necessary for the FEDOT framework to work.
-      Here you need to type in the following:
+   -  After creating the virtual environment,
+      install the libraries necessary for FEDOT to work.
+      Type in:
       
       .. code-block:: 
       
          $ pip install .
 
-   -  But, if you want to be able to run NNs examples and all other specific stuff,
+   -  But, if you want to use additional functionality such as NNs,
       you'll need to run full installation option.
 
-      To do this, go to the terminal console and run the
-      following command
+      To do this, and run the following command
    
       .. code-block::
       
