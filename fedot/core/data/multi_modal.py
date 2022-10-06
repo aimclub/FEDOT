@@ -59,10 +59,8 @@ class MultiModalData(Dict[str, InputData]):
 
     @property
     def num_classes(self) -> Optional[int]:
-        if self.task.task_type == TaskTypesEnum.classification:
-            return len(np.unique(self.target))
-        else:
-            return None
+        unique_values = self.class_labels
+        return len(unique_values) if unique_values is not None else None
 
     @property
     def class_labels(self) -> Optional[List[Union[int, str, float]]]:
@@ -136,9 +134,9 @@ class MultiModalData(Dict[str, InputData]):
         text_columns = [text_columns] if isinstance(text_columns, str) else text_columns
         text_data_detector = TextDataDetector()
         if not text_columns:
-            text_columns = text_data_detector.define_text_columns(data_frame)
+            text_columns = text_data_detector.find_text_columns(data_frame)
 
-        link_columns = text_data_detector.define_link_columns(data_frame)
+        link_columns = text_data_detector.find_link_columns(data_frame)
         columns_to_drop = text_columns + link_columns
         data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
         data_frame_table = data_frame.drop(columns=columns_to_drop)

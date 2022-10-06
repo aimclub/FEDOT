@@ -1,11 +1,13 @@
 from abc import abstractmethod
 from typing import List
 
+import re
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES, MIN_VOCABULARY_SIZE
+from fedot.core.constants import FRACTION_OF_UNIQUE_VALUES_IN_TEXT, MIN_VOCABULARY_SIZE
+from fedot.core.log import default_log
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 
 ALLOWED_NAN_PERCENT = 0.9
@@ -28,27 +30,25 @@ class TextDataDetector(DataDetector):
     """
     Class for detecting text data during its import.
     """
+    def __init__(self):
+        self.logger = default_log(prefix='FEDOT logger')
+        super().__init__()
 
-    def define_text_columns(self, data_frame: pd.DataFrame) -> List[str]:
+    def find_text_columns(self, data_frame: pd.DataFrame) -> List[str]:
         """
         :param data_frame: pandas dataframe with data
         :return: list of text columns' names
         """
-        text_columns = []
-        for column_name in data_frame.columns:
-            if self._column_contains_text(data_frame[column_name]):
-                text_columns.append(column_name)
+        text_columns = [column_name for column_name in data_frame.columns
+                        if self._column_contains_text(data_frame[column_name])]
         return text_columns
 
-    def define_link_columns(self, data_frame: pd.DataFrame) -> List[str]:
+    def find_link_columns(self, data_frame: pd.DataFrame) -> List[str]:
         """
         :param data_frame: pandas dataframe with data
         :return: list of link columns' names
         """
-        link_columns = []
-        for column_name in data_frame.columns:
-            if self.is_link(data_frame[column_name]):
-                link_columns.append(column_name)
+        link_columns = [column_name for column_name in data_frame.columns if self.is_link(data_frame[column_name])]
         return link_columns
 
     @staticmethod
@@ -59,9 +59,9 @@ class TextDataDetector(DataDetector):
 
     @staticmethod
     def is_link(text_data: np.array) -> bool:
-        if str(next(el for el in text_data if el is not None)).startswith('http'):
-            return True
-        return False
+        link_pattern = \
+            '[(http(s)?):\\/\\/(www\\.)?a-zA-Z0-9@:%._\\+~#=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%_\\+.~#?&//=]*)'
+        return re.search(link_pattern, str(next(el for el in text_data if el is not None))) is not None
 
     @staticmethod
     def prepare_multimodal_data(dataframe: pd.DataFrame, columns: List[str]) -> dict:
@@ -101,14 +101,14 @@ class TextDataDetector(DataDetector):
         if self.is_link(column):
             return False
         elif column.dtype == object and not self._is_float_compatible(column) and self._has_unique_values(column):
+            params = DefaultOperationParamsRepository().get_default_params_for_operation('tfidf')
+            tfidf_vectorizer = TfidfVectorizer(**params)
             try:
-                params = DefaultOperationParamsRepository().get_default_params_for_operation('tfidf')
-                tfidf_vectorizer = TfidfVectorizer(**params)
+                # TODO now grey zone columns (not text, not numerical) are not processed. Need to drop them
                 tfidf_vectorizer.fit(np.where(pd.isna(column), '', column))
-                if len(tfidf_vectorizer.vocabulary_) > MIN_VOCABULARY_SIZE:
-                    return True
+                return len(tfidf_vectorizer.vocabulary_) > MIN_VOCABULARY_SIZE
             except ValueError:
-                print(f'Column {column.name} possibly contains text, but it is not possible to vectorize it')
+                self.logger.warning(f"Column {column.name} possibly contains text, but it's impossible to vectorize it")
         return False
 
     @staticmethod
@@ -133,8 +133,13 @@ class TextDataDetector(DataDetector):
         """
         unique_num = len(column.unique())
         nan_num = pd.isna(column).sum()
-        return unique_num / len(column) > FRACTION_OF_UNIQUE_VALUES if nan_num == 0 \
-            else (unique_num - 1) / (len(column) - nan_num) > FRACTION_OF_UNIQUE_VALUES
+        # fraction of unique values in column if there is no nans
+        frac_unique_is_bigger_than_threshold = unique_num / (len(column) - nan_num) > FRACTION_OF_UNIQUE_VALUES_IN_TEXT
+        # fraction of unique values in column if there are nans
+        frac_unique_is_bigger_than_threshold_with_nans = \
+            (unique_num - 1) / (len(column) - nan_num) > FRACTION_OF_UNIQUE_VALUES_IN_TEXT
+        return frac_unique_is_bigger_than_threshold if nan_num == 0 \
+            else frac_unique_is_bigger_than_threshold_with_nans
 
 
 class TimeSeriesDataDetector(DataDetector):
@@ -154,9 +159,12 @@ class TimeSeriesDataDetector(DataDetector):
         multi_modal_ts_data = {}
         for column_name in columns:
             feature_ts = np.array(dataframe[column_name])
+            idx = list(dataframe['datetime'])
 
             # Will be the same
             multi_modal_ts_data.update({column_name: feature_ts})
+
+        multi_modal_ts_data['idx'] = np.asarray(idx)
 
         return multi_modal_ts_data
 

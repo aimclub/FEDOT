@@ -285,7 +285,7 @@ class PipelineSearchSpace(SearchSpace):
                                             'glove-wiki-gigaword-100', 'word2vec-ruscorpora-300']])
             },
             'tfidf': {
-                'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3)]]),
+                'ngram_range': (hp.choice, [[(1, 1), (1, 2), (1, 3), (1, 4)]]),
                 'min_df': (hp.uniform, [0.0001, 0.01]),
                 'max_df': (hp.uniform, [0.9, 0.99])
             },
