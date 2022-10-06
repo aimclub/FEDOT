@@ -41,58 +41,64 @@ from examples.composite_model import CompositeModel
 from examples.composite_node import CompositeNode
 import bamt.Networks as Nets
 from scipy.stats import norm
-from scipy.stats import variation
+# from scipy.stats import variation
 from numpy import std, mean
+from sklearn.metrics import mean_squared_error
 
-def predict(self, predict_data: InputData) -> OutputData:
-    """
-    This method used for prediction of the target data during predict stage.
-    :param trained_operation: trained operation object
-    :param predict_data: data to predict
-    :return OutputData: passed data with new predicted target
-    """
-    operation_implementation = self.operation_impl()
-    print(operation_implementation.predict(predict_data))
+# def predict(self, predict_data: InputData) -> OutputData:
+#     """
+#     This method used for prediction of the target data during predict stage.
+#     :param trained_operation: trained operation object
+#     :param predict_data: data to predict
+#     :return OutputData: passed data with new predicted target
+#     """
+#     operation_implementation = self.operation_impl()
+#     print(operation_implementation.predict(predict_data))
 
-    # prediction = trained_operation.predict(predict_data.features)
-    # converted = self._convert_to_output(prediction, predict_data)
-    # return converted
+#     # prediction = trained_operation.predict(predict_data.features)
+#     # converted = self._convert_to_output(prediction, predict_data)
+#     # return converted
 
-SkLearnEvaluationStrategy.predict = predict
+# SkLearnEvaluationStrategy.predict = predict
 
 def composite_metric(graph: CompositeModel, data: pd.DataFrame):
     score = 0
     len_data = len(data)
     for node in graph.nodes:
         if node.nodes_from == None or node.nodes_from == []:
-            if node.content['type'] == 'disc':
+            if node.content['type'] == 'disc' or node.content['type'] == 'disc_num':
                 count = data[node.content['name']].value_counts().values
                 frequency  =  count / len_data
-                score += np.dot(count, frequency)
+                score += np.log(np.dot(count, frequency))
             if node.content['type'] == 'cont':
                 mu = mean(data[node.content['name']])
-                sigma = variation(data[node.content['name']])
+                sigma = std(data[node.content['name']])
                 score += norm.logpdf(data[node.content['name']], loc=mu, scale=sigma).sum()
         else:
             model = node.content['parent_model']
             columns = [n.content['name'] for n in node.nodes_from]
-            # x = data[columns]
-            # y = data[node.content['name']]
-            idx = data.index.to_numpy()
             features = data[columns].to_numpy()
             target = data[node.content['name']].to_numpy()
-            # features, target = process_target_and_features(x, node.content['name']) 
+            idx = data.index.to_numpy()
             if node.content['type'] == 'disc':
                 task = Task(TaskTypesEnum.classification)
             elif node.content['type'] == 'cont':
                 task = Task(TaskTypesEnum.regression)
             data_type = DataTypesEnum.table
             train = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
-            
-               
-            print(train.target)
+
             fitted_model = model.fit(train)
-            print(fitted_model.predict(train.features))
+            
+            if node.content['type'] == 'cont':
+                predict = fitted_model.predict(train.features)
+                mu = mean(predict)
+                mse = mean_squared_error(target, predict,squared=False)
+                score += norm.logpdf(predict, loc=mu, scale=mse).sum()
+
+            elif node.content['type'] == 'disc' or node.content['type'] == 'disc_num':
+                predict_proba = fitted_model.predict_proba(features)
+                score += sum([predict_proba[i][target[i]] for i in idx])
+    return [-score]
 
 
 # задаем метрику
@@ -247,19 +253,43 @@ def run_example():
     objective = Objective(custom_metric) 
     objective_eval = ObjectiveEvaluate(objective, data = discretized_data)    
     # parent_model
-    parent_model = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
-    'ridge','lasso','svr','sgdr','lgbmreg','catboostreg','xgboost',
-    'logit','bernb','multinb','dt','rf','mlp','lgbm','catboost','kmeans']
+    parent_model_regr = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
+    'ridge','lasso','svr','sgdr','lgbmreg','catboostreg']
+    parent_model_class = ['xgboost','logit','bernb','multinb','dt','rf',
+    'mlp','lgbm','catboost']
+
+    # one_set_models = {}
+    # for v in vertices:
+    #     if p.nodes_types[v] == 'cont':
+    #         one_set_models[v] = random.choice(parent_model_regr)
+    #     else:
+    #         one_set_models[v] = random.choice(parent_model_class)
+
+    one_set_models = {
+        'A':'bernb',
+        'C':'mlp',
+        'D':'ridge',
+        'H':'catboost', 
+        'I':'ridge',
+        'O':'adareg',
+        'T':'xgbreg'
+    }
+
     # инициализация начальной сети (пустая)
     # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
     #                                                 content={'name': vertex}, 
     #                                                 type = dir_of_nodes[vertex]) for vertex in vertices])]
 
+    # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
+    #                                                 content={'name': vertex,
+    #                                                 'type': p.nodes_types[vertex],
+    #                                                 'parent_model': SkLearnEvaluationStrategy(random.choice(parent_model_regr if p.nodes_types[vertex] == 'cont' else parent_model_class))}) 
+    #                                                 for vertex in vertices])]    
     initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
                                                     content={'name': vertex,
                                                     'type': p.nodes_types[vertex],
-                                                    'parent_model': SkLearnEvaluationStrategy(random.choice(parent_model))}) 
-                                                    for vertex in vertices])]    
+                                                    'parent_model': SkLearnEvaluationStrategy(one_set_models[vertex])}) 
+                                                    for vertex in vertices])]        
     init = initial[0]
 
     # найдет сеть по K2
@@ -277,6 +307,37 @@ def run_example():
     bn.add_nodes(p.info)
     bn.add_edges(discretized_data, scoring_function=('K2', K2Score))
 
+    def structure_to_opt_graph(fdt, structure):
+
+        encoder = preprocessing.LabelEncoder()
+        # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+        p = pp.Preprocessor([('encoder', encoder)])
+        discretized_data, est = p.apply(data)
+
+        bn = []
+        if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+            bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+        elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+            bn = Nets.DiscreteBN()
+        elif 'cont' in p.info['types'].values():
+            bn = Nets.ContinuousBN(use_mixture=False)  
+
+        bn.add_nodes(p.info)
+        bn.set_structure(edges=structure)
+        
+        for node in fdt.nodes: 
+            parents = []
+            for n in bn.nodes:
+                if str(node) == str(n):
+                    parents = n.cont_parents + n.disc_parents
+                    break
+            for n2 in fdt.nodes:
+                if str(n2) in parents:
+                    node.nodes_from.append(n2)        
+        
+        return fdt    
+
+    # init = structure_to_opt_graph(init, [('D','A'),('D','T'),('H','C'),('A','O')])
     # заполнить пустую сети CompositeModel
     for node in init.nodes: 
         parents = []
@@ -289,7 +350,12 @@ def run_example():
                 node.nodes_from.append(n2)
     
 
-    composite_metric(init, discretized_data2)
+    
+
+    score = composite_metric(init, discretized_data2)
+    [print(node.content['name'],node.content['type'], node.content['parent_model'].operation_impl) for node in init.nodes]
+    print(score)
+    init.show()
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
@@ -339,9 +405,9 @@ def run_example():
     GraphOperator.connect_nodes = connect_nodes
 
     # запуск оптимизатора
-    optimized_graph = optimiser.optimise(objective_eval)[0]
+    # optimized_graph = optimiser.optimise(objective_eval)[0]
     # вывод полученного графа
-    optimized_graph.show()
+    # optimized_graph.show()
 
 
 if __name__ == '__main__':
