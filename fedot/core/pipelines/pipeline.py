@@ -1,5 +1,6 @@
 from copy import deepcopy
 from datetime import timedelta
+from numbers import Real
 from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
@@ -52,7 +53,7 @@ class Pipeline(GraphDelegate, Serializable):
         self.fit(input_data)
 
     def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
-                             time: Union[timedelta, int] = 3) -> OutputData:
+                             time: Union[timedelta, Real] = 3) -> OutputData:
         """Runs training process in all of the pipeline nodes starting with root with time limit.
 
         Todo:
@@ -67,10 +68,9 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
-        if isinstance(time, int):
-            time = int(timedelta(minutes=time).total_seconds())
-        else:
-            time = int(time.total_seconds())
+        if isinstance(time, Real):
+            time = timedelta(minutes=time)
+        time = int(time.total_seconds())
         process_state_dict = {}
         fitted_operations = []
         try:
@@ -117,14 +117,14 @@ class Pipeline(GraphDelegate, Serializable):
                 fitted_operations.append(node.fitted_operation)
 
     def fit(self, input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[Union[timedelta, int]] = None, n_jobs: int = 1) -> OutputData:
+            time_constraint: Optional[Union[timedelta, Real]] = None, n_jobs: int = 1) -> OutputData:
         """
         Runs training process in all the pipeline nodes starting with root
 
         Args:
             input_data: data used for operations training
             use_fitted: flag defining whether to use saved information about previous fits or not
-            time_constraint: time constraint for operations fitting
+            time_constraint: time constraint for operations fitting (timedelta or Real number of minutes)
             n_jobs: number of threads for nodes fitting
 
         Returns:
