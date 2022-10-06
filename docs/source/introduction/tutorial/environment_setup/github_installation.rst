@@ -48,4 +48,4 @@ The GitHub way
       
          $ pip install .[extra]
 
-.. |Step 1| image:: img_tutorial/1_step.png
+.. |Step 1| image:: github_download.png
