@@ -7,8 +7,6 @@ The GitHub way
       You can do it directly using the button `Code` (red square) and then copying
       a link to the repository (blue square).
 
-   -  For more details, take a look at the picture below.
-
          |Step 1|
    
    -  Then open cmd(Windows) or terminal(Unix like OS), type in:
