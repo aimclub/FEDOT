@@ -269,18 +269,6 @@ class Pipeline(GraphDelegate, Serializable):
         template = PipelineTemplate(self)
         template.import_pipeline(source, dict_fitted_operations)
 
-    def __eq__(self, other: 'Pipeline') -> bool:
-        """Compares this pipeline with provided ``other``
-
-        Args:
-            other: another pipeline
-
-        Returns:
-            is it equal to ``other`` in terms of the pipelines
-        """
-
-        return self.root_node.descriptive_id == other.root_node.descriptive_id
-
     @property
     def root_node(self) -> Optional[Node]:
         """Finds pipelines sink-node
