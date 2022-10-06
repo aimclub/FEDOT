@@ -45,21 +45,6 @@ from scipy.stats import norm
 from numpy import std, mean
 from sklearn.metrics import mean_squared_error
 
-# def predict(self, predict_data: InputData) -> OutputData:
-#     """
-#     This method used for prediction of the target data during predict stage.
-#     :param trained_operation: trained operation object
-#     :param predict_data: data to predict
-#     :return OutputData: passed data with new predicted target
-#     """
-#     operation_implementation = self.operation_impl()
-#     print(operation_implementation.predict(predict_data))
-
-#     # prediction = trained_operation.predict(predict_data.features)
-#     # converted = self._convert_to_output(prediction, predict_data)
-#     # return converted
-
-# SkLearnEvaluationStrategy.predict = predict
 
 def composite_metric(graph: CompositeModel, data: pd.DataFrame):
     score = 0
@@ -250,7 +235,7 @@ def run_example():
     
 
     # задаем для оптимизатора fitness-функцию
-    objective = Objective(custom_metric) 
+    objective = Objective(composite_metric) 
     objective_eval = ObjectiveEvaluate(objective, data = discretized_data)    
     # parent_model
     parent_model_regr = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
@@ -265,32 +250,43 @@ def run_example():
     #     else:
     #         one_set_models[v] = random.choice(parent_model_class)
 
-    one_set_models = {
-        'A':'bernb',
-        'C':'mlp',
-        'D':'ridge',
-        'H':'catboost', 
-        'I':'ridge',
-        'O':'adareg',
-        'T':'xgbreg'
-    }
+    # one_set_models = {
+    #     'A':'bernb',
+    #     'C':'mlp',
+    #     'D':'ridge',
+    #     'H':'catboost', 
+    #     'I':'ridge',
+    #     'O':'adareg',
+    #     'T':'xgbreg'
+    # }
 
     # инициализация начальной сети (пустая)
     # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
     #                                                 content={'name': vertex}, 
     #                                                 type = dir_of_nodes[vertex]) for vertex in vertices])]
+    def random_choice_model(node_type):
+        if node_type == 'cont':
+            return SkLearnEvaluationStrategy(random.choice(parent_model_regr))
+        else:
+            return SkLearnEvaluationStrategy(random.choice(parent_model_class))
 
     # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
     #                                                 content={'name': vertex,
     #                                                 'type': p.nodes_types[vertex],
     #                                                 'parent_model': SkLearnEvaluationStrategy(random.choice(parent_model_regr if p.nodes_types[vertex] == 'cont' else parent_model_class))}) 
     #                                                 for vertex in vertices])]    
+    # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
+    #                                                 content={'name': vertex,
+    #                                                 'type': p.nodes_types[vertex],
+    #                                                 'parent_model': SkLearnEvaluationStrategy(one_set_models[vertex])}) 
+    #                                                 for vertex in vertices])]       
     initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
                                                     content={'name': vertex,
                                                     'type': p.nodes_types[vertex],
-                                                    'parent_model': SkLearnEvaluationStrategy(one_set_models[vertex])}) 
-                                                    for vertex in vertices])]        
+                                                    'parent_model': None}) 
+                                                    for vertex in vertices])] 
     init = initial[0]
+
 
     # найдет сеть по K2
     types=list(p.info['types'].values())
@@ -307,35 +303,35 @@ def run_example():
     bn.add_nodes(p.info)
     bn.add_edges(discretized_data, scoring_function=('K2', K2Score))
 
-    def structure_to_opt_graph(fdt, structure):
+    # def structure_to_opt_graph(fdt, structure):
 
-        encoder = preprocessing.LabelEncoder()
-        # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
-        p = pp.Preprocessor([('encoder', encoder)])
-        discretized_data, est = p.apply(data)
+    #     encoder = preprocessing.LabelEncoder()
+    #     # discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
+    #     p = pp.Preprocessor([('encoder', encoder)])
+    #     discretized_data, est = p.apply(data)
 
-        bn = []
-        if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
-            bn = Nets.HybridBN(has_logit=False, use_mixture=False)
-        elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
-            bn = Nets.DiscreteBN()
-        elif 'cont' in p.info['types'].values():
-            bn = Nets.ContinuousBN(use_mixture=False)  
+    #     bn = []
+    #     if 'cont' in p.info['types'].values() and ('disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values()):
+    #         bn = Nets.HybridBN(has_logit=False, use_mixture=False)
+    #     elif 'disc' in p.info['types'].values() or 'disc_num' in p.info['types'].values():
+    #         bn = Nets.DiscreteBN()
+    #     elif 'cont' in p.info['types'].values():
+    #         bn = Nets.ContinuousBN(use_mixture=False)  
 
-        bn.add_nodes(p.info)
-        bn.set_structure(edges=structure)
+    #     bn.add_nodes(p.info)
+    #     bn.set_structure(edges=structure)
         
-        for node in fdt.nodes: 
-            parents = []
-            for n in bn.nodes:
-                if str(node) == str(n):
-                    parents = n.cont_parents + n.disc_parents
-                    break
-            for n2 in fdt.nodes:
-                if str(n2) in parents:
-                    node.nodes_from.append(n2)        
+    #     for node in fdt.nodes: 
+    #         parents = []
+    #         for n in bn.nodes:
+    #             if str(node) == str(n):
+    #                 parents = n.cont_parents + n.disc_parents
+    #                 break
+    #         for n2 in fdt.nodes:
+    #             if str(n2) in parents:
+    #                 node.nodes_from.append(n2)        
         
-        return fdt    
+    #     return fdt    
 
     # init = structure_to_opt_graph(init, [('D','A'),('D','T'),('H','C'),('A','O')])
     # заполнить пустую сети CompositeModel
@@ -349,13 +345,16 @@ def run_example():
             if str(n2) in parents:
                 node.nodes_from.append(n2)
     
+    for node in init.nodes:
+        if not (node.nodes_from == None or node.nodes_from == []):
+            node.content['parent_model'] = random_choice_model(node.content['type'])   
 
     
 
-    score = composite_metric(init, discretized_data2)
-    [print(node.content['name'],node.content['type'], node.content['parent_model'].operation_impl) for node in init.nodes]
-    print(score)
-    init.show()
+    # score = composite_metric(init, discretized_data2)
+    # [print(node.content['name'],node.content['type'], node.content['parent_model'].operation_impl) for node in init.nodes]
+    # print(score)
+    # init.show()
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
@@ -383,31 +382,70 @@ def run_example():
         graph_generation_params=graph_generation_params,
         graph_optimizer_params=optimiser_parameters,
         requirements=requirements,
-        initial_graphs=initial,
+        initial_graphs=[init],
         objective=objective)
 
 
 
-    def reverse_edge(self, node_parent, node_child):
-        self.disconnect_nodes(node_parent, node_child, False)
-        self.connect_nodes(node_child, node_parent)
 
-    def connect_nodes(self, parent, child):
+
+    def connect_nodes(self, parent: CompositeNode, child: CompositeNode):
         if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
             try:
-                if child.nodes_from==None:
+                if child.nodes_from==None or child.nodes_from==[]:
                     child.nodes_from=[]
+                    if child.content['type'] == 'disc' or child.content['type'] == 'disc_num':
+                        child.content['parent_model'] = random_choice_model(child.content['type'])
+                    elif child.content['type'] == 'cont':
+                        child.content['parent_model'] = random_choice_model(child.content['type'])                             
+
                 child.nodes_from.append(parent)
             except Exception as ex:
                 print(ex)
     
+    def disconnect_nodes(self, node_parent: CompositeNode, node_child: CompositeNode,
+                        clean_up_leftovers: bool = True):
+        if not node_child.nodes_from or node_parent not in node_child.nodes_from:
+            return
+        elif node_parent not in self._nodes or node_child not in self._nodes:
+            return
+        elif len(node_child.nodes_from) == 1:
+            node_child.nodes_from = None
+        else:
+            node_child.nodes_from.remove(node_parent)
+
+        if clean_up_leftovers:
+            self._clean_up_leftovers(node_parent)
+
+        self._postprocess_nodes(self, self._nodes)
+
+        if node_child.nodes_from == [] or node_child.nodes_from == None:
+            node_child.content['parent_model'] = None
+
+
+
+    def reverse_edge(self, node_parent: CompositeNode, node_child: CompositeNode):
+        self.disconnect_nodes(node_parent, node_child, False)
+        self.connect_nodes(node_child, node_parent)
+
     GraphOperator.reverse_edge = reverse_edge
     GraphOperator.connect_nodes = connect_nodes
-
+    GraphOperator.disconnect_nodes = disconnect_nodes
+ 
+    
     # запуск оптимизатора
-    # optimized_graph = optimiser.optimise(objective_eval)[0]
+    optimized_graph = optimiser.optimise(objective_eval)[0]
     # вывод полученного графа
-    # optimized_graph.show()
+    # for n in optimized_graph.nodes:
+    #     n.content['parent_model']
+    def f(m):
+        if m == None:
+            return None
+        else:
+            return node.content['parent_model'].operation_impl
+
+    [print(node.content['name'],node.content['type'], f(node.content['parent_model'])) for node in optimized_graph.nodes]
+    optimized_graph.show()
 
 
 if __name__ == '__main__':
