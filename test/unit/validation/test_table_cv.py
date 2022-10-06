@@ -133,7 +133,8 @@ def test_cv_api_correct():
                        'num_of_generations': 1,
                        'preset': 'fast_train',
                        'cv_folds': 2,
-                       'show_progress': False}
+                       'show_progress': False,
+                       'timeout': 0.5}
     dataset_to_compose, dataset_to_validate = train_test_data_setup(get_classification_data())
     model = Fedot(problem='classification', logging_level=logging.INFO, **composer_params)
     fedot_model = model.fit(features=dataset_to_compose)
