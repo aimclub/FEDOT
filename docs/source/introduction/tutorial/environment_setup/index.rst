@@ -1,5 +1,5 @@
 Environment Setup
-=================
+-----------------
 
 .. include:: manual_installation.rst
 

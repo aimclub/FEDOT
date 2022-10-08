@@ -1,5 +1,5 @@
 Composing pipeline
-==================
+------------------
 
 .. include:: manual_creation.rst
 
