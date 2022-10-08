@@ -1,6 +1,9 @@
 Composing pipeline
 ------------------
 
-.. include:: manual_creation.rst
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-.. include:: automated_creation.rst
+    manual_creation
+    automated_creation

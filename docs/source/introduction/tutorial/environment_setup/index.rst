@@ -1,8 +1,11 @@
 Environment Setup
 -----------------
 
-.. include:: manual_installation.rst
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-.. include:: github_installation.rst
+   manual_installation
+   github_installation
 
 From now on, you are ready to start working with FEDOT.
