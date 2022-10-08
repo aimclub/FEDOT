@@ -10,7 +10,7 @@ Manual way
    # specify additional automl training parameters
    timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
 
-you can look the meaning and other parameters, see :ref:`FEDOT API`
+you can look the meaning of that and other parameters, see :class:`~fedot.api.main.Fedot`
 
 .. code:: python
 
