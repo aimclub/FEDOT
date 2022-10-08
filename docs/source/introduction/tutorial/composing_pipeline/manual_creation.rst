@@ -10,6 +10,10 @@ Manual way
    # specify additional automl training parameters
    timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
 
+you can look the meaning and other parameters, see :ref:`FEDOT API`
+
+.. code:: python
+
    # build model for adjusting your own composite solution
    model = Fedot(
       problem='classification', timeout=timeout, metric_names=metric_names,
