@@ -8,7 +8,7 @@ Manual way
    import pandas as pd
 
    # specify additional automl training parameters
-   timeout, with_tuning, n_jobs, logging_level = ...  # tested with 3., False, 1, logging.FATAL
+   timeout, n_jobs, logging_level = ...  # tested with 3., 1, logging.FATAL
 
 you can look the meaning of that and other parameters, see :class:`~fedot.api.main.Fedot`
 
@@ -16,8 +16,7 @@ you can look the meaning of that and other parameters, see :class:`~fedot.api.ma
 
    # build model for adjusting your own composite solution
    model = Fedot(
-      problem='classification', timeout=timeout,
-      with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level,
+      problem='classification', timeout=timeout, n_jobs=n_jobs, loggging_level=logging_level,
       seed=42
    )
 
