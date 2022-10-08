@@ -3,6 +3,9 @@ Quickstart
 
 FEDOT Framework quick start guide.
 
-.. include:: environment_setup/index.rst
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-.. include:: composing_pipeline/index.rst
+   environment_setup/index
+   composing_pipelines/index
