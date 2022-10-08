@@ -36,6 +36,9 @@ Manual way
    node_final = SecondaryNode('knn', nodes_from=[node_first, node_second])
    pipeline = Pipeline(node_final)
 
+You can find other pipelines in the `simple examples <https://github.com/nccr-itmo/FEDOT/tree/master/examples/simple>`_ directory with the postfix `'*_pipelines.py'`, for example, take a look at the
+`classification pipelines <https://github.com/nccr-itmo/FEDOT/blob/master/examples/simple/classification/classification_pipelines.py>`_
+
 -  **Step 3**. Fit the chosen pipeline using ``fit`` method.
 
 .. code:: python
