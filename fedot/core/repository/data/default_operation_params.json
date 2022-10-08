@@ -139,6 +139,8 @@
   },
   "tfidf": {
     "min_df": 0.01,
+    "max_df": 0.9,
+    "max_features": 100000
     "max_df": 0.9
   },
   "fast_ica": {
