@@ -39,7 +39,7 @@ The GitHub way
    -  But, if you want to use additional functionality such as NNs,
       you'll need to run full installation option.
 
-      To do this, and run the following command
+      To do this run the following command
    
       .. code-block::
       
