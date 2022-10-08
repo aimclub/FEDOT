@@ -8,7 +8,7 @@ Manual way
    import pandas as pd
 
    # specify additional automl training parameters
-   timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
+   timeout, with_tuning, n_jobs, logging_level = ...  # tested with 3., False, 1, logging.FATAL
 
 you can look the meaning of that and other parameters, see :class:`~fedot.api.main.Fedot`
 
@@ -16,7 +16,7 @@ you can look the meaning of that and other parameters, see :class:`~fedot.api.ma
 
    # build model for adjusting your own composite solution
    model = Fedot(
-      problem='classification', timeout=timeout, preset=preset, metric_names=metric_names,
+      problem='classification', timeout=timeout,
       with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level,
       seed=42
    )
@@ -24,6 +24,7 @@ you can look the meaning of that and other parameters, see :class:`~fedot.api.ma
    # add all datasets paths and load datasets
    train_file_path: Union[str, os.Pathlike] = ...
    validation_file_path: Union[str, os.Pathlike] = ...
+   # tested with default scoring classification from FEDOT's datasets
 
    dataset_to_train = pd.read_csv(train_file_path)
    dataset_to_validate = pd.read_csv(validation_file_path)
