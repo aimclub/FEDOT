@@ -1,33 +1,53 @@
 Automated way
 -------------
 
+-  **Step 1**. Specify problem type, load the model and datasets.
+
 .. code:: python
 
    import pandas as pd
 
-   # load all needed datasets
-   dataset_to_train = pd.read_csv(...)
-   dataset_to_validate = pd.read_csv(...)
-
    # specify additional training parameters
-   problem, timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
-   target_col = ...  # 'target' by default
+   timeout, preset, metric_names, with_tuning, n_jobs, logging_level = ...
+
+you can look the meaning of that and other parameters, see :class:`~fedot.api.main.Fedot`
+
+.. code:: python
 
    # build model
    auto_model = Fedot(
-      problem=problem, preset=preset, metric_names=metric_names, 
+      problem='classification', timeout=timeout, preset=preset, metric_names=metric_names, 
       with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level,
       seed=42
    )
 
+   # add all datasets paths and load datasets
+   train_file_path: Union[str, os.Pathlike] = ...
+   validation_file_path: Union[str, os.Pathlike] = ...
+
+   dataset_to_train = pd.read_csv(train_file_path)
+   dataset_to_validate = pd.read_csv(validation_file_path)
+
+   # concretise target column and validation answers data
+   target_col: str = ...  # 'target' by default
+   validation_target = dataset_to_validate[target_col]
+
+-  **Step 2**. Fit the model's pipeline using ``fit`` method.
+
+.. code:: python
+
    # train model with the provided dataset
    pipeline = auto_model.fit(features=dataset_to_train, target=target_col)
+
+-  **Step 3**. Obtain the prediction using ``predict`` method and calculate the chosen metrics.
+
+.. code:: python
 
    # get scores for the prediction
    prediction = auto_model.predict(features=dataset_to_validate)
 
-   # get fitting metrics
-   validation_target = dataset_to_validate[target_col]
+   # calculate the chosen metrics
    auto_metrics = auto_model.get_metrics(validation_target)
    print(f'metrics: {auto_metrics}')
+   >>> metrics: {'roc_auc': 0.617, 'f1': 0.9205}
    auto_model.plot_prediction()

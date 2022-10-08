@@ -1,7 +1,7 @@
 Manual way
 ----------
 
--  **Step 1**. Specify problem type and choose dataset.
+-  **Step 1**. Specify problem type, load the model and datasets.
 
 .. code:: python
 
@@ -16,22 +16,23 @@ you can look the meaning of that and other parameters, see :class:`~fedot.api.ma
 
    # build model for adjusting your own composite solution
    model = Fedot(
-      problem='classification', timeout=timeout, metric_names=metric_names,
-      with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level
+      problem='classification', timeout=timeout, preset=preset, metric_names=metric_names,
+      with_tuning=with_tuning, n_jobs=n_jobs, loggging_level=logging_level,
+      seed=42
    )
 
    # add all datasets paths and load datasets
-   train_file_path = ...
-   validation_file_path = ...
+   train_file_path: Union[str, os.Pathlike] = ...
+   validation_file_path: Union[str, os.Pathlike] = ...
 
    dataset_to_train = pd.read_csv(train_file_path)
    dataset_to_validate = pd.read_csv(validation_file_path)
 
    # concretise target column and validation answers data
-   target_col = ...
+   target_col: str = ...  # 'target' by default
    validation_target = dataset_to_validate[target_col]
 
--  **Step 2**. Create *Pipeline* instance, create nodes with desired models
+-  **Step 2**. Create *Pipeline* instance, i.e. create nodes with desired models
 
 .. code:: python
 
@@ -47,13 +48,16 @@ You can find other pipelines in the `simple examples <https://github.com/nccr-it
 
 .. code:: python
 
-   model.fit(features=dataset_to_train, predefined_model=pipeline)
+   model.fit(features=dataset_to_train, target=target_col, predefined_model=pipeline)
 
 -  **Step 4**. Obtain the prediction using ``predict`` method and calculate the chosen metrics.
 
 .. code:: python
 
+   # get scores for the prediction
    prediction = model.predict(features=dataset_to_validate)
+
+   # calculate the chosen metrics
    metrics = model.get_metrics(validation_target)
    print(f'metrics: {metrics}')
    >>> metrics: {'roc_auc': 0.617, 'f1': 0.9205}
