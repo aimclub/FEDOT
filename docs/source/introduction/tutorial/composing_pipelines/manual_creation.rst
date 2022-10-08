@@ -51,6 +51,10 @@ You can find other pipelines in the `simple examples <https://github.com/nccr-it
 
    model.fit(features=dataset_to_train, target=target_col, predefined_model=pipeline)
 
+You could even use `predefined_model='auto'` parameter, that would use default assumption for the task.
+
+.. code::python
+
 -  **Step 4**. Obtain the prediction using ``predict`` method and calculate the chosen metrics.
 
 .. code:: python
@@ -63,3 +67,5 @@ You can find other pipelines in the `simple examples <https://github.com/nccr-it
    print(f'metrics: {metrics}')
    >>> metrics: {'roc_auc': 0.617, 'f1': 0.9205}
    model.plot_prediction()
+
+You would probably get ``metrics: {'roc_auc': 0.785, 'f1': 0.934}`` if you used `predefined_model='auto'`
