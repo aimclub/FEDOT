@@ -114,7 +114,7 @@ def test_add_as_child_node_linear():
 
 def test_add_as_child_node_tree():
     """
-    Test correctness of adding as a parent in complex case
+    Test correctness of adding as a child in complex case
     """
 
     graph = get_tree_pipeline()
