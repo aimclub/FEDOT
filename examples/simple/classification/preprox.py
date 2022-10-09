@@ -3,7 +3,7 @@ import os.path
 from pathlib import Path
 
 import numpy as np
-from typing import Generator, Tuple
+from typing import Generator, Tuple, Optional
 
 import pandas as pd
 
@@ -12,15 +12,23 @@ from fedot.core.composer.metrics import ROCAUC
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
+from fedot.core.utils import fedot_project_root
+from fedot.preprocessing.preprocessing import DataPreprocessor
+
+
+base_path = Path('../../data/openml')
 
 
 def run_classification_example(
         train_data,
         test_data,
         timeout: float = None,
-        is_visualise: bool = True):
+        is_visualise: bool = True,
+        save_prefix: Optional[str] = None,
+        predefined_model: Optional[Pipeline] = None):
 
     fedot = Fedot(problem='classification',
                   metric='roc_auc',
@@ -35,7 +43,8 @@ def run_classification_example(
                   logging_level=logging.INFO,
                   )
 
-    fedot.fit(features=train_data.features, target=train_data.target)
+    fedot.fit(features=train_data.features, target=train_data.target,
+              predefined_model=predefined_model)
 
     # fedot.fit(features=train_data_path, target='target')
     # fedot.predict(features=test_data_path)
@@ -48,10 +57,13 @@ def run_classification_example(
         print(fedot.history.get_leaderboard())
         fedot.current_pipeline.show()
 
+    if save_prefix:
+        file_name = save_prefix + '.ppl.json'
+        save_path = base_path / 'openml' / file_name
+        fedot.current_pipeline.save(str(save_path))
+
     # fedot.plot_prediction()
-
-
-base_path = Path('../../data/openml')
+    return metrics
 
 
 def get_preprocessed_data_folds(nfolds=10, stage='train'):
@@ -97,8 +109,38 @@ def get_raw_data(split_ratio=0.9):
     return train_set, test_set
 
 
-if __name__ == '__main__':
-    train_set, test_set = get_raw_data()
-    # train_set, test_set = get_preprocessed_data()
+def preprocess_data(*data_inputs):
+    prox = DataPreprocessor()
+    dummy_pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
+    output = []
+    for data in data_inputs:
+        data_prox = prox.obligatory_prepare_for_fit(data)
+        data_prox = prox.optional_prepare_for_fit(dummy_pipeline, data_prox)
+        output.append(data_prox)
+    return tuple(output)
 
-    run_classification_example(train_set, test_set, timeout=1.0)
+
+def try_predefined():
+    pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
+
+    train_test_raw = get_raw_data()
+    train_test_pro_amb = get_preprocessed_data()
+
+    metris_raw = run_classification_example(*train_test_raw, predefined_model=pipeline)
+    metris_amb = run_classification_example(*train_test_pro_amb, predefined_model=pipeline)
+
+    print(f'raw data: {metris_raw}\n'
+          f'amb data: {metris_amb}')
+
+
+def try_evolution():
+    train_test_raw = get_raw_data()
+
+    train_test_pro_fdt = preprocess_data(*train_test_raw)
+    train_test_pro_amb = get_preprocessed_data()
+
+    run_classification_example(*train_test_pro_amb, timeout=5, save_prefix='amb')
+
+
+if __name__ == '__main__':
+    try_predefined()
