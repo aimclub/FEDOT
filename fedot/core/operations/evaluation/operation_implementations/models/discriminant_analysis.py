@@ -72,7 +72,7 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
             self.log.debug(f'Change invalid parameter solver ({self.model.solver}) to {new_solver}')
 
             self.model.solver = new_solver
-            self.params.update('solver', new_solver)
+            self.params.update(solver=new_solver)
             self.model.fit(train_data.features, train_data.target)
         return self.model
 
@@ -84,7 +84,7 @@ class LDAImplementation(DiscriminantAnalysisImplementation):
         is_solver_svd = current_solver is not None and current_solver == 'svd'
         if is_solver_svd and current_shrinkage is not None:
             # Ignore shrinkage
-            self.params.update('shrinkage', None)
+            self.params.update(shrinkage=None)
             self.model.shrinkage = None
 
 

@@ -116,7 +116,7 @@ class GLMImplementation(ModelImplementation):
     def set_default(self):
         """ Set default value of Family(link) """
         self.family_link = self.family_distribution['default']
-        self.params.update('family', 'gaussian')
+        self.params.update(family='gaussian')
         self.log.info("Invalid family. Changed to default value")
 
     def correct_params(self):
@@ -128,7 +128,7 @@ class GLMImplementation(ModelImplementation):
                 self.log.info(
                     f"Invalid link function {self.link} for {self.family}. Change to default "
                     f"link {default_link}")
-                self.params.update('link', default_link)
+                self.params.update(link=default_link)
             # if correct isn't need
             self.family_link = self.family_distribution[self.family]['distribution'](
                 self.family_distribution[self.family]['available_links'][self.link]
@@ -222,10 +222,10 @@ class AutoRegImplementation(ModelImplementation):
         prefix = "Warning: lag of AutoRegImplementation was changed"
         if previous_lag_1 != new_lag_1:
             self.log.info(f"{prefix} from {previous_lag_1} to {new_lag_1}.")
-            self.params.update('lag_1', new_lag_1)
+            self.params.update(lag_1=new_lag_1)
         if previous_lag_2 != new_lag_2:
             self.log.info(f"{prefix} from {previous_lag_2} to {new_lag_2}.")
-            self.params.update('lag_2', new_lag_2)
+            self.params.update(lag_2=new_lag_2)
 
     def _check_and_correct_lag(self, max_lag: int, lag: int):
         if lag > max_lag:

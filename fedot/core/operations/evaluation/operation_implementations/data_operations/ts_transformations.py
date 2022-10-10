@@ -121,13 +121,13 @@ class LaggedImplementation(DataOperationImplementation):
             previous_size = self.window_size
             # At least 10 objects we need for training, so minus 10
             window_size = len(time_series) - forecast_length - 10
-            self.params.update('window_size', window_size)
+            self.params.update(window_size=window_size)
             self.log.info(f"{prefix} from {previous_size} to {self.window_size}.")
 
         # Minimum threshold
         if self.window_size < self.window_size_minimum:
             previous_size = self.window_size
-            self.params.update('window_size', self.window_size_minimum)
+            self.params.update(window_size=self.window_size_minimum)
             self.log.info(f"{prefix} from {previous_size} to {self.window_size}")
 
     def _update_column_types(self, output_data: OutputData):
@@ -593,7 +593,7 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         if self.window_size > ts.shape[0]:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
-            self.params.update('window_size', self.poly_degree + 1)
+            self.params.update(window_size=self.poly_degree + 1)
         x = np.arange(ts.shape[0])
 
         ts_len = x.shape[0]
@@ -627,19 +627,19 @@ class NumericalDerivativeFilterImplementation(DataOperationImplementation):
         if self.poly_degree > 5:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
                           f'changed to {self.max_poly_degree}')
-            self.params.update('poly_degree', self.max_poly_degree)
+            self.params.update(poly_degree=self.max_poly_degree)
         if self.order < 1:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter order ({self.order}) '
                           f'changed to {self.default_order}')
-            self.params.update('degree', self.default_order)
+            self.params.update(degree=self.default_order)
         if self.order >= self.poly_degree:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter poly_degree ({self.poly_degree}) '
                           f'changed to {self.order + 1}')
-            self.params.update('poly_degree', self.order + 1)
+            self.params.update(poly_degree=self.order + 1)
         if self.window_size < self.poly_degree:
             self.log.info(f'NumericalDerivativeFilter: invalid parameter window_size ({self.window_size}) changed to '
                           f'{self.poly_degree + 1}')
-            self.params.update('window_size', self.poly_degree + 1)
+            self.params.update(window_size=self.poly_degree + 1)
 
 
 class CutImplementation(DataOperationImplementation):
@@ -657,7 +657,7 @@ class CutImplementation(DataOperationImplementation):
         if not 0 < self.cut_part <= 0.9:
             # Default parameter
             self.log.info(f"Change invalid parameter cut_part ({self.cut_part}) on default value (0.5)")
-            self.params.update('cut_part', 0.5)
+            self.params.update(cut_part=0.5)
 
     def fit(self, input_data: InputData):
         """Class doesn't support fit operation

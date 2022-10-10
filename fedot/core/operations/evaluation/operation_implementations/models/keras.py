@@ -158,16 +158,18 @@ cnn_model_dict = {'deep': create_deep_cnn,
 class FedotCNNImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
-        self.params = OperationParameters(**{'log': default_log(prefix=__name__),
-                                             'epochs': 10,
-                                             'batch_size': 32,
-                                             'output_mode': 'labels',
-                                             'architecture_type': 'simplified',
-                                             'optimizer_parameters': {'loss': "categorical_crossentropy",
-                                                                      'optimizer': "adam",
-                                                                      'metrics': ["accuracy"]}})
-        if params:
-            self.params = OperationParameters(**{**self.params.to_dict(), **params.to_dict()})
+
+        default_params = {'log': default_log(prefix=__name__),
+                          'epochs': 10,
+                          'batch_size': 32,
+                          'output_mode': 'labels',
+                          'architecture_type': 'simplified',
+                          'optimizer_parameters': {'loss': "categorical_crossentropy",
+                                                   'optimizer': "adam",
+                                                   'metrics': ["accuracy"]}}
+
+        complete_params = {**default_params, **self.params.to_dict()}
+        self.params.update(**complete_params)
 
     def fit(self, train_data):
         """ Method fit model on a dataset

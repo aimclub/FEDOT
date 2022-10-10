@@ -1,4 +1,4 @@
-Ьштщк from copy import deepcopy
+from copy import deepcopy
 from typing import Optional, Iterable
 
 from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
@@ -30,18 +30,19 @@ class OperationParameters:
         parameters = {**default_parameters, **parameters}
         return OperationParameters(**parameters)
 
-    def update(self, key, value):
-        if key not in self._changed_keys:
-            if self._parameters.get(key) != value:
-                self._changed_keys.append(key)
-        self._parameters.update({key: value})
+    def update(self, **params):
+        for key, value in params.items():
+            if key not in self._changed_keys:
+                if self._parameters.get(key) != value:
+                    self._changed_keys.append(key)
+            self._parameters.update({key: value})
 
     def get(self, key, default_value=None):
         return self._parameters.get(key, default_value)
 
     def get_or_set(self, key, value):
         if key not in self._parameters.keys():
-            self.update(key, value)
+            self.update(**{key: value})
         return self.get(key)
 
     def to_dict(self) -> dict:

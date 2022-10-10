@@ -152,18 +152,18 @@ class ResampleImplementation(DataOperationImplementation):
         """
         if self.replace is False:
             if self.balance == 'expand_minority' and self.n_samples >= min_data.shape[0]:
-                self.params.update('replace', True)
+                self.params.update(replace=True)
             elif self.balance == 'reduce_majority' and self.n_samples >= maj_data.shape[0]:
-                self.params.update('replace', True)
+                self.params.update(replace=True)
             self.log.debug(f'{GLOBAL_PREFIX} resample operation allow repeats in data')
 
     def _check_and_correct_balance_ratio_param(self):
         """Method checks if selected balance_ratio parameter is correct
         """
         if not self.balance_ratio:
-            self.params.update('balance_ratio', 1)
+            self.params.update(balance_ratio=1)
         if self.balance_ratio < 0 or self.balance_ratio > 1:
-            self.params.update('balance_ratio', 1)
+            self.params.update(balance_ratio=1)
             self.log.debug(f'{GLOBAL_PREFIX} balance ratio set to full balance')
 
     def _convert_to_absolute(self, min_data: np.array, maj_data: np.array) -> float:

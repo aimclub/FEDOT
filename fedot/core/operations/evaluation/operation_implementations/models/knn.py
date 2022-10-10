@@ -44,7 +44,7 @@ class KNeighborsImplementation(ModelImplementation):
             new_k_value = round(len(input_data.features) / 2)
             if new_k_value == 0:
                 new_k_value = 1
-            self.params.update('n_neighbors', new_k_value)
+            self.params.update(n_neighbors=new_k_value)
             self.model = model_impl(**self.params.to_dict())
 
             prefix = "n_neighbors of K-nn model was changed"

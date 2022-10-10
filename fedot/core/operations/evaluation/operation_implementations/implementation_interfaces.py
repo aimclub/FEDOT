@@ -181,9 +181,7 @@ class ModelImplementation(ABC):
 
     def __init__(self, params: OperationParameters = None):
         self.log = default_log(self)
-        self.params = params
-        if params is None:
-            self.params = OperationParameters()
+        self.params = params or OperationParameters()
 
     @abstractmethod
     def fit(self, input_data: InputData):

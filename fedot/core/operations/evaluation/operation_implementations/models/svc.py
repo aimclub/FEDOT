@@ -12,9 +12,8 @@ class FedotSVCImplementation(ModelImplementation):
     def __init__(self, params: Optional[OperationParameters] = None):
         super().__init__(params)
         if not self.params:
-            self.params.update('kernel', 'linear')
-            self.params.update('probability', True)
-            self.params.update('class_weight', 'balanced')
+            default_params = {'kernel': 'linear', 'probability': True, 'class_weight': 'balanced'}
+            self.params.update(**default_params)
         self.inner_model = SVC(**self.params.to_dict())
         self.model = OneVsRestClassifier(self.inner_model)
         self.classes = None

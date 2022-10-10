@@ -74,11 +74,11 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         n_components = self.params.get('n_components')
         if type(n_components) == int:
             if n_components > self.number_of_features:
-                self.params.update('n_components', self.number_of_features)
+                self.params.update(n_components=self.number_of_features)
         elif n_components == 'mle':
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
-                self.params.update('n_components', 0.5)
+                self.params.update(n_components=0.5)
 
         self.pca.set_params(**self.params.to_dict())
 
@@ -103,8 +103,8 @@ class PCAImplementation(ComponentAnalysisImplementation):
         super().__init__(params)
         if not self.params:
             # Default parameters
-            self.params.update('svd_solver', 'full')
-            self.params.update('n_components', 'mle')
+            default_params = {'svd_solver': 'full', 'n_components': 'mle'}
+            self.params.update(**default_params)
         self.pca = PCA(**self.params.to_dict())
         self.number_of_features = None
 

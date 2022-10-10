@@ -25,7 +25,7 @@ class PolyfitImplementation(ModelImplementation):
             # default value
             self.log.debug(f"Change invalid parameter degree ({degree}) on default value (3)")
             degree = self.default_degree
-            self.params.update('degree', degree)
+            self.params.update(degree=degree)
 
     @property
     def degree(self):
