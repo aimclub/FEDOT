@@ -52,8 +52,8 @@ class Pipeline(GraphDelegate, Serializable):
         self.unfit()
         self.fit(input_data)
 
-    def _fit_with_time_limit(self, input_data: Optional[InputData] = None,
-                             time: Union[timedelta, Real] = 3) -> OutputData:
+    def _fit_with_time_limit(self, input_data: Optional[InputData],
+                             time: timedelta) -> OutputData:
         """Runs training process in all of the pipeline nodes starting with root with time limit.
 
         Todo:
@@ -68,8 +68,6 @@ class Pipeline(GraphDelegate, Serializable):
             OutputData: values predicted on the provided ``input_data``
         """
 
-        if isinstance(time, Real):
-            time = timedelta(minutes=time)
         time = int(time.total_seconds())
         process_state_dict = {}
         fitted_operations = []
@@ -117,7 +115,7 @@ class Pipeline(GraphDelegate, Serializable):
                 fitted_operations.append(node.fitted_operation)
 
     def fit(self, input_data: Union[InputData, MultiModalData],
-            time_constraint: Optional[Union[timedelta, Real]] = None, n_jobs: int = 1) -> OutputData:
+            time_constraint: Optional[timedelta] = None, n_jobs: int = 1) -> OutputData:
         """
         Runs training process in all the pipeline nodes starting with root
 

@@ -75,7 +75,7 @@ class Fedot:
         with_tuning: allow hyperparameters tuning for the model
         cv_folds: number of folds for cross-validation
         validation_blocks: number of validation blocks for time series forecasting
-        max_pipeline_fit_time: time constraint for operation fitting (timedelta or number of minutes)
+        max_pipeline_fit_time: time constraint for operation fitting (in minutes)
         initial_assumption: initial assumption for composer
         genetic_scheme: name of the genetic scheme
         history_folder: name of the folder for composing history
