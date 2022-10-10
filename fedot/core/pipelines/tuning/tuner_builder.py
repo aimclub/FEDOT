@@ -67,8 +67,6 @@ class TunerBuilder:
         return self
 
     def with_eval_time_constraint(self, eval_time_constraint: Union[timedelta, int, float]):
-        # if not isinstance(eval_time_constraint, timedelta):
-        #    eval_time_constraint = timedelta(minutes=eval_time_constraint)
         self.eval_time_constraint = eval_time_constraint
         return self
 
