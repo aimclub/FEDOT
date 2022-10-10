@@ -1,10 +1,14 @@
 Quickstart
 ==========
 
-FEDOT Framework quick start guide
+FEDOT Framework quick start guide.
 
-.. include:: installation.rst
+Firstly, you need to setup the environment to work with the relevant libs.
+Secondly, you must learn, how to build your solutions: you can do it both manually and automatically.
 
-.. include:: manual_creation.rst
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
-.. include:: automated_creation.rst
+   environment_setup/index
+   composing_pipelines/index
