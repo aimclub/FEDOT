@@ -1,6 +1,5 @@
 from copy import deepcopy
 from datetime import timedelta
-from numbers import Real
 from typing import List, Optional, Tuple, Union, Sequence
 
 import func_timeout
@@ -122,7 +121,7 @@ class Pipeline(GraphDelegate, Serializable):
         Args:
             input_data: data used for operations training
             use_fitted: flag defining whether to use saved information about previous fits or not
-            time_constraint: time constraint for operations fitting (timedelta or Real number of minutes)
+            time_constraint: time constraint for operations fitting
             n_jobs: number of threads for nodes fitting
 
         Returns:
