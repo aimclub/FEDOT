@@ -147,12 +147,12 @@ def test_newly_generated_history(n_jobs: int = 1):
     assert history is not None
     assert len(history.individuals) == num_of_gens + 1  # num_of_gens + initial assumption
     assert len(history.archive_history) == num_of_gens + 1  # num_of_gens + initial assumption
+    _test_individuals_in_history(history)
     # Test history dumps
     dumped_history_json = history.save()
     loaded_history = OptHistory.load(dumped_history_json)
     assert dumped_history_json is not None
-    # assert dumped_history_json == loaded_history.save(), 'The history is not equal to itself after reloading!'
-    _test_individuals_in_history(history)
+    assert dumped_history_json == loaded_history.save(), 'The history is not equal to itself after reloading!'
     _test_individuals_in_history(loaded_history)
 
 
