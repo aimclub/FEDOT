@@ -102,6 +102,10 @@ class ApiComposer:
         primary_operations, secondary_operations = \
             PipelineOperationRepository.divide_operations(available_operations, task)
 
+        max_pipeline_fit_time = composer_params['max_pipeline_fit_time']
+        if max_pipeline_fit_time:
+            max_pipeline_fit_time = datetime.timedelta(minutes=max_pipeline_fit_time)
+
         composer_requirements = PipelineComposerRequirements(
             primary=primary_operations,
             secondary=secondary_operations,
@@ -112,7 +116,7 @@ class ApiComposer:
             timeout=datetime_composing,
             early_stopping_generations=composer_params.get('early_stopping_generations', None),
 
-            max_pipeline_fit_time=composer_params['max_pipeline_fit_time'],
+            max_pipeline_fit_time=max_pipeline_fit_time,
             n_jobs=api_params['n_jobs'],
             show_progress=api_params['show_progress'],
             collect_intermediate_metric=composer_params['collect_intermediate_metric'],

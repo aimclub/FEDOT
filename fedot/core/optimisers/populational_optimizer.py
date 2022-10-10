@@ -51,7 +51,7 @@ class PopulationalOptimizer(GraphOptimizer):
                                                          n_jobs=requirements.n_jobs,
                                                          graph_cleanup_fn=_unfit_pipeline)
 
-        # stopping_after_n_generation may be None, so use some obvious max number
+        # early_stopping_generations may be None, so use some obvious max number
         max_stagnation_length = requirements.early_stopping_generations or requirements.num_of_generations
         self.stop_optimization = \
             GroupedCondition().add_condition(
