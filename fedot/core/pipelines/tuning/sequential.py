@@ -183,6 +183,6 @@ class SequentialTuner(HyperoptTuner):
         node_params = convert_params(node_params)
 
         # Update parameters in nodes
-        pipeline.nodes[node_id].custom_params = node_params
+        pipeline.nodes[node_id].parameters = node_params
 
         return pipeline

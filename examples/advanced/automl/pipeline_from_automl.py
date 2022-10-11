@@ -29,7 +29,7 @@ def run_pipeline_from_automl(train_file_path: str, test_file_path: str,
         node_scaling = PrimaryNode('scaling')
         node_tpot = PrimaryNode('tpot_class')
 
-        node_tpot.custom_params = {'timeout': max_run_time.seconds}
+        node_tpot.parameters = {'timeout': max_run_time.seconds}
 
         node_lda = SecondaryNode('lda', nodes_from=[node_scaling])
         node_rf = SecondaryNode('rf', nodes_from=[node_tpot, node_lda])

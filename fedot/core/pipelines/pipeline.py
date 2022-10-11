@@ -120,8 +120,7 @@ class Pipeline(GraphDelegate, Serializable):
 
         Args:
             input_data: data used for operations training
-            use_fitted: flag defining whether to use saved information about previous fits or not
-            time_constraint: time constraint for operations fitting
+            time_constraint: time constraint for operations fitting (in seconds)
             n_jobs: number of threads for nodes fitting
 
         Returns:
@@ -348,7 +347,7 @@ class Pipeline(GraphDelegate, Serializable):
         print(
             'Pipeline structure:',
             self,
-            *(f'{node.operation.operation_type} - {node.custom_params}' for node in self.nodes),
+            *(f'{node.operation.operation_type} - {node.parameters}' for node in self.nodes),
             sep='\n'
         )
 

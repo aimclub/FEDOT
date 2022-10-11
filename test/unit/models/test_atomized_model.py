@@ -8,9 +8,10 @@ from sklearn.metrics import mean_squared_error
 from fedot.core.composer.metrics import RMSE
 from fedot.core.data.data import InputData
 from fedot.core.operations.atomized_model import AtomizedModel
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import DEFAULT_PARAMS_STUB, fedot_project_root
+from fedot.core.utils import fedot_project_root
 from test.unit.utilities.test_pipeline_import_export import create_correct_path, create_func_delete_files
 
 
@@ -31,7 +32,7 @@ def create_pipeline() -> Pipeline:
     node_logit = PrimaryNode('logit')
 
     node_lda = PrimaryNode('lda')
-    node_lda.custom_params = {'solver': 'lsqr'}
+    node_lda.parameters = {'solver': 'lsqr'}
 
     node_rf = SecondaryNode('rf')
     node_rf.nodes_from = [node_logit, node_lda]
@@ -78,11 +79,11 @@ def create_pipeline_with_several_nested_atomized_model() -> Pipeline:
     node_atomized_model_secondary.nodes_from = [node_atomized_model]
 
     node_knn = SecondaryNode('knn')
-    node_knn.custom_params = {'n_neighbors': 9}
+    node_knn.parameters = {'n_neighbors': 9}
     node_knn.nodes_from = [node_atomized_model]
 
     node_knn_second = SecondaryNode('knn')
-    node_knn_second.custom_params = {'n_neighbors': 5}
+    node_knn_second.parameters = {'n_neighbors': 5}
     node_knn_second.nodes_from = [node_atomized_model, node_atomized_model_secondary, node_knn]
 
     node_atomized_model_secondary_second = \
@@ -186,10 +187,10 @@ def test_fine_tune_atomized_model_correct():
                                                     input_data=train_data,
                                                     iterations=5,
                                                     timeout=1)
-    dummy_atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
+    dummy_atomized_model.fit(None, train_data)
 
-    fitted_dummy_model, _ = dummy_atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
-    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(DEFAULT_PARAMS_STUB, train_data)
+    fitted_dummy_model, _ = dummy_atomized_model.fit(None, train_data)
+    fitted_fine_tuned_atomized_model, _ = fine_tuned_atomized_model.fit(None, train_data)
 
     after_tuning_output = fine_tuned_atomized_model.predict(fitted_fine_tuned_atomized_model, data=test_data)
     after_tuning_predicted = after_tuning_output.predict

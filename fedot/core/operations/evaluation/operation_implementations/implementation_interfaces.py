@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
+from copy import deepcopy
 from typing import Optional
 
 import numpy as np
 
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.log import default_log
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 
 
@@ -14,8 +16,8 @@ class DataOperationImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, params: Optional[OperationParameters] = None):
+        self.params = params or OperationParameters()
 
     @abstractmethod
     def fit(self, input_data: InputData):
@@ -42,12 +44,11 @@ class DataOperationImplementation(ABC):
         """
         return self.transform(input_data)
 
-    @abstractmethod
-    def get_params(self):
+    def get_params(self) -> OperationParameters:
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        raise NotImplementedError()
+        return deepcopy(self.params)
 
     @staticmethod
     def _convert_to_output(input_data: InputData, predict: np.ndarray,
@@ -65,12 +66,11 @@ class EncodedInvariantImplementation(DataOperationImplementation):
     vectors
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.operation = None
         self.ids_to_process = None
         self.bool_ids = None
-        self.params = params
 
     def fit(self, input_data: InputData):
         """ Method for fit transformer with automatic determination
@@ -137,9 +137,6 @@ class EncodedInvariantImplementation(DataOperationImplementation):
 
         return transformed_features
 
-    def get_params(self) -> dict:
-        return self.operation.get_params()
-
     def _update_column_types(self, source_features_shape, output_data: OutputData) -> OutputData:
         """
         Update column types after applying operations.
@@ -182,8 +179,9 @@ class ModelImplementation(ABC):
     optimizer on it
     """
 
-    def __init__(self):
+    def __init__(self, params: OperationParameters = None):
         self.log = default_log(self)
+        self.params = params or OperationParameters()
 
     @abstractmethod
     def fit(self, input_data: InputData):
@@ -210,12 +208,11 @@ class ModelImplementation(ABC):
         """
         return self.predict(input_data)
 
-    @abstractmethod
-    def get_params(self) -> dict:
+    def get_params(self) -> OperationParameters:
         """ Method return parameters, which can be optimized for particular
         operation
         """
-        raise NotImplementedError()
+        return deepcopy(self.params)
 
     @staticmethod
     def _convert_to_output(input_data: InputData, predict: np.array,

@@ -1,5 +1,5 @@
 from copy import deepcopy
-from inspect import signature, Parameter
+from inspect import signature
 from typing import Any, Dict, Type
 
 from .. import INSTANCE_OR_CALLABLE, Serializer

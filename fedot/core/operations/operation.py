@@ -1,12 +1,12 @@
 from abc import abstractmethod
-from typing import Union
+from typing import Optional, Union
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.log import default_log
 from fedot.core.operations.hyperparameters_preprocessing import HyperparametersPreprocessor
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.operation_types_repository import OperationMetaInfo
 from fedot.core.repository.tasks import Task, TaskTypesEnum, compatible_task_types
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 class Operation:
@@ -28,11 +28,14 @@ class Operation:
 
     def _init(self, task: Task, **kwargs):
         params = kwargs.get('params')
-        params_for_fit = None
-        if params != DEFAULT_PARAMS_STUB:
-            params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
-                                                         n_samples_data=kwargs.get('n_samples_data')).correct(params)
-
+        if not params:
+            params = OperationParameters.from_operation_type(self.operation_type)
+        if isinstance(params, dict):
+            params = OperationParameters.from_operation_type(self.operation_type, **params)
+        params_for_fit = HyperparametersPreprocessor(operation_type=self.operation_type,
+                                                     n_samples_data=kwargs.get('n_samples_data'))\
+            .correct(params.to_dict())
+        params_for_fit = OperationParameters.from_operation_type(self.operation_type, **params_for_fit)
         try:
             self._eval_strategy = \
                 _eval_strategy_for_task(self.operation_type,
@@ -63,7 +66,7 @@ class Operation:
             raise ValueError(f'{self.__class__.__name__} {self.operation_type} not found')
         return operation_info
 
-    def fit(self, params: Union[str, dict, None], data: InputData):
+    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData):
         """This method is used for defining and running of the evaluation strategy
         to train the operation with the data provided
 
@@ -74,7 +77,6 @@ class Operation:
         Returns:
             tuple: trained operation and prediction on train data
         """
-
         self._init(data.task, params=params, n_samples_data=data.features.shape[0])
 
         self.fitted_operation = self._eval_strategy.fit(train_data=data)
@@ -83,7 +85,7 @@ class Operation:
 
         return self.fitted_operation, predict_train
 
-    def predict(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+    def predict(self, fitted_operation, data: InputData, params: Optional[Union[OperationParameters, dict]] = None,
                 output_mode: str = 'default'):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided
@@ -97,7 +99,7 @@ class Operation:
         """
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=False)
 
-    def predict_for_fit(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
                         output_mode: str = 'default'):
         """This method is used for defining and running of the evaluation strategy
         to predict with the data provided during fit stage
@@ -111,12 +113,12 @@ class Operation:
         """
         return self._predict(fitted_operation, data, params, output_mode, is_fit_stage=True)
 
-    def _predict(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+    def _predict(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
                  output_mode: str = 'default', is_fit_stage: bool = False):
 
         is_main_target = data.supplementary_data.is_main_target
         data_flow_length = data.supplementary_data.data_flow_length
-        self._init(data.task, output_mode=output_mode, params=params)
+        self._init(data.task, output_mode=output_mode, params=params, n_samples_data=data.features.shape[0])
 
         if is_fit_stage:
             prediction = self._eval_strategy.predict_for_fit(

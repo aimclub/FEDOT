@@ -34,10 +34,10 @@ def test_parameters_changed_correct():
     ts_pipeline.fit(input_ts)
 
     # Correct window_size parameter to new value
-    ts_pipeline.nodes[1].custom_params = {'window_size': 3}
+    ts_pipeline.nodes[1].parameters = {'window_size': 3}
 
     content_params = ts_pipeline.nodes[1].content['params']
-    custom_params = ts_pipeline.nodes[1].custom_params
+    custom_params = ts_pipeline.nodes[1].parameters
     descriptive_id = ts_pipeline.nodes[1].descriptive_id
     assert content_params == custom_params
     assert '3' in descriptive_id

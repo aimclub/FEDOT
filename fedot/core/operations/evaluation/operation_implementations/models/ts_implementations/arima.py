@@ -10,15 +10,15 @@ from statsmodels.tsa.arima.model import ARIMA
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.operation_implementations.data_operations.ts_transformations import ts_to_table
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.utilities.ts_gapfilling import SimpleGapFiller
 
 
 class ARIMAImplementation(ModelImplementation):
 
-    def __init__(self, **params):
-        super().__init__()
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
         self.arima = None
         self.lambda_value = None
         self.scope = None
@@ -118,9 +118,6 @@ class ARIMAImplementation(ModelImplementation):
             self.arima = self.fit(input_data)
             self.log.info("Arima refitted for handling a new data")
 
-    def get_params(self):
-        return self.params
-
     def _apply_boxcox(self, source_ts):
         min_value = np.min(source_ts)
         if min_value > 0:
@@ -173,9 +170,8 @@ class ARIMAImplementation(ModelImplementation):
 
 
 class STLForecastARIMAImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
         self.model = None
         self.lambda_param = None
         self.scope = None
@@ -191,14 +187,10 @@ class STLForecastARIMAImplementation(ModelImplementation):
         # Save actual time series length
         self.actual_ts_len = len(source_ts)
 
-        if not self.params:
-            # Default data
-            self.params = {'p': 2, 'd': 0, 'q': 2, 'period': 365}
-
-        p = int(self.params.get('p'))
-        d = int(self.params.get('d'))
-        q = int(self.params.get('q'))
-        period = int(self.params.get('period'))
+        p = int(self.params.setdefault('p', 2))
+        d = int(self.params.setdefault('d', 0))
+        q = int(self.params.setdefault('q', 2))
+        period = int(self.params.setdefault('period', 365))
         params = {'period': period, 'model_kwargs': {'order': (p, d, q)}}
         self.model = STLForecast(source_ts, ARIMA, **params).fit()
 
@@ -266,6 +258,3 @@ class STLForecastARIMAImplementation(ModelImplementation):
         if input_data.idx[0] > self.actual_ts_len:
             self.model = self.fit(input_data)
             self.log.info("STL Arima refitted for handling a new data")
-
-    def get_params(self):
-        return self.params

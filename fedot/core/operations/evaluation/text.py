@@ -12,6 +12,8 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 )
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
+from fedot.core.operations.operation_parameters import OperationParameters
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -21,14 +23,10 @@ class SkLearnTextVectorizeStrategy(EvaluationStrategy):
         'cntvect': CountVectorizer,
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.vectorizer = self._convert_to_operation(operation_type)
-        self.params = params
-        if self.params:
-            self.vectorizer = self.vectorizer(**self.params)
-        else:
-            self.vectorizer = self.vectorizer()
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
+        self.vectorizer = self._convert_to_operation(operation_type)
+        self.vectorizer = self.vectorizer(**self.params_for_fit.to_dict())
 
     def fit(self, train_data: InputData):
 
@@ -73,14 +71,10 @@ class FedotTextPreprocessingStrategy(EvaluationStrategy):
     __operations_by_types = {
         'text_clean': TextCleanImplementation}
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.text_processor = self._convert_to_operation(operation_type)
-        self.params = params
-        if self.params:
-            self.text_processor = self.text_processor(**self.params)
-        else:
-            self.text_processor = self.text_processor()
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
+        self.text_processor = self._convert_to_operation(operation_type)
+        self.text_processor = self.text_processor(self.params_for_fit)
 
     def fit(self, train_data: InputData):
         """
@@ -130,14 +124,10 @@ class GensimTextVectorizeStrategy(EvaluationStrategy):
         'word2vec_pretrained': PretrainedEmbeddingsImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
-        self.vectorizer = self._convert_to_operation(operation_type)
-        self.params = params
-        if self.params:
-            self.vectorizer = self.vectorizer(**self.params)
-        else:
-            self.vectorizer = self.vectorizer()
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
+        self.vectorizer = self._convert_to_operation(operation_type)
+        self.vectorizer = self.vectorizer(self.params_for_fit)
 
     def fit(self, train_data: InputData):
         """ Class doesn't support fit operation

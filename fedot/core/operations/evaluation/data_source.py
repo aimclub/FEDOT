@@ -3,13 +3,14 @@ from typing import Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
+from fedot.core.operations.operation_parameters import OperationParameters
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
 class DataSourceStrategy(EvaluationStrategy):
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
 
     def fit(self, train_data: InputData):

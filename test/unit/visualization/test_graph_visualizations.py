@@ -10,13 +10,12 @@ from fedot.core.dag.graph_operator import GraphOperator
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.pipelines.node import Node
 from fedot.core.pipelines.pipeline import Pipeline
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 @pytest.fixture(scope='module', params=[GraphDelegate, GraphOperator, Pipeline, OptGraph])
 def graph(request):
     graph_type: Union[Type[Graph], Type[Pipeline], Type[OptGraph]] = request.param
-    nodes_kwargs = [{'content': {'name': f'n{i+1}', 'params': DEFAULT_PARAMS_STUB}} for i in range(4)]
+    nodes_kwargs = [{'content': {'name': f'n{i+1}'}} for i in range(4)]
     nodes_kwargs[-1]['nodes_from'] = range(len(nodes_kwargs) - 1)
     if graph_type in [GraphOperator, GraphDelegate]:
         node_type = GraphNode

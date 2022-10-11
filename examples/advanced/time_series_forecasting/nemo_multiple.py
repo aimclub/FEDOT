@@ -68,7 +68,7 @@ def get_stlarima_nemo_pipeline():
     """
 
     node_arima = PrimaryNode('stl_arima')
-    node_arima.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
+    node_arima.parameters = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
     node_nemo = PrimaryNode('exog_ts')
     node_final = SecondaryNode('linear', nodes_from=[node_arima, node_nemo])
     pipeline = Pipeline(node_final)
@@ -112,7 +112,7 @@ def get_stlarima_pipeline():
     """
 
     node_final = PrimaryNode('stl_arima')
-    node_final.custom_params = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
+    node_final.parameters = {'period': 80, 'p': 2, 'd': 1, 'q': 0}
     pipeline = Pipeline(node_final)
     return pipeline
 

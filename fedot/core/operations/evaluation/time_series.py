@@ -17,6 +17,7 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
     CLSTMImplementation
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.poly import \
     PolyfitImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -43,10 +44,9 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         'ts_naive_average': NaiveAverageForecastImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
         self.operation = self._convert_to_operation(operation_type)
-        self.params_for_fit = params
 
     def fit(self, train_data: InputData):
         """
@@ -55,10 +55,7 @@ class FedotTsForecastingStrategy(EvaluationStrategy):
         :return: trained model
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            model = self.operation(**self.params_for_fit)
-        else:
-            model = self.operation()
+        model = self.operation(self.params_for_fit)
 
         model.fit(train_data)
         return model
@@ -116,10 +113,9 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         'diff_filter': NumericalDerivativeFilterImplementation,
         'cut': CutImplementation}
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
         self.operation = self._convert_to_operation(self.operation_type)
-        self.params_for_fit = params
 
     def fit(self, train_data: InputData):
         """
@@ -128,11 +124,7 @@ class FedotTsTransformingStrategy(EvaluationStrategy):
         :return: trained operation (if it is needed for applying)
         """
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            transformation_operation = self.operation(**self.params_for_fit)
-        else:
-            transformation_operation = self.operation()
-
+        transformation_operation = self.operation(self.params_for_fit)
         transformation_operation.fit(train_data)
         return transformation_operation
 

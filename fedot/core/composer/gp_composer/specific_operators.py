@@ -20,14 +20,14 @@ def parameter_change_mutation(pipeline: Pipeline, requirements, params, opt_para
     for node in pipeline.nodes:
         if random() < node_mutation_probability:
             operation_name = node.operation.operation_type
-            current_params = node.custom_params
+            current_params = node.parameters
 
             # Perform specific change for particular parameter
             changer = ParametersChanger(operation_name, current_params)
             try:
                 new_params = changer.get_new_operation_params()
                 if new_params is not None:
-                    node.custom_params = new_params
+                    node.parameters = new_params
             except Exception as ex:
                 pipeline.log.error(ex)
     return pipeline

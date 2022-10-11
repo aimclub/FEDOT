@@ -232,7 +232,7 @@ def test_custom_params_setter(data_fixture, request):
 
     custom_params = dict(C=10)
 
-    pipeline.root_node.custom_params = custom_params
+    pipeline.root_node.parameters = custom_params
     pipeline.fit(data)
     params = pipeline.root_node.fitted_operation.get_params()
 
@@ -481,11 +481,11 @@ def test_complex_search_space_tuning_correct():
     train_data, test_data = get_ts_data(n_steps=200, forecast_length=5)
 
     glm_pipeline = Pipeline(PrimaryNode('glm'))
-    glm_custom_params = glm_pipeline.nodes[0].custom_params
+    glm_custom_params = glm_pipeline.nodes[0].parameters
     tuner = TunerBuilder(train_data.task)\
         .with_tuner(PipelineTuner)\
         .with_metric(RegressionMetricsEnum.MSE)\
         .build(train_data)
     tuned_glm_pipeline = tuner.tune(glm_pipeline)
-    new_custom_params = tuned_glm_pipeline.nodes[0].custom_params
+    new_custom_params = tuned_glm_pipeline.nodes[0].parameters
     assert glm_custom_params == new_custom_params

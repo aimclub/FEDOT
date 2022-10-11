@@ -4,6 +4,7 @@ from typing import Callable, Union, Optional
 
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.operation import Operation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.tuning.tuner_builder import TunerBuilder
 from fedot.core.pipelines.tuning.unified import PipelineTuner
@@ -25,7 +26,7 @@ class AtomizedModel(Operation):
         self.unique_id = self.pipeline.root_node.descriptive_id
         self.atomized_preprocessor = DataPreprocessor()
 
-    def fit(self, params: Optional[Union[str, dict]], data: InputData,
+    def fit(self, params: Optional[Union[OperationParameters, dict]], data: InputData,
             use_cache: bool = True):
 
         copied_input_data = deepcopy(data)
@@ -37,7 +38,7 @@ class AtomizedModel(Operation):
         return fitted_atomized_operation, predicted_train
 
     def predict(self, fitted_operation, data: InputData,
-                params: Optional[Union[str, dict]] = None, output_mode: str = 'default'):
+                params: Optional[Union[OperationParameters, dict]] = None, output_mode: str = 'default'):
 
         # Preprocessing applied
         copied_input_data = deepcopy(data)
@@ -47,7 +48,7 @@ class AtomizedModel(Operation):
         prediction = self.assign_tabular_column_types(prediction, output_mode)
         return prediction
 
-    def predict_for_fit(self, fitted_operation, data: InputData, params: Union[str, dict, None] = None,
+    def predict_for_fit(self, fitted_operation, data: InputData, params: Optional[OperationParameters] = None,
                         output_mode: str = 'default'):
         return self.predict(fitted_operation, data, params, output_mode)
 

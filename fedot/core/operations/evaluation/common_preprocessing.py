@@ -8,6 +8,7 @@ from fedot.core.operations.evaluation.operation_implementations.data_operations.
 from fedot.core.operations.evaluation.operation_implementations.data_operations.sklearn_transformations import \
     ImputationImplementation, KernelPCAImplementation, NormalizationImplementation, PCAImplementation, \
     PolyFeaturesImplementation, ScalingImplementation, FastICAImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.utilities.random import RandomStateHandler
 
 warnings.filterwarnings("ignore", category=UserWarning)
@@ -46,7 +47,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         'fast_ica': FastICAImplementation
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         self.operation_impl = self._convert_to_operation(operation_type)
         super().__init__(operation_type, params)
 
@@ -61,10 +62,7 @@ class FedotPreprocessingStrategy(EvaluationStrategy):
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
-        else:
-            operation_implementation = self.operation_impl()
+        operation_implementation = self.operation_impl(self.params_for_fit)
         with RandomStateHandler():
             operation_implementation.fit(train_data)
         return operation_implementation

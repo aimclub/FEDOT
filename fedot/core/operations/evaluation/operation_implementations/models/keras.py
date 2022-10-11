@@ -4,6 +4,7 @@ from typing import Optional
 
 import numpy as np
 
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.utilities.requirements_notificator import warn_requirement
 
 try:
@@ -155,18 +156,20 @@ cnn_model_dict = {'deep': create_deep_cnn,
 
 
 class FedotCNNImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        self.params = {'log': default_log(prefix=__name__),
-                       'epochs': 10,
-                       'batch_size': 32,
-                       'output_mode': 'labels',
-                       'architecture_type': 'simplified',
-                       'optimizer_parameters': {'loss': "categorical_crossentropy",
-                                                'optimizer': "adam",
-                                                'metrics': ["accuracy"]}}
-        if params:
-            self.params = {**self.params, **params}
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+
+        default_params = {'log': default_log(prefix=__name__),
+                          'epochs': 10,
+                          'batch_size': 32,
+                          'output_mode': 'labels',
+                          'architecture_type': 'simplified',
+                          'optimizer_parameters': {'loss': "categorical_crossentropy",
+                                                   'optimizer': "adam",
+                                                   'metrics': ["accuracy"]}}
+
+        complete_params = {**default_params, **self.params.to_dict()}
+        self.params.update(**complete_params)
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -181,12 +184,12 @@ class FedotCNNImplementation(ModelImplementation):
         else:
             self.classes = np.arange(train_data.target.shape[1])
 
-        self.model = cnn_model_dict[self.params['architecture_type']](input_shape=train_data.features.shape[1:4],
-                                                                      num_classes=len(self.classes))
+        self.model = cnn_model_dict[self.params.get('architecture_type')](input_shape=train_data.features.shape[1:4],
+                                                                          num_classes=len(self.classes))
 
-        self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params['epochs'],
-                             batch_size=self.params['batch_size'],
-                             optimizer_params=self.params['optimizer_parameters'], logger=self.params['log'])
+        self.model = fit_cnn(train_data=train_data, model=self.model, epochs=self.params.get('epochs'),
+                             batch_size=self.params.get('batch_size'),
+                             optimizer_params=self.params.get('optimizer_parameters'), logger=self.params.get('log'))
         return self.model
 
     def predict(self, input_data):
@@ -205,12 +208,6 @@ class FedotCNNImplementation(ModelImplementation):
         """
 
         return predict_cnn(trained_model=self.model, predict_data=input_data, output_mode='probs')
-
-    def get_params(self):
-        """ Method return parameters, which can be optimized for particular
-        operation
-        """
-        return self.params
 
     @property
     def classes_(self):

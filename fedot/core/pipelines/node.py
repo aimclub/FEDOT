@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union, Iterable
 
 import numpy as np
 
@@ -7,10 +7,10 @@ from fedot.core.dag.graph_node import GraphNode
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.data.merge.data_merger import DataMerger
 from fedot.core.log import default_log
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.factory import OperationFactory
 from fedot.core.operations.operation import Operation
 from fedot.core.optimisers.timer import Timer
-from fedot.core.repository.default_params_repository import DefaultOperationParamsRepository
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.utils import DEFAULT_PARAMS_STUB
 
@@ -42,41 +42,31 @@ class Node(GraphNode):
         if passed_content:
             # Define operation, based on content dictionary
             operation = self._process_content_init(passed_content)
-            default_params = get_default_params(operation.operation_type)
-            passed_params = passed_content.get('params', DEFAULT_PARAMS_STUB)
-            if passed_params == DEFAULT_PARAMS_STUB and default_params is not None:
-                # Replace 'default_params' with params from json file
-                default_params = get_default_params(operation.operation_type)
-            else:
-                # Store passed
-                default_params = passed_params
-
+            params = passed_content.get('params', {})
+            # The check for "default_params" is needed for backward compatibility.
+            if params == DEFAULT_PARAMS_STUB:
+                params = {}
             self.metadata = passed_content.get('metadata', NodeMetadata())
         else:
             # There is no content for node
             operation = self._process_direct_init(operation_type)
 
             # Define operation with default parameters
-            default_params = get_default_params(operation.operation_type)
+            params = {}
             self.metadata = NodeMetadata()
-        if not default_params:
-            default_params = DEFAULT_PARAMS_STUB
 
         self.fit_time_in_seconds = 0
         self.inference_time_in_seconds = 0
 
-        # Create Node with default content
+        self._parameters = OperationParameters.from_operation_type(operation.operation_type, **params)
         super().__init__(content={'name': operation,
-                                  'params': default_params}, nodes_from=nodes_from)
-
+                                  'params': self._parameters.to_dict()}, nodes_from=nodes_from)
         self.log = default_log(self)
         self._fitted_operation = None
         self.rating = None
 
     def _process_content_init(self, passed_content: dict) -> Operation:
-        """Updating content in the node
-        """
-
+        """ Updating content in the node """
         if isinstance(passed_content['name'], str):
             # Need to convert name of operation into operation class object
             operation_factory = OperationFactory(operation_name=passed_content['name'])
@@ -112,47 +102,12 @@ class Node(GraphNode):
 
         return operation
 
-    def _filter_params(self, returned_params: Union[dict, tuple]) -> dict:
-        """Filters out the desired parameter values from what :obj:`Implementation` returns
-
-        Args:
-            returned_params: dictionary or ``(parameters dictionary, parameters names)`` tuple
-
-        Returns:
-            dict: ``custom_params`` if provided ``returned_params`` is not tuple and
-            dictionary with processed params otherwise
-        """
-
-        if isinstance(returned_params, tuple):
-            params_dict = returned_params[0]
-            changed_param_names = returned_params[1]
-            # Parameters were changed during the Implementation fitting
-            if self.custom_params != DEFAULT_PARAMS_STUB:
-                current_params = self.custom_params
-                # Delete keys from source params
-                for changed_param in changed_param_names:
-                    current_params.pop(changed_param, None)
-
-                # Take only changed parameters from returned ones
-                changed_params = {key: params_dict[key] for key in changed_param_names}
-
-                filtered_params = {**current_params, **changed_params}
-                return filtered_params
-            else:
-                # Default parameters were changed
-                changed_params = {key: params_dict[key] for key in changed_param_names}
-                return changed_params
-        else:
-            # Parameters were not changed
-            return self.custom_params
-
     def update_params(self):
-        """Updates :attr:`custom_params` only if they were changed"""
+        """Updates :attr:`custom_params` with changed parameters"""
         new_params = self.fitted_operation.get_params()
-        # Filter parameters
-        filtered_params = self._filter_params(new_params)
-        if filtered_params != DEFAULT_PARAMS_STUB:
-            self.custom_params = filtered_params
+        changed_parameters = new_params.changed_parameters
+        updated_parameters = {**self.parameters, **changed_parameters}
+        self.parameters = updated_parameters
 
     # wrappers for 'operation' field from GraphNode class
     @property
@@ -219,13 +174,13 @@ class Node(GraphNode):
 
         if self.fitted_operation is None:
             with Timer() as t:
-                self.fitted_operation, operation_predict = self.operation.fit(params=self.content['params'],
+                self.fitted_operation, operation_predict = self.operation.fit(params=self._parameters,
                                                                               data=input_data)
                 self.fit_time_in_seconds = round(t.seconds_from_start, 3)
         else:
             operation_predict = self.operation.predict_for_fit(fitted_operation=self.fitted_operation,
                                                                data=input_data,
-                                                               params=self.content['params'])
+                                                               params=self._parameters)
 
         # Update parameters after operation fitting (they can be corrected)
         not_atomized_operation = 'atomized' not in self.operation.operation_type
@@ -247,40 +202,37 @@ class Node(GraphNode):
 
         with Timer() as t:
             operation_predict = self.operation.predict(fitted_operation=self.fitted_operation,
-                                                       params=self.content['params'],
+                                                       params=self._parameters,
                                                        data=input_data,
                                                        output_mode=output_mode)
             self.inference_time_in_seconds = round(t.seconds_from_start, 3)
         return operation_predict
 
     @property
-    def custom_params(self) -> dict:
+    def parameters(self) -> dict:
         """Returns node custom parameters
 
         Returns:
             dict: of custom parameters
         """
-
         return self.content.get('params')
 
-    @custom_params.setter
-    def custom_params(self, params: dict):
+    @parameters.setter
+    def parameters(self, params: dict):
         """Sets custom parameters of the node
 
         Args:
             params: new parameters to be placed instead of existing
         """
-
         if params:
-            if params != DEFAULT_PARAMS_STUB:
-                # Complete the dictionary if it is incomplete
-                default_params = get_default_params(self.operation.operation_type)
-                if default_params is not None:
-                    params = {**default_params, **params}
-                # take nested composer params if they appeared
-                if 'nested_space' in params:
-                    params = params['nested_space']
-            self.content.update({'params': params})
+            # The check for "default_params" is needed for backward compatibility.
+            if params == DEFAULT_PARAMS_STUB:
+                params = {}
+            # take nested composer params if they appeared
+            if 'nested_space' in params:
+                params = params['nested_space']
+            self._parameters = OperationParameters.from_operation_type(self.operation.operation_type, **params)
+            self.content['params'] = self._parameters.to_dict()
 
     def __str__(self) -> str:
         """Returns ``str`` representation of the node
@@ -528,17 +480,3 @@ def _combine_parents(parent_nodes: List[Node],
             target = prediction.target
 
     return parent_results, target
-
-
-def get_default_params(model_name: str):
-    """Gets default params for chosen model name
-
-    Args:
-        model_name: the model name to choose default parameters for
-
-    Returns:
-        default repository parameters for the model name
-    """
-
-    with DefaultOperationParamsRepository() as default_params_repo:
-        return default_params_repo.get_default_params_for_operation(model_name)

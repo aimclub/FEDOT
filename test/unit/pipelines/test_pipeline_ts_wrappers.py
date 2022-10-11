@@ -42,7 +42,7 @@ def get_simple_short_lagged_pipeline():
     # Create simple pipeline for forecasting
     node_lagged = PrimaryNode('lagged')
     # Use 4 elements in time series as predictors
-    node_lagged.custom_params = {'window_size': 4}
+    node_lagged.parameters = {'window_size': 4}
     node_final = SecondaryNode('linear', nodes_from=[node_lagged])
     pipeline = Pipeline(node_final)
 

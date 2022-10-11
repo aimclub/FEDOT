@@ -8,13 +8,14 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from fedot.core.data.data import OutputData, InputData
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import \
     DataOperationImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FeatureSelectionImplementation(DataOperationImplementation):
     """ Class for applying feature selection operations on tabular data """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = None
         self.operation = None
         self.is_not_fitted = None
@@ -72,9 +73,6 @@ class FeatureSelectionImplementation(DataOperationImplementation):
         self._update_column_types(source_features_shape, output_data)
         return output_data
 
-    def get_params(self):
-        return self.operation.get_params()
-
     def _update_column_types(self, source_features_shape, output_data: OutputData):
         """ Update column types after applying feature selection operations """
         if len(source_features_shape) < 2:
@@ -117,19 +115,18 @@ class LinearRegFSImplementation(FeatureSelectionImplementation):
     Task type - regression
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = LinearRegression(normalize=True)
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params[k] for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
-        self.params = params
 
 
 class NonLinearRegFSImplementation(FeatureSelectionImplementation):
@@ -139,19 +136,18 @@ class NonLinearRegFSImplementation(FeatureSelectionImplementation):
     Task type - regression
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params[k] for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
-        self.params = params
 
 
 class LinearClassFSImplementation(FeatureSelectionImplementation):
@@ -161,19 +157,18 @@ class LinearClassFSImplementation(FeatureSelectionImplementation):
     Task type - classification
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = LogisticRegression()
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params[k] for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
-        self.params = params
 
 
 class NonLinearClassFSImplementation(FeatureSelectionImplementation):
@@ -183,16 +178,15 @@ class NonLinearClassFSImplementation(FeatureSelectionImplementation):
     Task type - classification
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = DecisionTreeClassifier()
 
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = RFE(estimator=self.inner_model)
         else:
             # Checking the appropriate params are using or not
-            rfe_params = {k: params[k] for k in
+            rfe_params = {k: self.params.get(k) for k in
                           ['n_features_to_select', 'step']}
             self.operation = RFE(estimator=self.inner_model, **rfe_params)
-        self.params = params

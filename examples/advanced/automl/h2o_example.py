@@ -27,7 +27,7 @@ def pipeline_h2o_regr() -> Pipeline:
 
 def pipeline_h2o_ts(window_size: int = 20):
     node_lagged = PrimaryNode('lagged')
-    node_lagged.custom_params = {'window_size': window_size}
+    node_lagged.parameters = {'window_size': window_size}
     node_root = SecondaryNode('h2o_regr', nodes_from=[node_lagged])
 
     pipeline = Pipeline(node_root)

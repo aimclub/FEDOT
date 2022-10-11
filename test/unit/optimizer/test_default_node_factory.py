@@ -1,7 +1,7 @@
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.optimisers.graph import OptNode
 from fedot.core.optimisers.opt_node_factory import DefaultOptNodeFactory
-from fedot.core.utils import DEFAULT_PARAMS_STUB
+from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
 def test_default_node_factory():
@@ -11,10 +11,8 @@ def test_default_node_factory():
                                                 secondary=secondary_operations)
     node_factory = DefaultOptNodeFactory(requirements=requirements)
 
-    primary_node = OptNode(content={'name': 'pca',
-                                    'params': DEFAULT_PARAMS_STUB})
-    secondary_node = OptNode(content={'name': 'dt',
-                                      'params': DEFAULT_PARAMS_STUB},
+    primary_node = OptNode(content={'name': 'pca'})
+    secondary_node = OptNode(content={'name': 'dt'},
                              nodes_from=[primary_node])
 
     changed_primary_node = node_factory.exchange_node(primary_node)

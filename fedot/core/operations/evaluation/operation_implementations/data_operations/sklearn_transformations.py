@@ -12,23 +12,21 @@ from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_in
     divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
     """ Class for applying PCA and kernel PCA models from sklearn
 
     Args:
-        params: dictionary with the arguments
+        params: OpearationParameters with the arguments
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.pca = None
-        self.params = None
         self.number_of_features = None
         self.number_of_samples = None
-
-        self.parameters_changed = False
 
     def fit(self, input_data: InputData):
         """The method trains the PCA model
@@ -73,28 +71,16 @@ class ComponentAnalysisImplementation(DataOperationImplementation):
         """Method check if number of features in data enough for ``n_components``
         parameter in PCA or not. And if not enough - fixes it
         """
-
-        current_parameters = self.pca.get_params()
-
-        if type(current_parameters['n_components']) == int:
-            if current_parameters['n_components'] > self.number_of_features:
-                current_parameters['n_components'] = self.number_of_features
-                self.parameters_changed = True
-        elif current_parameters['n_components'] == 'mle':
+        n_components = self.params.get('n_components')
+        if type(n_components) == int:
+            if n_components > self.number_of_features:
+                self.params.update(n_components=self.number_of_features)
+        elif n_components == 'mle':
             # Check that n_samples correctly map with n_features
             if self.number_of_samples < self.number_of_features:
-                current_parameters['n_components'] = 0.5
-                self.parameters_changed = True
+                self.params.update(n_components=0.5)
 
-        self.pca.set_params(**current_parameters)
-        self.params = current_parameters
-
-    def get_params(self):
-        if self.parameters_changed is True:
-            params_dict = self.pca.get_params()
-            return tuple([params_dict, ['n_components']])
-        else:
-            return self.pca.get_params()
+        self.pca.set_params(**self.params.to_dict())
 
     @staticmethod
     def update_column_types(output_data: OutputData) -> OutputData:
@@ -110,17 +96,16 @@ class PCAImplementation(ComponentAnalysisImplementation):
     """Class for applying PCA from sklearn
 
     Args:
-        params: dictionary with the hyperparameters
+        params: OperationParameters with the hyperparameters
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        if not self.params:
             # Default parameters
-            self.pca = PCA(svd_solver='full', n_components='mle')
-        else:
-            self.pca = PCA(**params)
-        self.params = params
+            default_params = {'svd_solver': 'full', 'n_components': 'mle'}
+            self.params.update(**default_params)
+        self.pca = PCA(**self.params.to_dict())
         self.number_of_features = None
 
 
@@ -128,34 +113,23 @@ class KernelPCAImplementation(ComponentAnalysisImplementation):
     """ Class for applying kernel PCA from sklearn
 
     Args:
-        params: dictionary with the hyperparameters
+        params: OperationParameters with the hyperparameters
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            # Default parameters
-            self.pca = KernelPCA()
-        else:
-            self.pca = KernelPCA(**params)
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
+        self.pca = KernelPCA(**self.params.to_dict())
 
 
 class FastICAImplementation(ComponentAnalysisImplementation):
     """ Class for applying FastICA from sklearn
 
     Args:
-        params: dictionary with the hyperparameters
+        params: OperationParameters with the hyperparameters
     """
-
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            # Default parameters
-            self.pca = FastICA()
-        else:
-            self.pca = FastICA(**params)
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
+        self.pca = FastICA(**self.params.to_dict())
 
 
 class PolyFeaturesImplementation(EncodedInvariantImplementation):
@@ -164,22 +138,21 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
     ``OneHot encoding``) are used
 
     Args:
-        params: dictionary with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.th_columns = 10
-        if not params:
+        if not self.params:
             # Default parameters
             self.operation = PolynomialFeatures(include_bias=False)
         else:
             # Checking the appropriate params are using or not
-            poly_params = {k: params[k] for k in
+            poly_params = {k: self.params.get(k) for k in
                            ['degree', 'interaction_only']}
             self.operation = PolynomialFeatures(include_bias=False,
                                                 **poly_params)
-        self.params = params
         self.columns_to_take = None
 
     def fit(self, input_data: InputData):
@@ -211,9 +184,6 @@ class PolyFeaturesImplementation(EncodedInvariantImplementation):
             output_data.predict = all_features
         return output_data
 
-    def get_params(self) -> dict:
-        return self.operation.get_params()
-
     def _update_column_types(self, source_features_shape, output_data: OutputData):
         """Update column types after applying operations. If new columns added, new type for them are defined
         """
@@ -235,20 +205,12 @@ class ScalingImplementation(EncodedInvariantImplementation):
     ``OneHot encoding``) are used
 
     Args:
-        params: dictionary with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            # Default parameters
-            self.operation = StandardScaler()
-        else:
-            self.operation = StandardScaler(**params)
-        self.params = params
-
-    def get_params(self) -> dict:
-        return self.operation.get_params()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
+        self.operation = StandardScaler(**self.params.to_dict())
 
 
 class NormalizationImplementation(EncodedInvariantImplementation):
@@ -257,45 +219,32 @@ class NormalizationImplementation(EncodedInvariantImplementation):
     ``OneHot encoding``) are used
 
     Args:
-        params: dictionary with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            # Default parameters
-            self.operation = MinMaxScaler()
-        else:
-            self.operation = MinMaxScaler(**params)
-        self.params = params
-
-    def get_params(self) -> dict:
-        return self.operation.get_params()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
+        self.operation = MinMaxScaler(**self.params.to_dict())
 
 
 class ImputationImplementation(DataOperationImplementation):
     """Class for applying imputation on tabular data
 
     Args:
-        params: dictionary with the arguments
+        params: OperationParameters with the arguments
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
         default_params_categorical = {'strategy': 'most_frequent'}
-        self.params_cat = {**params, **default_params_categorical}
-        self.params_num = params
+        self.params_cat = {**self.params.to_dict(), **default_params_categorical}
+        self.params_num = self.params.to_dict()
         self.categorical_ids = None
         self.non_categorical_ids = None
         self.ids_binary_integer_features = {}
 
-        if not params:
-            # Default parameters
-            self.imputer_cat = SimpleImputer(**default_params_categorical)
-            self.imputer_num = SimpleImputer()
-        else:
-            self.imputer_cat = SimpleImputer(**self.params_cat)
-            self.imputer_num = SimpleImputer(**self.params_num)
+        self.imputer_cat = SimpleImputer(**self.params_cat)
+        self.imputer_num = SimpleImputer(**self.params_num)
 
     def fit(self, input_data: InputData):
         """The method trains ``SimpleImputer``
@@ -444,7 +393,7 @@ class ImputationImplementation(DataOperationImplementation):
 
         return filled_numerical_features
 
-    def get_params(self) -> dict:
+    def get_params(self) -> OperationParameters:
         features_imputers = {'imputer_categorical': self.params_cat,
                              'imputer_numerical': self.params_num}
-        return features_imputers
+        return OperationParameters(**features_imputers)

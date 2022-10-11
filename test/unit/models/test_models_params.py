@@ -12,7 +12,7 @@ def get_knn_reg_pipeline(k_neighbors):
     """ Function return pipeline with K-nn regression model in it """
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('knnreg', nodes_from=[node_scaling])
-    node_final.custom_params = {'n_neighbors': k_neighbors}
+    node_final.parameters = {'n_neighbors': k_neighbors}
     pipeline = Pipeline(node_final)
     return pipeline
 
@@ -21,7 +21,7 @@ def get_knn_class_pipeline(k_neighbors):
     """ Function return pipeline with K-nn classification model in it """
     node_scaling = PrimaryNode('scaling')
     node_final = SecondaryNode('knn', nodes_from=[node_scaling])
-    node_final.custom_params = {'n_neighbors': k_neighbors}
+    node_final.parameters = {'n_neighbors': k_neighbors}
     pipeline = Pipeline(node_final)
     return pipeline
 

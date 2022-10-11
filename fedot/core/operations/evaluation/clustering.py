@@ -4,6 +4,7 @@ from typing import Optional
 from sklearn.cluster import KMeans as SklearnKmeans
 
 from fedot.core.data.data import InputData, OutputData
+from fedot.core.operations.operation_parameters import OperationParameters
 from fedot.core.operations.evaluation.evaluation_interfaces import SkLearnEvaluationStrategy
 from fedot.core.utilities.random import RandomStateHandler
 
@@ -15,10 +16,11 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         'kmeans': SklearnKmeans
     }
 
-    def __init__(self, operation_type: str, params: Optional[dict] = None):
+    def __init__(self, operation_type: str, params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
+        if not params:
+            self.params_for_fit.update(n_clusters=2)
         self.operation_impl = self._convert_to_operation(operation_type)
-        self.params_for_fit = params
 
     def fit(self, train_data: InputData):
         """
@@ -28,10 +30,7 @@ class SkLearnClusteringStrategy(SkLearnEvaluationStrategy):
         """
 
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        if self.params_for_fit:
-            operation_implementation = self.operation_impl(**self.params_for_fit)
-        else:
-            operation_implementation = self.operation_impl(n_clusters=2)
+        operation_implementation = self.operation_impl(**self.params_for_fit.to_dict())
         with RandomStateHandler():
             operation_implementation.fit(train_data.features)
         return operation_implementation

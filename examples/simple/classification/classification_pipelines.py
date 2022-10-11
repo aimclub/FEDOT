@@ -14,13 +14,13 @@ def cnn_composite_pipeline(composite_flag: bool = True) -> Pipeline:
     :param composite_flag:  add additional random forest estimator
     """
     node_first = PrimaryNode('cnn')
-    node_first.custom_params = {'architecture': 'deep',
-                                'epochs': 15,
-                                'batch_size': 128}
+    node_first.parameters = {'architecture': 'deep',
+                             'epochs': 15,
+                             'batch_size': 128}
     node_second = PrimaryNode('cnn')
-    node_second.custom_params = {'architecture_type': 'simplified',
-                                 'epochs': 10,
-                                 'batch_size': 128}
+    node_second.parameters = {'architecture_type': 'simplified',
+                              'epochs': 10,
+                              'batch_size': 128}
     node_final = SecondaryNode('rf', nodes_from=[node_first, node_second])
 
     if not composite_flag:
@@ -44,7 +44,7 @@ def classification_pipeline_with_balancing(custom_params=None):
     node_resample = PrimaryNode(operation_type='resample')
 
     if custom_params is not None:
-        node_resample.custom_params = custom_params
+        node_resample.parameters = custom_params
 
     graph = SecondaryNode(operation_type='logit', nodes_from=[node_resample])
 
@@ -123,11 +123,11 @@ def classification_svc_complex_pipeline():
     """
 
     svc_primary_node = PrimaryNode('svc')
-    svc_primary_node.custom_params = dict(probability=True)
+    svc_primary_node.parameters = dict(probability=True)
     logit_secondary_node = SecondaryNode('logit', nodes_from=[svc_primary_node])
 
     svc_node_with_custom_params = PrimaryNode('svc')
-    svc_node_with_custom_params.custom_params = dict(kernel='rbf', C=10,
+    svc_node_with_custom_params.parameters = dict(kernel='rbf', C=10,
                                                      gamma=1, cache_size=2000,
                                                      probability=True)
     logit_secondary_node_2 = SecondaryNode('logit', nodes_from=[svc_node_with_custom_params])

@@ -11,7 +11,7 @@ def graph_node_to_json(obj: GraphNode) -> Dict[str, Any]:
     encoded = {
         k: v
         for k, v in any_to_json(obj).items()
-        if k not in ['_operator', '_fitted_operation', '_node_data']
+        if k not in ['_operator', '_fitted_operation', '_node_data', '_parameters']
     }
     encoded['content']['name'] = str(encoded['content']['name'])
     if encoded['_nodes_from']:

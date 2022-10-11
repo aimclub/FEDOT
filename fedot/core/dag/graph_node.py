@@ -3,7 +3,6 @@ from typing import List, Optional, Union, Iterable
 from uuid import uuid4
 
 from fedot.core.utilities.data_structures import UniqueList
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 MAX_DEPTH = 1000
@@ -115,7 +114,7 @@ class GraphNode:
             return 1 + max([next_node.distance_to_primary_level for next_node in self.nodes_from])
 
 
-def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
+def _descriptive_id_recursive(current_node: GraphNode, visited_nodes: Optional[List[GraphNode]] = None) -> str:
     """Method returns verbal description of the content in the node
     and its parameters
     """
@@ -128,7 +127,7 @@ def _descriptive_id_recursive(current_node, visited_nodes=None) -> str:
     if isinstance(node_operation, str):
         # If there is a string: name of operation (as in json repository)
         node_label = str(node_operation)
-        if params and params != DEFAULT_PARAMS_STUB:
+        if params:
             node_label = f'n_{node_label}_{params}'
     else:
         # If instance of Operation is placed in 'name'

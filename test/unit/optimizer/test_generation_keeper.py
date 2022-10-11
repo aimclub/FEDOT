@@ -7,7 +7,6 @@ from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective.objective import Objective
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, RegressionMetricsEnum
-from fedot.core.utils import DEFAULT_PARAMS_STUB
 
 
 def create_individual(fitness: Fitness = None) -> Individual:

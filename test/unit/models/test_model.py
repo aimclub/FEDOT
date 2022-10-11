@@ -19,7 +19,8 @@ from fedot.core.operations.evaluation.operation_implementations.models.ts_implem
 from fedot.core.operations.evaluation.operation_implementations.models.ts_implementations.statsmodels import \
     GLMImplementation
 from fedot.core.operations.model import Model
-from fedot.core.pipelines.node import PrimaryNode, get_default_params, SecondaryNode
+from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
+from fedot.core.operations.operation_parameters import get_default_params, OperationParameters
 from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
@@ -196,7 +197,8 @@ def test_ts_models_fit_predict_correct():
         if not default_params:
             default_params = None
 
-        fitted_operation, train_predicted = model.fit(params=default_params, data=deepcopy(train_data))
+        fitted_operation, train_predicted = model.fit(params=default_params,
+                                                      data=deepcopy(train_data))
         test_pred = model.predict(fitted_operation=fitted_operation, data=test_data)
         mae_value_test = mean_absolute_error(y_true=test_data.target, y_pred=test_pred.predict[0])
 
@@ -290,7 +292,7 @@ def test_glm_indexes_correct():
     and indexes look like [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     """
     input_data = generate_simple_series()
-    glm_impl = GLMImplementation(family="gaussian", link="identity")
+    glm_impl = GLMImplementation(OperationParameters(**{"family": "gaussian", "link": "identity"}))
     glm_impl.fit(input_data)
     predicted = glm_impl.predict_for_fit(input_data)
     pred_values = predicted.predict
@@ -307,9 +309,9 @@ def test_lda_model_fit_with_incorrect_data():
     lda_data = get_lda_incorrect_data()
     lda_model = LDAImplementation()
     lda_model.fit(lda_data)
-    params, changed_hyperparams = lda_model.get_params()
+    params = lda_model.get_params()
 
-    assert changed_hyperparams[0] == 'solver'
+    assert 'solver' in params.changed_parameters.keys()
 
 
 def test_pca_model_fit_with_wide_table():
@@ -322,15 +324,15 @@ def test_pca_model_fit_with_wide_table():
     pca_model = PCAImplementation()
     pca_model.fit(pca_data)
 
-    params, changed_hyperparams = pca_model.get_params()
-    assert changed_hyperparams[0] == 'n_components'
+    params = pca_model.get_params()
+    assert 'n_components' in params.changed_parameters.keys()
 
 
 def test_ts_naive_average_forecast_correctly():
     """ Check if forecasted time series has correct indices """
     train_input, predict_input, _ = synthetic_univariate_ts()
 
-    model = NaiveAverageForecastImplementation(part_for_averaging=1.0)
+    model = NaiveAverageForecastImplementation(OperationParameters(part_for_averaging=1.0))
     fit_forecast = model.predict_for_fit(train_input)
     predict_forecast = model.predict(predict_input)
 
@@ -346,7 +348,7 @@ def test_ts_naive_average_forecast_correctly():
 def test_locf_forecast_correctly():
     """ Testing naive LOCF model """
     train_input, predict_input, _ = synthetic_univariate_ts()
-    model = RepeatLastValueImplementation(part_for_repeat=0.2)
+    model = RepeatLastValueImplementation(OperationParameters(part_for_repeat=0.2))
 
     model.fit(train_input)
     fit_forecast = model.predict_for_fit(train_input)

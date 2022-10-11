@@ -5,18 +5,16 @@ from sklearn.multiclass import OneVsRestClassifier
 from sklearn.svm import SVC
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FedotSVCImplementation(ModelImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            self.inner_model = SVC(kernel='linear',
-                                   probability=True,
-                                   class_weight='balanced')
-        else:
-            self.inner_model = SVC(**params)
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        if not self.params:
+            default_params = {'kernel': 'linear', 'probability': True, 'class_weight': 'balanced'}
+            self.params.update(**default_params)
+        self.inner_model = SVC(**self.params.to_dict())
         self.model = OneVsRestClassifier(self.inner_model)
         self.classes = None
 
@@ -46,12 +44,6 @@ class FedotSVCImplementation(ModelImplementation):
         prediction = self.model.predict_proba(input_data.features)
 
         return prediction
-
-    def get_params(self):
-        """ Method return parameters, which can be optimized for particular
-        operation
-        """
-        return self.model.get_params()
 
     @property
     def classes_(self):

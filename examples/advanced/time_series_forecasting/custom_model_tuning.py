@@ -47,11 +47,11 @@ def get_domain_pipeline():
         lagged -> custom -> ridge
     """
     lagged_node = PrimaryNode('lagged')
-    lagged_node.custom_params = {'window_size': 50}
+    lagged_node.parameters = {'window_size': 50}
 
     # For custom model params as initial approximation and model as function is necessary
     custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
-    custom_node.custom_params = {"a": -50, "b": 500, 'model_predict': domain_model_imitation_predict}
+    custom_node.parameters = {"a": -50, "b": 500, 'model_predict': domain_model_imitation_predict}
 
     node_final = SecondaryNode('ridge', nodes_from=[custom_node])
     pipeline = Pipeline(node_final)
@@ -65,11 +65,11 @@ def get_fitting_custom_pipeline():
         lagged -> custom -> ridge
     """
     lagged_node = PrimaryNode('lagged')
-    lagged_node.custom_params = {'window_size': 50}
+    lagged_node.parameters = {'window_size': 50}
 
     # For custom model params as initial approximation and model as function is necessary
     custom_node = SecondaryNode('custom', nodes_from=[lagged_node])
-    custom_node.custom_params = {'alpha': 5,
+    custom_node.parameters = {'alpha': 5,
                                  'model_predict': custom_ml_model_imitation_predict,
                                  'model_fit': custom_ml_model_imitation_fit}
 

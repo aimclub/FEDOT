@@ -3,6 +3,8 @@ from typing import Optional
 from fedot.core.data.data import InputData, OutputData
 from fedot.core.operations.evaluation.evaluation_interfaces import EvaluationStrategy
 from fedot.core.operations.evaluation.operation_implementations.models.custom_model import CustomModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
+
 warnings.filterwarnings("ignore", category=UserWarning)
 
 
@@ -14,9 +16,8 @@ class CustomModelStrategy(EvaluationStrategy):
     :param dict params: hyperparameters to fit the model with
     """
 
-    def __init__(self, operation_type: Optional[str], params: dict = None):
+    def __init__(self, operation_type: Optional[str], params: Optional[OperationParameters] = None):
         super().__init__(operation_type, params)
-        self.params = params
         self.operation_impl = CustomModelImplementation(params)
 
     def fit(self, train_data: InputData):

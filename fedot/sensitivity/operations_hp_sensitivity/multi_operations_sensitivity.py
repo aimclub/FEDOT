@@ -98,7 +98,7 @@ class MultiOperationsHPAnalyze:
         for sample in params:
             copied_pipeline = deepcopy(self._pipeline)
             for node_id, params_per_node in enumerate(sample):
-                copied_pipeline.nodes[node_id].custom_params = params_per_node
+                copied_pipeline.nodes[node_id].parameters = params_per_node
                 sampled_pipelines.append(copied_pipeline)
 
         return sampled_pipelines

@@ -24,11 +24,11 @@ def get_multi_ts_data():
 
 def get_simple_pipeline():
     node_lagged_1 = PrimaryNode("lagged")
-    node_lagged_1.custom_params = {'window_size': 20}
+    node_lagged_1.parameters = {'window_size': 20}
 
     node_smooth = PrimaryNode("smoothing")
     node_lagged_2 = SecondaryNode("lagged", nodes_from=[node_smooth])
-    node_lagged_2.custom_params = {'window_size': 10}
+    node_lagged_2.parameters = {'window_size': 10}
 
     node_ridge = SecondaryNode("ridge", nodes_from=[node_lagged_1])
     node_lasso = SecondaryNode("lasso", nodes_from=[node_lagged_2])
@@ -41,10 +41,10 @@ def get_simple_pipeline():
 def get_linear_pipeline():
     node_smoothed = PrimaryNode("smoothing")
     node_lagged = SecondaryNode("lagged", nodes_from=[node_smoothed])
-    node_lagged.custom_params = {'window_size': 3}
+    node_lagged.parameters = {'window_size': 3}
     node_linear = SecondaryNode("linear", nodes_from=[node_lagged])
     node_lagged2 = PrimaryNode("lagged")
-    node_lagged2.custom_params = {'window_size': 5}
+    node_lagged2.parameters = {'window_size': 5}
     node_linear2 = SecondaryNode("linear", nodes_from=[node_lagged2])
     node_linear3 = SecondaryNode("linear", nodes_from=[node_linear, node_linear2])
     pipeline = Pipeline(node_linear3)

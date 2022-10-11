@@ -99,6 +99,6 @@ class PipelineTuner(HyperoptTuner):
                 new_params = convert_params(node_params)
 
                 # Update parameters in nodes
-                pipeline.nodes[node_id].custom_params = new_params
+                pipeline.nodes[node_id].parameters = new_params
 
         return pipeline

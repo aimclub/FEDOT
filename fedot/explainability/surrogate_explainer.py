@@ -96,7 +96,7 @@ class SurrogateExplainer(Explainer):
 def get_simple_pipeline(model: str, custom_params: dict = None) -> 'Pipeline':
     surrogate_node = PrimaryNode(model)
     if custom_params:
-        surrogate_node.custom_params = custom_params
+        surrogate_node.parameters = custom_params
     return Pipeline(surrogate_node)
 
 

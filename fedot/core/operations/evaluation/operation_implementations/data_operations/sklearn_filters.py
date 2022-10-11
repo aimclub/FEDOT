@@ -15,13 +15,14 @@ from fedot.core.log import default_log
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import (
     DataOperationImplementation
 )
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class FilterImplementation(DataOperationImplementation):
     """ Base class for applying filtering operations on tabular data """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = None
         self.operation = None
 
@@ -64,23 +65,11 @@ class FilterImplementation(DataOperationImplementation):
                                               input_data.features)
         return output_data
 
-    def get_params(self) -> Dict[str, Any]:
-        return self.operation.get_params()
-
 
 class RegRANSACImplementation(FilterImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.max_iter = 10
-        self.parameters_changed = False
-        self.params = params
-
-    def get_params(self):
-        params_dict = self.params
-        if self.parameters_changed is True:
-            return tuple([params_dict, ['residual_threshold']])
-        else:
-            return params_dict
 
     def fit(self, input_data: InputData):
         iter_ = 0
@@ -92,8 +81,8 @@ class RegRANSACImplementation(FilterImplementation):
                 return self.operation
             except ValueError:
                 self.log.info("RANSAC: multiplied residual_threshold on 2")
-                self.params["residual_threshold"] *= 2
-                self.parameters_changed = True
+                residual_threshold = self.params.get('residual_threshold')
+                self.params.update(residual_threshold=residual_threshold * 2)
                 iter_ += 1
 
         return self.operation
@@ -105,23 +94,15 @@ class LinearRegRANSACImplementation(RegRANSACImplementation):
     Task type - regression
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = make_pipeline(StandardScaler(with_mean=False), LinearRegression())
 
-        if not params:
-            # Default parameters
-            # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model)
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model)
+        # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+        if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params)
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model, **params)
-        self.params = params
+            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
 
 
 class NonLinearRegRANSACImplementation(RegRANSACImplementation):
@@ -130,22 +111,15 @@ class NonLinearRegRANSACImplementation(RegRANSACImplementation):
     Task type - regression
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.inner_model = DecisionTreeRegressor()
-        if not params:
-            # Default parameters
-            # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model)
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model)
+
+        # TODO valer1435 | Delete this after removing compatibility with sklearn<1.1
+        if parse_version(sklearn.__version__) < parse_version('1.1.0'):
+            self.operation = RANSACRegressor(base_estimator=self.inner_model, **self.params.to_dict())
         else:
-            if parse_version(sklearn.__version__) < parse_version('1.1.0'):
-                self.operation = RANSACRegressor(base_estimator=self.inner_model, **params)
-            else:
-                self.operation = RANSACRegressor(estimator=self.inner_model, **params)
-        self.params = params
+            self.operation = RANSACRegressor(estimator=self.inner_model, **self.params.to_dict())
 
 
 class IsolationForestRegImplementation(DataOperationImplementation):
@@ -154,16 +128,10 @@ class IsolationForestRegImplementation(DataOperationImplementation):
     Task type - regression
     """
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
+    def __init__(self, params: Optional[OperationParameters]):
+        super().__init__(params)
         self.log = default_log(self)
-
-        if not params:
-            # Default parameters
-            self.operation = IsolationForest()
-        else:
-            self.operation = IsolationForest(**params)
-        self.params = params
+        self.operation = IsolationForest(**self.params.to_dict())
 
     def fit(self, input_data: InputData) -> 'IsolationForest':
         """ Method for fit filter
@@ -210,9 +178,6 @@ class IsolationForestRegImplementation(DataOperationImplementation):
         output_data = self._convert_to_output(input_data,
                                               input_data.features)
         return output_data
-
-    def get_params(self) -> Dict[str, Any]:
-        return self.operation.get_params()
 
 
 class IsolationForestClassImplementation(IsolationForestRegImplementation):

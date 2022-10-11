@@ -129,18 +129,18 @@ def test_data_with_nans_in_target_process_correctly():
     """
 
     knn_node = PrimaryNode('knnreg')
-    knn_node.custom_params = {'n_neighbors': 10}
+    knn_node.parameters = {'n_neighbors': 10}
     pipeline = Pipeline(knn_node)
 
     # Single target column processing
     single_target_data = data_with_nans_in_target_column()
     pipeline.fit(single_target_data)
-    single_hyperparams = pipeline.nodes[0].custom_params
+    single_hyperparams = pipeline.nodes[0].parameters
     # Multi-target columns processing
     multi_target_data = data_with_nans_in_multi_target()
     pipeline.unfit()
     pipeline.fit(multi_target_data)
-    multi_hyperparams = pipeline.nodes[0].custom_params
+    multi_hyperparams = pipeline.nodes[0].parameters
     assert 2 == single_hyperparams['n_neighbors']
     assert 2 == multi_hyperparams['n_neighbors']
 
@@ -193,14 +193,14 @@ def test_pipeline_with_encoder():
     """
     encoding_node = PrimaryNode('one_hot_encoding')
     final_node = SecondaryNode('knnreg', nodes_from=[encoding_node])
-    final_node.custom_params = {'n_neighbors': 20}
+    final_node.parameters = {'n_neighbors': 20}
     pipeline = Pipeline(final_node)
 
     mixed_input = get_mixed_data(task=Task(TaskTypesEnum.regression),
                                  extended=True)
     # Train pipeline with knn model and then check
     pipeline.fit(mixed_input)
-    knn_params = pipeline.nodes[0].custom_params
+    knn_params = pipeline.nodes[0].parameters
 
     # The number of neighbors must be equal to half of the objects in the table.
     # This means that the row with nan has been adequately processed

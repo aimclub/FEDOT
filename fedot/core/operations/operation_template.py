@@ -81,7 +81,7 @@ class OperationTemplate(OperationTemplateAbstract):
         if not isinstance(node.operation, str):
             # for model-based operations
             self.operation_type = node.operation.operation_type
-            self.custom_params = node.custom_params
+            self.custom_params = node.parameters
             self.params = self._create_full_params(node)
 
             if _is_node_fitted(node):
@@ -206,7 +206,7 @@ def check_existing_path(path: str):
 
 
 def extract_operation_params(node: Node):
-    params = node.custom_params
+    params = node.parameters
 
     if 'dtype' in params:
         params['dtype'] = params['dtype'].__name__

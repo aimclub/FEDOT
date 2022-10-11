@@ -4,14 +4,13 @@ import numpy as np
 from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
 
 from fedot.core.operations.evaluation.operation_implementations.implementation_interfaces import ModelImplementation
+from fedot.core.operations.operation_parameters import OperationParameters
 
 
 class KNeighborsImplementation(ModelImplementation):
 
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        self.parameters_changed = False
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
         self.model = None
 
     def fit(self, train_data):
@@ -37,7 +36,6 @@ class KNeighborsImplementation(ModelImplementation):
         :param input_data: InputData for fit
         :param model_impl: Model to use
         """
-        was_changed = False
         current_params = self.model.get_params()
         n_neighbors = current_params.get('n_neighbors')
 
@@ -46,35 +44,18 @@ class KNeighborsImplementation(ModelImplementation):
             new_k_value = round(len(input_data.features) / 2)
             if new_k_value == 0:
                 new_k_value = 1
-            current_params.update({'n_neighbors': new_k_value})
-            self.model = model_impl(**current_params)
+            self.params.update(n_neighbors=new_k_value)
+            self.model = model_impl(**self.params.to_dict())
 
             prefix = "n_neighbors of K-nn model was changed"
             self.log.info(f"{prefix} from {n_neighbors} to {new_k_value}")
-            was_changed = True
-
-        return was_changed
-
-    def get_params(self):
-        """ Method return parameters, which can be optimized for particular
-        operation
-        """
-        if self.parameters_changed is True:
-            params_dict = self.model.get_params()
-            return tuple([params_dict, ['n_neighbors']])
-        else:
-            return self.model.get_params()
 
 
 class FedotKnnClassImplementation(KNeighborsImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            self.model = KNeighborsClassifier()
-        else:
-            round_n_neighbors(params)
-            self.model = KNeighborsClassifier(**params)
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        params = round_n_neighbors(self.params.to_dict())
+        self.model = KNeighborsClassifier(**params)
         self.classes = None
 
     def fit(self, train_data):
@@ -85,7 +66,7 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
         self.classes = np.unique(np.array(train_data.target))
 
         # Improve hyperparameters for model
-        self.parameters_changed = self.check_and_correct_k_value(train_data, KNeighborsClassifier)
+        self.check_and_correct_k_value(train_data, KNeighborsClassifier)
         self.model.fit(train_data.features, train_data.target)
         return self.model
 
@@ -104,14 +85,10 @@ class FedotKnnClassImplementation(KNeighborsImplementation):
 
 
 class FedotKnnRegImplementation(KNeighborsImplementation):
-    def __init__(self, **params: Optional[dict]):
-        super().__init__()
-        if not params:
-            self.model = KNeighborsRegressor()
-        else:
-            round_n_neighbors(params)
-            self.model = KNeighborsRegressor(**params)
-        self.params = params
+    def __init__(self, params: Optional[OperationParameters] = None):
+        super().__init__(params)
+        params = round_n_neighbors(self.params.to_dict())
+        self.model = KNeighborsRegressor(**params)
 
     def fit(self, train_data):
         """ Method fit model on a dataset
@@ -120,15 +97,16 @@ class FedotKnnRegImplementation(KNeighborsImplementation):
         """
 
         # Improve hyperparameters for model
-        self.parameters_changed = self.check_and_correct_k_value(train_data, KNeighborsRegressor)
+        self.check_and_correct_k_value(train_data, KNeighborsRegressor)
         self.model.fit(train_data.features, train_data.target)
         return self.model
 
 
-def round_n_neighbors(params):
+def round_n_neighbors(params: dict) -> dict:
     """ Convert n_neighbors into integer value. Operation work inplace. """
     if 'n_neighbors' in params:
         n_neighbors = round(params['n_neighbors'])
         if n_neighbors == 0:
             n_neighbors = 1
         params['n_neighbors'] = n_neighbors
+    return params
