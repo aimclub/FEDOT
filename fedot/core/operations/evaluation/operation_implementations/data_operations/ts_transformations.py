@@ -363,7 +363,7 @@ class TsSmoothingImplementation(DataOperationImplementation):
 
     @property
     def window_size(self) -> int:
-        return round(self.params.get_or_set('window_size', 10))
+        return round(self.params.setdefault('window_size', 10))
 
     def fit(self, input_data: InputData):
         """Class doesn't support fit operation
@@ -512,7 +512,7 @@ class GaussianFilterImplementation(DataOperationImplementation):
         source_ts = np.array(input_data.features)
 
         # Apply smoothing operation
-        sigma = round(self.params.get_or_set('sigma', 1))
+        sigma = round(self.params.setdefault('sigma', 1))
         smoothed_ts = gaussian_filter(source_ts, sigma=sigma)
         smoothed_ts = np.array(smoothed_ts)
 

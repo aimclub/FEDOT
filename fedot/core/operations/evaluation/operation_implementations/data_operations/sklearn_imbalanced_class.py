@@ -41,15 +41,15 @@ class ResampleImplementation(DataOperationImplementation):
 
     @property
     def balance(self) -> str:
-        return self.params.get_or_set('balance', 'expand_minority')
+        return self.params.setdefault('balance', 'expand_minority')
 
     @property
     def replace(self) -> bool:
-        return self.params.get_or_set('replace', False)
+        return self.params.setdefault('replace', False)
 
     @property
     def balance_ratio(self) -> float:
-        return self.params.get_or_set('balance_ratio', 1.0)
+        return self.params.setdefault('balance_ratio', 1.0)
 
     def fit(self, input_data: Optional[InputData]):
         """Class doesn't support fit operation

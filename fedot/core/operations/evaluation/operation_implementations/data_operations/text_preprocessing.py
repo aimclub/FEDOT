@@ -30,7 +30,7 @@ class TextCleanImplementation(DataOperationImplementation):
 
     @property
     def language(self) -> str:
-        return self.params.get_or_set('language', 'english')
+        return self.params.setdefault('language', 'english')
 
     def fit(self, input_data: InputData):
         """ Class doesn't support fit operation

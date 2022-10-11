@@ -40,7 +40,7 @@ class OperationParameters:
     def get(self, key, default_value=None):
         return self._parameters.get(key, default_value)
 
-    def get_or_set(self, key, value):
+    def setdefault(self, key, value):
         if key not in self._parameters.keys():
             self.update(**{key: value})
         return self.get(key)

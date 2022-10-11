@@ -73,7 +73,7 @@ class PretrainedEmbeddingsImplementation(DataOperationImplementation):
     def _download_model_resources(self):
         """ Method for downloading text embeddings. Embeddings are loaded into external folder"""
         self.logger.info('Trying to download embeddings...')
-        model_name = self.params.get_or_set('model_name', 'glove-twitter-25')
+        model_name = self.params.setdefault('model_name', 'glove-twitter-25')
         model_path = api.load(f"{model_name}", return_path=True)
 
         if os.path.exists(model_path):
