@@ -32,7 +32,7 @@ joblib>=0.17.*
 requests>=2.*
 tqdm
 typing>=3.7.*
-psutil>=5.9.2
+psutil>=5.7.3
 
 # Tests
 pytest>=6.2.*
