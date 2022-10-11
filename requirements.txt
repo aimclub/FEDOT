@@ -16,7 +16,7 @@ scikit_learn>=1.0.0; python_version == '3.7'
 scikit_learn>=1.0.0; python_version >= '3.8'
 
 # Analysis and optimizations
-hyperopt==0.2.5
+hyperopt==0.2.7
 SALib>=1.3.*
 scikit-optimize>=0.7.4
 
