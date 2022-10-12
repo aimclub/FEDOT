@@ -9,5 +9,5 @@ This section contains introductory information about the framework, its capabili
    :maxdepth: 1
 
    intro
-   fedot_features
+   fedot_features/index
    tutorial/quickstart
