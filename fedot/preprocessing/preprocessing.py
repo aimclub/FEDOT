@@ -192,7 +192,7 @@ class DataPreprocessor:
             return data
 
         # Wrap indices in numpy array
-        data.idx = np.array(data.idx)
+        data.idx = np.asarray(data.idx)
 
         # Fix tables / time series sizes
         data = self._correct_shapes(data)
@@ -284,9 +284,9 @@ class DataPreprocessor:
         features = data.features
         n_samples, n_columns = features.shape
 
+        nan_sums = np.sum(pd.isna(features), axis=0)
         for i in range(n_columns):
-            feature = features[:, i]
-            if np.sum(pd.isna(feature)) / n_samples < ALLOWED_NAN_PERCENT:
+            if nan_sums[i] / n_samples < ALLOWED_NAN_PERCENT:
                 self.ids_relevant_features[source_name].append(i)
             else:
                 self.ids_incorrect_features[source_name].append(i)
@@ -320,7 +320,7 @@ class DataPreprocessor:
         features = pd.DataFrame(data.features)
         features = features.applymap(lambda x: x.strip() if isinstance(x, str) else x)
 
-        data.features = np.array(features)
+        data.features = features.to_numpy()
         return data
 
     def label_encoding_for_fit(self, data: InputData, source_name: str = DEFAULT_SOURCE_NAME):
