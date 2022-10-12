@@ -1,6 +1,6 @@
 import functools
 import math
-from copy import copy, deepcopy
+from copy import copy
 from random import choice, randint, sample
 from typing import Callable, List, Optional
 
@@ -34,28 +34,7 @@ class Selection(Operator):
             raise ValueError(f'Required selection not found: {selection_type}')
 
     def individuals_selection(self, individuals: PopulationT) -> PopulationT:
-        pop_size = self.parameters.pop_size
-        if pop_size == len(individuals):
-            chosen = individuals
-        else:
-            chosen = []
-            remaining_individuals = copy(individuals)
-            remove_remaining_individuals = pop_size <= len(individuals)
-            # TODO: refactor this unnecessary param copying --
-            #  call selection without without self.__call__ and pass pop_size explicitly
-            old_requirements = deepcopy(self.parameters)
-            self.parameters.pop_size = 1
-            iterations_limit = pop_size * 10
-            for _ in range(iterations_limit):
-                if len(chosen) >= pop_size or not remaining_individuals:
-                    break
-                individual = self.__call__(remaining_individuals)[0]
-                if individual.uid not in (chosen_individual.uid for chosen_individual in chosen):
-                    chosen.append(individual)
-                    if remove_remaining_individuals:
-                        remaining_individuals.remove(individual)
-            self.parameters = old_requirements
-        return chosen
+        return self.__call__(individuals)
 
 
 def default_selection_behaviour(selection_func: Optional[Callable] = None, *, ensure_unique: bool = True,
@@ -78,8 +57,8 @@ def default_selection_behaviour(selection_func: Optional[Callable] = None, *, en
         return wrapper
 
     if selection_func:
-        return func_wrapper(selection_func)
-    return func_wrapper
+        return func_wrapper(selection_func)  # Allows to decorate without args.
+    return func_wrapper  # Allows to decorate with args but no selection_func specified.
 
 
 @default_selection_behaviour
