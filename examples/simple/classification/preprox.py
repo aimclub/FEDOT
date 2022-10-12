@@ -12,6 +12,7 @@ from fedot.core.composer.metrics import ROCAUC
 from fedot.core.constants import BEST_QUALITY_PRESET_NAME
 from fedot.core.data.data import InputData
 from fedot.core.data.data_split import train_test_data_setup
+from fedot.core.pipelines.pipeline import Pipeline
 from fedot.core.pipelines.pipeline_builder import PipelineBuilder
 from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import TaskTypesEnum, Task
@@ -35,11 +36,10 @@ def run_classification_example(
                   timeout=timeout,
                   preset=BEST_QUALITY_PRESET_NAME,
                   with_tuning=False,
-                  cv_folds=5,
                   early_stopping_generations=100,
 
                   seed=42,
-                  n_jobs=-1,
+                  n_jobs=8,
                   logging_level=logging.INFO,
                   )
 
@@ -53,7 +53,7 @@ def run_classification_example(
     metrics = fedot.get_metrics(target=test_data.target)
     print(f'Composed ROC AUC is {round(metrics["roc_auc"], 3)}')
 
-    if is_visualise:
+    if is_visualise and not predefined_model:
         print(fedot.history.get_leaderboard())
         fedot.current_pipeline.show()
 
@@ -66,7 +66,7 @@ def run_classification_example(
     return metrics
 
 
-def get_preprocessed_data_folds(nfolds=10, stage='train'):
+def get_preprocessed_data_folds(nfolds=(0, 10), stage='train'):
     npy_path = base_path / 'datasets'
     basename = 'credit-g'
 
@@ -79,7 +79,7 @@ def get_preprocessed_data_folds(nfolds=10, stage='train'):
 
     all_features = []
     all_targets = []
-    for ifold in range(nfolds):
+    for ifold in range(*nfolds):
         print(f'loading fold: {ifold}')
         # train_x, train_y = load_npy(ifold, stage='train')
         features, targets = load_npy(ifold, stage=stage)
@@ -95,7 +95,7 @@ def get_preprocessed_data_folds(nfolds=10, stage='train'):
                      idx=np.arange(len(targets)))
 
 
-def get_preprocessed_data(nfolds=1):
+def get_preprocessed_data(nfolds=(0, 1)):
     train_set = get_preprocessed_data_folds(nfolds=nfolds, stage='train')
     test_set = get_preprocessed_data_folds(nfolds=nfolds, stage='test')
     return train_set, test_set
@@ -133,14 +133,26 @@ def try_predefined():
           f'amb data: {metris_amb}')
 
 
-def try_evolution():
+def try_evolution(is_raw=True):
     train_test_raw = get_raw_data()
 
     train_test_pro_fdt = preprocess_data(*train_test_raw)
-    train_test_pro_amb = get_preprocessed_data()
+    train_test_pro_amb = get_preprocessed_data(nfolds=(6, 7))
 
-    run_classification_example(*train_test_pro_amb, timeout=5, save_prefix='amb')
+    if is_raw:
+        prefix = 'raw'
+        train, test = train_test_raw
+    else:
+        prefix = 'amb'
+        train, test = train_test_pro_amb
+
+    prefix = 'prx'
+    train, test = train_test_pro_fdt
+
+    print('Running: ', prefix)
+    run_classification_example(train, test, timeout=1, save_prefix=prefix)
 
 
 if __name__ == '__main__':
-    try_predefined()
+    # try_predefined()
+    try_evolution(is_raw=True)
