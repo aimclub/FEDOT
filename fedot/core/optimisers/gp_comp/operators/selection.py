@@ -1,7 +1,8 @@
+import functools
 import math
 from copy import copy, deepcopy
 from random import choice, randint, sample
-from typing import List, Callable
+from typing import Callable, List, Optional
 
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT, Operator
 from fedot.core.utilities.data_structures import ComparableEnum as Enum
@@ -57,10 +58,34 @@ class Selection(Operator):
         return chosen
 
 
+def default_selection_behaviour(selection_func: Optional[Callable] = None, *, ensure_unique: bool = True,
+                                populate_by_single: bool = True):
+    def func_wrapper(func: Callable):
+        @functools.wraps(func)
+        def wrapper(individuals: PopulationT, pop_size: int, *args, **kwargs):
+            if ensure_unique:
+                individuals = list({ind.uid: ind for ind in individuals}.values())
+            else:
+                individuals = copy(individuals)
+
+            if populate_by_single and len(individuals) == 1:
+                return individuals * pop_size
+
+            if len(individuals) <= pop_size:
+                return individuals
+
+            return func(individuals, pop_size, *args, **kwargs)
+        return wrapper
+
+    if selection_func:
+        return func_wrapper(selection_func)
+    return func_wrapper
+
+
+@default_selection_behaviour
 def tournament_selection(individuals: PopulationT, pop_size: int, fraction: float = 0.1) -> PopulationT:
-    individuals = list({ind.uid: ind for ind in individuals}.values())
     group_size = math.ceil(len(individuals) * fraction)
-    min_group_size = 2 if len(individuals) > 1 else 1
+    min_group_size = min(2, len(individuals))
     group_size = max(group_size, min_group_size)
     chosen = []
     iterations_limit = pop_size * 10
@@ -74,17 +99,13 @@ def tournament_selection(individuals: PopulationT, pop_size: int, fraction: floa
     return chosen
 
 
+@default_selection_behaviour
 def random_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
-    individuals = list({ind.uid: ind for ind in individuals}.values())
-    if not individuals:
-        return []
-    if len(individuals) == 1:
-        return individuals * pop_size
-    sample_size = min(pop_size, len(individuals))
-    return sample(individuals, sample_size)
+    return sample(individuals, pop_size)
 
 
 # Code of spea2 selection is modified part of DEAP library (Library URL: https://github.com/DEAP/deap).
+@default_selection_behaviour
 def spea2_selection(individuals: PopulationT, pop_size: int) -> PopulationT:
     """
     Apply SPEA-II selection operator on the *individuals*. Usually, the
