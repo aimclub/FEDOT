@@ -137,6 +137,7 @@ class MultiModalData(Dict[str, InputData]):
             text_columns = text_data_detector.find_text_columns(data_frame)
 
         link_columns = text_data_detector.find_link_columns(data_frame)
+        # TODO log drop of link columns
         columns_to_drop = text_columns + link_columns
         data_text = text_data_detector.prepare_multimodal_data(data_frame, text_columns)
         data_frame_table = data_frame.drop(columns=columns_to_drop)
