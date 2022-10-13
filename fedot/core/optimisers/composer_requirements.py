@@ -26,7 +26,7 @@ class ComposerRequirements:
     :param validation_blocks: number of validation blocks for time series validation
     """
 
-    num_of_generations: int = 20
+    num_of_generations: Optional[int] = None
     timeout: Optional[datetime.timedelta] = datetime.timedelta(minutes=5)
     early_stopping_generations: Optional[int] = 10
 

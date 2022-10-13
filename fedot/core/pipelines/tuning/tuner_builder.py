@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Callable, ClassVar, Type
+from typing import Callable, Type, Union
 
 from hyperopt import tpe
 
@@ -66,7 +66,7 @@ class TunerBuilder:
         self.timeout = timeout
         return self
 
-    def with_eval_time_constraint(self, eval_time_constraint: timedelta):
+    def with_eval_time_constraint(self, eval_time_constraint: Union[timedelta, int, float]):
         self.eval_time_constraint = eval_time_constraint
         return self
 

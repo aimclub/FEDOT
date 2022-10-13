@@ -118,7 +118,7 @@ class ApiParams:
         params = {'max_depth': 6,
                   'max_arity': 3,
                   'pop_size': 20,
-                  'num_of_generations': 100,
+                  'num_of_generations': None,
                   'keep_n_best': 1,
                   'with_tuning': True,
                   'preset': AUTO_PRESET_NAME,

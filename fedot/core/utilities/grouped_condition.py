@@ -14,10 +14,11 @@ class GroupedCondition:
     if any of the composed conditions is True. The message corresponding
     to the actual fired condition is logged (if it was provided)."""
 
-    def __init__(self, conditions_reduce: Callable[[Iterable[bool]], bool] = any):
+    def __init__(self, conditions_reduce: Callable[[Iterable[bool]], bool] = any, results_as_message: bool = False):
         self._reduce = conditions_reduce
         self._conditions: List[ConditionEntryType] = []
         self._log = default_log(self)
+        self._results_as_message = results_as_message
 
     def add_condition(self, condition: ConditionType, log_msg: Optional[str] = None) -> 'GroupedCondition':
         """Builder-like method for adding conditions."""
@@ -34,5 +35,8 @@ class GroupedCondition:
         cond, msg = entry
         res = cond()
         if res and msg:
-            self._log.info(msg)
+            if self._results_as_message:
+                self._log.message(msg)
+            else:
+                self._log.info(msg)
         return res
