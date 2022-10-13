@@ -71,7 +71,6 @@ def composite_metric(graph: CompositeModel, data: pd.DataFrame):
                 task = Task(TaskTypesEnum.regression)
             data_type = DataTypesEnum.table
             train = InputData(idx=idx, features=features, target=target, task=task, data_type=data_type)
-
             fitted_model = model.fit(train)
             
             if node.content['type'] == 'cont':
@@ -221,8 +220,9 @@ def run_example():
 
     encoder = preprocessing.LabelEncoder()
     discretizer = preprocessing.KBinsDiscretizer(n_bins=5, encode='ordinal', strategy='quantile')
-    p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
-    p2 = pp.Preprocessor([('encoder', encoder)])
+    # p = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
+    p = pp.Preprocessor([('encoder', encoder)])
+    p2 = pp.Preprocessor([('encoder', encoder), ('discretizer', discretizer)])
     discretized_data, _ = p.apply(data)
     discretized_data2, _ = p2.apply(data)
 
@@ -239,9 +239,13 @@ def run_example():
     objective_eval = ObjectiveEvaluate(objective, data = discretized_data)    
     # parent_model
     parent_model_regr = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
-    'ridge','lasso','svr','sgdr','lgbmreg','catboostreg']
+    'ridge','lasso','svr','sgdr','lgbmreg',
+    'catboostreg'
+    ]
     parent_model_class = ['xgboost','logit','bernb','multinb','dt','rf',
-    'mlp','lgbm','catboost']
+    'mlp','lgbm',
+    'catboost'
+    ]
 
     # one_set_models = {}
     # for v in vertices:
@@ -301,7 +305,7 @@ def run_example():
         rules = [has_no_self_cycled_nodes, has_no_cycle, _has_no_duplicates]
 
     bn.add_nodes(p.info)
-    bn.add_edges(discretized_data, scoring_function=('K2', K2Score))
+    bn.add_edges(discretized_data2, scoring_function=('K2', K2Score))
 
     # def structure_to_opt_graph(fdt, structure):
 
@@ -350,11 +354,18 @@ def run_example():
             node.content['parent_model'] = random_choice_model(node.content['type'])   
 
     
+    def f(m):
+        if m == None:
+            return None
+        else:
+            return (node.content['parent_model'].implementation_info)
 
-    # score = composite_metric(init, discretized_data2)
+    # score = composite_metric(init, discretized_data)
     # [print(node.content['name'],node.content['type'], node.content['parent_model'].operation_impl) for node in init.nodes]
     # print(score)
     # init.show()
+    for node in init.nodes:
+        print(node.content['name'], node.content['type'], f(node.content['parent_model']))
 
     requirements = PipelineComposerRequirements(
         primary=vertices,
@@ -394,10 +405,11 @@ def run_example():
             try:
                 if child.nodes_from==None or child.nodes_from==[]:
                     child.nodes_from=[]
-                    if child.content['type'] == 'disc' or child.content['type'] == 'disc_num':
-                        child.content['parent_model'] = random_choice_model(child.content['type'])
-                    elif child.content['type'] == 'cont':
-                        child.content['parent_model'] = random_choice_model(child.content['type'])                             
+                    child.content['parent_model'] = random_choice_model(child.content['type'])
+                    # if child.content['type'] == 'disc' or child.content['type'] == 'disc_num':
+                    #     child.content['parent_model'] = random_choice_model(child.content['type'])
+                    # elif child.content['type'] == 'cont':
+                    #     child.content['parent_model'] = random_choice_model(child.content['type'])                             
 
                 child.nodes_from.append(parent)
             except Exception as ex:
@@ -438,13 +450,10 @@ def run_example():
     # вывод полученного графа
     # for n in optimized_graph.nodes:
     #     n.content['parent_model']
-    def f(m):
-        if m == None:
-            return None
-        else:
-            return node.content['parent_model'].operation_impl
 
-    [print(node.content['name'],node.content['type'], f(node.content['parent_model'])) for node in optimized_graph.nodes]
+    for node in optimized_graph.nodes:
+        print(node.content['name'],node.content['type'], f(node.content['parent_model']))
+
     optimized_graph.show()
 
 
@@ -453,9 +462,9 @@ if __name__ == '__main__':
     # файл с исходными данными (должен лежать в 'examples/data/')
     file = 'healthcare'     
     # размер популяции
-    pop_size = 20
+    pop_size = 2
     # количество поколений
-    n_generation = 50
+    n_generation = 5
     # вероятность кроссовера
     crossover_probability = 0.8
     # вероятность мутации
