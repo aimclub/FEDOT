@@ -349,6 +349,7 @@ def run_example():
             if str(n2) in parents:
                 node.nodes_from.append(n2)
     
+# назначить parent_model узлам с родителями    
     for node in init.nodes:
         if not (node.nodes_from == None or node.nodes_from == []):
             node.content['parent_model'] = random_choice_model(node.content['type'])   
@@ -364,6 +365,8 @@ def run_example():
     # [print(node.content['name'],node.content['type'], node.content['parent_model'].operation_impl) for node in init.nodes]
     # print(score)
     # init.show()
+    
+    # dsdjl parent_model по узлам
     for node in init.nodes:
         print(node.content['name'], node.content['type'], f(node.content['parent_model']))
 
@@ -451,6 +454,7 @@ def run_example():
     # for n in optimized_graph.nodes:
     #     n.content['parent_model']
 
+    # вывод parent_model финального графа
     for node in optimized_graph.nodes:
         print(node.content['name'],node.content['type'], f(node.content['parent_model']))
 
