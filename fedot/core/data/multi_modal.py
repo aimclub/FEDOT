@@ -63,6 +63,13 @@ class MultiModalData(dict):
         else:
             return None
 
+    @property
+    def class_labels(self) -> Optional[List[Union[int, str, float]]]:
+        if self.task.task_type == TaskTypesEnum.classification and self.target is not None:
+            return np.unique(self.target)
+        else:
+            return None
+
     def shuffle(self):
         # TODO implement multi-modal shuffle
         pass
