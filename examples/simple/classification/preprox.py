@@ -1,5 +1,6 @@
 import logging
 import os.path
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -36,7 +37,8 @@ def run_classification_example(
                   timeout=timeout,
                   preset=BEST_QUALITY_PRESET_NAME,
                   with_tuning=False,
-                  early_stopping_generations=100,
+                  early_stopping_generations=50,
+                  cv_folds=10,
 
                   seed=42,
                   n_jobs=8,
@@ -51,12 +53,14 @@ def run_classification_example(
 
     fedot.predict(features=test_data.features)
     metrics = fedot.get_metrics(target=test_data.target)
-    print(f'Composed ROC AUC is {round(metrics["roc_auc"], 3)}')
+    print(metrics)
+    # print(f'Composed ROC AUC is {round(metrics["roc_auc"], 3)}')
 
     if is_visualise and not predefined_model:
         print(fedot.history.get_leaderboard())
-        fedot.current_pipeline.show()
+        # fedot.current_pipeline.show()
 
+    # [0.826, 0.735, 0.754, 0.784, 0.779, 0.804, 0.79, 0.839, 0.76, 0.78]  # 0.785
     if save_prefix:
         file_name = save_prefix + '.ppl.json'
         save_path = base_path / 'openml' / file_name
@@ -66,7 +70,7 @@ def run_classification_example(
     return metrics
 
 
-def get_preprocessed_data_folds(nfolds=(0, 10), stage='train'):
+def get_preprocessed_data_folds(nfolds=(0, 1), stage='train'):
     npy_path = base_path / 'datasets'
     basename = 'credit-g'
 
@@ -74,7 +78,7 @@ def get_preprocessed_data_folds(nfolds=(0, 10), stage='train'):
         fname_features = f'{stage}_{basename}_fold{ifold}.npy'
         fname_target = f'{stage}y_{basename}_fold{ifold}.npy'
         features = np.load(str(npy_path / fname_features))
-        targets = np.load(str(npy_path / fname_target))
+        targets = np.load(str(npy_path / fname_target)).astype(int)
         return features, targets
 
     all_features = []
@@ -90,9 +94,17 @@ def get_preprocessed_data_folds(nfolds=(0, 10), stage='train'):
     targets = np.concatenate(all_targets)
     return InputData(task=Task(TaskTypesEnum.classification),
                      data_type=DataTypesEnum.table,
-                     features=features,
-                     target=targets,
+                     features=features.astype(float),
+                     target=_transform_targets(targets),
                      idx=np.arange(len(targets)))
+
+
+def _transform_targets(targets: np.ndarray):
+    targets.astype(int)
+    new_targets = np.empty_like(targets).astype(str)
+    new_targets[targets == 0] = 'bad'
+    new_targets[targets == 1] = 'good'
+    return new_targets
 
 
 def get_preprocessed_data(nfolds=(0, 1)):
@@ -111,48 +123,97 @@ def get_raw_data(split_ratio=0.9):
 
 def preprocess_data(*data_inputs):
     prox = DataPreprocessor()
-    dummy_pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
+    # dummy_pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
     output = []
     for data in data_inputs:
         data_prox = prox.obligatory_prepare_for_fit(data)
-        data_prox = prox.optional_prepare_for_fit(dummy_pipeline, data_prox)
+        # data_prox = prox.optional_prepare_for_fit(dummy_pipeline, data_prox)
+        data_prox = prox._apply_imputation_unidata(data_prox, source_name='default')
+        data_prox = prox._apply_categorical_encoding(data_prox, source_name='default')
         output.append(data_prox)
     return tuple(output)
 
 
-def try_predefined():
+def try_predefined(folds=None):
+    amlb_path_18 = base_path / 'openml/October-09-2022,18-11-50,PM amb.ppl/amb.ppl.json'
+    raw_path_17 = base_path / 'openml/October-09-2022,17-37-22,PM raw.ppl/raw.ppl.json'
+    raw_path_18 = base_path / 'openml/October-09-2022,18-23-38,PM raw.ppl/raw.ppl.json'
+    ppl_path = amlb_path_18
+    # pipeline = Pipeline.from_serialized(source=str(ppl_path))
+
     pipeline = PipelineBuilder().add_sequence('scaling', 'rf').to_pipeline()
+    # pipeline = PipelineBuilder().add_branch('scaling', 'fast_ica').join_branches('rf').to_pipeline()
+
+    # pipeline.show()
 
     train_test_raw = get_raw_data()
+    metris_raw = run_classification_example(*train_test_raw, predefined_model=deepcopy(pipeline))
+
+    for i in range(0, 10):
+        train_test_pro_amb = get_preprocessed_data(nfolds=(i, i+1))
+        metris_amb = run_classification_example(*train_test_pro_amb, predefined_model=deepcopy(pipeline))
+
+        print(f'fold {i}')
+        print(f'raw data: {metris_raw}')
+        print(f'amb data: {metris_amb}')
+
+
+def try_duplicates():
+    train0, test0 = sort_data_many(*get_raw_data())
+    train0p, test0p = preprocess_data(train0, test0)
+    train1, test1 = sort_data_many(*get_preprocessed_data())
+
+    features0 = train0p.features
+    features1 = train1.features
+
+    map_pairs = []
+    for i, row1 in enumerate(features1):
+        for j, row0 in enumerate(features0):
+            if np.allclose(row0, row1):
+                eq_pair = (i, j)
+                map_pairs.append(eq_pair)
+                print('same pair ', eq_pair)
+    print(f'total dupls: {len(map_pairs)}')
+
+
+def sort_data_many(*data: InputData):
+    return [sort_data_by_column(d) for d in data]
+
+def sort_data_by_column(data: InputData, *, column=4, sort_index=False) -> InputData:
+    inds = data.features[:, column].argsort()
+
+    sorted_data = deepcopy(data)
+    if sort_index:
+        sorted_data.idx = sorted_data.idx[inds]
+    sorted_data.features = sorted_data.features[inds]
+    sorted_data.target = sorted_data.target[inds]
+
+    return sorted_data
+
+
+def try_evolution(kind='raw', shuffle=False):
+    train_test_raw = get_raw_data()
+    train_test_pro_fdt = preprocess_data(*train_test_raw)
     train_test_pro_amb = get_preprocessed_data()
 
-    metris_raw = run_classification_example(*train_test_raw, predefined_model=pipeline)
-    metris_amb = run_classification_example(*train_test_pro_amb, predefined_model=pipeline)
-
-    print(f'raw data: {metris_raw}\n'
-          f'amb data: {metris_amb}')
-
-
-def try_evolution(is_raw=True):
-    train_test_raw = get_raw_data()
-
-    train_test_pro_fdt = preprocess_data(*train_test_raw)
-    train_test_pro_amb = get_preprocessed_data(nfolds=(6, 7))
-
-    if is_raw:
-        prefix = 'raw'
+    if kind == 'raw':
         train, test = train_test_raw
-    else:
-        prefix = 'amb'
+    elif kind == 'amb':
         train, test = train_test_pro_amb
+    elif kind == 'prx':
+        train, test = train_test_pro_fdt
+    else:
+        raise ValueError('Unknown kind of data')
 
-    prefix = 'prx'
-    train, test = train_test_pro_fdt
+    if shuffle:
+        train = train.shuffle()
+        test = test.shuffle()
 
-    print('Running: ', prefix)
-    run_classification_example(train, test, timeout=1, save_prefix=prefix)
+    print(f'Running: {kind}')
+    run_classification_example(train, test, timeout=2, save_prefix=kind)
 
 
 if __name__ == '__main__':
+    # try_duplicates()
     # try_predefined()
-    try_evolution(is_raw=True)
+    try_evolution(kind='prx')
