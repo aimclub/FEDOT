@@ -109,7 +109,7 @@ def ts_complex_ridge_pipeline():
 
     """
     pip_builder = PipelineBuilder() \
-        .add_sequence('lagged', 'rigde', branch_idx=0) \
+        .add_sequence('lagged', 'ridge', branch_idx=0) \
         .add_sequence('lagged', 'ridge', branch_idx=1).join_branches('ridge')
 
     pipeline = pip_builder.to_pipeline()
