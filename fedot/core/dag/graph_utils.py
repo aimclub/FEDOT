@@ -69,9 +69,8 @@ def nodes_from_layer(graph: 'Graph', layer_number: int) -> Sequence[GraphNode]:
         if current_height == layer_number:
             nodes.append(node)
         else:
-            if node.nodes_from:
-                for child in node.nodes_from:
-                    nodes.extend(get_nodes(child, current_height + 1))
+            for parent in node.nodes_from:
+                nodes.extend(get_nodes(parent, current_height + 1))
         return nodes
 
     nodes = get_nodes(graph.root_node, current_height=0)

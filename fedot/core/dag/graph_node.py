@@ -26,7 +26,7 @@ class GraphNode(ABC):
         """Changes value of parent nodes of this graph node
 
         Args:
-            Union['GraphNode', None]: new sequence of parent nodes
+            nodes: new sequence of parent nodes
         """
         pass
 
