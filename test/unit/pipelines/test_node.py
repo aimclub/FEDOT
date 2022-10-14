@@ -14,9 +14,6 @@ from fedot.core.repository.dataset_types import DataTypesEnum
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 
 
-GraphNode = LinkedGraphNode
-
-
 @pytest.fixture()
 def data_setup() -> InputData:
     predictors, response = load_iris(return_X_y=True)
@@ -94,7 +91,7 @@ def test_node_repr_with_params():
     # given
     operation_type = 'logit'
     params = {'some_param': 10}
-    test_model_node = GraphNode(dict(name=operation_type, params=params))
+    test_model_node = LinkedGraphNode(dict(name=operation_type, params=params))
     expected_node_description = f'n_{operation_type}_{params}'
 
     # when
@@ -117,10 +114,10 @@ def test_ordered_subnodes_hierarchy():
 
 
 def test_ordered_subnodes_cycle():
-    cycle_node = GraphNode('knn')
-    second_node = GraphNode('knn')
-    third_node = GraphNode('lda', nodes_from=[cycle_node, second_node])
-    root = GraphNode('logit', nodes_from=[third_node])
+    cycle_node = LinkedGraphNode('knn')
+    second_node = LinkedGraphNode('knn')
+    third_node = LinkedGraphNode('lda', nodes_from=[cycle_node, second_node])
+    root = LinkedGraphNode('logit', nodes_from=[third_node])
     cycle_node.nodes_from = [root]
 
     with pytest.raises(ValueError, match='cycle'):
