@@ -1,4 +1,5 @@
 
+from datetime import timedelta
 import sys
 from typing import Optional, Union, List
 import os
@@ -149,9 +150,9 @@ def custom_crossover_exchange_edges(graph_first: OptGraph, graph_second: OptGrap
     return new_graph_first, new_graph_second
 
 
-
+# Структурные мутации
 # задаем три варианта мутации: добавление узла, удаление узла, разворот узла
-def custom_mutation_add(graph: OptGraph, **kwargs):
+def custom_mutation_add_structure(graph: OptGraph, **kwargs):
     num_mut = 100
     try:
         for _ in range(num_mut):
@@ -171,7 +172,7 @@ def custom_mutation_add(graph: OptGraph, **kwargs):
     return graph
  
 
-def custom_mutation_delete(graph: OptGraph, **kwargs):
+def custom_mutation_delete_structure(graph: OptGraph, **kwargs):
     num_mut = 100
     try:
         for _ in range(num_mut):
@@ -186,7 +187,7 @@ def custom_mutation_delete(graph: OptGraph, **kwargs):
     return graph
 
 
-def custom_mutation_reverse(graph: OptGraph, **kwargs):
+def custom_mutation_reverse_structure(graph: OptGraph, **kwargs):
     num_mut = 100
     try:
         for _ in range(num_mut):
@@ -199,6 +200,49 @@ def custom_mutation_reverse(graph: OptGraph, **kwargs):
     except Exception as ex:
         print(ex)  
     return graph
+
+
+
+
+# parent_model
+# parent_model_regr = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
+# 'ridge','lasso','svr','sgdr','lgbmreg', 'catboostreg']
+# parent_model_class = ['xgboost','logit','bernb','multinb','dt','rf',
+# 'mlp','lgbm', 'catboost']
+
+parent_model_regr = ['xgbreg','linear',
+    'ridge','lasso', 'catboostreg'
+    ]
+parent_model_class = ['xgboost','logit',
+    'catboost'
+    ]
+
+def random_choice_model(node_type):
+    if node_type == 'cont':
+        return SkLearnEvaluationStrategy(random.choice(parent_model_regr))
+    else:
+        return SkLearnEvaluationStrategy(random.choice(parent_model_class))
+
+
+
+def custom_mutation_add_model(graph: OptGraph, **kwargs):
+    try:
+        all_nodes = graph.nodes
+        nodes_with_parents = [node for node in all_nodes if (node.nodes_from!=[] and node.nodes_from!=None)]
+        node = random.choice(nodes_with_parents)
+        node.content['parent_model'] = random_choice_model(node.content['type'])
+    except Exception as ex:
+        print(ex)  
+    return graph
+
+def mutation_set1(graph: OptGraph, **kwargs):
+    return custom_mutation_add_model(custom_mutation_add_structure(graph, **kwargs))
+
+def mutation_set2(graph: OptGraph, **kwargs):
+    return custom_mutation_add_model(custom_mutation_delete_structure(graph, **kwargs))
+        
+def mutation_set3(graph: OptGraph, **kwargs):
+    return custom_mutation_add_model(custom_mutation_reverse_structure(graph, **kwargs))
 
 
 # задаем правила на запрет дублирующих узлов
@@ -237,15 +281,7 @@ def run_example():
     # задаем для оптимизатора fitness-функцию
     objective = Objective(composite_metric) 
     objective_eval = ObjectiveEvaluate(objective, data = discretized_data)    
-    # parent_model
-    parent_model_regr = ['xgbreg','adareg','gbr','dtreg','treg','rfr','linear',
-    'ridge','lasso','svr','sgdr','lgbmreg',
-    'catboostreg'
-    ]
-    parent_model_class = ['xgboost','logit','bernb','multinb','dt','rf',
-    'mlp','lgbm',
-    'catboost'
-    ]
+
 
     # one_set_models = {}
     # for v in vertices:
@@ -268,11 +304,7 @@ def run_example():
     # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
     #                                                 content={'name': vertex}, 
     #                                                 type = dir_of_nodes[vertex]) for vertex in vertices])]
-    def random_choice_model(node_type):
-        if node_type == 'cont':
-            return SkLearnEvaluationStrategy(random.choice(parent_model_regr))
-        else:
-            return SkLearnEvaluationStrategy(random.choice(parent_model_class))
+
 
     # initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
     #                                                 content={'name': vertex,
@@ -286,8 +318,8 @@ def run_example():
     #                                                 for vertex in vertices])]       
     initial = [CompositeModel(nodes=[CompositeNode(nodes_from=None,
                                                     content={'name': vertex,
-                                                    'type': p.nodes_types[vertex],
-                                                    'parent_model': None}) 
+                                                            'type': p.nodes_types[vertex],
+                                                            'parent_model': None}) 
                                                     for vertex in vertices])] 
     init = initial[0]
 
@@ -366,7 +398,7 @@ def run_example():
     # print(score)
     # init.show()
     
-    # dsdjl parent_model по узлам
+    # вывод parent_model по узлам
     for node in init.nodes:
         print(node.content['name'], node.content['type'], f(node.content['parent_model']))
 
@@ -375,7 +407,8 @@ def run_example():
         secondary=vertices, 
         max_arity=100,
         max_depth=100, 
-        num_of_generations=n_generation
+        num_of_generations=n_generation,
+        timeout=timedelta(minutes=time_m)
         )
 
     optimiser_parameters = GPGraphOptimizerParameters(
@@ -384,7 +417,16 @@ def run_example():
         mutation_prob=mutation_probability,
         genetic_scheme_type = GeneticSchemeTypesEnum.steady_state,
         selection_types = [SelectionTypesEnum.tournament],
-        mutation_types = [custom_mutation_add, custom_mutation_delete, custom_mutation_reverse],
+        mutation_types = [
+        # custom_mutation_add_structure, 
+        # custom_mutation_delete_structure, 
+        # custom_mutation_reverse_structure, 
+        # custom_mutation_add_model,
+        mutation_set1,
+        mutation_set2,
+        mutation_set3
+        ],
+
         crossover_types = [custom_crossover_exchange_edges]
     )
 
@@ -401,19 +443,12 @@ def run_example():
 
 
 
-
-
     def connect_nodes(self, parent: CompositeNode, child: CompositeNode):
         if child.descriptive_id not in [p.descriptive_id for p in parent.ordered_subnodes_hierarchy()]:
             try:
                 if child.nodes_from==None or child.nodes_from==[]:
                     child.nodes_from=[]
-                    child.content['parent_model'] = random_choice_model(child.content['type'])
-                    # if child.content['type'] == 'disc' or child.content['type'] == 'disc_num':
-                    #     child.content['parent_model'] = random_choice_model(child.content['type'])
-                    # elif child.content['type'] == 'cont':
-                    #     child.content['parent_model'] = random_choice_model(child.content['type'])                             
-
+                    child.content['parent_model'] = random_choice_model(child.content['type'])                     
                 child.nodes_from.append(parent)
             except Exception as ex:
                 print(ex)
@@ -458,7 +493,7 @@ def run_example():
     for node in optimized_graph.nodes:
         print(node.content['name'],node.content['type'], f(node.content['parent_model']))
 
-    optimized_graph.show()
+    # optimized_graph.show()
 
 
 if __name__ == '__main__':
@@ -466,12 +501,12 @@ if __name__ == '__main__':
     # файл с исходными данными (должен лежать в 'examples/data/')
     file = 'healthcare'     
     # размер популяции
-    pop_size = 2
+    pop_size = 20
     # количество поколений
-    n_generation = 5
+    n_generation = 50
     # вероятность кроссовера
     crossover_probability = 0.8
     # вероятность мутации
     mutation_probability = 0.9
-
+    time_m = 40
     run_example() 
