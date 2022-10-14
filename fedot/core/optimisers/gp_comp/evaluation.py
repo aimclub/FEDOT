@@ -3,8 +3,9 @@ import pathlib
 import timeit
 from abc import ABC, abstractmethod
 from datetime import datetime
+from functools import partial
 from random import choice
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional, Tuple, List
 
 from joblib import Parallel, delayed, cpu_count
 
@@ -13,11 +14,15 @@ from fedot.core.dag.graph import Graph
 from fedot.core.log import default_log, Log
 from fedot.core.optimisers.fitness import Fitness
 from fedot.core.optimisers.gp_comp.operators.operator import EvaluationOperator, PopulationT
+from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import GraphFunction, ObjectiveFunction
-from fedot.core.optimisers.opt_history_objects.individual import Individual
+from fedot.core.optimisers.opt_history_objects.individual import GraphEvalResult
 from fedot.core.optimisers.timer import Timer, get_forever_timer
 from fedot.core.pipelines.verification import verifier_for_task
 from fedot.remote.remote_evaluator import RemoteEvaluator
+
+OptionalEvalResult = Optional[GraphEvalResult]
+EvalResultsList = List[OptionalEvalResult]
 
 
 class ObjectiveEvaluationDispatcher(ABC):
@@ -36,6 +41,28 @@ class ObjectiveEvaluationDispatcher(ABC):
         """Set or reset (with None) post-evaluation callback
         that's called on each graph after its evaluation."""
         pass
+
+    @staticmethod
+    def split_individuals_to_evaluate(individuals: PopulationT) -> Tuple[PopulationT, PopulationT]:
+        """Split individuals sequence to evaluated and skipped ones."""
+        individuals_to_evaluate = []
+        individuals_to_skip = []
+        for ind in individuals:
+            (individuals_to_evaluate, individuals_to_skip)[ind.fitness.valid].append(ind)
+        return individuals_to_evaluate, individuals_to_skip
+
+    @staticmethod
+    def apply_evaluation_results(individuals: PopulationT,
+                                 evaluation_results: EvalResultsList) -> PopulationT:
+        """Applies results of evaluation to the evaluated population.
+        Excludes individuals that weren't evaluated."""
+        individuals_evaluated = []
+        for ind, evaluation_results in zip(individuals, evaluation_results):
+            if not evaluation_results:
+                continue
+            ind.set_evaluation_result(evaluation_results)
+            individuals_evaluated.append(ind)
+        return individuals_evaluated
 
 
 class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
@@ -80,45 +107,46 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         return evaluated_population
 
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
+        individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
+        # Evaluate individuals without valid fitness in parallel.
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
-
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
-        eval_inds = parallel(delayed(self.evaluate_single)(ind=ind, logs_initializer=Log().get_parameters())
-                             for ind in individuals)
+        eval_func = partial(self.evaluate_single, logs_initializer=Log().get_parameters())
+        evaluation_results = parallel(delayed(eval_func)(ind.graph) for ind in individuals_to_evaluate)
+        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
-        successful_evals = list(filter(None, eval_inds))
+        successful_evals = individuals_evaluated + individuals_to_skip
         if not successful_evals:
-            single = self.evaluate_single(choice(individuals), with_time_limit=False)
-            if single:
-                successful_evals = [single]
-            else:
-                successful_evals = None
-
+            single_ind = choice(individuals)
+            evaluation_result = eval_func(single_ind.graph, with_time_limit=False)
+            successful_evals = self.apply_evaluation_results([single_ind], [evaluation_result]) or None
         return successful_evals
 
-    def evaluate_single(self, ind: Individual, with_time_limit: bool = True,
-                        logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> Optional[Individual]:
-        if ind.fitness.valid:
-            return ind
+    def evaluate_single(self, graph: OptGraph, with_time_limit: bool = True, cache_key: Optional[str] = None,
+                        logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> OptionalEvalResult:
+
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
         if logs_initializer is not None:
             # in case of multiprocessing run
             Log.setup_in_mp(*logs_initializer)
-        start_time = timeit.default_timer()
 
-        graph = self.evaluation_cache.get(ind.uid, ind.graph)
+        graph = self.evaluation_cache.get(cache_key, graph)
 
         adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
-        ind_fitness, ind_domain_graph = adapted_evaluate(graph)
-        ind.set_evaluation_result(ind_fitness, ind_domain_graph)
-
+        start_time = timeit.default_timer()
+        fitness, graph = adapted_evaluate(graph)
         end_time = timeit.default_timer()
+        eval_time_iso = datetime.now().isoformat()
 
-        ind.metadata['computation_time_in_seconds'] = end_time - start_time
-        ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
-        return ind if ind.fitness.valid else None
+        eval_res = GraphEvalResult(
+            fitness=fitness, graph=graph, metadata={
+                'computation_time_in_seconds': end_time - start_time,
+                'evaluation_time_iso': eval_time_iso
+            }
+        )
+        return eval_res
 
     def _evaluate_graph(self, domain_graph: Graph) -> Tuple[Fitness, Graph]:
         fitness = self._objective_eval(domain_graph)
@@ -165,29 +193,30 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         return self.evaluate_population
 
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
-        mapped_evals = list(map(self.evaluate_single, individuals))
-        evaluated_population = list(filter(None, mapped_evals))
-        if not evaluated_population:
-            evaluated_population = None
+        individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
+        eval_results = list(map(self.evaluate_single, (ind.graph for ind in individuals_to_evaluate)))
+        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, eval_results)
+        evaluated_population = individuals_evaluated + individuals_to_skip or None
         return evaluated_population
 
-    def evaluate_single(self, ind: Individual, with_time_limit=True) -> Optional[Individual]:
-        if ind.fitness.valid:
-            return ind
+    def evaluate_single(self, graph: OptGraph, with_time_limit=True) -> OptionalEvalResult:
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
 
-        start_time = timeit.default_timer()
-
         adapted_evaluate = self._adapter.adapt_func(self._evaluate_graph)
-        ind_fitness, ind_graph = adapted_evaluate(ind.graph)
-        ind.set_evaluation_result(ind_fitness, ind_graph)
-
+        start_time = timeit.default_timer()
+        fitness, graph = adapted_evaluate(graph)
         end_time = timeit.default_timer()
 
-        ind.metadata['computation_time_in_seconds'] = end_time - start_time
-        ind.metadata['evaluation_time_iso'] = datetime.now().isoformat()
-        return ind if ind.fitness.valid else None
+        eval_time_iso = datetime.now().isoformat()
+
+        eval_res = GraphEvalResult(
+            fitness=fitness, graph=graph, metadata={
+                'computation_time_in_seconds': end_time - start_time,
+                'evaluation_time_iso': eval_time_iso
+            }
+        )
+        return eval_res
 
     def _evaluate_graph(self, graph: Graph) -> Tuple[Fitness, Graph]:
         fitness = self._objective_eval(graph)
