@@ -6,6 +6,7 @@ import itertools
 import json
 import os
 import shutil
+from copy import copy
 from pathlib import Path
 from typing import List, Optional, Sequence, Union, TYPE_CHECKING
 
@@ -42,10 +43,10 @@ class OptHistory:
         return not self.individuals
 
     def add_to_history(self, individuals: List[Individual]):
-        self.individuals.append(individuals)
+        self.individuals.append(copy(individuals))
 
     def add_to_archive_history(self, individuals: List[Individual]):
-        self.archive_history.append(individuals)
+        self.archive_history.append(copy(individuals))
 
     def to_csv(self, save_dir: Optional[os.PathLike] = None, file: os.PathLike = 'history.csv'):
         save_dir = save_dir or default_fedot_data_dir()

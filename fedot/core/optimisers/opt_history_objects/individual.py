@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from uuid import uuid4
 
 from fedot.core.log import default_log
@@ -11,6 +11,7 @@ from fedot.core.optimisers.graph import OptGraph
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
+
 
 INDIVIDUAL_COPY_RESTRICTION_MESSAGE = ('`Individual` instance was copied.\n'
                                        'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n'
@@ -31,12 +32,22 @@ class Individual:
         if self.native_generation is None:
             super().__setattr__('native_generation', native_generation)
 
-    def set_evaluation_result(self, fitness: Fitness, updated_graph: Optional[OptGraph] = None):
-        if self.fitness.valid:
-            raise ValueError('The individual has valid fitness and can not be evaluated again.')
+    def _set_fitness_and_graph(self, fitness: Fitness, updated_graph: Optional[OptGraph] = None):
         super().__setattr__('fitness', fitness)
         if updated_graph is not None:
             super().__setattr__('graph', updated_graph)
+
+    def set_evaluation_result(self, eval_result: Union[GraphEvalResult, Fitness],
+                              updated_graph: Optional[OptGraph] = None):
+        if self.fitness.valid:
+            raise ValueError('The individual has valid fitness and can not be evaluated again.')
+
+        if isinstance(eval_result, Fitness):
+            self._set_fitness_and_graph(eval_result, updated_graph)
+            return
+
+        self._set_fitness_and_graph(eval_result.fitness, eval_result.graph)
+        self.metadata.update(eval_result.metadata)
 
     @property
     def has_native_generation(self) -> bool:
@@ -108,3 +119,14 @@ class Individual:
         for k, v in self.__dict__.items():
             object.__setattr__(result, k, deepcopy(v, memo))
         return result
+
+
+@dataclass
+class GraphEvalResult:
+    uid_of_individual: str
+    fitness: Fitness
+    graph: OptGraph  # For the case if evaluation needs to assign some values to the graph.
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def __bool__(self):
+        return self.fitness.valid
