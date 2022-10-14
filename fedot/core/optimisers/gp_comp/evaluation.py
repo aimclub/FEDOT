@@ -48,7 +48,10 @@ class ObjectiveEvaluationDispatcher(ABC):
         individuals_to_evaluate = []
         individuals_to_skip = []
         for ind in individuals:
-            (individuals_to_evaluate, individuals_to_skip)[ind.fitness.valid].append(ind)
+            if ind.fitness.valid:
+                individuals_to_skip.append(ind)
+            else:
+                individuals_to_evaluate.append(ind)
         return individuals_to_evaluate, individuals_to_skip
 
     @staticmethod
