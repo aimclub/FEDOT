@@ -125,7 +125,7 @@ class Individual:
 class GraphEvalResult:
     uid: str
     fitness: Fitness
-    graph: OptGraph
+    graph: OptGraph  # For the case if evaluation needs to assign some values to the graph.
     metadata: Dict[str, Any] = field(default_factory=dict)
 
     def __bool__(self):
