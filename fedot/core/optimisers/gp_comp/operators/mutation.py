@@ -213,8 +213,9 @@ class Mutation(Operator):
         # add as child
         old_node_children = graph.node_children(node_to_mutate)
         new_node_child = choice(old_node_children) if old_node_children else None
-
         new_node = self.graph_generation_params.node_factory.get_node(is_primary=False)
+        if not new_node:
+            return graph
         graph.add_node(new_node)
         graph.connect_nodes(node_parent=node_to_mutate, node_child=new_node)
         if new_node_child:
