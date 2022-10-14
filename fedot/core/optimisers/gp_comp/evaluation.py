@@ -56,11 +56,13 @@ class ObjectiveEvaluationDispatcher(ABC):
                                  evaluation_results: EvalResultsList) -> PopulationT:
         """Applies results of evaluation to the evaluated population.
         Excludes individuals that weren't evaluated."""
+        evaluation_results = {res.uid: res for res in evaluation_results if res}
         individuals_evaluated = []
-        for ind, evaluation_results in zip(individuals, evaluation_results):
-            if not evaluation_results:
+        for ind in individuals:
+            eval_res = evaluation_results.get(ind.uid)
+            if not eval_res:
                 continue
-            ind.set_evaluation_result(evaluation_results)
+            ind.set_evaluation_result(eval_res)
             individuals_evaluated.append(ind)
         return individuals_evaluated
 
@@ -112,18 +114,18 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         n_jobs = determine_n_jobs(self._n_jobs, self.logger)
         parallel = Parallel(n_jobs=n_jobs, verbose=0, pre_dispatch="2*n_jobs")
         eval_func = partial(self.evaluate_single, logs_initializer=Log().get_parameters())
-        evaluation_results = parallel(delayed(eval_func)(ind.graph) for ind in individuals_to_evaluate)
+        evaluation_results = parallel(delayed(eval_func)(ind.graph, ind.uid) for ind in individuals_to_evaluate)
         individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
         # If there were no successful evals then try once again getting at least one,
         # even if time limit was reached
         successful_evals = individuals_evaluated + individuals_to_skip
         if not successful_evals:
             single_ind = choice(individuals)
-            evaluation_result = eval_func(single_ind.graph, with_time_limit=False)
+            evaluation_result = eval_func(single_ind.graph, single_ind.uid, with_time_limit=False)
             successful_evals = self.apply_evaluation_results([single_ind], [evaluation_result]) or None
         return successful_evals
 
-    def evaluate_single(self, graph: OptGraph, with_time_limit: bool = True, cache_key: Optional[str] = None,
+    def evaluate_single(self, graph: OptGraph, uid: str, with_time_limit: bool = True, cache_key: Optional[str] = None,
                         logs_initializer: Optional[Tuple[int, pathlib.Path]] = None) -> OptionalEvalResult:
 
         if with_time_limit and self.timer.is_time_limit_reached():
@@ -141,7 +143,7 @@ class MultiprocessingDispatcher(ObjectiveEvaluationDispatcher):
         eval_time_iso = datetime.now().isoformat()
 
         eval_res = GraphEvalResult(
-            fitness=fitness, graph=graph, metadata={
+            uid=uid, fitness=fitness, graph=graph, metadata={
                 'computation_time_in_seconds': end_time - start_time,
                 'evaluation_time_iso': eval_time_iso
             }
@@ -194,12 +196,12 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
 
     def evaluate_population(self, individuals: PopulationT) -> Optional[PopulationT]:
         individuals_to_evaluate, individuals_to_skip = self.split_individuals_to_evaluate(individuals)
-        eval_results = list(map(self.evaluate_single, (ind.graph for ind in individuals_to_evaluate)))
-        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, eval_results)
+        evaluation_results = [self.evaluate_single(ind.graph, ind.uid) for ind in individuals_to_evaluate]
+        individuals_evaluated = self.apply_evaluation_results(individuals_to_evaluate, evaluation_results)
         evaluated_population = individuals_evaluated + individuals_to_skip or None
         return evaluated_population
 
-    def evaluate_single(self, graph: OptGraph, with_time_limit=True) -> OptionalEvalResult:
+    def evaluate_single(self, graph: OptGraph, uid: str, with_time_limit=True) -> OptionalEvalResult:
         if with_time_limit and self.timer.is_time_limit_reached():
             return None
 
@@ -211,7 +213,7 @@ class SimpleDispatcher(ObjectiveEvaluationDispatcher):
         eval_time_iso = datetime.now().isoformat()
 
         eval_res = GraphEvalResult(
-            fitness=fitness, graph=graph, metadata={
+            uid=uid, fitness=fitness, graph=graph, metadata={
                 'computation_time_in_seconds': end_time - start_time,
                 'evaluation_time_iso': eval_time_iso
             }

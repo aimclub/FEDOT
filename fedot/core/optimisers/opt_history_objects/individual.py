@@ -123,6 +123,7 @@ class Individual:
 
 @dataclass
 class GraphEvalResult:
+    uid: str
     fitness: Fitness
     graph: OptGraph
     metadata: Dict[str, Any] = field(default_factory=dict)
