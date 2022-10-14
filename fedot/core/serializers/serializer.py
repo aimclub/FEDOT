@@ -1,7 +1,7 @@
 from importlib import import_module
 from inspect import isclass, isfunction, ismethod, signature
 from json import JSONDecoder, JSONEncoder
-from typing import Any, Callable, Dict, Type, TypeVar, Union
+from typing import Any, Callable, Dict, Optional, Type, TypeVar, Union
 
 from fedot.core.optimisers.fitness.fitness import Fitness
 from fedot.core.pipelines.node import NodeMetadata
@@ -10,6 +10,14 @@ from fedot.core.optimisers.objective.objective import Objective
 MODULE_X_NAME_DELIMITER = '/'
 INSTANCE_OR_CALLABLE = TypeVar('INSTANCE_OR_CALLABLE', object, Callable)
 CLASS_PATH_KEY = '_class_path'
+LEGACY_CLASS_PATHS = {
+    'fedot.core.optimisers.gp_comp.individual/Individual':
+        f'fedot.core.optimisers.opt_history_objects.individual/Individual',
+    'fedot.core.optimisers.gp_comp.individual/ParentOperator':
+        f'fedot.core.optimisers.opt_history_objects.parent_operator/ParentOperator',
+    'fedot.core.optimisers.opt_history/OptHistory':
+        f'fedot.core.optimisers.opt_history_objects.opt_history/OptHistory',
+}
 
 
 class Serializer(JSONEncoder, JSONDecoder):
@@ -31,10 +39,10 @@ class Serializer(JSONEncoder, JSONDecoder):
             from fedot.core.dag.graph import Graph
             from fedot.core.dag.graph_node import GraphNode
             from fedot.core.operations.operation import Operation
-            from fedot.core.optimisers.gp_comp.individual import Individual
+            from fedot.core.optimisers.opt_history_objects.individual import Individual
+            from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
+            from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
             from fedot.core.optimisers.graph import OptGraph, OptNode
-            from fedot.core.optimisers.opt_history import OptHistory
-            from fedot.core.optimisers.gp_comp.individual import ParentOperator
             from fedot.core.utilities.data_structures import ComparableEnum
 
             from .coders import (
@@ -81,7 +89,7 @@ class Serializer(JSONEncoder, JSONDecoder):
         return isinstance
 
     @staticmethod
-    def _get_base_type(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> int:
+    def _get_base_type(obj: Union[INSTANCE_OR_CALLABLE, Type[INSTANCE_OR_CALLABLE]]) -> Optional[Type]:
         contains = Serializer._get_field_checker(obj)
         for k_type in Serializer.CODERS_BY_TYPE:
             if contains(obj, k_type):
@@ -139,6 +147,7 @@ class Serializer(JSONEncoder, JSONDecoder):
 
         :return: class, function or method type
         """
+        class_path = LEGACY_CLASS_PATHS.get(class_path) or class_path
         module_name, class_name = class_path.split(MODULE_X_NAME_DELIMITER)
         obj_cls = import_module(module_name)
         for sub in class_name.split('.'):

@@ -1,12 +1,12 @@
 from functools import partial
 
-from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
 from fedot.core.debug.metrics import RandomMetric
 from fedot.core.optimisers.fitness.fitness import SingleObjFitness
 from fedot.core.optimisers.gp_comp.gp_operators import random_graph
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
 from fedot.core.optimisers.gp_comp.operators.selection import SelectionTypesEnum, Selection, random_selection
+from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_generation_params
 
 

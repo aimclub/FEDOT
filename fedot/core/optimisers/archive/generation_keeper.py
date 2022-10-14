@@ -4,9 +4,9 @@ from typing import Dict, Iterable, Sequence, Type
 import numpy as np
 
 from fedot.core.optimisers.fitness import is_metric_worse
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.operator import PopulationT
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.repository.quality_metrics_repository import ComplexityMetricsEnum, MetricsEnum, QualityMetricsEnum
 from .individuals_containers import HallOfFame, ParetoFront
 

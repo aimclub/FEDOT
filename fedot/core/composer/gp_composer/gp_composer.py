@@ -9,7 +9,7 @@ from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import Pipelin
 from fedot.core.optimisers.graph import OptGraph
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
-from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.optimisers.optimizer import GraphOptimizer
 from fedot.core.pipelines.pipeline import Pipeline
 

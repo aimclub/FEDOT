@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Sequence, Optional, TYPE_CHECKING, Callable
 
 from fedot.core.log import default_log
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 
 if TYPE_CHECKING:
     from fedot.core.optimisers.optimizer import GraphOptimizerParameters

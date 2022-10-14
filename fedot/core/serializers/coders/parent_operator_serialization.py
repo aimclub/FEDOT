@@ -1,6 +1,6 @@
 from typing import Any, Dict, Type
 
-from fedot.core.optimisers.gp_comp.individual import ParentOperator
+from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
 from . import any_from_json, any_to_json
 
 
@@ -15,5 +15,5 @@ def parent_operator_to_json(obj: ParentOperator) -> Dict[str, Any]:
 
 def parent_operator_from_json(cls: Type[ParentOperator], json_obj: Dict[str, Any]) -> ParentOperator:
     deserialized = any_from_json(cls, json_obj)
-    object.__setattr__(deserialized, 'parent_individuals', tuple(deserialized.parent_individuals))
+    object.__setattr__(deserialized, 'parent_individuals', deserialized.parent_individuals)
     return deserialized

@@ -12,7 +12,7 @@ from matplotlib.widgets import Button
 from fedot.core.log import default_log
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness import null_fitness
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.utils import default_fedot_data_dir
 from fedot.core.visualisation.opt_history.history_visualization import HistoryVisualization
 from fedot.core.visualisation.opt_history.utils import show_or_save_figure

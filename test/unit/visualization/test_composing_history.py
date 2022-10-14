@@ -4,9 +4,9 @@ import pytest
 
 from fedot.core.optimisers.fitness.fitness import SingleObjFitness
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.graph import OptGraph, OptNode
-from fedot.core.optimisers.opt_history import OptHistory
+from fedot.core.optimisers.opt_history_objects.individual import Individual
+from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 from fedot.core.visualisation.opt_viz import PlotTypesEnum
 
 

@@ -10,7 +10,7 @@ from fedot.core.visualisation.opt_history.operations_animated_bar import Operati
 from fedot.core.visualisation.opt_history.operations_kde import OperationsKDE
 
 if TYPE_CHECKING:
-    from fedot.core.optimisers.opt_history import OptHistory
+    from fedot.core.optimisers.opt_history_objects.opt_history import OptHistory
 
 
 class PlotTypesEnum(Enum):

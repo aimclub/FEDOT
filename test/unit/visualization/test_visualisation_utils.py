@@ -1,6 +1,6 @@
 from fedot.core.optimisers.adapters import PipelineAdapter
 from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitness
-from fedot.core.optimisers.gp_comp.individual import Individual
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.pipelines.convert import graph_structure_as_nx_graph, pipeline_template_as_nx_graph
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
 from fedot.core.pipelines.pipeline import Pipeline

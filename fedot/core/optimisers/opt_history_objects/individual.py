@@ -2,12 +2,15 @@ from __future__ import annotations
 
 from copy import deepcopy
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from uuid import uuid4
 
 from fedot.core.log import default_log
 from fedot.core.optimisers.fitness.fitness import Fitness, null_fitness
 from fedot.core.optimisers.graph import OptGraph
+
+if TYPE_CHECKING:
+    from fedot.core.optimisers.opt_history_objects.parent_operator import ParentOperator
 
 INDIVIDUAL_COPY_RESTRICTION_MESSAGE = ('`Individual` instance was copied.\n'
                                        'Normally, you don\'t want to do that to keep uid-individual uniqueness.\n'
@@ -87,7 +90,7 @@ class Individual:
         return (f'<Individual {self.uid} | fitness: {self.fitness} | native_generation: {self.native_generation} '
                 f'| graph: {self.graph}>')
 
-    def __eq__(self, other: 'Individual'):
+    def __eq__(self, other: Individual):
         return self.uid == other.uid
 
     def __copy__(self):
@@ -105,21 +108,3 @@ class Individual:
         for k, v in self.__dict__.items():
             object.__setattr__(result, k, deepcopy(v, memo))
         return result
-
-
-@dataclass(frozen=True)
-class ParentOperator:
-    type_: str
-    operators: Union[Tuple[str, ...], str]
-    parent_individuals: Union[Tuple[Individual, ...], Individual] = field()
-    uid: str = field(default_factory=lambda: str(uuid4()), init=False)
-
-    def __post_init__(self):
-        if isinstance(self.operators, str):
-            object.__setattr__(self, 'operators', (self.operators,))
-        if isinstance(self.parent_individuals, Individual):
-            object.__setattr__(self, 'parent_individuals', (self.parent_individuals,))
-
-    def __repr__(self):
-        return (f'<ParentOperator {self.uid} | type: {self.type_} | operators: {self.operators} '
-                f'| parent_individuals({len(self.parent_individuals)}): {self.parent_individuals}>')

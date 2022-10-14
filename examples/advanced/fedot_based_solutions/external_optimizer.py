@@ -6,9 +6,9 @@ from fedot.api.main import Fedot
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation, parameter_change_mutation
 from fedot.core.dag.graph import Graph
 from fedot.core.optimisers.gp_comp.evaluation import SimpleDispatcher
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation
 from fedot.core.optimisers.objective import Objective, ObjectiveFunction
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.optimizer import GraphGenerationParams, GraphOptimizer, GraphOptimizerParameters
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.utils import fedot_project_root

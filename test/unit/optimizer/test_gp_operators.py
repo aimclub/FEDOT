@@ -1,10 +1,10 @@
 import datetime
 from copy import deepcopy
 from pathlib import Path
+from typing import Sequence, Optional
 
 import numpy as np
 import pytest
-from typing import Sequence, Optional
 
 from fedot.core.composer.gp_composer.specific_operators import boosting_mutation
 from fedot.core.dag.graph_node import GraphNode
@@ -16,7 +16,6 @@ from fedot.core.optimisers.fitness.multi_objective_fitness import MultiObjFitnes
 from fedot.core.optimisers.gp_comp.evaluation import MultiprocessingDispatcher
 from fedot.core.optimisers.gp_comp.gp_operators import filter_duplicates
 from fedot.core.optimisers.gp_comp.gp_params import GPGraphOptimizerParameters
-from fedot.core.optimisers.gp_comp.individual import Individual
 from fedot.core.optimisers.gp_comp.operators.crossover import CrossoverTypesEnum, Crossover
 from fedot.core.optimisers.gp_comp.operators.mutation import MutationTypesEnum, Mutation, MutationStrengthEnum
 from fedot.core.optimisers.gp_comp.pipeline_composer_requirements import PipelineComposerRequirements
@@ -24,6 +23,7 @@ from fedot.core.optimisers.graph import OptGraph, OptNode
 from fedot.core.optimisers.objective import PipelineObjectiveEvaluate
 from fedot.core.optimisers.objective.data_source_splitter import DataSourceSplitter
 from fedot.core.optimisers.objective.objective import Objective
+from fedot.core.optimisers.opt_history_objects.individual import Individual
 from fedot.core.optimisers.optimizer import GraphGenerationParams
 from fedot.core.optimisers.timer import OptimisationTimer
 from fedot.core.pipelines.node import PrimaryNode, SecondaryNode
