@@ -54,10 +54,7 @@ class LinkedGraphNode(GraphNode):
         # TODO: possibly unify with __repr__ & don't duplicate Operation.description
         if isinstance(node_operation, str):
             # If there is a string: name of operation (as in json repository)
-            if params and params != DEFAULT_PARAMS_STUB:
-                node_label = f'n_{node_operation}_{params}'
-            else:
-                node_label = f'n_{node_operation}'
+            node_label = f'n_{node_operation}_{params}'
         else:
             # If instance of Operation is placed in 'name'
             node_label = node_operation.description(params)
