@@ -319,9 +319,7 @@ def convert_forecast_to_output(pre_history_data: Union[InputData, MultiModalData
     if forecast.ndim > 1:
         forecast = np.squeeze(forecast)
     if idx is None:
-        start_idx = pre_history_data.idx[-1] + 1
-        end_idx = start_idx + len(forecast)
-        idx = np.arange(start_idx, end_idx)
+        idx = pre_history_data.idx
     prediction = OutputData(idx=idx,
                             features=features,
                             predict=forecast,

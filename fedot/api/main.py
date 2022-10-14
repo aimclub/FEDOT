@@ -270,7 +270,9 @@ class Fedot:
 
         forecast_length = self.train_data.task.task_params.forecast_length
         horizon = horizon if horizon is not None else forecast_length
-        pre_history = pre_history if pre_history is not None else self.train_data
+        if pre_history is None:
+            pre_history = self.train_data
+            pre_history.target = None
         self.test_data = self.data_processor.define_data(target=self.target,
                                                          features=pre_history,
                                                          is_predict=True)

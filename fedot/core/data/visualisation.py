@@ -19,20 +19,17 @@ def plot_forecast(data: [InputData, MultiModalData], prediction: OutputData, tar
         if not target:
             raise AttributeError("Can't visualize. Target of MultiModalData not set.")
         data = data.extract_data_source(target)
-    actual_time_series = np.concatenate([data.features, data.target], axis=0)
     target = data.target
     predict = prediction.predict
-    if len(actual_time_series) < 72:
-        padding = len(actual_time_series)
-    else:
-        padding = 72
-
+    actual_time_series = data.features
+    pred_start = len(actual_time_series)
     if target is not None:
+        actual_time_series = np.concatenate([actual_time_series, target], axis=0)
         pred_start = len(actual_time_series) - len(predict)
-        first_idx = pred_start - padding
-    else:
-        pred_start = len(actual_time_series)
-        first_idx = pred_start - padding
+
+    padding = min(len(actual_time_series), 72)
+
+    first_idx = pred_start - padding
 
     plt.plot(np.arange(pred_start, pred_start + len(predict)),
              predict, label='Predicted', c='blue')
