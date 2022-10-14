@@ -1,6 +1,6 @@
 import math
 from copy import copy
-from typing import Union
+from typing import Union, Optional
 
 import numpy as np
 
@@ -84,21 +84,15 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
     # Divide data on samples into pre-history and validation part
     task = input_data.task
     exception_if_not_ts_task(task)
+    # How many elements to the future pipeline can produce
+    scope_len = task.task_params.forecast_length
+    number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
 
     if isinstance(input_data, InputData):
         time_series = np.array(input_data.features)
         pre_history_ts = time_series[:-horizon]
         source_len = len(pre_history_ts)
         last_index_pre_history = source_len - 1
-
-        # How many elements to the future pipeline can produce
-        scope_len = task.task_params.forecast_length
-        number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
-
-        # Calculate intervals
-        intervals = _calculate_intervals(last_index_pre_history,
-                                         number_of_iterations,
-                                         scope_len)
 
         data = _update_input(pre_history_ts, scope_len, task)
     else:
@@ -112,17 +106,13 @@ def in_sample_ts_forecast(pipeline, input_data: Union[InputData, MultiModalData]
             source_len = len(pre_history_ts)
             last_index_pre_history = source_len - 1
 
-            # How many elements to the future pipeline can produce
-            scope_len = task.task_params.forecast_length
-            number_of_iterations = _calculate_number_of_steps(scope_len, horizon)
-
-            # Calculate intervals
-            intervals = _calculate_intervals(last_index_pre_history,
-                                             number_of_iterations,
-                                             scope_len)
-
             local_data = _update_input(pre_history_ts, scope_len, task)
             data[data_id] = local_data
+
+    # Calculate intervals
+    intervals = _calculate_intervals(last_index_pre_history,
+                                     number_of_iterations,
+                                     scope_len)
 
     # Make forecast iteratively moving throw the horizon
     final_forecast = []
@@ -316,16 +306,23 @@ def generate_ids(source_input, output_data, expand: bool):
     return indices_range
 
 
-def convert_forecast_to_output(pre_history_data: Union[InputData, MultiModalData], forecast: np.array) -> OutputData:
-    """ Converts forecast array to OutputData
-    :param pre_history_data: data which was used for prediction
-    :param forecast: array with predicted values"""
+def convert_forecast_to_output(pre_history_data: Union[InputData, MultiModalData], forecast: np.array,
+                               idx: Optional[np.array] = None) -> OutputData:
+    """Converts forecast array to OutputData
+
+    Args:
+        pre_history_data: data which was used for prediction
+        forecast: array with predicted values
+        idx: array with idx values. If None sets next idx after `pre_history_data` with length of forecast.
+    """
     features = pre_history_data.features if isinstance(pre_history_data, InputData) else None
     if forecast.ndim > 1:
         forecast = np.squeeze(forecast)
-    start_idx = pre_history_data.idx[-1] + 1
-    end_idx = start_idx + len(forecast)
-    prediction = OutputData(idx=np.arange(start_idx, end_idx),
+    if idx is None:
+        start_idx = pre_history_data.idx[-1] + 1
+        end_idx = start_idx + len(forecast)
+        idx = np.arange(start_idx, end_idx)
+    prediction = OutputData(idx=idx,
                             features=features,
                             predict=forecast,
                             task=pre_history_data.task,

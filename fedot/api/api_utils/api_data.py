@@ -8,6 +8,7 @@ from fedot.core.data.data import InputData, OutputData, data_type_is_table
 from fedot.core.data.data_preprocessing import convert_into_column
 from fedot.core.data.multi_modal import MultiModalData
 from fedot.core.pipelines.pipeline import Pipeline
+from fedot.core.pipelines.ts_wrappers import in_sample_ts_forecast, convert_forecast_to_output
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from fedot.preprocessing.preprocessing import DataPreprocessor
 
@@ -73,14 +74,20 @@ class ApiDataProcessor:
             output_prediction = current_pipeline.predict(test_data, output_mode='labels')
 
         elif self.task.task_type == TaskTypesEnum.ts_forecasting:
-            # Convert forecast into one-dimensional array
-            prediction = current_pipeline.predict(test_data)
-            forecast = np.ravel(np.array(prediction.predict))
-            prediction.predict = forecast
+            forecast_length = test_data.task.task_params.forecast_length
+            horizon = len(test_data.idx)
+            if horizon > forecast_length:
+                forecast = in_sample_ts_forecast(current_pipeline, test_data, horizon)
+                prediction = convert_forecast_to_output(test_data, forecast,
+                                                        idx=test_data.idx)
+            else:
+                prediction = current_pipeline.predict(test_data)
+                # Convert forecast into one-dimensional array
+                forecast = np.ravel(np.array(prediction.predict))
+                prediction.predict = forecast
             output_prediction = prediction
         else:
-            prediction = current_pipeline.predict(test_data)
-            output_prediction = prediction
+            output_prediction = current_pipeline.predict(test_data)
 
         return output_prediction
 

@@ -172,7 +172,7 @@ def test_api_forecast_numpy_input_with_static_model_correct(task_type: str = 'ts
     model.fit(features=train_data.features,
               target=train_data.target,
               predefined_model=pipeline)
-    ts_forecast = model.predict(features=train_data)
+    ts_forecast = model.predict(features=test_data)
     metric = model.get_metrics(target=test_data.target, metric_names='rmse')
 
     assert len(ts_forecast) == forecast_length
