@@ -22,7 +22,7 @@ LEGACY_CLASS_PATHS = {
         'fedot.core.optimisers.opt_history_objects.opt_history/OptHistory',
 
     'fedot.core.dag.graph_node/GraphNode':
-        'fedot.core.dag.graph_node/DAGNode',
+        'fedot.core.dag.linked_graph_node/LinkedGraphNode',
     'fedot.core.dag.graph_operator/GraphOperator':
         'fedot.core.dag.linked_graph/LinkedGraph',
     'fedot.core.dag.graph_operator/GraphOperator._empty_postprocess':
