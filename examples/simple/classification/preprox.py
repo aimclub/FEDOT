@@ -1,5 +1,6 @@
 import logging
 import os.path
+import random
 from copy import deepcopy
 from pathlib import Path
 
@@ -22,6 +23,7 @@ from fedot.preprocessing.preprocessing import DataPreprocessor
 
 
 base_path = Path('../../data/openml')
+base_path_my = Path('../../data/openml/npy')
 
 
 def run_classification_example(
@@ -70,10 +72,10 @@ def run_classification_example(
     return metrics
 
 
-def get_preprocessed_data_folds(nfolds=(0, 1), stage='train'):
-    npy_path = base_path / 'datasets'
-    basename = 'credit-g'
-
+def get_preprocessed_data_folds(nfolds=(0, 1), stage='train',
+                                npy_path = base_path / 'datasets',
+                                basename = 'credit-g',
+                                ):
     def load_npy(ifold: int, stage='train'):
         fname_features = f'{stage}_{basename}_fold{ifold}.npy'
         fname_target = f'{stage}y_{basename}_fold{ifold}.npy'
@@ -107,9 +109,9 @@ def _transform_targets(targets: np.ndarray):
     return new_targets
 
 
-def get_preprocessed_data(nfolds=(0, 1)):
-    train_set = get_preprocessed_data_folds(nfolds=nfolds, stage='train')
-    test_set = get_preprocessed_data_folds(nfolds=nfolds, stage='test')
+def get_preprocessed_data(nfolds=(0, 1), npy_path=base_path_my):
+    train_set = get_preprocessed_data_folds(nfolds=nfolds, stage='train', npy_path=npy_path)
+    test_set = get_preprocessed_data_folds(nfolds=nfolds, stage='test', npy_path=npy_path)
     return train_set, test_set
 
 
@@ -148,14 +150,15 @@ def try_predefined(folds=None):
 
     train_test_raw = get_raw_data()
     metris_raw = run_classification_example(*train_test_raw, predefined_model=deepcopy(pipeline))
+    train_test_pro_fdt = preprocess_data(*train_test_raw)
+    metris_prx= run_classification_example(*train_test_pro_fdt, predefined_model=deepcopy(pipeline))
+    print(f'raw data: {metris_raw}')
+    print(f'prx data: {metris_prx}')
 
     for i in range(0, 10):
         train_test_pro_amb = get_preprocessed_data(nfolds=(i, i+1))
         metris_amb = run_classification_example(*train_test_pro_amb, predefined_model=deepcopy(pipeline))
-
-        print(f'fold {i}')
-        print(f'raw data: {metris_raw}')
-        print(f'amb data: {metris_amb}')
+        print(f'amb data (fold {i}): {metris_amb}')
 
 
 def try_duplicates():
@@ -178,6 +181,7 @@ def try_duplicates():
 
 def sort_data_many(*data: InputData):
     return [sort_data_by_column(d) for d in data]
+
 
 def sort_data_by_column(data: InputData, *, column=4, sort_index=False) -> InputData:
     inds = data.features[:, column].argsort()
@@ -206,14 +210,21 @@ def try_evolution(kind='raw', shuffle=False):
         raise ValueError('Unknown kind of data')
 
     if shuffle:
-        train = train.shuffle()
-        test = test.shuffle()
+        train.shuffle()
+        test.shuffle()
 
     print(f'Running: {kind}')
-    run_classification_example(train, test, timeout=2, save_prefix=kind)
+    return run_classification_example(train, test, timeout=30, save_prefix=kind)
 
 
 if __name__ == '__main__':
+    random.seed(44)
+    np.random.seed(44)
+
     # try_duplicates()
     # try_predefined()
-    try_evolution(kind='prx')
+
+    mamb = try_evolution(kind='amb', shuffle=True)
+    mraw = try_evolution(kind='raw', shuffle=True)
+    print('amb:', mamb)
+    print('raw:', mraw)
