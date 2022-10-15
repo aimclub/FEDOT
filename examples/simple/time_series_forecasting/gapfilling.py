@@ -78,7 +78,7 @@ def run_gapfilling_example():
 
     # Filling in gaps using pipeline from FEDOT
     node_lagged = PrimaryNode('lagged')
-    node_lagged.parameters = {'window_size': 100}
+    node_lagged.parameters = {'window_size': 50}
     node_ridge = SecondaryNode('ridge', nodes_from=[node_lagged])
     ridge_pipeline = Pipeline(node_ridge)
     ridge_gapfiller = ModelGapFiller(gap_value=-100.0,

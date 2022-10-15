@@ -47,7 +47,7 @@ def run_metocean_forecasting_problem(train_file_path, test_file_path,
                   timeout=timeout, logging_level=logging.DEBUG)
 
     pipeline = fedot.fit(features=historical_data, target=ssh_history)
-    fedot.forecast(historical_data, forecast_length=forecast_length)
+    fedot.forecast(historical_data)
     metric = fedot.get_metrics(target=ssh_obs)
 
     if is_visualise:

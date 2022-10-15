@@ -44,16 +44,16 @@ def test_time_profiler_correctly():
     assert os.path.exists(path)
 
 
-def test_memory_profiler_correctly():
-    """
-    Profilers requirements are needed
-    """
-
-    path = os.path.abspath('memory_profiler')
-    full_path_train, full_path_test = get_scoring_data()
-    arguments = {'train_file_path': full_path_train, 'test_file_path': full_path_test,
-                 'timeout': 1.5}
-    MemoryProfiler(run_credit_scoring_problem, kwargs=arguments,
-                   path=path, roots=[run_credit_scoring_problem], max_depth=8)
-
-    assert os.path.exists(path)
+# def test_memory_profiler_correctly():
+#     """
+#     Profilers requirements are needed
+#     """
+#
+#     path = os.path.abspath('memory_profiler')
+#     full_path_train, full_path_test = get_scoring_data()
+#     arguments = {'train_file_path': full_path_train, 'test_file_path': full_path_test,
+#                  'timeout': 1.5}
+#     MemoryProfiler(run_credit_scoring_problem, kwargs=arguments,
+#                    path=path, roots=[run_credit_scoring_problem], max_depth=8)
+#
+#     assert os.path.exists(path)
