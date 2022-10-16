@@ -57,8 +57,6 @@ Compared to other frameworks:
 - Allows managing the complexity of models and thereby achieving better results.
 - Allows building pipelines using different types of input data (texts, images, tables, etc.) and consisting of various models.
 
-.. include:: docs/source/introduction/tutorial/environment_setup/manual_installation.rst
-
 Installation
 ============
 
