@@ -39,9 +39,9 @@ More details about FEDOT are available in the next video:
    :target: http://www.youtube.com/watch?v=RjbuV6i6de4
    :alt: Introducing Fedot
 
-.. include:: docs/source/fedot/fedot_features.rst
+.. include:: docs/source/introduction/fedot_features.rst
 
-.. include:: docs/source/fedot/installation.rst
+.. include:: docs/source/introduction/tutorial/environment_setup/manual_installation.rst
 
 
 
