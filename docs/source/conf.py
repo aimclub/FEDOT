@@ -10,8 +10,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 
-import sys
 import datetime
+import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / '../../'))
@@ -23,7 +23,7 @@ copyright = '2020-{}, NSS Lab'.format(datetime.datetime.now().year)
 author = 'NSS Lab'
 
 # The full version, including alpha/beta/rc tags
-release = '0.5.2'
+release = '0.6.0'
 
 # -- General configuration ---------------------------------------------------
 
