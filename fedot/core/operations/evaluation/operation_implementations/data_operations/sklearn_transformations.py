@@ -1,5 +1,9 @@
 import random
-from typing import Optional, Union, List, Tuple
+# TODO: FastICA refactoring params
+# Deprecated since version 1.1: Starting in v1.3, whiten='unit-variance' will be used by default.
+# whiten=True is deprecated from 1.1 and will raise ValueError in 1.3. Use whiten=arbitrary-variance instead.
+import warnings
+from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -12,6 +16,8 @@ from fedot.core.data.data_preprocessing import replace_inf_with_nans, convert_in
     divide_data_categorical_numerical, find_categorical_columns, data_has_categorical_features
 from fedot.core.operations.evaluation.operation_implementations. \
     implementation_interfaces import DataOperationImplementation, EncodedInvariantImplementation
+
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 class ComponentAnalysisImplementation(DataOperationImplementation):
