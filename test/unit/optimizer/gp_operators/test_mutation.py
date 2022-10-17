@@ -19,7 +19,7 @@ from fedot.core.pipelines.pipeline_graph_generation_params import get_pipeline_g
 from fedot.core.repository.operation_types_repository import OperationTypesRepository
 from fedot.core.repository.tasks import Task, TaskTypesEnum
 from test.unit.dag.test_graph_utils import find_first
-from test.unit.optimizer.test_gp_operators import _get_requirements_and_params_for_task, file_data, \
+from test.unit.optimizer.gp_operators.test_gp_operators import _get_requirements_and_params_for_task, file_data, \
     get_mutation_operator
 from test.unit.pipelines.test_node_cache import pipeline_first, pipeline_fifth
 from test.unit.tasks.test_forecasting import get_ts_data
