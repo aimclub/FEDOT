@@ -79,7 +79,7 @@ class Fedot:
         initial_assumption: initial assumption for composer
         genetic_scheme: name of the genetic scheme
         history_folder: name of the folder for composing history
-        metric:  metric for quality calculation during composing, also is used for tuning if with_tuning=True
+        metric:  metric for quality calculation during composing, also is used for tuning if ``with_tuning=True``
         collect_intermediate_metric: save metrics for intermediate (non-root) nodes in pipeline
         preset: name of preset for model building (e.g. 'best_quality', 'fast_train', 'gpu'):
 
