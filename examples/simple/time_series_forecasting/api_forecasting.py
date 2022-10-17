@@ -46,7 +46,6 @@ def run_ts_forecasting_example(dataset='australia', horizon: int = 30, validatio
 
     # run AutoML model design in the same way
     pipeline = model.fit(train_data)
-    pipeline.show()
 
     # use model to obtain forecast
     forecast = model.predict(test_data)

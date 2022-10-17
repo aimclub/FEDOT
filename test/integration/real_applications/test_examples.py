@@ -43,11 +43,12 @@ def test_gapfilling_example():
         # Get only values in the gap
         predicted_values = arr_without_gaps[gap_ids]
         true_values = real_data[gap_ids]
-        plt.plot(true_values)
-        plt.plot(predicted_values)
-        plt.show()
         model_rmse = mean_squared_error(true_values, predicted_values, squared=False)
-        #assert model_rmse < 0.5
+        # only ridge correctly interpolate the data
+        if key == 'ridge':
+            assert model_rmse < 0.5
+        else:
+            assert model_rmse < 2
 
 
 def test_exogenous_ts_example():
@@ -73,10 +74,10 @@ def test_log_example():
     pth = Path(default_fedot_data_dir(), 'log.log')
     with pth.open() as f:
         lines_before = len(f.readlines())
-        run_log_example(pth.name)
+    run_log_example(pth.name)
+    with pth.open() as f:
         lines_after = len(f.readlines())
-    assert lines_before
-    assert lines_after == 2
+    assert lines_after > lines_before
 
 
 def test_pipeline_tuning_example():
@@ -102,7 +103,7 @@ def test_api_example():
     prediction = run_classification_example(timeout=1)
     assert prediction is not None
 
-    forecast = run_ts_forecasting_example(dataset='australia', timeout=1)
+    forecast = run_ts_forecasting_example(dataset='australia', timeout=1, visualise=False)
     assert forecast is not None
 
     pareto = run_classification_multiobj_example(timeout=1)
@@ -113,5 +114,5 @@ def test_api_example():
 
 
 def test_multi_modal_example():
-    result = run_multi_modal_example(files_path='examples/data/multimodal_wine', is_visualise=False)
+    result = run_multi_modal_example(file_path='examples/data/multimodal_wine.csv', is_visualise=False)
     assert result > 0.5

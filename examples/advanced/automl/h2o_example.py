@@ -79,7 +79,7 @@ def h2o_regression_pipeline_evaluation():
     print(f"RMSE {rmse_on_test}")
 
 
-def h2o_ts_pipeline_evaluation():
+def h2o_ts_pipeline_evaluation(visualize=False):
     train_data, test_data = get_ts_data(n_steps=500, forecast_length=3)
 
     pipeline = pipeline_h2o_ts()
@@ -101,7 +101,8 @@ def h2o_ts_pipeline_evaluation():
 
     metrics_info['Metrics'] = {'RMSE': round(rmse, 3),
                                'MAE': round(mae, 3)}
-    visualise(plot_info)
+    if visualize:
+        visualise(plot_info)
     print(metrics_info)
 
 
@@ -111,4 +112,4 @@ if __name__ == '__main__':
     with OperationTypesRepository.init_automl_repository() as _:
         h2o_regression_pipeline_evaluation()
     with OperationTypesRepository.init_automl_repository() as _:
-        h2o_ts_pipeline_evaluation()
+        h2o_ts_pipeline_evaluation(visualize=True)
