@@ -87,7 +87,7 @@ def classification_random_forest_pipeline():
     """
     Returns pipeline with the following structure:
 
-    .. |random_forest| image:: img_classification_pipelines/random_forest.png
+    .. image:: img_classification_pipelines/random_forest.png
       :width: 55%
 
     """
@@ -100,7 +100,7 @@ def classification_isolation_forest_pipeline():
     """
     Returns pipeline with the following structure:
 
-    .. |isolation_forest| image:: img_classification_pipelines/isolation_forest.png
+    .. image:: img_classification_pipelines/isolation_forest.png
       :width: 55%
 
     """
